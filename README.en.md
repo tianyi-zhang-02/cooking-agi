@@ -87,6 +87,9 @@ These papers help define the conceptual map rather than form a complete reading 
 ## Repository map
 
 - [`systems/`](systems/README.en.md) — connecting data, models, runtime, evaluation, and the product loop
+- [`data and feedback`](data-and-feedback/README.en.md) — understanding sparsity, delay, ambiguity, and policy-biased behavior
+- [`representation and memory`](memory/README.en.md) — persistent, revisable user and world state
+- [`evaluation`](evaluation/README.en.md) — combining deterministic, semantic, human, and longitudinal evidence
 - [`agent observability`](systems/agent-observability.en.md) — using traces, state, and outcomes to explain agent failures
 - [`human in the loop`](systems/human-in-the-loop.en.md) — routing uncertain or high-risk decisions to human judgment
 - [`personal-agi/`](personal-agi/README.en.md) — persistent user state, memory, adaptation, and agents

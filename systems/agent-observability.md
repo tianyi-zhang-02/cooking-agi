@@ -1,91 +1,97 @@
-# AI Agent Observability
+# AI Agent Observability：Agent 刚才到底做了什么？
 
 **中文** · [English](agent-observability.en.md)
 
-## 核心判断
+## 先用一句话讲清楚
 
-传统软件 observability 主要回答“服务是否正常”，Agent observability 还必须回答：
+Agent Observability 的目标，不只是知道服务有没有报错，而是能还原：**Agent 看到了什么、做了哪些决定、状态怎样变化，以及失败从哪一步开始。**
 
-> **Agent 看到了什么、相信了什么、为什么选择这个行动，以及失败从哪一步开始传播？**
+## 一个最简单的例子
 
-只记录最终回答或错误码是不够的。Agent 的失败可能来自错误检索、过期记忆、工具返回异常、状态转换错误、循环执行、评价标准不一致，或者模型在正确证据上做出了错误判断。
+用户让 Agent 订周五的餐厅，最后却订成了周六。
 
-## 一次运行需要记录什么
+只看最终回答，我们只知道日期错了。完整 trace 可能告诉我们：
 
-```mermaid
-flowchart LR
-    A[User request] --> B[Context assembly]
-    B --> C[Model decision]
-    C --> D[Tool or retrieval call]
-    D --> E[State update]
-    E --> F[Next decision]
-    F --> G[Final outcome]
+```text
+用户原始请求：周五
+记忆读取：上周对话里提到周六聚餐
+模型决定：优先使用旧记忆
+工具调用：date=Saturday
+工具返回：success
+最终回答：预订成功
 ```
 
-### 1. Identity 与版本
+工具没有失败，模型也没有 hallucinate 一个不存在的订单。真正问题是：旧记忆错误覆盖了当前明确指令。
 
-- model、prompt、tool、retriever、memory policy 和 evaluator 的版本
-- 数据、index、feature 与配置版本
-- session、user、task、trace 和 experiment 标识
+## Metrics、Logs 和 Traces 有什么区别
 
-### 2. Context 与证据
-
-- 进入模型的指令、记忆、检索结果和工具返回
-- 哪些候选被过滤、截断或重新排序
-- token、时间和成本预算怎样分配
-
-### 3. 决策与状态转换
-
-- 每一步选择了什么 action
-- action 的输入、输出、异常和重试
-- 状态在执行前后怎样变化
-- cancellation、timeout、fallback 与人工接管是否发生
-
-### 4. 结果与评价
-
-- 任务是否完成，而不只是是否生成文本
-- 确定性 invariant、reference check 与 LLM judge 结果
-- 用户纠正、后续行为和长期 outcome
-
-## Trace 不是日志堆积
-
-好的 trace 应该围绕因果链组织，而不是简单保存大量字符串。常见 span 可以包括：
-
-- `model`：输入上下文、输出、延迟、token 与模型版本
-- `retrieval`：query、候选、score、过滤和最终 context
-- `tool`：参数、返回、异常、重试与副作用
-- `memory`：读取、写入、压缩、遗忘与置信度变化
-- `policy`：路由、停止、fallback 与风险决策
-- `evaluation`：rubric、证据、verdict 与 evaluator 版本
-- `human_review`：升级原因、人工决定、修改和 rationale
-
-## 从监控到理解
-
-| 层次 | 回答的问题 |
+| 形式 | 最适合回答什么 |
 | --- | --- |
-| Metrics | 系统整体发生了什么变化？ |
-| Logs | 某个组件报告了什么事件？ |
-| Traces | 一次请求经过了哪些决策与依赖？ |
-| Replay | 相同证据和版本能否复现失败？ |
-| Evaluation | 这条轨迹是否满足任务合同？ |
-| Slicing | 失败集中在哪类用户、任务、工具或环境？ |
+| Metrics | 今天整体错误率、延迟和成本有没有变化？ |
+| Logs | 某个组件在某个时间报告了什么事件？ |
+| Traces | 一次请求按什么顺序经过了哪些决策和依赖？ |
+| Replay | 用相同版本和证据，能不能重现这次失败？ |
+| Evaluation | 这条完整轨迹是否满足任务要求？ |
 
-## 重要 failure modes
+Agent 特别需要 trace，因为一次结果通常由多次模型、检索和工具调用共同产生。
 
-- **Loop**：重复调用工具或反复推理，但状态没有实质变化。
-- **Context drift**：后续行动依据的目标或证据已偏离原始任务。
-- **Memory contamination**：错误、过期或不属于当前用户的信息进入长期状态。
-- **Tool mismatch**：模型假设的工具语义与真实 API 行为不同。
-- **Silent fallback**：系统降级后仍返回看似正常但质量更差的结果。
-- **Evaluator blind spot**：评估只看最终文本，没有检查过程与副作用。
-- **Cost runaway**：额外 token、工具调用或重试没有带来相应进展。
+## 一次运行应该记录什么
 
-## 我的理解
+### 版本
 
-Observability 的最终产物不应该只是 dashboard，而应该是三类可行动证据：
+模型、prompt、retriever、工具、memory policy、evaluator、数据和配置分别是什么版本。
 
-1. 能稳定复现的 failure case；
-2. 能进入离线评估集的行为轨迹；
-3. 能驱动 prompt、policy、tool、memory 或 post-training 更新的明确归因。
+### 输入证据
 
-如果 trace 不能帮助系统决定“下一步改什么”，它更多只是昂贵的日志保存。
+模型看到了哪些指令、记忆、检索结果和工具返回；哪些内容被截断、过滤或重新排序。
+
+### 决策过程
+
+每一步选择了什么 action，为什么继续或停止，是否发生重试、fallback、timeout 或人工接管。
+
+### 状态变化
+
+执行前后，用户状态、任务状态和外部系统状态发生了什么改变。
+
+### 最终结果
+
+任务是否真正完成，而不是只看是否生成了一段看似合理的文字。
+
+## Trace 不应该只是更长的日志
+
+好的 trace 围绕因果链组织。常见 span 可以包括：
+
+- `model`：上下文、输出、token、延迟和版本；
+- `retrieval`：query、候选、分数、过滤和最终证据；
+- `tool`：参数、返回、异常、重试和副作用；
+- `memory`：读取、写入、压缩、遗忘和置信度变化；
+- `policy`：路由、停止、fallback 和风险判断；
+- `evaluation`：标准、证据、结论和 evaluator 版本；
+- `human_review`：为什么升级、人怎样修改以及修改理由。
+
+## 常见 Agent 失败
+
+- **循环**：重复调用同一个工具，状态却没有实质变化。
+- **目标漂移**：执行到后面已经偏离用户最初任务。
+- **记忆污染**：错误、过期或属于其他上下文的信息进入长期状态。
+- **工具语义不一致**：模型理解的 API 行为和实际实现不同。
+- **静默降级**：系统 fallback 后仍返回正常口吻，用户不知道质量已经下降。
+- **评估盲区**：只检查最终文本，不检查过程、工具和副作用。
+- **成本失控**：更多 token、搜索和重试没有带来新的进展。
+
+## 记录之后要做什么
+
+Observability 的终点不是 dashboard，而是能产生三种东西：
+
+1. 一个稳定可复现的失败案例；
+2. 一条可以加入离线 eval set 的完整轨迹；
+3. 一个清楚的修改方向：应该改 prompt、Search、工具、记忆、policy，还是训练数据。
+
+如果 trace 不能帮助回答“下一步改什么”，它就更像昂贵的日志仓库。
+
+## 和其他章节的连接
+
+- [Evaluation](../evaluation/) 决定怎样判断一条轨迹成功或失败。
+- [Human-in-the-Loop](human-in-the-loop.md) 决定哪些轨迹需要人工介入。
+- [表征与记忆](../memory/) 解释状态怎样被写入和污染。
+- [Search](../search/) 解释证据是怎样进入上下文的。
