@@ -1,17 +1,19 @@
 # Multimodal Learning
 
-## Working thesis
+**中文** · [English](README.en.md)
 
-Multimodal learning should recover content meaning and value that cannot be inferred from text or engagement alone. The central challenge is not attaching another encoder; it is defining objectives that connect perception to useful downstream behavior.
+## 当前理解
 
-## Questions
+多模态学习应该恢复仅靠文本或 engagement 无法推断的内容含义与价值。关键并不是简单接入另一个 encoder，而是设计能把感知能力连接到有用下游行为的训练目标。
 
-- Which signals teach visual or cross-modal content value rather than superficial correlation?
-- How should modality-specific evidence enter user and item representations?
-- What information is lost when multimodal content is compressed too early?
-- How should multimodal understanding be evaluated under sparse feedback?
+## 我关心的问题
 
-## Starting papers
+- 哪些信号能教会模型理解视觉或跨模态内容价值，而不是表面相关性？
+- 不同模态的证据应该怎样进入用户与内容表征？
+- 过早压缩多模态内容会丢失什么信息？
+- 在反馈稀疏时，怎样评估真正的多模态理解？
+
+## 起始论文
 
 - [CLIP](https://arxiv.org/abs/2103.00020)
 - [Flamingo](https://arxiv.org/abs/2204.14198)

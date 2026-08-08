@@ -1,17 +1,19 @@
 # Search
 
-## Working thesis
+**中文** · [English](README.en.md)
 
-Search is a decision process over incomplete information. Representation determines what can be retrieved; objectives determine what counts as useful; interaction determines which evidence becomes visible next.
+## 当前理解
 
-## Questions
+Search 是不完整信息下的决策过程。表征决定什么能够被找到，目标函数决定什么算“有用”，交互策略则决定下一步会暴露哪些新证据。
 
-- When is one query vector too lossy for a multimodal or multi-intent need?
-- How should retrieval balance relevance, coverage, novelty, and uncertainty?
-- When should a model retrieve, explore, ask, or act?
-- How do policy-biased logs distort offline evaluation?
+## 我关心的问题
 
-## Starting papers
+- 面对多模态或多重意图需求，单一 query vector 何时损失过大？
+- 检索怎样同时平衡 relevance、coverage、novelty 与 uncertainty？
+- 模型何时应该检索、探索、追问或直接行动？
+- 由旧策略生成的日志怎样扭曲离线评估？
+
+## 起始论文
 
 - [Dense Passage Retrieval](https://arxiv.org/abs/2004.04906)
 - [ColBERT](https://arxiv.org/abs/2004.12832)

@@ -1,17 +1,19 @@
 # Personal AGI
 
-## Working thesis
+**中文** · [English](README.en.md)
 
-A personal model should maintain a **persistent, uncertainty-aware, and revisable state** about a user. It must distinguish durable preference from temporary intent, observed behavior from underlying goals, and memory that is useful from memory that is merely available.
+## 当前理解
 
-## Questions
+个人模型需要维护关于用户的**持续、带不确定性且可修正的状态**。它必须区分长期偏好与短期意图、可观察行为与真实目标，以及“真正有用的记忆”与“只是曾经出现过的信息”。
 
-- How can multiple or conflicting intents coexist without being averaged away?
-- When should memory be updated, compressed, forgotten, or challenged?
-- How can personalization remain controllable and legible to the user?
-- What evaluation horizon reveals genuine adaptation rather than short-term mimicry?
+## 我关心的问题
 
-## Starting papers
+- 多个甚至冲突的意图怎样共存，而不是被平均掉？
+- 记忆何时应该更新、压缩、遗忘或被新证据推翻？
+- 个性化怎样保持可控、可解释并允许用户纠正？
+- 多长的评估周期才能区分真实适应与短期模仿？
+
+## 起始论文
 
 - [Generative Agents](https://arxiv.org/abs/2304.03442)
 - [MemGPT](https://arxiv.org/abs/2310.08560)

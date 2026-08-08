@@ -1,33 +1,36 @@
-# Paper Title
+# 论文标题
 
-- **Authors:**
-- **Venue / year:**
-- **Links:** [paper]() · [code]()
-- **Read on:** YYYY-MM-DD
-- **Threads:**
+- **作者：**
+- **会议 / 年份：**
+- **链接：** [论文]() · [代码]()
+- **阅读日期：** YYYY-MM-DD
+- **相关主线：**
 
-## One-sentence claim
-
-
-## Problem
+## 一句话 claim
 
 
-## Core mechanism
+## 真正的问题
 
 
-## Assumptions and invariants
+## 核心机制
 
 
-## Evidence
+## 假设与 invariants
 
 
-## What could falsify the claim?
+## 关键证据
 
 
-## Limitations and open questions
+## 什么结果会推翻 claim？
 
 
-## Connection to my research map
+## 局限与开放问题
 
 
-## Ideas to test
+## 它在完整系统中的位置
+
+
+## 它怎样改变我的研究地图
+
+
+## 可以继续验证的想法

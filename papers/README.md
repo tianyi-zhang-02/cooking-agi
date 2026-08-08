@@ -1,5 +1,7 @@
-# Paper Notes
+# 论文笔记
 
-Paper-by-paper notes live here. Each note should connect the paper to the broader research map rather than only summarize it.
+**中文** · [English](README.en.md)
 
-Use [`../templates/paper-note.md`](../templates/paper-note.md) as a starting point.
+单篇论文笔记放在这里。每篇笔记应该说明它怎样改变整体研究地图，而不只是复述论文内容。
+
+可以从 [`../templates/paper-note.md`](../templates/paper-note.md) 开始。
