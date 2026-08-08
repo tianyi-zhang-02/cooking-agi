@@ -92,3 +92,24 @@ Tradeoff   What improves, and what may become worse?
 ```
 
 The point is not to master every layer. It is to preserve the complete context while working deeply on one part.
+
+## Two focused topics
+
+- [AI Agent Observability](agent-observability.en.md): reconstructing an agent run as a queryable, comparable, and replayable decision trajectory.
+- [Human in the Loop](human-in-the-loop.en.md): deciding when risk, uncertainty, or novelty requires human review, approval, or correction.
+
+Together they form an improvement loop:
+
+```mermaid
+flowchart LR
+    A[Agent execution] --> B[Observability evidence]
+    B --> C[Automated evaluation]
+    C --> D{Risk or uncertainty?}
+    D -->|Low| E[Automatic action]
+    D -->|High| F[Human review]
+    F --> G[Correction and rationale]
+    E --> H[Outcome]
+    G --> H
+    H --> I[Evaluation data and training updates]
+    I --> A
+```

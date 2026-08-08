@@ -87,6 +87,8 @@ LLM-as-a-Judge 很有价值，但它更像一个**可扩展的语义传感器**�
 ## 仓库结构
 
 - [`systems/`](systems/) — 如何把数据、模型、运行时、评估与产品闭环串起来
+- [`systems/agent-observability.md`](systems/agent-observability.md) — 从 trace、状态和结果理解 Agent 为什么失败
+- [`systems/human-in-the-loop.md`](systems/human-in-the-loop.md) — 用风险与不确定性决定何时引入人工判断
 - [`personal-agi/`](personal-agi/) — 用户状态、长期记忆、适应与 Agent
 - [`search/`](search/) — 检索、排序、探索与 retrieval-augmented reasoning
 - [`model-experience/`](model-experience/) — 行为评估、交互质量与可控性

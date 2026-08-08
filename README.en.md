@@ -85,6 +85,8 @@ These papers help define the conceptual map rather than form a complete reading 
 ## Repository map
 
 - [`systems/`](systems/README.en.md) — connecting data, models, runtime, evaluation, and the product loop
+- [`agent observability`](systems/agent-observability.en.md) — using traces, state, and outcomes to explain agent failures
+- [`human in the loop`](systems/human-in-the-loop.en.md) — routing uncertain or high-risk decisions to human judgment
 - [`personal-agi/`](personal-agi/README.en.md) — persistent user state, memory, adaptation, and agents
 - [`search/`](search/README.en.md) — retrieval, ranking, exploration, and retrieval-augmented reasoning
 - [`model-experience/`](model-experience/README.en.md) — behavioral evaluation, interaction quality, and control

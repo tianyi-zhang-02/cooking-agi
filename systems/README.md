@@ -92,3 +92,24 @@ Tradeoff   改善了什么，又可能伤害什么？
 ```
 
 这张地图的作用不是要求一个人精通每一层，而是避免在局部优化时失去完整上下文。
+
+## 两个关键专题
+
+- [AI Agent Observability](agent-observability.md)：把一次 Agent 运行还原成可查询、可比较、可重放的决策轨迹。
+- [Human-in-the-Loop](human-in-the-loop.md)：根据风险、不确定性和新颖性决定何时由人审查、批准或纠正。
+
+它们共同形成一条改进链路：
+
+```mermaid
+flowchart LR
+    A[Agent execution] --> B[Observability evidence]
+    B --> C[Automated evaluation]
+    C --> D{Risk or uncertainty?}
+    D -->|Low| E[Automatic action]
+    D -->|High| F[Human review]
+    F --> G[Correction and rationale]
+    E --> H[Outcome]
+    G --> H
+    H --> I[Evaluation data and training updates]
+    I --> A
+```
