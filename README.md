@@ -1,4 +1,4 @@
-# 学习如何炒一盘 AGI
+# AGI 大锅烩
 
 **中文** · [English](README.en.md)
 
