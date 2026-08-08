@@ -1,8 +1,10 @@
-# Learning Notes
+# Cooking AGI
 
 [中文](README.md) · **English**
 
 Working notes on **personal AGI, search, and model experience**.
+
+This is not a recipe for AGI. It is an attempt to place models, data, memory, search, feedback, and evaluation on the same workbench: to understand what each ingredient contributes, how they interact, and why the complete system behaves the way it does.
 
 This is not a paper collection or a taxonomy of isolated fields. I use it to follow one question across papers, systems, and experiments: how can a model understand a person over time, find what is useful now, and improve its behavior from incomplete interaction feedback?
 
