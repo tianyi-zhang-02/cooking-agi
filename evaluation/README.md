@@ -107,3 +107,7 @@ Few-shot、reference-based、pairwise 和概率加权经常被混在一起讲，
 - [Human-in-the-Loop](../systems/human-in-the-loop.md) 负责高风险判断和 evaluator 校准。
 - [数据与反馈](../data-and-feedback/) 决定 eval set 是否代表真实任务。
 - [Model Experience](../model-experience/) 把离线指标连接到长期感受。
+
+## 工程实践阅读
+
+- [Confident AI Blog](https://www.confident-ai.com/blog)：持续更新 LLM evaluation、Agent evaluation、observability、Human-in-the-Loop、RAG metrics 与实验工作流。适合了解工程实现和常见设计模式；具体方法仍需要结合原始论文与自己的数据验证。

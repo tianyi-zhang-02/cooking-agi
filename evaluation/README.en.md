@@ -29,3 +29,7 @@ For a fuller breakdown of demonstrations, references, judging modes, rubrics, an
 Always inspect slices. Aggregate improvement can hide new-user regressions, long-task failures, or a relevance–diversity tradeoff.
 
 Evaluators also drift and must be evaluated: track human agreement, style bias, new failure coverage, and correlation with real outcomes.
+
+## Engineering reading
+
+- [Confident AI Blog](https://www.confident-ai.com/blog) — practical writing on LLM and agent evaluation, observability, human review, RAG metrics, and experimentation workflows. Use it for implementation patterns while validating methodological claims against primary papers and your own data.

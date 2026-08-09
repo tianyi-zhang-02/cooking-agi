@@ -40,3 +40,4 @@ Use deterministic checks first; judge one criterion at a time; write anchored ru
 - [Judging LLM-as-a-Judge](https://arxiv.org/abs/2306.05685)
 - [Prometheus](https://arxiv.org/abs/2310.08491)
 - [Judging the Judges](https://arxiv.org/abs/2406.07791)
+- [Confident AI Blog](https://www.confident-ai.com/blog) — implementation-oriented articles on LLM judging, RAG and agent evaluation, observability, and human review; useful as an engineering companion to primary papers.

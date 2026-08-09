@@ -270,6 +270,10 @@ A 表示 judge 稳定认为答案一般；B 表示 judge 极度不确定，或 r
 - [Prometheus](https://arxiv.org/abs/2310.08491)：使用细粒度 rubric 与 reference answer 训练专门 evaluator。
 - [Judging the Judges](https://arxiv.org/abs/2406.07791)：系统分析 pairwise position bias。
 
+### 工程实践
+
+- [Confident AI Blog](https://www.confident-ai.com/blog)：有较完整的 LLM-as-a-Judge、G-Eval、Arena-style comparison、RAG evaluation、Agent evaluation 与 observability 实践文章。适合补充实现思路，但不替代原始论文和针对自己任务的校准实验。
+
 ## 和其他章节的连接
 
 - [Evaluation 总览](README.md)
