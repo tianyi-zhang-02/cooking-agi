@@ -74,6 +74,10 @@ Slice       哪些用户、任务和环境必须分别观察？
 
 把 rubric 写成 DAG 可以帮助拆分判断，但 DAG 本身不会自动让指标正确。最重要的仍然是每个节点是否对应真实、可验证的标准。
 
+Few-shot、reference-based、pairwise 和概率加权经常被混在一起讲，但它们其实是不同维度。更完整的拆解见：
+
+→ [LLM-as-a-Judge：criterion、reference 与 scoring 到底怎样组合？](llm-as-a-judge.md)
+
 ## 为什么一定要看 slice
 
 一个平均 Recall、平均胜率或平均 judge score，可能同时包含：

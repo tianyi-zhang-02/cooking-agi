@@ -24,6 +24,8 @@ Define the user goal, success condition, invariants, tradeoffs, and slices befor
 
 Treat an LLM judge as a scalable semantic sensor, not final truth. Ask atomic questions, use references, swap pairwise order, allow ties, calibrate against human examples, and record evaluator versions.
 
+For a fuller breakdown of demonstrations, references, judging modes, rubrics, and probabilistic aggregation, see [LLM-as-a-Judge](llm-as-a-judge.en.md).
+
 Always inspect slices. Aggregate improvement can hide new-user regressions, long-task failures, or a relevance–diversity tradeoff.
 
 Evaluators also drift and must be evaluated: track human agreement, style bias, new failure coverage, and correlation with real outcomes.

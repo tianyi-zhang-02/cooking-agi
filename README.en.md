@@ -90,6 +90,7 @@ These papers help define the conceptual map rather than form a complete reading 
 - [`data and feedback`](data-and-feedback/README.en.md) — understanding sparsity, delay, ambiguity, and policy-biased behavior
 - [`representation and memory`](memory/README.en.md) — persistent, revisable user and world state
 - [`evaluation`](evaluation/README.en.md) — combining deterministic, semantic, human, and longitudinal evidence
+- [`LLM-as-a-Judge`](evaluation/llm-as-a-judge.en.md) — demonstrations, references, rubrics, judging modes, and score aggregation
 - [`agent observability`](systems/agent-observability.en.md) — using traces, state, and outcomes to explain agent failures
 - [`human in the loop`](systems/human-in-the-loop.en.md) — routing uncertain or high-risk decisions to human judgment
 - [`personal-agi/`](personal-agi/README.en.md) — persistent user state, memory, adaptation, and agents

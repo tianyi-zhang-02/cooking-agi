@@ -78,6 +78,7 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 ### 最后理解怎样判断它做得好不好
 
 - [Evaluation](evaluation/)：为什么“给模型打一个分”远远不够？
+- [LLM-as-a-Judge](evaluation/llm-as-a-judge.md)：few-shot、reference、rubric 与 scoring 怎样组合？
 - [Agent Observability](systems/agent-observability.md)：一次 Agent 运行到底发生了什么？
 - [Human-in-the-Loop](systems/human-in-the-loop.md)：什么时候应该让人介入？
 - [Model Experience](model-experience/)：离线指标怎样连接到长期用户体验？
