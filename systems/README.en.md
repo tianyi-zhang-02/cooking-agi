@@ -10,16 +10,26 @@ I therefore view an AI system as a continuous **sense–model–search–act–m
 
 ```mermaid
 flowchart TD
-    A[User goals, tasks, and constraints] --> B[Interaction and environment observation]
-    B --> C[Data semantics and feedback modeling]
-    C --> D[Representation, memory, and world state]
-    D --> E[Retrieval, tools, and context construction]
-    E --> F[Foundation model and policy]
-    F --> G[Reasoning, generation, and action]
-    G --> H[Runtime, serving, and state management]
-    H --> I[User experience and environment outcome]
-    I --> J[Offline eval, online metrics, and human audit]
-    J --> C
+    subgraph O["Observe and construct state"]
+        A(["User goals · tasks · constraints"]) --> B["Interaction and environment signals"]
+        B --> C["Data semantics and feedback model"]
+        C --> D[("Memory · representation · world state")]
+    end
+
+    subgraph A1["Reason and act"]
+        E["Retrieval · tools · context construction"] --> F["Foundation model and policy"]
+        F --> G["Reasoning · generation · action"]
+        G --> H["Runtime · serving · state transitions"]
+    end
+
+    subgraph L["Measure and learn"]
+        I(["User and environment outcome"]) --> J["Offline eval · online metrics · human audit"]
+        J --> K[("Versioned evidence and update candidates<br/>↺ state · retrieval · model · policy")]
+    end
+
+    D --> E
+    H --> I
+    K -.-> C
 ```
 
 ## Eight layers
@@ -101,15 +111,15 @@ The point is not to master every layer. It is to preserve the complete context w
 Together they form an improvement loop:
 
 ```mermaid
-flowchart LR
-    A[Agent execution] --> B[Observability evidence]
-    B --> C[Automated evaluation]
-    C --> D{Risk or uncertainty?}
-    D -->|Low| E[Automatic action]
-    D -->|High| F[Human review]
-    F --> G[Correction and rationale]
-    E --> H[Outcome]
+flowchart TB
+    A["Agent plan and proposed action"] --> B[("Trace · tool state · permissions · evidence")]
+    B --> C["Deterministic checks and calibrated evaluators"]
+    C --> D{"Risk, uncertainty, or irreversible impact?"}
+    D -- "low" --> E["Execute automatically"]
+    D -- "high" --> F["Request human decision"]
+    F --> G["Approval, correction, or rejection with rationale"]
+    E --> H(["Observed outcome"])
     G --> H
-    H --> I[Evaluation data and training updates]
-    I --> A
+    H --> I["Audit · regression tests · data and policy updates"]
+    I -.-> A
 ```

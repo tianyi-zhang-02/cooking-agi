@@ -21,15 +21,23 @@ The defining property of a self-evolving system is not that its model can be upd
 ### The loop
 
 ```mermaid
-flowchart LR
-    A[User interaction] --> B[Trace and outcome]
-    B --> C[Failure classification]
-    C --> D[Automatic and human evaluation]
-    D --> E[Data selection and generation]
-    E --> F[Training or policy update]
-    F --> G[Regression and safety checks]
-    G --> H[Canary deployment]
-    H --> A
+flowchart TB
+    A(["User interaction"])
+    B[("Versioned trace and outcome")]
+    C["Failure slice and root-cause taxonomy"]
+    D["Executable checks · model judges · human audit"]
+    P{"Consent, privacy, and quality gates pass?"}
+    E[("Curated improvement dataset")]
+    F["Training or policy update"]
+    G{"Regression, safety, and cost gates pass?"}
+    H["Canary · monitor · compare"]
+
+    A --> B --> C --> D --> P
+    P -- "yes" --> E --> F --> G
+    P -- "no" --> X["Exclude, redact, or relabel"]
+    G -- "yes" --> H --> A
+    G -- "no" --> Y["Diagnose and revise"]
+    Y -.-> E
 ```
 
 Every arrow needs version and causal context. Saving only prompts and responses cannot reveal which model, retrieved evidence, tool state, configuration, and experiment policy produced an interaction.

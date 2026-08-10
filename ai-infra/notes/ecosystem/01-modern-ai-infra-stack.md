@@ -9,15 +9,25 @@
 AI Infra 不是一个职位，也不是一套固定工具。它是从芯片到可靠模型体验的完整路径。现代的学习方式是先看清楚**每一层负责哪类约束**，再沿着一次请求或一个训练 step 穿过整个系统。
 
 ```mermaid
-flowchart BT
-    H[加速器、CPU、内存、网络、存储] --> R[驱动、运行时、通信集合]
-    R --> K[Kernel、编译器、图捕获]
-    K --> T[训练与后训练系统]
-    K --> I[推理引擎与调度器]
-    T --> P[集群与平台控制面]
-    I --> P
-    P --> E[Tracing、评测、数据飞轮]
-    E --> X[模型或 Agent 体验]
+flowchart TB
+    H["1 · 硬件与互连<br/>加速器 · HBM · 网络 · 存储"]
+    R["2 · Runtime 与通信<br/>驱动 · 优化库 · Collective"]
+    K["3 · 编译器与 Kernel<br/>图捕获 · 代码生成 · 数值精度"]
+    T["4A · 训练<br/>Pre-training · Post-training · Rollout"]
+    I["4B · 推理<br/>KV Cache · Batching · Token Scheduler"]
+    P["控制面<br/>放置 · 隔离 · 故障恢复"]
+    E[("证据面<br/>Profile · Trace · Eval · Lineage")]
+    X(["可靠的模型或 Agent 体验"])
+
+    H --> R --> K
+    K --> T
+    K --> I
+    P -.-> T
+    P -.-> I
+    T --> E
+    I --> E
+    E --> X
+    E -.-> T
 ```
 
 ## 按职责理解生态位
