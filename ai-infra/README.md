@@ -9,13 +9,29 @@ AI Infra 是让现代 LLM 能够被训练、部署、扩展、观测和持续改
 ## 一张图看完整栈
 
 ```mermaid
-flowchart BT
-    A[GPU、CPU、网络与存储] --> B[Runtime 与通信]
-    B --> C[Kernel、数值格式与编译]
-    C --> D[分布式训练与 LLM 推理]
-    D --> E[集群、调度与可观测性]
-    E --> F[数据、Evaluation 与持续学习]
-    F --> G[用户体验]
+flowchart TB
+    H["加速器 · CPU · HBM · 网络 · 存储"]
+    R["驱动 · Runtime · 优化库 · Collective"]
+    K["Kernel · 数值格式 · 编译器"]
+
+    subgraph W["模型 Workload"]
+        T["训练 · Post-training · Rollout"]
+        I["推理 · KV Cache · Token 调度"]
+    end
+
+    P["集群控制面<br/>调度 · 隔离 · 故障恢复"]
+    O["Profile · Trace · Evaluation · Lineage"]
+    X(["可靠的模型或 Agent 体验"])
+
+    H --> R --> K
+    K --> T
+    K --> I
+    P -.-> T
+    P -.-> I
+    T --> O
+    I --> O
+    O --> X
+    O -.-> T
 ```
 
 阅读时始终问：

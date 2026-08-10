@@ -13,19 +13,33 @@ The goal is not to train the largest model. It is to prove that the entire loop 
 ## System architecture
 
 ```mermaid
-flowchart LR
-    A[Client] --> B[Gateway and scheduler]
-    B --> C[LLM serving]
-    C --> D[Response and tools]
-    B --> E[Trace store]
-    C --> E
-    D --> E
-    E --> F[Evaluation and failure taxonomy]
-    F --> G[Versioned improvement dataset]
-    G --> H[LoRA / SFT update]
-    H --> I[Regression and system benchmark]
-    I --> J[Canary or rollback]
-    J --> B
+flowchart TB
+    subgraph O["Online path"]
+        A(["Client request"]) --> B["Gateway · admission · scheduler"]
+        B --> C["LLM runtime · KV cache"]
+        C --> D["Tools · streamed response"]
+    end
+
+    subgraph V["Evidence path"]
+        E[("Versioned event and trace store")]
+        F["Evaluation · failure slices · human audit"]
+        G[("Governed improvement dataset")]
+        E --> F --> G
+    end
+
+    subgraph U["Update and release path"]
+        H["SFT · LoRA · policy update"] --> I["Quality · safety · systems benchmark"]
+        I --> J{"Release gates pass?"}
+        J -- "yes" --> K["Canary · monitor · promote or rollback"]
+        J -- "no" --> L["Reject or revise candidate"]
+    end
+
+    B -.-> E
+    C -.-> E
+    D -.-> E
+    G --> H
+    K -.-> B
+    L -.-> G
 ```
 
 ## Project boundaries

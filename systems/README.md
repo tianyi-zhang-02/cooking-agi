@@ -24,14 +24,26 @@
 
 ```mermaid
 flowchart TD
-    A[1. 用户目标] --> B[2. 数据与反馈]
-    B --> C[3. 表征与记忆]
-    C --> D[4. Search 与工具]
-    D --> E[5. 模型与策略]
-    E --> F[6. Runtime 与执行]
-    F --> G[7. 用户结果]
-    G --> H[8. Evaluation 与学习]
-    H --> B
+    subgraph O["观察并构建状态"]
+        A(["用户目标 · 任务 · 约束"]) --> B["交互与环境信号"]
+        B --> C["数据语义与 Feedback Model"]
+        C --> D[("记忆 · 表征 · 世界状态")]
+    end
+
+    subgraph A1["推理并行动"]
+        E["Search · 工具 · 上下文构建"] --> F["Foundation Model 与策略"]
+        F --> G["推理 · 生成 · 行动"]
+        G --> H["Runtime · Serving · 状态迁移"]
+    end
+
+    subgraph L["测量并学习"]
+        I(["用户与环境结果"]) --> J["Offline Eval · 在线指标 · 人工审计"]
+        J --> K[("版本化证据与更新 Candidate<br/>↺ 状态 · 检索 · 模型 · 策略")]
+    end
+
+    D --> E
+    H --> I
+    K -.-> C
 ```
 
 ### 1. 用户目标：到底想解决什么
@@ -112,14 +124,15 @@ Tradeoff    改善了什么，又可能伤害什么？
 → [阅读 Human-in-the-Loop](human-in-the-loop.md)
 
 ```mermaid
-flowchart LR
-    A[Agent 运行] --> B[Observability 记录证据]
-    B --> C[自动评估]
-    C --> D{风险或不确定性高吗？}
-    D -->|否| E[自动完成]
-    D -->|是| F[人工确认或纠正]
-    E --> G[真实结果]
-    F --> G
-    G --> H[更新测试、数据与策略]
-    H --> A
+flowchart TB
+    A["Agent 计划与待执行动作"] --> B[("Trace · Tool State · 权限 · Evidence")]
+    B --> C["确定性检查与已校准 Evaluator"]
+    C --> D{"存在高风险、不确定性或不可逆影响？"}
+    D -- "低" --> E["自动执行"]
+    D -- "高" --> F["请求人工决策"]
+    F --> G["批准、纠正或拒绝，并记录理由"]
+    E --> H(["观察真实结果"])
+    G --> H
+    H --> I["审计 · 回归测试 · 数据与策略更新"]
+    I -.-> A
 ```

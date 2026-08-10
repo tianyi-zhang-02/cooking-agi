@@ -97,6 +97,7 @@ Claims about current APIs, hardware support, or defaults must be rechecked again
 - Does it include a quantity or exercise the reader can verify?
 - Has history unrelated to a current decision been removed?
 - Do fast-moving claims have a review date and reliable source?
+- Does every Mermaid diagram use concise labels, meaningful shapes, clear forward/feedback edges, and pass a render check?
 - Does the next link feel natural rather than forcing a linear path?
 
 Only notes satisfying these conditions enter the main index.

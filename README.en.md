@@ -15,15 +15,25 @@ The repository is **modern-first**: it starts from current LLM, agent, multimoda
 Personal AGI is not simply a larger model with an unlimited context window. It is a closed learning system: one that maintains revisable user and world state, searches for external evidence, reasons and acts, and then updates itself from evaluation and real interaction.
 
 ```mermaid
-flowchart LR
-    A[Real goals and constraints] --> B[Interaction and observation]
-    B --> C[User and world state]
-    C --> D[Memory, search, and tools]
-    D --> E[Model reasoning and action]
-    E --> F[Model experience]
-    F --> G[Evaluation and feedback]
-    G --> H[Data and training objectives]
-    H --> C
+flowchart TB
+    subgraph O["1 · Observe"]
+        A["Real goals and constraints"] --> B["Interaction and environment signals"]
+        B --> C[("User and world state")]
+    end
+
+    subgraph R["2 · Reason and act"]
+        D["Memory · search · tools"] --> E["Model policy and reasoning"]
+        E --> F["Action and model experience"]
+    end
+
+    subgraph L["3 · Evaluate and improve"]
+        G["Evaluation · outcomes · human feedback"] --> H[("Versioned data and objectives")]
+        H --> I["Training or policy update<br/>↺ state · retrieval · policy"]
+    end
+
+    C --> D
+    F --> G
+    I -.-> C
 ```
 
 The interests connect as one system:
