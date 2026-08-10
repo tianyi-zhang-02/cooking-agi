@@ -29,9 +29,14 @@ Exponent bits mainly determine the range of magnitudes; mantissa bits mainly det
 | BF16 | similar to FP32 | lower than FP16 | wide dynamic range suited to training |
 | FP8 E4M3 | smaller | higher within FP8 | favors precision |
 | FP8 E5M2 | larger | lower | favors range |
-| FP4 / INT4 | very limited | very limited | depends heavily on scaling and calibration |
+| MXFP8 | FP8 values with block scales | finer local adaptation | hardware- and layout-dependent |
+| NVFP4 / INT4 | very limited | very limited | depends heavily on scaling, kernels, and calibration |
 
 TF32 is normally a Tensor Core matrix-computation mode, not a new 19-bit storage dtype for model weights. “BF24” is not common in mainstream LLM workflows; check the exact paper or hardware definition when it appears.
+
+### Block scaling is part of the format
+
+Modern FP8/FP4 paths are not described by element bits alone. MXFP8 uses scale factors for small blocks of values; NVFP4 combines a small-block scale with a tensor-level scale. These choices affect accuracy, metadata, layout, transpose handling, supported shapes, and communication. Treat a precision claim as incomplete unless it names the scaling recipe, accumulation precision, kernel, and hardware.
 
 ### Mixed precision
 
@@ -93,7 +98,7 @@ Measure error at three levels:
 2. Run the same matrix multiplication in FP32, FP16, and BF16; measure error and time.
 3. Record operator dtypes in a small model under autocast.
 4. Implement simple per-tensor INT8 quantize/dequantize.
-5. Compare BF16, INT8, and INT4 inference quality, memory, and throughput.
+5. Compare BF16 with one hardware-supported FP8 or FP4 recipe; record accuracy, memory, throughput, scale overhead, and unsupported shapes.
 
 ## Common misconceptions
 
@@ -110,5 +115,7 @@ Measure error at three levels:
 - What problem does loss scaling solve?
 - Why can per-channel scales outperform one per-tensor scale?
 - What evidence would justify adopting a low-precision optimization?
+
+Current reference: [NVIDIA Transformer Engine FP8, MXFP8, and NVFP4 guide](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
 
 Next: [Module 04 · Distributed Training](04-distributed-training.en.md)

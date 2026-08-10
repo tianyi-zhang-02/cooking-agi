@@ -27,6 +27,10 @@ What moves between devices?
 Did the optimization preserve correctness?
 ```
 
+## Read this first
+
+[Modern AI Infra Stack: Where Each Layer Fits](notes/ecosystem/01-modern-ai-infra-stack.en.md) maps the ecosystem by responsibility—from hardware, runtimes, kernels, and compilers through training, serving, platforms, and evaluation. Use it to choose a specialty without mistaking a list of tools for a learning plan.
+
 ## Start by goal
 
 | Goal | Recommended path |
@@ -37,6 +41,14 @@ Did the optimization preserve correctness?
 | Build LLM serving systems | 02 → 03 → 05 → 06 |
 | Build self-evolving LLMs | 05 → 07 → 08 |
 | Learn directly through projects | P00 → P01 → P06 |
+
+## Modern focus for this edition
+
+- compiler-aware PyTorch and kernel DSLs rather than framework calls alone;
+- BF16 as a baseline, with FP8, MXFP8, and NVFP4 treated as hardware-and-recipe decisions;
+- FSDP2/DTensor, multidimensional device meshes, context parallelism, and expert parallelism;
+- token-level serving, KV-cache management, chunked prefill, speculative decoding, and disaggregation;
+- rollout, tracing, evaluation, canary, and rollback infrastructure for agents and learning loops.
 
 ## Foundations
 
@@ -93,9 +105,12 @@ See [Five-Minute Notes and Freshness Policy](EDITORIAL.en.md) for the complete s
 ## Current starting resources
 
 - [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/)
-- [PyTorch Distributed Overview](https://docs.pytorch.org/tutorials/beginner/dist_overview.html)
-- [PyTorch Automatic Mixed Precision](https://docs.pytorch.org/docs/stable/amp.html)
+- [PyTorch `torch.compile`](https://docs.pytorch.org/docs/stable/generated/torch.compile.html)
+- [Triton Tutorials](https://triton-lang.org/main/getting-started/tutorials/)
+- [PyTorch FSDP2](https://docs.pytorch.org/docs/main/distributed.fsdp.fully_shard.html)
 - [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/)
+- [Transformer Engine Low Precision](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
+- [vLLM Serving](https://docs.vllm.ai/en/latest/cli/serve/)
 - [TensorRT-LLM Documentation](https://docs.nvidia.com/tensorrt-llm/)
 - [Kubernetes GPU Scheduling](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)
 

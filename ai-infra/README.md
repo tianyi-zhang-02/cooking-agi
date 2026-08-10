@@ -27,6 +27,10 @@ flowchart BT
 优化是否保持了正确性？
 ```
 
+## 先读这一篇
+
+[现代 AI Infra 全栈：每一层负责什么](notes/ecosystem/01-modern-ai-infra-stack.md)按职责梳理从硬件、运行时、kernel、编译器到训练、serving、平台和评测的生态位。先用它选择方向，避免把工具名单误当成学习路线。
+
 ## 按目标开始
 
 | 我想做什么 | 推荐路线 |
@@ -37,6 +41,14 @@ flowchart BT
 | 做 LLM serving | 02 → 03 → 05 → 06 |
 | 做 self-evolving LLM | 05 → 07 → 08 |
 | 直接通过项目学习 | P00 → P01 → P06 |
+
+## 本版的现代重点
+
+- 不只会调用框架，还要理解 compiler-aware PyTorch 与 kernel DSL；
+- 以 BF16 为基线，把 FP8、MXFP8、NVFP4 当成硬件与 recipe 的联合决策；
+- FSDP2/DTensor、多维 device mesh、context parallel 与 expert parallel；
+- token 级 serving、KV-cache 管理、chunked prefill、speculative decoding 与 disaggregation；
+- 面向 Agent 和学习循环的 rollout、tracing、evaluation、canary 与 rollback 基础设施。
 
 ## Foundations
 
@@ -93,9 +105,12 @@ flowchart BT
 ## 当前起始资料
 
 - [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/)
-- [PyTorch Distributed Overview](https://docs.pytorch.org/tutorials/beginner/dist_overview.html)
-- [PyTorch Automatic Mixed Precision](https://docs.pytorch.org/docs/stable/amp.html)
+- [PyTorch `torch.compile`](https://docs.pytorch.org/docs/stable/generated/torch.compile.html)
+- [Triton Tutorials](https://triton-lang.org/main/getting-started/tutorials/)
+- [PyTorch FSDP2](https://docs.pytorch.org/docs/main/distributed.fsdp.fully_shard.html)
 - [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/)
+- [Transformer Engine Low Precision](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
+- [vLLM Serving](https://docs.vllm.ai/en/latest/cli/serve/)
 - [TensorRT-LLM Documentation](https://docs.nvidia.com/tensorrt-llm/)
 - [Kubernetes GPU Scheduling](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)
 

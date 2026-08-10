@@ -14,6 +14,7 @@ GPU 性能不是“开更多线程”这么简单。本模块研究一个 kernel
 - 能画出 register、shared memory、L2 与 HBM 的数据路径；
 - 能识别 uncoalesced access、warp divergence 和同步开销；
 - 能解释 tiling、occupancy、arithmetic intensity 和 kernel fusion；
+- 能区分 library call、生成 kernel、Triton kernel 与手写 CUDA；
 - 能用 profiler 判断算子是计算受限还是带宽受限。
 
 ## 核心笔记
@@ -50,6 +51,19 @@ Tensor Core 针对小块矩阵乘累加。高性能 GEMM 通常把大矩阵拆�
 
 Kernel launch、内存复制和部分通信可以异步进入 CUDA stream。不同 stream 可能并发，但依赖必须用 event 或同步原语表达。过度同步会让 CPU、GPU 或通信链路空等。
 
+### 现代编译器阶梯
+
+不要一开始就为所有优化手写 CUDA。先确认需要介入的最低层级：
+
+```text
+framework graph（`torch.compile` / Inductor）
+→ kernel DSL（Triton）
+→ template library（CUTLASS）
+→ 手写 CUDA
+```
+
+上层迭代更快、可移植性更好；下层能更细地控制 layout、指令和调度。Graph break、shape guard 或 recompile 可能吃掉 compiler 收益，而 custom kernel 也可能因为额外 copy 或 launch overhead 让端到端更慢。只有比较完整 workload 后，才决定是否继续下沉。
+
 ## 需要会算
 
 Arithmetic intensity：
@@ -72,7 +86,8 @@ time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 2. 实现 parallel reduction，处理 block 内同步。
 3. 实现 tiled matrix multiplication，比较是否使用 shared memory。
 4. 用 Triton 写 fused softmax 或 normalization。
-5. 用 Nsight 或 PyTorch Profiler 记录 kernel 时间、带宽和 launch gaps。
+5. 对同一算子比较 eager 与 `torch.compile`，检查 graph break、recompile、生成 kernel 和端到端时间。
+6. 用 Nsight 或 PyTorch Profiler 记录 kernel 时间、带宽和 launch gaps。
 
 ## 常见误区
 
@@ -89,5 +104,7 @@ time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 - register 使用增加为什么可能降低 occupancy？
 - kernel fusion 改善了什么，又可能增加什么成本？
 - 怎样用证据区分 compute-bound 与 memory-bound？
+
+当前资料：[PyTorch `torch.compile`](https://docs.pytorch.org/docs/stable/generated/torch.compile.html) · [Triton tutorials](https://triton-lang.org/main/getting-started/tutorials/)
 
 下一步：[Module 03 · 数值计算](03-numerical-computing.md)

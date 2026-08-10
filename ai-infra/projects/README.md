@@ -21,10 +21,10 @@ written analysis
 | --- | --- | --- |
 | [P00 · C/C++ Tensor Core](00-c-cpp-tensor-core.md) | 指针、RAII、layout、测试、benchmark | 小型 CPU tensor library |
 | [P01 · 手搓 Attention](01-attention-from-scratch.md) | matmul、softmax、mask、CUDA、online softmax | CPU/CUDA attention 与分析报告 |
-| P02 · CUDA Kernel Pack | reduction、normalization、fusion、profiling | 一组可对照 PyTorch 的 kernels |
-| P03 · Mixed Precision Lab | BF16、FP8/INT8、scaling、误差 | 精度—吞吐—显存报告 |
-| P04 · Distributed Training Lab | DDP、FSDP、collectives、timeline | 多 GPU scaling report |
-| P05 · LLM Serving Benchmark | KV cache、batching、TTFT、TPOT | serving dashboard |
+| P02 · Compiler-to-Kernel Lab | `torch.compile`、Triton、CUDA、fusion、profiling | 从 graph 追到 kernel 的算子报告 |
+| P03 · Mixed Precision Lab | BF16、FP8/MXFP8/NVFP4、scaling、误差 | 精度—吞吐—显存报告 |
+| P04 · Distributed Training Lab | DDP、FSDP2/DTensor、collective、device mesh | 多 GPU scaling report |
+| P05 · LLM Serving Benchmark | KV cache、token 调度、TTFT/TPOT、disaggregation | workload-driven serving dashboard |
 | [P06 · Self-Improving Service](../modules/08-capstone.md) | trace、eval、SFT、canary、rollback | 完整学习闭环 |
 
 P02–P05 的第一版练习分别放在对应模块中；当实验积累到足够深度时，再拆成独立项目页。

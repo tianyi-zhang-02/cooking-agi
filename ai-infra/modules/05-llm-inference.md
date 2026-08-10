@@ -13,7 +13,7 @@
 - 能解释 tokenization、queue、prefill、decode 和 streaming；
 - 能区分 TTFT、TPOT、end-to-end latency 与 throughput；
 - 理解 KV cache、paged attention 和 continuous batching；
-- 能解释 prefix caching、chunked prefill 和 speculative decoding；
+- 能解释 prefix caching、chunked prefill、speculative decoding 和 prefill/decode disaggregation；
 - 能设计一份包含质量与系统指标的 serving benchmark。
 
 ## 核心笔记
@@ -43,10 +43,17 @@ Paged attention 把 KV cache 分成可以非连续分配的 block，减少预留
 
 静态 batch 等所有请求一起结束；continuous batching 会在请求完成后立即移除，并把新请求加入后续 decode iteration。它提高利用率，但调度器必须维护每个序列的状态、位置和 cache 映射。
 
+### Prefill 与 decode 何时分离
+
+Chunked prefill 在同一引擎里切分长 prompt；disaggregated serving 则可以把 prefill 和 decode 放到不同 worker pool，让两类阶段采用不同并行、batching 或硬件配置。代价是 KV transfer、额外 queue、routing 和故障协调。
+
+Disaggregation 不会因为更新就自动更快。只有已经测到 phase interference 影响 SLO，或独立扩缩容对真实 workload 的收益足以抵消传输与运维成本时，才应采用。
+
 ### 常见优化
 
 - **Prefix caching**：复用相同 prompt 前缀的 KV 状态；
 - **Chunked prefill**：把很长的 prefill 拆成片段，减少阻塞；
+- **Prefill/decode disaggregation**：在 KV transfer 成本可接受时隔离阶段特有的调度与容量；
 - **Speculative decoding**：由较便宜的 draft model 提议多个 token，再由目标模型验证；
 - **Quantization**：减少权重或 KV cache 的存储和带宽；
 - **Tensor/Pipeline Parallel**：让单卡放不下的模型跨设备运行；
@@ -79,6 +86,7 @@ throughput = completed tokens or requests / wall-clock time
 3. 记录 TTFT、TPOT、throughput、P95/P99 和峰值显存。
 4. 比较 prefix caching 开关前后的重复 prompt workload。
 5. 用同一数据集比较 BF16 与一种量化配置的质量和成本。
+6. 用同一 arrival trace 比较 chunked prefill 单引擎和分离 prefill/decode pool，并计入 KV-transfer 时间。
 
 ## 常见误区
 
@@ -95,5 +103,7 @@ throughput = completed tokens or requests / wall-clock time
 - GQA 怎样影响 KV cache 大小？
 - speculative decoding 在什么条件下才会加速？
 - 怎样防止一个超长 prompt 破坏所有其他请求的尾延迟？
+
+当前资料：[vLLM serving options 与 scheduler controls](https://docs.vllm.ai/en/latest/cli/serve/)
 
 下一步：[Module 06 · GPU 平台](06-gpu-platforms.md)

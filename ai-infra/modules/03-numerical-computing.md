@@ -29,9 +29,14 @@
 | BF16 | 接近 FP32 | 低于 FP16 | 动态范围大，适合训练 |
 | FP8 E4M3 | 较小 | FP8 中较高 | 更偏精度 |
 | FP8 E5M2 | 较大 | 更低 | 更偏范围 |
-| FP4 / INT4 | 很有限 | 很有限 | 依赖 scaling 与校准 |
+| MXFP8 | FP8 值配合 block scale | 更细的局部适应 | 依赖硬件与 layout |
+| NVFP4 / INT4 | 很有限 | 很有限 | 强依赖 scaling、kernel 与校准 |
 
 TF32 通常是 Tensor Core 的矩阵计算模式，而不是把模型权重存成一种新的 19-bit tensor 类型。“BF24”不是主流 LLM 工作流中的常用格式，遇到时应检查具体硬件或论文定义。
+
+### Block scaling 也是格式的一部分
+
+现代 FP8/FP4 路径不能只用单个元素的位数描述。MXFP8 为小块数值设置 scale；NVFP4 把小块 scale 与 tensor-level scale 组合起来。这些选择会影响精度、metadata、layout、transpose、支持的 shape 和通信。一个低精度结论如果没有说明 scaling recipe、累加精度、kernel 和硬件，就是不完整的。
 
 ### 混合精度
 
@@ -93,7 +98,7 @@ compression ratio ≈ original bits / quantized bits
 2. 用 FP32、FP16、BF16 完成同一个矩阵乘法并比较误差和时间。
 3. 对一个小模型记录 autocast 前后的 operator dtype。
 4. 实现简单的 per-tensor INT8 quantize/dequantize。
-5. 比较 BF16、INT8 和 INT4 推理的质量、显存和吞吐。
+5. 比较 BF16 与一种硬件支持的 FP8 或 FP4 recipe，记录精度、显存、吞吐、scale overhead 和不支持的 shape。
 
 ## 常见误区
 
@@ -110,5 +115,7 @@ compression ratio ≈ original bits / quantized bits
 - loss scaling 在解决什么问题？
 - per-channel scale 为什么可能优于 per-tensor scale？
 - 怎样证明一次低精度优化值得采用？
+
+当前资料：[NVIDIA Transformer Engine FP8、MXFP8 与 NVFP4 指南](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
 
 下一步：[Module 04 · 分布式训练](04-distributed-training.md)

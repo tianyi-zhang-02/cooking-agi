@@ -21,10 +21,10 @@ written analysis
 | --- | --- | --- |
 | [P00 · C/C++ Tensor Core](00-c-cpp-tensor-core.en.md) | pointers, RAII, layouts, testing, benchmarking | a small CPU tensor library |
 | [P01 · Attention from Scratch](01-attention-from-scratch.en.md) | matmul, softmax, masks, CUDA, online softmax | CPU/CUDA attention and an analysis report |
-| P02 · CUDA Kernel Pack | reduction, normalization, fusion, profiling | kernels validated against PyTorch |
-| P03 · Mixed Precision Lab | BF16, FP8/INT8, scaling, error | a precision-throughput-memory report |
-| P04 · Distributed Training Lab | DDP, FSDP, collectives, timelines | a multi-GPU scaling report |
-| P05 · LLM Serving Benchmark | KV cache, batching, TTFT, TPOT | a serving dashboard |
+| P02 · Compiler-to-Kernel Lab | `torch.compile`, Triton, CUDA, fusion, profiling | one operator traced from graph to kernel |
+| P03 · Mixed Precision Lab | BF16, FP8/MXFP8/NVFP4, scaling, error | a precision-throughput-memory report |
+| P04 · Distributed Training Lab | DDP, FSDP2/DTensor, collectives, device meshes | a multi-GPU scaling report |
+| P05 · LLM Serving Benchmark | KV cache, token scheduling, TTFT/TPOT, disaggregation | a workload-driven serving dashboard |
 | [P06 · Self-Improving Service](../modules/08-capstone.en.md) | tracing, evaluation, SFT, canary, rollback | a complete learning loop |
 
 The first P02–P05 exercises live in their corresponding modules. They can become dedicated project pages when the experiments grow deep enough.

@@ -11,7 +11,7 @@
 ## 学习目标
 
 - 能分解训练显存的主要组成；
-- 理解 DDP、FSDP/ZeRO、TP、PP、CP 与 EP；
+- 理解 DDP、FSDP2/ZeRO、TP、PP、CP 与 EP；
 - 解释 AllReduce、AllGather、ReduceScatter 与 AllToAll；
 - 能估算一种并行策略的显存与通信量；
 - 能从 timeline 中识别通信等待、pipeline bubble 和 straggler。
@@ -36,13 +36,19 @@
 | 方式 | 切分什么 | 典型通信 | 主要代价 |
 | --- | --- | --- | --- |
 | DDP | 数据 | gradient AllReduce | 每卡保留完整模型状态 |
-| FSDP / ZeRO | 参数、梯度、优化器状态 | AllGather、ReduceScatter | 参数频繁 materialize |
+| FSDP2 / ZeRO | 参数、梯度、优化器状态 | AllGather、ReduceScatter | 参数频繁 materialize |
 | TP | 层内 tensor / matmul | AllReduce、AllGather | 每层通信、拓扑敏感 |
 | PP | 模型层 | point-to-point | bubble、负载平衡 |
 | CP / SP | 序列 | gather/scatter 类通信 | attention 通信复杂度 |
 | EP | MoE experts | AllToAll | token routing 与负载不均 |
 
 并行策略不是互斥选项。大型训练通常把设备组织成多维 mesh，在不同维度应用不同切分。
+
+### FSDP2 与 DTensor
+
+当前 PyTorch FSDP2 用 `DTensor` 表达分片参数，并通过 `fully_shard` 作用于 module。计算前，hook 会 all-gather 需要的参数；计算后再 reshard，避免完整副本持续占用显存。Device mesh 显式描述并行维度，可以把 data sharding 与 tensor、context 等并行组合起来。
+
+这不只是 API 改名。需要理解参数生命周期、placement、mesh dimension 和 distributed checkpoint 格式。部分 tensor-parallel API 仍处于 experimental 状态，因此真正使用前要重新检查支持范围与 migration guidance。
 
 ### 集合通信
 
@@ -91,7 +97,7 @@ scaling efficiency = single-device time / (device count × distributed time)
 ## 动手练习
 
 1. 跑通两张 GPU 的 DDP，并观察 gradient AllReduce。
-2. 用相同模型比较 DDP 与 FSDP 的峰值显存和 step time。
+2. 用相同模型比较 DDP 与 FSDP2 的峰值显存和 step time，并检查参数的 `DTensor` placement。
 3. 画出一次训练 step 的 compute/communication timeline。
 4. 改变 bucket size 或 micro-batch，观察 overlap 与 bubble。
 5. 人为减慢一个 rank，观察 straggler 怎样拖慢全局同步。
@@ -111,5 +117,7 @@ scaling efficiency = single-device time / (device count × distributed time)
 - TP 和 PP 对拓扑的要求有什么不同？
 - MoE 为什么大量依赖 AllToAll？
 - 怎样证明通信与计算真的发生了 overlap？
+
+当前资料：[PyTorch FSDP2 `fully_shard`](https://docs.pytorch.org/docs/main/distributed.fsdp.fully_shard.html) · [PyTorch tensor parallelism](https://docs.pytorch.org/docs/stable/distributed.tensor.parallel.html) · [NCCL collectives](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html)
 
 下一步：[Module 05 · LLM 推理](05-llm-inference.md)

@@ -13,7 +13,7 @@ Training optimizes the process that produces a model; inference optimizes how th
 - Explain tokenization, queueing, prefill, decode, and streaming.
 - Distinguish TTFT, TPOT, end-to-end latency, and throughput.
 - Understand KV cache, paged attention, and continuous batching.
-- Explain prefix caching, chunked prefill, and speculative decoding.
+- Explain prefix caching, chunked prefill, speculative decoding, and prefill/decode disaggregation.
 - Design a serving benchmark that includes both quality and system metrics.
 
 ## Core notes
@@ -43,10 +43,17 @@ Paged attention divides KV cache into blocks that can be allocated non-contiguou
 
 A static batch waits for all requests to finish. Continuous batching removes completed requests immediately and inserts new work into later decode iterations. Utilization improves, but the scheduler must maintain each sequence's state, positions, and cache mapping.
 
+### When prefill and decode separate
+
+Chunked prefill keeps both phases in one engine while slicing long prompts. Disaggregated serving can place prefill and decode on different worker pools, allowing each phase to use a different parallelism, batching, or hardware configuration. The tradeoff is KV transfer, additional queueing, routing, and failure coordination.
+
+Disaggregation is not automatically more modern or faster. Consider it when phase interference is a measured SLO problem or when independent scaling improves the actual workload enough to repay transfer and operational costs.
+
 ### Common optimizations
 
 - **Prefix caching:** reuse KV state for identical prompt prefixes.
 - **Chunked prefill:** split long prefills to reduce blocking.
+- **Prefill/decode disaggregation:** isolate phase-specific scheduling and capacity when KV transfer is affordable.
 - **Speculative decoding:** let a cheaper draft model propose tokens for the target model to verify.
 - **Quantization:** reduce weight or KV-cache storage and bandwidth.
 - **Tensor/Pipeline Parallel:** serve models that do not fit on one GPU.
@@ -79,6 +86,7 @@ Latency must be reported with percentiles and a workload distribution. One mean 
 3. Record TTFT, TPOT, throughput, P95/P99, and peak memory.
 4. Compare repeated-prefix workloads with prefix caching enabled and disabled.
 5. Compare BF16 with one quantized configuration on the same quality and cost workload.
+6. Compare one engine with chunked prefill against separate prefill/decode pools using the same arrival trace; include KV-transfer time.
 
 ## Common misconceptions
 
@@ -95,5 +103,7 @@ Latency must be reported with percentiles and a workload distribution. One mean 
 - How does GQA affect KV-cache size?
 - Under what conditions does speculative decoding improve speed?
 - How can one long prompt be prevented from destroying tail latency for other requests?
+
+Current reference: [vLLM serving options and scheduler controls](https://docs.vllm.ai/en/latest/cli/serve/)
 
 Next: [Module 06 · GPU Platforms](06-gpu-platforms.en.md)

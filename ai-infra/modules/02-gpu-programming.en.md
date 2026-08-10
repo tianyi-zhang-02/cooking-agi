@@ -14,6 +14,7 @@ GPU performance requires more than launching additional threads. This module stu
 - Draw the data path through registers, shared memory, L2, and HBM.
 - Recognize uncoalesced access, warp divergence, and synchronization overhead.
 - Explain tiling, occupancy, arithmetic intensity, and kernel fusion.
+- Distinguish library calls, generated kernels, Triton kernels, and handwritten CUDA.
 - Use profiling evidence to decide whether an operator is compute-bound or bandwidth-bound.
 
 ## Core notes
@@ -50,6 +51,19 @@ Tensor Cores accelerate small matrix multiply-accumulate operations. A high-perf
 
 Kernel launches, memory copies, and some communication can be enqueued asynchronously in CUDA streams. Different streams may overlap, but dependencies must be represented with events or synchronization. Excessive synchronization leaves CPUs, GPUs, or links idle.
 
+### The modern compiler ladder
+
+Do not begin every optimization by writing CUDA. First identify the lowest layer that needs intervention:
+
+```text
+framework graph (`torch.compile` / Inductor)
+→ kernel DSL (Triton)
+→ template library (CUTLASS)
+→ handwritten CUDA
+```
+
+Higher layers provide faster iteration and portability; lower layers expose more control over layouts, instructions, and scheduling. Graph breaks, shape guards, or recompilation can erase compiler gains, while a custom kernel can lose end-to-end by adding copies or launch overhead. Compare the whole workload before moving down the ladder.
+
 ## Quantities to calculate
 
 Arithmetic intensity is:
@@ -72,7 +86,8 @@ time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 2. Implement parallel reduction with block-level synchronization.
 3. Implement tiled matrix multiplication with and without shared memory.
 4. Write a fused softmax or normalization operator in Triton.
-5. Use Nsight or PyTorch Profiler to record kernel time, bandwidth, and launch gaps.
+5. Run the same operator eagerly and through `torch.compile`; inspect graph breaks, recompilation, generated kernels, and end-to-end time.
+6. Use Nsight or PyTorch Profiler to record kernel time, bandwidth, and launch gaps.
 
 ## Common misconceptions
 
@@ -89,5 +104,7 @@ time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 - Why can increased register use lower occupancy?
 - What does kernel fusion improve, and what costs can it add?
 - What evidence distinguishes compute-bound from memory-bound execution?
+
+Current references: [PyTorch `torch.compile`](https://docs.pytorch.org/docs/stable/generated/torch.compile.html) · [Triton tutorials](https://triton-lang.org/main/getting-started/tutorials/)
 
 Next: [Module 03 · Numerical Computing](03-numerical-computing.en.md)

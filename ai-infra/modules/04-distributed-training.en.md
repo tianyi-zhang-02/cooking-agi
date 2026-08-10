@@ -11,7 +11,7 @@ When model state, activations, or optimizer state exceed one GPU's capacity, tra
 ## Learning goals
 
 - Break training memory into its major components.
-- Understand DDP, FSDP/ZeRO, TP, PP, CP, and EP.
+- Understand DDP, FSDP2/ZeRO, TP, PP, CP, and EP.
 - Explain AllReduce, AllGather, ReduceScatter, and AllToAll.
 - Estimate memory and communication for a parallel strategy.
 - Recognize communication waits, pipeline bubbles, and stragglers in a timeline.
@@ -36,13 +36,19 @@ parameters
 | Method | What is partitioned | Typical communication | Main cost |
 | --- | --- | --- | --- |
 | DDP | data | gradient AllReduce | every GPU keeps full model state |
-| FSDP / ZeRO | parameters, gradients, optimizer state | AllGather, ReduceScatter | repeated parameter materialization |
+| FSDP2 / ZeRO | parameters, gradients, optimizer state | AllGather, ReduceScatter | repeated parameter materialization |
 | TP | intra-layer tensors / matmuls | AllReduce, AllGather | per-layer communication, topology sensitivity |
 | PP | layers | point-to-point | bubbles and load balance |
 | CP / SP | sequence | gather/scatter-like communication | attention communication complexity |
 | EP | MoE experts | AllToAll | token routing and load imbalance |
 
 These strategies are not mutually exclusive. Large runs arrange devices into a multidimensional mesh and apply different sharding choices along different dimensions.
+
+### FSDP2 and DTensor
+
+Current PyTorch FSDP2 expresses sharded parameters as `DTensor` and applies `fully_shard` to modules. Before computation, hooks all-gather the required parameters; afterward, parameters are resharded so full copies do not remain resident. A device mesh makes parallel dimensions explicit and can compose data sharding with tensor, context, or other parallelism.
+
+This is more than an API rename. Learn the parameter lifecycle, placements, mesh dimensions, and distributed checkpoint format. Some tensor-parallel APIs remain experimental, so re-check the current support and migration guidance before building around them.
 
 ### Collective communication
 
@@ -91,7 +97,7 @@ Any throughput comparison must define global batch, token count, and gradient ac
 ## Hands-on work
 
 1. Run two-GPU DDP and observe gradient AllReduce.
-2. Compare peak memory and step time between DDP and FSDP for the same model.
+2. Compare peak memory and step time between DDP and FSDP2 for the same model; inspect parameter `DTensor` placements.
 3. Draw a compute/communication timeline for one training step.
 4. Change bucket size or micro-batch size and observe overlap and bubbles.
 5. Artificially slow one rank and observe how a straggler delays global synchronization.
@@ -111,5 +117,7 @@ Any throughput comparison must define global batch, token count, and gradient ac
 - How do TP and PP differ in their topology requirements?
 - Why does MoE rely heavily on AllToAll?
 - What evidence proves computation and communication actually overlap?
+
+Current references: [PyTorch FSDP2 `fully_shard`](https://docs.pytorch.org/docs/main/distributed.fsdp.fully_shard.html) · [PyTorch tensor parallelism](https://docs.pytorch.org/docs/stable/distributed.tensor.parallel.html) · [NCCL collectives](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html)
 
 Next: [Module 05 · LLM Inference](05-llm-inference.en.md)
