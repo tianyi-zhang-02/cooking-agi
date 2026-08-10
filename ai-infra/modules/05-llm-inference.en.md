@@ -2,6 +2,8 @@
 
 [中文](05-llm-inference.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Intermediate · Freshness: Fast-moving · Last reviewed: 2026-08
+
 ## What this module solves
 
 Training optimizes the process that produces a model; inference optimizes how that model serves real requests. This module studies how to control latency, throughput, memory, and cost when request lengths and arrival times are irregular.

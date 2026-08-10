@@ -2,6 +2,8 @@
 
 [中文](08-capstone.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Advanced · Freshness: Evolving · Last reviewed: 2026-08
+
 ## Project goal
 
 Build a small but complete system connecting model serving, performance measurement, interaction traces, failure analysis, data generation, fine-tuning, regression testing, and safe deployment.

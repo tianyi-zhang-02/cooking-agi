@@ -2,6 +2,8 @@
 
 [中文](07-data-eval-learning-loop.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Intermediate · Freshness: Evolving · Last reviewed: 2026-08
+
 ## What this module solves
 
 The defining property of a self-evolving system is not that its model can be updated. It is that every update has credible evidence, known provenance, regression protection, and a rollback path. This module turns interactions into a controlled learning loop.

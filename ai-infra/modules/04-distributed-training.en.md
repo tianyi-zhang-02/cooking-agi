@@ -2,6 +2,8 @@
 
 [中文](04-distributed-training.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Intermediate · Freshness: Fast-moving · Last reviewed: 2026-08
+
 ## What this module solves
 
 When model state, activations, or optimizer state exceed one GPU's capacity, training must be partitioned. This module asks what to partition, how to synchronize it, and whether the added communication, scheduling, and failure complexity is justified.

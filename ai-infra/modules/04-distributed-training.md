@@ -2,6 +2,8 @@
 
 **中文** · [English](04-distributed-training.en.md) · [返回 AI Infra](../README.md)
 
+> 阅读时间：约 5 分钟 · 难度：Intermediate · 时效性：Fast-moving · 最近审阅：2026-08
+
 ## 这一模块解决什么
 
 当模型、activation 或优化器状态超出单卡容量，训练必须被拆分。本模块关注拆什么、怎样同步，以及新增的通信、调度和故障复杂度是否值得。

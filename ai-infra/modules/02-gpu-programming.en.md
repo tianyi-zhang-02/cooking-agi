@@ -2,6 +2,8 @@
 
 [中文](02-gpu-programming.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Foundation · Freshness: Stable concepts / Evolving hardware · Last reviewed: 2026-08
+
 ## What this module solves
 
 GPU performance requires more than launching additional threads. This module studies how a kernel maps onto the GPU and how computation, memory access, synchronization, and scheduling jointly determine performance.

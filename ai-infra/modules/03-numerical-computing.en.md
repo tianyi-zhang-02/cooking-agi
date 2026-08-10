@@ -2,6 +2,8 @@
 
 [中文](03-numerical-computing.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Intermediate · Freshness: Fast-moving · Last reviewed: 2026-08
+
 ## What this module solves
 
 Lower precision can increase throughput and reduce memory and communication, but it sacrifices numerical range or resolution. This module builds a decision framework: **which values can use lower precision, which operations need higher precision, and how is damage detected?**

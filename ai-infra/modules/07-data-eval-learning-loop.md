@@ -2,6 +2,8 @@
 
 **中文** · [English](07-data-eval-learning-loop.en.md) · [返回 AI Infra](../README.md)
 
+> 阅读时间：约 5 分钟 · 难度：Intermediate · 时效性：Evolving · 最近审阅：2026-08
+
 ## 这一模块解决什么
 
 Self-evolving 系统的关键不是模型能够更新，而是更新过程有可靠证据、清晰来源、回归保护和回滚能力。本模块把用户交互转成受控的学习闭环。

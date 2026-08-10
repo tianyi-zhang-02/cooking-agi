@@ -2,6 +2,8 @@
 
 [中文](06-gpu-platforms.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Level: Intermediate · Freshness: Evolving · Last reviewed: 2026-08
+
 ## What this module solves
 
 One script running successfully is only the beginning. Platform engineering makes workloads from different users, models, and priorities reproducible, observable, and recoverable on a shared GPU cluster while controlling waste and limiting failures.

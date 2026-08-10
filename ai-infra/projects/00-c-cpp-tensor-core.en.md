@@ -2,6 +2,8 @@
 
 [中文](00-c-cpp-tensor-core.md) · **English** · [Project ladder](README.en.md)
 
+> Reading time: ~5 minutes · Level: Foundation → Intermediate · Freshness: Stable · Last reviewed: 2026-08
+
 ## Project goal
 
 Implement a small CPU-only tensor library. The first version uses no BLAS, Eigen, or deep-learning framework so that shape, stride, ownership, loop order, and numerical stability remain explicit.

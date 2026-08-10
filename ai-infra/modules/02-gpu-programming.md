@@ -2,6 +2,8 @@
 
 **中文** · [English](02-gpu-programming.en.md) · [返回 AI Infra](../README.md)
 
+> 阅读时间：约 5 分钟 · 难度：Foundation · 时效性：Stable concepts / Evolving hardware · 最近审阅：2026-08
+
 ## 这一模块解决什么
 
 GPU 性能不是“开更多线程”这么简单。本模块研究一个 kernel 怎样映射到 GPU，以及计算、访存、同步和调度如何共同决定性能。

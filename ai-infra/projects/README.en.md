@@ -2,6 +2,8 @@
 
 [中文](README.md) · **English** · [Back to AI Infra](../README.en.md)
 
+> Reading time: ~5 minutes · Type: project index · Freshness: Evolving · Last reviewed: 2026-08
+
 ## Why projects are separate
 
 Understanding a concept only proves that it has been encountered. A project requires correctness, performance, numerical stability, observability, and reproducibility to work together. Every project should produce four forms of evidence:

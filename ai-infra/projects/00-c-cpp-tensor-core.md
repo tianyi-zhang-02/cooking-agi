@@ -2,6 +2,8 @@
 
 **中文** · [English](00-c-cpp-tensor-core.en.md) · [项目路线](README.md)
 
+> 阅读时间：约 5 分钟 · 难度：Foundation → Intermediate · 时效性：Stable · 最近审阅：2026-08
+
 ## 项目目标
 
 实现一个只在 CPU 上运行的小型 tensor library。第一版不使用 BLAS、Eigen 或深度学习框架，让 shape、stride、ownership、loop order 和数值稳定性全部显式可见。
