@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-Working notes on **personal AGI, search, and model experience**.
+Working notes on **personal AGI, search, model experience, and AI infrastructure**.
 
 This is not a recipe for AGI. It is an attempt to place models, data, memory, search, feedback, and evaluation on the same workbench: to understand what each ingredient contributes, how they interact, and why the complete system behaves the way it does.
 
@@ -32,6 +32,7 @@ The interests connect as one system:
 - **Post-training is the behavior-update mechanism:** demonstrations, preferences, and interaction feedback become policy changes.
 - **Multimodal learning is the evidence layer:** text, images, video, behavior, and social context jointly describe intent and value.
 - **Evaluation is the measurement loop:** it determines whether the system improved or merely moved a proxy metric.
+- **AI infrastructure is the execution substrate:** it turns model capability into trainable, scalable, and reliable systems.
 
 ## A systems view of modern AI
 
@@ -86,6 +87,7 @@ These papers help define the conceptual map rather than form a complete reading 
 
 ## Repository map
 
+- [`ai-infra/`](ai-infra/README.en.md) — hardware, kernels, numerical formats, distributed training, inference, clusters, and learning loops
 - [`systems/`](systems/README.en.md) — connecting data, models, runtime, evaluation, and the product loop
 - [`data and feedback`](data-and-feedback/README.en.md) — understanding sparsity, delay, ambiguity, and policy-biased behavior
 - [`representation and memory`](memory/README.en.md) — persistent, revisable user and world state
