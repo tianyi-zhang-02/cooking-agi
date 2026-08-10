@@ -59,6 +59,7 @@ The notes are ordered by dependency. They can be read sequentially or entered th
 
 | Module | Central question | Concrete output |
 | --- | --- | --- |
+| [00 · C/C++ foundations](modules/00-c-cpp-foundations.en.md) | How do memory, pointers, object lifetime, and compilation work? | a small tensor core without third-party numerical libraries |
 | [01 · Computer systems](modules/01-computer-systems.en.md) | How do CPUs, memory, and operating systems execute a program? | a performance-bottleneck analysis |
 | [02 · GPU programming](modules/02-gpu-programming.en.md) | How does a GPU organize threads, memory, and operators? | vector add, reduction, and tiled matmul |
 | [03 · Numerical computing](modules/03-numerical-computing.en.md) | What do BF16, FP8, and quantization trade? | a precision, memory, and throughput experiment |
@@ -69,6 +70,10 @@ The notes are ordered by dependency. They can be read sequentially or entered th
 | [08 · Capstone](modules/08-capstone.en.md) | How do all the modules connect into one system? | a self-improving LLM service |
 
 Every module follows the same structure: learning goals, core notes, quantities to calculate, hands-on work, and mastery checks. New papers, experiments, and incidents can therefore be added to the right conceptual home.
+
+## Hands-on projects
+
+The modules answer “what must be understood”; the projects answer “can it be built and validated?” The [project ladder](projects/README.en.md) begins with C/C++ tensor primitives and progresses through [attention from scratch](projects/01-attention-from-scratch.en.md), CUDA kernels, mixed precision, distributed training, and a complete self-improving service.
 
 ## Shared foundation: CPUs, GPUs, and memory
 

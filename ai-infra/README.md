@@ -59,6 +59,7 @@ flowchart BT
 
 | 模块 | 核心问题 | 完成后的产出 |
 | --- | --- | --- |
+| [00 · C/C++ 基础](modules/00-c-cpp-foundations.md) | 内存、指针、对象生命周期和编译怎样工作？ | 一个无第三方数值库的小型 tensor core |
 | [01 · 计算机系统](modules/01-computer-systems.md) | CPU、内存和操作系统怎样执行程序？ | 一份性能瓶颈分析 |
 | [02 · GPU 编程](modules/02-gpu-programming.md) | GPU 怎样组织线程、内存和算子？ | vector add、reduction 与 tiled matmul |
 | [03 · 数值计算](modules/03-numerical-computing.md) | BF16、FP8 和量化在交换什么？ | 精度、显存和吞吐对比实验 |
@@ -69,6 +70,10 @@ flowchart BT
 | [08 · 综合项目](modules/08-capstone.md) | 怎样把所有模块连接成一个系统？ | self-improving LLM service |
 
 每个模块都使用同一套结构：学习目标、核心笔记、需要会算的量、动手练习和掌握检查。这样新的论文、实验和故障案例可以继续追加到正确位置。
+
+## 实战项目
+
+模块回答“需要理解什么”，项目回答“能不能把它做出来并证明它正确”。[实战项目路线](projects/README.md) 从 C/C++ tensor primitives 开始，逐步进入 [手搓 Attention](projects/01-attention-from-scratch.md)、CUDA kernel、混合精度、分布式训练和完整的 self-improving service。
 
 ## 共同基础：CPU、GPU 与内存
 
