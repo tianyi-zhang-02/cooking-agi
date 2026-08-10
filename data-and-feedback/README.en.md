@@ -11,11 +11,23 @@ Training data is not the world itself. It is the trace left after the world pass
 If a recommender only exposes pop music, a user's pop clicks do not prove that the user only likes pop. The policy first limits the choice set and then uses behavior inside that set as evidence. This is exposure or policy bias.
 
 ```mermaid
-flowchart LR
-    A[True user need] --> E[Observed behavior]
-    B[Previous model and policy] --> E
-    C[Interface and position] --> E
-    D[Time, device, and environment] --> E
+flowchart TB
+    A["Latent user need"]
+    B["Previous model and serving policy"]
+    C["Interface · rank · presentation"]
+    D["Time · device · environment"]
+    E[("Observed behavior")]
+    F{"Enough causal context?"}
+    G["Use as weak evidence with propensity and uncertainty"]
+    H["Do not treat as a direct preference label"]
+
+    A --> E
+    B --> E
+    C --> E
+    D --> E
+    E --> F
+    F -- "yes" --> G
+    F -- "no" --> H
 ```
 
 ## Common problems

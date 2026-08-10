@@ -13,19 +13,33 @@
 ## 系统结构
 
 ```mermaid
-flowchart LR
-    A[Client] --> B[Gateway and scheduler]
-    B --> C[LLM serving]
-    C --> D[Response and tools]
-    B --> E[Trace store]
-    C --> E
-    D --> E
-    E --> F[Evaluation and failure taxonomy]
-    F --> G[Versioned improvement dataset]
-    G --> H[LoRA / SFT update]
-    H --> I[Regression and system benchmark]
-    I --> J[Canary or rollback]
-    J --> B
+flowchart TB
+    subgraph O["在线路径"]
+        A(["用户请求"]) --> B["Gateway · Admission · Scheduler"]
+        B --> C["LLM Runtime · KV Cache"]
+        C --> D["工具 · 流式响应"]
+    end
+
+    subgraph V["证据路径"]
+        E[("版本化 Event 与 Trace Store")]
+        F["Evaluation · Failure Slice · 人工审计"]
+        G[("受治理的改进数据集")]
+        E --> F --> G
+    end
+
+    subgraph U["更新与发布路径"]
+        H["SFT · LoRA · 策略更新"] --> I["质量 · 安全 · 系统 Benchmark"]
+        I --> J{"发布 Gate 通过？"}
+        J -- "通过" --> K["Canary · 监控 · 升级或回滚"]
+        J -- "未通过" --> L["拒绝或修订 Candidate"]
+    end
+
+    B -.-> E
+    C -.-> E
+    D -.-> E
+    G --> H
+    K -.-> B
+    L -.-> G
 ```
 
 ## 项目边界

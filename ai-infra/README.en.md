@@ -9,13 +9,29 @@ AI infrastructure is the stack that makes modern LLMs trainable, deployable, sca
 ## The stack in one view
 
 ```mermaid
-flowchart BT
-    A[GPUs, CPUs, networks, and storage] --> B[Runtimes and communication]
-    B --> C[Kernels, numerical formats, and compilers]
-    C --> D[Distributed training and LLM inference]
-    D --> E[Clusters, scheduling, and observability]
-    E --> F[Data, evaluation, and continual learning]
-    F --> G[Model experience]
+flowchart TB
+    H["Accelerators · CPUs · HBM · network · storage"]
+    R["Drivers · runtimes · optimized libraries · collectives"]
+    K["Kernels · numerical formats · compilers"]
+
+    subgraph W["Model workloads"]
+        T["Training · post-training · rollouts"]
+        I["Inference · KV cache · token scheduling"]
+    end
+
+    P["Cluster control plane<br/>schedule · isolate · recover"]
+    O["Profiles · traces · evaluation · lineage"]
+    X(["Reliable model or agent experience"])
+
+    H --> R --> K
+    K --> T
+    K --> I
+    P -.-> T
+    P -.-> I
+    T --> O
+    I --> O
+    O --> X
+    O -.-> T
 ```
 
 Keep asking:

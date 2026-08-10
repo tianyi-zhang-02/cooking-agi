@@ -9,15 +9,25 @@
 AI infra is not one job or one toolchain. It is the path from silicon to a reliable model experience. The modern way to learn it is to identify **which constraint each layer owns**, then follow one request or training step through the whole stack.
 
 ```mermaid
-flowchart BT
-    H[Accelerators, CPUs, memory, network, storage] --> R[Drivers, runtimes, collectives]
-    R --> K[Kernels, compiler, graph capture]
-    K --> T[Training and post-training systems]
-    K --> I[Inference engines and schedulers]
-    T --> P[Cluster and platform control plane]
-    I --> P
-    P --> E[Tracing, evaluation, data flywheel]
-    E --> X[Model or agent experience]
+flowchart TB
+    H["1 · Hardware and fabric<br/>accelerators · HBM · network · storage"]
+    R["2 · Runtime and communication<br/>drivers · libraries · collectives"]
+    K["3 · Compiler and kernels<br/>graph capture · codegen · precision"]
+    T["4A · Training<br/>pre-training · post-training · rollouts"]
+    I["4B · Inference<br/>KV cache · batching · token scheduler"]
+    P["Control plane<br/>place · isolate · recover"]
+    E[("Evidence plane<br/>profiles · traces · evals · lineage")]
+    X(["Reliable model or agent experience"])
+
+    H --> R --> K
+    K --> T
+    K --> I
+    P -.-> T
+    P -.-> I
+    T --> E
+    I --> E
+    E --> X
+    E -.-> T
 ```
 
 ## The ecosystem by responsibility
