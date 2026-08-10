@@ -53,6 +53,23 @@ What moves between devices, and what does that movement cost?
 | Data infrastructure | How do we continuously supply reliable training data? | object storage, Parquet, Spark, Ray Data | throughput, quality, lineage |
 | Evaluation and learning loops | How do we know the model truly improved? | tracing, benchmarks, A/B tests, HITL | quality, regressions, safety |
 
+## Modular study notes
+
+The notes are ordered by dependency. They can be read sequentially or entered through the module most relevant to a current project.
+
+| Module | Central question | Concrete output |
+| --- | --- | --- |
+| [01 · Computer systems](modules/01-computer-systems.en.md) | How do CPUs, memory, and operating systems execute a program? | a performance-bottleneck analysis |
+| [02 · GPU programming](modules/02-gpu-programming.en.md) | How does a GPU organize threads, memory, and operators? | vector add, reduction, and tiled matmul |
+| [03 · Numerical computing](modules/03-numerical-computing.en.md) | What do BF16, FP8, and quantization trade? | a precision, memory, and throughput experiment |
+| [04 · Distributed training](modules/04-distributed-training.en.md) | How are models and training state divided across GPUs? | a DDP/FSDP memory and communication analysis |
+| [05 · LLM inference](modules/05-llm-inference.en.md) | How can TTFT, TPOT, and throughput be optimized together? | a serving benchmark |
+| [06 · GPU platforms](modules/06-gpu-platforms.en.md) | How are GPU clusters scheduled and operated reliably? | a job-lifecycle and observability design |
+| [07 · Data, evaluation, and learning loops](modules/07-data-eval-learning-loop.en.md) | How do deployed failures safely become improvements? | a traceable and reversible update loop |
+| [08 · Capstone](modules/08-capstone.en.md) | How do all the modules connect into one system? | a self-improving LLM service |
+
+Every module follows the same structure: learning goals, core notes, quantities to calculate, hands-on work, and mastery checks. New papers, experiments, and incidents can therefore be added to the right conceptual home.
+
 ## Shared foundation: CPUs, GPUs, and memory
 
 CPUs are optimized for complex control flow and low-latency work. GPUs are optimized for running large numbers of similar operations concurrently and maximizing throughput.

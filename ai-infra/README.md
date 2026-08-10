@@ -53,6 +53,23 @@ flowchart BT
 | 数据 Infra | 怎样持续提供可靠训练数据？ | 对象存储、Parquet、Spark、Ray Data | 吞吐、质量、可追溯性 |
 | Eval 与学习闭环 | 怎样知道模型真的变好了？ | tracing、benchmark、A/B、HITL | 质量、回归、安全性 |
 
+## 模块化学习笔记
+
+这些笔记按照依赖关系组织。可以顺序学习，也可以从与当前项目最相关的模块开始。
+
+| 模块 | 核心问题 | 完成后的产出 |
+| --- | --- | --- |
+| [01 · 计算机系统](modules/01-computer-systems.md) | CPU、内存和操作系统怎样执行程序？ | 一份性能瓶颈分析 |
+| [02 · GPU 编程](modules/02-gpu-programming.md) | GPU 怎样组织线程、内存和算子？ | vector add、reduction 与 tiled matmul |
+| [03 · 数值计算](modules/03-numerical-computing.md) | BF16、FP8 和量化在交换什么？ | 精度、显存和吞吐对比实验 |
+| [04 · 分布式训练](modules/04-distributed-training.md) | 模型和训练状态怎样拆到多张卡？ | DDP/FSDP 通信与显存分析 |
+| [05 · LLM 推理](modules/05-llm-inference.md) | 怎样同时优化 TTFT、TPOT 和吞吐？ | 一份 serving benchmark |
+| [06 · GPU 平台](modules/06-gpu-platforms.md) | 怎样可靠地调度和运营 GPU 集群？ | job lifecycle 与 observability 设计 |
+| [07 · 数据、Eval 与学习闭环](modules/07-data-eval-learning-loop.md) | 部署后的失败怎样安全地变成改进？ | 可追溯、可回滚的更新闭环 |
+| [08 · 综合项目](modules/08-capstone.md) | 怎样把所有模块连接成一个系统？ | self-improving LLM service |
+
+每个模块都使用同一套结构：学习目标、核心笔记、需要会算的量、动手练习和掌握检查。这样新的论文、实验和故障案例可以继续追加到正确位置。
+
 ## 共同基础：CPU、GPU 与内存
 
 CPU 擅长复杂控制、分支和低延迟任务；GPU 擅长让大量线程同时执行相似计算，追求总体吞吐。
