@@ -8,6 +8,8 @@
 
 这里没有一份标准菜谱。更多时候，我会先问：这道菜到底想做成什么样？手上的食材可靠吗？模型为什么会做出这个决定？尝起来不对，是模型的问题，还是前面的数据、记忆和搜索已经偏了？
 
+这个仓库采用 **modern-first** 的写法：从今天的 LLM、Agent、multimodal、post-training、search、serving 和 evaluation 系统出发。历史内容只有在能够解释当前设计时才保留，不单独做传统 AI model 的百科或年代回顾。
+
 ## 先看整锅菜
 
 可以先把一个现代 AI 系统想成一间厨房：
@@ -69,6 +71,8 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 
 每一篇都尽量按照同一个顺序写：**先讲它是什么，再讲为什么需要它，然后用一个例子解释，最后再进入技术问题。**
 
+默认一篇只回答一个主要问题，阅读时间约五分钟。快速变化的 API、硬件支持和工程实践需要标注审阅时间；详细规则见 [Modern-first 写作与时效性规范](EDITORIAL.md)。
+
 ### 先理解输入
 
 - [数据与反馈](data-and-feedback/)：日志不是事实，点击也不等于偏好。
@@ -90,9 +94,9 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 - [Human-in-the-Loop](systems/human-in-the-loop.md)：什么时候应该让人介入？
 - [Model Experience](model-experience/)：离线指标怎样连接到长期用户体验？
 
-## 推荐的第一组论文
+## 仍在塑造现代系统的基础论文
 
-不需要一次读完。可以先从每条主线选一篇：
+这些论文不因为较早就自动失去价值；保留它们是因为其机制仍直接影响今天的系统。可以先从每条主线选一篇：
 
 - **记忆与长期交互**：[Generative Agents](https://arxiv.org/abs/2304.03442)、[MemGPT](https://arxiv.org/abs/2310.08560)
 - **Search 与外部证据**：[Dense Passage Retrieval](https://arxiv.org/abs/2004.04906)、[ColBERT](https://arxiv.org/abs/2004.12832)、[RAG](https://arxiv.org/abs/2005.11401)

@@ -8,6 +8,8 @@ This is not a recipe for AGI. It is an attempt to place models, data, memory, se
 
 This is not a paper collection or a taxonomy of isolated fields. I use it to follow one question across papers, systems, and experiments: how can a model understand a person over time, find what is useful now, and improve its behavior from incomplete interaction feedback?
 
+The repository is **modern-first**: it starts from current LLM, agent, multimodal, post-training, search, serving, and evaluation systems. Historical material remains only when it explains a mechanism still active today; there are no standalone encyclopedic surveys of traditional AI models.
+
 ## The thread I am following
 
 Personal AGI is not simply a larger model with an unlimited context window. It is a closed learning system: one that maintains revisable user and world state, searches for external evidence, reasons and acts, and then updates itself from evaluation and real interaction.
@@ -69,7 +71,7 @@ Decomposing a complex rubric into atomic decisions, swapping pairwise order, and
 
 ## Recommended starting points
 
-These papers help define the conceptual map rather than form a complete reading list.
+These papers remain because their mechanisms still shape modern systems, not merely because they were historically important. They define the conceptual map rather than form a complete reading list.
 
 | Thread | Paper | Why it is here |
 | --- | --- | --- |
@@ -102,6 +104,8 @@ These papers help define the conceptual map rather than form a complete reading 
 - [`multimodal-learning/`](multimodal-learning/README.en.md) — multimodal representation and content understanding
 - [`papers/`](papers/README.en.md) — paper-by-paper notes
 - [`templates/paper-note.en.md`](templates/paper-note.en.md) — English paper-note template
+
+Notes default to one central question and roughly five minutes of reading. Fast-moving APIs, hardware support, and engineering practices carry review dates; see the [modern-first editorial and freshness policy](EDITORIAL.en.md).
 
 ## How I take notes
 
