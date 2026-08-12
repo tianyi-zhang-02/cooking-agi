@@ -38,6 +38,21 @@
   if (scrim) scrim.addEventListener("click", function () { drawer(false); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") drawer(false); });
 
+  /* ---------------------------------------------------------- nav groups */
+  /* The group holding the current page ships open from the build. Everything
+     else remembers whatever the reader last set, and the active group is never
+     closed out from under them. */
+  var GKEY = "nav:groups", saved = {};
+  try { saved = JSON.parse(localStorage.getItem(GKEY) || "{}"); } catch (e) { saved = {}; }
+  $$(".nav details").forEach(function (d) {
+    var id = d.dataset.grp, holdsActive = !!$("a.active", d);
+    if (!holdsActive && typeof saved[id] === "boolean") d.open = saved[id];
+    d.addEventListener("toggle", function () {
+      saved[id] = d.open;
+      try { localStorage.setItem(GKEY, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+
   /* keep the active sidebar entry in view -- a no-op when it already is */
   var active = $(".nav a.active");
   if (active) active.scrollIntoView({ block: "nearest" });
