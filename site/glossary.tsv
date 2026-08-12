@@ -39,3 +39,21 @@
 人在回路	human-in-the-loop	让人参与到系统的判断或纠错环节
 分布偏移	distribution shift	训练时和使用时的数据分布不一致
 长尾	long tail	出现频率很低但总量可观的那部分情况
+曝光	exposure	内容真的被展示给用户这件事，和「被检索到」不是一回事
+倾向性	propensity	某次曝光发生的概率 p(c|u)；不在曝光时记下来，事后无法重建
+选择性观测	selective observation	只有旧策略展示过的内容才有标签，其余是未知不是负例
+反馈闭环	feedback loop	模型的输出改变下一轮训练数据，偏差因此自我放大
+未观测候选	unobserved candidate	没被展示过的内容；它不携带任何标签信息
+曝光负样本	exposed negative	确实展示过且有负向行为，是真负例
+困难负样本	hard negative	语义接近但当前上下文不相关，用来教边界
+双塔	dual-encoder	用户和内容各一个编码器，映到同一向量空间靠内积召回
+近似最近邻	ANN	在向量索引里近似地取 top-K，first-stage 检索的基础设施
+批内负样本	in-batch negative	拿同批次其他样本的候选当负例，规模便宜但采样有偏
+采样偏差修正	logQ correction	打分减去 log 采样概率，抵消热门内容被过度当作负例
+逆倾向加权	IPS	按 1/p 给样本加权，把有偏日志纠正成无偏估计
+双重稳健	doubly robust	结合倾向性加权和结果模型，降低 IPS 的方差
+冷启动	cold start	用户或内容缺少历史证据，模型只能靠先验
+校准	calibration	模型给出的置信度是否等于真实正确率
+候选生成	candidate generation	从海量内容里低成本捞出一批，交给精排
+互补性	complementarity	新模块贡献了多少别的通道拿不到的相关候选
+训练服务一致性	train/serve parity	离线算的相似度必须等于线上索引用的相似度

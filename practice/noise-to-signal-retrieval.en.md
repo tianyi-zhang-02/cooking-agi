@@ -95,8 +95,8 @@ flowchart TB
         A --> E["Candidate tower<br/>Qwen3-Embedding-sub-1B"]
         D --> E
     end
-    subgraph U["Member understanding · nearline"]
-        F["Profile view<br/>Qwen3-Embedding-sub-1B"] --> H["Multiple member views"]
+    subgraph U["User understanding · near-real-time"]
+        F["Profile view<br/>Qwen3-Embedding-sub-1B"] --> H["Multiple user views"]
         G["History view<br/>Qwen3-Embedding-sub-1B"] --> H
         H --> I["Learnable routing"]
     end
@@ -115,12 +115,12 @@ The goal is not to pick the model with the largest benchmark number. Each module
 | --- | --- | --- | --- |
 | Image router | Small vision classifier or SigLIP-like encoder | Content type, information value, calibrated confidence | The router selects teacher calls; it does not need complete image understanding |
 | Visual teacher | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) as a fast baseline, 4B as a capacity control | Grounding, OCR, conflict detection, schema adherence, calibrated confidence | Selective offline inference is sufficient before domain SFT or online generation |
-| Candidate/member encoder | [Qwen3-Embedding-sub-1B](https://huggingface.co/Qwen/Qwen3-Embedding-sub-1B) | Retrieval quality, throughput, long text, vector size, training cost | 4B/8B models are useful capacity bounds but increase training, nearline encoding, and iteration cost |
+| Candidate/user encoder | [Qwen3-Embedding-sub-1B](https://huggingface.co/Qwen/Qwen3-Embedding-sub-1B) | Retrieval quality, throughput, long text, vector size, training cost | 4B/8B models are useful capacity bounds but increase training, near-real-time encoding, and iteration cost |
 | Downstream ranker | Existing ranker | Request-level relevance, quality, and freshness | First-stage retrieval should not duplicate fine-ranking responsibility |
 
 Qwen3-Embedding-sub-1B is a reasonable starting point because the official model exposes **sub-1B parameters, a 32K context window, embeddings up to 1024 dimensions, MRL dimension control, and instruction-aware encoding**. Each feature maps to a system constraint:
 
-- **sub-1B:** enough general embedding capacity for initialization while remaining practical to retrain and refresh member representations nearline;
+- **sub-1B:** enough general embedding capacity for initialization while remaining practical to retrain and refresh user representations near-real-time;
 - **32K context:** room for structured profiles and longer histories, without implying that every request should fill the window;
 - **instruction awareness:** profile and history views can state distinct representation tasks while candidate encoding remains semantically stable;
 - **MRL / 32–1024 dimensions:** model capacity can be separated from ANN index width. Preserve 1024 dimensions as a quality reference, then compare 512 or 256 under a fixed candidate budget.
@@ -133,19 +133,19 @@ A direct [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-
 
 ### Parameter sharing
 
-This is an **asymmetric dual encoder**: member and candidate representations occupy one vector space, but their input distributions and update rates differ.
+This is an **asymmetric dual encoder**: user and candidate representations occupy one vector space, but their input distributions and update rates differ.
 
 ```text
 Candidate tower: post text + grounded visual evidence → z_c
-Member views:    instructed profile / history / latent intent → z_u,r
+User views:    instructed profile / history / latent intent → z_u,r
 Similarity:      cosine(z_u,r, z_c), after identical pooling + L2 normalization
 ```
 
-A practical starting point initializes every tower from the same Qwen3-Embedding-sub-1B checkpoint. Candidate and member sides use separate parameters or adapters; profile and history share the member backbone but use different instructions, adapters, or projection heads. This preserves a common semantic space while allowing view-specific compression.
+A practical starting point initializes every tower from the same Qwen3-Embedding-sub-1B checkpoint. Candidate and user sides use separate parameters or adapters; profile and history share the user backbone but use different instructions, adapters, or projection heads. This preserves a common semantic space while allowing view-specific compression.
 
 Train-serving parity must fix the tokenizer, instruction templates, last-token pooling, L2 normalization, truncation rules, and visual-evidence schema. Otherwise the similarity optimized offline is not the similarity consumed by online ANN search.
 
-The member side need not average all evidence into one point. Profile and history can remain separate views or expand into latent intent vectors. A router assigns context-dependent weights. Additional towers are useful only when they contribute complementary relevant candidates rather than duplicating one another.
+The user side need not average all evidence into one point. Profile and history can remain separate views or expand into latent intent vectors. A router assigns context-dependent weights. Additional towers are useful only when they contribute complementary relevant candidates rather than duplicating one another.
 
 Serving must not average those vectors before retrieval, which would recreate the original single-point representation. Instead, allocate a fixed total candidate budget $B$ across views:
 
@@ -161,7 +161,7 @@ Each view queries the same candidate index. The system unions and deduplicates t
 
 **Construct supervision.** Build confidence-aware batches from reliable positives, exposed negatives, semantic hard negatives, and unobserved candidates. Do not label "not seen" as "disliked."
 
-**Supervised contrastive post-training.** Train member–candidate matching with in-batch negatives for scale, exposed negatives that retain policy context, and hard negatives that distinguish semantic similarity from contextual relevance.
+**Supervised contrastive post-training.** Train user–candidate matching with in-batch negatives for scale, exposed negatives that retain policy context, and hard negatives that distinguish semantic similarity from contextual relevance.
 
 **Prevent module collapse.** Add targeted constraints and diagnostics:
 
@@ -184,14 +184,14 @@ The core remains **supervised contrastive fine-tuning**, not generative GRPO for
 
 ### One complete training and release run
 
-1. **Freeze event time:** build member, content, and exposure snapshots without future information.
+1. **Freeze event time:** build user, content, and exposure snapshots without future information.
 2. **Generate visual evidence:** let the router select teacher calls and write outputs to a versioned evidence table.
-3. **Compile examples:** bind behavior labels, negative type, member views, original text, and visual evidence to one manifest.
-4. **Train the retriever:** keep the teacher frozen while updating member encoders, the candidate encoder, and routing; log each loss and view utilization separately.
+3. **Compile examples:** bind behavior labels, negative type, user views, original text, and visual evidence to one manifest.
+4. **Train the retriever:** keep the teacher frozen while updating user encoders, the candidate encoder, and routing; log each loss and view utilization separately.
 5. **Export and replay:** batch-compute candidate vectors, build an isolated ANN index, and run the ablation matrix with a fixed downstream ranker.
 6. **Release progressively:** pass representation, retrieval, slice, and systems gates before shadow traffic and controlled online validation.
 
-Image-processing failures must fall back to the original text representation. Missing member views must cause the router to renormalize over the remaining views. **Fallback is part of the training-serving contract, not a patch added after launch.**
+Image-processing failures must fall back to the original text representation. Missing user views must cause the router to renormalize over the remaining views. **Fallback is part of the training-serving contract, not a patch added after launch.**
 
 The retriever expands the high-quality candidate space. The existing downstream ranker remains responsible for request-level relevance, quality, freshness, and final ordering.
 
@@ -199,7 +199,7 @@ The retriever expands the high-quality candidate space. The existing downstream 
 
 ```text
 Offline:  image routing → selective VLM → candidate embedding → ANN index
-Nearline: profile/history update → cached member representation
+Near-real-time: profile/history update → cached user representation
 Online:   cache lookup → ANN retrieval → existing ranker → final slate
 ```
 
@@ -238,7 +238,7 @@ T0  text-only candidate representation
 T1  + image router
 T2  + selective VLM evidence
 T3  + modality-aware post-training
-T4  + multi-view member routing
+T4  + multi-view user routing
 ```
 
 At each stage, record:
