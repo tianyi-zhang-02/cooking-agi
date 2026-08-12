@@ -32,7 +32,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import markdown
-from markdown.extensions.toc import TocExtension
+from markdown.extensions.toc import TocExtension, slugify
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = Path(__file__).resolve().parent
@@ -359,6 +359,86 @@ def protect_mermaid(text):
                   text, flags=re.S | re.M)
 
 
+def protect_math(text):
+    r"""Keep TeX delimiters opaque while Python-Markdown parses prose.
+
+    Python-Markdown otherwise treats underscores inside ``$...$`` as emphasis
+    and consumes TeX escapes such as ``\!``. Code is stashed first so dollar
+    signs in examples are never mistaken for math.
+    """
+    code_stash = []
+    math_stash = []
+
+    def stash_code(match):
+        token = f"CODESTASH{len(code_stash):06d}END"
+        code_stash.append((token, match.group(0)))
+        return token
+
+    fenced = re.compile(
+        r"^ {0,3}(?P<fence>`{3,}|~{3,})[^\n]*\n.*?^ {0,3}(?P=fence)[ \t]*(?:\n|$)",
+        flags=re.S | re.M,
+    )
+    inline_code = re.compile(r"(`+).*?\1", flags=re.S)
+    protected = fenced.sub(stash_code, text)
+    protected = inline_code.sub(stash_code, protected)
+
+    def stash_math(match):
+        token = f"MATHSTASH{len(math_stash):06d}END"
+        math_stash.append((token, match.group(0)))
+        return token
+
+    protected = re.sub(r"(?<!\\)\$\$(.+?)(?<!\\)\$\$", stash_math, protected,
+                       flags=re.S)
+    protected = re.sub(
+        r"(?<!\\)(?<!\$)\$(?!\$|\s)([^\n]*?\S)(?<!\\)\$(?!\$)",
+        stash_math,
+        protected,
+    )
+
+    for token, code in code_stash:
+        protected = protected.replace(token, code)
+    return protected, math_stash
+
+
+def restore_math(text, math_stash):
+    for token, tex in math_stash:
+        text = text.replace(token, html.escape(tex, quote=False))
+    return text
+
+
+def restore_math_toc(body, toc, math_stash):
+    """Restore math in heading labels and replace placeholder-based anchors."""
+    used_ids = set()
+    id_replacements = []
+    slug_replacements = [
+        (slugify(token, "-"), slugify(tex.strip("$"), "-"))
+        for token, tex in math_stash
+    ]
+
+    def visit(tokens):
+        for item in tokens:
+            item["name"] = restore_math(item["name"], math_stash)
+            old_id = item["id"]
+            new_id = old_id
+            for token_slug, math_slug in slug_replacements:
+                new_id = new_id.replace(token_slug, math_slug)
+            base = new_id
+            suffix = 1
+            while new_id in used_ids:
+                new_id = f"{base}_{suffix}"
+                suffix += 1
+            used_ids.add(new_id)
+            item["id"] = new_id
+            if new_id != old_id:
+                id_replacements.append((old_id, new_id))
+            visit(item.get("children", []))
+
+    visit(toc)
+    for old_id, new_id in id_replacements:
+        body = body.replace(f'id="{old_id}"', f'id="{new_id}"')
+    return body, toc
+
+
 def wrap_tables(h):
     """Tables scroll inside their own box; the page body never scrolls sideways."""
     return re.sub(r"<table>", '<div class="table-wrap"><table>', h).replace(
@@ -366,13 +446,17 @@ def wrap_tables(h):
 
 
 def render_markdown(text):
+    text, math_stash = protect_math(text)
     md = markdown.Markdown(extensions=[
         "fenced_code", "tables", "footnotes", "attr_list", "sane_lists", "md_in_html",
         TocExtension(anchorlink=False, permalink=False, toc_depth="2-3"),
         "codehilite",
     ], extension_configs={"codehilite": {"guess_lang": False, "css_class": "hl"}})
     body = md.convert(text)
-    return body, getattr(md, "toc_tokens", [])
+    toc = getattr(md, "toc_tokens", [])
+    body = restore_math(body, math_stash)
+    body, toc = restore_math_toc(body, toc, math_stash)
+    return body, toc
 
 
 def strip_tags(h):
