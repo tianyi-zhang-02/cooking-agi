@@ -63,24 +63,87 @@ Router 不需要完整理解图片，只需要回答：**这张图是否包含�
 
 第一版通常不需要微调 VLM。先用固定 schema 做结构化抽取；只有出现稳定、可复现且影响下游检索的领域错误时，才考虑 LoRA 或 SFT。
 
-## 3. Post-train 一个能真正上线的 Retriever
+## 3. Post-Training：究竟训练什么
 
-VLM 不是在线检索模型。它只在内容创建或更新时离线运行，将视觉信息转成可缓存的内容证据。原文与视觉证据随后由 text embedding encoder 压缩成 candidate vector。
+VLM 不是在线检索模型，而是一个离线、可替换的 **visual teacher**。它在内容创建或更新时读取图片，并输出带来源和置信度的结构化证据：
 
-用户侧可以分别保留 profile-conditioned 与 history-conditioned representation。它们的价值不在于“塔更多”，而在于是否找到**互补的相关候选**：
+```json
+{
+  "visual_type": "photo | screenshot | chart | poster | decorative",
+  "visual_evidence": ["visible entities", "readable text", "visual claim"],
+  "text_image_relation": "support | complement | conflict | irrelevant",
+  "confidence": "calibrated score",
+  "provenance": "which region supports each claim"
+}
+```
 
-- profile 提供稳定但较弱的长期信号；
-- history 提供更强但可能更窄的近期信号；
-- routing 只有在两者带来 unique relevant candidates 时才有意义。
+原文与这份证据再交给轻量 candidate encoder，生成可提前计算并写入 ANN index 的向量。这样，VLM 提供更完整的监督和内容理解，但不会进入每次请求的在线路径。
 
-这里更准确的训练方式是 **supervised contrastive fine-tuning**，而不是生成式 GRPO：
+### 模块怎样连接
+
+```mermaid
+flowchart TB
+    subgraph C["Content understanding · offline"]
+        A["Text + image"] --> B["Image router"]
+        B --> C1["Frozen or lightly adapted VLM teacher"]
+        C1 --> D["Grounded evidence contract"]
+        A --> E["Candidate encoder"]
+        D --> E
+    end
+    subgraph U["Member understanding · nearline"]
+        F["Profile encoder"] --> H["Multiple member views"]
+        G["History encoder"] --> H
+        H --> I["Learnable routing"]
+    end
+    E --> J["Candidate vector"]
+    I --> K["Contrastive retrieval score"]
+    J --> K
+    K --> L["ANN retrieval"]
+    L --> M["Existing ranker"]
+```
+
+用户侧不必把所有信息平均成一个点。Profile 与 history 可以保留为不同 view，也可以继续展开成多个 latent intent vectors。Router 根据上下文决定各 view 的权重；它的价值不在于“塔更多”，而在于不同 view 是否提供**互补的相关候选**：
+
+- profile 提供稳定但通常更弱的长期证据；
+- history 提供更强但可能更窄的近期证据；
+- latent views 防止少数兴趣被一个平均向量稀释；
+- routing 只有在不同 view 带来 unique relevant candidates 时才值得增加复杂度。
+
+### 训练分成三层
+
+**第一层：构造监督。** 从可靠正样本、曝光负样本、语义 hard negatives 和未观测候选中构造带置信度的训练批次，避免把“没看见”误当成“不喜欢”。
+
+**第二层：监督式对比 post-training。** 用 member–candidate 配对训练 embedding retriever；in-batch negatives 提供规模，曝光负样本保留策略上下文，hard negatives 教模型区分“语义相近”和“当前真正相关”。
+
+**第三层：防止模块坍缩。** 单独约束 router 和模态使用：
+
+- 对视觉信息冗余的样本，完整输入和 text-only 输入应保持相近；
+- 对视觉信息关键的样本，遮掉图片后分数应该发生可解释的变化；
+- 对图文冲突样本，模型应降低置信度或保留冲突标记，而不是静默地把两者拼在一起；
+- 对多 view member representation，监控路由熵、view 使用率与 unique-target contribution，避免所有样本都退化到同一个塔。
+
+一个抽象目标可以写成：
 
 \[
 \mathcal{L}
-=\mathcal{L}_{\text{sampled-softmax}}
-+\lambda_1\mathcal{L}_{\text{pairwise}}
-+\lambda_2\mathcal{L}_{\text{consistency}}.
+=\mathcal{L}_{\text{retrieval}}
++\lambda_{r}\mathcal{L}_{\text{routing}}
++\lambda_{m}\mathcal{L}_{\text{modality}}
++\lambda_{c}\mathcal{L}_{\text{calibration}}.
 \]
+
+这里的核心仍是 **supervised contrastive fine-tuning**，而不是直接对固定候选检索使用生成式 GRPO。只有当任务变成跨多轮、需要优化长期 slate reward 或 exploration policy 时，RL 才解决了一个不同且合理的问题。
+
+### 一次完整的训练与发布怎样运行
+
+1. **冻结时间点**：按事件时间生成 member snapshot、content snapshot 和 exposure context，防止使用未来信息；
+2. **生成视觉证据**：router 决定哪些图片调用 teacher，结果写入带版本号的 evidence table；
+3. **编译训练样本**：将行为标签、负样本类型、member views、原文和视觉证据绑定到同一 manifest；
+4. **训练 retriever**：先冻结 teacher，只更新 member encoder、candidate encoder 与 router，分别记录每项 loss 和各 view 使用率；
+5. **导出与回放**：批量生成 candidate vectors，建立隔离的 ANN index，在固定 ranker 上执行离线 replay 和 ablation matrix；
+6. **逐级发布**：通过 representation、retrieval、slice 和 systems gates 后，再进入 shadow traffic 与受控线上验证。
+
+如果某张图片解析失败，流水线必须回退到原文表示；如果某个 member view 缺失，router 必须对剩余 view 重新归一化。**Fallback 是训练和 Serving contract 的一部分，而不是上线后的补丁。**
 
 Retriever 负责扩大高质量候选空间；已有 downstream ranker 继续负责请求级别的精细 relevance、quality、freshness 与最终排序。
 
@@ -94,19 +157,80 @@ Online:   cache lookup → ANN retrieval → existing ranker → final slate
 
 这样，多模态能力增加的是候选理解，而不是每次请求的生成式推理成本。视觉处理失败时应逐级回退到可见文字，最终回退到纯文本 embedding，不能阻止新内容进入索引。
 
-## 5. Evaluation 不能只看一个 Recall
+## 5. Evaluation：怎样证明每个模块真的有用
 
-聚合分数可能同时掩盖用户群体退化，以及“结果更相关、但语义越来越窄”的问题。
+> 本节描述的是实验协议和发布门槛，不包含任何观察到的结果。
 
-因此至少同时检查：
+聚合分数可能掩盖用户群体退化，也可能把“结果更相关、但语义越来越窄”误写成全面提升。评估因此要回答五个独立问题。
 
-- **relevance**：Recall、NDCG；
-- **breadth**：topic coverage、within-list similarity；
-- **complementarity**：不同表征或候选源带来的 unique relevant candidates；
-- **slices**：lifecycle、反馈强度、内容类型和长尾程度；
-- **systems**：VLM 调用率、处理成本、索引 freshness 与在线 latency。
+### 5.1 模型真的使用了视觉信息吗
 
-User simulation 可以用于 repeated exposure、topic fatigue 和 exploration 的压力测试，但它不能替代真实用户。最终性能结论仍应来自受控的小流量线上实验与长期观察。
+只比较 text-only 和 multimodal 两个总分不够，因为模型可能只是利用文本先验。需要构造配对的 counterfactual tests：
+
+| 输入条件 | 目的 | 应观察什么 |
+| --- | --- | --- |
+| 完整图文 | 正常路径 | 基准排序与置信度 |
+| 遮掉图片 | modality ablation | 视觉关键样本的排序是否有针对性地变化 |
+| 遮掉文字 | image-only probe | 图片能否独立提供最低限度的语义证据 |
+| 随机交换图片 | prior control | 无关图片是否会错误影响排序 |
+| 保留图片但删除 VLM evidence | module ablation | 收益究竟来自 router、teacher 还是 encoder |
+
+最关键的集合不是随机样本，而是 **visual-essential subset**：文本本身不足以区分候选，而图片包含任务所需信息。只有在这里发生方向正确、可归因的变化，才能说明模型真的使用了视觉信号。
+
+### 5.2 图文冲突时会发生什么
+
+构造语义匹配但事实冲突的 pair，例如正文描述一个对象，而图片展示另一个对象；同时加入无冲突的 matched controls。评估三个层面：
+
+1. teacher 是否输出 `conflict`，并指出冲突来自哪里；
+2. candidate encoder 是否避免把矛盾证据压成一个过度自信的向量；
+3. 最终 retrieval/ranking 是否降低不可靠候选的置信度，而不是仅仅提高一个中间 conflict-classification 分数。
+
+### 5.3 新模态是否改善最终任务
+
+所有实验固定候选池规模、ANN 预算、下游 ranker 和评估样本，只替换被测模块。建议按下面的阶梯逐层比较：
+
+```text
+T0  text-only candidate representation
+T1  + image router
+T2  + selective VLM evidence
+T3  + modality-aware post-training
+T4  + multi-view member routing
+```
+
+每一级都同时记录：
+
+- **最终任务**：Recall、NDCG、有效候选命中与 downstream ranker 可选择的 relevant set；
+- **breadth**：topic coverage、within-list similarity、长尾候选覆盖；
+- **complementarity**：新增模块贡献的 unique relevant candidates；
+- **中间诊断**：router accuracy、grounding、conflict detection，只用于解释最终任务变化；
+- **systems**：VLM 调用率、单内容处理成本、索引 freshness、缓存命中与在线 latency。
+
+中间指标变好但最终候选质量不变，不足以支持上线；最终任务改善但 freshness 或成本越界，同样不能通过。
+
+### 5.4 不同内容和用户是否都受益
+
+同一个实验需要在预先定义的 slices 上重复，而不是在看到结果后挑群体：
+
+- **内容**：text-rich、visual-essential、screenshot/chart、natural image、长尾主题与语言；
+- **用户**：lifecycle、历史长度、反馈强度、兴趣集中度与冷启动程度；
+- **交叉切片**：例如 sparse-history × visual-essential，检查新增模态是否只帮助数据本来就丰富的群体。
+
+报告每个 slice 的 relevance、breadth、coverage、calibration 与失败率，并附样本量和置信区间。这里的“公平受益”不是要求所有群体获得完全相同的数值，而是确保总体平均值不会遮住稳定、可解释的 subgroup harm。
+
+### 5.5 一套可执行的发布门槛
+
+```mermaid
+flowchart LR
+    A["Representation checks<br/>grounding · conflict · ablation"] --> B["Retrieval checks<br/>relevance · breadth · complementarity"]
+    B --> C["Slice checks<br/>content × lifecycle × signal"]
+    C --> D["System checks<br/>cost · freshness · latency"]
+    D --> E["Shadow / replay"]
+    E --> F["Controlled online validation"]
+```
+
+每次实验都应绑定同一份 manifest：数据快照、标签定义、teacher 与 encoder 版本、negative sampler、ANN index、ranker 版本、slice 定义和随机种子。这样观察到的变化才能归因到具体模块，而不是数据或评估配方漂移。
+
+User simulation 可以用于 repeated exposure、topic fatigue 和 exploration 的压力测试，但它不能替代真实用户。它更适合作为 online test 之前的 failure discovery layer，而不是产生最终性能结论。
 
 ## 这套设计真正优化什么
 
