@@ -18,7 +18,7 @@ $g_\phi(c)$ doesn't depend on the user, so it is computed offline and written in
 
 **That factorisation is the entire definition of a two-tower model.** The two towers aren't there for symmetry; they're there because the split has to fall between user and content.
 
-The cost comes from the same place: **$u$ and $c$ never interact until that final inner product.** The model cannot express "paragraph three of this candidate answers exactly what this user asked about last week" — it can only compress each side into a vector and take a dot product.
+The cost comes from the same place: **$u$ and $c$ never interact until that final inner product.** The model cannot express "paragraph three of this candidate answers what this user asked last week". It compresses each side into a vector and takes a dot product; that is the whole vocabulary available to it.
 
 That line is hard:
 
