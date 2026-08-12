@@ -3,6 +3,10 @@ name: build site
 on:
   push:
     branches: [main]
+  # Branch protection requires the `build` check, so it has to run on the PR
+  # too -- otherwise the check never appears and nothing can ever merge.
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -40,6 +44,8 @@ jobs:
 
   deploy:
     needs: build
+    # only main deploys; a PR build is validation, not a release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
