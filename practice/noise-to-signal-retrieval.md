@@ -2,7 +2,7 @@
 
 **中文** · [English](noise-to-signal-retrieval.en.md)
 
-> 这是一份公开且刻意抽象化的设计笔记，只讨论通用问题与取舍，不对应任何公司的数据规模、字段、模型配置或生产系统。
+> 这是一份公开且刻意抽象化的设计笔记，只讨论通用问题与取舍，不对应任何公司的数据规模、字段、模型配置、内部术语或生产系统。脱敏边界见[板块说明](README.md)。
 
 ## 先用一句话讲清楚
 
@@ -111,9 +111,9 @@ flowchart TB
         A --> E["Candidate tower<br/>Qwen3-Embedding-0.6B"]
         D --> E
     end
-    subgraph U["Member understanding · nearline"]
-        F["Profile view<br/>Qwen3-Embedding-0.6B"] --> H["Multiple member views"]
-        G["History view<br/>Qwen3-Embedding-0.6B"] --> H
+    subgraph U["用户理解 · 准实时"]
+        F["用户画像 view<br/>Qwen3-Embedding-0.6B"] --> H["多个用户 view"]
+        G["行为历史 view<br/>Qwen3-Embedding-0.6B"] --> H
         H --> I["Learnable routing"]
     end
     E --> J["Candidate vector"]
@@ -131,14 +131,14 @@ flowchart TB
 | --- | --- | --- | --- |
 | Image router | 小型视觉分类器或 SigLIP-like encoder | 内容类型、信息量与置信度校准 | Router 只决定是否调用 teacher，不负责完整理解 |
 | Visual teacher | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) 作为快速基线，4B 作为容量对照 | grounding、OCR、图文冲突、schema adherence 与置信度 | 离线选择性调用已经足够；先避免领域 SFT 和线上生成成本 |
-| Candidate/member encoder | [Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) | 检索质量、吞吐、长文本、向量大小与训练成本 | 4B/8B 可以作为容量上界，但会显著增加训练、nearline 编码与迭代成本 |
+| Candidate/用户塔 encoder | [Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) | 检索质量、吞吐、长文本、向量大小与训练成本 | 4B/8B 可以作为容量上界，但会显著增加训练、准实时 编码与迭代成本 |
 | Downstream ranker | 复用已有 ranker | 请求级 relevance、quality、freshness | First-stage retriever 不需要重复承担精排职责 |
 
 Qwen3-Embedding-0.6B 是一个合理的起点，因为官方模型提供 **0.6B 参数、32K context、最高 1024 维 embedding、MRL 可变维度和 instruction-aware encoding**。这些特性分别对应实际约束：
 
-- **0.6B**：足以从通用 embedding 初始化，同时允许频繁重训；相较更大模型，也更适合 nearline 刷新 member representation；
+- **0.6B**：足以从通用 embedding 初始化，同时允许频繁重训；相较更大模型，也更适合 准实时 刷新 用户 representation；
 - **32K context**：能容纳结构化 profile 和较长 history，但不代表每次都应塞满；输入仍要按 evidence value 截断；
-- **Instruction-aware**：member/query 侧可明确任务，例如“表示长期兴趣”或“表示近期行为”，candidate 侧保持稳定的内容语义；
+- **Instruction-aware**：用户/query 侧可明确任务，例如“表示长期兴趣”或“表示近期行为”，candidate 侧保持稳定的内容语义；
 - **MRL / 32–1024 维**：模型容量与 ANN index 大小可以分开调节。先保留 1024 维质量基线，再在固定候选预算下比较 512/256 维，而不是凭感觉选择向量宽度。
 
 通用 benchmark 只能说明它适合作为初始化，不能证明它适合某个具体反馈分布。真正的选择仍由后面的 lifecycle、breadth、complementarity、latency 和 freshness gates 决定。[Qwen 的技术介绍](https://qwenlm.github.io/blog/qwen3-embedding/)也将该系列定位为 dual-encoder embedding 与 cross-encoder reranking 两类模型；这里选择前者，是因为 first-stage retrieval 必须预计算 candidate vectors 并使用 ANN。
@@ -149,17 +149,19 @@ VLM 的选择遵循另一套标准。`Qwen3-VL-2B-Instruct` 适合作为第一�
 
 ### 参数怎样共享
 
-这是一个**非对称 dual-encoder**：member 与 candidate 最终位于同一个向量空间，但输入分布和更新频率不同。
+这是一个**非对称 dual-encoder**：用户 与 candidate 最终位于同一个向量空间，但输入分布和更新频率不同。
 
 ```text
 Candidate tower: post text + grounded visual evidence → z_c
-Member views:    instructed profile / history / latent intent → z_u,r
+用户 views:    instructed profile / history / latent intent → z_u,r
 Similarity:      cosine(z_u,r, z_c), after identical pooling + L2 normalization
 ```
 
-一个实用起点是：所有塔从同一个 Qwen3-Embedding-0.6B checkpoint 初始化，candidate 与 member 两侧使用独立参数或 adapter；profile/history 在 member 侧共享主干，再使用不同 instruction、adapter 或 projection head。这样既保留共同语义空间，也允许不同输入学习不同的压缩方式。
+一个实用起点是：所有塔从同一个 Qwen3-Embedding-0.6B checkpoint 初始化，candidate 与 用户 两侧使用独立参数或 adapter；profile/history 在 用户 侧共享主干，再使用不同 instruction、adapter 或 projection head。这样既保留共同语义空间，也允许不同输入学习不同的压缩方式。
 
 必须固定 train/serve parity：同一 tokenizer、instruction template、last-token pooling、L2 normalization、截断规则和视觉 evidence schema。否则离线训练的相似度不再等于线上 ANN 使用的相似度。
+
+最容易被忽略的一处 parity 破坏不在这个列表里：**candidate index 相对 encoder 是会过期的**。重训 candidate tower 之后，索引里每一个向量都要重新编码，而在灰度期间索引是新旧向量混合的——此时向量空间不一致，相似度不可比。索引重建策略和 evidence table 的版本号，必须和模型版本绑在同一个 manifest 里。
 
 用户侧不必把所有信息平均成一个点。Profile 与 history 可以保留为不同 view，也可以继续展开成多个 latent intent vectors。Router 根据上下文决定各 view 的权重；它的价值不在于“塔更多”，而在于不同 view 是否提供**互补的相关候选**：
 
@@ -182,14 +184,14 @@ K_r = \operatorname{round}\!\left(B\cdot \operatorname{softmax}(g(u))_r\right),
 
 **第一层：构造监督。** 从可靠正样本、曝光负样本、语义 hard negatives 和未观测候选中构造带置信度的训练批次，避免把“没看见”误当成“不喜欢”。
 
-**第二层：监督式对比 post-training。** 用 member–candidate 配对训练 embedding retriever；in-batch negatives 提供规模，曝光负样本保留策略上下文，hard negatives 教模型区分“语义相近”和“当前真正相关”。
+**第二层：监督式对比 post-training。** 用 用户–candidate 配对训练 embedding retriever；in-batch negatives 提供规模，曝光负样本保留策略上下文，hard negatives 教模型区分“语义相近”和“当前真正相关”。
 
 **第三层：防止模块坍缩。** 单独约束 router 和模态使用：
 
 - 对视觉信息冗余的样本，完整输入和 text-only 输入应保持相近；
 - 对视觉信息关键的样本，遮掉图片后分数应该发生可解释的变化；
 - 对图文冲突样本，模型应降低置信度或保留冲突标记，而不是静默地把两者拼在一起；
-- 对多 view member representation，监控路由熵、view 使用率与 unique-target contribution，避免所有样本都退化到同一个塔。
+- 对多 view 用户 representation，监控路由熵、view 使用率与 unique-target contribution，避免所有样本都退化到同一个塔。
 
 一个抽象目标可以写成：
 
@@ -205,14 +207,14 @@ K_r = \operatorname{round}\!\left(B\cdot \operatorname{softmax}(g(u))_r\right),
 
 ### 一次完整的训练与发布怎样运行
 
-1. **冻结时间点**：按事件时间生成 member snapshot、content snapshot 和 exposure context，防止使用未来信息；
+1. **冻结时间点**：按事件时间生成 用户快照、content snapshot 和 exposure context，防止使用未来信息；
 2. **生成视觉证据**：router 决定哪些图片调用 teacher，结果写入带版本号的 evidence table；
-3. **编译训练样本**：将行为标签、负样本类型、member views、原文和视觉证据绑定到同一 manifest；
-4. **训练 retriever**：先冻结 teacher，只更新 member encoder、candidate encoder 与 router，分别记录每项 loss 和各 view 使用率；
+3. **编译训练样本**：将行为标签、负样本类型、用户 views、原文和视觉证据绑定到同一 manifest；
+4. **训练 retriever**：先冻结 teacher，只更新 用户塔 encoder、candidate encoder 与 router，分别记录每项 loss 和各 view 使用率；
 5. **导出与回放**：批量生成 candidate vectors，建立隔离的 ANN index，在固定 ranker 上执行离线 replay 和 ablation matrix；
 6. **逐级发布**：通过 representation、retrieval、slice 和 systems gates 后，再进入 shadow traffic 与受控线上验证。
 
-如果某张图片解析失败，流水线必须回退到原文表示；如果某个 member view 缺失，router 必须对剩余 view 重新归一化。**Fallback 是训练和 Serving contract 的一部分，而不是上线后的补丁。**
+如果某张图片解析失败，流水线必须回退到原文表示；如果某个 用户 view 缺失，router 必须对剩余 view 重新归一化。**Fallback 是训练和 Serving contract 的一部分，而不是上线后的补丁。**
 
 Retriever 负责扩大高质量候选空间；已有 downstream ranker 继续负责请求级别的精细 relevance、quality、freshness 与最终排序。
 
@@ -220,7 +222,7 @@ Retriever 负责扩大高质量候选空间；已有 downstream ranker 继续负
 
 ```text
 Offline:  image routing → selective VLM → candidate embedding → ANN index
-Nearline: profile/history update → cached member representation
+准实时: profile/history update → cached 用户 representation
 Online:   cache lookup → ANN retrieval → existing ranker → final slate
 ```
 
@@ -263,7 +265,7 @@ T0  text-only candidate representation
 T1  + image router
 T2  + selective VLM evidence
 T3  + modality-aware post-training
-T4  + multi-view member routing
+T4  + multi-view 用户 routing
 ```
 
 每一级都同时记录：

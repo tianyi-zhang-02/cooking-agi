@@ -34,7 +34,6 @@ en  = "Build it by hand"
 dir = "01-data-and-feedback"
 zh  = "数据与反馈"
 en  = "Data & feedback"
-order = ["README.md", "noise-to-signal-retrieval.md"]
 
 [[section]]
 dir = "02-memory"
@@ -112,6 +111,15 @@ dir   = "ai-infra/projects"
 zh    = "AI Infra · 实战项目"
 en    = "AI Infra · Projects"
 order = ["README.md"]
+
+# --- 实践手记：脱敏后的工程思考，与上面的教学章节是不同文体
+
+[[section]]
+dir   = "practice"
+zh    = "实践手记"
+en    = "Notes from practice"
+order = ["README.md", "offline-online-skew.md", "positive-negative-design.md",
+         "noise-to-signal-retrieval.md"]
 
 [[section]]
 dir = "papers"
