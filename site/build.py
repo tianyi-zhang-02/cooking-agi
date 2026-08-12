@@ -496,6 +496,12 @@ def strip_tags(h):
 
 def build_page(page: Page, terms, repo: str, known: set):
     raw = page.src.read_text(encoding="utf-8")
+    # A NUL byte means some editing pass left a placeholder behind and ate the
+    # text around it. Silent in a diff, invisible on screen, and it destroys
+    # links. Fail the build rather than publish it.
+    if "\x00" in raw:
+        bad = [i for i, l in enumerate(raw.splitlines(), 1) if "\x00" in l]
+        raise SystemExit(f"{page.src}: NUL byte on line(s) {bad} -- corrupted source")
     raw = expand_widgets(raw)
     raw = protect_mermaid(raw)
 
