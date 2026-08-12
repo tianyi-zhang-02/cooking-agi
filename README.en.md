@@ -2,6 +2,15 @@
 
 [中文](README.md) · **English**
 
+### 📖 Read it at **<https://tianyi-zhang-02.github.io/cooking-agi/>**
+
+The site is the finished form of these notes: sidebar navigation, rendered math,
+English glosses on the Chinese pages, and a live experiment in the foundations
+chapter. **This repository is the site's source and build system** — start here to
+change something or to contribute (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+---
+
 Working notes on **personal AGI, search, and model experience**.
 
 This is not a recipe for AGI. It is an attempt to place models, data, memory, search, feedback, and evaluation on the same workbench: to understand what each ingredient contributes, how they interact, and why the complete system behaves the way it does.
@@ -120,14 +129,14 @@ I try not to restate a paper section by section. Each note should answer:
 
 This is a living notebook. Interpretations will change as I read, reproduce, and build.
 
-## Read it online
+## How the repository is organised
 
-**<https://tianyi-zhang-02.github.io/cooking-agi/>**
-
-Sidebar navigation by topic, KaTeX-rendered math, glossary terms annotated inline on the
-Chinese pages, and a live XOR experiment in the foundations chapter (try switching the
-activation off). Every page carries its last-updated date and an auto-generated
-contributor list.
+- Numeric folder prefixes are the reading order; GitHub's alphabetical listing is the outline.
+- Notes are **pure markdown** with no front matter — the same file renders on GitHub and on the site.
+- The site build lives in [`site/`](site/): [`nav.toml`](site/nav.toml) for navigation,
+  [`glossary.tsv`](site/glossary.tsv) for the bilingual term annotations (never hand-write
+  them in prose), and per-chapter `code/` scripts that generate the figures.
+- Pushing to `main` rebuilds and redeploys via GitHub Actions.
 
 ## Contributing
 
