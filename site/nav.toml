@@ -13,67 +13,111 @@ tagline_zh  = "从一条直线，到会读世界的系统"
 tagline_en  = "From a straight line to a system that reads the world"
 base_url    = "/cooking-agi"
 
+# 侧边栏的主题分组。顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id。
+[[group]]
+id = "start"
+zh = "开始"
+en = "Start here"
+
+[[group]]
+id = "foundations"
+zh = "基础"
+en = "Foundations"
+
+[[group]]
+id = "pipeline"
+zh = "系统的各个环节"
+en = "The pipeline"
+
+[[group]]
+id = "infra"
+zh = "AI Infra"
+en = "AI Infra"
+
+[[group]]
+id = "practice"
+zh = "实践手记"
+en = "From practice"
+
+[[group]]
+id = "reference"
+zh = "资料"
+en = "Reference"
+
+
 [[section]]
 dir   = "."
+group = "start"
 zh    = "开始"
 en    = "Start here"
 order = ["README.md", "EDITORIAL.md"]
 
 [[section]]
 dir   = "00-foundations"
+group = "foundations"
 zh    = "基础 · 模型到底在算什么"
 en    = "Foundations"
 order = ["README.md", "from-linear-to-neural.md", "transformer.md"]
 
 [[section]]
 dir = "00-foundations/code"
+group = "foundations"
 zh  = "手搓：能跑的实现"
 en  = "Build it by hand"
 
 [[section]]
 dir = "01-data-and-feedback"
+group = "pipeline"
 zh  = "数据与反馈"
 en  = "Data & feedback"
 
 [[section]]
 dir = "02-memory"
+group = "pipeline"
 zh  = "表征与记忆"
 en  = "Representation & memory"
 
 [[section]]
 dir = "03-multimodal-learning"
+group = "pipeline"
 zh  = "多模态学习"
 en  = "Multimodal learning"
 
 [[section]]
 dir = "04-search"
+group = "pipeline"
 zh  = "搜索与检索"
 en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
+group = "pipeline"
 zh  = "Post-Training"
 en  = "Post-training"
 
 [[section]]
 dir   = "06-systems"
+group = "pipeline"
 zh    = "系统总览"
 en    = "Systems"
 order = ["README.md", "agent-observability.md", "human-in-the-loop.md"]
 
 [[section]]
 dir   = "07-evaluation"
+group = "pipeline"
 zh    = "评估"
 en    = "Evaluation"
 order = ["README.md", "llm-as-a-judge.md"]
 
 [[section]]
 dir = "08-model-experience"
+group = "pipeline"
 zh  = "模型体验"
 en  = "Model experience"
 
 [[section]]
 dir = "09-personal-agi"
+group = "pipeline"
 zh  = "Personal AGI"
 en  = "Personal AGI"
 
@@ -82,32 +126,38 @@ en  = "Personal AGI"
 
 [[section]]
 dir   = "ai-infra"
+group = "infra"
 zh    = "AI Infra · 索引"
 en    = "AI Infra · Index"
 order = ["README.md", "EDITORIAL.md"]
 
 [[section]]
 dir = "ai-infra/modules"
+group = "infra"
 zh  = "AI Infra · 模块"
 en  = "AI Infra · Modules"
 
 [[section]]
 dir = "ai-infra/notes/c-cpp"
+group = "infra"
 zh  = "AI Infra · C/C++ 笔记"
 en  = "AI Infra · C/C++ notes"
 
 [[section]]
 dir = "ai-infra/notes/attention"
+group = "infra"
 zh  = "AI Infra · Attention 笔记"
 en  = "AI Infra · Attention notes"
 
 [[section]]
 dir = "ai-infra/notes/ecosystem"
+group = "infra"
 zh  = "AI Infra · 生态"
 en  = "AI Infra · Ecosystem"
 
 [[section]]
 dir   = "ai-infra/projects"
+group = "infra"
 zh    = "AI Infra · 实战项目"
 en    = "AI Infra · Projects"
 order = ["README.md"]
@@ -116,6 +166,7 @@ order = ["README.md"]
 
 [[section]]
 dir   = "practice"
+group = "practice"
 zh    = "实践手记"
 en    = "Notes from practice"
 order = ["README.md", "offline-online-skew.md", "positive-negative-design.md",
@@ -124,10 +175,12 @@ order = ["README.md", "offline-online-skew.md", "positive-negative-design.md",
 
 [[section]]
 dir = "papers"
+group = "reference"
 zh  = "论文笔记"
 en  = "Paper notes"
 
 [[section]]
 dir = "templates"
+group = "reference"
 zh  = "模板"
 en  = "Templates"
