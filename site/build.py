@@ -291,6 +291,12 @@ def expand_widgets(md_text: str) -> str:
 # --------------------------------------------------------------------------- #
 # page model
 # --------------------------------------------------------------------------- #
+def read_title(src: Path) -> str:
+    """First h1 of a file. Needed for every page before any sidebar is built."""
+    m = re.search(r"^#\s+(.+)$", src.read_text(encoding="utf-8"), re.M)
+    return m.group(1).strip() if m else src.stem
+
+
 class Page:
     def __init__(self, src: Path, section, lang):
         self.src = src
@@ -302,7 +308,7 @@ class Page:
         self.out_rel = rel.parent / (stem + (".en.html" if lang == "en" else ".html"))
         self.url = str(self.out_rel).replace(os.sep, "/")
         self.depth = len(self.out_rel.parts) - 1
-        self.title = ""
+        self.title = read_title(src)
         self.toc = []
         self.body = ""
         self.text = ""
@@ -410,7 +416,7 @@ def sidebar_html(page, sections):
         for pair in sec["pages"]:
             target = pair[page.lang] or pair["zh"]
             active = " class=\"active\"" if target.url == page.url else ""
-            title = html.escape(target.title.split("：")[0].split(" — ")[0])
+            title = html.escape(target.title)
             items.append(f'<li><a{active} href="{page.rel(target.url)}">{title}</a></li>')
         num = sec["dir"].split("-")[0] if re.match(r"^\d\d-", sec["dir"]) else ""
         badge = f'<span class="sec-num">{num}</span>' if num else ""
