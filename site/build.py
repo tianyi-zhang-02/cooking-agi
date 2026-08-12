@@ -181,16 +181,35 @@ class Annotator(HTMLParser):
 
     def handle_data(self, data):
         text = html.escape(data, quote=False)
-        if self.depth == 0:
+        if self.depth == 0 and self.terms:
+            # Collect non-overlapping matches against the ORIGINAL text, then
+            # splice once. Replacing term by term would let a later term match
+            # inside an earlier term's injected data-tip -- a gloss such as
+            # "映到同一向量空间靠内积召回" contains 向量, which would then split
+            # the attribute open and leak markup into the page.
+            hits, taken = [], []
             for zh, en, gloss in self.terms:
-                if zh in self.seen or zh not in text:
+                if zh in self.seen:
                     continue
+                i = text.find(zh)
+                while i != -1 and any(i < e and i + len(zh) > s for s, e in taken):
+                    i = text.find(zh, i + 1)
+                if i == -1:
+                    continue
+                taken.append((i, i + len(zh)))
+                hits.append((i, zh, en, gloss))
+
+            out, prev = [], 0
+            for i, zh, en, gloss in sorted(hits):
                 self.seen.add(zh)
                 self.used.append({"zh": zh, "en": en, "gloss": gloss})
                 tip = html.escape(f"{en}" + (f" — {gloss}" if gloss else ""), quote=True)
-                chip = (f'<span class="term" tabindex="0" data-tip="{tip}">{zh}'
-                        f'<span class="term-en">{html.escape(en)}</span></span>')
-                text = text.replace(zh, chip, 1)
+                out.append(text[prev:i])
+                out.append(f'<span class="term" tabindex="0" data-tip="{tip}">{zh}'
+                           f'<span class="term-en">{html.escape(en)}</span></span>')
+                prev = i + len(zh)
+            out.append(text[prev:])
+            text = "".join(out)
         self.out.append(text)
 
     def result(self):
@@ -330,7 +349,8 @@ def discover(nav):
             files = [p for p in files if p.name in order]
         rank = {n: i for i, n in enumerate(order)}
         files.sort(key=lambda p: (rank.get(p.name, len(order)), p.name))
-        entry = {"zh": sec["zh"], "en": sec["en"], "dir": sec["dir"], "pages": []}
+        entry = {"zh": sec["zh"], "en": sec["en"], "dir": sec["dir"],
+                 "group": sec.get("group", "reference"), "pages": []}
         for f in files:
             zh = Page(f, entry, "zh")
             en_src = f.with_name(f.stem + ".en.md")
@@ -476,6 +496,12 @@ def strip_tags(h):
 
 def build_page(page: Page, terms, repo: str, known: set):
     raw = page.src.read_text(encoding="utf-8")
+    # A NUL byte means some editing pass left a placeholder behind and ate the
+    # text around it. Silent in a diff, invisible on screen, and it destroys
+    # links. Fail the build rather than publish it.
+    if "\x00" in raw:
+        bad = [i for i, l in enumerate(raw.splitlines(), 1) if "\x00" in l]
+        raise SystemExit(f"{page.src}: NUL byte on line(s) {bad} -- corrupted source")
     raw = expand_widgets(raw)
     raw = protect_mermaid(raw)
 
@@ -503,22 +529,56 @@ def build_page(page: Page, terms, repo: str, known: set):
 # --------------------------------------------------------------------------- #
 # html assembly
 # --------------------------------------------------------------------------- #
-def sidebar_html(page, sections):
-    out = []
+def section_html(page, sec):
+    """One section: its number badge, its label, and its page links."""
+    label = html.escape(sec["zh" if page.lang == "zh" else "en"])
+    items, has_active = [], False
+    for pair in sec["pages"]:
+        target = pair[page.lang] or pair["zh"]
+        active = target.url == page.url
+        has_active = has_active or active
+        cls = ' class="active"' if active else ""
+        items.append(f'<li><a{cls} href="{page.rel(target.url)}">'
+                     f'{html.escape(target.title)}</a></li>')
+    # only top-level chapters carry the curriculum number; a subdirectory
+    # section like 00-foundations/code would otherwise repeat it
+    num = sec["dir"].split("-")[0] if re.match(r"^\d\d-[^/]+$", sec["dir"]) else ""
+    badge = f'<span class="sec-num">{num}</span>' if num else ""
+    return (f'<li class="sec">{badge}<span class="sec-name">{label}</span>'
+            f'<ul>{"".join(items)}</ul></li>'), has_active
+
+
+def sidebar_html(page, sections, groups):
+    """Sections bucketed into collapsible topic groups.
+
+    Built on <details>, so collapsing still works with JavaScript disabled. The
+    group holding the current page ships open; the rest ship closed and their
+    state is remembered client-side.
+    """
+    by_group = {}
     for sec in sections:
-        label = html.escape(sec["zh" if page.lang == "zh" else "en"])
-        items = []
-        for pair in sec["pages"]:
-            target = pair[page.lang] or pair["zh"]
-            active = " class=\"active\"" if target.url == page.url else ""
-            title = html.escape(target.title)
-            items.append(f'<li><a{active} href="{page.rel(target.url)}">{title}</a></li>')
-        # only top-level chapters carry the curriculum number; a subdirectory
-        # section like 00-foundations/code would otherwise repeat it
-        num = sec["dir"].split("-")[0] if re.match(r"^\d\d-[^/]+$", sec["dir"]) else ""
-        badge = f'<span class="sec-num">{num}</span>' if num else ""
-        out.append(f'<li class="sec">{badge}<span class="sec-name">{label}</span>'
-                   f'<ul>{"".join(items)}</ul></li>')
+        by_group.setdefault(sec.get("group", "reference"), []).append(sec)
+
+    out = []
+    for g in groups:
+        secs = by_group.get(g["id"])
+        if not secs:
+            continue
+        rendered = [section_html(page, s) for s in secs]
+        body = "".join(h for h, _ in rendered)
+        is_active = any(a for _, a in rendered)
+        n_pages = sum(len(s["pages"]) for s in secs)
+        label = html.escape(g["zh" if page.lang == "zh" else "en"])
+        out.append(
+            f'<li class="grp"><details data-grp="{g["id"]}"'
+            f'{" open" if is_active else ""}>'
+            f'<summary><svg class="chev" viewBox="0 0 12 12" width="11" height="11" '
+            f'aria-hidden="true"><path d="M4 2.5 L7.5 6 L4 9.5" fill="none" '
+            f'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" '
+            f'stroke-linejoin="round"/></svg>'
+            f'<span class="grp-name">{label}</span>'
+            f'<span class="grp-count">{n_pages}</span></summary>'
+            f'<ul class="grp-body">{body}</ul></details></li>')
     return f'<ul class="nav">{"".join(out)}</ul>'
 
 
@@ -585,7 +645,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{tagline}}", html.escape(site["tagline_zh" if zh else "tagline_en"]))
             .replace("{{home}}", page.rel("index.html" if zh else "index.en.html"))
             .replace("{{prefix}}", prefix)
-            .replace("{{sidebar}}", sidebar_html(page, sections))
+            .replace("{{sidebar}}", sidebar_html(page, sections, nav.get("group", [])))
             .replace("{{toc}}", toc_html(page))
             .replace("{{toc_label}}", "本页目录" if zh else "On this page")
             .replace("{{search_ph}}", "搜索笔记…" if zh else "Search notes…")
