@@ -11,26 +11,38 @@ change something or to contribute (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ---
 
-Working notes on **personal AGI, search, and model experience**.
+Working notes on **personal AGI, search, model experience, and AI infrastructure**.
 
 This is not a recipe for AGI. It is an attempt to place models, data, memory, search, feedback, and evaluation on the same workbench: to understand what each ingredient contributes, how they interact, and why the complete system behaves the way it does.
 
 This is not a paper collection or a taxonomy of isolated fields. I use it to follow one question across papers, systems, and experiments: how can a model understand a person over time, find what is useful now, and improve its behavior from incomplete interaction feedback?
+
+The repository is **modern-first**: it starts from current LLM, agent, multimodal, post-training, search, serving, and evaluation systems. Historical material remains only when it explains a mechanism still active today; there are no standalone encyclopedic surveys of traditional AI models.
 
 ## The thread I am following
 
 Personal AGI is not simply a larger model with an unlimited context window. It is a closed learning system: one that maintains revisable user and world state, searches for external evidence, reasons and acts, and then updates itself from evaluation and real interaction.
 
 ```mermaid
-flowchart LR
-    A[Real goals and constraints] --> B[Interaction and observation]
-    B --> C[User and world state]
-    C --> D[Memory, search, and tools]
-    D --> E[Model reasoning and action]
-    E --> F[Model experience]
-    F --> G[Evaluation and feedback]
-    G --> H[Data and training objectives]
-    H --> C
+flowchart TB
+    subgraph O["1 · Observe"]
+        A["Real goals and constraints"] --> B["Interaction and environment signals"]
+        B --> C[("User and world state")]
+    end
+
+    subgraph R["2 · Reason and act"]
+        D["Memory · search · tools"] --> E["Model policy and reasoning"]
+        E --> F["Action and model experience"]
+    end
+
+    subgraph L["3 · Evaluate and improve"]
+        G["Evaluation · outcomes · human feedback"] --> H[("Versioned data and objectives")]
+        H --> I["Training or policy update<br/>↺ state · retrieval · policy"]
+    end
+
+    C --> D
+    F --> G
+    I -.-> C
 ```
 
 The interests connect as one system:
@@ -41,6 +53,7 @@ The interests connect as one system:
 - **Post-training is the behavior-update mechanism:** demonstrations, preferences, and interaction feedback become policy changes.
 - **Multimodal learning is the evidence layer:** text, images, video, behavior, and social context jointly describe intent and value.
 - **Evaluation is the measurement loop:** it determines whether the system improved or merely moved a proxy metric.
+- **AI infrastructure is the execution substrate:** it turns model capability into trainable, scalable, and reliable systems.
 
 ## A systems view of modern AI
 
@@ -77,7 +90,7 @@ Decomposing a complex rubric into atomic decisions, swapping pairwise order, and
 
 ## Recommended starting points
 
-These papers help define the conceptual map rather than form a complete reading list.
+These papers remain because their mechanisms still shape modern systems, not merely because they were historically important. They define the conceptual map rather than form a complete reading list.
 
 | Thread | Paper | Why it is here |
 | --- | --- | --- |
@@ -113,8 +126,11 @@ The numeric prefixes are the suggested reading order.
 - [`model-experience/`](08-model-experience/README.en.md) — behavioral evaluation, interaction quality, and control
 - [`post-training/`](05-post-training/README.en.md) — SFT, preference learning, RL, objectives, and data quality
 - [`multimodal-learning/`](03-multimodal-learning/README.en.md) — multimodal representation and content understanding
+- [`ai-infra/`](ai-infra/README.en.md) — hardware, kernels, numerical formats, distributed training, inference, clusters, and learning loops
 - [`papers/`](papers/README.en.md) — paper-by-paper notes
 - [`templates/paper-note.en.md`](templates/paper-note.en.md) — English paper-note template
+
+Notes default to one central question and roughly five minutes of reading. Fast-moving APIs, hardware support, and engineering practices carry review dates; see the [modern-first editorial and freshness policy](EDITORIAL.en.md).
 
 ## How I take notes
 

@@ -17,7 +17,7 @@ base_url    = "/cooking-agi"
 dir   = "."
 zh    = "开始"
 en    = "Start here"
-order = ["README.md"]
+order = ["README.md", "EDITORIAL.md"]
 
 [[section]]
 dir   = "00-foundations"
@@ -76,6 +76,41 @@ en  = "Model experience"
 dir = "09-personal-agi"
 zh  = "Personal AGI"
 en  = "Personal AGI"
+
+# --- AI Infra: a parallel track with its own internal structure, so each of its
+# --- directories gets a section (the builder globs one directory, not a tree).
+
+[[section]]
+dir   = "ai-infra"
+zh    = "AI Infra · 索引"
+en    = "AI Infra · Index"
+order = ["README.md", "EDITORIAL.md"]
+
+[[section]]
+dir = "ai-infra/modules"
+zh  = "AI Infra · 模块"
+en  = "AI Infra · Modules"
+
+[[section]]
+dir = "ai-infra/notes/c-cpp"
+zh  = "AI Infra · C/C++ 笔记"
+en  = "AI Infra · C/C++ notes"
+
+[[section]]
+dir = "ai-infra/notes/attention"
+zh  = "AI Infra · Attention 笔记"
+en  = "AI Infra · Attention notes"
+
+[[section]]
+dir = "ai-infra/notes/ecosystem"
+zh  = "AI Infra · 生态"
+en  = "AI Infra · Ecosystem"
+
+[[section]]
+dir   = "ai-infra/projects"
+zh    = "AI Infra · 实战项目"
+en    = "AI Infra · Projects"
+order = ["README.md"]
 
 [[section]]
 dir = "papers"
