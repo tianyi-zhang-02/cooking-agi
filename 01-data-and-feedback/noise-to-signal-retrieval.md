@@ -87,12 +87,12 @@ flowchart TB
         A["Text + image"] --> B["Image router"]
         B --> C1["Frozen or lightly adapted VLM teacher"]
         C1 --> D["Grounded evidence contract"]
-        A --> E["Candidate encoder"]
+        A --> E["Candidate tower<br/>Qwen3-Embedding-sub-1B"]
         D --> E
     end
     subgraph U["Member understanding · nearline"]
-        F["Profile encoder"] --> H["Multiple member views"]
-        G["History encoder"] --> H
+        F["Profile view<br/>Qwen3-Embedding-sub-1B"] --> H["Multiple member views"]
+        G["History view<br/>Qwen3-Embedding-sub-1B"] --> H
         H --> I["Learnable routing"]
     end
     E --> J["Candidate vector"]
@@ -102,12 +102,56 @@ flowchart TB
     L --> M["Existing ranker"]
 ```
 
+### 模型选择：为什么是 Qwen3-Embedding-sub-1B
+
+这里的模型选择不是“找 benchmark 最大的模型”，而是为每个模块选择刚好足够的能力：
+
+| 模块 | 起始选择 | 选择标准 | 为什么不直接用更大的模型 |
+| --- | --- | --- | --- |
+| Image router | 小型视觉分类器或 SigLIP-like encoder | 内容类型、信息量与置信度校准 | Router 只决定是否调用 teacher，不负责完整理解 |
+| Visual teacher | 冻结的 3B–7B 级预训练 VLM | grounding、OCR、图文冲突与结构化输出稳定性 | 离线选择性调用已经足够；先避免领域 SFT 和线上生成成本 |
+| Candidate/member encoder | [Qwen3-Embedding-sub-1B](https://huggingface.co/Qwen/Qwen3-Embedding-sub-1B) | 检索质量、吞吐、长文本、向量大小与训练成本 | 4B/8B 可以作为容量上界，但会显著增加训练、nearline 编码与迭代成本 |
+| Downstream ranker | 复用已有 ranker | 请求级 relevance、quality、freshness | First-stage retriever 不需要重复承担精排职责 |
+
+Qwen3-Embedding-sub-1B 是一个合理的起点，因为官方模型提供 **sub-1B 参数、32K context、最高 1024 维 embedding、MRL 可变维度和 instruction-aware encoding**。这些特性分别对应实际约束：
+
+- **sub-1B**：足以从通用 embedding 初始化，同时允许频繁重训；相较更大模型，也更适合 nearline 刷新 member representation；
+- **32K context**：能容纳结构化 profile 和较长 history，但不代表每次都应塞满；输入仍要按 evidence value 截断；
+- **Instruction-aware**：member/query 侧可明确任务，例如“表示长期兴趣”或“表示近期行为”，candidate 侧保持稳定的内容语义；
+- **MRL / 32–1024 维**：模型容量与 ANN index 大小可以分开调节。先保留 1024 维质量基线，再在固定候选预算下比较 512/256 维，而不是凭感觉选择向量宽度。
+
+通用 benchmark 只能说明它适合作为初始化，不能证明它适合某个具体反馈分布。真正的选择仍由后面的 lifecycle、breadth、complementarity、latency 和 freshness gates 决定。[Qwen 的技术介绍](https://qwenlm.github.io/blog/qwen3-embedding/)也将该系列定位为 dual-encoder embedding 与 cross-encoder reranking 两类模型；这里选择前者，是因为 first-stage retrieval 必须预计算 candidate vectors 并使用 ANN。
+
+### 参数怎样共享
+
+这是一个**非对称 dual-encoder**：member 与 candidate 最终位于同一个向量空间，但输入分布和更新频率不同。
+
+```text
+Candidate tower: post text + grounded visual evidence → z_c
+Member views:    instructed profile / history / latent intent → z_u,r
+Similarity:      cosine(z_u,r, z_c), after identical pooling + L2 normalization
+```
+
+一个实用起点是：所有塔从同一个 Qwen3-Embedding-sub-1B checkpoint 初始化，candidate 与 member 两侧使用独立参数或 adapter；profile/history 在 member 侧共享主干，再使用不同 instruction、adapter 或 projection head。这样既保留共同语义空间，也允许不同输入学习不同的压缩方式。
+
+必须固定 train/serve parity：同一 tokenizer、instruction template、last-token pooling、L2 normalization、截断规则和视觉 evidence schema。否则离线训练的相似度不再等于线上 ANN 使用的相似度。
+
 用户侧不必把所有信息平均成一个点。Profile 与 history 可以保留为不同 view，也可以继续展开成多个 latent intent vectors。Router 根据上下文决定各 view 的权重；它的价值不在于“塔更多”，而在于不同 view 是否提供**互补的相关候选**：
 
 - profile 提供稳定但通常更弱的长期证据；
 - history 提供更强但可能更窄的近期证据；
 - latent views 防止少数兴趣被一个平均向量稀释；
 - routing 只有在不同 view 带来 unique relevant candidates 时才值得增加复杂度。
+
+Serving 时不能先把这些向量平均掉，否则又回到了单点表示。更直接的做法是在一个固定总预算 $B$ 下分配每个 view 的查询额度：
+
+\[
+K_r = \operatorname{round}\!\left(B\cdot \operatorname{softmax}(g(u))_r\right),
+\qquad
+\mathcal{C}(u)=\bigcup_r \operatorname{ANN}(\mathbf{z}_{u,r},K_r).
+\]
+
+各 view 分别查询同一个 candidate index，随后 union、去重，并把来源 view、相似度和 router weight 交给 downstream ranker。这样多意图增加的是候选互补性，而不是无界增加在线候选量。
 
 ### 训练分成三层
 

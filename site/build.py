@@ -387,6 +387,9 @@ def protect_math(text):
         math_stash.append((token, match.group(0)))
         return token
 
+    protected = re.sub(r"(?<!\\)\\\[(.+?)(?<!\\)\\\]", stash_math, protected,
+                       flags=re.S)
+    protected = re.sub(r"(?<!\\)\\\(([^\n]+?)(?<!\\)\\\)", stash_math, protected)
     protected = re.sub(r"(?<!\\)\$\$(.+?)(?<!\\)\$\$", stash_math, protected,
                        flags=re.S)
     protected = re.sub(
@@ -410,8 +413,16 @@ def restore_math_toc(body, toc, math_stash):
     """Restore math in heading labels and replace placeholder-based anchors."""
     used_ids = set()
     id_replacements = []
+
+    def without_delimiters(tex):
+        for opening, closing in (("$$", "$$"), ("$", "$"), (r"\[", r"\]"),
+                                 (r"\(", r"\)")):
+            if tex.startswith(opening) and tex.endswith(closing):
+                return tex[len(opening):-len(closing)]
+        return tex
+
     slug_replacements = [
-        (slugify(token, "-"), slugify(tex.strip("$"), "-"))
+        (slugify(token, "-"), slugify(without_delimiters(tex), "-"))
         for token, tex in math_stash
     ]
 
