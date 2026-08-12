@@ -366,6 +366,39 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 }
 .katex-display > .katex { text-align: left; }
 
+/* -------- progressive depth ---------------------------------------------
+   The main line of a note stays a five-minute read; derivations and edge
+   cases live in <details>, which GitHub renders too, so the layering is not
+   a site-only feature. */
+.prose details {
+  margin: 1.4rem 0; border: 1px solid var(--rule); border-radius: 9px;
+  background: var(--panel); overflow: hidden;
+}
+.prose details > summary {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .6rem .9rem; cursor: pointer; list-style: none;
+  font-family: var(--sans); font-size: .84rem; color: var(--ink-soft);
+}
+.prose details > summary::-webkit-details-marker,
+.prose details > summary::marker { display: none; content: ""; }
+.prose details > summary:hover { background: var(--rule-soft); color: var(--ink); }
+.prose details > summary b {
+  font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ember); border: 1px solid color-mix(in srgb, var(--ember) 45%, transparent);
+  border-radius: 4px; padding: .1rem .34rem; flex: none;
+}
+.prose details > summary::after {
+  content: ""; flex: none; margin-left: auto; width: 7px; height: 7px;
+  border-right: 1.7px solid var(--faint); border-bottom: 1.7px solid var(--faint);
+  transform: rotate(45deg) translate(-2px, -2px); transition: transform .16s ease;
+}
+.prose details[open] > summary::after { transform: rotate(-135deg); }
+.prose details[open] > summary { border-bottom: 1px solid var(--rule-soft); }
+.prose details > *:not(summary) { margin-left: .9rem; margin-right: .9rem; }
+.prose details > *:nth-child(2) { margin-top: .85rem; }
+.prose details > *:last-child { margin-bottom: .85rem; }
+.prose details .katex-display { margin: .9rem 0; }
+
 /* -------- glossary terms ----------------------------------------------- */
 .term {
   border-bottom: 1px dotted color-mix(in srgb, var(--ember) 60%, transparent);
