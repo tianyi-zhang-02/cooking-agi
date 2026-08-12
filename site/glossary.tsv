@@ -1,0 +1,41 @@
+# 术语表 — 中文版页面里，每个词的第一次出现会自动标注英文原文。
+#
+# 格式：中文<TAB>English<TAB>一句话解释（可留空）
+# 只需在这里加一行，全站生效；不要在正文里手写括号注释。
+# 以 # 开头的行和空行会被忽略。
+
+超平面	hyperplane	n 维空间里的 n−1 维平面；二维是直线，三维是平面
+决策边界	decision boundary	模型判定类别翻转的那个面
+线性可分	linearly separable	存在一个超平面能把两类完全分开
+特征映射	feature map	把原始输入换到另一个坐标系的函数 φ
+坐标变换	change of coordinates	同上，强调「换个空间看问题」
+激活函数	activation function	逐元素的非线性函数，网络深度靠它才有意义
+交叉熵	cross-entropy	分类任务的标准损失，−log 正确类的概率
+梯度消失	vanishing gradient	激活饱和导致梯度趋近 0，深层学不动
+权重衰减	weight decay	在损失里加参数的 L2 惩罚
+残差连接	residual connection	x + f(x)，让梯度有一条不经过 f 的通路
+自注意力	self-attention	序列自己查询自己，让每个位置看见其他位置
+交叉注意力	cross-attention	查询来自一侧、键值来自另一侧的注意力
+多头注意力	multi-head attention	把注意力拆成若干组并行计算再拼回来
+因果掩码	causal mask	禁止位置 i 看见 i 之后的内容
+位置编码	positional encoding	把「第几个 token」的信息注入表示
+旋转位置编码	RoPE	在 q/k 上按位置做旋转，天然编码相对距离
+分组查询注意力	GQA	多个查询头共享一组键值头，缩小 KV cache
+前馈网络	feed-forward network	注意力之间那个逐位置的 MLP
+层归一化	layer normalization	沿特征维做归一化，稳定训练
+预归一化	pre-norm	norm 放在残差分支内部，现代实现的默认
+后归一化	post-norm	norm 放在残差相加之后，原论文的做法
+学习率预热	learning-rate warmup	训练开头让学习率从小逐渐升上去
+标签平滑	label smoothing	把 one-hot 目标softened，换 BLEU 不换困惑度
+词表	vocabulary	模型能输出的所有 token 的集合
+困惑度	perplexity	exp(交叉熵)，语言模型的常用指标
+监督微调	SFT	用输入—输出示范教模型模仿目标行为
+偏好学习	preference learning	从「A 比 B 好」这类比较里学习
+强化学习	RL	通过与环境交互、按回报调整策略来学习
+奖励	reward	RL 里指导策略更新的标量信号
+检索	retrieval	从外部语料里找出相关内容
+稠密检索	dense retrieval	用向量相似度而非关键词匹配来检索
+可观测性	observability	能从外部信号推断系统内部状态的程度
+人在回路	human-in-the-loop	让人参与到系统的判断或纠错环节
+分布偏移	distribution shift	训练时和使用时的数据分布不一致
+长尾	long tail	出现频率很低但总量可观的那部分情况

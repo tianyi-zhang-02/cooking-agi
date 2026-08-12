@@ -1,0 +1,88 @@
+# Single source of truth for the site's navigation.
+#
+# Adding a note:   drop the .md into a section folder -- it appears automatically.
+# Pinning order:   list it in that section's `order`. Unlisted files sort after,
+#                  alphabetically, so you only name the ones you care about.
+# Adding a section: add a [[section]] block. Nothing else to touch.
+
+[site]
+repo        = "tianyi-zhang-02/cooking-agi"
+title_zh    = "AGI 大锅烩"
+title_en    = "Cooking AGI"
+tagline_zh  = "从一条直线，到会读世界的系统"
+tagline_en  = "From a straight line to a system that reads the world"
+base_url    = "/cooking-agi"
+
+[[section]]
+dir   = "."
+zh    = "开始"
+en    = "Start here"
+order = ["README.md"]
+
+[[section]]
+dir   = "00-foundations"
+zh    = "基础 · 模型到底在算什么"
+en    = "Foundations"
+order = ["README.md", "from-linear-to-neural.md", "transformer.md"]
+
+[[section]]
+dir = "00-foundations/code"
+zh  = "手搓：能跑的实现"
+en  = "Build it by hand"
+
+[[section]]
+dir = "01-data-and-feedback"
+zh  = "数据与反馈"
+en  = "Data & feedback"
+
+[[section]]
+dir = "02-memory"
+zh  = "表征与记忆"
+en  = "Representation & memory"
+
+[[section]]
+dir = "03-multimodal-learning"
+zh  = "多模态学习"
+en  = "Multimodal learning"
+
+[[section]]
+dir = "04-search"
+zh  = "搜索与检索"
+en  = "Search & retrieval"
+
+[[section]]
+dir = "05-post-training"
+zh  = "Post-Training"
+en  = "Post-training"
+
+[[section]]
+dir   = "06-systems"
+zh    = "系统总览"
+en    = "Systems"
+order = ["README.md", "agent-observability.md", "human-in-the-loop.md"]
+
+[[section]]
+dir   = "07-evaluation"
+zh    = "评估"
+en    = "Evaluation"
+order = ["README.md", "llm-as-a-judge.md"]
+
+[[section]]
+dir = "08-model-experience"
+zh  = "模型体验"
+en  = "Model experience"
+
+[[section]]
+dir = "09-personal-agi"
+zh  = "Personal AGI"
+en  = "Personal AGI"
+
+[[section]]
+dir = "papers"
+zh  = "论文笔记"
+en  = "Paper notes"
+
+[[section]]
+dir = "templates"
+zh  = "模板"
+en  = "Templates"

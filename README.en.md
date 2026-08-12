@@ -52,7 +52,7 @@ Failure in any layer propagates to the final experience.
 | Evaluation | What evidence supports the claim that the system is better? | Aggregate scores hiding subgroup and long-tail regressions |
 | Product loop | How does deployed behavior become future learning data? | Treating exposure-conditioned clicks as natural preference |
 
-The expanded framework lives in [`systems/`](systems/README.en.md).
+The expanded framework lives in [`systems/`](06-systems/README.en.md).
 
 ## How I think about LLM evaluation
 
@@ -86,18 +86,24 @@ These papers help define the conceptual map rather than form a complete reading 
 
 ## Repository map
 
-- [`systems/`](systems/README.en.md) — connecting data, models, runtime, evaluation, and the product loop
-- [`data and feedback`](data-and-feedback/README.en.md) — understanding sparsity, delay, ambiguity, and policy-biased behavior
-- [`representation and memory`](memory/README.en.md) — persistent, revisable user and world state
-- [`evaluation`](evaluation/README.en.md) — combining deterministic, semantic, human, and longitudinal evidence
-- [`LLM-as-a-Judge`](evaluation/llm-as-a-judge.en.md) — demonstrations, references, rubrics, judging modes, and score aggregation
-- [`agent observability`](systems/agent-observability.en.md) — using traces, state, and outcomes to explain agent failures
-- [`human in the loop`](systems/human-in-the-loop.en.md) — routing uncertain or high-risk decisions to human judgment
-- [`personal-agi/`](personal-agi/README.en.md) — persistent user state, memory, adaptation, and agents
-- [`search/`](search/README.en.md) — retrieval, ranking, exploration, and retrieval-augmented reasoning
-- [`model-experience/`](model-experience/README.en.md) — behavioral evaluation, interaction quality, and control
-- [`post-training/`](post-training/README.en.md) — SFT, preference learning, RL, objectives, and data quality
-- [`multimodal-learning/`](multimodal-learning/README.en.md) — multimodal representation and content understanding
+The numeric prefixes are the suggested reading order.
+
+- [`00-foundations/`](00-foundations/README.en.md) — **start here**: from linear regression to the Transformer, and why the last layer never changed
+  - [from linear models to neural networks](00-foundations/from-linear-to-neural.en.md) — the sigmoid buys gradients, not expressiveness
+  - [the Transformer architecture](00-foundations/transformer.en.md) — three attention sites, post-norm and warmup, RoPE
+  - [`code/`](00-foundations/code/README.en.md) — two Transformers built without `nn.MultiheadAttention`, plus the checks that prove they work
+- [`systems/`](06-systems/README.en.md) — connecting data, models, runtime, evaluation, and the product loop
+- [`data and feedback`](01-data-and-feedback/README.en.md) — understanding sparsity, delay, ambiguity, and policy-biased behavior
+- [`representation and memory`](02-memory/README.en.md) — persistent, revisable user and world state
+- [`evaluation`](07-evaluation/README.en.md) — combining deterministic, semantic, human, and longitudinal evidence
+- [`LLM-as-a-Judge`](07-evaluation/llm-as-a-judge.en.md) — demonstrations, references, rubrics, judging modes, and score aggregation
+- [`agent observability`](06-systems/agent-observability.en.md) — using traces, state, and outcomes to explain agent failures
+- [`human in the loop`](06-systems/human-in-the-loop.en.md) — routing uncertain or high-risk decisions to human judgment
+- [`personal-agi/`](09-personal-agi/README.en.md) — persistent user state, memory, adaptation, and agents
+- [`search/`](04-search/README.en.md) — retrieval, ranking, exploration, and retrieval-augmented reasoning
+- [`model-experience/`](08-model-experience/README.en.md) — behavioral evaluation, interaction quality, and control
+- [`post-training/`](05-post-training/README.en.md) — SFT, preference learning, RL, objectives, and data quality
+- [`multimodal-learning/`](03-multimodal-learning/README.en.md) — multimodal representation and content understanding
 - [`papers/`](papers/README.en.md) — paper-by-paper notes
 - [`templates/paper-note.en.md`](templates/paper-note.en.md) — English paper-note template
 
@@ -113,3 +119,24 @@ I try not to restate a paper section by section. Each note should answer:
 - What does it change in my current research map?
 
 This is a living notebook. Interpretations will change as I read, reproduce, and build.
+
+## Read it online
+
+**<https://tianyi-zhang-02.github.io/cooking-agi/>**
+
+Sidebar navigation by topic, KaTeX-rendered math, glossary terms annotated inline on the
+Chinese pages, and a live XOR experiment in the foundations chapter (try switching the
+activation off). Every page carries its last-updated date and an auto-generated
+contributor list.
+
+## Contributing
+
+Pointing out something wrong, saying a section didn't land, adding an example, adding a
+paper note — all of it counts, typos included. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Local preview:
+
+```bash
+pip install markdown pygments
+python site/build.py --serve
+```

@@ -45,43 +45,52 @@ flowchart LR
 
 Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文”。它应该能逐渐理解一个具体的人，同时知道自己的理解可能会错，并允许用户纠正。
 
-→ [从 Personal AGI 开始](personal-agi/)
+→ [从 Personal AGI 开始](09-personal-agi/)
 
 ### Search：模型怎样连接外部世界
 
 模型不可能把所有知识、最新信息和个人状态都放在参数里。Search 决定它在当前任务中看见什么、错过什么，以及下一步应该继续找、追问，还是直接行动。
 
-→ [从 Search 开始](search/)
+→ [从 Search 开始](04-search/)
 
 ### Model Experience：用户最终感受到什么
 
 用户体验到的不是 benchmark 分数，而是一段连续关系：模型是否懂上下文、是否重复犯错、是否给人控制感，以及用久以后是不是真的更有帮助。
 
-→ [从 Model Experience 开始](model-experience/)
+→ [从 Model Experience 开始](08-model-experience/)
 
 ## 按知识点慢慢读
 
 每一篇都尽量按照同一个顺序写：**先讲它是什么，再讲为什么需要它，然后用一个例子解释，最后再进入技术问题。**
 
-### 先理解输入
+目录的数字前缀就是建议的阅读顺序。
 
-- [数据与反馈](data-and-feedback/)：日志不是事实，点击也不等于偏好。
-- [表征与记忆](memory/)：模型应该记住什么，又该忘掉什么？
-- [多模态学习](multimodal-learning/)：图片、视频和行为怎样补充文字看不到的信息？
+### 先把地基打上
 
-### 再理解模型怎样做事
+- [基础：模型到底在算什么](00-foundations/)：从线性回归到 Transformer，最后一层从来没变过。
+- [从线性模型到神经网络](00-foundations/from-linear-to-neural.md)：sigmoid 解决的不是表达力，是梯度。
+- [Transformer 架构](00-foundations/transformer.md)：三处注意力、post-norm 与 warmup、RoPE。
+- [`00-foundations/code/`](00-foundations/code/)：不调 `nn.MultiheadAttention`，手搓两版并验证它是对的。
 
-- [Search](search/)：从相似度检索走向寻找证据与行动。
-- [Post-Training](post-training/)：SFT、偏好学习和 RL 分别在改变什么？
-- [现代 AI 系统总览](systems/)：这些模块怎样真正连在一起？
+### 再理解输入
+
+- [数据与反馈](01-data-and-feedback/)：日志不是事实，点击也不等于偏好。
+- [表征与记忆](02-memory/)：模型应该记住什么，又该忘掉什么？
+- [多模态学习](03-multimodal-learning/)：图片、视频和行为怎样补充文字看不到的信息？
+
+### 然后理解模型怎样做事
+
+- [Search](04-search/)：从相似度检索走向寻找证据与行动。
+- [Post-Training](05-post-training/)：SFT、偏好学习和 RL 分别在改变什么？
+- [现代 AI 系统总览](06-systems/)：这些模块怎样真正连在一起？
 
 ### 最后理解怎样判断它做得好不好
 
-- [Evaluation](evaluation/)：为什么“给模型打一个分”远远不够？
-- [LLM-as-a-Judge](evaluation/llm-as-a-judge.md)：few-shot、reference、rubric 与 scoring 怎样组合？
-- [Agent Observability](systems/agent-observability.md)：一次 Agent 运行到底发生了什么？
-- [Human-in-the-Loop](systems/human-in-the-loop.md)：什么时候应该让人介入？
-- [Model Experience](model-experience/)：离线指标怎样连接到长期用户体验？
+- [Evaluation](07-evaluation/)：为什么“给模型打一个分”远远不够？
+- [LLM-as-a-Judge](07-evaluation/llm-as-a-judge.md)：few-shot、reference、rubric 与 scoring 怎样组合？
+- [Agent Observability](06-systems/agent-observability.md)：一次 Agent 运行到底发生了什么？
+- [Human-in-the-Loop](06-systems/human-in-the-loop.md)：什么时候应该让人介入？
+- [Model Experience](08-model-experience/)：离线指标怎样连接到长期用户体验？
 
 ## 推荐的第一组论文
 
@@ -109,3 +118,23 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 8. 它和整套系统的其他部分怎样连接？
 
 这是持续更新的个人理解，不是最终答案。我也会随着阅读、实验和实际构建不断修改它。
+
+## 在线阅读
+
+站点：**<https://tianyi-zhang-02.github.io/cooking-agi/>**
+
+左侧可以按主题跳转，公式用 KaTeX 渲染，中文页面里的术语会自动标出英文原文，
+基础章节还有一个能自己训练的 XOR 实验（把激活函数关掉试试）。每页底部有最后更新时间
+和自动生成的贡献者列表。
+
+## 欢迎参与
+
+指出讲错的地方、说某段没看懂、补一个例子、加一篇论文笔记——都算。
+一个错字也算。见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+本地预览：
+
+```bash
+pip install markdown pygments
+python site/build.py --serve
+```
