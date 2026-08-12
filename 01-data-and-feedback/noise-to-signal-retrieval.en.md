@@ -8,7 +8,27 @@
 
 The hard part of modern retrieval is often not attaching a larger model. It is:
 
-> **turning sparse, policy-biased behavior into reliable supervision, enriching incomplete content representations, and expanding the candidate space without breaking online serving constraints.**
+> **learning a scalable proposal function from a tiny, policy-biased set of positive feedback, then searching a massive unobserved corpus for candidates likely to produce positive outcomes without treating model scores as new ground-truth labels.**
+
+## Problem framing: from sparse positives to candidate hypotheses
+
+For user $u$, let $\mathcal{C}$ be the retrievable corpus, $\mathcal{E}_u\subset\mathcal{C}$ the content actually exposed by the previous policy, and $\mathcal{P}_u\subset\mathcal{E}_u$ the much smaller subset with reliable positive feedback. This is not ordinary classification: most of $\mathcal{C}\setminus\mathcal{E}_u$ is **unlabeled, not negative**.
+
+The retriever learns a scoring function $f_\theta(u,c)$ and proposes candidates from the unobserved space:
+
+\[
+\mathcal{H}_u
+=\operatorname{TopK}_{c\in\mathcal{C}\setminus\mathcal{E}_u} f_\theta(u,c).
+\]
+
+$\mathcal{H}_u$ contains **positive hypotheses**, not new positives. Candidates become new evidence only after downstream ranking, real exposure, and behavioral validation. The system therefore separates four responsibilities:
+
+1. **Signal construction:** decide which historical feedback is strong enough to supervise learning.
+2. **Retriever:** propose high-potential candidates cheaply from a massive unobserved space.
+3. **Ranker / policy:** use request context to decide which candidates receive exposure.
+4. **Evaluation / experiment:** test whether those candidates create user value and write validated evidence into the next training snapshot.
+
+The more precise framing is **candidate discovery from sparse, selectively observed feedback**. The retriever is a hypothesis generator; user behavior is the evidence generator.
 
 ```mermaid
 flowchart LR
@@ -21,10 +41,11 @@ flowchart LR
     B --> H["Embedding retriever<br/>supervised contrastive post-training"]
     G --> H
     I["Profile + history"] --> H
-    H --> J["ANN candidate retrieval"]
+    H --> J["ANN candidate hypotheses"]
     J --> K["Existing downstream ranker"]
-    K --> L["Behavioral evaluation"]
-    L --> M["Controlled online validation"]
+    K --> L["Controlled exposure"]
+    L --> M["Behavioral validation"]
+    M -.->|"new evidence, not automatic truth"| A
 ```
 
 ## 1. Convert noise into signal
@@ -93,7 +114,7 @@ The goal is not to pick the model with the largest benchmark number. Each module
 | Module | Starting choice | Selection criteria | Why not use a larger model directly? |
 | --- | --- | --- | --- |
 | Image router | Small vision classifier or SigLIP-like encoder | Content type, information value, calibrated confidence | The router selects teacher calls; it does not need complete image understanding |
-| Visual teacher | Frozen 3B–7B pretrained VLM | Grounding, OCR, conflict detection, stable structured output | Selective offline inference is sufficient before domain SFT or online generation |
+| Visual teacher | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) as a fast baseline, 4B as a capacity control | Grounding, OCR, conflict detection, schema adherence, calibrated confidence | Selective offline inference is sufficient before domain SFT or online generation |
 | Candidate/member encoder | [Qwen3-Embedding-sub-1B](https://huggingface.co/Qwen/Qwen3-Embedding-sub-1B) | Retrieval quality, throughput, long text, vector size, training cost | 4B/8B models are useful capacity bounds but increase training, nearline encoding, and iteration cost |
 | Downstream ranker | Existing ranker | Request-level relevance, quality, and freshness | First-stage retrieval should not duplicate fine-ranking responsibility |
 
@@ -105,6 +126,10 @@ Qwen3-Embedding-sub-1B is a reasonable starting point because the official model
 - **MRL / 32–1024 dimensions:** model capacity can be separated from ANN index width. Preserve 1024 dimensions as a quality reference, then compare 512 or 256 under a fixed candidate budget.
 
 Generic benchmarks justify an initialization, not a domain decision. Lifecycle, breadth, complementarity, latency, and freshness gates still select the production configuration. [Qwen's technical overview](https://qwenlm.github.io/blog/qwen3-embedding/) separates dual-encoder embedding from cross-encoder reranking; the former fits first-stage retrieval because candidate vectors must be precomputed for ANN search.
+
+VLM selection follows a different standard. `Qwen3-VL-2B-Instruct` is a practical first teacher not because it is a capable chatbot, but because its size supports batched offline processing while fixed prompts can request OCR, entities, visual claims, image-text relations, and evidence provenance. A 4B or larger model serves only as a capacity control on the same held-out grounding and conflict set. If 2B passes schema and calibration gates, the larger model does not belong in the default path.
+
+A direct [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B) candidate representation is also a valid experimental arm. It offers a more direct end-to-end multimodal space but couples visual understanding, embedding geometry, and index refresh to one checkpoint. The default **VLM teacher → grounded evidence → Qwen3-Embedding-sub-1B** design is easier to audit, cache, degrade gracefully, and upgrade independently while keeping text-only content in the same ANN index.
 
 ### Parameter sharing
 

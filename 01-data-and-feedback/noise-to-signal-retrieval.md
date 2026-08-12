@@ -8,7 +8,27 @@
 
 现代检索系统真正困难的地方，不只是换一个更大的模型，而是：
 
-> **怎样把稀疏、受旧策略影响的行为日志变成可靠训练信号，再用更完整的内容表征扩大候选空间，同时不破坏在线 Serving 成本。**
+> **怎样从极少、受旧策略影响的正反馈中学习一个可扩展的 proposal function，在海量未观测内容里找到更可能产生正反馈的候选，同时不把“模型高分”误当成新的真实标签。**
+
+## Problem Framing：从稀疏正样本到候选假设
+
+对用户 $u$，设 $\mathcal{C}$ 是全部可检索内容，$\mathcal{E}_u\subset\mathcal{C}$ 是旧策略真正曝光过的内容，而 $\mathcal{P}_u\subset\mathcal{E}_u$ 是其中获得可靠正反馈的极小子集。系统面对的不是普通分类问题，因为 $\mathcal{C}\setminus\mathcal{E}_u$ 中绝大多数内容**没有标签，而不是负样本**。
+
+Retriever 学习一个打分函数 $f_\theta(u,c)$，再从未观测空间提出候选：
+
+\[
+\mathcal{H}_u
+=\operatorname{TopK}_{c\in\mathcal{C}\setminus\mathcal{E}_u} f_\theta(u,c).
+\]
+
+$\mathcal{H}_u$ 是 **positive hypotheses**，不是新的 positives。它们只有经过 downstream ranker、真实曝光和行为验证后，才可能形成新的训练信号。因此整套系统可以抽象为四个职责：
+
+1. **Signal construction**：判断历史日志中哪些反馈足以成为监督；
+2. **Retriever**：在巨大未观测空间中低成本提出高潜力候选；
+3. **Ranker / policy**：结合请求级上下文决定哪些候选真正获得曝光；
+4. **Evaluation / experiment**：验证候选是否带来用户价值，并将新证据写回下一轮训练数据。
+
+所以更准确的名字不是“自动寻找 positive labels”，而是 **candidate discovery from sparse, selectively observed feedback**。Retriever 是 hypothesis generator；线上行为才是新的 evidence generator。
 
 ```mermaid
 flowchart LR
@@ -21,10 +41,11 @@ flowchart LR
     B --> H["Embedding Retriever<br/>Supervised Contrastive Post-Training"]
     G --> H
     I["Profile + History"] --> H
-    H --> J["ANN Candidate Retrieval"]
+    H --> J["ANN Candidate Hypotheses"]
     J --> K["Existing Downstream Ranker"]
-    K --> L["Behavioral Evaluation"]
-    L --> M["Controlled Online Validation"]
+    K --> L["Controlled Exposure"]
+    L --> M["Behavioral Validation"]
+    M -.->|"new evidence, not automatic truth"| A
 ```
 
 ## 1. 先把 Noise 变成 Signal
@@ -109,7 +130,7 @@ flowchart TB
 | 模块 | 起始选择 | 选择标准 | 为什么不直接用更大的模型 |
 | --- | --- | --- | --- |
 | Image router | 小型视觉分类器或 SigLIP-like encoder | 内容类型、信息量与置信度校准 | Router 只决定是否调用 teacher，不负责完整理解 |
-| Visual teacher | 冻结的 3B–7B 级预训练 VLM | grounding、OCR、图文冲突与结构化输出稳定性 | 离线选择性调用已经足够；先避免领域 SFT 和线上生成成本 |
+| Visual teacher | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) 作为快速基线，4B 作为容量对照 | grounding、OCR、图文冲突、schema adherence 与置信度 | 离线选择性调用已经足够；先避免领域 SFT 和线上生成成本 |
 | Candidate/member encoder | [Qwen3-Embedding-sub-1B](https://huggingface.co/Qwen/Qwen3-Embedding-sub-1B) | 检索质量、吞吐、长文本、向量大小与训练成本 | 4B/8B 可以作为容量上界，但会显著增加训练、nearline 编码与迭代成本 |
 | Downstream ranker | 复用已有 ranker | 请求级 relevance、quality、freshness | First-stage retriever 不需要重复承担精排职责 |
 
@@ -121,6 +142,10 @@ Qwen3-Embedding-sub-1B 是一个合理的起点，因为官方模型提供 **sub
 - **MRL / 32–1024 维**：模型容量与 ANN index 大小可以分开调节。先保留 1024 维质量基线，再在固定候选预算下比较 512/256 维，而不是凭感觉选择向量宽度。
 
 通用 benchmark 只能说明它适合作为初始化，不能证明它适合某个具体反馈分布。真正的选择仍由后面的 lifecycle、breadth、complementarity、latency 和 freshness gates 决定。[Qwen 的技术介绍](https://qwenlm.github.io/blog/qwen3-embedding/)也将该系列定位为 dual-encoder embedding 与 cross-encoder reranking 两类模型；这里选择前者，是因为 first-stage retrieval 必须预计算 candidate vectors 并使用 ANN。
+
+VLM 的选择遵循另一套标准。`Qwen3-VL-2B-Instruct` 适合作为第一版 teacher，不是因为它“会聊天”，而是因为 2B 规模允许批量离线处理，同时可以用固定 prompt 输出 OCR、实体、视觉主张、图文关系和 evidence provenance。4B 或更大模型只在同一套 held-out grounding/conflict set 上作为容量对照；如果 2B 已满足 schema 与校准门槛，就没有必要把更大模型加入默认路径。
+
+也可以评估直接使用 [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B) 产生 multimodal candidate vectors，但它解决的是另一种取舍：端到端表示更直接，却会把视觉理解、向量空间和索引刷新绑在同一个模型版本上。默认的 **VLM teacher → grounded evidence → Qwen3-Embedding-sub-1B** 两阶段设计更容易审计、缓存、降级和独立升级，也允许纯文本内容复用同一个 ANN index。
 
 ### 参数怎样共享
 
