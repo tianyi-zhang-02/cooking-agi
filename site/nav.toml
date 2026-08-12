@@ -34,6 +34,7 @@ en  = "Build it by hand"
 dir = "01-data-and-feedback"
 zh  = "数据与反馈"
 en  = "Data & feedback"
+order = ["README.md", "noise-to-signal-retrieval.md"]
 
 [[section]]
 dir = "02-memory"
