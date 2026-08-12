@@ -35,7 +35,7 @@ Nearly every design doc of this kind says "unobserved candidates must not be tre
 
 **Those two statements contradict each other.** In-batch negatives take other rows' candidates as negatives for the current row — and those are precisely randomly-drawn unobserved items.
 
-The contradiction doesn't need to be avoided; the scale in-batch negatives provide is real and contrastive training needs it. But it needs an **explicit correction**, because the sampling distribution isn't uniform: an item appears in a batch with probability proportional to its frequency, so **popular items get sampled as negatives far more often than tail items**, and the model systematically suppresses them.
+The contradiction doesn't need to be avoided; the scale in-batch negatives provide is real and contrastive training needs it. But it needs an **explicit correction**, because the sampling distribution isn't uniform. An item appears in a batch with probability proportional to its frequency, so **popular items get sampled as negatives far more often than tail items** — and the model learns to suppress them.
 
 The standard fix is a logQ correction — subtract the log sampling probability from the score:
 

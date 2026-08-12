@@ -35,7 +35,21 @@
    把 `.svg` 输出到该章节的 `assets/`。参考
    [`00-foundations/code/make_figures.py`](00-foundations/code/make_figures.py)。
    这样改了模型图会跟着变，图和正文不会说两套话。
-6. **不确定就写不确定**。「我不知道为什么」比编一个解释好。
+6. **入门和进阶分层，不要拆成两篇。** 主线保持五分钟能读完；推导、边角情况、
+   踩过的坑放进折叠块。GitHub 和站点都能渲染它：
+
+   ```markdown
+   <details markdown="1">
+   <summary><b>进阶</b>：为什么「接近 one-hot」就等于没有梯度</summary>
+
+   （这里照常写 markdown，公式、代码、链接都行）
+
+   </details>
+   ```
+
+   `markdown="1"` 让站点解析内部内容，GitHub 会忽略这个属性但同样能渲染。
+   判断标准：**去掉这个块，主线还成立吗？** 不成立就说明它不该被折叠。
+7. **不确定就写不确定**。「我不知道为什么」比编一个解释好。
 
 ## 目录约定
 
@@ -107,7 +121,23 @@ example → the main technical approaches → what it assumes → how it fails.*
    that emits `.svg` into the chapter's `assets/`. See
    [`00-foundations/code/make_figures.py`](00-foundations/code/make_figures.py). Change the
    model, rerun, and the figure follows — so the picture and the prose can't disagree.
-6. **Say when you're unsure.** "I don't know why this works" beats an invented explanation.
+6. **Layer depth in place; don't split into two notes.** Keep the main line to five
+   minutes and put derivations, edge cases and hard-won traps in a collapsible block.
+   Both GitHub and the site render it:
+
+   ```markdown
+   <details markdown="1">
+   <summary><b>deeper</b>: why "close to one-hot" means "no gradient"</summary>
+
+   Ordinary markdown in here — math, code and links all work.
+
+   </details>
+   ```
+
+   `markdown="1"` tells the site to parse the contents; GitHub ignores the attribute
+   and renders it anyway. The test: **does the main line still stand without this
+   block?** If not, it shouldn't have been collapsed.
+7. **Say when you're unsure.** "I don't know why this works" beats an invented explanation.
 
 ## Local preview
 

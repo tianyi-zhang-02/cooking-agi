@@ -2,6 +2,10 @@
 
 **中文** · [English](transformer.en.md)
 
+> 阅读时间：约 8 分钟 · 难度：入门到进阶 · 最近审阅：2026-08
+>
+> 主线读完就够用。标着 **进阶** 的折叠块是推导和边角情况，跳过不影响理解。
+
 ## 先用一句话讲清楚
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。
@@ -29,11 +33,20 @@ $$\alpha_{ij} = \frac{\exp\!\big(\mathbf{q}_i^\top \mathbf{k}_j / \sqrt{d_k}\big
 
 $$\mathbb{E}[\mathbf{q}^\top\mathbf{k}] = 0, \qquad \text{Var}(\mathbf{q}^\top\mathbf{k}) = \sum_{i=1}^{d_k}\text{Var}(q_i k_i) = d_k$$
 
-即标准差是 $\sqrt{d_k}$。$d_k = 64$ 时点积的典型量级就有 $\pm 8$，$d_k = 128$ 时到 $\pm 11$。softmax 在这种量级上已经接近 one-hot，而它的雅可比是
+即标准差是 $\sqrt{d_k}$。$d_k = 64$ 时点积的典型量级就有 $\pm 8$。softmax 在这种量级上已经接近 one-hot，而 one-hot 附近**没有梯度**。除以 $\sqrt{d_k}$ 把方差拉回 1，让 softmax 待在有梯度的区域。
+
+<details markdown="1">
+<summary><b>进阶</b>：为什么「接近 one-hot」就等于没有梯度</summary>
+
+softmax 的雅可比是
 
 $$\frac{\partial\, \text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij} - \alpha_j)$$
 
-当某个 $\alpha_i \to 1$、其余 $\to 0$ 时，整个雅可比趋近于零矩阵——**梯度消失**。除以 $\sqrt{d_k}$ 把方差拉回 1，softmax 待在有梯度的区域。
+当某个 $\alpha_i \to 1$、其余 $\to 0$ 时，对角元 $\alpha_i(1-\alpha_i) \to 0$，非对角元 $-\alpha_i\alpha_j \to 0$——整个矩阵趋近于零矩阵。前向还在正常输出，反向已经没有信号传回去了。
+
+这和[逻辑回归那一页](from-linear-to-neural.md)里 sigmoid 的饱和是同一回事：$\sigma'(z) = \sigma(1-\sigma)$ 在两端也趋近 0。softmax 只是它的多类推广，饱和的机制原样保留。
+
+</details>
 
 ### Python：注意力本体
 
@@ -60,6 +73,8 @@ def attention(q, k, v, mask=None):
 | encoder 自注意力 | src | src | 只挡 padding，**双向** | $(B,h,S,S)$ |
 | decoder 自注意力 | tgt | tgt | padding **∨** 因果 | $(B,h,T,T)$ |
 | **交叉注意力** | **tgt** | **memory** | 挡 src 的 padding | $(B,h,T,S)$ ← 非方阵 |
+
+![三处注意力的 Q/K/V 来源](assets/attention-sites.svg)
 
 交叉注意力是两座塔唯一接触的地方：decoder 每生成一步，就拿当前状态当查询去 encoder 的输出里查一次。
 
@@ -104,6 +119,8 @@ $$\mathbf{x} \leftarrow \text{LayerNorm}\big(\mathbf{x} + \text{Sublayer}(\mathb
 
 $$\mathbf{x} \leftarrow \mathbf{x} + \text{Sublayer}\big(\text{Norm}(\mathbf{x})\big)$$
 
+![post-norm 与 pre-norm 的残差通路](assets/transformer-block.svg)
+
 差别不是风格。post-norm 把 norm 压在残差高速路上，堆 6 层之后早期梯度会炸，所以原论文的 Noam 调度
 
 $$\text{lr}(t) = d_{\text{model}}^{-0.5} \cdot \min\big(t^{-0.5},\; t \cdot t_{\text{warmup}}^{-1.5}\big)$$
@@ -128,11 +145,22 @@ $$PE_{(pos,\, 2i)} = \sin\!\left(\frac{pos}{10000^{2i/d}}\right), \qquad PE_{(po
 
 $$\tilde{\mathbf{q}}_m = R_m \mathbf{q}, \qquad R_m = \begin{pmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{pmatrix} \ \ (\text{每个通道对})$$
 
-关键性质：旋转矩阵满足 $R_m^\top R_n = R_{n-m}$，于是
+关键结果：注意力分数**只依赖相对距离 $n-m$**，绝对位置自动消掉。$\mathbf{v}$ 不旋转——它不该带位置信息。
 
-$$\langle R_m\mathbf{q},\; R_n\mathbf{k}\rangle = \mathbf{q}^\top R_m^\top R_n \mathbf{k} = \mathbf{q}^\top R_{n-m}\mathbf{k}$$
+<details markdown="1">
+<summary><b>进阶</b>：相对性是怎么来的</summary>
 
-注意力分数**只依赖相对距离 $n-m$**，绝对位置自动消掉。$\mathbf{v}$ 不旋转——它不该带位置信息。
+旋转矩阵是正交的，且绕同一平面的旋转可以相加：$R_m^\top = R_{-m}$，$R_a R_b = R_{a+b}$。于是
+
+$$\langle R_m\mathbf{q},\; R_n\mathbf{k}\rangle
+= \mathbf{q}^\top R_m^\top R_n \mathbf{k}
+= \mathbf{q}^\top R_{n-m}\mathbf{k}$$
+
+$m$ 和 $n$ 只以差的形式出现。这就是为什么 RoPE 外推到训练时没见过的长度还能工作一部分——它编码的从来不是「第几个 token」，而是「隔多远」。
+
+也是为什么不能只旋转 $\mathbf{q}$ 不旋转 $\mathbf{k}$：那样 $R_m^\top$ 没有配对的 $R_n$，绝对位置就消不掉了。
+
+</details>
 
 ```python
 def apply_rope(x, cos, sin):
@@ -188,6 +216,8 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
   RoPE 相对性： score(5,2) = score(20,17) = +5.6092，score(20,10) = +0.4579
   初始 loss：   4.19  vs  ln(V) = 4.16
 ```
+
+![prefill 与单步解码分别算了什么](assets/kv-cache.svg)
 
 带 cache 时最容易翻车的是 mask：query 的绝对位置是 `cache.pos + i`，key 从 0 数到 `cache.pos + T - 1`，所以 mask 是**非方阵**的 $(T, S)$；RoPE 的 cos/sin 也得从 `cache.pos` 切片。而且 `cache.pos` 每层前向只推进**一次**（在层循环之后），写在 `update()` 里会翻 $n_{\text{layer}}$ 倍。
 
