@@ -178,16 +178,45 @@ a:hover { color: var(--link-hover); }
 
 .side-nav { margin-top: 1rem; }
 .nav, .nav ul { list-style: none; padding: 0; }
-.nav .sec { margin-bottom: 1.05rem; }
+
+/* topic groups -------------------------------------------------------- */
+.nav .grp + .grp { margin-top: .1rem; }
+.nav details > summary {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .36rem .5rem .36rem .28rem;
+  border-radius: 6px; cursor: pointer; user-select: none;
+  list-style: none;
+  font-family: var(--sans); font-size: .715rem; font-weight: 650;
+  letter-spacing: .085em; text-transform: uppercase; color: var(--muted);
+}
+.nav details > summary::-webkit-details-marker,
+.nav details > summary::marker { display: none; content: ""; }
+.nav details > summary:hover { background: var(--rule-soft); color: var(--ink); }
+.nav details[open] > summary { color: var(--ink); }
+.nav details > summary .chev {
+  flex: none; color: var(--faint); transition: transform .16s ease;
+}
+.nav details[open] > summary .chev { transform: rotate(90deg); color: var(--ember); }
+.grp-name { flex: 1; }
+.grp-count {
+  font-family: var(--mono); font-size: .655rem; color: var(--faint);
+  font-variant-numeric: tabular-nums; letter-spacing: 0;
+}
+.grp-body { padding: .3rem 0 .55rem .1rem; }
+/* a group holding the current page keeps a quiet marker even when scrolled */
+.nav details:has(a.active) > summary .grp-name { color: var(--ink); }
+
+.nav .sec { margin-bottom: .8rem; }
+.grp-body > .sec:last-child { margin-bottom: .1rem; }
 .sec-num {
   font-family: var(--mono); font-size: .68rem; color: var(--ember);
   font-variant-numeric: tabular-nums; margin-right: .4rem;
 }
 .sec-name {
-  font-family: var(--sans); font-size: .7rem; font-weight: 650;
-  letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+  font-family: var(--sans); font-size: .685rem; font-weight: 600;
+  letter-spacing: .06em; color: var(--muted);
 }
-.nav .sec > ul { margin-top: .3rem; }
+.nav .sec > ul { margin-top: .28rem; }
 .nav .sec > ul > li > a {
   display: block; padding: .22rem .55rem .22rem .7rem;
   font-size: .875rem; line-height: 1.45; color: var(--ink-soft);
@@ -344,7 +373,7 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 }
 .term-en {
   font-family: var(--sans); font-size: .74em; color: var(--muted);
-  margin-left: .18em; white-space: nowrap;
+  margin: 0 .18em; white-space: nowrap;
 }
 .term-en::before { content: "("; }
 .term-en::after { content: ")"; }

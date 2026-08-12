@@ -57,3 +57,30 @@
 候选生成	candidate generation	从海量内容里低成本捞出一批，交给精排
 互补性	complementarity	新模块贡献了多少别的通道拿不到的相关候选
 训练服务一致性	train/serve parity	离线算的相似度必须等于线上索引用的相似度
+
+视图	view	同一个对象的一种侧面表示；用户可以同时有画像视图和历史视图
+候选	candidate	召回阶段捞出来、等待精排挑选的内容
+召回模型	retriever	第一阶段，从海量内容里低成本捞出一批候选
+精排	ranker	第二阶段，对少量候选做充分交互后精细排序
+编码器	encoder	把原始输入压成向量的那一半模型
+教师模型	teacher model	离线跑、只用来产生监督或特征的模型，不进在线链路
+路由器	router	决定一条输入走哪条处理路径、或各分支占多少权重
+向量索引	vector index	预先算好的内容向量集合，支持近似最近邻查询
+证据	evidence	结构化的、带来源和置信度的中间产物，区别于原始输入
+清单	manifest	把一次实验用到的所有版本和配置钉在一起的文件
+新鲜度	freshness	内容产生到可被检索之间的延迟
+切片	slice	按内容或用户属性划分的子群体，用来检查平均值掩盖了什么
+后训练	post-training	预训练之后为特定任务和行为做的所有训练
+对比学习	contrastive learning	拉近正样本对、推开负样本对来学习表示
+微调	fine-tuning	在预训练权重上继续训练以适配具体任务
+向量	embedding	把离散对象映射成的稠密实数向量
+点积	inner product	两个向量对应分量相乘再求和，双塔的打分方式
+预计算	precomputation	把与请求无关的部分提前算好，换取在线延迟
+支撑集	support	一个分布里概率非零的那部分区域
+方差	variance	估计量的波动幅度；重要性加权最容易在这里爆炸
+自监督	self-supervised	从数据自身结构造出监督信号，不依赖人工标注
+蒸馏	distillation	用一个模型的输出训练另一个通常更小的模型
+灰度发布	staged rollout	按比例逐步放量，出问题可以及时回滚
+影子流量	shadow traffic	复制线上请求给新系统跑，但不把结果返回用户
+消融	ablation	去掉一个组件再测一次，用来判断它到底有没有贡献
+反事实	counterfactual	改变某个输入条件后本来会发生什么
