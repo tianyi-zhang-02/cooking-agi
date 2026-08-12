@@ -2,6 +2,14 @@
 
 **中文** · [English](README.en.md)
 
+### 📖 阅读请到 **<https://tianyi-zhang-02.github.io/cooking-agi/>**
+
+站点是这些笔记的正式形态：左侧按主题跳转、公式渲染、中文里的术语标注英文原文、
+基础章节有能自己训练的实验。**这个仓库是站点的源码和构建系统**——想改内容或参与，
+从这里开始（见 [CONTRIBUTING.md](CONTRIBUTING.md)）。
+
+---
+
 这个仓库是我的学习厨房。
 
 我想弄明白的，不只是“怎样训练一个更大的模型”，而是怎样把数据、记忆、搜索、工具、反馈和评估放在一起，做出一个**真的会理解人、会找信息、也会越用越好的 AI 系统**。
@@ -58,19 +66,19 @@ flowchart TB
 
 Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文”。它应该能逐渐理解一个具体的人，同时知道自己的理解可能会错，并允许用户纠正。
 
-→ [从 Personal AGI 开始](personal-agi/)
+→ [从 Personal AGI 开始](09-personal-agi/)
 
 ### Search：模型怎样连接外部世界
 
 模型不可能把所有知识、最新信息和个人状态都放在参数里。Search 决定它在当前任务中看见什么、错过什么，以及下一步应该继续找、追问，还是直接行动。
 
-→ [从 Search 开始](search/)
+→ [从 Search 开始](04-search/)
 
 ### Model Experience：用户最终感受到什么
 
 用户体验到的不是 benchmark 分数，而是一段连续关系：模型是否懂上下文、是否重复犯错、是否给人控制感，以及用久以后是不是真的更有帮助。
 
-→ [从 Model Experience 开始](model-experience/)
+→ [从 Model Experience 开始](08-model-experience/)
 
 ### AI Infra：能力怎样真正跑起来
 
@@ -82,28 +90,37 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 
 每一篇都尽量按照同一个顺序写：**先讲它是什么，再讲为什么需要它，然后用一个例子解释，最后再进入技术问题。**
 
-默认一篇只回答一个主要问题，阅读时间约五分钟。快速变化的 API、硬件支持和工程实践需要标注审阅时间；详细规则见 [Modern-first 写作与时效性规范](EDITORIAL.md)。
+目录的数字前缀就是建议的阅读顺序。默认一篇只回答一个主要问题，阅读时间约五分钟；
+快速变化的 API、硬件支持和工程实践需要标注审阅时间，详细规则见
+[Modern-first 写作与时效性规范](EDITORIAL.md)。
 
-### 先理解输入
+### 先把地基打上
 
-- [数据与反馈](data-and-feedback/)：日志不是事实，点击也不等于偏好。
-- [表征与记忆](memory/)：模型应该记住什么，又该忘掉什么？
-- [多模态学习](multimodal-learning/)：图片、视频和行为怎样补充文字看不到的信息？
+- [基础：模型到底在算什么](00-foundations/)：从线性回归到 Transformer，最后一层从来没变过。
+- [从线性模型到神经网络](00-foundations/from-linear-to-neural.md)：sigmoid 解决的不是表达力，是梯度。
+- [Transformer 架构](00-foundations/transformer.md)：三处注意力、post-norm 与 warmup、RoPE。
+- [`00-foundations/code/`](00-foundations/code/)：不调 `nn.MultiheadAttention`，手搓两版并验证它是对的。
 
-### 再理解模型怎样做事
+### 再理解输入
 
-- [Search](search/)：从相似度检索走向寻找证据与行动。
-- [Post-Training](post-training/)：SFT、偏好学习和 RL 分别在改变什么？
+- [数据与反馈](01-data-and-feedback/)：日志不是事实，点击也不等于偏好。
+- [表征与记忆](02-memory/)：模型应该记住什么，又该忘掉什么？
+- [多模态学习](03-multimodal-learning/)：图片、视频和行为怎样补充文字看不到的信息？
+
+### 然后理解模型怎样做事
+
+- [Search](04-search/)：从相似度检索走向寻找证据与行动。
+- [Post-Training](05-post-training/)：SFT、偏好学习和 RL 分别在改变什么？
 - [AI Infra](ai-infra/)：从 CPU、GPU 和数值格式走向分布式训练、推理与持续学习系统。
-- [现代 AI 系统总览](systems/)：这些模块怎样真正连在一起？
+- [现代 AI 系统总览](06-systems/)：这些模块怎样真正连在一起？
 
 ### 最后理解怎样判断它做得好不好
 
-- [Evaluation](evaluation/)：为什么“给模型打一个分”远远不够？
-- [LLM-as-a-Judge](evaluation/llm-as-a-judge.md)：few-shot、reference、rubric 与 scoring 怎样组合？
-- [Agent Observability](systems/agent-observability.md)：一次 Agent 运行到底发生了什么？
-- [Human-in-the-Loop](systems/human-in-the-loop.md)：什么时候应该让人介入？
-- [Model Experience](model-experience/)：离线指标怎样连接到长期用户体验？
+- [Evaluation](07-evaluation/)：为什么“给模型打一个分”远远不够？
+- [LLM-as-a-Judge](07-evaluation/llm-as-a-judge.md)：few-shot、reference、rubric 与 scoring 怎样组合？
+- [Agent Observability](06-systems/agent-observability.md)：一次 Agent 运行到底发生了什么？
+- [Human-in-the-Loop](06-systems/human-in-the-loop.md)：什么时候应该让人介入？
+- [Model Experience](08-model-experience/)：离线指标怎样连接到长期用户体验？
 
 ## 仍在塑造现代系统的基础论文
 
@@ -131,3 +148,24 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 8. 它和整套系统的其他部分怎样连接？
 
 这是持续更新的个人理解，不是最终答案。我也会随着阅读、实验和实际构建不断修改它。
+
+## 这个仓库怎么组织
+
+- 目录的数字前缀就是阅读顺序，GitHub 按字母排序，所以文件列表本身就是大纲。
+- 笔记是**纯 markdown**，没有 front matter——在 GitHub 上看和在站点上看是同一份文件。
+- 站点构建在 [`site/`](site/)：[`nav.toml`](site/nav.toml) 管导航顺序，
+  [`glossary.tsv`](site/glossary.tsv) 管术语中英对照（不要在正文里手写括号注释），
+  图由各章 `code/` 里的脚本生成。
+- 推到 `main` 后 GitHub Actions 自动重新构建并部署。
+
+## 欢迎参与
+
+指出讲错的地方、说某段没看懂、补一个例子、加一篇论文笔记——都算。
+一个错字也算。见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+本地预览：
+
+```bash
+pip install markdown pygments
+python site/build.py --serve
+```
