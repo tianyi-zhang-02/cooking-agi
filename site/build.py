@@ -418,7 +418,9 @@ def sidebar_html(page, sections):
             active = " class=\"active\"" if target.url == page.url else ""
             title = html.escape(target.title)
             items.append(f'<li><a{active} href="{page.rel(target.url)}">{title}</a></li>')
-        num = sec["dir"].split("-")[0] if re.match(r"^\d\d-", sec["dir"]) else ""
+        # only top-level chapters carry the curriculum number; a subdirectory
+        # section like 00-foundations/code would otherwise repeat it
+        num = sec["dir"].split("-")[0] if re.match(r"^\d\d-[^/]+$", sec["dir"]) else ""
         badge = f'<span class="sec-num">{num}</span>' if num else ""
         out.append(f'<li class="sec">{badge}<span class="sec-name">{label}</span>'
                    f'<ul>{"".join(items)}</ul></li>')
