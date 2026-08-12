@@ -119,6 +119,7 @@ dir   = "practice"
 zh    = "实践手记"
 en    = "Notes from practice"
 order = ["README.md", "offline-online-skew.md", "positive-negative-design.md",
+         "two-tower-and-beyond.md", "data-pipeline-modules.md",
          "noise-to-signal-retrieval.md"]
 
 [[section]]

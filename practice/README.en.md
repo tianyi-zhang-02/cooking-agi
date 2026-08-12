@@ -39,9 +39,17 @@ Selective observation plus a closed feedback loop. Why log-based evaluation syst
 
 "No click" is not "not interested". Four sample classes with genuinely different semantics, plus a contradiction present in most implementations and rarely admitted: the same document that says unobserved items aren't negatives goes on to train with in-batch negatives, which treat them as exactly that.
 
+### [Two towers, and why the user side becomes several](two-tower-and-beyond.en.md)
+
+The two-tower shape isn't a modelling preference, it's what precomputation forces. That framing explains why the user side can expand and the content side can't — content is an item, a user is a distribution. Includes the criterion for when multi-tower is *not* worth it.
+
+### [The modules a data pipeline splits into](data-pipeline-modules.en.md)
+
+Five modules, one invariant each. Centred on the most expensive bug in the field: time travel — joining today's profile onto a three-week-old exposure, which makes offline look implausibly good and online move not at all.
+
 ### [From noisy feedback to a servable retrieval system](noise-to-signal-retrieval.en.md)
 
-A full system design note — signal construction, selective visual understanding, contrastive post-training, release gates. Much longer than the two above; it's the one that connects the whole chain.
+A full system design note — signal construction, selective visual understanding, contrastive post-training, release gates. Much longer than the four above; it's the one that connects the whole chain, and each of them is a section of it opened up.
 
 ## The shared question
 
