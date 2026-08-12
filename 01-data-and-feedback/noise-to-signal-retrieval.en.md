@@ -71,12 +71,12 @@ flowchart TB
         A["Text + image"] --> B["Image router"]
         B --> C1["Frozen or lightly adapted VLM teacher"]
         C1 --> D["Grounded evidence contract"]
-        A --> E["Candidate encoder"]
+        A --> E["Candidate tower<br/>Qwen3-Embedding-0.6B"]
         D --> E
     end
     subgraph U["Member understanding · nearline"]
-        F["Profile encoder"] --> H["Multiple member views"]
-        G["History encoder"] --> H
+        F["Profile view<br/>Qwen3-Embedding-0.6B"] --> H["Multiple member views"]
+        G["History view<br/>Qwen3-Embedding-0.6B"] --> H
         H --> I["Learnable routing"]
     end
     E --> J["Candidate vector"]
@@ -86,7 +86,51 @@ flowchart TB
     L --> M["Existing ranker"]
 ```
 
+### Model selection: why Qwen3-Embedding-0.6B?
+
+The goal is not to pick the model with the largest benchmark number. Each module should receive only the capacity required by its role:
+
+| Module | Starting choice | Selection criteria | Why not use a larger model directly? |
+| --- | --- | --- | --- |
+| Image router | Small vision classifier or SigLIP-like encoder | Content type, information value, calibrated confidence | The router selects teacher calls; it does not need complete image understanding |
+| Visual teacher | Frozen 3B–7B pretrained VLM | Grounding, OCR, conflict detection, stable structured output | Selective offline inference is sufficient before domain SFT or online generation |
+| Candidate/member encoder | [Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) | Retrieval quality, throughput, long text, vector size, training cost | 4B/8B models are useful capacity bounds but increase training, nearline encoding, and iteration cost |
+| Downstream ranker | Existing ranker | Request-level relevance, quality, and freshness | First-stage retrieval should not duplicate fine-ranking responsibility |
+
+Qwen3-Embedding-0.6B is a reasonable starting point because the official model exposes **0.6B parameters, a 32K context window, embeddings up to 1024 dimensions, MRL dimension control, and instruction-aware encoding**. Each feature maps to a system constraint:
+
+- **0.6B:** enough general embedding capacity for initialization while remaining practical to retrain and refresh member representations nearline;
+- **32K context:** room for structured profiles and longer histories, without implying that every request should fill the window;
+- **instruction awareness:** profile and history views can state distinct representation tasks while candidate encoding remains semantically stable;
+- **MRL / 32–1024 dimensions:** model capacity can be separated from ANN index width. Preserve 1024 dimensions as a quality reference, then compare 512 or 256 under a fixed candidate budget.
+
+Generic benchmarks justify an initialization, not a domain decision. Lifecycle, breadth, complementarity, latency, and freshness gates still select the production configuration. [Qwen's technical overview](https://qwenlm.github.io/blog/qwen3-embedding/) separates dual-encoder embedding from cross-encoder reranking; the former fits first-stage retrieval because candidate vectors must be precomputed for ANN search.
+
+### Parameter sharing
+
+This is an **asymmetric dual encoder**: member and candidate representations occupy one vector space, but their input distributions and update rates differ.
+
+```text
+Candidate tower: post text + grounded visual evidence → z_c
+Member views:    instructed profile / history / latent intent → z_u,r
+Similarity:      cosine(z_u,r, z_c), after identical pooling + L2 normalization
+```
+
+A practical starting point initializes every tower from the same Qwen3-Embedding-0.6B checkpoint. Candidate and member sides use separate parameters or adapters; profile and history share the member backbone but use different instructions, adapters, or projection heads. This preserves a common semantic space while allowing view-specific compression.
+
+Train-serving parity must fix the tokenizer, instruction templates, last-token pooling, L2 normalization, truncation rules, and visual-evidence schema. Otherwise the similarity optimized offline is not the similarity consumed by online ANN search.
+
 The member side need not average all evidence into one point. Profile and history can remain separate views or expand into latent intent vectors. A router assigns context-dependent weights. Additional towers are useful only when they contribute complementary relevant candidates rather than duplicating one another.
+
+Serving must not average those vectors before retrieval, which would recreate the original single-point representation. Instead, allocate a fixed total candidate budget $B$ across views:
+
+\[
+K_r = \operatorname{round}\!\left(B\cdot \operatorname{softmax}(g(u))_r\right),
+\qquad
+\mathcal{C}(u)=\bigcup_r \operatorname{ANN}(\mathbf{z}_{u,r},K_r).
+\]
+
+Each view queries the same candidate index. The system unions and deduplicates the results, then sends source view, similarity, and router weight to the downstream ranker. Multi-intent modeling therefore adds complementarity without creating an unbounded online candidate set.
 
 ### Three training layers
 
