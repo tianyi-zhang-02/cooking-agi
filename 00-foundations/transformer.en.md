@@ -2,9 +2,13 @@
 
 [中文](transformer.md) · **English**
 
+> Reading time: ~8 min · Level: intro → advanced · Last reviewed: 2026-08
+>
+> The main line is enough on its own. Blocks marked **deeper** hold derivations and edge cases; skipping them costs you nothing.
+
 ## In one sentence
 
-The Transformer is one concrete way to build the learned coordinate transform from [the previous page](from-linear-to-neural.en.md): **attention moves information across positions, the FFN processes each position on its own**, alternating for $N$ layers, with a linear classifier reading out the answer at the end.
+The Transformer is one concrete way to build the learned coordinate transform from [the previous page](from-linear-to-neural.en.md). **Attention moves information across positions; the FFN processes each position on its own.** The two alternate for $N$ layers, and a linear classifier reads out the answer at the end.
 
 ## Scaled dot-product attention
 
@@ -19,6 +23,15 @@ For unit-variance $q, k$, the dot product of $d_k$ terms has variance $d_k$, i.e
 $$\frac{\partial\,\text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij} - \alpha_j)$$
 
 collapses toward the zero matrix — no gradient. Dividing by $\sqrt{d_k}$ pulls the variance back to 1.
+
+<details markdown="1">
+<summary><b>deeper</b>: why "close to one-hot" means "no gradient"</summary>
+
+With $\alpha_i \to 1$ and the rest $\to 0$, the diagonal $\alpha_i(1-\alpha_i) \to 0$ and the off-diagonal $-\alpha_i\alpha_j \to 0$: the whole Jacobian goes to zero. The forward pass still produces sensible output while nothing flows backwards.
+
+It is the same saturation as the sigmoid on [the previous page](from-linear-to-neural.en.md), where $\sigma'(z) = \sigma(1-\sigma)$ dies at both ends. Softmax is its multi-class generalisation and inherits the behaviour exactly.
+
+</details>
 
 ```python
 def attention(q, k, v, mask=None):
@@ -39,6 +52,8 @@ The single most important thing about the 2017 encoder-decoder. `self_attn(x,x,x
 | Decoder self-attention | tgt | tgt | padding **∨** causal | $(B,h,T,T)$ |
 | **Cross-attention** | **tgt** | **memory** | src padding | $(B,h,T,S)$ — not square |
 
+![where Q, K and V come from at each attention site](assets/attention-sites.svg)
+
 Cross-attention is the only place the two towers touch. [`code/vanilla_demo.py`](code/vanilla_demo.py) trains it to reverse a sequence, where the correct alignment is known in advance, so you can read it straight off the matrix — an anti-diagonal, 64/64 sequences exact.
 
 ## Multi-head
@@ -50,6 +65,8 @@ One attention computes one similarity and returns one average. Splitting into $h
 ## Post-norm and the warmup it requires
 
 The paper does $\mathbf{x} \leftarrow \text{LayerNorm}(\mathbf{x} + \text{Sublayer}(\mathbf{x}))$ — the norm sits **on the residual highway**. Everything modern does $\mathbf{x} \leftarrow \mathbf{x} + \text{Sublayer}(\text{Norm}(\mathbf{x}))$ instead.
+
+![the residual path under post-norm and pre-norm](assets/transformer-block.svg)
 
 This is why the original recipe needs the Noam schedule
 
@@ -70,6 +87,15 @@ Attention is permutation-equivariant: shuffle the inputs and the outputs shuffle
 $$\langle R_m\mathbf{q}, R_n\mathbf{k}\rangle = \mathbf{q}^\top R_{n-m}\mathbf{k}$$
 
 the score depends **only on the relative distance**. $\mathbf{v}$ is not rotated — it should carry no positional information.
+
+<details markdown="1">
+<summary><b>deeper</b>: where the relative property comes from</summary>
+
+Rotations are orthogonal and compose additively in a plane: $R_m^\top = R_{-m}$ and $R_aR_b = R_{a+b}$. So $m$ and $n$ can only ever appear as $n-m$.
+
+That is why RoPE extrapolates partially past its training length — it never encoded "token number", only "how far apart". It is also why rotating $\mathbf{q}$ but not $\mathbf{k}$ breaks it: with no $R_n$ to pair against, $R_m^\top$ has nothing to cancel with and absolute position survives.
+
+</details>
 
 ```python
 def apply_rope(x, cos, sin):
@@ -115,6 +141,8 @@ so dropping $n_\text{kv}$ from 32 to 8 saves 4× the memory — the dominant con
   rope relative: score(5,2) = score(20,17) = +5.6092;  score(20,10) = +0.4579
   init loss:     4.19 vs ln(V) = 4.16
 ```
+
+![what prefill computes versus one decode step](assets/kv-cache.svg)
 
 The subtlest bug is the mask under caching: query $i$ sits at absolute position `cache.pos + i` while keys run from 0, so the mask is a **non-square** $(T, S)$, and RoPE's cos/sin must be sliced from `cache.pos`. Also `cache.pos` advances once per forward pass — putting it inside `update()` multiplies it by `n_layer`.
 

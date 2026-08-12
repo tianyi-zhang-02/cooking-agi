@@ -6,7 +6,7 @@
 
 ## In one sentence
 
-When offline metrics and online results disagree, the usual cause is not overfitting: **your training set, your evaluation set and the distribution you actually serve are three different distributions** — and the first two come from the same policy-contaminated source, so they will agree with each other while both being wrong.
+When offline metrics and online results disagree, the usual cause is not overfitting. It is that **your training set, your evaluation set and the distribution you actually serve are three different distributions.** The first two share a policy-contaminated source, so they agree with each other while both being wrong.
 
 ## How the bias gets in
 

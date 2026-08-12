@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" height="300" role="img">
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="24" y="22" text-anchor="start">One module, three wirings</text>
+<text class="sub" x="24" y="38" text-anchor="start">self-attention and cross-attention are the same class — only the three inputs differ</text>
+<rect class="frame" x="24" y="58" width="204" height="172" rx="9"/>
+<text class="lbl" x="126.0" y="78" text-anchor="middle">encoder self-attention</text>
+<rect class="box-0" x="36" y="92" width="80" height="40" rx="6"/>
+<text class="lbl" x="76.0" y="109.0" text-anchor="middle">Q</text>
+<text class="lbl-s" x="76.0" y="123.0" text-anchor="middle">src</text>
+<rect class="box-0" x="136" y="92" width="80" height="40" rx="6"/>
+<text class="lbl" x="176.0" y="109.0" text-anchor="middle">K, V</text>
+<text class="lbl-s" x="176.0" y="123.0" text-anchor="middle">src</text>
+<rect class="box" x="64" y="154" width="124" height="28" rx="6"/>
+<text class="lbl" x="126.0" y="172.0" text-anchor="middle">attention</text>
+<path class="arrow" d="M76 134 L88 152" marker-end="url(#a)"/>
+<path class="arrow" d="M176 134 L164 152" marker-end="url(#a)"/>
+<text class="lbl-s" x="126.0" y="200" text-anchor="middle">padding only &#183; bidirectional</text>
+<text class="mono" x="126.0" y="215" text-anchor="middle">(B, h, S, S)</text>
+<rect class="frame" x="250" y="58" width="204" height="172" rx="9"/>
+<text class="lbl" x="352.0" y="78" text-anchor="middle">decoder self-attention</text>
+<rect class="box-0" x="262" y="92" width="80" height="40" rx="6"/>
+<text class="lbl" x="302.0" y="109.0" text-anchor="middle">Q</text>
+<text class="lbl-s" x="302.0" y="123.0" text-anchor="middle">tgt</text>
+<rect class="box-0" x="362" y="92" width="80" height="40" rx="6"/>
+<text class="lbl" x="402.0" y="109.0" text-anchor="middle">K, V</text>
+<text class="lbl-s" x="402.0" y="123.0" text-anchor="middle">tgt</text>
+<rect class="box" x="290" y="154" width="124" height="28" rx="6"/>
+<text class="lbl" x="352.0" y="172.0" text-anchor="middle">attention</text>
+<path class="arrow" d="M302 134 L314 152" marker-end="url(#a)"/>
+<path class="arrow" d="M402 134 L390 152" marker-end="url(#a)"/>
+<text class="lbl-s" x="352.0" y="200" text-anchor="middle">padding ∨ causal</text>
+<text class="mono" x="352.0" y="215" text-anchor="middle">(B, h, T, T)</text>
+<rect class="frame" x="476" y="58" width="204" height="172" rx="9"/>
+<text class="lbl" x="578.0" y="78" text-anchor="middle">cross-attention</text>
+<rect class="box-1" x="488" y="92" width="80" height="40" rx="6"/>
+<text class="lbl" x="528.0" y="109.0" text-anchor="middle">Q</text>
+<text class="lbl-s" x="528.0" y="123.0" text-anchor="middle">tgt</text>
+<rect class="box-1" x="588" y="92" width="80" height="40" rx="6"/>
+<text class="lbl" x="628.0" y="109.0" text-anchor="middle">K, V</text>
+<text class="lbl-s" x="628.0" y="123.0" text-anchor="middle">encoder output</text>
+<rect class="box" x="516" y="154" width="124" height="28" rx="6"/>
+<text class="lbl" x="578.0" y="172.0" text-anchor="middle">attention</text>
+<path class="arrow" d="M528 134 L540 152" marker-end="url(#a)"/>
+<path class="arrow" d="M628 134 L616 152" marker-end="url(#a)"/>
+<text class="lbl-s" x="578.0" y="200" text-anchor="middle">src padding</text>
+<text class="mono" x="578.0" y="215" text-anchor="middle">(B, h, T, S)  not square</text>
+<text class="sub" x="24" y="262" text-anchor="start">Cross-attention is the only place the two towers touch: the decoder asks, the encoder's output answers.</text>
+<text class="sub" x="24" y="280" text-anchor="start">It is also the only one whose attention matrix is not square — T queries against S keys.</text>
+</svg>

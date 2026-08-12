@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 330" width="700" height="330" role="img">
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="24" y="22" text-anchor="start">What the KV cache actually saves</text>
+<text class="sub" x="24" y="38" text-anchor="start">shaded = attention scores computed at this step</text>
+<text class="lbl" x="70" y="58" text-anchor="start">prefill &#183; one forward over the whole prompt</text>
+<text class="lbl-s" x="70" y="72" text-anchor="start">8&#215;8 causal mask, 36 scores</text>
+<rect class="box-1" x="70" y="84" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="101" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="101" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="118" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="118" width="15" height="15" rx="2"/>
+<rect class="box-1" x="104" y="118" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="135" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="135" width="15" height="15" rx="2"/>
+<rect class="box-1" x="104" y="135" width="15" height="15" rx="2"/>
+<rect class="box-1" x="121" y="135" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="152" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="152" width="15" height="15" rx="2"/>
+<rect class="box-1" x="104" y="152" width="15" height="15" rx="2"/>
+<rect class="box-1" x="121" y="152" width="15" height="15" rx="2"/>
+<rect class="box-1" x="138" y="152" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="169" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="169" width="15" height="15" rx="2"/>
+<rect class="box-1" x="104" y="169" width="15" height="15" rx="2"/>
+<rect class="box-1" x="121" y="169" width="15" height="15" rx="2"/>
+<rect class="box-1" x="138" y="169" width="15" height="15" rx="2"/>
+<rect class="box-1" x="155" y="169" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="104" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="121" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="138" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="155" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="172" y="186" width="15" height="15" rx="2"/>
+<rect class="box-1" x="70" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="87" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="104" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="121" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="138" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="155" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="172" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="189" y="203" width="15" height="15" rx="2"/>
+<rect class="frame" x="67" y="81" width="140" height="140" rx="3"/>
+<text class="lbl-s" x="138.0" y="236" text-anchor="middle">keys &#8594;</text>
+<text class="lbl-s" x="56" y="152.0" text-anchor="end">queries</text>
+<text class="lbl" x="330" y="58" text-anchor="start">one decode step, with the cache</text>
+<text class="lbl-s" x="330" y="72" text-anchor="start">1 query &#215; 9 keys — the row in ember is all that is computed</text>
+<rect class="box-q" x="330" y="84" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="101" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="101" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="118" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="118" width="15" height="15" rx="2"/>
+<rect class="box-q" x="364" y="118" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="135" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="135" width="15" height="15" rx="2"/>
+<rect class="box-q" x="364" y="135" width="15" height="15" rx="2"/>
+<rect class="box-q" x="381" y="135" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="152" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="152" width="15" height="15" rx="2"/>
+<rect class="box-q" x="364" y="152" width="15" height="15" rx="2"/>
+<rect class="box-q" x="381" y="152" width="15" height="15" rx="2"/>
+<rect class="box-q" x="398" y="152" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="169" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="169" width="15" height="15" rx="2"/>
+<rect class="box-q" x="364" y="169" width="15" height="15" rx="2"/>
+<rect class="box-q" x="381" y="169" width="15" height="15" rx="2"/>
+<rect class="box-q" x="398" y="169" width="15" height="15" rx="2"/>
+<rect class="box-q" x="415" y="169" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="364" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="381" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="398" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="415" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="432" y="186" width="15" height="15" rx="2"/>
+<rect class="box-q" x="330" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="347" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="364" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="381" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="398" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="415" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="432" y="203" width="15" height="15" rx="2"/>
+<rect class="box-q" x="449" y="203" width="15" height="15" rx="2"/>
+<rect class="box-1" x="330" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="347" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="364" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="381" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="398" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="415" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="432" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="449" y="220" width="15" height="15" rx="2"/>
+<rect class="box-1" x="466" y="220" width="15" height="15" rx="2"/>
+<rect class="frame" x="327" y="81" width="157" height="157" rx="3"/>
+<text class="lbl-s" x="406.5" y="253" text-anchor="middle">keys &#8594;</text>
+<text class="lbl-s" x="316" y="160.5" text-anchor="end">queries</text>
+<text class="lbl-s" x="560" y="100" text-anchor="start">cached</text>
+<rect class="box-q" x="530" y="90" width="14" height="12" rx="2"/>
+<text class="lbl-s" x="560" y="122" text-anchor="start">computed now</text>
+<rect class="box-1" x="530" y="112" width="14" height="12" rx="2"/>
+<text class="sub" x="24" y="262" text-anchor="start">Without the cache each new token re-runs the whole prefix: the greyed cells get recomputed every step.</text>
+<text class="sub" x="24" y="280" text-anchor="start">The subtle part is the mask. Query 9 sits at absolute position 9 while keys run 1..9, so the mask is (1, 9) — not square —</text>
+<text class="sub" x="24" y="296" text-anchor="start">and RoPE's cos/sin must be sliced from position 9, not from 0.</text>
+</svg>

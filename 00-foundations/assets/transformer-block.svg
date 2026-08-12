@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 706 548" width="706" height="548" role="img">
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="28" y="24" text-anchor="start">Where the normalisation sits</text>
+<text class="sub" x="28" y="41" text-anchor="start">the same two sublayers, wired two ways</text>
+<text class="ttl" x="96" y="76" text-anchor="start">vanilla (2017) &#183; post-norm</text>
+<text class="sub" x="96" y="92" text-anchor="start">LayerNorm(x + Sublayer(x))</text>
+<rect class="box-0" x="96" y="138.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="191.0" y="159.0" text-anchor="middle">LayerNorm</text>
+<circle class="box-1" cx="191.0" cy="209" r="12"/>
+<text class="lbl" x="191.0" y="213.5" text-anchor="middle">+</text>
+<rect class="box" x="96" y="246.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="191.0" y="267.0" text-anchor="middle">FFN</text>
+<rect class="box-0" x="96" y="300.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="191.0" y="321.0" text-anchor="middle">LayerNorm</text>
+<circle class="box-1" cx="191.0" cy="371" r="12"/>
+<text class="lbl" x="191.0" y="375.5" text-anchor="middle">+</text>
+<rect class="box" x="96" y="408.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="191.0" y="429.0" text-anchor="middle">Attention</text>
+<path class="arrow" d="M191.0 197 L191.0 172.0" marker-end="url(#a)"/>
+<path class="arrow" d="M191.0 246.0 L191.0 221" marker-end="url(#a)"/>
+<path class="arrow" d="M191.0 300.0 L191.0 280.0" marker-end="url(#a)"/>
+<path class="arrow" d="M191.0 359 L191.0 334.0" marker-end="url(#a)"/>
+<path class="arrow" d="M191.0 408.0 L191.0 383" marker-end="url(#a)"/>
+<path class="arrow" d="M191.0 138.0 L191.0 128" marker-end="url(#a)"/>
+<path class="arrow" d="M191.0 462 L191.0 442.0" marker-end="url(#a)"/>
+<text class="lbl-s" x="191.0" y="120" text-anchor="middle">block output</text>
+<text class="lbl-s" x="191.0" y="482" text-anchor="middle">block input</text>
+<path class="resid" d="M176.0 462 L68 462 L68 371 L178.0 371" marker-end="url(#a1)"/>
+<path class="resid" d="M176.0 300 L68 300 L68 209 L178.0 209" marker-end="url(#a1)"/>
+<text class="ttl" x="452" y="76" text-anchor="start">modern &#183; pre-norm</text>
+<text class="sub" x="452" y="92" text-anchor="start">x + Sublayer(Norm(x))</text>
+<circle class="box-1" cx="547.0" cy="155" r="12"/>
+<text class="lbl" x="547.0" y="159.5" text-anchor="middle">+</text>
+<rect class="box" x="452" y="192.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="547.0" y="213.0" text-anchor="middle">FFN</text>
+<rect class="box-0" x="452" y="246.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="547.0" y="267.0" text-anchor="middle">RMSNorm</text>
+<circle class="box-1" cx="547.0" cy="317" r="12"/>
+<text class="lbl" x="547.0" y="321.5" text-anchor="middle">+</text>
+<rect class="box" x="452" y="354.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="547.0" y="375.0" text-anchor="middle">Attention</text>
+<rect class="box-0" x="452" y="408.0" width="190" height="34" rx="7"/>
+<text class="lbl" x="547.0" y="429.0" text-anchor="middle">RMSNorm</text>
+<path class="arrow" d="M547.0 192.0 L547.0 167" marker-end="url(#a)"/>
+<path class="arrow" d="M547.0 246.0 L547.0 226.0" marker-end="url(#a)"/>
+<path class="arrow" d="M547.0 305 L547.0 280.0" marker-end="url(#a)"/>
+<path class="arrow" d="M547.0 354.0 L547.0 329" marker-end="url(#a)"/>
+<path class="arrow" d="M547.0 408.0 L547.0 388.0" marker-end="url(#a)"/>
+<path class="arrow" d="M547.0 143 L547.0 128" marker-end="url(#a)"/>
+<path class="arrow" d="M547.0 462 L547.0 442.0" marker-end="url(#a)"/>
+<text class="lbl-s" x="547.0" y="120" text-anchor="middle">block output</text>
+<text class="lbl-s" x="547.0" y="482" text-anchor="middle">block input</text>
+<path class="resid" d="M532.0 462 L424 462 L424 317 L534.0 317" marker-end="url(#a1)"/>
+<path class="resid" d="M532.0 305 L424 305 L424 155 L534.0 155" marker-end="url(#a1)"/>
+<path class="resid" stroke-width="2.6" opacity=".9" d="M424 462 L424 141" marker-end="url(#a1)"/>
+<line class="divider" x1="369" y1="62" x2="369" y2="496"/>
+<text class="sub" x="96" y="508" text-anchor="start">Every residual add is followed by a norm, so the gradient</text>
+<text class="sub" x="96" y="524" text-anchor="start">crosses one on every layer. Hence warmup.</text>
+<text class="sub" x="424" y="508" text-anchor="start">The ember line runs input to output without</text>
+<text class="sub" x="424" y="524" text-anchor="start">passing through a norm or a sublayer.</text>
+</svg>
