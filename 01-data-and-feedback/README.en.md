@@ -46,6 +46,7 @@ More rows do not always mean more information. A small number of contextualized 
 
 ## Connections
 
+- [From noisy feedback to a serving-efficient retrieval system](noise-to-signal-retrieval.en.md) develops one complete example across signal construction, multimodal understanding, two-tower post-training, serving, and evaluation.
 - [Representation and memory](../02-memory/README.en.md) turn observations into persistent state.
 - [Search](../04-search/README.en.md) determines which future observations are possible.
 - [Post-training](../05-post-training/README.en.md) turns feedback into behavior updates.
