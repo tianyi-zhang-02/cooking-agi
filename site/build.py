@@ -617,6 +617,23 @@ def toc_html(page):
     return f'<ul>{"".join(li)}</ul>'
 
 
+def glossary_html(page):
+    """A collapsed, mobile-friendly copy of the inline glossary annotations."""
+    terms = getattr(page, "glossary", [])
+    if page.lang != "zh" or not terms:
+        return ""
+    rows = []
+    for term in terms:
+        zh = html.escape(term["zh"])
+        en = html.escape(term["en"])
+        gloss = html.escape(term["gloss"])
+        rows.append(f'<div class="gloss-row"><dt>{zh} <span>{en}</span></dt>'
+                    f'<dd>{gloss}</dd></div>')
+    return (f'<section class="page-glossary" aria-label="本页术语"><details>'
+            f'<summary>本页术语 <span>{len(rows)}</span></summary>'
+            f'<dl>{"".join(rows)}</dl></details></section>')
+
+
 def footer_html(page, people, repo, built):
     when = page.updated[:10] if page.updated else built[:10]
     src = f"https://github.com/{repo}/blob/main/{page.src.relative_to(ROOT)}"
@@ -678,6 +695,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{lang_label}}", "EN" if zh else "中文")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", page.body)
+            .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))
 
