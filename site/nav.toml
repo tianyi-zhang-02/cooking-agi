@@ -47,11 +47,6 @@ zh = "系统的各个环节"
 en = "The pipeline"
 
 [[group]]
-id = "infra"
-zh = "AI Infra"
-en = "AI Infra"
-
-[[group]]
 id = "practice"
 zh = "实践手记"
 en = "From practice"
@@ -142,47 +137,6 @@ dir = "09-personal-agi"
 group = "pipeline"
 zh  = "Personal AGI"
 en  = "Personal AGI"
-
-# --- AI Infra: a parallel track with its own internal structure, so each of its
-# --- directories gets a section (the builder globs one directory, not a tree).
-
-[[section]]
-dir   = "ai-infra"
-group = "infra"
-zh    = "AI Infra · 索引"
-en    = "AI Infra · Index"
-order = ["README.md", "EDITORIAL.md"]
-
-[[section]]
-dir = "ai-infra/modules"
-group = "infra"
-zh  = "AI Infra · 模块"
-en  = "AI Infra · Modules"
-
-[[section]]
-dir = "ai-infra/notes/c-cpp"
-group = "infra"
-zh  = "AI Infra · C/C++ 笔记"
-en  = "AI Infra · C/C++ notes"
-
-[[section]]
-dir = "ai-infra/notes/attention"
-group = "infra"
-zh  = "AI Infra · Attention 笔记"
-en  = "AI Infra · Attention notes"
-
-[[section]]
-dir = "ai-infra/notes/ecosystem"
-group = "infra"
-zh  = "AI Infra · 生态"
-en  = "AI Infra · Ecosystem"
-
-[[section]]
-dir   = "ai-infra/projects"
-group = "infra"
-zh    = "AI Infra · 实战项目"
-en    = "AI Infra · Projects"
-order = ["README.md"]
 
 # --- 实践手记：脱敏后的工程思考，与上面的教学章节是不同文体
 
