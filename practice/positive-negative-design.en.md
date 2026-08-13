@@ -10,6 +10,21 @@
 
 ## Four classes with genuinely different semantics
 
+Ask whether it was seen before asking whether it was positive or negative. That ordering stops a database `0` from turning into “the user dislikes this” by accident.
+
+```mermaid
+flowchart TD
+    A["One user–candidate pair"] --> B{"Was it actually exposed?"}
+    B -->|"No"| U["Unobserved candidate<br/>semantics: unknown"]
+    B -->|"Yes"| C{"What behavioural evidence exists?"}
+    C -->|"stable positive signal"| P["Reliable positive<br/>learn relevance"]
+    C -->|"explicit negative signal"| N["Exposed negative<br/>learn irrelevance"]
+    C -->|"semantically close, wrong context"| H["Hard negative<br/>learn the boundary"]
+    U -. "may be a sampled distractor<br/>but not confirmed negative feedback" .-> D["Contrastive denominator"]
+```
+
+The dashed edge is easy to miss: an unobserved candidate may play a role in a sampled objective, but its **optimization role** does not rewrite its **label semantics**.
+
 | Class | Definition | What it implies | Use in training |
 | --- | --- | --- | --- |
 | Reliable positive | strong behavioural evidence, not one click | relevant | positive |

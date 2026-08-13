@@ -10,6 +10,19 @@ Splitting the pipeline into modules isn't about tidy code — it's so that **eac
 
 ## Five modules, five invariants
 
+Do not picture five Spark jobs. A more useful picture is five hand-offs, each carrying both data and one promise the next stage relies on.
+
+```mermaid
+flowchart TB
+    A["1 · Snapshot freeze<br/>use only information visible at event time"] --> B["2 · Evidence generation<br/>same input and version, same evidence"]
+    B --> C["3 · Sample compilation<br/>the manifest fully determines a batch"]
+    C --> D["4 · Training<br/>consume only what the manifest declares"]
+    D --> E["5 · Export and replay<br/>training and serving share vector semantics"]
+    E -. "when production breaks, trace backward from the cheap end" .-> A
+```
+
+Break one invariant and the error keeps travelling until it looks like “the model got worse.” That is why debugging should walk this picture backward.
+
 | Module | In → out | What it guarantees | What breaking it looks like |
 | --- | --- | --- | --- |
 | 1 Snapshot freeze | raw logs → time-bounded event stream | **no information from after the event time** | time travel: offline inflated, online flat |

@@ -8,6 +8,19 @@ The other chapters explain how a field works. These notes are **what I actually 
 
 Different genre, so it gets its own section: a teaching chapter can start from the cleanest example, a practice note has to start from the dirtiest — the data is skewed, the labels are guesses, and offline went up while online didn't.
 
+If you do not know where to start, follow the path from data to evaluation. If you already know the failure, jump directly to its box.
+
+```mermaid
+flowchart TB
+    A["1 · Data modules and contracts<br/>make experiments reproducible"] --> B["2 · Positive and negative design<br/>define the semantics of supervision"]
+    B --> C["3 · Negative pools and distributed loss<br/>confirm what the model actually compares"]
+    C --> D["4 · Two towers and multi-intent views<br/>choose the shape of retrieval"]
+    D --> E["5 · Offline / online skew<br/>test whether evaluation covers reality"]
+    E --> F["6 · Full system design<br/>connect signal, model, serving, and evaluation"]
+```
+
+Each note starts from a failure symptom and ends with criteria you can inspect, falsify, or check before release.
+
 ## The desensitisation boundary
 
 These notes come from real work, so the boundary has to be a **written rule** rather than a judgment call each time. I missed one once; hence the checklist.
@@ -38,6 +51,10 @@ Selective observation plus a closed feedback loop. Why log-based evaluation syst
 ### [What counts as a positive, and as a negative](positive-negative-design.en.md)
 
 "No click" is not "not interested". Four sample classes with genuinely different semantics, plus a contradiction present in most implementations and rarely admitted: the same document that says unobserved items aren't negatives goes on to train with in-batch negatives, which treat them as exactly that.
+
+### [How big is your negative pool, really](negative-pool-size.en.md)
+
+Multiple devices do not automatically create a global negative pool. A multiple-choice analogy connects local/global pools, differentiable gather, the sampling proposal, and logQ correction.
 
 ### [Two towers, and why the user side becomes several](two-tower-and-beyond.en.md)
 
