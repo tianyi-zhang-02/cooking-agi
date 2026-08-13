@@ -48,6 +48,19 @@ flowchart LR
     M -.->|"new evidence, not automatic truth"| A
 ```
 
+## 0. 先做问题审计：信号窄，尺子也窄
+
+在改模型之前，先把问题分成四类。下面不是某个系统的字段或统计，而是大规模行为检索里反复出现的通用故障模式。
+
+| 层面 | 常见症状 | 为什么致命 |
+| --- | --- | --- |
+| 训练标签 | 名义上有多种行为，实际被一种容易收集的 proxy 主导；明确拒绝没有进入监督 | 模型只学会复制最常见的行为信号，而不是更完整的相关性 |
+| 用户证据 | 历史只保留正向互动；历史薄或容易被截断的用户在训练中代表不足 | 模型不知道用户排斥什么，也最不了解真正需要 durable intent 兜底的人 |
+| Negative / loss | 大量 negative 来自未曝光候选或其他用户的 positive；实际竞争池可能比设计目标小 | “没见过”被误写成“不喜欢”，而模型练习的选择题又可能远比目录级检索简单 |
+| 离线评估 | positive 很薄，Recall 依赖候选池和分母定义；train/eval 共享同一种行为 proxy | 分群绝对值不可直接比较，新信号即使有价值，也可能在旧尺子上量不出来 |
+
+可以把它压缩成一句话：**训练侧的信号太窄，评估侧的尺子也太窄。** 因此 signal、model 和 evaluation 必须一起设计；只换其中一层，很容易得到一个无法解释的离线数字。
+
 ## 1. 先把 Noise 变成 Signal
 
 日志中的点击、停留和跳过不是天然的偏好标签。用户只会对旧系统展示过的内容产生反馈；没有互动，也可能只是没有看到。
@@ -84,9 +97,16 @@ image
 
 第一版通常不需要微调 VLM。先用固定 schema 做结构化抽取；只有出现稳定、可复现且影响下游检索的领域错误时，才考虑 LoRA 或 SFT。
 
-## 3. Post-Training：究竟训练什么
+## 3. Post-Training：Teacher 究竟产出什么
 
-VLM 不是在线检索模型，而是一个离线、可替换的 **visual 教师模型**。它在内容创建或更新时读取图片，并输出带来源和置信度的结构化证据：
+VLM 不是在线检索模型，而是一个离线、可替换的教师模型。它有两个不同职责，不能混成一个模糊的“多模态增强”：
+
+1. **内容证据**：在内容创建或更新时读取图片，输出带来源和置信度的结构化事实；
+2. **训练监督**：在抽样的用户–候选 pair 上结合用户上下文与图文内容，给出软相关性、pairwise preference，并挖出“看起来相似但不适合当前用户”的 hard negatives。
+
+第一项改善候选表示；第二项才真正拓宽 dwell-like proxy 之外的监督。只做 feature extraction，无法自动修复窄标签问题。
+
+内容证据可以使用固定 schema：
 
 ```json
 {
@@ -98,54 +118,51 @@ VLM 不是在线检索模型，而是一个离线、可替换的 **visual 教师
 }
 ```
 
-原文与这份证据再交给轻量内容编码器，生成可提前计算并写入 ANN index 的向量。这样，VLM 提供更完整的监督和内容理解，但不会进入每次请求的在线路径。
+原文与这份证据交给轻量内容编码器，生成可提前计算并写入 ANN index 的向量。软标签和 hard negatives 只在训练阶段消费。这样，教师模型同时增强内容理解和监督密度，却不会进入每次在线请求。
 
 ### 模块怎样连接
 
 ```mermaid
 flowchart TB
-    subgraph C["Content understanding · offline"]
+    subgraph C["Offline teacher domain"]
         A["Text + image"] --> B["Image router"]
         B --> C1["Frozen or lightly adapted VLM teacher"]
         C1 --> D["Grounded evidence contract"]
-        A --> E["Candidate tower<br/>Qwen3-Embedding-0.6B"]
+        U0["Sampled user context"] --> T["Relevance teacher"]
+        A --> T
+        D --> T
+        T --> S["Soft relevance + hard negatives"]
+        A --> E["Compact candidate encoder"]
         D --> E
     end
     subgraph U["用户理解 · 准实时"]
-        F["用户画像 view<br/>Qwen3-Embedding-0.6B"] --> H["多个用户 view"]
-        G["行为历史 view<br/>Qwen3-Embedding-0.6B"] --> H
+        F["用户画像 view"] --> H["多个用户 view"]
+        G["行为历史 view"] --> H
         H --> I["Learnable routing"]
     end
+    S --> R["Multi-task student training"]
     E --> J["Candidate vector"]
-    I --> K["Contrastive retrieval score"]
-    J --> K
+    I --> R
+    J --> R
+    R --> K["Contrastive retrieval score"]
     K --> L["ANN retrieval"]
     L --> M["Existing ranker"]
 ```
 
-### 模型选择：为什么是 Qwen3-Embedding-0.6B
+### 模型选择：按角色定能力，不按榜单最大值
 
 这里的模型选择不是“找 benchmark 最大的模型”，而是为每个模块选择刚好足够的能力：
 
 | 模块 | 起始选择 | 选择标准 | 为什么不直接用更大的模型 |
 | --- | --- | --- | --- |
-| Image 路由器 | 小型视觉分类器或 SigLIP-like 编码器 | 内容类型、信息量与置信度校准 | 路由器只决定是否调用教师模型，不负责完整理解 |
-| Visual 教师模型 | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) 作为快速基线，4B 作为容量对照 | grounding、OCR、图文冲突、schema adherence 与置信度 | 离线选择性调用已经足够；先避免领域 SFT 和线上生成成本 |
-| Candidate/用户塔 | [Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) | 检索质量、吞吐、长文本、向量大小与训练成本 | 4B/8B 可以作为容量上界，但会显著增加训练、准实时编码与迭代成本 |
+| Image 路由器 | 小型视觉分类器或通用视觉编码器 | 内容类型、信息量与置信度校准 | 路由器只决定是否调用教师模型，不负责完整理解 |
+| Visual / relevance teacher | 能稳定遵循 schema 的中小型开源 VLM | grounding、图文冲突、pairwise relevance、hard-negative precision 与校准 | 教师离线选择性调用；更大模型只有通过同一 held-out set 才值得增加成本 |
+| Candidate/用户塔 | 紧凑的开源 embedding model | 检索质量、吞吐、长文本、向量大小与刷新成本 | first-stage retrieval 需要频繁编码和大规模 ANN，容量必须服从 serving 预算 |
 | 下游精排 | 复用已有精排 | 请求级 relevance、quality、新鲜度 | First-stage 召回模型不需要重复承担精排职责 |
 
-Qwen3-Embedding-0.6B 是一个合理的起点，因为官方模型提供 **0.6B 参数、32K context、最高 1024 维向量、MRL 可变维度和 instruction-aware encoding**。这些特性分别对应实际约束：
+通用 benchmark 只能说明模型适合作为初始化，不能证明它适合某个反馈分布。Embedding model 的选择看 retrieval、breadth、complementarity、latency、index size 和 freshness；教师模型的选择看独立 held-out set 上的 grounding、相关性校准和 hard-negative precision。
 
-- **0.6B**：足以从通用向量初始化，同时允许频繁重训；相较更大模型，也更适合准实时刷新用户 representation；
-- **32K context**：能容纳结构化 profile 和较长 history，但不代表每次都应塞满；输入仍要按证据 value 截断；
-- **Instruction-aware**：用户/query 侧可明确任务，例如“表示长期兴趣”或“表示近期行为”，候选侧保持稳定的内容语义；
-- **MRL / 32–1024 维**：模型容量与 ANN index 大小可以分开调节。先保留 1024 维质量基线，再在固定候选预算下比较 512/256 维，而不是凭感觉选择向量宽度。
-
-通用 benchmark 只能说明它适合作为初始化，不能证明它适合某个具体反馈分布。真正的选择仍由后面的 lifecycle、breadth、complementarity、latency 和新鲜度 gates 决定。[Qwen 的技术介绍](https://qwenlm.github.io/blog/qwen3-embedding/)也将该系列定位为 dual-encoder 向量与 cross-encoder reranking 两类模型；这里选择前者，是因为 first-stage retrieval 必须预计算候选向量并使用 ANN。
-
-VLM 的选择遵循另一套标准。`Qwen3-VL-2B-Instruct` 适合作为第一版教师模型，不是因为它“会聊天”，而是因为 2B 规模允许批量离线处理，同时可以用固定 prompt 输出 OCR、实体、视觉主张、图文关系和证据 provenance。4B 或更大模型只在同一套 held-out grounding/conflict set 上作为容量对照；如果 2B 已满足 schema 与校准门槛，就没有必要把更大模型加入默认路径。
-
-也可以评估直接使用 [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B) 产生 multimodal 候选向量，但它解决的是另一种取舍：端到端表示更直接，却会把视觉理解、向量空间和索引刷新绑在同一个模型版本上。默认的 **VLM 教师模型 → grounded 证据 → Qwen3-Embedding-0.6B** 两阶段设计更容易审计、缓存、降级和独立升级，也允许纯文本内容复用同一个 ANN index。
+直接用 multimodal encoder 生成候选向量也是一个实验臂，但它把视觉理解、向量空间和索引刷新绑定在同一个 checkpoint。默认的 **VLM teacher → grounded evidence / supervision → compact embedding student** 更容易审计、缓存、降级和独立升级，也允许纯文本内容复用同一个 ANN index。
 
 ### 参数怎样共享
 
@@ -157,7 +174,7 @@ Candidate tower: post text + grounded visual evidence → z_c
 Similarity:      cosine(z_u,r, z_c), after identical pooling + L2 normalization
 ```
 
-一个实用起点是：所有塔从同一个 Qwen3-Embedding-0.6B 检查点初始化，候选与用户两侧使用独立参数或 adapter；profile/history 在用户侧共享主干，再使用不同 instruction、adapter 或 projection head。这样既保留共同语义空间，也允许不同输入学习不同的压缩方式。
+一个实用起点是：所有塔从同一个通用 embedding checkpoint 初始化，候选与用户两侧使用独立参数或 adapter；profile/history 在用户侧共享主干，再使用不同 instruction、adapter 或 projection head。这样既保留共同语义空间，也允许不同输入学习不同的压缩方式。
 
 必须固定 train/serve parity：同一 tokenizer、instruction template、last-token pooling、L2 normalization、截断规则和视觉证据 schema。否则离线训练的相似度不再等于线上 ANN 使用的相似度。
 
@@ -184,7 +201,7 @@ K_r = \operatorname{round}\!\left(B\cdot \operatorname{softmax}(g(u))_r\right),
 
 **第一层：构造监督。** 从可靠正样本、曝光负样本、语义困难负样本和未观测候选中构造带置信度的训练批次，避免把“没看见”误当成“不喜欢”。
 
-**第二层：监督式对比后训练。** 用用户–候选配对训练向量召回模型；批内负样本提供规模，曝光负样本保留策略上下文，困难负样本教模型区分“语义相近”和“当前真正相关”。
+**第二层：多任务后训练。** InfoNCE 保留 retrieval 主目标；教师软相关性使用 KL 或 pairwise distillation；不同行为保留独立辅助头；teacher-mined hard negatives 进入对比池。各项权重必须 sweep，并监控任务梯度是否互相抵消。
 
 **第三层：防止模块坍缩。** 单独约束路由器和模态使用：
 
@@ -197,13 +214,21 @@ K_r = \operatorname{round}\!\left(B\cdot \operatorname{softmax}(g(u))_r\right),
 
 \[
 \mathcal{L}
-=\mathcal{L}_{\text{retrieval}}
+=\mathcal{L}_{\text{InfoNCE}}
++\lambda_d\mathcal{L}_{\text{distill}}
++\sum_a\lambda_a\mathcal{L}_{\text{action},a}
 +\lambda_{r}\mathcal{L}_{\text{routing}}
 +\lambda_{m}\mathcal{L}_{\text{modality}}
 +\lambda_{c}\mathcal{L}_{\text{calibration}}.
 \]
 
 这里的核心仍是 **supervised contrastive 微调**，而不是直接对固定候选检索使用生成式 GRPO。只有当任务变成跨多轮、需要优化长期 slate reward 或 exploration policy 时，RL 才解决了一个不同且合理的问题。
+
+### 先做便宜版：它是大架构的 go/no-go gate
+
+在投入教师模型、蒸馏和路由器之前，先在固定的独立评估集上做两件低成本改动：把可信的 skip / rejection 加入 negative 语义，并把不同行为从一个 OR label 拆成独立目标。如果更丰富的监督仍然没有带来稳定、可解释的变化，就不应该默认更昂贵的教师模型会解决问题。
+
+这个顺序强迫系统先修好评估，也把“是否值得增加复杂度”变成可证伪问题，而不是架构偏好。
 
 ### 一次完整的训练与发布怎样运行
 
@@ -233,6 +258,16 @@ Online:   cache lookup → ANN retrieval → existing ranker → final slate
 > 本节描述的是实验协议和发布门槛，不包含任何观察到的结果。
 
 聚合分数可能掩盖用户群体退化，也可能把“结果更相关、但语义越来越窄”误写成全面提升。评估因此要回答五个独立问题。
+
+### 5.0 Signal 和尺子必须一起换
+
+如果 student 学习教师生成的相关性，再用同一个教师评价 student，就形成了自证循环。至少保留三种互相独立的锚点：
+
+- 稀疏但语义明确的显式行为；
+- 教师没有参与生成或筛选的时间切片与用户切片；
+- 一个小而稳定的人工相关性 / pairwise preference 集合。
+
+旧指标仍然保留，用来检查兼容性；新指标负责衡量旧 proxy 看不见的信号。只有两套尺子共同报告，才能区分“真实增加了信息”和“只是换了一种自洽的打分方式”。
 
 ### 5.1 模型真的使用了视觉信息吗
 

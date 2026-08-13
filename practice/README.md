@@ -70,7 +70,7 @@ flowchart TB
 
 #### [从噪声反馈到可服务的检索系统](recommender-systems/noise-to-signal-retrieval.md)
 
-一份完整的系统设计笔记——signal construction、选择性视觉理解、对比式后训练、发布门槛。比上面四篇长得多，是把整条链路串起来的那一篇——上面每篇都是从它里面拎出来展开的。
+一份完整的系统设计笔记——先审计“信号窄、尺子也窄”，再串起 multi-task / multi-tower teacher–student、选择性视觉理解、独立评估锚点与发布门槛。比上面几篇长得多，是把整条链路串起来的那一篇。
 
 ## 这些笔记想回答的共同问题
 
