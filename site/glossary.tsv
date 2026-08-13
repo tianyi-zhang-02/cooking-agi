@@ -84,5 +84,13 @@
 影子流量	shadow traffic	复制线上请求给新系统跑，但不把结果返回用户
 消融	ablation	去掉一个组件再测一次，用来判断它到底有没有贡献
 反事实	counterfactual	改变某个输入条件后本来会发生什么
+
+# 分布式训练
+集合通信	collective communication	多个进程之间的规约、广播、收集这类操作，分布式训练全靠它
+分片	sharding	把参数、梯度或优化器状态切开分给多张卡，每张只存其中一份
+跨卡聚合	cross-rank gather	把各张卡上的张量收集到一起，让每张卡都看到全局视图
+激活	activations	前向过程中存下来、反向时要用的中间张量；长上下文下它才是显存大头
+梯度检查点	activation checkpointing	不存激活、反向时重算，用算力换显存
+数据并行	data parallelism	每张卡拿不同的数据、算同一个模型，再同步梯度
 序列级重要性采样	GSPO	把重要性比值按整条序列聚合，而不是逐 token；权重误差会沿序列累积
 权重同步	refit	训练器更新完权重后推回推理引擎，让下一轮 rollout 用上新策略
