@@ -1,0 +1,55 @@
+# Tokenization: text to IDs
+
+[中文](tokenization.md) · **English**
+
+> Reading time: ~7 min · Level: core · Last reviewed: 2026-08
+
+## In one sentence
+
+A tokenizer splits a string into tokens from a finite vocabulary and maps them to integer IDs. The model never sees “text”; it only sees those IDs.
+
+```text
+"unbelievable!" → ["un", "believ", "able", "!"] → [431, 9821, 612, 5]
+```
+
+An embedding table turns each ID into a vector:
+
+$$x_t=E[\text{token\_id}_t], \qquad E\in\mathbb{R}^{|V|\times d}$$
+
+## Why not split on words
+
+A word vocabulary is open-ended: names, spelling variants, code, emoji, and languages never stop arriving. Characters or bytes avoid unknown inputs but produce long sequences. Subwords keep frequent fragments whole and split rare strings into smaller units.
+
+| Unit | Advantage | Cost |
+| --- | --- | --- |
+| word | short and intuitive | exploding vocabulary, unknown words |
+| character / byte | almost no unknown input | longer sequences |
+| subword | balanced vocabulary and length | corpus-dependent, unintuitive boundaries |
+
+## The BPE operation
+
+Byte Pair Encoding repeatedly merges the most frequent adjacent symbol pair in the training corpus. Training produces an **ordered list of merge rules**; encoding applies those rules in order. BPE is compression over recurring string patterns, not linguistic morphology.
+
+## Four objects to separate
+
+1. **Vocabulary:** the static token-to-ID map.
+2. **Merge model:** how primitive symbols become tokens.
+3. **Normalizer / pre-tokenizer:** Unicode, case, and whitespace handling.
+4. **Special tokens:** BOS, EOS, PAD, and role boundaries.
+
+For a batch of 4 sequences padded to length 12 with model width 768:
+
+```text
+token_ids       (B, T)    = (4, 12)
+attention_mask  (B, T)    = (4, 12)
+embeddings      (B, T, d) = (4, 12, 768)
+```
+
+<details markdown="1">
+<summary><b>Deep dive</b>: token boundaries change behavior</summary>
+
+If the same concept takes one token in one language and five in another, the latter consumes more context, more attention compute, and more prediction steps. Tokenization defines the unit of the modeling problem; it is not neutral preprocessing.
+
+</details>
+
+Run [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py), a standard-library-only miniature BPE trainer. Then continue to [RNN and LSTM](recurrent-models.en.md).

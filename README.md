@@ -90,10 +90,10 @@ Personal AGI 对我来说，不是“把所有聊天记录塞进超长上下文�
 
 ### 先把地基打上
 
-- [基础：模型到底在算什么](00-foundations/)：从线性回归到 Transformer，最后一层从来没变过。
-- [从线性模型到神经网络](00-foundations/from-linear-to-neural.md)：sigmoid 解决的不是表达力，是梯度。
-- [Transformer 架构](00-foundations/transformer.md)：三处注意力、post-norm 与 warmup、RoPE。
-- [`00-foundations/code/`](00-foundations/code/)：不调 `nn.MultiheadAttention`，手搓两版并验证它是对的。
+- [大模型学习：从 Token 到生成](00-foundations/)：Tokenization → RNN / LSTM → Seq2Seq → Vanilla Transformer → Decoder-only，一条主线分成必修、进阶与手搓实验。
+- [必修知识](00-foundations/core/)：先理解每代架构在算什么，以及它解决了上一代的哪个瓶颈。
+- [进阶拆解](00-foundations/deep-dives/)：BPTT、门控、语言模型目标、训练与生成路径。
+- [手搓实验](00-foundations/code/)：纯 Python / NumPy 看清计算，再用 PyTorch 让同一机制真正学起来。
 
 ### 再理解输入
 
