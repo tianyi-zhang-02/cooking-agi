@@ -11,7 +11,7 @@ change something or to contribute (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ---
 
-Working notes on **personal AGI, search, model experience, and AI infrastructure**.
+Working notes on **personal AGI, search, model experience, post-training, and evaluation**.
 
 This is not a recipe for AGI. It is an attempt to place models, data, memory, search, feedback, and evaluation on the same workbench: to understand what each ingredient contributes, how they interact, and why the complete system behaves the way it does.
 
@@ -53,7 +53,6 @@ The interests connect as one system:
 - **Post-training is the behavior-update mechanism:** demonstrations, preferences, and interaction feedback become policy changes.
 - **Multimodal learning is the evidence layer:** text, images, video, behavior, and social context jointly describe intent and value.
 - **Evaluation is the measurement loop:** it determines whether the system improved or merely moved a proxy metric.
-- **AI infrastructure is the execution substrate:** it turns model capability into trainable, scalable, and reliable systems.
 
 ## A systems view of modern AI
 
@@ -126,7 +125,6 @@ The numeric prefixes are the suggested reading order.
 - [`model-experience/`](08-model-experience/README.en.md) — behavioral evaluation, interaction quality, and control
 - [`post-training/`](05-post-training/README.en.md) — SFT, preference learning, RL, objectives, and data quality
 - [`multimodal-learning/`](03-multimodal-learning/README.en.md) — multimodal representation and content understanding
-- [`ai-infra/`](ai-infra/README.en.md) — hardware, kernels, numerical formats, distributed training, inference, clusters, and learning loops
 - [`papers/`](papers/README.en.md) — paper-by-paper notes
 - [`templates/paper-note.en.md`](templates/paper-note.en.md) — English paper-note template
 
