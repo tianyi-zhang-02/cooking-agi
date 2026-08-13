@@ -1,6 +1,6 @@
 # NVIDIA NeMo-RL: from correctness to distributed post-training
 
-[中文](nemo-rl.md) · **English** · [Back to Open source](README.en.md)
+[中文](README.md) · **English** · [Back to Open source](../README.en.md)
 
 > Reading time: ~12 min · Type: Contribution notes · Freshness: Evolving · Last reviewed: 2026-08
 

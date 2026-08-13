@@ -83,4 +83,4 @@ Before shipping, four questions:
 
 - [What counts as a positive, and as a negative](positive-negative-design.en.md) — the same problem at the label layer
 - [From noisy feedback to a servable retrieval system](noise-to-signal-retrieval.en.md) — the whole chain
-- [Evaluation](../07-evaluation/README.en.md)
+- [Evaluation](../../07-evaluation/README.en.md)

@@ -1,6 +1,6 @@
 # NVIDIA NeMo-RL：从 correctness 到 distributed post-training
 
-**中文** · [English](nemo-rl.en.md) · [返回开源项目](README.md)
+**中文** · [English](README.en.md) · [返回开源项目](../README.md)
 
 > 阅读时间：约 12 分钟 · 类型：贡献笔记 · 时效性：Evolving · 最近审阅：2026-08
 
@@ -16,9 +16,9 @@ flowchart LR
     B --> C["分布式训练器"]
     C --> D["权重同步"]
     D --> E["推理引擎<br/>vLLM / SGLang"]
-    A -. "静默配置与复现问题" .-> P1["一 · Correctness"]
-    B -. "mask、归一化与接口契约" .-> P2["二 / 三 · Objective 与 Efficiency"]
-    D -. "不同并行布局之间搬运权重" .-> P3["四 · Distributed integration"]
+    A -. "静默配置与复现问题" .-> P1["1 · Correctness"]
+    B -. "mask、归一化与接口契约" .-> P2["2 / 3 · Objective 与 Efficiency"]
+    D -. "不同并行布局之间搬运权重" .-> P3["4 · Distributed integration"]
 ```
 
 下面按理解成本由低到高展开。第一部分只需要软件工程常识；最后一部分才进入训练器和推理引擎的分布式接缝。
@@ -27,7 +27,7 @@ flowchart LR
 
 <a id="config-correctness"></a>
 
-## 一 · 设置了，但没生效
+## 1 · 设置了，但没生效
 
 先从最不需要背景的一类说起。这类问题跟机器学习没什么关系，任何有配置文件的系统都会得这个病：用户写了一行配置，程序收下了，然后什么也没发生。不报错，不告警。
 
@@ -47,7 +47,7 @@ flowchart LR
 
 <a id="compute-efficiency"></a>
 
-## 二 · 算了一个会被抵消的东西
+## 2 · 算了一个会被抵消的东西
 
 第二类需要一点数学，但每个论证都很短，不用读论文。
 
@@ -75,7 +75,7 @@ flowchart LR
 
 <a id="objective-correctness"></a>
 
-## 三 · 说要做，但没做
+## 3 · 说要做，但没做
 
 这一类要求你知道目标函数长什么样，所以先补一点最小的背景。
 
@@ -101,7 +101,7 @@ flowchart LR
 
 <a id="distributed-integration"></a>
 
-## 四 · 补一块缺失的能力
+## 4 · 补一块缺失的能力
 
 前面三类都是找毛病，这一类不一样，是补一块本来就没有的能力。它也是唯一需要真卡的，和唯一由维护者点名要的。
 

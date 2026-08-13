@@ -86,5 +86,5 @@ $$s'(u,c) = s(u,c) - \log Q(c)$$
 
 - [离线涨了，线上不涨](offline-online-skew.md)：同一个问题在评估层的形态
 - [从噪声反馈到可服务的检索系统](noise-to-signal-retrieval.md)：整条链路
-- [Post-Training](../05-post-training/)：这些标签确定之后，训练算法才开始有意义
+- [Post-Training](../../05-post-training/)：这些标签确定之后，训练算法才开始有意义
 - [负样本池到底有多大](negative-pool-size.md)：local/global pool、可微 gather 与 logQ 的边界

@@ -6,7 +6,7 @@
 
 这里不按时间罗列 PR，而是记录我怎样在一个真实的后训练框架里判断问题：**系统声称要做什么，代码实际做了什么，两者之间的差距该怎样证明和修复。**
 
-目前主要写 [NVIDIA NeMo-RL](nemo-rl.md)。它覆盖 SFT、RL、蒸馏，以及训练器和推理引擎之间的协作。我的贡献大致落在四条线上：
+目前主要写 [NVIDIA NeMo-RL](nemo-rl/)。它覆盖 SFT、RL、蒸馏，以及训练器和推理引擎之间的协作。我的贡献大致落在四条线上：
 
 ```mermaid
 flowchart TB
@@ -23,10 +23,10 @@ flowchart TB
 
 | 如果你关心 | 建议先读 | 核心问题 |
 | --- | --- | --- |
-| 后训练 correctness | [设置了，但没生效](nemo-rl.md#config-correctness) | 为什么静默失败比直接崩溃更危险？ |
-| 数学与性能 | [算了一个会被抵消的东西](nemo-rl.md#compute-efficiency) | 怎样证明一大片计算不会影响最终结果？ |
-| RL 目标实现 | [说要做，但没做](nemo-rl.md#objective-correctness) | 一个错误 mask 怎样进入 importance ratio 和梯度？ |
-| 分布式系统 | [补一块缺失的能力](nemo-rl.md#distributed-integration) | 训练权重怎样跨节点进入另一种并行布局的推理引擎？ |
+| 后训练 correctness | [设置了，但没生效](nemo-rl/#config-correctness) | 为什么静默失败比直接崩溃更危险？ |
+| 数学与性能 | [算了一个会被抵消的东西](nemo-rl/#compute-efficiency) | 怎样证明一大片计算不会影响最终结果？ |
+| RL 目标实现 | [说要做，但没做](nemo-rl/#objective-correctness) | 一个错误 mask 怎样进入 importance ratio 和梯度？ |
+| 分布式系统 | [补一块缺失的能力](nemo-rl/#distributed-integration) | 训练权重怎样跨节点进入另一种并行布局的推理引擎？ |
 
 ## 贡献地图
 
@@ -52,6 +52,6 @@ flowchart TB
 
 ## 继续阅读
 
-- [NVIDIA NeMo-RL：从 correctness 到 distributed post-training](nemo-rl.md)
+- [NVIDIA NeMo-RL：从 correctness 到 distributed post-training](nemo-rl/)
 - [查看合并到主干的 commits](https://github.com/NVIDIA-NeMo/RL/commits/main/?author=tianyi-zhang-02)
 - [NeMo-RL repository](https://github.com/NVIDIA-NeMo/RL)

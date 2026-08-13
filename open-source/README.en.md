@@ -6,7 +6,7 @@
 
 This is not a chronological PR log. It records how I reason about a real post-training framework: **what the system claims to do, what the code actually does, and how to prove and repair the gap.**
 
-The current focus is [NVIDIA NeMo-RL](nemo-rl.en.md), which spans SFT, RL, distillation, and the seam between trainers and inference engines. My contributions fall into four threads:
+The current focus is [NVIDIA NeMo-RL](nemo-rl/), which spans SFT, RL, distillation, and the seam between trainers and inference engines. My contributions fall into four threads:
 
 ```mermaid
 flowchart TB
@@ -23,10 +23,10 @@ They look unrelated, but ask the same question: **does the training code faithfu
 
 | If you care about | Start here | Central question |
 | --- | --- | --- |
-| Post-training correctness | [Set, but never applied](nemo-rl.en.md#config-correctness) | Why is silent failure more expensive than a crash? |
-| Mathematics and performance | [Computing something that cancels](nemo-rl.en.md#compute-efficiency) | How do you prove that a large computation cannot affect the result? |
-| RL objective implementation | [Saying one thing, doing another](nemo-rl.en.md#objective-correctness) | How can one wrong mask reach the importance ratio and gradient? |
-| Distributed systems | [Adding a missing capability](nemo-rl.en.md#distributed-integration) | How do trainer weights cross nodes into a differently sharded inference engine? |
+| Post-training correctness | [Set, but never applied](nemo-rl/#config-correctness) | Why is silent failure more expensive than a crash? |
+| Mathematics and performance | [Computing something that cancels](nemo-rl/#compute-efficiency) | How do you prove that a large computation cannot affect the result? |
+| RL objective implementation | [Saying one thing, doing another](nemo-rl/#objective-correctness) | How can one wrong mask reach the importance ratio and gradient? |
+| Distributed systems | [Adding a missing capability](nemo-rl/#distributed-integration) | How do trainer weights cross nodes into a differently sharded inference engine? |
 
 ## Contribution map
 
@@ -52,6 +52,6 @@ The detailed note preserves these three steps rather than only the final diff. T
 
 ## Continue reading
 
-- [NVIDIA NeMo-RL: from correctness to distributed post-training](nemo-rl.en.md)
+- [NVIDIA NeMo-RL: from correctness to distributed post-training](nemo-rl/)
 - [Merged commits on main](https://github.com/NVIDIA-NeMo/RL/commits/main/?author=tianyi-zhang-02)
 - [NeMo-RL repository](https://github.com/NVIDIA-NeMo/RL)

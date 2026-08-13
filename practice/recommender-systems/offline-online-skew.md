@@ -85,4 +85,4 @@ $$\hat{R}_{\text{IPS}} = \frac{1}{N}\sum_{i} \frac{\mathbb{1}[\text{正反馈}_i
 
 - [正负样本到底该怎么定义](positive-negative-design.md)：同一个问题在标签层的形态
 - [从噪声反馈到可服务的检索系统](noise-to-signal-retrieval.md)：整条链路
-- [Evaluation](../07-evaluation/)：为什么一个总分不够
+- [Evaluation](../../07-evaluation/)：为什么一个总分不够

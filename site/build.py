@@ -367,6 +367,30 @@ def discover(nav):
     return pages, sections
 
 
+def write_redirects(nav, known):
+    """Generate small redirect pages for published URLs moved into topic folders."""
+    redirects = nav.get("redirects", {})
+    for old_url, target_url in redirects.items():
+        if target_url not in known:
+            raise ValueError(f"redirect target is not a generated page: {target_url}")
+        old_path = Path(old_url)
+        relative_target = os.path.relpath(target_url, old_path.parent).replace(os.sep, "/")
+        escaped_target = html.escape(relative_target, quote=True)
+        script_target = json.dumps(relative_target)
+        page = f"""<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url={escaped_target}">
+<link rel="canonical" href="{escaped_target}">
+<title>Moved</title>
+<script>location.replace({script_target} + location.hash)</script>
+<p>This page moved to <a href="{escaped_target}">{escaped_target}</a>.</p>
+"""
+        dest = OUT / old_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(page, encoding="utf-8")
+    return len(redirects)
+
+
 # --------------------------------------------------------------------------- #
 # rendering
 # --------------------------------------------------------------------------- #
@@ -697,6 +721,10 @@ def main():
                       "s": page.section["zh" if page.lang == "zh" else "en"],
                       "x": page.text})
     print(f"  {len(pages)} pages")
+
+    redirect_count = write_redirects(nav, known)
+    if redirect_count:
+        print(f"  {redirect_count} redirects")
 
     # static assets + every section's figures
     shutil.copytree(SITE / "static", OUT / "static")

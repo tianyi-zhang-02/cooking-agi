@@ -13,6 +13,23 @@ tagline_zh  = "从一条直线，到会读世界的系统"
 tagline_en  = "From a straight line to a system that reads the world"
 base_url    = "/cooking-agi"
 
+# Keep previously shared URLs working after notes move into topic folders.
+[redirects]
+"practice/offline-online-skew.html" = "practice/recommender-systems/offline-online-skew.html"
+"practice/offline-online-skew.en.html" = "practice/recommender-systems/offline-online-skew.en.html"
+"practice/positive-negative-design.html" = "practice/recommender-systems/positive-negative-design.html"
+"practice/positive-negative-design.en.html" = "practice/recommender-systems/positive-negative-design.en.html"
+"practice/negative-pool-size.html" = "practice/recommender-systems/negative-pool-size.html"
+"practice/negative-pool-size.en.html" = "practice/recommender-systems/negative-pool-size.en.html"
+"practice/two-tower-and-beyond.html" = "practice/recommender-systems/two-tower-and-beyond.html"
+"practice/two-tower-and-beyond.en.html" = "practice/recommender-systems/two-tower-and-beyond.en.html"
+"practice/data-pipeline-modules.html" = "practice/recommender-systems/data-pipeline-modules.html"
+"practice/data-pipeline-modules.en.html" = "practice/recommender-systems/data-pipeline-modules.en.html"
+"practice/noise-to-signal-retrieval.html" = "practice/recommender-systems/noise-to-signal-retrieval.html"
+"practice/noise-to-signal-retrieval.en.html" = "practice/recommender-systems/noise-to-signal-retrieval.en.html"
+"open-source/nemo-rl.html" = "open-source/nemo-rl/index.html"
+"open-source/nemo-rl.en.html" = "open-source/nemo-rl/index.en.html"
+
 # 侧边栏的主题分组。顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id。
 [[group]]
 id = "start"
@@ -172,18 +189,32 @@ order = ["README.md"]
 [[section]]
 dir   = "practice"
 group = "practice"
-zh    = "实践手记"
-en    = "Notes from practice"
-order = ["README.md", "offline-online-skew.md", "positive-negative-design.md",
+zh    = "总览"
+en    = "Overview"
+order = ["README.md"]
+
+[[section]]
+dir   = "practice/recommender-systems"
+group = "practice"
+zh    = "推荐系统"
+en    = "Recommender systems"
+order = ["offline-online-skew.md", "positive-negative-design.md",
          "negative-pool-size.md", "two-tower-and-beyond.md",
          "data-pipeline-modules.md", "noise-to-signal-retrieval.md"]
 
 [[section]]
 dir   = "open-source"
 group = "open-source"
-zh    = "开源项目"
-en    = "Open source"
-order = ["README.md", "nemo-rl.md"]
+zh    = "总览"
+en    = "Overview"
+order = ["README.md"]
+
+[[section]]
+dir   = "open-source/nemo-rl"
+group = "open-source"
+zh    = "NeMo RL"
+en    = "NeMo RL"
+order = ["README.md"]
 
 [[section]]
 dir = "papers"
