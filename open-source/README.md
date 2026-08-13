@@ -2,47 +2,56 @@
 
 **中文** · [English](README.en.md)
 
-> 阅读时间：约 3 分钟 · 类型：栏目索引 · 时效性：Evolving · 最近审阅：2026-08
+> 阅读时间：约 4 分钟 · 类型：栏目索引 · 时效性：Evolving · 最近审阅：2026-08
 
-在自己的仓库里写代码，只要说服自己就行。往别人的代码库里提交，要说服的是一个不认识你、没时间、而且默认你是错的人。这两件事需要的能力其实不太一样。
+这里不按时间罗列 PR，而是记录我怎样在一个真实的后训练框架里判断问题：**系统声称要做什么，代码实际做了什么，两者之间的差距该怎样证明和修复。**
 
-上游贡献会逼你回答几个在自己项目里可以绕过去的问题。这个改动为什么是对的？光说「我跑了一下没事」不算数，得给出一个别人不跑也能验证的论证。它会不会弄坏你不知道的东西？一个几万行的库里，你动的那个函数有五个调用点，其中三个你从没读过。最后是怎么让人相信你——同一件事，说成「我优化了性能」和说成「这个张量九成四的列被算出来又扔掉，而且被丢掉的列在数学上影响不到留下的列」，得到的回应完全不同。
+目前主要写 [NVIDIA NeMo-RL](nemo-rl.md)。它覆盖 SFT、RL、蒸馏，以及训练器和推理引擎之间的协作。我的贡献大致落在四条线上：
 
-对我来说，这是检验自己有没有真读懂最便宜的方式。看懂一篇论文很容易骗自己，但在一个真实的训练框架里指出某一项是多余的、还让维护者接受，就骗不了了。
+```mermaid
+flowchart TB
+    A["NeMo-RL<br/>LLM post-training framework"]
+    A --> B["Correctness<br/>配置、checkpoint、API 契约"]
+    A --> C["Objective<br/>mask、log-prob、importance ratio"]
+    A --> D["Efficiency<br/>避免不必要的 softmax、cast 与投影"]
+    A --> E["Distributed integration<br/>trainer ↔ inference engine 权重同步"]
+```
 
-这个栏目不打算写「我提交了几个 PR」。想写的是这个库在整个系统里到底管什么、它难在哪，以及每个改动背后的判断过程——为什么怀疑这里有问题、怎么证明的、哪些猜测最后被自己推翻了。也包括做错的地方，有几次我差点把一个站不住的结论写进公开评论。
+这四类问题看似分散，其实都在问同一件事：**训练代码是否忠实、经济地实现了我们以为自己在优化的目标。**
 
-## 目前的项目
+## 从哪里开始看
 
-| 项目 | 是什么 | 笔记 |
+| 如果你关心 | 建议先读 | 核心问题 |
 | --- | --- | --- |
-| [NVIDIA NeMo-RL](nemo-rl.md) | NVIDIA 的 LLM 后训练框架（RLHF、GRPO、蒸馏） | 由浅入深的四类贡献：静默失效的配置、会被抵消的计算、名实不符的函数、训练器与推理引擎的接缝 |
+| 后训练 correctness | [设置了，但没生效](nemo-rl.md#config-correctness) | 为什么静默失败比直接崩溃更危险？ |
+| 数学与性能 | [算了一个会被抵消的东西](nemo-rl.md#compute-efficiency) | 怎样证明一大片计算不会影响最终结果？ |
+| RL 目标实现 | [说要做，但没做](nemo-rl.md#objective-correctness) | 一个错误 mask 怎样进入 importance ratio 和梯度？ |
+| 分布式系统 | [补一块缺失的能力](nemo-rl.md#distributed-integration) | 训练权重怎样跨节点进入另一种并行布局的推理引擎？ |
 
-## 一条贯穿的线索
+## 贡献地图
 
-回头看，我提交的东西几乎没有一个是「这里写错了」。它们都属于另外两类。
+与其看 PR 数量，更清楚的方式是看它们守住了哪一层：
 
-一类是代码在做一件它不需要做的事：算了一个会被抵消的归一化常数，把整个词表物化出来只为读其中六十四列，把一个矩阵投影到十二万八千维再切出八千维。
-
-另一类是代码没在做它声称在做的事：一个函数打印「正在 mask 掉这些位置」，算出了 mask，然后把它扔了；一个配置项文档里写着、代码里接受、但从来没被读过；一句精心写好的报错永远执行不到。
-
-这两类都有个共同的好处——**读代码就能证明**。不需要 GPU，不需要跑实验，不需要论文支持。这大概也解释了为什么一个手上只有一张消费级显卡的人，能在一个为集群设计的框架里持续找到东西。
-
-## 全部 PR
-
-| PR | 做了什么 | 状态 |
+| 方向 | 代表性贡献 | 状态 |
 | --- | --- | --- |
-| [#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314) | 同词表 top-k 蒸馏去掉全词表 log-softmax | 已合并 |
-| [#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484) | 推理路径跳过 softmax 物化 | 已合并 |
-| [#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271) | 配置键被静默忽略时告警 | 已合并 |
-| [#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389) | GSM8K 的 subset 参数真正生效 | 已合并 |
-| [#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071) | checkpoint 指标打平时按时间取新 | 已合并 |
-| [#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519) | 给 SGLang 接上跨节点权重同步 | 审核中 |
-| [#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551) | 把 -inf 位置真正移出归约 mask | 审核中 |
-| [#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512) | 统一 advantage estimator 的返回契约 | 审核中 |
-| [#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552) | 导入训练入口不再加载可选集成 | 审核中 |
-| [#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564) | P-KL 只投影需要的 top-k 列 | 审核中 |
-| [#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496) | 蒸馏路径的 fp32 上采样推迟到 gather 之后 | 审核中 |
-| [#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515) | 让越界 rank 的描述性报错可达 | 审核中 |
+| 配置与可复现性 | [#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271) 配置键告警 · [#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389) 数据集参数生效 · [#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071) checkpoint tie-breaking | 已合并 |
+| 蒸馏与推理效率 | [#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314) 去掉全词表 log-softmax · [#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484) 跳过 softmax 物化 | 已合并 |
+| 目标与接口 correctness | [#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551) log-prob mask · [#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512) advantage contract · [#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515) 可达错误语义 | 审核中 |
+| 计算与内存路径 | [#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564) top-k 投影 · [#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496) 延后 fp32 cast · [#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552) 惰性可选依赖 | 审核中 |
+| 训练 / 推理衔接 | [#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519) SGLang 跨节点权重同步 | 审核中 |
 
-（两个数据集接入的 PR 不在表内——它们是例行工作，没有值得写的判断过程。）
+## 我怎么判断一个改动值得提交
+
+一个改动至少要回答三件事：
+
+1. **Claim：**哪条 invariant 被破坏，或者哪部分计算可以证明是冗余的？
+2. **Evidence：**是代码路径、数学恒等式、最小复现，还是会在错误实现下变红的 regression test？
+3. **Boundary：**我验证了什么，没有验证什么；单卡结论能否外推到多节点？
+
+详细笔记里保留的不是“最后改了哪几行”，而是这三步怎样建立。因为真正可迁移到下一个代码库的，是判断过程，不是 patch 本身。
+
+## 继续阅读
+
+- [NVIDIA NeMo-RL：从 correctness 到 distributed post-training](nemo-rl.md)
+- [查看合并到主干的 commits](https://github.com/NVIDIA-NeMo/RL/commits/main/?author=tianyi-zhang-02)
+- [NeMo-RL repository](https://github.com/NVIDIA-NeMo/RL)

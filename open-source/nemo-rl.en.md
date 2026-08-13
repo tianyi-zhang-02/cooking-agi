@@ -1,16 +1,31 @@
-# NVIDIA NeMo-RL: what I actually did inside someone else's training framework
+# NVIDIA NeMo-RL: from correctness to distributed post-training
 
 [中文](nemo-rl.md) · **English** · [Back to Open source](README.en.md)
 
 > Reading time: ~12 min · Type: Contribution notes · Freshness: Evolving · Last reviewed: 2026-08
 
-NeMo-RL is NVIDIA's open-source LLM post-training framework — everything after pretraining: SFT, RLHF, GRPO, distillation.
+NeMo-RL is NVIDIA's open-source LLM post-training framework, spanning SFT, RL, distillation, and coordination between trainers and inference engines.
 
-What I do there is mostly read code and look for two things. One is code doing something it does not need to do; the other is code not doing what it claims to do. That sounds unglamorous, but in a training framework that iterates quickly, both are surprisingly common.
+The thread is not “fixing unrelated bugs.” It is checking whether three layers agree: **the experiment expressed by configuration, the mathematics expressed by the objective, and the system behavior expressed by distributed execution.** When they diverge, training either optimizes the wrong target or spends substantial resources on computation that cannot affect the result.
 
-The sections below go easiest first. The first needs no reinforcement-learning background at all; by the fourth you need to know how the trainer and the inference engine cooperate, and I introduce that where it is needed rather than up front.
+See the whole path first, then jump to the part you care about:
+
+```mermaid
+flowchart LR
+    A["Configuration and data"] --> B["Training objective<br/>log-prob · advantage · distillation"]
+    B --> C["Distributed trainer"]
+    C --> D["Weight synchronization"]
+    D --> E["Inference engine<br/>vLLM / SGLang"]
+    A -. "silent configuration and reproducibility" .-> P1["1 · Correctness"]
+    B -. "masks, normalization, API contracts" .-> P2["2 / 3 · Objective and efficiency"]
+    D -. "weights crossing parallel layouts" .-> P3["4 · Distributed integration"]
+```
+
+The sections move from low to high context. The first needs only software-engineering intuition; the last reaches the distributed seam between trainer and inference engine.
 
 ---
+
+<a id="config-correctness"></a>
 
 ## 1 · Set, but never applied
 
@@ -29,6 +44,8 @@ My favourite was the last one: a clearly written error message that was dead cod
 These are worth fixing because silent failure costs far more than a crash. A crash at least tells you where to look. A silently ignored setting lets you keep tuning with a wrong mental model — and you will suspect the algorithm and the data long before you suspect that line of config.
 
 ---
+
+<a id="compute-efficiency"></a>
 
 ## 2 · Computing something that cancels
 
@@ -56,6 +73,8 @@ I fell into a trap here worth recording. I wrote the equivalence test as `torch.
 
 ---
 
+<a id="objective-correctness"></a>
+
 ## 3 · Saying one thing, doing another
 
 This category assumes you know roughly what the objective looks like, so here is the minimum background.
@@ -79,6 +98,8 @@ A neighbouring problem, while I was in there: six advantage estimators, some ret
 That change failed on first submission for a very typical reason: after my branch was cut, main added new test doubles that still returned bare tuples, and I had deleted the compatibility branch. The lesson is that a PR changing a contract has to be re-tested *after* rebasing onto current main. Green on your own branch proves nothing.
 
 ---
+
+<a id="distributed-integration"></a>
 
 ## 4 · Adding a capability that wasn't there
 

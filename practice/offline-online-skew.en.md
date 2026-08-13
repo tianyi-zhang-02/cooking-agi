@@ -22,6 +22,20 @@ The model can only learn from what it already proposed. Anything it never propos
 
 After a few rounds "more relevant" and "the model already preferred it" become indistinguishable. Meanwhile offline metrics climb, because **the evaluation set is drawn from the same exposure distribution**: you are grading the model on questions it chose.
 
+```mermaid
+flowchart LR
+    C["Full candidate space C"] --> P["Previous policy"]
+    P --> E["Exposed set E"]
+    E --> F["Observable feedback P"]
+    F --> T["Train the next model"]
+    T --> P
+    C -. "unexposed: no label" .-> U["C \ E"]
+    X["ε exploration traffic"] --> U
+    U -->|"log propensity"| F
+```
+
+The loop itself is not a bug. **The problem is having no edge back from the unobserved region.** Exploration adds that missing evidence channel.
+
 This is why **no loss function fixes it**. Nothing in the objective knows what is in $\mathcal{C} \setminus \mathcal{E}_u$. Regularisers, temperatures and better losses all operate inside the observed slice.
 
 ## The only way out: exposure the model doesn't control

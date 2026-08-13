@@ -52,6 +52,29 @@ The user side expands into several vectors:
 
 The asymmetry is principled rather than decorative. **It follows from the two sides being different kinds of object: content is an item, a user is a distribution.**
 
+```mermaid
+flowchart LR
+    subgraph OFF["Offline content side"]
+        C["Content"] --> CE["One content encoder"]
+        CE --> IDX["Shared ANN index"]
+    end
+    subgraph ON["Online user side"]
+        P["Profile"] --> R["Several user views"]
+        H["History"] --> R
+        R --> G["Learnable router<br/>allocate fixed budget B"]
+    end
+    G --> Q1["view 1 query"]
+    G --> Q2["view 2 query"]
+    G --> QM["view m query"]
+    Q1 --> IDX
+    Q2 --> IDX
+    QM --> IDX
+    IDX --> M["Union · deduplicate · keep provenance"]
+    M --> RK["Downstream ranker"]
+```
+
+There is still one candidate index and one total budget. Multi-tower adds **ways to look at the user**, not more online candidates.
+
 ## Serving with several vectors
 
 The one thing that must not happen: **averaging them before querying.** That walks straight back to a single point and discards the whole exercise.

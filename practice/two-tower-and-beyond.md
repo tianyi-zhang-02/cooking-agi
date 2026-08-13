@@ -52,6 +52,29 @@ $$\mathbf{z}_u = \frac{1}{|H_u|}\sum_{i \in H_u} \mathbf{e}_i \quad\Longrightarr
 
 这个不对称是有原理的，不是为了结构好看。**它来自两侧的语义不同：内容是一个对象，用户是一个分布。**
 
+```mermaid
+flowchart LR
+    subgraph OFF["离线内容侧"]
+        C["内容"] --> CE["单个内容编码器"]
+        CE --> IDX["共享 ANN index"]
+    end
+    subgraph ON["在线用户侧"]
+        P["画像"] --> R["多个用户视图"]
+        H["历史"] --> R
+        R --> G["Learnable router<br/>分配固定预算 B"]
+    end
+    G --> Q1["view 1 query"]
+    G --> Q2["view 2 query"]
+    G --> QM["view m query"]
+    Q1 --> IDX
+    Q2 --> IDX
+    QM --> IDX
+    IDX --> M["合并 · 去重 · 保留来源"]
+    M --> RK["下游精排"]
+```
+
+图里只有一个候选索引，也只有一份总预算。多塔增加的是**观察用户的角度**，不是线上候选总量。
+
 ## 服务时怎么用这些向量
 
 关键的一点：**不能先把它们平均掉再查**——那就等于绕一圈回到单点表示，前面的功夫全白费。
