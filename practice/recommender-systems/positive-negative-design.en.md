@@ -86,5 +86,5 @@ The hard-negative ratio is also a real hyperparameter, not a more-is-better knob
 
 - [Offline went up, online didn't](offline-online-skew.en.md) — the same problem at the evaluation layer
 - [From noisy feedback to a servable retrieval system](noise-to-signal-retrieval.en.md) — the whole chain
-- [Post-training](../05-post-training/README.en.md)
+- [Post-training](../../05-post-training/README.en.md)
 - [How big is your negative pool, really](negative-pool-size.en.md): local/global pools, differentiable gather, and the limits of logQ

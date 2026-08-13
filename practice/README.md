@@ -42,29 +42,33 @@ flowchart TB
 
 **自检：** 把文章给一个做同类系统但不在这家公司的人看，问一句「你能说出这是哪家吗」。答得出来就还没脱干净。
 
-## 笔记
+## 主题
 
-### [离线涨了，线上不涨](offline-online-skew.md)
+### 推荐系统
+
+围绕 candidate retrieval、稀疏反馈、训练目标和离线评估展开。建议按数据 → 标签 → loss → 表示 → 评估 → 完整系统的顺序阅读。
+
+#### [离线涨了，线上不涨](recommender-systems/offline-online-skew.md)
 
 选择性观测 + 反馈闭环。为什么在日志上做的评估会系统性地高估一个会加剧该偏差的模型，以及为什么这件事**不能靠改损失函数解决**——只能靠让一部分曝光不由模型决定，并把倾向性记下来。
 
-### [正负样本到底该怎么定义](positive-negative-design.md)
+#### [正负样本到底该怎么定义](recommender-systems/positive-negative-design.md)
 
 「没点」不等于「不喜欢」。四类样本的语义区分，以及一个大多数实现里都存在、但很少被承认的矛盾：口口声声说未观测不是负样本，训练时的批内负样本恰恰在把它当负样本用。
 
-### [负样本池到底有多大](negative-pool-size.md)
+#### [负样本池到底有多大](recommender-systems/negative-pool-size.md)
 
 多卡不自动等于全局负样本。用一张选择题讲清 local/global pool、可微 gather、采样 proposal 和 logQ correction 分别在解决什么问题。
 
-### [双塔，以及为什么用户那一侧要拆成多塔](two-tower-and-beyond.md)
+#### [双塔，以及为什么用户那一侧要拆成多塔](recommender-systems/two-tower-and-beyond.md)
 
 双塔不是一种建模偏好，是被预计算逼出来的唯一形状。搞清楚这一点，才能解释为什么用户侧可以展开成多塔而内容侧不行——因为内容是一个对象，用户是一个分布。附多塔什么时候**不**值得做的判据。
 
-### [数据处理拆成哪几个模块](data-pipeline-modules.md)
+#### [数据处理拆成哪几个模块](recommender-systems/data-pipeline-modules.md)
 
 五个模块各守一条不变量。重点在最贵的那个 bug：时间穿越——用今天的画像去 join 三周前的曝光，离线好得不像话，线上一动不动。
 
-### [从噪声反馈到可服务的检索系统](noise-to-signal-retrieval.md)
+#### [从噪声反馈到可服务的检索系统](recommender-systems/noise-to-signal-retrieval.md)
 
 一份完整的系统设计笔记——signal construction、选择性视觉理解、对比式后训练、发布门槛。比上面四篇长得多，是把整条链路串起来的那一篇——上面每篇都是从它里面拎出来展开的。
 
