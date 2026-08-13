@@ -94,3 +94,53 @@
 数据并行	data parallelism	每张卡拿不同的数据、算同一个模型，再同步梯度
 序列级重要性采样	GSPO	把重要性比值按整条序列聚合，而不是逐 token；权重误差会沿序列累积
 权重同步	refit	训练器更新完权重后推回推理引擎，让下一轮 rollout 用上新策略
+
+# 实践手记：数据、检索与评估
+不变量	invariant	系统在任何合法执行中都必须保持成立的性质；模块边界应明确由谁负责守住它
+数据快照	data snapshot	固定在某个时间点可见的数据版本，避免重跑时读到未来状态
+事件流	event stream	按时间产生的一系列行为或系统事件
+样本编译	sample compilation	把事件、证据、标签和采样规则编译成可复现训练样本的过程
+回放	replay	用固定输入重新执行一段数据或模型链路，检查结果是否一致
+时间穿越	temporal leakage	训练样本使用了事件发生之后才可见的信息，造成离线指标虚高
+生效时间	effective time	某一版本的数据或属性从什么时候开始对外有效
+特征漂移	feature drift	同名特征的数值分布或语义随版本变化，导致训练与服务不再一致
+主键	primary key	唯一标识一条记录、并决定如何去重与关联的字段组合
+索引重建	index rebuild	用新编码器或新证据重新计算候选向量并生成完整索引
+可复现性	reproducibility	在相同数据、版本、随机种子与配置下能够得到可比较结果
+降级	fallback	主路径不可用时切换到较简单但语义明确的备用行为
+正样本	positive example	有足够证据表明 query 与 candidate 相关的训练样本
+负样本	negative example	被训练目标用来与正样本区分的候选；不一定等价于用户明确不喜欢
+标签语义	label semantics	一个标签在现实世界里究竟能支持什么判断
+训练角色	optimization role	样本在具体 loss 中扮演 positive、negative 或 distractor 等角色
+采样分布	sampling distribution	训练候选被抽中的概率分布，它决定模型经常看到哪类边界
+假负样本	false negative	被当作 negative 使用、但实际上可能相关的候选
+全局负样本池	global negative pool	把所有 rank 的候选汇总后构成的对比学习选项集合
+重要性采样	importance sampling	从容易采样的 proposal 抽样，再用权重估计目标分布下的期望
+重要性比值	importance ratio	目标策略与行为策略对同一动作的概率之比
+目标函数	objective function	训练直接优化的数学量；它不一定等于最终产品目标
+用户表示	user representation	把画像、历史与上下文压缩成可供模型消费的状态
+用户塔	user tower	双塔检索中把用户信息编码成 query 向量的模型分支
+内容塔	candidate tower	双塔检索中把候选内容编码成可预计算向量的模型分支
+多塔	multi-tower	用多个表示分支保留不同信息来源或潜在意图
+多意图	multi-intent	把用户偏好建模为多个兴趣模式，而不是一个平均点
+潜在意图	latent intent	没有显式标签、由模型从行为中学习出的兴趣方向
+查询预算	query budget	一次召回允许各用户视图合计取回的候选数量
+路由熵	routing entropy	路由权重的熵；过低通常意味着所有流量塌缩到一个分支
+
+# 开源与后训练实现
+字典键	dictionary key	访问映射中某个值使用的标识；错误键通常会触发 KeyError
+静默失败	silent failure	系统没有报错，却没有执行用户以为已经生效的行为
+调用点	call site	代码中实际调用某个函数或接口的位置
+对数概率	log-probability	概率取对数后的值；0 表示概率 1，而不是“忽略”
+接口契约	interface contract	调用方与实现方共同依赖的输入、输出和错误语义
+测试替身	test double	测试中替代真实组件的简化实现，例如 stub、fake 或 mock
+训练器	trainer	负责计算 loss、反向传播并更新模型参数的系统
+推理引擎	inference engine	负责高吞吐生成或模型服务的执行系统
+跨节点	cross-node	通信或执行跨越不同物理机器
+跨进程	cross-process	数据或句柄需要在不同操作系统进程之间传递
+并行布局	parallel layout	参数或计算在设备之间的切分与复制方式
+全词表	full vocabulary	模型可以输出的全部 token 维度
+归一化常数	normalization constant	把未归一化分数转成概率分布时共享的分母
+稀疏矩阵乘	sparse matrix multiplication	利用矩阵中大量零元素跳过无效计算的乘法
+逐位相同	bitwise identical	每一个二进制位都一致，比数值近似相等更严格
+惰性代理	lazy proxy	保留原接口名称，但只在真正使用时加载背后的依赖
