@@ -27,3 +27,22 @@
 另一类是代码没在做它声称在做的事：一个函数打印「正在 mask 掉这些位置」，算出了 mask，然后把它扔了；一个配置项文档里写着、代码里接受、但从来没被读过；一句精心写好的报错永远执行不到。
 
 这两类都有个共同的好处——**读代码就能证明**。不需要 GPU，不需要跑实验，不需要论文支持。这大概也解释了为什么一个手上只有一张消费级显卡的人，能在一个为集群设计的框架里持续找到东西。
+
+## 全部 PR
+
+| PR | 做了什么 | 状态 |
+| --- | --- | --- |
+| [#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314) | 同词表 top-k 蒸馏去掉全词表 log-softmax | 已合并 |
+| [#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484) | 推理路径跳过 softmax 物化 | 已合并 |
+| [#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271) | 配置键被静默忽略时告警 | 已合并 |
+| [#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389) | GSM8K 的 subset 参数真正生效 | 已合并 |
+| [#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071) | checkpoint 指标打平时按时间取新 | 已合并 |
+| [#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519) | 给 SGLang 接上跨节点权重同步 | 审核中 |
+| [#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551) | 把 -inf 位置真正移出归约 mask | 审核中 |
+| [#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512) | 统一 advantage estimator 的返回契约 | 审核中 |
+| [#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552) | 导入训练入口不再加载可选集成 | 审核中 |
+| [#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564) | P-KL 只投影需要的 top-k 列 | 审核中 |
+| [#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496) | 蒸馏路径的 fp32 上采样推迟到 gather 之后 | 审核中 |
+| [#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515) | 让越界 rank 的描述性报错可达 | 审核中 |
+
+（两个数据集接入的 PR 不在表内——它们是例行工作，没有值得写的判断过程。）

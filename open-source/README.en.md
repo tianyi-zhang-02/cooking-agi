@@ -27,3 +27,22 @@ Code doing something it does not need to do: computing a normalizer that cancels
 Code not doing what it says it does: a function that prints "masking out these positions", computes the mask, and discards it; a config key that is documented, accepted, and never read; a carefully written error message that can never fire.
 
 Both shapes share one useful property — **they are provable by reading**. No GPUs, no experiments, no paper required. Which probably explains how someone with a single consumer GPU keeps finding things in a framework built for clusters.
+
+## All PRs
+
+| PR | What it does | Status |
+| --- | --- | --- |
+| [#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314) | Drop the full-vocab log-softmax in same-vocab top-k KD | merged |
+| [#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484) | Skip the softmax materialization on the logprob path | merged |
+| [#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271) | Warn when dataset config keys are silently ignored | merged |
+| [#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389) | Honor subset on GSM8KDataset | merged |
+| [#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071) | Break checkpoint metric ties by recency | merged |
+| [#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519) | Cross-node weight sync for the SGLang backend | under review |
+| [#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551) | Actually drop -inf logprobs from the reduction mask | under review |
+| [#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512) | Formalize the advantage-estimator contract | under review |
+| [#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552) | Stop loading optional integrations to import grpo | under review |
+| [#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564) | Project only the top-k teacher columns in P-KL | under review |
+| [#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496) | Defer the fp32 upcast in the distillation top-k path | under review |
+| [#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515) | Surface the uncovered-rank error during HTTP refit | under review |
+
+(Two dataset-integration PRs are left out — routine work with no reasoning worth writing down.)
