@@ -80,7 +80,7 @@ All three must be **constrained during training**, not observed after launch. No
 
 ## Two training traps
 
-**Sampling bias in in-batch negatives.** Two-tower training almost always uses them, and their sampling distribution is proportional to item frequency, so it needs a logQ correction. See [what counts as a positive, and as a negative](positive-negative-design.en.md).
+**Sampling bias in in-batch negatives.** Two-tower training commonly uses in-batch distractors drawn from the training item's frequency distribution. If the target is full-catalog softmax, evaluate logQ or a more exact importance correction; if the target is already a conditional proposal, do not apply it mechanically. See [what counts as a positive, and as a negative](positive-negative-design.en.md).
 
 **The index goes stale relative to the encoder.** Retrain the content tower and every vector in the index must be re-encoded. During a staged rollout the index holds a mix of old and new vectors — **the space is inconsistent and similarities are not comparable**. It is the easiest train/serve parity break to miss, because it doesn't live in the code, it lives in the release process.
 

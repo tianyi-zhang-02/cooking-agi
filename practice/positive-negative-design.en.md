@@ -29,23 +29,24 @@ Light users generate less behaviour to begin with; raising the bar filters them 
 
 So a positive definition has to be **validated per activity bucket**, never on the aggregate. Change the definition, rerun the buckets; the blast radius is larger than it looks.
 
-## The contradiction nobody admits
+## Label semantics and optimisation roles are different
 
-Nearly every design doc of this kind says "unobserved candidates must not be treated as negatives." Then the training section says "we use in-batch negatives."
+Nearly every design doc of this kind says "unobserved candidates must not be treated as negatives," then says "we use in-batch negatives." This looks contradictory only because it mixes two levels:
 
-**Those two statements contradict each other.** In-batch negatives take other rows' candidates as negatives for the current row — and those are precisely randomly-drawn unobserved items.
+- **Label semantics:** unobserved does not mean disliked and must not be stored as explicit negative feedback.
+- **Optimisation role:** sampled softmax may still place an unobserved candidate in the denominator as a distractor for the current training question.
 
-The contradiction doesn't need to be avoided; the scale in-batch negatives provide is real and contrastive training needs it. But it needs an **explicit correction**, because the sampling distribution isn't uniform. An item appears in a batch with probability proportional to its frequency, so **popular items get sampled as negatives far more often than tail items** — and the model learns to suppress them.
+The second use does not claim that the user dislikes the candidate. It uses a computable sampled objective to approximate a much larger comparison. The risks are proposal bias, false negatives, and objective mismatch—not the absence of a binary negative label.
 
-The standard fix is a logQ correction — subtract the log sampling probability from the score:
+When the target is full-catalog softmax, a common correction subtracts the log proposal probability:
 
 $$s'(u,c) = s(u,c) - \log Q(c)$$
 
-with $Q(c)$ the estimated probability of $c$ appearing in a batch, which a streaming frequency estimate covers.
+where $Q(c)$ is the probability or expected count of sampling $c$. Its definition must match replacement, deduplication, and batch construction.
 
-Skip it and you still get a popularity-debiased scorer — but with a direction and magnitude you never chose, set instead by the frequency distribution of your data. **You end up with a prior you didn't design.**
+Skipping it does not automatically make the model wrong. It means the model optimises a proposal-weighted objective rather than one automatically equivalent to full-catalog softmax. That distinction belongs in the experiment definition.
 
-Exposed negatives need no such correction: they weren't sampled, they were genuinely shown. That is why separating the two negative types isn't merely "more careful" — they require mathematically different treatment.
+Exposed negatives come from a different data-generating process and should not inherit the same $Q(c)$ blindly. They may enter a separate pointwise or pairwise loss, or a denominator with separate weighting; the intended objective determines the treatment.
 
 ## The hard-negative sampling trap
 
@@ -62,7 +63,7 @@ The hard-negative ratio is also a real hyperparameter, not a more-is-better knob
 
 1. What fraction of my "negatives" are actually unobserved?
 2. Do exposed negatives and unobserved candidates travel the **same code path**?
-3. Is there a sampling correction on in-batch negatives? If not, what am I actually optimising?
+3. What is the proposal for in-batch distractors, and does my intended objective require a correction?
 4. After changing the positive threshold, did I recheck per activity bucket?
 5. Were hard negatives mined by the current checkpoint or the previous one?
 
@@ -71,3 +72,4 @@ The hard-negative ratio is also a real hyperparameter, not a more-is-better knob
 - [Offline went up, online didn't](offline-online-skew.en.md) — the same problem at the evaluation layer
 - [From noisy feedback to a servable retrieval system](noise-to-signal-retrieval.en.md) — the whole chain
 - [Post-training](../05-post-training/README.en.md)
+- [How big is your negative pool, really](negative-pool-size.en.md): local/global pools, differentiable gather, and the limits of logQ

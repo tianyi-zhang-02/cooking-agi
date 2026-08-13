@@ -6,7 +6,7 @@
 
 ## In one sentence
 
-Contrastive learning is, at bottom, making the model take a multiple-choice test. And in multi-GPU training it is very easy to end up here: you think you are setting a thousand-way question, and every device is actually answering a B-way freebie — **with no error raised anywhere**.
+Contrastive learning is, at bottom, making the model take a multiple-choice test. In multi-GPU training it is easy to think you are setting a thousand-way question while every device is actually answering a B-way one — **with no error raised anywhere**. The number and composition of the options jointly determine difficulty; a large pool is not automatically a good pool.
 
 ## Start with a multiple-choice question
 
@@ -21,29 +21,29 @@ That pile of random ones is the negatives. How many there are is how many option
 Which raises the question that matters: **how many options does this question have?**
 
 - 4-way: the model gets it right and you have learned almost nothing. Guessing scores 25%, and three of the four options are probably from a different planet than user A — all the model has to separate is "same universe or not."
-- thousand-way: if the model still gets it right, that means something. With that many options, a few are guaranteed to look **a lot like X but be wrong**, and the model has to draw a far finer line.
+- thousand-way: random sampling is more likely to include near misses, so the model usually needs a finer boundary. But if all those negatives remain trivial, the large pool is only a more expensive freebie.
 
 Retrieval faces the second situation for real: the candidate pool is wall-to-wall near-misses. So **too few options in training means drilling a model on freebies and then sending it to take the hard exam.**
 
-That is what the negative pool is. Not a hyperparameter you might nudge — it sets how hard the question is.
+That is what the negative pool controls. **Pool size determines how many candidates the model can compare; the sampling distribution determines which boundary it learns.** Both matter.
 
 ## So here is the thing that happens
 
-In multi-GPU training, the framework will shard your model across devices and synchronize gradients for you. Those are configuration flags. Turn them on and you have them.
+In multi-GPU training, the framework handles model state and gradient communication according to the parallel strategy. DDP replicates parameters and all-reduces gradients; FSDP or ZeRO is what shards parameters, gradients, or optimizer states.
 
 But **you write the question yourself, inside the loss function.** The framework has no idea what your loss is doing, and it will not go collect other devices' candidates to serve as your distractors.
 
 Which can leave you here: N devices, per-device batch of B, and in your head the negative pool is N×B. In reality each device only uses its own B samples as each other's distractors. The question is B-way, not thousand-way.
 
-| Thing | Crosses devices? | Who handles it |
-| --- | --- | --- |
-| Parameters | Yes, all-gathered back when needed | The framework (a sharding flag) |
-| Gradients | Yes, reduce-scatter or all-reduce | The framework |
-| Optimizer state | Yes, sharded along with the parameters | The framework |
-| Data | Yes, each device takes its own slice | The framework |
-| **The contrastive negative pool** | **Not necessarily** | **You, inside the loss** |
+| Thing | DDP | FSDP / ZeRO | Who decides |
+| --- | --- | --- | --- |
+| Parameters | Replicated per device | Sharded by strategy, gathered when needed | Parallel framework |
+| Gradients | All-reduce | Reduce-scatter or equivalent | Parallel framework |
+| Optimizer state | Usually replicated | May be sharded | Parallel framework |
+| Data | Sampler gives each rank a different mini-batch | Same | Data loader |
+| **Contrastive negative pool** | **May still be local** | **May still be local** | **Loss implementation** |
 
-The first four rows are configuration. The fifth is not. So this is entirely possible: model state sharded beautifully across dozens of devices, collective communication written with care, and each device's contrastive loss seeing only its own handful of samples.
+The first four rows are mostly controlled by the framework and data loader. The last usually is not. Model-state and gradient communication can therefore be correct while each device's contrastive loss sees only its local samples.
 
 **You have to confirm this by reading the loss function; the training config will not show it.** The config tells you the sharding strategy. It does not tell you how many terms are in the denominator.
 
@@ -68,66 +68,67 @@ Read aloud, the formula says: **the right answer's score, as a share of every op
 
 So nearly all of the learning signal lives in that denominator sum. The numerator is one term and proves nothing on its own; only being higher *than a pile of distractors* counts as having learned something.
 
-If $\mathcal{N}$ is the local batch, the option count is $B$. If it is global, it is $N \times B$ ($N$ devices, batch $B$ each).
+With a paired local batch, there are usually $B$ options and $B-1$ presumed negatives. After a global gather there are $N\times B$ options and $N\times B-1$ potential negatives, before accounting for duplicate items, multiple positives, and false negatives.
 
-When $N$ is in the dozens, that is more than an order of magnitude. And the change needs **no new data, no new annotation, no model change** — free wins like that are rare, which is exactly why it is worth checking whether you are sitting on one.
+When $N$ is in the dozens, that is more than an order of magnitude. The change needs no new annotation or architecture, but it increases communication, the logit matrix, and false-negative risk. It is worth checking early, but it is not a guaranteed free win.
 
-## Adding the cross-device gather: the trap almost everyone hits first
+## Cross-device gather: first choose the objective
 
 The naive version:
 
 ```python
-# wrong
-z_all  = all_gather(z)                   # collect candidate vectors from every device
+# incomplete for an exact global objective
+parts = [torch.empty_like(z) for _ in range(world_size)]
+torch.distributed.all_gather(parts, z)       # low-level collective has no autograd path
+z_all  = torch.cat(parts)
 logits = z_u @ z_all.T / temperature     # denominator now has N*B terms
 loss   = cross_entropy(logits, labels)
 ```
 
-It looks right — the denominator really does have $N \times B$ terms now. The problem is that **a generic all-gather does not carry gradients**.
+The denominator really does have $N\times B$ terms. The issue is that low-level `torch.distributed.all_gather` is a communication primitive and does not by itself define an autograd backward for its input. An exact global contrastive objective requires a differentiable collective or an equivalent custom backward reduction.
 
-It moved the other devices' tensors over, but in this device's graph they are constants. Backprop reaches them and stops.
+It moves the remote tensors, but the current rank's loss cannot follow plain gather back to those source tensors.
 
 The result is an asymmetry:
 
-| Who | Gets gradient? | What that means |
+| Implementation | Gradient reaching candidate source tensors | Meaning |
 | --- | --- | --- |
-| Local `z_u` | Yes | the user vector is pushed away from all the new distractors ✓ |
-| Local candidates | Yes | updated normally ✓ |
-| **Other devices' candidates** | **No** | **they never learn they were used as distractors** ✗ |
+| Plain gather | No candidate-side path, local or remote | only the query side sees the enlarged denominator |
+| Gather + local splice | Local candidate only | common approximation; cross-rank candidate-gradient terms are omitted |
+| Differentiable gather | Contributions reduce back to each owner | can implement the exact global-batch objective |
 
-Contrastive learning is supposed to push **both ways**: the user vector moves away from the distractor, and the distractor moves away from the user vector. Cut the gradient and only the first half survives.
+If the stated objective is every query against every candidate in the global batch, those cross-rank candidate-gradient terms are part of it. Plain gather omits them.
 
-In test terms: you turned a 4-way question into a thousand-way one, and students lose points for picking wrong — but the 764 new distractors are never sent back for revision for "reading too much like the right answer." The question got harder; you are only applying pressure to one side.
+In test terms, students see distractors written in other rooms, but revision requests from the current room never return to the original writers. The exam is harder, but the optimized objective is incomplete.
 
-What makes this trap nasty is that **it looks like it works**: the denominator really is bigger, the loss number really does look better, training really does run. Metrics may even tick up, because the user tower genuinely did learn. Nothing prompts you to suspect it.
+This does not imply that training is useless: the query tower still sees more candidates, and some approximate implementations accept the trade-off deliberately. The error is calling it the exact global loss.
 
-Two fixes:
+There are three choices with different semantics:
 
-1. Use an **autograd-aware** all-gather — every framework ships a differentiable variant, usually under a `distributed.nn`-style namespace;
-2. Or gather manually, then splice the local slice back in **with its graph attached**: replace the rows of the gathered tensor that belong to this device with the original, differentiable tensor.
+1. Use an **autograd-aware** all-gather whose backward reduces contributions to each source rank.
+2. Implement a custom `autograd.Function`: gather in forward, reduce-scatter or all-reduce in backward.
+3. Gather detached tensors and splice the local slice back into the graph. This common approach restores local embedding gradients but **is not the exact global objective**; it is an approximation that must be named and validated as such.
 
-Do not judge by reading. Measure:
+This test is invalid:
 
 ```python
-z_all = gather(z)
+z_all = gather(z)  # assume this is the gathered output
 g = torch.autograd.grad(loss, z_all, retain_graph=True)[0]
-# rows belonging to other devices must have nonzero gradient
-assert g[other_rank_rows].norm() > 0
+# loss can have a gradient with respect to z_all even if z_all is detached
+# from the remote source tensors. This does not test the gather backward.
 ```
 
-If that part is zero, you are training a model on a harder question that it cannot feel.
+The correct test uses a tiny deterministic reference. Concatenate the same global batch in one process and compute the full loss and parameter gradients. Then run the distributed implementation from the same weights and examples. If it claims equivalence, the loss plus query- and candidate-tower gradients should match within tolerance.
 
-## But it is coupled to sampling correction — ship them together
+## A larger pool forces you to revisit the sampling distribution
 
-This is the step people skip, and skipping it moves you backwards.
+This is the step hidden by the slogan that more negatives are always better.
 
 Back to the test analogy. Where do the distractors come from? Borrowed from the other samples' candidates in the batch. And the batch is drawn at random from the data, so **an item's chance of appearing in a batch is proportional to how common it is.**
 
-Popular items are common by definition, so they show up as somebody's distractor over and over. The model is trained to push distractors' scores down, and popular items serve as distractors the most, so **the model learns to penalize anything popular** — a bias you did not design, and a byproduct of the data's frequency distribution.
+Popular items show up repeatedly as other queries' distractors. If the target is full-catalog softmax, this non-uniform proposal produces a biased gradient estimate because popular items are sampled as negatives more often.
 
-Now grow the pool by $N$ and that effect grows by $N$ too.
-
-**A cross-device gather amplifies popularity bias by a factor of $N$.**
+A larger pool exposes each query to more draws from the same proposal distribution. The **absolute count** of popular items rises, but it is not generally correct to say the objective's bias is multiplied by exactly $N$. The relative proposal distribution is unchanged, while variance, duplicates, false negatives, and gradient weighting all change.
 
 The standard fix is the logQ correction: subtract the log of the sampling probability from the score.
 
@@ -136,38 +137,44 @@ $$s'(u,c) = s(u,c) - \log Q(c)$$
 | Symbol | Meaning | Where it comes from |
 | --- | --- | --- |
 | $s(u,c)$ | The raw score (the dot product) | the model computed it |
-| $Q(c)$ | Estimated probability that $c$ shows up **in a batch** | a streaming frequency estimate is plenty |
-| $-\log Q(c)$ | Subtracts more the more popular it is; barely touches the tail | cancels "popular items get used as distractors more often" |
+| $Q(c)$ | Probability or expected count of drawing $c$ under the negative proposal | must match the sampler, deduplication, and derivation |
+| $-\log Q(c)$ | Larger when $Q(c)$ is smaller | gives low-probability candidates a larger importance correction |
 | $s'(u,c)$ | The corrected score, and what goes into the softmax | replaces $s$ in the formula above |
 
-Why subtract **$\log Q$** specifically? Because the softmax operates in log space, and subtracting $\log Q$ there is dividing by $Q$ in probability space — removing the part that says "it got sampled because it is common," recovering what it should have scored under uniform sampling.
+Why subtract **$\log Q$**? When the target is full-catalog softmax, the negative sampler can be treated as an importance-sampling proposal. Subtracting $\log Q(c)$ removes the contribution from being frequently sampled under that proposal.
 
-**So both belong in the same change.** Gather now and correct in a month, and everything trained in between carries a prior nobody picked, amplified $N$ times — and the offline metrics will not tell you. They will just show recall going up.
+But logQ is **not mandatory for every contrastive objective**. If the intended objective is a conditional negative distribution, or the product deliberately preserves a popularity prior, the target is different. Standard logQ also treats the deterministic positive as though it were sampled from $Q$; recent work specifically refines that mismatch.
+
+A safer experiment matrix is `local/global pool × no/standard/refined correction`, with the sampler, deduplication rule, and evaluation index fixed. First state whether the target is full softmax, a uniform catalog, or a product-specific proposal; only then can a correction be called correct.
 
 ## While you're in there: question the sharding granularity too
 
 Since you are already in the distributed config, there is one more common mismatch.
 
-**If the model itself is small, sharding it across every device means paying cross-node bandwidth for memory you did not need.**
+**If model state fits comfortably on one device, sharding it across every device may trade cross-node bandwidth for memory savings you did not need.**
 
-The arithmetic settles it: parameters plus gradients plus optimizer state for a sub-1B model, in bf16 with Adam, comes to a low tens of GB — that fits on one modern accelerator. The memory full sharding saves is memory you had to spare, and the price is that every layer's all-gather now takes a trip across the node boundary.
+Budget the actual parameter dtype, gradients, master weights, and Adam states, then add activations, temporary buffers, and the $B\times NB$ logit matrix. A sub-1B model's **model state** may fit on a modern accelerator, while long context or a large negative pool can still make activations or logits dominate peak memory. Measure before choosing the sharding strategy.
 
 Intra-node interconnect is an order of magnitude faster than inter-node fabric. A hybrid strategy — shard within a node, replicate across nodes — keeps every all-gather inside the node and lets only gradient sync cross it. Same memory budget, very different traffic.
 
 And one that gets conflated constantly: **sharding parameters does nothing for activations.** Under long context the real memory consumer is the intermediate tensors saved in the forward pass, which is activation checkpointing's job and has nothing to do with how parameters are split. Maxing out sharding to fix an activation-driven OOM is reaching for the wrong knob.
 
-The test is simple: total up parameters, gradients, and optimizer state, then compare to per-device memory. If it fits, full sharding is buying something you do not need.
+Measure model state, activations, logits, and communication stalls separately, then compare DDP, FULL_SHARD, and HYBRID_SHARD on throughput and peak memory. Fitting on one device makes DDP a candidate; it does not prove DDP is fastest.
 
 ## Down to a checklist
 
 1. Is my contrastive loss's negative pool local or global? — **read the loss function, not the training config**.
-2. If it is global, does the gather carry gradients? Is the gradient norm zero on the non-local rows?
-3. Now that the pool is bigger, did the sampling correction keep up — or did I just amplify popularity bias by $N$?
+2. If it is global, do I want the exact global objective or an approximation? Do multi-rank parameter gradients match a single-process reference?
+3. After enlarging the pool, do the proposal, duplicates, false negatives, and correction still correspond to the objective I intend to optimize?
 4. The things I am sharding: do they actually fit on one device?
 5. Is my memory going to parameters or activations? Am I turning the matching knob?
 
 ## Where to read next
 
-- [What counts as a positive, and as a negative](positive-negative-design.en.md): where distractors come from, and why logQ correction is not optional
+- [What counts as a positive, and as a negative](positive-negative-design.en.md): where distractors come from, and what objective a correction should represent
 - [Two towers, and why the user side splits into several](two-tower-and-beyond.en.md): the model shape this loss trains
 - [From noisy feedback to a servable retrieval system](noise-to-signal-retrieval.en.md): the whole chain
+- [PyTorch distributed collectives](https://docs.pytorch.org/docs/stable/distributed.html#torch.distributed.all_gather): call semantics for low-level `all_gather`
+- [PyTorch FSDP sharding strategies](https://docs.pytorch.org/docs/stable/fsdp.html): communication semantics for DDP, FULL_SHARD, and HYBRID_SHARD
+- [Sampling-Bias-Corrected Neural Modeling for Large Corpus Item Recommendations](https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/6417b9a68bd77033d65e431bdba855563066dc8c.pdf): the full-softmax and importance-sampling motivation for logQ
+- [Correcting the LogQ Correction](https://arxiv.org/abs/2507.09331): why standard logQ is still imprecise for a deterministic positive

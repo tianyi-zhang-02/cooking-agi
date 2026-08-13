@@ -80,7 +80,7 @@ $$K_r = \operatorname{round}\!\big(B \cdot \operatorname{softmax}(g(u))_r\big), 
 
 ## 两个训练时的坑
 
-**批内负样本的采样偏差。** 双塔训练几乎一定用批内负样本，而它的采样分布正比于内容频率，需要 logQ 修正。展开见[正负样本到底该怎么定义](positive-negative-design.md)。
+**批内负样本的采样偏差。** 双塔训练常用批内 distractors，而它们通常服从训练数据的 item-frequency proposal。若目标是逼近 full-catalog softmax，需要评估 logQ 或更精确的 importance correction；若目标本来就是条件 proposal，则不能机械套用。展开见[正负样本到底该怎么定义](positive-negative-design.md)。
 
 **索引会相对编码器过期。** 重训内容塔之后，索引里每个向量都要重新编码。灰度期间索引是新旧向量混合的——**此时向量空间不一致，相似度不可比**。这是训练/服务一致性里最容易漏的一条，因为它不体现在代码里，体现在发布流程里。
 
