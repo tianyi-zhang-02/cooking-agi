@@ -27,13 +27,28 @@
 
 这就是负样本池的意义。**池子的大小决定模型能比较多少候选，采样分布决定它实际在学什么边界。** 两者要一起看。
 
-## 于是那件容易出的事是这样
+## 多卡不等于全局负样本
 
 多卡训练里，框架会按并行策略处理模型状态和梯度通信：DDP 复制参数并 all-reduce 梯度，FSDP/ZeRO 才会分片参数、梯度或优化器状态。
 
 但**出题是你自己在损失函数里写的**。框架不知道你的损失函数在干嘛，它不会主动把别的卡上的候选收集过来给你当干扰项。
 
-结果就可能是：你有 24 张卡，每张卡的批大小是 32，你心里默认负样本池是 24×32=768。实际上每张卡只拿自己那 32 个样本互相当干扰项，题目是 32 选 1，不是 768 选 1。
+结果就可能是：你有 24 张卡，每张卡的批大小是 32，你心里默认负样本池是 24×32=768。实际上每张卡只拿自己那 32 个样本互相当干扰项，题目仍然是 32 选 1。
+
+```mermaid
+flowchart LR
+    subgraph L["Local pool · 经常悄悄发生"]
+        L1["每张卡<br/>B 个 query"] --> L2["只看本卡<br/>B 个 candidate"]
+        L2 --> L3["B × B logits<br/>每题 B 个选项"]
+    end
+    subgraph G["Global pool · 需要显式实现"]
+        G1["N 张卡<br/>各有 B 个 candidate"] --> G2["跨卡聚合<br/>N × B 个 candidate"]
+        G2 --> G3["B × N·B logits<br/>每题 N·B 个选项"]
+    end
+    L3 -. "不会自动变成" .-> G3
+```
+
+图里最重要的不是数字，而是中间那条虚线：**模型如何并行，与 loss 分母里有多少候选，是两件独立的事。**
 
 | 东西 | DDP | FSDP / ZeRO | 谁决定 |
 | --- | --- | --- | --- |
@@ -43,11 +58,11 @@
 | 数据 | sampler 给每个 rank 不同 mini-batch | 同左 | 数据加载器 |
 | **对比损失的负样本池** | **默认仍可能只有本卡** | **默认仍可能只有本卡** | **loss 实现** |
 
-前四行主要由训练框架和数据加载器决定，最后一行通常不是。所以完全可能出现这个局面：模型状态和梯度通信都正确，而每张卡的对比损失只看得见自己那一小撮样本。
+前四行主要由训练框架和数据加载器决定，最后一行通常不是。所以完全可能出现这个局面：分布式训练没有 bug，但模型做的仍然是一张过于简单的卷子。
 
 **这件事必须去损失函数的代码里确认，看训练配置是看不出来的。** 配置告诉你分片策略是什么，不告诉你分母里有几项。
 
-## 把这道选择题写成公式
+## 公式里，真正有信息的是分母
 
 现在把上面那道题写下来。这就是 InfoNCE：
 
@@ -72,7 +87,7 @@ $\mathcal{N}$ 来自本卡的 paired batch 时，选项总数通常是 $B$，其
 
 $N$ 是几十的时候，这中间差一个数量级以上。它不需要新标注或改模型结构，但会增加通信、logit 矩阵和 false-negative 风险。因此值得优先核对，却不是无条件的“白捡提升”。
 
-## 加跨卡聚合：先说清楚你要哪个目标
+## Gather 之后，梯度能不能回家
 
 朴素的写法长这样：
 
@@ -85,21 +100,31 @@ logits = z_u @ z_all.T / temperature     # 现在分母有 N*B 项了
 loss   = cross_entropy(logits, labels)
 ```
 
-看起来对：分母确实变成 $N\times B$ 项了。问题出在低层的 `torch.distributed.all_gather` 只是通信 primitive，本身不为输入建立 autograd backward。要得到精确的全局对比目标，需要使用带 backward 的 collective，或者自己实现等价的反向归约。
+Forward 看起来已经对了：分母确实变成 $N\times B$ 项。真正麻烦的是 backward。低层的 `torch.distributed.all_gather` 只是通信 primitive，本身不为输入建立 autograd backward。要得到精确的全局对比目标，需要使用带 backward 的 collective，或者自己实现等价的反向归约。
 
 它把别的卡的张量搬过来了，但当前 rank 的 loss 无法沿普通 gather 把梯度传回那些远端源张量。
 
-后果是梯度变得不对称：
+先看图，会比记 API 名字更直观：
 
-| 实现 | candidate 源张量得到什么梯度 | 意味着什么 |
-| --- | --- | --- |
-| Plain gather | 本卡和远端都没有 candidate-side 路径 | 只有 query 侧看到扩大的 denominator |
-| Gather + local splice | 本卡 candidate 有，远端没有 | 常见近似，但漏掉跨 rank candidate-gradient 项 |
-| Differentiable gather | 各 rank 贡献归约回 owner | 可以实现精确 global-batch objective |
+```mermaid
+flowchart LR
+    subgraph P["Plain gather"]
+        P1["远端 candidate<br/>源张量"] -->|"forward copy"| P2["本卡 gather 输出"]
+        P2 --> P3["本卡 loss"]
+        P3 -. "梯度回不去" .-> PX["✕ remote owner"]
+    end
+    subgraph D["Differentiable gather"]
+        D1["远端 candidate<br/>源张量"] -->|"forward gather"| D2["本卡 gather 输出"]
+        D2 --> D3["本卡 loss"]
+        D3 -->|"backward reduce"| D1
+    end
+```
+
+中间还有一种常见折中：gather 远端的 detached 表示，再把本卡 slice 接回计算图。这样本卡 candidate 有梯度，但远端 candidate 仍收不到当前 rank 的贡献。它可以是合理近似，只是不能叫精确 global objective。
 
 如果你声明优化的是“所有 query 对所有 candidate”的精确 global-batch objective，那么这些跨 rank 的 candidate-gradient 项也是目标的一部分。普通 gather 会漏掉它们。
 
-用选择题打比方：学生会看到其他考场送来的干扰项，但当前考场对这些干扰项提出的修改意见，回不到原来的出题人手里。题面变难了，优化的却不是完整的全局目标。
+继续用选择题打比方：学生看到了其他考场送来的干扰项，但当前考场对这些题目的修改意见，寄不回原来的出题人。题面变难了，训练目标却只完成了一半。
 
 这不代表训练一定无效：query tower 仍然看到了更多候选，某些近似实现也会刻意接受这个 trade-off。关键是不能把它误称为精确 global loss。
 
@@ -120,7 +145,7 @@ g = torch.autograd.grad(loss, z_all, retain_graph=True)[0]
 
 正确测试是做一个很小的 deterministic reference：单进程拼出同一 global batch，计算完整 loss 和参数梯度；再用多 rank 版本跑同样的权重与样本，并比较 loss、query tower 梯度和 candidate tower 梯度。若实现声称等价，三者都应在容差内一致。
 
-## 池子变大以后，必须重新审视采样分布
+## 题变多了，但题是从哪里抽的
 
 这一步最容易被一句“负样本越多越好”带过去。
 
@@ -145,9 +170,21 @@ $$s'(u,c) = s(u,c) - \log Q(c)$$
 
 但 logQ **不是任何对比学习都必须打开的开关**：如果训练目标本来就是某个条件负样本分布，或产品希望保留 popularity prior，目标就不同；标准 logQ 还把确定出现的 positive 当成按 $Q$ 采样，近年的工作专门修正了这个细节。
 
-更稳妥的做法是把它们放进同一组实验，而不是同一个不可拆配置：`local/global pool × no/standard/refined correction`，并固定 sampler、去重规则和评估 index。只有先写清目标是 full softmax、uniform catalog，还是某个业务 proposal，才能判断哪种 correction 正确。
+所以别从“要不要开 logQ”开始，而要从“我究竟想拟合哪个分布”开始：
 
-## 顺带：分片粒度也值得问一次
+```mermaid
+flowchart TD
+    A["先写清训练目标"] --> B{"要逼近 full-catalog<br/>softmax 吗？"}
+    B -->|"是"| C["估计真实 sampler 的 Q(c)<br/>检查去重与 positive 机制"]
+    C --> D["比较 no / standard / refined logQ<br/>用小规模 reference 验证"]
+    B -->|"不是"| E["保留 proposal-weighted objective<br/>明确 popularity prior"]
+    D --> F["按 head / tail、重复项、false negative 评估"]
+    E --> F
+```
+
+更稳妥的实验矩阵是 `local/global pool × no/standard/refined correction`，同时固定 sampler、去重规则和评估 index。先写清目标是 full softmax、uniform catalog，还是某个业务 proposal，才能判断 correction 是否正确。
+
+## 顺手检查：你真的需要这样分片吗
 
 既然已经在翻分布式配置了，还有一个常见的错配。
 
@@ -161,7 +198,7 @@ $$s'(u,c) = s(u,c) - \log Q(c)$$
 
 判据是先拆开测量 model state、activation、logits 和通信等待，再比较 DDP、FULL_SHARD 与 HYBRID_SHARD 的吞吐和峰值显存。放得下只说明 DDP 成为候选，不自动说明它一定最快。
 
-## 落到检查清单
+## 最后只记住五个问题
 
 1. 我的对比损失，负样本池是本卡的还是全局的？——**去损失函数的代码里看，不要看训练配置**。
 2. 如果是全局的，我要精确 global objective 还是近似？多 rank 参数梯度能否和单进程 reference 对上？

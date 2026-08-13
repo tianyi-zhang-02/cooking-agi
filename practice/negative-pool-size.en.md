@@ -27,13 +27,28 @@ Retrieval faces the second situation for real: the candidate pool is wall-to-wal
 
 That is what the negative pool controls. **Pool size determines how many candidates the model can compare; the sampling distribution determines which boundary it learns.** Both matter.
 
-## So here is the thing that happens
+## Multiple devices do not imply global negatives
 
 In multi-GPU training, the framework handles model state and gradient communication according to the parallel strategy. DDP replicates parameters and all-reduces gradients; FSDP or ZeRO is what shards parameters, gradients, or optimizer states.
 
 But **you write the question yourself, inside the loss function.** The framework has no idea what your loss is doing, and it will not go collect other devices' candidates to serve as your distractors.
 
-Which can leave you here: 24 devices, per-device batch of 32, and in your head the negative pool is 24×32 = 768. In reality each device only uses its own 32 samples as each other's distractors. The question is 32-way, not 768-way.
+Which can leave you here: 24 devices, per-device batch of 32, and in your head the negative pool is 24×32 = 768. In reality each device only uses its own 32 samples as distractors. The question is still 32-way.
+
+```mermaid
+flowchart LR
+    subgraph L["Local pool · what quietly happens"]
+        L1["Per device<br/>B queries"] --> L2["Only local<br/>B candidates"]
+        L2 --> L3["B × B logits<br/>B options per query"]
+    end
+    subgraph G["Global pool · must be implemented"]
+        G1["N devices<br/>B candidates each"] --> G2["Cross-device gather<br/>N × B candidates"]
+        G2 --> G3["B × N·B logits<br/>N·B options per query"]
+    end
+    L3 -. "does not become" .-> G3
+```
+
+The important part is the dashed arrow: **how the model is parallelized and how many candidates appear in the loss denominator are separate decisions.**
 
 | Thing | DDP | FSDP / ZeRO | Who decides |
 | --- | --- | --- | --- |
@@ -43,11 +58,11 @@ Which can leave you here: 24 devices, per-device batch of 32, and in your head t
 | Data | Sampler gives each rank a different mini-batch | Same | Data loader |
 | **Contrastive negative pool** | **May still be local** | **May still be local** | **Loss implementation** |
 
-The first four rows are mostly controlled by the framework and data loader. The last usually is not. Model-state and gradient communication can therefore be correct while each device's contrastive loss sees only its local samples.
+The first four rows are mostly controlled by the framework and data loader. The last usually is not. Distributed training can be bug-free while the model is still taking an exam that is far too easy.
 
 **You have to confirm this by reading the loss function; the training config will not show it.** The config tells you the sharding strategy. It does not tell you how many terms are in the denominator.
 
-## Writing that question down as a formula
+## The denominator is where the information lives
 
 Now put the question above on paper. This is InfoNCE:
 
@@ -72,7 +87,7 @@ With a paired local batch, there are usually $B$ options and $B-1$ presumed nega
 
 When $N$ is in the dozens, that is more than an order of magnitude. The change needs no new annotation or architecture, but it increases communication, the logit matrix, and false-negative risk. It is worth checking early, but it is not a guaranteed free win.
 
-## Cross-device gather: first choose the objective
+## After gather, can the gradient get home?
 
 The naive version:
 
@@ -85,21 +100,31 @@ logits = z_u @ z_all.T / temperature     # denominator now has N*B terms
 loss   = cross_entropy(logits, labels)
 ```
 
-The denominator really does have $N\times B$ terms. The issue is that low-level `torch.distributed.all_gather` is a communication primitive and does not by itself define an autograd backward for its input. An exact global contrastive objective requires a differentiable collective or an equivalent custom backward reduction.
+The forward pass now looks right: the denominator really has $N\times B$ terms. The hard part is backward. Low-level `torch.distributed.all_gather` is a communication primitive and does not by itself define an autograd backward for its input. An exact global contrastive objective requires a differentiable collective or an equivalent custom backward reduction.
 
 It moves the remote tensors, but the current rank's loss cannot follow plain gather back to those source tensors.
 
-The result is an asymmetry:
+The picture is easier to remember than the API names:
 
-| Implementation | Gradient reaching candidate source tensors | Meaning |
-| --- | --- | --- |
-| Plain gather | No candidate-side path, local or remote | only the query side sees the enlarged denominator |
-| Gather + local splice | Local candidate only | common approximation; cross-rank candidate-gradient terms are omitted |
-| Differentiable gather | Contributions reduce back to each owner | can implement the exact global-batch objective |
+```mermaid
+flowchart LR
+    subgraph P["Plain gather"]
+        P1["Remote candidate<br/>source tensor"] -->|"forward copy"| P2["Local gather output"]
+        P2 --> P3["Local loss"]
+        P3 -. "gradient cannot return" .-> PX["✕ remote owner"]
+    end
+    subgraph D["Differentiable gather"]
+        D1["Remote candidate<br/>source tensor"] -->|"forward gather"| D2["Local gather output"]
+        D2 --> D3["Local loss"]
+        D3 -->|"backward reduce"| D1
+    end
+```
+
+There is also a common middle ground: gather detached remote representations and splice the local slice back into the graph. Local candidates receive gradients, but remote candidates still miss the current rank's contribution. That may be a useful approximation; it is not the exact global objective.
 
 If the stated objective is every query against every candidate in the global batch, those cross-rank candidate-gradient terms are part of it. Plain gather omits them.
 
-In test terms, students see distractors written in other rooms, but revision requests from the current room never return to the original writers. The exam is harder, but the optimized objective is incomplete.
+In exam terms, students see distractors written in other rooms, but revision requests never return to the original writers. The test got harder; the training objective only made it halfway home.
 
 This does not imply that training is useless: the query tower still sees more candidates, and some approximate implementations accept the trade-off deliberately. The error is calling it the exact global loss.
 
@@ -120,7 +145,7 @@ g = torch.autograd.grad(loss, z_all, retain_graph=True)[0]
 
 The correct test uses a tiny deterministic reference. Concatenate the same global batch in one process and compute the full loss and parameter gradients. Then run the distributed implementation from the same weights and examples. If it claims equivalence, the loss plus query- and candidate-tower gradients should match within tolerance.
 
-## A larger pool forces you to revisit the sampling distribution
+## More options—but where were they sampled from?
 
 This is the step hidden by the slogan that more negatives are always better.
 
@@ -145,9 +170,21 @@ Why subtract **$\log Q$**? When the target is full-catalog softmax, the negative
 
 But logQ is **not mandatory for every contrastive objective**. If the intended objective is a conditional negative distribution, or the product deliberately preserves a popularity prior, the target is different. Standard logQ also treats the deterministic positive as though it were sampled from $Q$; recent work specifically refines that mismatch.
 
-A safer experiment matrix is `local/global pool × no/standard/refined correction`, with the sampler, deduplication rule, and evaluation index fixed. First state whether the target is full softmax, a uniform catalog, or a product-specific proposal; only then can a correction be called correct.
+So do not start from “should I enable logQ?” Start from “which distribution am I trying to fit?”
 
-## While you're in there: question the sharding granularity too
+```mermaid
+flowchart TD
+    A["State the training target"] --> B{"Approximate full-catalog<br/>softmax?"}
+    B -->|"Yes"| C["Estimate Q(c) under the real sampler<br/>check deduplication and positives"]
+    C --> D["Compare no / standard / refined logQ<br/>validate against a small reference"]
+    B -->|"No"| E["Keep the proposal-weighted objective<br/>document the popularity prior"]
+    D --> F["Evaluate head / tail, duplicates,<br/>and false negatives"]
+    E --> F
+```
+
+A safer experiment matrix is `local/global pool × no/standard/refined correction`, with the sampler, deduplication rule, and evaluation index fixed. State whether the target is full softmax, a uniform catalog, or a product proposal before calling any correction correct.
+
+## While you are here: do you need that sharding?
 
 Since you are already in the distributed config, there is one more common mismatch.
 
@@ -161,7 +198,7 @@ And one that gets conflated constantly: **sharding parameters does nothing for a
 
 Measure model state, activations, logits, and communication stalls separately, then compare DDP, FULL_SHARD, and HYBRID_SHARD on throughput and peak memory. Fitting on one device makes DDP a candidate; it does not prove DDP is fastest.
 
-## Down to a checklist
+## Five questions to keep
 
 1. Is my contrastive loss's negative pool local or global? — **read the loss function, not the training config**.
 2. If it is global, do I want the exact global objective or an approximation? Do multi-rank parameter gradients match a single-process reference?
