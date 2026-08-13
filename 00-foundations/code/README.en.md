@@ -1,50 +1,42 @@
-# Build it by hand: runnable implementations
+# Build-it-yourself labs: from symbols to generation
 
 [中文](README.md) · **English**
 
-Every claim in this chapter has code behind it. Both Transformers are written **without** `nn.MultiheadAttention` and `F.scaled_dot_product_attention` — only `nn.Linear` / `nn.Embedding` / `nn.Parameter` and raw tensor ops.
+> Type: lab index · Runtime: CPU is enough · Last reviewed: 2026-08
 
-PyTorch is the only dependency; everything runs on CPU.
+The labs have two layers. First avoid PyTorch and expose every computation. Then use PyTorch tensors, modules, and autograd to make the same mechanisms learn.
 
-```bash
-pip install torch
-```
+## Without PyTorch: see the computation
 
-## Files
-
-| File | What it does | Runtime |
+| File | Dependency | What it verifies |
 | --- | --- | --- |
-| [`why_nonlinear.py`](why_nonlinear.py) | Three models on XOR, ASCII decision boundaries and hidden space | ~20 s |
-| [`make_figures.py`](make_figures.py) | Trains the same models and regenerates the SVGs in [`../assets/`](../assets/) | ~30 s |
-| [`vanilla.py`](vanilla.py) | The 2017 encoder-decoder, faithful to the paper | — |
-| [`vanilla_demo.py`](vanilla_demo.py) | Shape trace → train "reverse the sequence" → print cross-attention | ~1 min |
-| [`model.py`](model.py) | Modern decoder-only: RMSNorm + RoPE + GQA + SwiGLU + KV cache | — |
-| [`test_model.py`](test_model.py) | Correctness checks (causality, cache equivalence, RoPE, GQA) | ~5 s |
-| [`train.py`](train.py) | Trains `model.py`; default task needs an induction head | ~2 min |
-
-## Suggested order
+| [`tokenizer_from_scratch.py`](tokenizer_from_scratch.py) | standard library | BPE merges, vocabulary, encode/decode |
+| [`sequence_numpy.py`](sequence_numpy.py) | NumPy | unrolled RNN, LSTM gates, scaled dot-product attention, causal mask |
 
 ```bash
-python why_nonlinear.py     # why a nonlinearity is required
-python test_model.py        # is the hand-rolled Transformer correct
-python vanilla_demo.py      # what encoder-decoder and cross-attention do
-python train.py             # does the modern decoder-only actually learn
+python tokenizer_from_scratch.py
+python sequence_numpy.py
 ```
 
-## Why the figures are generated
+Neither file uses autograd. Every hidden state, gate, and attention weight is a direct array translation of the equations.
 
-Nothing in [`make_figures.py`](make_figures.py) is hand-drawn. Every boundary, point and contour comes from a real training run, so the pictures cannot drift away from the text. Change the model, rerun, the figures follow.
+## With PyTorch: make it learn
 
-## The traps
+| File | Role | Suggested command |
+| --- | --- | --- |
+| [`sequence_torch.py`](sequence_torch.py) | manual RNN/LSTM cells; delay-copy and seq2seq reversal | `python sequence_torch.py --model lstm --task reverse` |
+| [`vanilla_demo.py`](vanilla_demo.py) | 2017 encoder–decoder shapes and cross-attention | `python vanilla_demo.py` |
+| [`model.py`](model.py) | modern decoder-only with RMSNorm, RoPE, GQA, SwiGLU, and KV cache | used by tests and training |
+| [`test_model.py`](test_model.py) | causality, cache equivalence, RoPE relativity, GQA grouping | `python test_model.py` |
+| [`train.py`](train.py) | induction / copy-task training | `python train.py` |
 
-The four things that actually break in a from-scratch Transformer, each covered by `test_model.py`:
+The Transformer implementations do not call `nn.MultiheadAttention` or `F.scaled_dot_product_attention`; PyTorch handles tensors and autograd while the architecture stays explicit.
 
-1. **Causality** — perturbing token $t$ must leave logits at positions $< t$ **exactly** unchanged (0.0, not 1e-7)
-2. **KV-cache equivalence** — incremental decode must reproduce the one-shot forward
-3. **RoPE's relative property** — $\langle R_i q, R_j k\rangle$ may depend only on $i-j$
-4. **GQA grouping** — `repeat_kv` must duplicate **contiguously**, or query heads pair with the wrong KV head
+## Fast verification
 
-Two more that aren't unit-testable but bite just as often:
+```bash
+python test_learning_path.py
+python test_model.py
+```
 
-- `cache.pos` advances once per forward pass (*after* the layer loop). Inside `update()` it advances `n_layer` times.
-- `LambdaLR` multiplies the **base** lr by your lambda. Base 0 pins the learning rate at 0 forever, and dropout noise keeps the loss looking alive.
+The recommended order is tokenizer → NumPy sequence math → recurrent training → seq2seq → vanilla Transformer → modern decoder-only. Keeping both versions separates “where each number comes from” from “how gradients and modules are organized in a real training loop.”

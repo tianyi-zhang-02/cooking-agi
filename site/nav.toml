@@ -38,8 +38,8 @@ en = "Start here"
 
 [[group]]
 id = "foundations"
-zh = "基础"
-en = "Foundations"
+zh = "大模型学习"
+en = "Learn LLMs"
 
 [[group]]
 id = "pipeline"
@@ -72,15 +72,30 @@ order = ["README.md", "EDITORIAL.md"]
 [[section]]
 dir   = "00-foundations"
 group = "foundations"
-zh    = "基础 · 模型到底在算什么"
-en    = "Foundations"
+zh    = "学习地图与总览"
+en    = "Map and overview"
 order = ["README.md", "from-linear-to-neural.md", "transformer.md"]
+
+[[section]]
+dir = "00-foundations/core"
+group = "foundations"
+zh  = "必修 · 从 Token 到生成"
+en  = "Core · Token to generation"
+order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
+         "vanilla-transformer.md", "decoder-only.md"]
+
+[[section]]
+dir = "00-foundations/deep-dives"
+group = "foundations"
+zh  = "进阶 · 数学与训练"
+en  = "Deep dives · Math and training"
+order = ["README.md", "recurrent-dynamics.md", "language-model-objective.md"]
 
 [[section]]
 dir = "00-foundations/code"
 group = "foundations"
-zh  = "手搓：能跑的实现"
-en  = "Build it by hand"
+zh  = "实验 · 纯 Python / PyTorch"
+en  = "Labs · Python / PyTorch"
 
 [[section]]
 dir = "01-data-and-feedback"

@@ -109,10 +109,10 @@ These papers remain because their mechanisms still shape modern systems, not mer
 
 The numeric prefixes are the suggested reading order.
 
-- [`00-foundations/`](00-foundations/README.en.md) — **start here**: from linear regression to the Transformer, and why the last layer never changed
-  - [from linear models to neural networks](00-foundations/from-linear-to-neural.en.md) — the sigmoid buys gradients, not expressiveness
-  - [the Transformer architecture](00-foundations/transformer.en.md) — three attention sites, post-norm and warmup, RoPE
-  - [`code/`](00-foundations/code/README.en.md) — two Transformers built without `nn.MultiheadAttention`, plus the checks that prove they work
+- [`00-foundations/`](00-foundations/README.en.md) — **learn LLMs end to end**: tokenization → RNN / LSTM → Seq2Seq → vanilla Transformer → decoder-only
+  - [`core/`](00-foundations/core/tokenization.en.md) — the required intuition and tensor flow for each generation of sequence model
+  - [`deep-dives/`](00-foundations/deep-dives/recurrent-dynamics.en.md) — BPTT, gates, objectives, training, and generation
+  - [`code/`](00-foundations/code/README.en.md) — pure Python / NumPy computation paired with trainable PyTorch implementations
 - [`systems/`](06-systems/README.en.md) — connecting data, models, runtime, evaluation, and the product loop
 - [`data and feedback`](01-data-and-feedback/README.en.md) — understanding sparsity, delay, ambiguity, and policy-biased behavior
 - [`representation and memory`](02-memory/README.en.md) — persistent, revisable user and world state

@@ -1,0 +1,76 @@
+# Vanilla Transformer
+
+**中文** · [English](vanilla-transformer.en.md)
+
+> 阅读时间：约 8 分钟 · 难度：必修 · 最近审阅：2026-08
+
+## 先用一句话讲清楚
+
+原版 Transformer 是一个 encoder–decoder：attention 负责跨位置取信息，FFN 负责逐位置加工；它删除了 recurrence，因此训练时整段序列可以并行。
+
+## 一层里只有两种计算
+
+1. **Attention mixing**：不同 token 之间交换信息。
+2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
+
+外面再套 residual connection 与 normalization。堆很多层，就是反复“找信息 → 加工信息”。
+
+## 三处注意力
+
+| 位置 | Query | Key / Value | mask | 作用 |
+| --- | --- | --- | --- | --- |
+| encoder self-attention | source | source | padding | 双向理解输入 |
+| decoder self-attention | target prefix | target prefix | causal + padding | 只能看已经生成的 token |
+| decoder cross-attention | decoder state | encoder states | source padding | 从输入中取当前所需证据 |
+
+scaled dot-product attention：
+
+$$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V$$
+
+$M$ 是 mask：允许的位置加 0，禁止的位置加 $-\infty$。
+
+## 为什么它比 RNN 更容易扩展
+
+- **训练并行**：所有位置的 $Q/K/V$ 可以一次算出；
+- **路径更短**：任意两个 token 一层 attention 就能直接交互；
+- **结构统一**：self-attention 与 cross-attention 只是张量来源不同。
+
+代价是 self-attention 的分数矩阵大小为 $T\times T$，标准实现的时间和显存随序列长度近似二次增长。
+
+## 位置从哪里来
+
+Attention 本身不知道顺序。原版把固定 sinusoidal position encoding 加到 token embedding：
+
+$$z_t = E[x_t] + PE_t$$
+
+没有位置编码时，模型只能看到一袋 token；调换顺序只会让输出跟着调换。
+
+## 原版与现代大模型不要混在一起
+
+| | 2017 vanilla | 现代 decoder-only |
+| --- | --- | --- |
+| 主体 | encoder + decoder | decoder stack only |
+| norm | post-norm LayerNorm | 多为 pre-norm RMSNorm |
+| position | sinusoidal | 多为 RoPE |
+| attention | MHA | 常见 GQA / MQA |
+| FFN | ReLU | 常见 SwiGLU |
+| 目标 | 条件序列生成 | next-token prediction |
+
+原版最适合学习三处 attention 的职责；现代版本最适合理解今天语言模型的训练与推理。
+
+<details markdown="1">
+<summary><b>进阶</b>：为什么训练能并行，生成仍不能并行</summary>
+
+训练时真实目标序列已知，可以把它整体右移后一次喂给 decoder，causal mask 保证位置 $t$ 看不到未来。生成时第 $t+1$ 个输入正是第 $t$ 个预测，尚未产生，因此只能逐步解码。
+
+</details>
+
+## 实验与深挖
+
+- 快速跑通：[`../code/vanilla_demo.py`](../code/vanilla_demo.py)
+- 完整数学与现代组件：[Transformer 架构深拆](../transformer.md)
+- 无 PyTorch attention 前向：[`../code/sequence_numpy.py`](../code/sequence_numpy.py)
+
+## 下一步
+
+进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。

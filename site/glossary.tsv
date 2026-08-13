@@ -144,3 +144,19 @@
 稀疏矩阵乘	sparse matrix multiplication	利用矩阵中大量零元素跳过无效计算的乘法
 逐位相同	bitwise identical	每一个二进制位都一致，比数值近似相等更严格
 惰性代理	lazy proxy	保留原接口名称，但只在真正使用时加载背后的依赖
+
+# 大模型学习
+分词器	tokenizer	把原始字符串切成 token 并映射为整数 ID 的组件
+词表	vocabulary	模型能够直接表示或输出的 token 集合
+子词	subword	介于完整单词和字符之间的可复用字符串片段
+字节对编码	Byte Pair Encoding, BPE	反复合并高频相邻符号对来学习子词词表的方法
+循环神经网络	recurrent neural network, RNN	用共享状态更新函数逐步处理序列的模型
+隐藏状态	hidden state	递归模型在时间步之间传递的压缩表示
+长短期记忆网络	long short-term memory, LSTM	用输入、遗忘和输出门控制记忆通路的循环模型
+门控	gating	用可学习权重控制信息写入、保留或输出
+序列到序列	sequence-to-sequence, Seq2Seq	用 encoder 表示输入、再由 decoder 生成输出序列的架构
+教师强制	teacher forcing	训练 decoder 时使用真实前缀而非模型自己预测的前缀
+反向传播穿越时间	backpropagation through time, BPTT	把递归计算沿时间展开后执行反向传播
+因果掩码	causal mask	阻止位置访问未来 token 的注意力掩码
+预填充	prefill	一次并行处理完整 prompt 并建立 KV cache 的推理阶段
+自回归解码	autoregressive decoding	把刚生成的 token 作为下一步输入并逐步继续生成
