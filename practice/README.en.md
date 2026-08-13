@@ -70,7 +70,7 @@ Five modules, one invariant each. Centred on the most expensive bug in the field
 
 #### [From noisy feedback to a servable retrieval system](recommender-systems/noise-to-signal-retrieval.en.md)
 
-A full system design note — signal construction, selective visual understanding, contrastive post-training, release gates. Much longer than the four above; it's the one that connects the whole chain, and each of them is a section of it opened up.
+A full system design note: audit narrow signals and narrow metrics first, then connect a multi-task, multi-tower teacher–student design with selective visual understanding, independent evaluation anchors, and release gates.
 
 ## The shared question
 

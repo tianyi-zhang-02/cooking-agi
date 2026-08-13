@@ -48,6 +48,19 @@ flowchart LR
     M -.->|"new evidence, not automatic truth"| A
 ```
 
+## 0. Audit the system first: narrow signal, narrow ruler
+
+Before changing the model, separate four recurring failure modes. These are generic patterns in large-scale behavioral retrieval, not fields or measurements from a particular system.
+
+| Layer | Common symptom | Why it is fatal |
+| --- | --- | --- |
+| Training labels | Several nominal behaviors collapse onto one easy-to-collect proxy; explicit rejection is absent | The model reproduces the dominant proxy instead of learning broader relevance |
+| User evidence | Histories contain only positive interactions; thin or truncated histories are underrepresented | The model does not learn aversion and understands least the users who most need durable intent |
+| Negatives / loss | Many negatives are unexposed items or another user's positive; the actual competition pool may be smaller than the intended objective | “Unseen” becomes “disliked,” while training solves a much easier choice problem than catalog-scale retrieval |
+| Offline evaluation | Positives are thin, Recall depends on pool construction, and train/eval share the same behavioral proxy | Segment scores are not directly comparable and richer signal may remain invisible to the old metric |
+
+In one line: **the learning signal is narrow, and the measuring instrument is narrow too.** Signal, model, and evaluation must therefore be designed together.
+
 ## 1. Convert noise into signal
 
 Clicks, dwell, and skips are not direct preference labels. Feedback exists only for content exposed by an earlier policy, while missing engagement may simply mean the item was never seen.
@@ -68,9 +81,16 @@ image
 
 For informative images, a pretrained VLM extracts visible text, important entities, the main visual meaning, evidence absent from the original text, image-text consistency, and confidence. The first version usually does not require VLM fine-tuning; LoRA or SFT becomes useful only after stable domain errors are shown to affect retrieval.
 
-## 3. Post-training: what is actually trained?
+## 3. Post-training: what should the teacher produce?
 
-The VLM is not the online retriever. It is a replaceable offline **visual teacher** that produces structured evidence with confidence and provenance when content is created or updated:
+The VLM is not the online retriever. It is a replaceable offline teacher with two distinct responsibilities:
+
+1. **Content evidence:** extract grounded, confidence-aware facts when content is created or updated.
+2. **Training supervision:** on sampled user–candidate pairs, combine user context with text and image evidence to produce soft relevance, pairwise preferences, and hard negatives that look similar but do not fit the current user.
+
+The first responsibility improves candidate features. The second expands supervision beyond a dwell-like proxy. Feature extraction alone does not repair narrow labels.
+
+Content evidence can follow a fixed schema:
 
 ```json
 {
@@ -82,54 +102,51 @@ The VLM is not the online retriever. It is a replaceable offline **visual teache
 }
 ```
 
-A lightweight candidate encoder combines the original text with this evidence and emits a vector that can be precomputed and written to the ANN index. The VLM improves supervision and content understanding without entering every online request.
+A lightweight candidate encoder combines the original text with this evidence and emits a vector that can be precomputed and written to the ANN index. Soft labels and hard negatives are consumed only during training. The teacher improves both content understanding and supervision density without entering every online request.
 
 ### Module composition
 
 ```mermaid
 flowchart TB
-    subgraph C["Content understanding · offline"]
+    subgraph C["Offline teacher domain"]
         A["Text + image"] --> B["Image router"]
         B --> C1["Frozen or lightly adapted VLM teacher"]
         C1 --> D["Grounded evidence contract"]
-        A --> E["Candidate tower<br/>Qwen3-Embedding-sub-1B"]
+        U0["Sampled user context"] --> T["Relevance teacher"]
+        A --> T
+        D --> T
+        T --> S["Soft relevance + hard negatives"]
+        A --> E["Compact candidate encoder"]
         D --> E
     end
     subgraph U["User understanding · near-real-time"]
-        F["Profile view<br/>Qwen3-Embedding-sub-1B"] --> H["Multiple user views"]
-        G["History view<br/>Qwen3-Embedding-sub-1B"] --> H
+        F["Profile view"] --> H["Multiple user views"]
+        G["History view"] --> H
         H --> I["Learnable routing"]
     end
+    S --> R["Multi-task student training"]
     E --> J["Candidate vector"]
-    I --> K["Contrastive retrieval score"]
-    J --> K
+    I --> R
+    J --> R
+    R --> K["Contrastive retrieval score"]
     K --> L["ANN retrieval"]
     L --> M["Existing ranker"]
 ```
 
-### Model selection: why Qwen3-Embedding-sub-1B?
+### Model selection: capacity follows the role
 
 The goal is not to pick the model with the largest benchmark number. Each module should receive only the capacity required by its role:
 
 | Module | Starting choice | Selection criteria | Why not use a larger model directly? |
 | --- | --- | --- | --- |
-| Image router | Small vision classifier or SigLIP-like encoder | Content type, information value, calibrated confidence | The router selects teacher calls; it does not need complete image understanding |
-| Visual teacher | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) as a fast baseline, 4B as a capacity control | Grounding, OCR, conflict detection, schema adherence, calibrated confidence | Selective offline inference is sufficient before domain SFT or online generation |
-| Candidate/user encoder | [Qwen3-Embedding-sub-1B](https://huggingface.co/Qwen/Qwen3-Embedding-sub-1B) | Retrieval quality, throughput, long text, vector size, training cost | 4B/8B models are useful capacity bounds but increase training, near-real-time encoding, and iteration cost |
+| Image router | Small vision classifier or general visual encoder | Content type, information value, calibrated confidence | The router selects teacher calls; it does not need complete image understanding |
+| Visual / relevance teacher | Small or medium open-source VLM with reliable schema adherence | Grounding, conflict detection, pairwise relevance, hard-negative precision, and calibration | The teacher runs selectively offline; larger models must earn their cost on the same held-out set |
+| Candidate/user encoder | Compact open-source embedding model | Retrieval quality, throughput, long text, vector size, and refresh cost | First-stage retrieval requires frequent encoding and large-scale ANN, so capacity must obey serving budgets |
 | Downstream ranker | Existing ranker | Request-level relevance, quality, and freshness | First-stage retrieval should not duplicate fine-ranking responsibility |
 
-Qwen3-Embedding-sub-1B is a reasonable starting point because the official model exposes **sub-1B parameters, a 32K context window, embeddings up to 1024 dimensions, MRL dimension control, and instruction-aware encoding**. Each feature maps to a system constraint:
+Generic benchmarks justify an initialization, not a domain decision. Embedding models should be selected on retrieval, breadth, complementarity, latency, index size, and freshness. Teachers should be selected on an independent held-out set measuring grounding, relevance calibration, and hard-negative precision.
 
-- **sub-1B:** enough general embedding capacity for initialization while remaining practical to retrain and refresh user representations near-real-time;
-- **32K context:** room for structured profiles and longer histories, without implying that every request should fill the window;
-- **instruction awareness:** profile and history views can state distinct representation tasks while candidate encoding remains semantically stable;
-- **MRL / 32–1024 dimensions:** model capacity can be separated from ANN index width. Preserve 1024 dimensions as a quality reference, then compare 512 or 256 under a fixed candidate budget.
-
-Generic benchmarks justify an initialization, not a domain decision. Lifecycle, breadth, complementarity, latency, and freshness gates still select the production configuration. [Qwen's technical overview](https://qwenlm.github.io/blog/qwen3-embedding/) separates dual-encoder embedding from cross-encoder reranking; the former fits first-stage retrieval because candidate vectors must be precomputed for ANN search.
-
-VLM selection follows a different standard. `Qwen3-VL-2B-Instruct` is a practical first teacher not because it is a capable chatbot, but because its size supports batched offline processing while fixed prompts can request OCR, entities, visual claims, image-text relations, and evidence provenance. A 4B or larger model serves only as a capacity control on the same held-out grounding and conflict set. If 2B passes schema and calibration gates, the larger model does not belong in the default path.
-
-A direct [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B) candidate representation is also a valid experimental arm. It offers a more direct end-to-end multimodal space but couples visual understanding, embedding geometry, and index refresh to one checkpoint. The default **VLM teacher → grounded evidence → Qwen3-Embedding-sub-1B** design is easier to audit, cache, degrade gracefully, and upgrade independently while keeping text-only content in the same ANN index.
+A direct multimodal candidate encoder remains a valid experimental arm, but it couples visual understanding, embedding geometry, and index refresh to one checkpoint. The default **VLM teacher → grounded evidence / supervision → compact embedding student** is easier to audit, cache, degrade gracefully, and upgrade independently while keeping text-only content in the same ANN index.
 
 ### Parameter sharing
 
@@ -141,7 +158,7 @@ User views:    instructed profile / history / latent intent → z_u,r
 Similarity:      cosine(z_u,r, z_c), after identical pooling + L2 normalization
 ```
 
-A practical starting point initializes every tower from the same Qwen3-Embedding-sub-1B checkpoint. Candidate and user sides use separate parameters or adapters; profile and history share the user backbone but use different instructions, adapters, or projection heads. This preserves a common semantic space while allowing view-specific compression.
+A practical starting point initializes every tower from the same general embedding checkpoint. Candidate and user sides use separate parameters or adapters; profile and history share the user backbone but use different instructions, adapters, or projection heads. This preserves a common semantic space while allowing view-specific compression.
 
 Train-serving parity must fix the tokenizer, instruction templates, last-token pooling, L2 normalization, truncation rules, and visual-evidence schema. Otherwise the similarity optimized offline is not the similarity consumed by online ANN search.
 
@@ -161,7 +178,7 @@ Each view queries the same candidate index. The system unions and deduplicates t
 
 **Construct supervision.** Build confidence-aware batches from reliable positives, exposed negatives, semantic hard negatives, and unobserved candidates. Do not label "not seen" as "disliked."
 
-**Supervised contrastive post-training.** Train user–candidate matching with in-batch negatives for scale, exposed negatives that retain policy context, and hard negatives that distinguish semantic similarity from contextual relevance.
+**Multi-task post-training.** Keep InfoNCE as the retrieval objective; use KL or pairwise distillation for teacher relevance; preserve separate auxiliary heads for distinct actions; and place teacher-mined hard negatives into the contrastive pool. Sweep every weight and monitor whether task gradients conflict.
 
 **Prevent module collapse.** Add targeted constraints and diagnostics:
 
@@ -174,13 +191,21 @@ An abstract objective is:
 
 \[
 \mathcal{L}
-=\mathcal{L}_{\text{retrieval}}
+=\mathcal{L}_{\text{InfoNCE}}
++\lambda_d\mathcal{L}_{\text{distill}}
++\sum_a\lambda_a\mathcal{L}_{\text{action},a}
 +\lambda_{r}\mathcal{L}_{\text{routing}}
 +\lambda_{m}\mathcal{L}_{\text{modality}}
 +\lambda_{c}\mathcal{L}_{\text{calibration}}.
 \]
 
 The core remains **supervised contrastive fine-tuning**, not generative GRPO for a fixed candidate-retrieval task. RL addresses a different problem when the objective becomes sequential, such as long-horizon slate reward or exploration policy.
+
+### Start with the cheap version: a go/no-go gate
+
+Before investing in a teacher, distillation, and routing, run two inexpensive changes on a fixed independent evaluation set: add trustworthy skip or rejection semantics to negatives, and split distinct actions out of one OR label. If richer supervision still produces no stable, interpretable movement, an expensive teacher should not be assumed to solve the problem.
+
+This ordering forces evaluation to improve first and turns architectural complexity into a falsifiable decision rather than a preference.
 
 ### One complete training and release run
 
@@ -210,6 +235,16 @@ Multimodal understanding then improves candidate information without placing gen
 > This section specifies an experimental protocol and release gates. It reports no observed results.
 
 An aggregate score can hide subgroup regressions and can misrepresent "more relevant but semantically narrower" as an unconditional improvement. Evaluation should answer five separate questions.
+
+### 5.0 Change the signal and the ruler together
+
+If a student learns teacher-generated relevance and the same teacher later evaluates the student, the experiment becomes self-confirming. Preserve at least three independent anchors:
+
+- sparse but semantically clear explicit actions;
+- time and user slices that the teacher did not generate or select;
+- a small, stable human relevance or pairwise-preference set.
+
+Keep old metrics for compatibility and use new metrics for signals the old proxy cannot see. Reporting both is the only way to distinguish genuinely added information from a newly self-consistent scoring system.
 
 ### 5.1 Does the model actually use visual information?
 
