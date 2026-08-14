@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" width="700" height="350" role="img">
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="24" y="24" text-anchor="start">What depth does to the gradient</text>
+<text class="sub" x="24" y="41" text-anchor="start">40-layer MLP, tanh, init 20% below critical — identical weights and input, the only difference is the residual add</text>
+<line class="divider" x1="66" y1="258.0" x2="550" y2="258.0" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="261.5" text-anchor="end">1e-9</text>
+<line class="divider" x1="66" y1="239.6" x2="550" y2="239.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="243.05561837581763" text-anchor="end">1e-8</text>
+<line class="divider" x1="66" y1="220.6" x2="550" y2="220.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="224.07102247417447" text-anchor="end">1e-7</text>
+<line class="divider" x1="66" y1="201.6" x2="550" y2="201.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="205.0864265725313" text-anchor="end">1e-6</text>
+<line class="divider" x1="66" y1="182.6" x2="550" y2="182.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="186.10183067088815" text-anchor="end">1e-5</text>
+<line class="divider" x1="66" y1="163.6" x2="550" y2="163.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="167.117234769245" text-anchor="end">1e-4</text>
+<line class="divider" x1="66" y1="144.6" x2="550" y2="144.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="148.13263886760183" text-anchor="end">1e-3</text>
+<line class="divider" x1="66" y1="125.6" x2="550" y2="125.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="129.14804296595867" text-anchor="end">1e-2</text>
+<line class="divider" x1="66" y1="106.7" x2="550" y2="106.7" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="110.1634470643155" text-anchor="end">1e-1</text>
+<line class="divider" x1="66" y1="87.7" x2="550" y2="87.7" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="91.17885116267234" text-anchor="end">1e0</text>
+<polyline class="arrow-0" points="66.0,252.3 78.4,249.8 90.8,247.6 103.2,245.1 115.6,242.2 128.1,240.1 140.5,236.6 152.9,235.2 165.3,233.2 177.7,232.3 190.1,231.8 202.5,231.1 214.9,229.6 227.3,227.5 239.7,226.4 252.2,224.8 264.6,223.4 277.0,220.6 289.4,219.9 301.8,217.5 314.2,216.1 326.6,214.5 339.0,213.6 351.4,211.3 363.8,209.3 376.3,208.4 388.7,207.5 401.1,205.6 413.5,203.4 425.9,201.6 438.3,199.8 450.7,198.8 463.1,197.6 475.5,196.8 487.9,195.6 500.4,194.7 512.8,194.3 525.2,193.2 537.6,193.7 550.0,194.9" fill="none" stroke-width="2"/>
+<polyline class="arrow-1" points="66.0,81.7 78.4,82.8 90.8,83.9 103.2,84.8 115.6,85.7 128.1,86.5 140.5,87.1 152.9,87.9 165.3,88.6 177.7,89.1 190.1,89.9 202.5,90.4 214.9,91.1 227.3,91.7 239.7,92.2 252.2,92.6 264.6,93.2 277.0,93.7 289.4,94.3 301.8,94.7 314.2,95.2 326.6,95.7 339.0,96.2 351.4,96.7 363.8,97.0 376.3,97.4 388.7,97.8 401.1,98.2 413.5,98.7 425.9,99.1 438.3,99.6 450.7,100.0 463.1,100.3 475.5,100.6 487.9,101.1 500.4,101.4 512.8,101.8 525.2,102.1 537.6,102.5 550.0,102.8" fill="none" stroke-width="2"/>
+<rect class="frame" x="66" y="76" width="484" height="182"/>
+<text class="lbl-s" x="66.0" y="275" text-anchor="middle">1</text>
+<text class="lbl-s" x="314.2051282051282" y="275" text-anchor="middle">21</text>
+<text class="lbl-s" x="550.0" y="275" text-anchor="middle">40</text>
+<text class="lbl-s" x="308.0" y="292" text-anchor="middle">layer (1 = closest to the input)</text>
+<text class="lbl-s" x="66" y="67" text-anchor="start">&#8214;grad&#8214; reaching this layer</text>
+<line x1="566" y1="81.71493282195408" x2="584" y2="81.71493282195408" class="arrow-1" stroke-width="2"/>
+<text class="lbl-s" x="590" y="85.71493282195408" text-anchor="start">with residual</text>
+<line x1="566" y1="252.28506717804592" x2="584" y2="252.28506717804592" class="arrow-0" stroke-width="2"/>
+<text class="lbl-s" x="590" y="256.2850671780459" text-anchor="start">plain stack</text>
+<text class="sub" x="24" y="324" text-anchor="start">Walking back from layer 40 to layer 1 the plain stack loses 1e+03&#215; of its gradient; the residual one is flat.</text>
+<text class="sub" x="24" y="340" text-anchor="start">At layer 1 the two differ by 1e+09&#215;. Same weights, same data — the identity path is all of it.</text>
+</svg>

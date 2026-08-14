@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="720" height="320" role="img">
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="24" y="24" text-anchor="start">What each norm averages over</text>
+<text class="sub" x="24" y="41" text-anchor="start">one row = one token's feature vector &#183; one column = the same feature across the batch</text>
+<text class="lbl" x="40" y="78" text-anchor="start">BatchNorm</text>
+<text class="lbl-s" x="40" y="93" text-anchor="start">one feature, across the batch</text>
+<rect class="box-q" x="40" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="60" y="110" width="18" height="18" rx="2"/>
+<rect class="box-1" x="80" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="100" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="120" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="140" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="40" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="60" y="130" width="18" height="18" rx="2"/>
+<rect class="box-1" x="80" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="100" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="120" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="140" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="40" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="60" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="80" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="100" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="120" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="140" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="40" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="60" y="170" width="18" height="18" rx="2"/>
+<rect class="box-1" x="80" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="100" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="120" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="140" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="40" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="60" y="190" width="18" height="18" rx="2"/>
+<rect class="box-1" x="80" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="100" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="120" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="140" y="190" width="18" height="18" rx="2"/>
+<rect class="frame" x="37" y="107" width="124" height="104" rx="3"/>
+<text class="lbl" x="258" y="78" text-anchor="start">LayerNorm</text>
+<text class="lbl-s" x="258" y="93" text-anchor="start">one token, across its features</text>
+<rect class="box-q" x="258" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="278" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="298" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="318" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="338" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="358" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="258" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="278" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="298" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="318" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="338" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="358" y="130" width="18" height="18" rx="2"/>
+<rect class="box-1" x="258" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="278" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="298" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="318" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="338" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="358" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="258" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="278" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="298" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="318" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="338" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="358" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="258" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="278" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="298" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="318" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="338" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="358" y="190" width="18" height="18" rx="2"/>
+<rect class="frame" x="255" y="107" width="124" height="104" rx="3"/>
+<text class="lbl" x="476" y="78" text-anchor="start">RMSNorm</text>
+<text class="lbl-s" x="476" y="93" text-anchor="start">same axis, but no mean removed</text>
+<rect class="box-q" x="476" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="496" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="516" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="536" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="556" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="576" y="110" width="18" height="18" rx="2"/>
+<rect class="box-q" x="476" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="496" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="516" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="536" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="556" y="130" width="18" height="18" rx="2"/>
+<rect class="box-q" x="576" y="130" width="18" height="18" rx="2"/>
+<rect class="box-1" x="476" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="496" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="516" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="536" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="556" y="150" width="18" height="18" rx="2"/>
+<rect class="box-1" x="576" y="150" width="18" height="18" rx="2"/>
+<rect class="box-q" x="476" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="496" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="516" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="536" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="556" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="576" y="170" width="18" height="18" rx="2"/>
+<rect class="box-q" x="476" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="496" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="516" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="536" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="556" y="190" width="18" height="18" rx="2"/>
+<rect class="box-q" x="576" y="190" width="18" height="18" rx="2"/>
+<rect class="frame" x="473" y="107" width="124" height="104" rx="3"/>
+<text class="lbl-s" x="34" y="160.0" text-anchor="end">tokens</text>
+<text class="lbl-s" x="100.0" y="226" text-anchor="middle">features &#8594;</text>
+<text class="sub" x="24" y="252" text-anchor="start">BatchNorm's statistics depend on the other examples in the batch. LayerNorm's depend only on the token itself —</text>
+<text class="sub" x="24" y="268" text-anchor="start">which is why variable-length sequences, batch size 1, and autoregressive decoding all leave BatchNorm without a usable</text>
+<text class="sub" x="24" y="284" text-anchor="start">estimate, and LayerNorm completely unbothered.</text>
+<text class="sub" x="24" y="306" text-anchor="start">RMSNorm keeps LayerNorm's axis and drops the mean subtraction: one fewer reduction, no measurable loss.</text>
+</svg>
