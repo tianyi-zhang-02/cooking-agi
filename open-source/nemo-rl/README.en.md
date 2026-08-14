@@ -6,7 +6,9 @@
 
 NeMo-RL is NVIDIA's open-source LLM post-training framework, spanning SFT, RL, distillation, and coordination between trainers and inference engines.
 
-The thread is not “fixing unrelated bugs.” It is checking whether three layers agree: **the experiment expressed by configuration, the mathematics expressed by the objective, and the system behavior expressed by distributed execution.** When they diverge, training either optimizes the wrong target or spends substantial resources on computation that cannot affect the result.
+I entered through small correctness questions: did a configuration actually take effect, was a large computation provably redundant, and did a mask survive the call chain to the place that consumed it? With enough context, they stopped looking like unrelated defects. They became different views of one question: **does the experiment expressed by configuration agree with the mathematics expressed by the objective and the behavior expressed by distributed execution?**
+
+When those layers diverge, training either optimizes the wrong target or spends substantial resources on computation that cannot affect the result. Correctness and efficiency are not separate concerns here: a fast wrong answer is useless, and a mathematically cancelled computation is waste no matter how accurately it runs.
 
 See the whole path first, then jump to the part you care about:
 
@@ -22,6 +24,21 @@ flowchart LR
 ```
 
 The sections move from low to high context. The first needs only software-engineering intuition; the last reaches the distributed seam between trainer and inference engine.
+
+## Why this belongs under open-source ecosystems
+
+Viewed as diffs, many of these changes are small. Viewed as ecosystem work, they protect assumptions other users treat as facts: configuration takes effect, checkpoints are reproducible, the loss is the loss described in the documentation, and updated weights return safely to the inference engine.
+
+This is where upstream differs from a personal project. A solution cannot merely be cleaner in isolation. It has to preserve old callers, support test doubles, fit multiple backends, and remain maintainable after its author leaves. Review is often not asking only whether code runs, but **whether this abstraction makes the ecosystem easier to evolve.**
+
+```mermaid
+flowchart LR
+    A["Find the broken invariant"] --> B["Prove it in code or mathematics"]
+    B --> C["Make the smallest maintainable repair"]
+    C --> D["Leave a failing test and an explicit boundary"]
+```
+
+The patch repairs the current branch. The test, contract, and explanation protect the future ecosystem.
 
 ---
 
@@ -148,7 +165,7 @@ The result was 9.04s down to 3.77s, and 7150 modules down to 5256. ([#3552](http
 
 ## Looking back
 
-Only four things generalize.
+The reusable part is not a particular API. It is the working discipline behind the changes.
 
 **Verify before proposing.** Several attractive ideas died before I wrote any code — the optimization already existed, or nothing actually reached that path. An idea you can kill yourself is not one a maintainer should spend time killing.
 
@@ -157,3 +174,7 @@ Only four things generalize.
 **Say what you did not verify.** Every PR gets a section listing what I could not check. It looks like weakening your own case; it does the opposite. What reviewers fear is the pit they cannot see — draw the boundary and they become more willing to merge.
 
 **The most expensive mistake is publishing a wrong technical claim.** A few analyses produced confident but incorrect conclusions. Checked line by line against the code, not one survived. In public, a wrong technical assertion costs far more than being half an hour late.
+
+**Maintenance is ecosystem building, not second-tier work.** New algorithms set the ceiling of capability; configuration, interfaces, tests, documentation, and backend compatibility determine how many people can actually use that capability and whether the next generation of work can inherit it. Healthy projects need both, and the latter often lacks contributors willing to accumulate context over time.
+
+I do not want the lasting description to be “someone who merged several NeMo-RL PRs.” I want to develop reliable judgment inside an important subsystem: knowing which constraints are mathematical, which are compatibility debt, where optimization is safe, and where evidence has to come first. That kind of ownership is the part of open-source ecosystems I value most.
