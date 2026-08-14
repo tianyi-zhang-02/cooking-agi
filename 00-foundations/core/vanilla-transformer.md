@@ -4,18 +4,18 @@
 
 > 阅读时间：约 8 分钟 · 难度：必修 · 最近审阅：2026-08
 
-## 先用一句话讲清楚
+## 我更愿意这样记 Transformer
 
-原版 Transformer 是一个 encoder–decoder：attention 负责跨位置取信息，FFN 负责逐位置加工；它删除了 recurrence，因此训练时整段序列可以并行。
+先忘掉那张塞满箭头的大框图。Transformer 一层其实只反复做两件事：**attention 去别的位置拿信息，FFN 留在当前位置加工信息。** 原版仍然是 encoder–decoder，但 recurrence 被彻底拿掉了。
 
-## 一层里只有两种计算
+## 一层真的只有两种“工种”
 
 1. **Attention mixing**：不同 token 之间交换信息。
 2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
 
-外面再套 residual connection 与 normalization。堆很多层，就是反复“找信息 → 加工信息”。
+外面再套 residual connection 与 normalization。堆很多层，本质上还是反复“出去找信息 → 回来加工信息”。这样记，比背整张结构图轻松很多。
 
-## 三处注意力
+## 三处 attention，其实是在问三个不同的问题
 
 | 位置 | Query | Key / Value | mask | 作用 |
 | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ $$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\rig
 
 $M$ 是 mask：允许的位置加 0，禁止的位置加 $-\infty$。
 
-## 为什么它比 RNN 更容易扩展
+## 真正拉开差距的不是“更聪明”，而是更好算
 
 - **训练并行**：所有位置的 $Q/K/V$ 可以一次算出；
 - **路径更短**：任意两个 token 一层 attention 就能直接交互；
@@ -37,7 +37,7 @@ $M$ 是 mask：允许的位置加 0，禁止的位置加 $-\infty$。
 
 代价是 self-attention 的分数矩阵大小为 $T\times T$，标准实现的时间和显存随序列长度近似二次增长。
 
-## 位置从哪里来
+## 可 attention 本身根本不知道顺序
 
 Attention 本身不知道顺序。原版把固定 sinusoidal position encoding 加到 token embedding：
 
@@ -45,7 +45,7 @@ $$z_t = E[x_t] + PE_t$$
 
 没有位置编码时，模型只能看到一袋 token；调换顺序只会让输出跟着调换。
 
-## 原版与现代大模型不要混在一起
+## 这里很容易把 2017 和今天搅成一锅
 
 | | 2017 vanilla | 现代 decoder-only |
 | --- | --- | --- |
@@ -65,12 +65,12 @@ $$z_t = E[x_t] + PE_t$$
 
 </details>
 
-## 实验与深挖
+## 别只看图，跑一次
 
 - 快速跑通：[`../code/vanilla_demo.py`](../code/vanilla_demo.py)
 - 完整数学与现代组件：[Transformer 架构深拆](../transformer.md)
 - 无 PyTorch attention 前向：[`../code/sequence_numpy.py`](../code/sequence_numpy.py)
 
-## 下一步
+## 下一站
 
 进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。

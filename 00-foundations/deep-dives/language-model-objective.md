@@ -4,13 +4,13 @@
 
 > 阅读时间：约 10 分钟 · 难度：进阶 · 最近审阅：2026-08
 
-## 同一个模型，两条执行路径
+## 一个模型，为什么跑出两种完全不同的节奏
 
 训练与生成使用同一个参数化分布：
 
 $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$
 
-区别在于训练时整条真实序列已知，生成时未来 token 尚不存在。
+区别只在“未来知不知道”。训练时整条真实序列已经摊在桌上；生成时下一个 token 还没出现，模型只能写一个、看一个，再继续写。
 
 | | 训练 / prefill | autoregressive decode |
 | --- | --- | --- |
@@ -19,13 +19,13 @@ $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$
 | 主要瓶颈 | compute、activation memory | memory bandwidth、cache、串行步数 |
 | 误差来源 | 数据与目标 | 还多了 sampling 与错误累积 |
 
-## Cross-entropy 到底优化什么
+## Cross-entropy 没有替你决定“什么重要”
 
 单个位置的 loss：
 
 $$\ell_t=-\log p_\theta(y_t\mid x_{\le t})$$
 
-对 logits 的梯度仍是 $p-y$。频繁 token 和长样本天然贡献更多训练位置，因此数据混合、sample weighting 与 loss masking 会直接改变模型学到的行为。
+对 logits 的梯度仍是 $p-y$，公式很干净。但把所有位置加起来以后，频繁 token 和长样本天然拥有更多“投票权”。所以数据混合、sample weighting 与 loss masking 不是训练脚本边角料——它们就在定义模型到底该重视谁。
 
 Perplexity 是平均 token negative log-likelihood 的指数：
 
@@ -33,11 +33,11 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 不同 tokenizer 的 token 单位不同，perplexity 不能直接横向比较。
 
-## Teacher forcing 与 exposure gap
+## 训练时有人递答案，生成时只能自己接着写
 
 训练时模型总在真实前缀上预测；生成时它必须在自己的输出上继续。某一步的小概率错误可能把后续上下文带到训练数据很少覆盖的区域。
 
-这不意味着必须用 RL。先判断问题来自：
+这里很容易条件反射地说“那就上 RL”。我会先忍一下，检查问题到底来自：
 
 1. 训练数据没覆盖目标行为；
 2. loss mask 或模板错误；
@@ -46,7 +46,7 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 只有第 4 类才真正指向 sequence-level preference 或 RL objective。
 
-## KV cache 的不变量
+## Cache 不是“能跑就行”，它必须等价
 
 增量解码必须与一次性前向在数值容差内等价。需要同时保证：
 
@@ -58,7 +58,7 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 [`../code/test_model.py`](../code/test_model.py) 把 full forward 与 token-by-token decode 对齐，是比“生成看起来正常”更强的正确性证据。
 
-## 从基础接到 Post-Training
+## 到这里，Post-Training 才真正接得上
 
 SFT、preference learning 与 RL 并不是另一套模型学。它们在同一个自回归分布上改变：训练样本来自哪里、哪些 token 计入 loss、不同输出如何被比较、回报如何分配给整条 trajectory。
 

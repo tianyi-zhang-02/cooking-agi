@@ -4,11 +4,11 @@
 
 > 阅读时间：约 9 分钟 · 难度：必修 · 最近审阅：2026-08
 
-## 先用一句话讲清楚
+## 到这里，事情突然变简单了
 
-Decoder-only 模型接收一条 token 序列，用 causal mask 保证每个位置只能看左边，并在每个位置预测下一个 token。
+把 instruction、context 和 answer 全都排进同一条 token 序列，用 causal mask 挡住未来，然后每个位置只做一件事：猜下一个 token。这就是 decoder-only 最迷人的地方——结构反而比 encoder–decoder 更统一。
 
-## 训练目标
+## 一条序列自己就能当训练数据
 
 给定 token 序列 $x_1,\ldots,x_T$：
 
@@ -23,7 +23,7 @@ target:  [今,  天, 天, 气, 好]
 
 每个位置都提供一次监督，因此大规模无标注文本天然能构造训练样本。
 
-## 为什么不再需要 encoder
+## Encoder 去哪了
 
 把“输入”和“输出”串在同一条序列里即可：
 
@@ -35,7 +35,7 @@ target:  [今,  天, 天, 气, 好]
 
 这不代表 encoder 没价值。双向表征、分类和部分检索任务仍常使用 encoder；decoder-only 的优势是**一个目标统一预训练、条件生成与对话**。
 
-## 一次请求分两段
+## 同一个请求，其实有两种完全不同的节奏
 
 ### Prefill
 
@@ -55,7 +55,7 @@ flowchart LR
     D2 --> D1
 ```
 
-## Logits 怎样变成文本
+## 模型给的是分数，采样才把它变成文字
 
 最后一层 hidden state 经过线性层得到词表上每个 token 的 logits：
 
@@ -66,9 +66,9 @@ $$z_t=W_{\text{vocab}}h_t, \qquad p_t=\text{softmax}(z_t / \tau)$$
 - top-$p$ 保留累计概率达到阈值的最小候选集合；
 - greedy 每步取最大值，不等于全序列概率最大。
 
-Sampling 是推理策略，不会改变模型本身学到的概率分布。
+Sampling 是推理时怎么“下筷子”，不会改掉锅里原本的概率分布。temperature 高不代表模型突然更有创造力，只是我们更愿意去尝那些本来概率较低的 token。
 
-## 从预训练到 Post-Training
+## 同一副骨架，后来怎么继续教
 
 | 阶段 | 数据告诉模型什么 | 常见目标 |
 | --- | --- | --- |
@@ -86,10 +86,10 @@ Sampling 是推理策略，不会改变模型本身学到的概率分布。
 
 </details>
 
-## 实验
+## 把训练和生成两条路都验一遍
 
 [`../code/model.py`](../code/model.py) 是手写的现代 decoder-only；[`../code/test_model.py`](../code/test_model.py) 验证 causal mask、RoPE、GQA 和 KV cache；[`../code/train.py`](../code/train.py) 让它学习一个需要跨位置复制的任务。
 
-## 下一步
+## 下一站
 
 继续读 [语言模型目标与生成](../deep-dives/language-model-objective.md)，再接到 [Post-Training](../../05-post-training/)。
