@@ -5,19 +5,19 @@
 > 阅读时间：约 9 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>让每个位置去序列里取它需要的信息</strong></div>
-  <div><span>手里的食材</span><strong>三个投影 $W_Q, W_K, W_V$ · 一个输出投影 $W_O$</strong></div>
-  <div><span>核心火候</span><strong>缩放点积 · 切头 · mask 在 softmax 之前</strong></div>
-  <div><span>最容易翻车</span><strong>reshape 的顺序、mask 的时机、除错了维度</strong></div>
+  <div><span>解决什么问题</span><strong>让每个位置去序列里取它需要的信息</strong></div>
+  <div><span>前置知识</span><strong>三个投影 $W_Q, W_K, W_V$ · 一个输出投影 $W_O$</strong></div>
+  <div><span>核心机制</span><strong>缩放点积 · 切头 · mask 在 softmax 之前</strong></div>
+  <div><span>常见错误</span><strong>reshape 的顺序、mask 的时机、除错了维度</strong></div>
 </div>
 
-## 先尝一口：查字典，然后加权平均
+## 一句话：查字典，然后加权平均
 
 每个位置拿着自己的**问题**（query）去问所有位置的**索引**（key）。对得越上，就从那个位置的**内容**（value）里取越多。取回来的是一个加权平均。
 
 多头的意思是：同一句话同时问好几个不同的问题——一个头盯语法搭配，一个头盯指代，一个头盯位置邻近。问完各自取一份，再拼起来。
 
-## 第一勺：单个头在算什么
+## 单个头在算什么
 
 $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 
@@ -215,7 +215,7 @@ def causal_mask(t, device=None):
 
 </details>
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>如果真的理解了，你应该能解释：</strong>
@@ -227,6 +227,6 @@ def causal_mask(t, device=None):
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
 注意力有了，但它对顺序完全不敏感，而且堆深了就训不动。先看[残差连接](residual-connections.md)和[归一化](normalization.md)怎么让深度变得可行，再回到[原版 Transformer](vanilla-transformer.md) 把整块拼起来。

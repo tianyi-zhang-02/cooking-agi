@@ -5,13 +5,13 @@
 > Reading time: ~7 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
-  <div><span>What this makes</span><strong>depth that stops being an obstacle to training</strong></div>
-  <div><span>Ingredients</span><strong>a sublayer $f$ · one identity path</strong></div>
-  <div><span>The technique</span><strong>$y = x + f(x)$ — the plus sign is the whole idea</strong></div>
-  <div><span>Where it burns</span><strong>believing it prevents overfitting, or that depth is now free</strong></div>
+  <div><span>The problem</span><strong>depth that stops being an obstacle to training</strong></div>
+  <div><span>Prerequisites</span><strong>a sublayer $f$ · one identity path</strong></div>
+  <div><span>Core mechanism</span><strong>$y = x + f(x)$ — the plus sign is the whole idea</strong></div>
+  <div><span>Common mistakes</span><strong>believing it prevents overfitting, or that depth is now free</strong></div>
 </div>
 
-## One taste: do nothing by default
+## Do nothing by default
 
 An ordinary layer replaces its input. A residual layer **edits** it:
 
@@ -31,7 +31,7 @@ Expand it and one term is $I \cdot I \cdots I = I$: **a path exists along which 
 
 Without the residual it is a bare product $\prod_l \partial f_l / \partial x_{l-1}$. Slightly below 1 per layer and it decays exponentially; slightly above and it explodes. You have to tune the initialisation to sit exactly at the critical point.
 
-## Where it burns: this is measured, not theoretical
+## Measured, not theoretical
 
 A 40-layer MLP, tanh, initialisation set 20% below critical — the ordinary case of "not tuned perfectly." Same weights, same input; the only difference is the plus sign:
 
@@ -119,7 +119,7 @@ One fixes "too many timesteps away", the other "too many layers deep".
 
 </details>
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>You understand this if you can explain:</strong>
@@ -133,4 +133,4 @@ One fixes "too many timesteps away", the other "too many layers deep".
 
 ## Next
 
-Attention, normalisation and residuals are all on the bench — time to assemble them: [the vanilla Transformer](vanilla-transformer.en.md).
+Attention, normalisation and residuals are all covered — time to assemble them: [the vanilla Transformer](vanilla-transformer.en.md).
