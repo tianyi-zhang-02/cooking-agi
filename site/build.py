@@ -44,6 +44,14 @@ OUT = ROOT / "_site"
 PROTECTED = {"code", "pre", "a", "script", "style", "abbr",
              "h1", "h2", "h3", "h4", "h5", "h6"}
 
+# Structured components whose text is laid out by CSS. An inline gloss chip
+# inside one splits a word in half and breaks the grid, so they are skipped
+# wholesale -- the annotation belongs in running prose, not in a summary card.
+NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid"}
+
+# elements that never carry an end tag, so they must not push onto the stack
+VOID = {"br", "img", "hr", "input", "meta", "link", "source", "col", "wbr"}
+
 
 # --------------------------------------------------------------------------- #
 # config
@@ -157,20 +165,34 @@ class Annotator(HTMLParser):
         self.terms = terms
         self.seen = set()
         self.depth = 0
+        self.stack = []          # one entry per open element: does it protect?
         self.out = []
         self.used = []
 
-    def handle_starttag(self, tag, attrs):
+    @staticmethod
+    def _protects(tag, attrs):
         if tag in PROTECTED:
-            self.depth += 1
+            return True
+        classes = set()
+        for k, v in attrs:
+            if k == "class" and v:
+                classes.update(v.split())
+        return bool(classes & NOGLOSS_CLASSES)
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in VOID:
+            hit = self._protects(tag, attrs)
+            self.stack.append(hit)
+            self.depth += hit
         self.out.append(self.get_starttag_text())
 
     def handle_startendtag(self, tag, attrs):
         self.out.append(self.get_starttag_text())
 
     def handle_endtag(self, tag):
-        if tag in PROTECTED:
-            self.depth = max(0, self.depth - 1)
+        if tag not in VOID and self.stack:
+            self.depth -= self.stack.pop()
+            self.depth = max(0, self.depth)
         self.out.append(f"</{tag}>")
 
     def handle_comment(self, data):
