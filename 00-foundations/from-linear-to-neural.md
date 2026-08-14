@@ -2,13 +2,20 @@
 
 **中文** · [English](from-linear-to-neural.en.md)
 
-## 先用一句话讲清楚
+<div class="lesson-recipe">
+  <div><span>这节要做什么</span><strong>看懂神经网络如何把“切直线”变成复杂边界</strong></div>
+  <div><span>手里的食材</span><strong>线性模型 · sigmoid · cross-entropy · ReLU</strong></div>
+  <div><span>核心火候</span><strong>特征映射 · 链式法则 · backpropagation</strong></div>
+  <div><span>最容易翻车</span><strong>误以为层数或 sigmoid 本身带来了非线性边界</strong></div>
+</div>
+
+## 先尝一口：最后那一刀一直是直的
 
 神经网络 = **学出来的坐标变换** + **一个线性分类器**。最后那一层永远是逻辑回归，只是它长在了新坐标系上。
 
 这一页从最小二乘推到反向传播，每一步都给出公式和一份不依赖框架的 Python 实现。
 
-## 线性回归：边界是一个超平面
+## 第一块砧板：线性回归只能切一个超平面
 
 $$\hat{y} = \mathbf{w}^\top \mathbf{x} + b = \sum_{i=1}^{n} w_i x_i + b, \qquad \mathbf{x}, \mathbf{w} \in \mathbb{R}^n$$
 
@@ -22,7 +29,7 @@ $$\{\mathbf{x} : \mathbf{w}^\top \mathbf{x} + b = 0\}$$
 
 一个超平面。二维是直线，三维是平面。这是**线性模型能画出的唯一形状**。
 
-## 加了交互项还算线性吗？
+## 换食材：加了交互项还算线性吗？
 
 这里容易绕晕，因为「线性」有两个意思。
 
@@ -39,7 +46,7 @@ $$\phi(x_1, x_2) = (x_1,\; x_2,\; x_1 x_2)$$
 
 问题是 $\phi$ 得你自己猜。
 
-## 逻辑回归：sigmoid 换来的不是表达力
+## 别加错调料：sigmoid 换来的不是表达力
 
 先算同一个线性分数，再压成概率：
 
@@ -103,7 +110,7 @@ def fit_logistic(X, y, lr=0.1, steps=2000):
     return w, b
 ```
 
-## 神经网络：把 $\phi$ 学出来
+## 神经网络真正多做的事：把 $\phi$ 学出来
 
 $$\mathbf{h} = \phi(W_1 \mathbf{x} + \mathbf{b}_1), \qquad \hat{y} = \sigma(\mathbf{w}_2^\top \mathbf{h} + b_2)$$
 
@@ -153,7 +160,7 @@ def step(p, X, y, lr=0.05):
 
 完整可运行版本在 [`code/why_nonlinear.py`](code/why_nonlinear.py)（PyTorch）和 [`code/make_figures.py`](code/make_figures.py)（生成本页所有图）。
 
-## XOR：能跑的证据
+## 动手验证：XOR 不接受“差不多懂了”
 
 四团高斯点，对角同类。没有任何直线能分开——这就是 1969 年 Minsky & Papert 用来说明感知机做不到什么的例子。
 
@@ -181,7 +188,7 @@ def step(p, X, y, lr=0.05):
 
 <!-- widget:xor -->
 
-## 归纳
+## 装盘：从线性模型一路接到 Transformer
 
 | | 特征映射 $\phi$ | 最后一步 | 边界形状 |
 | --- | --- | --- | --- |
@@ -203,6 +210,17 @@ softmax 是 sigmoid 在多类上的推广（两类时二者等价）。而且那
 $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
 
 还是**预测减真值**。`lm_head` 就是那个线性分类器，类别数换成 vocab_size；底下几十层注意力存在的唯一目的，是把空间弯折到「下一个 token 是什么」变得线性可读为止。
+
+## 出锅检查
+
+<div class="taste-check">
+  <strong>不看上面的表，试着回答：</strong>
+  <ol>
+    <li>为什么很多层 linear layer 中间没有 activation，最后仍然只是一层 linear？</li>
+    <li>sigmoid + cross-entropy 真正改善的是表达能力，还是优化行为？</li>
+    <li>“隐藏层学习一个新坐标系”这句话，怎样用 XOR 的图来证明？</li>
+  </ol>
+</div>
 
 ## 从哪里继续读
 

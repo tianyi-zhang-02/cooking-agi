@@ -4,6 +4,13 @@
 
 > Reading time: ~9 min · Level: core · Last reviewed: 2026-08
 
+<div class="lesson-recipe">
+  <div><span>What we are making</span><strong>One next-token objective for understanding and generation</strong></div>
+  <div><span>Ingredients</span><strong>token stream · causal mask · shifted targets</strong></div>
+  <div><span>Core technique</span><strong>LM loss · prefill · KV cache · sampling</strong></div>
+  <div><span>Most common mistake</span><strong>Assuming parallel training implies parallel generation</strong></div>
+</div>
+
 ## In one sentence
 
 A decoder-only model consumes one token stream, uses a causal mask so each position sees only the left prefix, and predicts the next token at every position.
@@ -23,4 +30,17 @@ The final hidden state becomes vocabulary logits through a linear head. Temperat
 
 Pre-training, SFT, preference learning, and RL usually preserve the decoder-only backbone. They change the data distribution, loss, comparison structure, and which tokens receive gradient.
 
-Use [`../code/model.py`](../code/model.py), [`../code/test_model.py`](../code/test_model.py), and [`../code/train.py`](../code/train.py). Then read [language-model objectives and generation](../deep-dives/language-model-objective.en.md).
+Use [`../code/model.py`](../code/model.py), [`../code/test_model.py`](../code/test_model.py), and [`../code/train.py`](../code/train.py).
+
+## Taste check
+
+<div class="taste-check">
+  <strong>Carry these three distinctions forward:</strong>
+  <ol>
+    <li>Why are inputs and labels shifted by exactly one token?</li>
+    <li>Why do prefill and decode have different performance profiles?</li>
+    <li>Do temperature, top-k, and top-p change the model or how its distribution is read?</li>
+  </ol>
+</div>
+
+Then read [language-model objectives and generation](../deep-dives/language-model-objective.en.md).

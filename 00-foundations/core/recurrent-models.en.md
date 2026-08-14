@@ -4,6 +4,13 @@
 
 > Reading time: ~8 min · Level: core · Last reviewed: 2026-08
 
+<div class="lesson-recipe">
+  <div><span>What we are making</span><strong>A sequence position that carries the past forward</strong></div>
+  <div><span>Ingredients</span><strong>current input · previous hidden state</strong></div>
+  <div><span>Core technique</span><strong>shared update · LSTM gates · cell state</strong></div>
+  <div><span>Most common failure</span><strong>long dependencies and sequential execution</strong></div>
+</div>
+
 ## In one sentence
 
 An RNN reads left to right with one shared update function and compresses the past into hidden state. An LSTM adds gates that learn what to write, preserve, and expose.
@@ -30,4 +37,17 @@ The forget gate preserves old memory, the input gate writes a candidate, and the
 2. A long sequence is repeatedly compressed into fixed-size state.
 3. Distant positions communicate through a path of length proportional to distance.
 
-Run the NumPy forward pass in [`../code/sequence_numpy.py`](../code/sequence_numpy.py) and the trainable comparison in [`../code/sequence_torch.py`](../code/sequence_torch.py). Next: [Seq2Seq](seq2seq.en.md).
+Run the NumPy forward pass in [`../code/sequence_numpy.py`](../code/sequence_numpy.py) and the trainable comparison in [`../code/sequence_torch.py`](../code/sequence_torch.py).
+
+## Taste check
+
+<div class="taste-check">
+  <strong>You should now be able to explain:</strong>
+  <ol>
+    <li>Why is long memory an optimization problem, not only a capacity problem?</li>
+    <li>What makes the LSTM cell-state path easier for gradients?</li>
+    <li>Why does LSTM remain sequential?</li>
+  </ol>
+</div>
+
+Next: [Seq2Seq](seq2seq.en.md).

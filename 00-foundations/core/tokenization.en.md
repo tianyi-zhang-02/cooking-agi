@@ -4,6 +4,13 @@
 
 > Reading time: ~7 min · Level: core · Last reviewed: 2026-08
 
+<div class="lesson-recipe">
+  <div><span>What we are making</span><strong>A finite symbol system for open-ended strings</strong></div>
+  <div><span>Ingredients</span><strong>raw text · vocabulary · merge rules</strong></div>
+  <div><span>What leaves the kitchen</span><strong>token IDs · attention mask · embeddings</strong></div>
+  <div><span>Most common mistake</span><strong>Treating tokenization as neutral preprocessing</strong></div>
+</div>
+
 ## In one sentence
 
 A tokenizer splits a string into tokens from a finite vocabulary and maps them to integer IDs. The model never sees “text”; it only sees those IDs.
@@ -52,4 +59,17 @@ If the same concept takes one token in one language and five in another, the lat
 
 </details>
 
-Run [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py), a standard-library-only miniature BPE trainer. Then continue to [RNN and LSTM](recurrent-models.en.md).
+Run [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py), a standard-library-only miniature BPE trainer.
+
+## Taste check
+
+<div class="taste-check">
+  <strong>Before moving on, explain:</strong>
+  <ol>
+    <li>Why does a new name not immediately break a subword tokenizer?</li>
+    <li>Why can changing the tokenizer change inference cost?</li>
+    <li>Where does <code>(B, T)</code> become <code>(B, T, d)</code>?</li>
+  </ol>
+</div>
+
+Then continue to [RNN and LSTM](recurrent-models.en.md).
