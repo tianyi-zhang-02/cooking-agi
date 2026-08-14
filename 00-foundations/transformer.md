@@ -6,7 +6,14 @@
 >
 > 主线读完就够用。标着 **进阶** 的折叠块是推导和边角情况，跳过不影响理解。
 
-## 先用一句话讲清楚
+<div class="lesson-recipe advanced">
+  <div><span>这次要拆什么</span><strong>把 Transformer 从框图拆回矩阵与 invariant</strong></div>
+  <div><span>需要先会</span><strong>矩阵乘 · softmax · residual · causal LM</strong></div>
+  <div><span>真正的主角</span><strong>Q/K/V · norm · RoPE · GQA · KV cache</strong></div>
+  <div><span>最后要能证明</span><strong>实现满足因果性、位置相对性与 cache 等价性</strong></div>
+</div>
+
+## 先尝一口：Attention 搬信息，FFN 加工信息
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。
 
@@ -17,7 +24,7 @@ Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐�
 - **残差连接**：每一步都保留原样的一份，改动是叠加上去的，不是推倒重来。
 - **堆 N 层**：反复「环顾—加工」，直到答案浮出来。
 
-## 核心：缩放点积注意力
+## 第一口锅：缩放点积注意力
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 
@@ -64,7 +71,7 @@ def attention(q, k, v, mask=None):
 
 `-inf` 而不是 0：屏蔽要发生在 softmax **之前**，否则被屏蔽的位置仍会分到概率质量。
 
-## 同一个模块，三种用法
+## 三种菜式：同一个模块，换掉 Q/K/V 来源
 
 这是原论文（2017）的 encoder-decoder 结构里最该盯住的地方。`self_attn(x, x, x)` 和 `cross_attn(x, memory, memory)` 是同一个类，只是喂进去的三个张量不同：
 
@@ -95,7 +102,7 @@ def attention(q, k, v, mask=None):
 
 64/64 序列完全正确。
 
-## 多头：为什么不是一个大注意力
+## 分灶：为什么不是一个大注意力
 
 $$\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O, \quad \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 
@@ -109,7 +116,7 @@ q = self.w_q(x).view(B, T, h, d_k).transpose(1, 2)   # (B, T, C) -> (B, h, T, d_
 y = out.transpose(1, 2).reshape(B, T, h * d_k)       # 拼回去
 ```
 
-## post-norm 与 warmup 的绑定关系
+## 火候：post-norm 为什么绑着 warmup
 
 论文写的是
 
@@ -129,7 +136,7 @@ $$\text{lr}(t) = d_{\text{model}}^{-0.5} \cdot \min\big(t^{-0.5},\; t \cdot t_{\
 
 > 实测提醒：`LambdaLR` 是拿 **base_lr 乘** lambda 的。把 Adam 的 `lr` 设成 0 再挂 Noam 调度，学习率会永远是 0，而 loss 因为 dropout 噪声看起来还在动。这个坑很常见。
 
-## 位置编码：从正弦到 RoPE
+## 调味顺序：位置编码从正弦到 RoPE
 
 注意力本身对顺序**完全不敏感**——打乱输入的顺序，输出只是跟着打乱。位置信息必须显式注入。
 
@@ -172,7 +179,7 @@ def apply_rope(x, cos, sin):
 
 ⚠️ 配对方式有两种：split-half（通道 $i$ 配 $i + d/2$，GPT-NeoX/Llama）和交错（原 RoPE 论文）。两者差一个通道置换，**权重不能互换**——转模型时这是经典踩坑点。
 
-## 现代 decoder-only 还改了什么
+## 换成今天的配方：Decoder-only 还改了什么
 
 | | vanilla (2017) | 现在 |
 | --- | --- | --- |
@@ -201,7 +208,7 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 
 把 $n_{\text{kv}}$ 从 32 降到 8 就直接省下 4 倍显存——长上下文推理时这是主要瓶颈。
 
-## 手搓一遍，并验证它是对的
+## 动手：手搓一遍，并故意找它的错
 
 [`code/`](code/) 里两版实现都不调 `nn.MultiheadAttention` 和 `F.scaled_dot_product_attention`，只用 `nn.Linear` 和裸张量运算：
 
@@ -221,7 +228,19 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 
 带 cache 时最容易翻车的是 mask：query 的绝对位置是 `cache.pos + i`，key 从 0 数到 `cache.pos + T - 1`，所以 mask 是**非方阵**的 $(T, S)$；RoPE 的 cos/sin 也得从 `cache.pos` 切片。而且 `cache.pos` 每层前向只推进**一次**（在层循环之后），写在 `update()` 里会翻 $n_{\text{layer}}$ 倍。
 
-## 从哪里继续读
+## 出锅检查
+
+<div class="taste-check advanced">
+  <strong>这一大锅拆完，至少要能守住四条线：</strong>
+  <ol>
+    <li>为什么 attention score 要除以 $\sqrt{d_k}$？</li>
+    <li>pre-norm 改变了哪条梯度高速路？</li>
+    <li>RoPE 的相对性为什么要求同时旋转 Q 和 K？</li>
+    <li>怎样证明 KV cache 是正确实现，而不是只让生成结果“看起来没坏”？</li>
+  </ol>
+</div>
+
+## 下一道菜
 
 - [从线性模型到神经网络](from-linear-to-neural.md) —— 为什么最后一层永远是线性分类器
 - [Post-Training](../05-post-training/) —— 这些参数后来怎么被继续改

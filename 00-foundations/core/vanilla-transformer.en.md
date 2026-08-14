@@ -4,6 +4,13 @@
 
 > Reading time: ~8 min · Level: core · Last reviewed: 2026-08
 
+<div class="lesson-recipe">
+  <div><span>What we are making</span><strong>Parallel information exchange across sequence positions</strong></div>
+  <div><span>Ingredients</span><strong>token matrix · position · attention mask</strong></div>
+  <div><span>Core technique</span><strong>self-attention · cross-attention · FFN · residual</strong></div>
+  <div><span>Most common failure</span><strong>mixing up attention sites or masking the wrong direction</strong></div>
+</div>
+
 ## In one sentence
 
 The original Transformer is an encoder–decoder. Attention moves information across positions, FFNs transform channels independently, and removing recurrence makes full-sequence training parallel.
@@ -22,4 +29,17 @@ Attention shortens the path between arbitrary positions to one layer and paralle
 
 The 2017 model used sinusoidal positions, post-norm LayerNorm, MHA, and ReLU FFNs. Modern decoder-only models more often use RoPE, pre-norm RMSNorm, GQA, and SwiGLU. Do not collapse these into one architecture.
 
-Run [`../code/vanilla_demo.py`](../code/vanilla_demo.py), then use [the full Transformer deep dive](../transformer.en.md). Next: [Decoder-only](decoder-only.en.md).
+Run [`../code/vanilla_demo.py`](../code/vanilla_demo.py), then use [the full Transformer deep dive](../transformer.en.md).
+
+## Taste check
+
+<div class="taste-check">
+  <strong>After drawing the architecture, answer:</strong>
+  <ol>
+    <li>Where do Q, K, and V come from at each attention site?</li>
+    <li>Why is training parallel while generation remains sequential?</li>
+    <li>What information disappears without positional encoding?</li>
+  </ol>
+</div>
+
+Next: [Decoder-only](decoder-only.en.md).

@@ -6,6 +6,13 @@
 >
 > The main line is enough on its own. Blocks marked **deeper** hold derivations and edge cases; skipping them costs you nothing.
 
+<div class="lesson-recipe advanced">
+  <div><span>What we are dissecting</span><strong>Transformer blocks down to matrices and invariants</strong></div>
+  <div><span>Prerequisites</span><strong>matrix multiplication · softmax · residuals · causal LM</strong></div>
+  <div><span>Main mechanism</span><strong>Q/K/V · normalization · RoPE · GQA · KV cache</strong></div>
+  <div><span>Evidence to demand</span><strong>causality, relative position, and cache equivalence</strong></div>
+</div>
+
 ## In one sentence
 
 The Transformer is one concrete way to build the learned coordinate transform from [the previous page](from-linear-to-neural.en.md). **Attention moves information across positions; the FFN processes each position on its own.** The two alternate for $N$ layers, and a linear classifier reads out the answer at the end.
@@ -145,6 +152,18 @@ so dropping $n_\text{kv}$ from 32 to 8 saves 4× the memory — the dominant con
 ![what prefill computes versus one decode step](assets/kv-cache.svg)
 
 The subtlest bug is the mask under caching: query $i$ sits at absolute position `cache.pos + i` while keys run from 0, so the mask is a **non-square** $(T, S)$, and RoPE's cos/sin must be sliced from `cache.pos`. Also `cache.pos` advances once per forward pass — putting it inside `update()` multiplies it by `n_layer`.
+
+## Taste check
+
+<div class="taste-check advanced">
+  <strong>After the full dissection, defend four claims:</strong>
+  <ol>
+    <li>Why divide attention scores by the square root of head dimension?</li>
+    <li>Which gradient path changes under pre-norm?</li>
+    <li>Why must RoPE rotate both Q and K?</li>
+    <li>How do you prove KV cache correctness beyond plausible generations?</li>
+  </ol>
+</div>
 
 ## Where to read next
 

@@ -2,6 +2,13 @@
 
 [中文](from-linear-to-neural.md) · **English**
 
+<div class="lesson-recipe">
+  <div><span>What we are making</span><strong>A nonlinear boundary from learned coordinates and a linear readout</strong></div>
+  <div><span>Ingredients</span><strong>linear model · sigmoid · cross-entropy · ReLU</strong></div>
+  <div><span>Core technique</span><strong>feature maps · chain rule · backpropagation</strong></div>
+  <div><span>Most common mistake</span><strong>Assuming depth or sigmoid alone creates nonlinear boundaries</strong></div>
+</div>
+
 ## In one sentence
 
 A neural network is a **learned change of coordinates** followed by **a linear classifier**. The last layer is always logistic regression; it just lives in a space the network invented.
@@ -110,6 +117,17 @@ ReLU folds the plane along a crease until the two classes land on opposite sides
 $$\mathbf{h} = \text{TransformerBlocks}(\text{Embed}(\mathbf{x})), \qquad p_i = \text{softmax}(W_\text{head}\mathbf{h})_i$$
 
 Softmax generalises the sigmoid to many classes, and keeps the property that matters: with cross-entropy, $\partial\mathcal{L}/\partial z_i = p_i - y_i$ — still prediction minus target. `lm_head` is the linear classifier; every attention block beneath it exists to bend the space until the next token is linearly readable.
+
+## Taste check
+
+<div class="taste-check">
+  <strong>Explain without the summary table:</strong>
+  <ol>
+    <li>Why do stacked linear layers collapse into one linear layer?</li>
+    <li>Does sigmoid plus cross-entropy improve expression or optimization?</li>
+    <li>How does XOR demonstrate a learned coordinate transformation?</li>
+  </ol>
+</div>
 
 ## Where to read next
 
