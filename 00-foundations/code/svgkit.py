@@ -90,7 +90,8 @@ def write(out_dir, name, content):
 # --------------------------------------------------------------------------- #
 def esc(s):
     return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            .replace("→", "&#8594;").replace("×", "&#215;").replace("·", "&#183;"))
+            .replace("→", "&#8594;").replace("×", "&#215;").replace("·", "&#183;")
+            .replace("‖", "&#8214;").replace("≈", "&#8776;").replace("−", "&#8722;"))
 
 
 def box(x, y, w, h, label, sub=None, kind="box", r=7, cls="lbl"):
