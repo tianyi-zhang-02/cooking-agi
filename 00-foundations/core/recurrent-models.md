@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>这节要做什么</span><strong>让当前位置带着过去一起往前走</strong></div>
-  <div><span>手里的食材</span><strong>当前输入 $x_t$ · 旧状态 $h_{t-1}$</strong></div>
+  <div><span>手里的食材</span><strong>当前输入 xₜ · 旧状态 hₜ₋₁</strong></div>
   <div><span>核心火候</span><strong>共享更新函数 · LSTM gates · cell state</strong></div>
   <div><span>最容易翻车</span><strong>长依赖、梯度消失，以及时间维无法并行</strong></div>
 </div>

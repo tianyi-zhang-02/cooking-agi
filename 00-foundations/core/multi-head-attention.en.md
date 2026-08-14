@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>every position fetching what it needs from the sequence</strong></div>
-  <div><span>Prerequisites</span><strong>three projections $W_Q, W_K, W_V$ · one output projection $W_O$</strong></div>
+  <div><span>Prerequisites</span><strong>three projections W_Q, W_K, W_V · one output projection W_O</strong></div>
   <div><span>Core mechanism</span><strong>scaled dot product · split into heads · mask before softmax</strong></div>
   <div><span>Common mistakes</span><strong>reshape order, mask timing, dividing by the wrong dimension</strong></div>
 </div>

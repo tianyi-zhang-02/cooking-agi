@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>解决什么问题</span><strong>让每个位置去序列里取它需要的信息</strong></div>
-  <div><span>前置知识</span><strong>三个投影 $W_Q, W_K, W_V$ · 一个输出投影 $W_O$</strong></div>
+  <div><span>前置知识</span><strong>三个投影 W_Q, W_K, W_V · 一个输出投影 W_O</strong></div>
   <div><span>核心机制</span><strong>缩放点积 · 切头 · mask 在 softmax 之前</strong></div>
   <div><span>常见错误</span><strong>reshape 的顺序、mask 的时机、除错了维度</strong></div>
 </div>

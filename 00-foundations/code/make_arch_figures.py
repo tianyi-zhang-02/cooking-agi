@@ -47,6 +47,11 @@ def transformer_block():
         half = lambda i: R if kinds[i] == "add" else BH / 2
         for i in range(len(ROWS) - 1):                # spine, bottom row -> top row
             b.append(arrow(cx, ROWS[i + 1] - half(i + 1), cx, ROWS[i] + half(i)))
+            # dropout lives on the branch output, just before the add -- noted
+            # rather than boxed, so the figure keeps answering one question
+            if kinds[i] == "add" and kinds[i + 1] == "sub":
+                b.append(text(cx + 9, (ROWS[i] + ROWS[i + 1]) / 2 + 3,
+                              "Dropout", "lbl-s"))
         b.append(arrow(cx, ROWS[0] - half(0), cx, OUT_Y + 8))
         b.append(arrow(cx, IN_Y, cx, ROWS[-1] + half(len(ROWS) - 1)))
         b.append(text(cx, OUT_Y, "block output", "lbl-s", "middle"))
@@ -61,13 +66,13 @@ def transformer_block():
                      f'marker-end="url(#a1)"/>')
 
     # post-norm: LayerNorm(x + Sublayer(x)) -- the norm sits ON the residual path
-    col(96, "vanilla (2017) · post-norm", "LayerNorm(x + Sublayer(x))",
+    col(96, "vanilla (2017) · post-norm", "LayerNorm(x + Dropout(Sublayer(x)))",
         [("norm", "LayerNorm"), ("add", "+"), ("sub", "FFN"),
          ("norm", "LayerNorm"), ("add", "+"), ("sub", "Attention")],
         taps=[(IN_Y, 371), (300, 209)], unbroken=False)
 
     # pre-norm: x + Sublayer(Norm(x)) -- the norm moved inside the branch
-    col(452, "modern · pre-norm", "x + Sublayer(Norm(x))",
+    col(452, "modern · pre-norm", "x + Dropout(Sublayer(Norm(x)))",
         [("add", "+"), ("sub", "FFN"), ("norm", "RMSNorm"),
          ("add", "+"), ("sub", "Attention"), ("norm", "RMSNorm")],
         taps=[(IN_Y, 317), (305, 155)], unbroken=True)
@@ -79,7 +84,7 @@ def transformer_block():
                   "sub"))
     b.append(text(96, 524, "crosses one on every layer. Hence warmup.", "sub"))
     b.append(text(424, 508, "The ember line runs input to output without", "sub"))
-    b.append(text(424, 524, "passing through a norm or a sublayer.", "sub"))
+    b.append(text(424, 524, "passing through a norm, a sublayer or a dropout.", "sub"))
     return svg(W, H, "\n".join(b))
 
 

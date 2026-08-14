@@ -6,8 +6,8 @@
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>depth that stops being an obstacle to training</strong></div>
-  <div><span>Prerequisites</span><strong>a sublayer $f$ · one identity path</strong></div>
-  <div><span>Core mechanism</span><strong>$y = x + f(x)$ — the plus sign is the whole idea</strong></div>
+  <div><span>Prerequisites</span><strong>a sublayer f · one identity path</strong></div>
+  <div><span>Core mechanism</span><strong>y = x + f(x) — the plus sign is the whole idea</strong></div>
   <div><span>Common mistakes</span><strong>believing it prevents overfitting, or that depth is now free</strong></div>
 </div>
 
@@ -60,11 +60,27 @@ Which is why residual depth behaves more like width: it is not doing $L$ sequent
 
 </details>
 
+## The full sublayer also has a Dropout
+
+The formulas above were simplified to keep the residual in focus. The 2017 sublayer is really:
+
+$$\text{LayerNorm}\big(x + \text{Dropout}(f(x))\big)$$
+
+Dropout zeroes a fraction $p$ of activations during training and divides the rest by $1-p$ to keep the expectation, then switches off entirely at inference. It stops the model leaning on any fixed set of channels, and what that buys is **generalisation**. The paper uses $p=0.1$ in three places: each sublayer's output, the embedding-plus-positional-encoding sum, and the attention weights.
+
+**Placement matters: dropout applies to the branch output $f(x)$, never to $x$.**
+
+$$\underbrace{x + \text{Dropout}(f(x))}_{\text{identity path intact}} \qquad\text{vs}\qquad \underbrace{\text{Dropout}(x) + f(x)}_{\text{path broken}}$$
+
+Put dropout on $x$ and the clean route derived above gets randomly cut at every layer — the $I$ term stops holding and the residual has bought nothing. It has to stay inside the branch: **the residual stream must stay clean.**
+
+Worth knowing: large-model pretraining now usually sets dropout to 0. With enough data, overfitting is not the binding constraint and dropout only slows convergence. It survives in finetuning, small models, and limited-data settings.
+
 ## How it interacts with normalisation
 
-Different problems, but their **relative placement** matters:
+Three different problems, but their **relative placement** matters:
 
-$$\underbrace{\text{Norm}(x + f(x))}_{\text{post-norm, 2017}} \qquad\text{vs}\qquad \underbrace{x + f(\text{Norm}(x))}_{\text{pre-norm, now}}$$
+$$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm, 2017}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm, now}}$$
 
 post-norm puts the norm *on* the residual path, so the clean identity route above is **interrupted** — every layer crosses a norm. That is exactly why the original Transformer needs warmup.
 
@@ -107,6 +123,17 @@ Left alone, deep layers reach a scale that saturates the softmax.
 pre-norm trains more easily: no norm on the identity path, so the gradient has a clean route, warmup can be crude, and depth scales further.
 
 post-norm sometimes ends up slightly better when it trains at all, since every layer's output is normalised. But it is very sensitive to the schedule, and in practice stability won.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Where does dropout go, and why not on the residual stream?</summary>
+
+On the branch output: $x + \text{Dropout}(f(x))$.
+
+Not on $x$, because that breaks the identity path — cut randomly at every layer, the $I$ in $\partial y/\partial x = I + \partial f/\partial x$ stops being reliable and the residual's contribution to gradient flow is cancelled out. The original paper also applies dropout after the embedding + positional encoding sum, and to the attention weights.
+
+Note that large-model pretraining often sets dropout to 0 now: with enough data, overfitting isn't the binding constraint and it just slows convergence.
 
 </details>
 
