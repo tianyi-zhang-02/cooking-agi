@@ -82,6 +82,7 @@ group = "foundations"
 zh  = "必修 · 从 Token 到生成"
 en  = "Core · Token to generation"
 order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
+         "multi-head-attention.md", "normalization.md", "residual-connections.md",
          "vanilla-transformer.md", "decoder-only.md"]
 
 [[section]]
