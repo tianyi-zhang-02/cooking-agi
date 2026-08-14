@@ -676,3 +676,42 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
   .learning-path span { grid-row: 1 / 3; }
   .learning-path strong, .learning-path small { margin: 0; }
 }
+
+/* -------- foldable blocks inside prose ---------------------------------- */
+.prose details {
+  margin: 1.2rem 0; border: 1px solid var(--rule); border-radius: 9px;
+  background: var(--panel); overflow: hidden;
+}
+.prose details > summary {
+  padding: .58rem .85rem; cursor: pointer; list-style: none;
+  font-family: var(--sans); font-size: .85rem; line-height: 1.45;
+  display: flex; align-items: center; gap: .55rem;
+}
+.prose details > summary::-webkit-details-marker,
+.prose details > summary::marker { display: none; content: ""; }
+.prose details > summary::after {
+  content: ""; flex: none; margin-left: auto; width: 6px; height: 6px;
+  border-right: 1.6px solid var(--muted); border-bottom: 1.6px solid var(--muted);
+  transform: rotate(45deg); transition: transform .16s ease;
+}
+.prose details[open] > summary::after { transform: rotate(-135deg); }
+.prose details > summary:hover { background: var(--rule-soft); }
+.prose details[open] > summary { border-bottom: 1px solid var(--rule-soft); }
+.prose details > *:not(summary) { padding-left: .85rem; padding-right: .85rem; }
+.prose details > *:last-child { padding-bottom: .5rem; }
+.prose details > .code-wrap { padding: 0 .6rem; }
+
+/* a runnable implementation */
+.prose details.code-drop > summary { color: var(--link); }
+.prose details.code-drop > summary b { color: var(--ink); }
+
+/* an interview question: the summary IS the question */
+.prose details.interview { border-left: 3px solid var(--ember); }
+.prose details.interview > summary { font-weight: 600; }
+.prose details.interview > summary::before {
+  content: "Q"; flex: none;
+  font-family: var(--mono); font-size: .68rem; font-weight: 700;
+  color: var(--ember); border: 1px solid color-mix(in srgb, var(--ember) 45%, transparent);
+  border-radius: 4px; padding: .04rem .3rem;
+}
+.prose details.interview + details.interview { margin-top: -.6rem; }
