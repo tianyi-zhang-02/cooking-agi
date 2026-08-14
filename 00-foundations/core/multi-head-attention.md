@@ -17,6 +17,92 @@
 
 多头的意思是：同一句话同时问好几个不同的问题——一个头盯语法搭配，一个头盯指代，一个头盯位置邻近。问完各自取一份，再拼起来。
 
+## 从输入到输出：attention matrix 到底装了什么
+
+先把容易误解的比喻放下。$Q$、$K$、$V$ 本质上只是同一个输入 $X$ 经过三组不同的可学习线性投影：
+
+$
+Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V
+$
+
+它们不是三个单独的维度，也没有人为规定好的语义。假设序列有 $T$ 个 token，每个头的维度是 $d_k$，那么 $Q,K,V$ 的形状都是 $(T,d_k)$。公式赋予了它们不同的**计算角色**：$Q$ 和 $K$ 用来算权重，$V$ 是之后真正被加权汇总的向量。
+
+完整计算只有下面五步。
+
+### 1. 每两个 token 算一个标量分数
+
+$
+S=\frac{QK^\top}{\sqrt{d_k}},\qquad
+S_{ij}=\frac{\mathbf q_i^\top\mathbf k_j}{\sqrt{d_k}}
+$
+
+$S$ 的形状是 $(T,T)$，这就是 attention score matrix。第 $i$ 行表示“当前位置 $i$ 想从哪里取信息”，第 $j$ 列表示“候选来源位置 $j$”。其中每个格子 $S_{ij}$ 只是一个标量；**这里还没有使用 $V$**。
+
+### 2. Decoder-only 模型先把未来位置遮住
+
+GPT 在位置 $i$ 预测下一个 token 时，只允许使用位置 $i$ 及其左边的信息。因果 mask 写成：
+
+$
+M_{ij}=
+\begin{cases}
+0, & j\le i\\
+-\infty, & j>i
+\end{cases}
+$
+
+三个 token 的分数矩阵会变成：
+
+$
+S+M=
+\begin{bmatrix}
+s_{11} & -\infty & -\infty\\
+s_{21} & s_{22} & -\infty\\
+s_{31} & s_{32} & s_{33}
+\end{bmatrix}
+$
+
+mask 不是让模型只看前一个 token，而是让它看到**自己和之前的所有 token**，同时看不到未来。训练时所有位置会并行计算；如果不遮住右上角，前面的位置就能直接读取后面的正确答案，训练目标会发生信息泄漏。双向 encoder 通常没有 causal mask，但仍可能使用 padding mask。
+
+### 3. 对每一行做 softmax
+
+$
+A=\operatorname{softmax}_{j}(S+M)
+$
+
+Softmax 沿列索引 $j$ 进行，因此每一行满足：
+
+$
+\sum_j A_{ij}=1
+$
+
+由于 $e^{-\infty}=0$，被 mask 的位置权重严格为 0。$A$ 才是通常所说的 attention weight matrix：第 $i$ 行给出了当前位置从所有允许位置各取多少信息。
+
+### 4. 用这一行权重汇总所有 value
+
+$
+O=AV,\qquad
+\mathbf o_i=\sum_j A_{ij}\mathbf v_j
+$
+
+所以 $QK^\top$ 只负责决定“权重是多少”，真正被取出并混合的是 $V$。attention matrix 的一个格子是标量，而输出 $\mathbf o_i$ 是一个 $d_k$ 维向量。
+
+### 5. 多个头各算一套，再合并
+
+每个头都有自己的投影、score matrix 和 attention weights，因此可以学到不同的匹配方式。所有头的输出先拼接，再经过 $W_O$ 投影回模型维度。
+
+整条数据流可以压缩成一句：
+
+$
+X\xrightarrow{W_Q,W_K,W_V}(Q,K,V)
+\xrightarrow{QK^\top/\sqrt{d_k}}S
+\xrightarrow{+M,\,\text{row-softmax}}A
+\xrightarrow{AV}O
+$
+
+也就是：**三个投影产生 Q/K/V；Q 和 K 生成 token 两两之间的权重；mask 删除不允许的信息路径；每行 softmax 归一化；最后用这些权重对 V 求加权和。**
+
+> MHA 里的 softmax 确实提供了非线性，但它主要在 token 维度上决定“和谁通信”。FFN 的激活函数则在每个 token 的特征维度上做非线性变换；两者作用不同。
+
 ## 第一勺：单个头在算什么
 
 $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
