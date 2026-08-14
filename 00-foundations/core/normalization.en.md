@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>activations held at a stable scale, layer after layer</strong></div>
-  <div><span>Prerequisites</span><strong>a batch of activations · two learned vectors $\gamma, \beta$</strong></div>
+  <div><span>Prerequisites</span><strong>a batch of activations · two learned vectors γ and β</strong></div>
   <div><span>Core mechanism</span><strong>which axis the mean and variance are taken over</strong></div>
   <div><span>Common mistakes</span><strong>BatchNorm meeting variable-length sequences or decoding</strong></div>
 </div>

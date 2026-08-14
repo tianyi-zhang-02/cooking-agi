@@ -6,8 +6,8 @@
 
 <div class="lesson-recipe">
   <div><span>解决什么问题</span><strong>让深度不再是训练的敌人</strong></div>
-  <div><span>前置知识</span><strong>一个子层 $f$ · 一条恒等通路</strong></div>
-  <div><span>核心机制</span><strong>$y = x + f(x)$，加号是全部</strong></div>
+  <div><span>前置知识</span><strong>一个子层 f · 一条恒等通路</strong></div>
+  <div><span>核心机制</span><strong>y = x + f(x)，加号是全部</strong></div>
   <div><span>常见错误</span><strong>以为它是「防止过拟合」或者「加深就行」</strong></div>
 </div>
 
@@ -64,11 +64,27 @@ $$\frac{\partial y_L}{\partial x_0} = \prod_{l=1}^{L}\left(I + \frac{\partial f_
 
 </details>
 
+## 完整的子层还有一个 Dropout
+
+前面为了把残差讲透，式子是简化过的。2017 原版的子层实际长这样：
+
+$$\text{LayerNorm}\big(x + \text{Dropout}(f(x))\big)$$
+
+Dropout 训练时按概率 $p$ 随机把一部分激活置零，剩下的除以 $1-p$ 保持期望不变，推理时整个关掉。它逼着模型不能依赖某几个固定通道，**换来的是泛化能力**。原论文取 $p=0.1$，用在三处：每个子层的输出、embedding 和位置编码相加之后、以及注意力权重上。
+
+**位置很关键：Dropout 作用在分支 $f(x)$ 的输出上，不作用在 $x$ 上。**
+
+$$\underbrace{x + \text{Dropout}(f(x))}_{\text{恒等通路完好}} \qquad\text{vs}\qquad \underbrace{\text{Dropout}(x) + f(x)}_{\text{通路被打断}}$$
+
+要是 dropout 落在 $x$ 上，前面推的那条「梯度原样通过」的路每层都会被随机砍掉一部分，$I$ 这一项就不成立了，残差也就白加了。所以它只能待在分支里：**残差流必须保持干净。**
+
+还有一点值得知道：现在的大模型预训练基本把 dropout 设成 0。数据量足够大时过拟合不是主要矛盾，而 dropout 会拖慢收敛。它主要活在微调、小模型、数据量有限这些场景里。
+
 ## 和归一化怎么配合
 
-两者解决的是不同问题，但它们的**相对位置**很要命：
+三样东西解决的是不同问题，但它们的**相对位置**很要命：
 
-$$\underbrace{\text{Norm}(x + f(x))}_{\text{post-norm，2017 原版}} \qquad\text{vs}\qquad \underbrace{x + f(\text{Norm}(x))}_{\text{pre-norm，现在}}$$
+$$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm，2017 原版}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm，现在}}$$
 
 post-norm 把 norm 压在残差通路上，上面那条「梯度原样通过」的路径**被打断了**——每层都要穿一次 norm。这正是原版 Transformer 必须配 warmup 的原因。
 
@@ -111,6 +127,17 @@ pre-norm 把 norm 挪进分支里，恒等通路完整保留，代价是输出�
 pre-norm 更容易训——恒等通路上没有 norm，梯度有一条干净的路，可以不用精细的 warmup，深度也更容易堆上去。
 
 post-norm 在训得起来的前提下，最终效果有时略好（每层输出都被归一化，表示更规整），但它对学习率调度非常敏感。工程上稳定性压倒了那一点点效果差异。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Dropout 加在哪一步？为什么不能加在残差流上？</summary>
+
+加在分支输出上：$x + \text{Dropout}(f(x))$。
+
+不能加在 $x$ 上，因为那会把恒等通路打断——每层随机砍掉一部分，$\partial y/\partial x = I + \partial f/\partial x$ 里的 $I$ 就不再是稳定的了，残差解决梯度传播的作用被抵消掉。原论文还在 embedding+位置编码之后、以及注意力权重上各加了一次 dropout。
+
+补一句：现在大模型预训练常把 dropout 设为 0，因为数据量足够时过拟合不是主要矛盾，而它会拖慢收敛。
 
 </details>
 
