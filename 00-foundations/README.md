@@ -4,14 +4,14 @@
 
 > 阅读时间：约 6 分钟 · 类型：学习地图 · 最近审阅：2026-08
 
-这不是一份按论文年份排列的历史课，而是一条**可以真正走完的学习路径**：先建立直觉，再拆数学与模块，最后用代码把每个关键机制跑起来。
+我一直不太喜欢那种一上来就画 Transformer 大框图的教程：每个方块似乎都认识，真让你从一段文字走到下一个 token，却很容易在中间迷路。
 
-目标不是背出 Transformer 的所有组件，而是回答五个逐层递进的问题：文本怎样变成数字？序列怎样保留过去？输入和输出怎样对齐？注意力怎样并行搬运信息？为什么今天的大语言模型几乎都是 decoder-only？
+所以这里不按论文年份排，也不急着堆今天最流行的组件。我想沿着一条**真的能走通的路**慢慢拆：文本先怎样变成数字，序列怎样记住过去，输入和输出怎样对齐，attention 为什么取代递归，最后才到今天的 decoder-only 大模型。先有直觉，再补数学，最后用代码验一遍。
 
 <div class="curriculum-hero">
-  <div><span class="level-chip core">必修</span><strong>先建立一张能用的心智地图</strong><p>每页只抓住核心计算、张量形状和一个最重要的局限。</p></div>
-  <div><span class="level-chip deep">进阶</span><strong>再进入数学和组件边界</strong><p>推梯度、拆 mask、看训练目标与推理路径怎样连接。</p></div>
-  <div><span class="level-chip lab">实验</span><strong>最后亲手验证</strong><p>同一个机制分别用纯 Python / NumPy 与 PyTorch 实现。</p></div>
+  <div><span class="level-chip core">必修</span><strong>先知道它为什么会出现</strong><p>每页只抓住核心计算、张量形状，以及上一代到底卡在哪里。</p></div>
+  <div><span class="level-chip deep">进阶</span><strong>觉得“不对劲”时再往下挖</strong><p>推梯度、拆 mask，看训练目标和推理路径是怎么接上的。</p></div>
+  <div><span class="level-chip lab">实验</span><strong>别只相信图，自己跑一次</strong><p>同一个机制分别用纯 Python / NumPy 与 PyTorch 写出来。</p></div>
 </div>
 
 ## 一条主线走到底
@@ -37,14 +37,14 @@ flowchart LR
 ## 第一层：必须知道
 
 <div class="curriculum-grid">
-  <a class="curriculum-card" href="core/tokenization.md"><span class="card-step">01 · Input</span><h3>Tokenization</h3><p>词表、subword、BPE、encode/decode，以及 tokenizer 为什么会改变序列长度和计算成本。</p><b>开始 →</b></a>
-  <a class="curriculum-card" href="core/recurrent-models.md"><span class="card-step">02 · State</span><h3>RNN 与 LSTM</h3><p>隐藏状态是什么，为什么普通 RNN 忘得太快，LSTM 的门到底在控制什么。</p><b>开始 →</b></a>
-  <a class="curriculum-card" href="core/seq2seq.md"><span class="card-step">03 · Mapping</span><h3>Seq2Seq</h3><p>encoder–decoder、teacher forcing、训练与生成的差别，以及 attention 为什么必然出现。</p><b>开始 →</b></a>
-  <a class="curriculum-card" href="core/vanilla-transformer.md"><span class="card-step">04 · Attention</span><h3>Vanilla Transformer</h3><p>原版 encoder–decoder 的三处注意力、位置编码、FFN、残差与 mask。</p><b>开始 →</b></a>
-  <a class="curriculum-card" href="core/decoder-only.md"><span class="card-step">05 · Generation</span><h3>Decoder-only</h3><p>因果语言模型、next-token loss、prefill、decode、KV cache 与采样。</p><b>开始 →</b></a>
+  <a class="curriculum-card" href="core/tokenization.md"><span class="card-step">01 · Input</span><h3>Tokenization</h3><p>模型看不见文字。先看看一句话怎样被切碎、编号，再变成向量。</p><b>开火 →</b></a>
+  <a class="curriculum-card" href="core/recurrent-models.md"><span class="card-step">02 · State</span><h3>RNN 与 LSTM</h3><p>如果只能从左往右读，过去该装在哪里？普通 RNN 又为什么总会忘？</p><b>开火 →</b></a>
+  <a class="curriculum-card" href="core/seq2seq.md"><span class="card-step">03 · Mapping</span><h3>Seq2Seq</h3><p>一段输入怎样变成另一段不同长度的输出，以及 attention 为什么迟早要来。</p><b>开火 →</b></a>
+  <a class="curriculum-card" href="core/vanilla-transformer.md"><span class="card-step">04 · Attention</span><h3>Vanilla Transformer</h3><p>先别管现代魔改版，回到原版看清三处 attention 各自在找什么。</p><b>开火 →</b></a>
+  <a class="curriculum-card" href="core/decoder-only.md"><span class="card-step">05 · Generation</span><h3>Decoder-only</h3><p>把 prompt 和答案放进同一条序列后，为什么一个 next-token loss 就够用。</p><b>开火 →</b></a>
 </div>
 
-读完这一层，你应该能不用术语堆砌，画出从文本到 logits 的完整数据流。
+读完这一层，最理想的状态不是会背名词，而是能拿一张白纸，把文字一路画到 logits，中间每一步都知道为什么在那里。
 
 ## 第二层：进阶拆解
 
@@ -54,7 +54,7 @@ flowchart LR
 | [注意力的数学与形状](transformer.md) | $Q/K/V$、mask、多头、RoPE、GQA、RMSNorm、SwiGLU | 一次 attention 到底乘了哪些矩阵？ |
 | [语言模型目标与生成](deep-dives/language-model-objective.md) | causal loss、teacher forcing、exposure gap、sampling、cache | 训练时一次并行算完，为什么生成时仍要逐 token？ |
 
-进阶内容默认可以折叠或跳过。它们不是“更高级的术语”，而是用来解释**模型什么时候会坏、为什么会坏**。
+进阶内容完全可以先跳过。我把它们留下，不是为了让目录看起来更硬核，而是因为模型一旦不工作，最后真正有用的往往正是这些东西：梯度从哪里断了、mask 遮错了谁、训练和生成为什么对不上。
 
 ## 第三层：手搓实验
 
@@ -73,15 +73,15 @@ python test_learning_path.py
 
 ## 怎样使用这套内容
 
-### 只想快速理解
+### 我只想先把主线看懂
 
 按 01 → 05 读“必修”，忽略所有 **进阶** 折叠块和代码。大约一小时可以建立完整主线。
 
-### 想准备研究或面试
+### 我想把它讲清楚，而不只是“听说过”
 
 每读完一个必修节点，就去读对应进阶页，并做到三件事：写出核心公式、标出每个张量形状、说出该架构解决了前一代的哪个瓶颈。
 
-### 想真正实现
+### 我想亲手写到它出 bug
 
 先跑无框架版本，再跑 PyTorch 版本。不要一开始就调用高层 API；如果你没亲手处理过一次 hidden state、causal mask 和 cache position，很多 bug 看起来都会像“训练不稳定”。
 
