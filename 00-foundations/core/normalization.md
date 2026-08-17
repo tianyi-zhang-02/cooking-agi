@@ -5,21 +5,21 @@
 > 阅读时间：约 8 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>把每层的输入拉回一个稳定的尺度</strong></div>
-  <div><span>手里的食材</span><strong>一批激活值 · 两个可学参数 $\gamma, \beta$</strong></div>
-  <div><span>核心火候</span><strong>沿哪条轴求均值和方差</strong></div>
-  <div><span>最容易翻车</span><strong>把 BatchNorm 用到变长序列和自回归生成上</strong></div>
+  <div><span>解决什么问题</span><strong>把每层的输入拉回一个稳定的尺度</strong></div>
+  <div><span>前置知识</span><strong>一批激活值 · 两个可学参数 γ 和 β</strong></div>
+  <div><span>核心机制</span><strong>沿哪条轴求均值和方差</strong></div>
+  <div><span>常见错误</span><strong>把 BatchNorm 用到变长序列和自回归生成上</strong></div>
 </div>
 
-## 先尝一口：区别只有一句话
+## 区别只有一句话
 
 **BatchNorm 沿着「一批样本」求统计量，LayerNorm 沿着「一个样本自己的特征」求。**
 
-其余所有差异——能不能变长、能不能 batch size 为 1、能不能自回归生成、训练和推理是否一致——全都是这一句话的推论。
+剩下的差别，能不能处理变长、batch size 能不能是 1、能不能自回归生成、训练和推理是否一致，全都能从这句话推出来。
 
 ![三种归一化各自沿哪条轴](../assets/norm-axes.svg)
 
-## 第一勺：三个公式
+## 三个公式
 
 **BatchNorm**（对每个特征 $j$，在批次维上统计）：
 
@@ -35,15 +35,15 @@ $$\mu_i = \frac{1}{d}\sum_{j=1}^{d} x_{ij}, \qquad y_{ij} = \gamma_j\,\frac{x_{i
 
 $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_{k} x_{ik}^2+\epsilon}}$$
 
-注意 $\gamma, \beta$ 三者都是**按特征维**的，长度都是 $d$。变的只是统计量沿哪条轴算。
+三种写法里，$\gamma$ 和 $\beta$ 都是**按特征维**走的，长度都是 $d$。真正变的只有一件事：统计量沿哪条轴算。
 
-## 翻车现场：BatchNorm 在语言模型里活不下来
+## BatchNorm 为什么在语言模型里用不了
 
-**1. 训练和推理是两套行为。** BatchNorm 训练时用当前批次的统计量，推理时用训练期间累积的滑动平均。这是它唯一一个「同一份权重，两种前向」的模块——微调、分布漂移、BN 层没切 `eval()`，都会在这里出事。
+**1. 训练和推理是两套行为。** 训练时它用当前批次的统计量，推理时改用训练期间累积的滑动平均。同一份权重，两种前向，这在常见的层里几乎是独一份。微调、分布漂移、忘了调 `model.eval()`，都会在这里出事。
 
-**2. 变长序列没有可用的统计量。** 一个批次里句子长度不同，位置 500 上可能只有 3 个样本有值。用 3 个样本估的均值方差，噪声大到没有意义。
+**2. 变长序列估不出统计量。** 一个批次里句子长短不一，位置 500 上可能只有 3 个样本有值。拿 3 个样本去估均值和方差，噪声大到不能用。
 
-**3. 自回归生成时 batch size 可能是 1。** 单个样本算不出有意义的批统计量——方差为 0，$x-\mu$ 也为 0，输出不携带任何信息。PyTorch 干脆**直接报错**：
+**3. 自回归生成时 batch size 可能是 1。** 一个样本算不出批统计量：方差是 0，$x-\mu$ 也是 0，输出里不剩任何信息。PyTorch 索性**直接报错**：
 
 ```
 ValueError: Expected more than 1 value per channel when training,
@@ -82,7 +82,7 @@ LayerNorm 对上面四条**全部免疫**，因为它只看一个 token 自己�
 
 </details>
 
-## 动手
+## 动手验证
 
 [`../code/norm_compare.py`](../code/norm_compare.py) 用同一批激活值分别跑三种归一化，打印各自沿哪条轴统计、以及把 batch size 降到 1 时 BatchNorm 怎么塌掉。
 
@@ -140,7 +140,7 @@ post-norm 是 $\text{Norm}(x + f(x))$，norm 压在残差通路上；pre-norm �
 
 </details>
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>如果真的理解了，你应该能解释：</strong>
@@ -152,6 +152,6 @@ post-norm 是 $\text{Norm}(x + f(x))$，norm 压在残差通路上；pre-norm �
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
-归一化让每层的输入尺度可控，但深度真正可行还差另一半——[残差连接](residual-connections.md)。
+归一化让每层输入的尺度可控，但深度真正可行还差另一半——[残差连接](residual-connections.md)。

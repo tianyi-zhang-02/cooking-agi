@@ -13,11 +13,11 @@
   <div><span>最后要能证明</span><strong>实现满足因果性、位置相对性与 cache 等价性</strong></div>
 </div>
 
-## 先尝一口：Attention 搬信息，FFN 加工信息
+## Attention 搬信息，FFN 加工信息
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。
 
-## 用做菜来理解
+## 一个直观的类比
 
 - **注意力**：每道工序前，先环顾整个案板，决定这一步该从哪几样食材取味。
 - **FFN**：拿到取来的味道之后，在自己这一格里加工。
@@ -136,7 +136,7 @@ $$\text{lr}(t) = d_{\text{model}}^{-0.5} \cdot \min\big(t^{-0.5},\; t \cdot t_{\
 
 > 实测提醒：`LambdaLR` 是拿 **base_lr 乘** lambda 的。把 Adam 的 `lr` 设成 0 再挂 Noam 调度，学习率会永远是 0，而 loss 因为 dropout 噪声看起来还在动。这个坑很常见。
 
-## 调味顺序：位置编码从正弦到 RoPE
+## 位置编码从正弦到 RoPE
 
 注意力本身对顺序**完全不敏感**——打乱输入的顺序，输出只是跟着打乱。位置信息必须显式注入。
 
@@ -228,7 +228,7 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 
 带 cache 时最容易翻车的是 mask：query 的绝对位置是 `cache.pos + i`，key 从 0 数到 `cache.pos + T - 1`，所以 mask 是**非方阵**的 $(T, S)$；RoPE 的 cos/sin 也得从 `cache.pos` 切片。而且 `cache.pos` 每层前向只推进**一次**（在层循环之后），写在 `update()` 里会翻 $n_{\text{layer}}$ 倍。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check advanced">
   <strong>这一大锅拆完，至少要能守住四条线：</strong>
@@ -240,7 +240,7 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
 - [从线性模型到神经网络](from-linear-to-neural.md) —— 为什么最后一层永远是线性分类器
 - [Post-Training](../05-post-training/) —— 这些参数后来怎么被继续改

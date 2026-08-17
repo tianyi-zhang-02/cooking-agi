@@ -81,7 +81,7 @@ active utilization = useful busy time / allocated GPU time
 - checkpoint 与数据读取带宽；
 - 服务的峰值与安全余量。
 
-## 动手练习
+## 动手验证
 
 1. 画出一个训练 job 从提交到结束的状态机。
 2. 为单卡、八卡和跨节点任务设计资源请求。

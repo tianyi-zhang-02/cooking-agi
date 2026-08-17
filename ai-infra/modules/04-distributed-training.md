@@ -94,7 +94,7 @@ scaling efficiency = single-device time / (device count × distributed time)
 
 定义吞吐口径时必须明确 global batch、tokens 和 gradient accumulation。
 
-## 动手练习
+## 动手验证
 
 1. 跑通两张 GPU 的 DDP，并观察 gradient AllReduce。
 2. 用相同模型比较 DDP 与 FSDP2 的峰值显存和 step time，并检查参数的 `DTensor` placement。

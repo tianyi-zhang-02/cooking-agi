@@ -5,13 +5,13 @@
 > Reading time: ~9 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
-  <div><span>What this makes</span><strong>every position fetching what it needs from the sequence</strong></div>
-  <div><span>Ingredients</span><strong>three projections $W_Q, W_K, W_V$ · one output projection $W_O$</strong></div>
-  <div><span>The technique</span><strong>scaled dot product · split into heads · mask before softmax</strong></div>
-  <div><span>Where it burns</span><strong>reshape order, mask timing, dividing by the wrong dimension</strong></div>
+  <div><span>The problem</span><strong>every position fetching what it needs from the sequence</strong></div>
+  <div><span>Prerequisites</span><strong>three projections W_Q, W_K, W_V · one output projection W_O</strong></div>
+  <div><span>Core mechanism</span><strong>scaled dot product · split into heads · mask before softmax</strong></div>
+  <div><span>Common mistakes</span><strong>reshape order, mask timing, dividing by the wrong dimension</strong></div>
 </div>
 
-## One taste: look it up, then average
+## In one sentence: look it up, then average
 
 Each position carries a **question** (query) and asks every position's **index** (key). The better they match, the more it takes from that position's **content** (value). What comes back is a weighted average.
 
@@ -148,7 +148,7 @@ In code it is one $(d_\text{model}, d_\text{model})$ projection reshaped into he
 
 **The intuition for #3.** Zeroing entries after the softmax leaves the row no longer summing to 1, and the masked positions have already taken probability mass. $-\infty$ is what "this route does not exist" actually means.
 
-## Try it: three implementations that agree
+## Verify it: three implementations that agree
 
 <details class="code-drop" markdown="1">
 <summary><b>From scratch</b> · pure NumPy, no framework</summary>
@@ -278,7 +278,7 @@ Yes, and they often partly do. Heads converging to similar attention patterns is
 
 </details>
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>You understand this if you can:</strong>

@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>A sequence position that carries the past forward</strong></div>
-  <div><span>Ingredients</span><strong>current input · previous hidden state</strong></div>
+  <div><span>Prerequisites</span><strong>current input · previous hidden state</strong></div>
   <div><span>Core technique</span><strong>shared update · LSTM gates · cell state</strong></div>
   <div><span>Most common failure</span><strong>long dependencies and sequential execution</strong></div>
 </div>
@@ -39,7 +39,7 @@ The forget gate preserves old memory, the input gate writes a candidate, and the
 
 Run the NumPy forward pass in [`../code/sequence_numpy.py`](../code/sequence_numpy.py) and the trainable comparison in [`../code/sequence_torch.py`](../code/sequence_torch.py).
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>You should now be able to explain:</strong>

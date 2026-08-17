@@ -83,7 +83,7 @@ zh  = "必修 · 从 Token 到生成"
 en  = "Core · Token to generation"
 order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
          "multi-head-attention.md", "normalization.md", "residual-connections.md",
-         "vanilla-transformer.md", "decoder-only.md"]
+         "vanilla-transformer.md", "decoder-only.md", "decoding.md"]
 
 [[section]]
 dir = "00-foundations/deep-dives"
@@ -124,6 +124,7 @@ en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
+order = ["README.md", "rlhf-pipeline.md"]
 group = "pipeline"
 zh  = "Post-Training"
 en  = "Post-training"
@@ -185,6 +186,16 @@ group = "open-source"
 zh    = "NeMo RL"
 en    = "NeMo RL"
 order = ["README.md"]
+
+# --- 强化学习：训练那一侧的语义，和 post-training 直接相连
+
+[[section]]
+dir   = "rl"
+group = "pipeline"
+zh    = "强化学习基础"
+en    = "RL basics"
+order = ["README.md", "mdp-and-policy-gradient.md", "baseline-and-advantage.md",
+         "ppo.md"]
 
 [[section]]
 dir = "papers"
