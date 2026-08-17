@@ -17,6 +17,92 @@ Each position carries a **question** (query) and asks every position's **index**
 
 Multi-head means asking several different questions at once — one head tracking syntax, another coreference, another simple adjacency — then concatenating the answers.
 
+## From input to output: what is actually inside the attention matrix?
+
+First set aside the mnemonic. $Q$, $K$, and $V$ are simply three learned linear projections of the same input $X$:
+
+$
+Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V
+$
+
+They are not three individual dimensions, and their coordinates have no human-assigned meanings. For a sequence of $T$ tokens and head dimension $d_k$, each of $Q,K,V$ has shape $(T,d_k)$. The formula gives them different **computational roles**: $Q$ and $K$ determine the weights; $V$ supplies the vectors that are later aggregated.
+
+The full computation has five steps.
+
+### 1. Compute one scalar for every pair of tokens
+
+$
+S=\frac{QK^\top}{\sqrt{d_k}},\qquad
+S_{ij}=\frac{\mathbf q_i^\top\mathbf k_j}{\sqrt{d_k}}
+$
+
+$S$ has shape $(T,T)$ and is the attention score matrix. Row $i$ asks where position $i$ should fetch information from; column $j$ is candidate source position $j$. Each cell $S_{ij}$ is one scalar. **$V$ has not been used yet.**
+
+### 2. A decoder-only model blocks future positions
+
+When GPT predicts from position $i$, it may use position $i$ and everything to its left, but nothing to its right. The causal mask is
+
+$
+M_{ij}=
+\begin{cases}
+0, & j\le i\\
+-\infty, & j>i
+\end{cases}
+$
+
+For three tokens:
+
+$
+S+M=
+\begin{bmatrix}
+s_{11} & -\infty & -\infty\\
+s_{21} & s_{22} & -\infty\\
+s_{31} & s_{32} & s_{33}
+\end{bmatrix}
+$
+
+The mask does not restrict a token to only its immediate predecessor. It can see **itself and every earlier token**, but no future token. Training evaluates all positions in parallel; without the upper triangle masked, earlier positions could read later ground-truth tokens and leak the answer. A bidirectional encoder normally has no causal mask, though it may still use a padding mask.
+
+### 3. Apply softmax row by row
+
+$
+A=\operatorname{softmax}_{j}(S+M)
+$
+
+Softmax runs over source index $j$, so every row satisfies
+
+$
+\sum_j A_{ij}=1
+$
+
+Because $e^{-\infty}=0$, masked positions receive exactly zero weight. $A$ is the attention weight matrix: row $i$ says how much position $i$ takes from every allowed source position.
+
+### 4. Use that row to aggregate the values
+
+$
+O=AV,\qquad
+\mathbf o_i=\sum_j A_{ij}\mathbf v_j
+$
+
+Thus $QK^\top$ only determines the weights; the vectors actually fetched and mixed come from $V$. One cell of the attention matrix is a scalar, while output $\mathbf o_i$ is a $d_k$-dimensional vector.
+
+### 5. Let every head do this separately, then merge
+
+Each head has its own projections, score matrix, and attention weights, so heads can learn different matching rules. Their outputs are concatenated and projected through $W_O$ back to the model dimension.
+
+The whole data flow fits in one line:
+
+$
+X\xrightarrow{W_Q,W_K,W_V}(Q,K,V)
+\xrightarrow{QK^\top/\sqrt{d_k}}S
+\xrightarrow{+M,\,\text{row-softmax}}A
+\xrightarrow{AV}O
+$
+
+In words: **three projections produce Q/K/V; Q and K produce pairwise token weights; the mask removes forbidden information paths; row-wise softmax normalizes the weights; those weights finally average V.**
+
+> Softmax does make MHA nonlinear, primarily by choosing communication across the token dimension. The FFN activation instead performs a nonlinear transformation across each token's feature dimensions; the two serve different roles.
+
 ## A single head
 
 $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
