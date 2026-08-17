@@ -92,7 +92,7 @@ compression ratio ≈ original bits / quantized bits
 2. model-level：loss、perplexity、task metrics；
 3. system-level：latency、throughput、memory 与 cost。
 
-## 动手练习
+## 动手验证
 
 1. 打印 FP16 与 BF16 对极大、极小数的表示差异。
 2. 用 FP32、FP16、BF16 完成同一个矩阵乘法并比较误差和时间。

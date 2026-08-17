@@ -62,7 +62,7 @@ AddressSanitizer 检查许多越界、use-after-free 等内存错误；Undefined
 
 Profiler 不直接告诉你修复方案。它提供“时间和资源在哪里”的证据，再由系统模型解释原因。
 
-## 动手检查
+## 动手验证
 
 1. 建立 CMake 的 debug、checked 和 release targets。
 2. 故意加入越界和 signed overflow，观察不同工具报告。

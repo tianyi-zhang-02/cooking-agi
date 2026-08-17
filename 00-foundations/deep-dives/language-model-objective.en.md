@@ -23,7 +23,7 @@ Teacher forcing trains on true prefixes; generation continues from model-produce
 
 Incremental decode should match a full forward pass within numerical tolerance. Correct cache positions, K/V order, causal visibility, per-layer position consistency, and beam reordering are invariants—not optional optimizations. [`../code/test_model.py`](../code/test_model.py) checks this equivalence.
 
-## Taste check
+## Self-check
 
 <div class="taste-check advanced">
   <strong>When generation quality fails, ask:</strong>

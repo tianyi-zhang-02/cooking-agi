@@ -5,13 +5,13 @@
 > 阅读时间：约 7 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>把无限变化的字符串，装进一个有限词表</strong></div>
-  <div><span>手里的食材</span><strong>原始文本 · vocabulary · merge rules</strong></div>
+  <div><span>解决什么问题</span><strong>把无限变化的字符串，装进一个有限词表</strong></div>
+  <div><span>前置知识</span><strong>原始文本 · vocabulary · merge rules</strong></div>
   <div><span>最后端上桌</span><strong>token IDs · attention mask · embeddings</strong></div>
-  <div><span>最容易翻车</span><strong>把 tokenizer 当成无关紧要的预处理</strong></div>
+  <div><span>常见错误</span><strong>把 tokenizer 当成无关紧要的预处理</strong></div>
 </div>
 
-## 先尝一口：模型其实没见过文字
+## 模型其实没见过文字
 
 我们天天说模型“读”了一句话，但它其实从没看见过文字。Tokenizer 先把字符串切成有限词表里的 token，再映射成整数 ID；模型真正收到的，从头到尾都只是这些数字。
 
@@ -62,7 +62,7 @@ l o w e r </w>
 
 </details>
 
-## 厨房分工：四个很容易搅在一起的东西
+## 四个很容易搅在一起的东西
 
 1. **Vocabulary**：token 与 ID 的静态映射。
 2. **Merge rules / model**：怎样把原始符号组合成 token。
@@ -71,7 +71,7 @@ l o w e r </w>
 
 `decode(encode(text))` 通常应该复原文本，但 normalization 可能使它不是逐字节可逆。PAD 只负责批处理对齐，不应该被模型当作内容；EOS 则是真正的生成终止信号。
 
-## 装盘：把输出形状接到神经网络
+## 把输出形状接到神经网络
 
 假设 batch 中有 4 条文本，padding 后长度 12，模型维度 768：
 
@@ -87,7 +87,7 @@ Tokenizer 结束于 `(B, T)`；神经网络从 `(B, T, d)` 开始。
 
 运行 [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py)。它只用 Python 标准库训练一个迷你 BPE，没有任何神秘依赖。最好顺手改掉训练语料：你会很直观地看到，同一句话为什么会被另一锅数据切成完全不同的样子。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>合上页面前，试着不用术语回答：</strong>
@@ -98,6 +98,6 @@ Tokenizer 结束于 `(B, T)`；神经网络从 `(B, T, d)` 开始。
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
 现在文字终于变成了向量，但每个位置还互不认识。下一页看 [RNN 与 LSTM](recurrent-models.md)：如果只能从左往右读，过去到底该装在哪里？

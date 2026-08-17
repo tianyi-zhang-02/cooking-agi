@@ -51,7 +51,7 @@ offset(row, col) = row × columns + col
 
 两个 pointer 可能指向重叠区域。编译器必须保守处理可能 alias 的访问。C 的 `restrict` 可以承诺特定 pointer 在作用域内不重叠，从而帮助优化；承诺错误会产生 undefined behavior。
 
-## 动手检查
+## 动手验证
 
 1. 写一个 `Matrix {float* data; rows; cols; stride;}`。
 2. 实现 row-major indexing、transpose view 和 contiguous copy。

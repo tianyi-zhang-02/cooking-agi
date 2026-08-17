@@ -58,7 +58,7 @@ Prefill 的矩阵更大，通常更偏 compute-intensive；decode 每步 query �
 | Decode | context length、active sequences、KV dtype、GQA |
 | End-to-end | TTFT、TPOT、throughput、P95/P99 |
 
-## 动手检查
+## 动手验证
 
 1. 对同一输入比较 FP32 与 BF16/FP16。
 2. 为 cache append、sequence length 和 batch reuse 写边界测试。

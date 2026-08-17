@@ -80,7 +80,7 @@ arithmetic intensity = floating-point operations / bytes moved
 time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 ```
 
-## 动手练习
+## 动手验证
 
 1. 写 vector addition，并检查连续与跨步访问。
 2. 实现 parallel reduction，处理 block 内同步。

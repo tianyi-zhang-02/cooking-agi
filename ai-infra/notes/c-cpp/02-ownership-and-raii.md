@@ -63,7 +63,7 @@ Tensor transpose、slice 和 reshape 经常创建 view。API 必须选择：
 
 没有一种方案永远最好，但 lifetime contract 必须明确。
 
-## 动手检查
+## 动手验证
 
 1. 实现 owning `Tensor` 和 non-owning `TensorView`。
 2. 测试 copy 后修改一个 tensor 不影响另一个。
