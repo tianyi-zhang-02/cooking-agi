@@ -105,7 +105,7 @@ rollback frequency
 
 线上指标必须记录 exposure policy。点击、停留和继续对话都受到旧系统展示内容的影响，不能直接当作天然偏好。
 
-## 动手练习
+## 动手验证
 
 1. 为一个 tool-using agent 定义 trace schema。
 2. 从 50 个失败样本建立 taxonomy，并检查分类一致性。

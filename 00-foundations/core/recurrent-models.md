@@ -5,17 +5,17 @@
 > 阅读时间：约 8 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>让当前位置带着过去一起往前走</strong></div>
-  <div><span>手里的食材</span><strong>当前输入 xₜ · 旧状态 hₜ₋₁</strong></div>
-  <div><span>核心火候</span><strong>共享更新函数 · LSTM gates · cell state</strong></div>
-  <div><span>最容易翻车</span><strong>长依赖、梯度消失，以及时间维无法并行</strong></div>
+  <div><span>解决什么问题</span><strong>让当前位置带着过去一起往前走</strong></div>
+  <div><span>前置知识</span><strong>当前输入 xₜ · 旧状态 hₜ₋₁</strong></div>
+  <div><span>核心机制</span><strong>共享更新函数 · LSTM gates · cell state</strong></div>
+  <div><span>常见错误</span><strong>长依赖、梯度消失，以及时间维无法并行</strong></div>
 </div>
 
-## 先尝一口：一张不断改写的小纸条
+## 一张不断改写的小纸条
 
 RNN 每读一个 token，就把“我到目前为止知道什么”重新写进一张固定大小的小纸条，也就是隐藏状态。LSTM 没换掉这张纸，只是在旁边加了几道门，让模型自己决定什么该写、什么该留、什么可以忘。
 
-## 第一勺：普通 RNN 每一步改什么
+## 普通 RNN 每一步改什么
 
 $$h_t = \tanh(W_x x_t + W_h h_{t-1} + b), \qquad y_t = W_o h_t$$
 
@@ -32,7 +32,7 @@ flowchart LR
 
 “循环”不是图里真的有一条无限环，而是同一个 cell 被沿时间展开了 $T$ 次。
 
-## 翻车现场：这张纸越写越糊
+## 这张纸越写越糊
 
 训练时，早期状态收到的梯度需要穿过很多次同一个 Jacobian。若每次都把梯度缩小一点，连乘后就接近 0；若每次都放大一点，就会爆炸。
 
@@ -73,7 +73,7 @@ LSTM 缓解遗忘，但没有消除递归带来的串行计算和固定状态瓶
 
 [`../code/sequence_numpy.py`](../code/sequence_numpy.py) 用 NumPy 展开 RNN 和 LSTM 前向计算；[`../code/sequence_torch.py`](../code/sequence_torch.py) 让两者学习一个延迟复制任务，并比较长依赖下的误差。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>如果真的理解了，你应该能解释：</strong>
@@ -84,6 +84,6 @@ LSTM 缓解遗忘，但没有消除递归带来的串行计算和固定状态瓶
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
 RNN 能读一段序列，但怎样把输入序列变成另一段不同长度的输出？继续看 [Seq2Seq](seq2seq.md)。

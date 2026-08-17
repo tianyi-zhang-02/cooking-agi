@@ -57,7 +57,7 @@ $$\frac{\partial c_t}{\partial c_{t-1}}=f_t$$
 
 对应实验在 [`../code/sequence_torch.py`](../code/sequence_torch.py)。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check advanced">
   <strong>不看公式，能否说清：</strong>

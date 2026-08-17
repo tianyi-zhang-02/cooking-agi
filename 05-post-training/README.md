@@ -6,7 +6,7 @@
 
 Pretraining 让模型学会“世界里通常有什么”，Post-Training 则让它学会“面对某类任务时，应该怎样表现和行动”。
 
-## 用做菜来理解
+## 一个直观的类比
 
 - **Pretraining**：看过大量菜谱、食材和做法，形成通用知识。
 - **Continued Pretraining**：集中学习某个菜系和领域语言。

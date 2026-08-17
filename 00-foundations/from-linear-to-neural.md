@@ -3,13 +3,13 @@
 **中文** · [English](from-linear-to-neural.en.md)
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>看懂神经网络如何把“切直线”变成复杂边界</strong></div>
-  <div><span>手里的食材</span><strong>线性模型 · sigmoid · cross-entropy · ReLU</strong></div>
-  <div><span>核心火候</span><strong>特征映射 · 链式法则 · backpropagation</strong></div>
-  <div><span>最容易翻车</span><strong>误以为层数或 sigmoid 本身带来了非线性边界</strong></div>
+  <div><span>解决什么问题</span><strong>看懂神经网络如何把“切直线”变成复杂边界</strong></div>
+  <div><span>前置知识</span><strong>线性模型 · sigmoid · cross-entropy · ReLU</strong></div>
+  <div><span>核心机制</span><strong>特征映射 · 链式法则 · backpropagation</strong></div>
+  <div><span>常见错误</span><strong>误以为层数或 sigmoid 本身带来了非线性边界</strong></div>
 </div>
 
-## 先尝一口：最后那一刀一直是直的
+## 最后那一刀一直是直的
 
 神经网络 = **学出来的坐标变换** + **一个线性分类器**。最后那一层永远是逻辑回归，只是它长在了新坐标系上。
 
@@ -188,7 +188,7 @@ def step(p, X, y, lr=0.05):
 
 <!-- widget:xor -->
 
-## 装盘：从线性模型一路接到 Transformer
+## 从线性模型一路接到 Transformer
 
 | | 特征映射 $\phi$ | 最后一步 | 边界形状 |
 | --- | --- | --- | --- |
@@ -211,7 +211,7 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
 
 还是**预测减真值**。`lm_head` 就是那个线性分类器，类别数换成 vocab_size；底下几十层注意力存在的唯一目的，是把空间弯折到「下一个 token 是什么」变得线性可读为止。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>不看上面的表，试着回答：</strong>

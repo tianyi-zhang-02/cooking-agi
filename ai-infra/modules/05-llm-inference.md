@@ -79,7 +79,7 @@ throughput = completed tokens or requests / wall-clock time
 
 报告 latency 时必须带 percentile 和 workload 分布，单一平均值几乎没有解释力。
 
-## 动手练习
+## 动手验证
 
 1. 用 vLLM、SGLang 或 TensorRT-LLM 启动一个小模型。
 2. 分别改变 prompt length、output length、并发和 batch token budget。

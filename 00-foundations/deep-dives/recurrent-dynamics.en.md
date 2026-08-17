@@ -27,7 +27,7 @@ When $f_t$ remains near one, information and gradients can travel without repeat
 
 Useful checks include gradient norms by distance, performance as dependency length grows, early-token interventions, and gate saturation. See [`../code/sequence_torch.py`](../code/sequence_torch.py).
 
-## Taste check
+## Self-check
 
 <div class="taste-check advanced">
   <strong>Without the equations, explain:</strong>

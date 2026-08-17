@@ -5,17 +5,17 @@
 > 阅读时间：约 9 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>把理解、条件生成和对话统一成 next-token prediction</strong></div>
-  <div><span>手里的食材</span><strong>一条 token stream · causal mask · target shift</strong></div>
-  <div><span>核心火候</span><strong>LM loss · prefill · KV cache · sampling</strong></div>
-  <div><span>最容易翻车</span><strong>把训练并行误解成生成也能并行</strong></div>
+  <div><span>解决什么问题</span><strong>把理解、条件生成和对话统一成 next-token prediction</strong></div>
+  <div><span>前置知识</span><strong>一条 token stream · causal mask · target shift</strong></div>
+  <div><span>核心机制</span><strong>LM loss · prefill · KV cache · sampling</strong></div>
+  <div><span>常见错误</span><strong>把训练并行误解成生成也能并行</strong></div>
 </div>
 
-## 先尝一口：所有东西都排进同一条序列
+## 所有东西都排进同一条序列
 
 把 instruction、context 和 answer 全都排进同一条 token 序列，用 causal mask 挡住未来，然后每个位置只做一件事：猜下一个 token。这就是 decoder-only 最迷人的地方——结构反而比 encoder–decoder 更统一。
 
-## 备菜：一条序列自己就能当训练数据
+## 一条序列自己就能当训练数据
 
 给定 token 序列 $x_1,\ldots,x_T$：
 
@@ -30,7 +30,7 @@ target:  [今,  天, 天, 气, 好]
 
 每个位置都提供一次监督，因此大规模无标注文本天然能构造训练样本。
 
-## 少了一口锅：Encoder 去哪了
+## Encoder 去哪了
 
 把“输入”和“输出”串在同一条序列里即可：
 
@@ -42,7 +42,7 @@ target:  [今,  天, 天, 气, 好]
 
 这不代表 encoder 没价值。双向表征、分类和部分检索任务仍常使用 encoder；decoder-only 的优势是**一个目标统一预训练、条件生成与对话**。
 
-## 两段火候：Prefill 很快，Decode 很长
+## Prefill 很快，Decode 很长
 
 ### Prefill
 
@@ -62,7 +62,7 @@ flowchart LR
     D2 --> D1
 ```
 
-## 调味：模型给分数，Sampling 决定怎么选
+## 模型给分数，Sampling 决定怎么选
 
 最后一层 hidden state 经过线性层得到词表上每个 token 的 logits：
 
@@ -75,7 +75,7 @@ $$z_t=W_{\text{vocab}}h_t, \qquad p_t=\text{softmax}(z_t / \tau)$$
 
 Sampling 是推理时怎么“下筷子”，不会改掉锅里原本的概率分布。temperature 高不代表模型突然更有创造力，只是我们更愿意去尝那些本来概率较低的 token。
 
-## 回锅：同一副骨架后来怎么 Post-Train
+## 同一副骨架后来怎么 Post-Train
 
 | 阶段 | 数据告诉模型什么 | 常见目标 |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ Sampling 是推理时怎么“下筷子”，不会改掉锅里原本的概率�
 
 [`../code/model.py`](../code/model.py) 是手写的现代 decoder-only；[`../code/test_model.py`](../code/test_model.py) 验证 causal mask、RoPE、GQA 和 KV cache；[`../code/train.py`](../code/train.py) 让它学习一个需要跨位置复制的任务。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>这一课真正要带走的是：</strong>
@@ -108,6 +108,6 @@ Sampling 是推理时怎么“下筷子”，不会改掉锅里原本的概率�
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
 继续读 [语言模型目标与生成](../deep-dives/language-model-objective.md)，再接到 [Post-Training](../../05-post-training/)。

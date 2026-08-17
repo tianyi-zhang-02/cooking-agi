@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>A variable-length output conditioned on an input sequence</strong></div>
-  <div><span>Ingredients</span><strong>source · target · BOS / EOS</strong></div>
+  <div><span>Prerequisites</span><strong>source · target · BOS / EOS</strong></div>
   <div><span>Core technique</span><strong>encoder · decoder · teacher forcing · attention</strong></div>
   <div><span>Most common failure</span><strong>fixed-vector bottleneck and train–generation mismatch</strong></div>
 </div>
@@ -35,7 +35,7 @@ The mismatch means generation errors can move later prefixes away from the train
 
 The Transformer keeps attention and removes recurrence. Run the `reverse` task in [`../code/sequence_torch.py`](../code/sequence_torch.py).
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>Explain these without the diagram:</strong>

@@ -5,24 +5,24 @@
 > 阅读时间：约 8 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>这节要做什么</span><strong>让所有位置并行交换信息，不再排队递归</strong></div>
-  <div><span>手里的食材</span><strong>token matrix · position · attention mask</strong></div>
-  <div><span>核心火候</span><strong>self-attention · cross-attention · FFN · residual</strong></div>
-  <div><span>最容易翻车</span><strong>三处 attention 混淆，以及 causal mask 遮错方向</strong></div>
+  <div><span>解决什么问题</span><strong>让所有位置并行交换信息，不再排队递归</strong></div>
+  <div><span>前置知识</span><strong>token matrix · position · attention mask</strong></div>
+  <div><span>核心机制</span><strong>self-attention · cross-attention · FFN · residual</strong></div>
+  <div><span>常见错误</span><strong>三处 attention 混淆，以及 causal mask 遮错方向</strong></div>
 </div>
 
-## 先尝一口：出去找信息，回来加工信息
+## 出去找信息，回来加工信息
 
 先忘掉那张塞满箭头的大框图。Transformer 一层其实只反复做两件事：**attention 去别的位置拿信息，FFN 留在当前位置加工信息。** 原版仍然是 encoder–decoder，但 recurrence 被彻底拿掉了。
 
-## 厨房分工：一层只有两种“工种”
+## 一层只有两种“工种”
 
 1. **Attention mixing**：不同 token 之间交换信息。
 2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
 
 外面再套 residual connection 与 normalization。堆很多层，本质上还是反复“出去找信息 → 回来加工信息”。这样记，比背整张结构图轻松很多。
 
-## 三口锅：三处 attention 在问不同的问题
+## 三处 attention 在问不同的问题
 
 | 位置 | Query | Key / Value | mask | 作用 |
 | --- | --- | --- | --- | --- |
@@ -78,7 +78,7 @@ $$z_t = E[x_t] + PE_t$$
 - 完整数学与现代组件：[Transformer 架构深拆](../transformer.md)
 - 无 PyTorch attention 前向：[`../code/sequence_numpy.py`](../code/sequence_numpy.py)
 
-## 出锅检查
+## 自检
 
 <div class="taste-check">
   <strong>画完结构图后，再问自己：</strong>
@@ -89,6 +89,6 @@ $$z_t = E[x_t] + PE_t$$
   </ol>
 </div>
 
-## 下一道菜
+## 继续读
 
 进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。

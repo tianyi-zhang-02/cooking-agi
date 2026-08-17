@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 372" width="730" height="372" role="img">
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="24" y="24" text-anchor="start">What each method has to keep in memory</text>
+<text class="sub" x="24" y="41" text-anchor="start">solid = weights being updated &#183; dashed = frozen &#183; the trend is downward, and it is not subtle</text>
+<text class="ttl" x="24" y="76" text-anchor="start">PPO</text>
+<text class="sub" x="24" y="92" text-anchor="start">InstructGPT, 2022</text>
+<rect class="box-1" x="24" y="108" width="158" height="30" rx="6"/>
+<text class="lbl" x="103.0" y="127.0" text-anchor="middle">Actor</text>
+<rect class="box-1" x="24" y="150" width="158" height="30" rx="6"/>
+<text class="lbl" x="103.0" y="169.0" text-anchor="middle">Critic</text>
+<rect class="box-q" x="24" y="192" width="158" height="30" rx="6"/>
+<text class="lbl" x="103.0" y="211.0" text-anchor="middle">Reward</text>
+<rect class="box-q" x="24" y="234" width="158" height="30" rx="6"/>
+<text class="lbl" x="103.0" y="253.0" text-anchor="middle">Reference</text>
+<text class="lbl-s" x="24" y="282" text-anchor="start">4 models, 2 trained</text>
+<text class="lbl-s" x="24" y="297" text-anchor="start">needs rollouts</text>
+<text class="ttl" x="196" y="76" text-anchor="start">GRPO</text>
+<text class="sub" x="196" y="92" text-anchor="start">no critic</text>
+<rect class="box-1" x="196" y="108" width="158" height="30" rx="6"/>
+<text class="lbl" x="275.0" y="127.0" text-anchor="middle">Actor</text>
+<rect class="box-q" x="196" y="150" width="158" height="30" rx="6"/>
+<text class="lbl" x="275.0" y="169.0" text-anchor="middle">Reward</text>
+<rect class="box-q" x="196" y="192" width="158" height="30" rx="6"/>
+<text class="lbl" x="275.0" y="211.0" text-anchor="middle">Reference</text>
+<text class="lbl-s" x="196" y="282" text-anchor="start">3 models, 1 trained</text>
+<text class="lbl-s" x="196" y="297" text-anchor="start">needs rollouts</text>
+<text class="ttl" x="368" y="76" text-anchor="start">RLVR</text>
+<text class="sub" x="368" y="92" text-anchor="start">reward is a program</text>
+<rect class="box-1" x="368" y="108" width="158" height="30" rx="6"/>
+<text class="lbl" x="447.0" y="127.0" text-anchor="middle">Actor</text>
+<rect class="box-q" x="368" y="150" width="158" height="30" rx="6"/>
+<text class="lbl" x="447.0" y="169.0" text-anchor="middle">Reference</text>
+<text class="lbl-s" x="368" y="282" text-anchor="start">2 models, 1 trained</text>
+<text class="lbl-s" x="368" y="297" text-anchor="start">needs rollouts</text>
+<text class="ttl" x="540" y="76" text-anchor="start">DPO</text>
+<text class="sub" x="540" y="92" text-anchor="start">no RL loop at all</text>
+<rect class="box-1" x="540" y="108" width="158" height="30" rx="6"/>
+<text class="lbl" x="619.0" y="127.0" text-anchor="middle">Policy</text>
+<rect class="box-q" x="540" y="150" width="158" height="30" rx="6"/>
+<text class="lbl" x="619.0" y="169.0" text-anchor="middle">Reference</text>
+<text class="lbl-s" x="540" y="282" text-anchor="start">2 models, 1 trained</text>
+<text class="lbl-s" x="540" y="297" text-anchor="start">offline pairs</text>
+<text class="sub" x="24" y="330" text-anchor="start">PPO's critic is a second full-size network being trained, which is why it roughly doubles the trainable</text>
+<text class="sub" x="24" y="346" text-anchor="start">footprint. GRPO drops it by using the spread within a group of samples as the baseline instead.</text>
+<text class="sub" x="24" y="362" text-anchor="start">RLVR goes further: when the reward is a checkable program, the learned reward model disappears too.</text>
+</svg>

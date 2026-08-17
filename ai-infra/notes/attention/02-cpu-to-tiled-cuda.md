@@ -62,7 +62,7 @@ time ≥ max(FLOPs/compute throughput, bytes/bandwidth)
 
 Tiling 的目标是增加复用和 arithmetic intensity。必须用 profile 验证 bytes、bandwidth 和 time，而不是因为使用 shared memory 就宣称成功。
 
-## 动手检查
+## 动手验证
 
 1. 对很小 shape 逐阶段比较 CPU/GPU 中间值。
 2. 测量四阶段的 kernel time 和 HBM traffic。

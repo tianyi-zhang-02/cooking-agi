@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>One next-token objective for understanding and generation</strong></div>
-  <div><span>Ingredients</span><strong>token stream · causal mask · shifted targets</strong></div>
+  <div><span>Prerequisites</span><strong>token stream · causal mask · shifted targets</strong></div>
   <div><span>Core technique</span><strong>LM loss · prefill · KV cache · sampling</strong></div>
   <div><span>Most common mistake</span><strong>Assuming parallel training implies parallel generation</strong></div>
 </div>
@@ -32,7 +32,7 @@ Pre-training, SFT, preference learning, and RL usually preserve the decoder-only
 
 Use [`../code/model.py`](../code/model.py), [`../code/test_model.py`](../code/test_model.py), and [`../code/train.py`](../code/train.py).
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>Carry these three distinctions forward:</strong>
