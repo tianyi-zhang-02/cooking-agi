@@ -36,7 +36,7 @@ A single user tower output compresses every interest into one point.
 
 If someone follows both machine-learning papers and home cooking, the mean vector lands between the two. **ANN takes top-K around that mean, and what comes back may belong to neither interest.**
 
-This isn't a capacity problem — swapping 0.6B for 8B doesn't fix it. It's a problem of **representational form**: a mean doesn't preserve modes. And it has an ugly property — **the more varied a user's interests, the more they get diluted**, which is exactly the population that most needs personalisation.
+This isn't a capacity problem — swapping a sub-1B encoder for one ten times larger doesn't fix it. It's a problem of **representational form**: a mean doesn't preserve modes. And it has an ugly property — **the more varied a user's interests, the more they get diluted**, which is exactly the population that most needs personalisation.
 
 $$\mathbf{z}_u = \frac{1}{|H_u|}\sum_{i \in H_u} \mathbf{e}_i \quad\Longrightarrow\quad \text{minority interests are divided away by } |H_u|$$
 

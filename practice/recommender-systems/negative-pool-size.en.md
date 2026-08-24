@@ -6,7 +6,7 @@
 
 ## In one sentence
 
-Contrastive learning is, at bottom, making the model take a multiple-choice test. In multi-GPU training it is easy to think you are setting a 768-way question while every device is actually answering a 32-way one — **with no error raised anywhere**. The number and composition of the options jointly determine difficulty; a large pool is not automatically a good pool.
+Contrastive learning is, at bottom, making the model take a multiple-choice test. In multi-GPU training it is easy to think you are setting a 1024-way question while every device is actually answering a 64-way one — **with no error raised anywhere**. The number and composition of the options jointly determine difficulty; a large pool is not automatically a good pool.
 
 ## Start with a multiple-choice question
 
@@ -21,7 +21,7 @@ That pile of random ones is the negatives. How many there are is how many option
 Which raises the question that matters: **how many options does this question have?**
 
 - 4-way: the model gets it right and you have learned almost nothing. Guessing scores 25%, and three of the four options are probably from a different planet than user A — all the model has to separate is "same universe or not."
-- 768-way: random sampling is more likely to include near misses, so the model usually needs a finer boundary. But if all 767 negatives remain trivial, the large pool is only a more expensive freebie.
+- 1024-way: random sampling is more likely to include near misses, so the model usually needs a finer boundary. But if all 1023 negatives remain trivial, the large pool is only a more expensive freebie.
 
 Retrieval faces the second situation for real: the candidate pool is wall-to-wall near-misses. So **too few options in training means drilling a model on freebies and then sending it to take the hard exam.**
 
@@ -33,7 +33,7 @@ In multi-GPU training, the framework handles model state and gradient communicat
 
 But **you write the question yourself, inside the loss function.** The framework has no idea what your loss is doing, and it will not go collect other devices' candidates to serve as your distractors.
 
-Which can leave you here: 24 devices, per-device batch of 32, and in your head the negative pool is 24×32 = 768. In reality each device only uses its own 32 samples as distractors. The question is still 32-way.
+Say you have 16 devices with a per-device batch of 64, so in your head the negative pool is 16×64 = 1024. In reality each device only uses its own 64 samples as distractors. The question is still 64-way.
 
 ```mermaid
 flowchart LR
