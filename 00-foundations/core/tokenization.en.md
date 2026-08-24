@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>A finite symbol system for open-ended strings</strong></div>
-  <div><span>Ingredients</span><strong>raw text · vocabulary · merge rules</strong></div>
+  <div><span>Prerequisites</span><strong>raw text · vocabulary · merge rules</strong></div>
   <div><span>What leaves the kitchen</span><strong>token IDs · attention mask · embeddings</strong></div>
   <div><span>Most common mistake</span><strong>Treating tokenization as neutral preprocessing</strong></div>
 </div>
@@ -61,7 +61,7 @@ If the same concept takes one token in one language and five in another, the lat
 
 Run [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py), a standard-library-only miniature BPE trainer.
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>Before moving on, explain:</strong>

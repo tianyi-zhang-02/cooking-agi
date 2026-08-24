@@ -5,13 +5,13 @@
 > Reading time: ~8 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
-  <div><span>What this makes</span><strong>activations held at a stable scale, layer after layer</strong></div>
-  <div><span>Ingredients</span><strong>a batch of activations · two learned vectors $\gamma, \beta$</strong></div>
-  <div><span>The technique</span><strong>which axis the mean and variance are taken over</strong></div>
-  <div><span>Where it burns</span><strong>BatchNorm meeting variable-length sequences or decoding</strong></div>
+  <div><span>The problem</span><strong>activations held at a stable scale, layer after layer</strong></div>
+  <div><span>Prerequisites</span><strong>a batch of activations · two learned vectors γ and β</strong></div>
+  <div><span>Core mechanism</span><strong>which axis the mean and variance are taken over</strong></div>
+  <div><span>Common mistakes</span><strong>BatchNorm meeting variable-length sequences or decoding</strong></div>
 </div>
 
-## One taste: the difference is a single sentence
+## The difference is a single sentence
 
 **BatchNorm takes its statistics across a batch of examples. LayerNorm takes them across one example's own features.**
 
@@ -35,7 +35,7 @@ $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_k x_{ik}^2 + \epsilon}}
 
 In all three, $\gamma$ and $\beta$ are **per feature**, length $d$. Only the statistics axis changes.
 
-## Where it burns: BatchNorm cannot survive a language model
+## Why BatchNorm cannot be used in a language model
 
 **1. Train and inference are two different functions.** BatchNorm uses the current batch during training and an accumulated running average at inference. It is the one module whose forward pass depends on which mode it is in — forget `model.eval()` and single requests disagree with batched ones.
 
@@ -78,7 +78,7 @@ An angle that gets missed: normalisation removes the weights' scale degree of fr
 
 </details>
 
-## Try it
+## Verify it
 
 [`../code/norm_compare.py`](../code/norm_compare.py) runs all three on the same activations, shows which axis each reduces over, and demonstrates the batch-size-1 failure.
 
@@ -134,7 +134,7 @@ GroupNorm (statistics within groups of channels) or LayerNorm. Neither depends o
 
 </details>
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>You understand this if you can explain:</strong>

@@ -6,7 +6,7 @@
 
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>Parallel information exchange across sequence positions</strong></div>
-  <div><span>Ingredients</span><strong>token matrix · position · attention mask</strong></div>
+  <div><span>Prerequisites</span><strong>token matrix · position · attention mask</strong></div>
   <div><span>Core technique</span><strong>self-attention · cross-attention · FFN · residual</strong></div>
   <div><span>Most common failure</span><strong>mixing up attention sites or masking the wrong direction</strong></div>
 </div>
@@ -31,7 +31,7 @@ The 2017 model used sinusoidal positions, post-norm LayerNorm, MHA, and ReLU FFN
 
 Run [`../code/vanilla_demo.py`](../code/vanilla_demo.py), then use [the full Transformer deep dive](../transformer.en.md).
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>After drawing the architecture, answer:</strong>

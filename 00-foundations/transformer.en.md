@@ -153,7 +153,7 @@ so dropping $n_\text{kv}$ from 32 to 8 saves 4× the memory — the dominant con
 
 The subtlest bug is the mask under caching: query $i$ sits at absolute position `cache.pos + i` while keys run from 0, so the mask is a **non-square** $(T, S)$, and RoPE's cos/sin must be sliced from `cache.pos`. Also `cache.pos` advances once per forward pass — putting it inside `update()` multiplies it by `n_layer`.
 
-## Taste check
+## Self-check
 
 <div class="taste-check advanced">
   <strong>After the full dissection, defend four claims:</strong>

@@ -33,6 +33,11 @@ jobs:
 
       - run: pip install markdown pygments
 
+      # 泄漏兜底。挡的是不走 promote 脚本的路径：手改、复制粘贴、另一台机器。
+      # 放在 Build 之前——检查不过就不该产出站点。
+      - name: Leak check
+        run: python site/leakcheck.py
+
       - name: Build
         env:
           GITHUB_TOKEN: ${{ github.token }}

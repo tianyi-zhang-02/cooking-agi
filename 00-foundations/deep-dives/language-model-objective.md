@@ -71,7 +71,7 @@ SFT、preference learning 与 RL 并不是另一套模型学。它们在同一�
 
 继续读 [Post-Training](../../05-post-training/)。
 
-## 出锅检查
+## 自检
 
 <div class="taste-check advanced">
   <strong>遇到生成质量问题时，先问：</strong>

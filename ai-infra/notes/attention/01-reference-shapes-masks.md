@@ -62,7 +62,7 @@ softmax(x_i) = exp(x_i - max(x)) / Σ exp(x_j - max(x))
 
 固定 golden cases 便于 debug，随机 property tests 防止对单一输入过拟合。
 
-## 动手检查
+## 动手验证
 
 1. 保存 Q、K、V、scores、probabilities 和 output。
 2. 让 CPU C++ 每个中间阶段分别与 oracle 对比。

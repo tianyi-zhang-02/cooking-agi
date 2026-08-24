@@ -160,3 +160,6 @@
 因果掩码	causal mask	阻止位置访问未来 token 的注意力掩码
 预填充	prefill	一次并行处理完整 prompt 并建立 KV cache 的推理阶段
 自回归解码	autoregressive decoding	把刚生成的 token 作为下一步输入并逐步继续生成
+随机失活	dropout	训练时随机置零一部分激活，逼模型不依赖固定通道，换取泛化
+正则化	regularization	牺牲一点训练集拟合，换取在没见过的数据上表现更好
+过拟合	overfitting	训练集越来越好，没见过的数据反而变差

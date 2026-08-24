@@ -55,7 +55,7 @@ Q tile stays local
 
 Mask 必须在当前 score block 中正确应用；causal boundary 可能穿过 tile。
 
-## 动手检查
+## 动手验证
 
 - 让 running maximum 在后一个 block 变大，确认旧状态被 rescale；
 - 比较不同 block size 的误差；

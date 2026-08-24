@@ -4,7 +4,7 @@
 
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>A nonlinear boundary from learned coordinates and a linear readout</strong></div>
-  <div><span>Ingredients</span><strong>linear model · sigmoid · cross-entropy · ReLU</strong></div>
+  <div><span>Prerequisites</span><strong>linear model · sigmoid · cross-entropy · ReLU</strong></div>
   <div><span>Core technique</span><strong>feature maps · chain rule · backpropagation</strong></div>
   <div><span>Most common mistake</span><strong>Assuming depth or sigmoid alone creates nonlinear boundaries</strong></div>
 </div>
@@ -118,7 +118,7 @@ $$\mathbf{h} = \text{TransformerBlocks}(\text{Embed}(\mathbf{x})), \qquad p_i = 
 
 Softmax generalises the sigmoid to many classes, and keeps the property that matters: with cross-entropy, $\partial\mathcal{L}/\partial z_i = p_i - y_i$ — still prediction minus target. `lm_head` is the linear classifier; every attention block beneath it exists to bend the space until the next token is linearly readable.
 
-## Taste check
+## Self-check
 
 <div class="taste-check">
   <strong>Explain without the summary table:</strong>
