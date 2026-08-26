@@ -124,7 +124,7 @@ en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
-order = ["README.md", "rlhf-pipeline.md", "after-ppo.md"]
+order = ["README.md", "rlhf-pipeline.md", "after-ppo.md", "same-base-different-posttraining.md"]
 group = "pipeline"
 zh  = "Post-Training"
 en  = "Post-training"

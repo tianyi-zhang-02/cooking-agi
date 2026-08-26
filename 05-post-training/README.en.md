@@ -13,6 +13,30 @@ Post-training is fundamentally a problem of turning imperfect observations of hu
 - How can training datasets preserve longitudinal and causal structure?
 - Which behavioral gains survive distribution shift and repeated interaction?
 
+## How to read this series
+
+Post-training comes down to two things: **teaching by demonstration (SFT)** and **teaching by outcome (RL)**. The series is ordered by dependency — skip ahead and the later pieces won't land.
+
+**I. Foundations: why post-training is needed at all**
+
+1. Why pretraining isn't enough (this page) — what learning problem SFT, preference learning, and RL each solve
+2. *SFT: how far imitation goes, and where it stops* — to write. Why cross-entropy is insensitive to individual tokens, and why "forcing an answer" reinforces hallucination
+3. *Where preferences come from* — to write. Training a reward model, Bradley-Terry, and the quality of preference labels themselves
+
+**II. The trunk: the RL line**
+
+4. [The three stages of RLHF, and what came after](rlhf-pipeline.en.md) — four models, which train and which are frozen
+5. [After PPO: every algorithm deletes one of its parts](after-ppo.en.md) — one reading that covers GRPO / RLOO / REINFORCE++ / DAPO / DPO
+6. *Verifiable rewards: when the reward doesn't need learning* — to write. Why it narrows reward hacking as a side effect, and where it stops applying
+
+**III. Costs and reality**
+
+7. *The alignment tax: what you lose by becoming agreeable* — to write. Diversity loss, entropy collapse, the generalization/diversity tradeoff
+8. *Post-training infrastructure* — to write. Sampling throughput, training-inference numerical agreement, context management for long sessions. **The least discussed layer, and often where the gains actually are**
+9. [How far one base model can go](same-base-different-posttraining.en.md) — a rare natural experiment: base pinned, post-training only
+
+Italics are unwritten. **This isn't roadmap theater — it's the todo list.** Drop the italics as each one lands.
+
 ## Starting papers
 
 - [InstructGPT](https://arxiv.org/abs/2203.02155)
