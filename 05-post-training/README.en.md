@@ -21,13 +21,13 @@ Post-training comes down to two things: **teaching by demonstration (SFT)** and 
 
 1. Why pretraining isn't enough (this page) — what learning problem SFT, preference learning, and RL each solve
 2. [SFT: how far imitation goes, and where it stops](sft-and-its-ceiling.en.md) — why cross-entropy can't see the pivotal token, and how demonstrations that always contain an answer train hallucination in
-3. *Where preferences come from* — to write. Training a reward model, Bradley-Terry, and the quality of preference labels themselves
+3. [Where preferences come from](where-preferences-come-from.en.md) — Bradley-Terry learns order but not scale, and a reward model **expires** as the policy drifts
 
 **II. Teaching by outcome: the RL line**
 
 4. [The three stages of RLHF, and what came after](rlhf-pipeline.en.md) — four models, which train and which are frozen
 5. [After PPO: every algorithm deletes one of its parts](after-ppo.en.md) — one reading that covers GRPO / RLOO / REINFORCE++ / DAPO / DPO
-6. *Verifiable rewards: when the reward doesn't need learning* — to write. Why it narrows reward hacking as a side effect, and where it stops applying
+6. [Verifiable rewards: when the reward doesn't need learning](verifiable-rewards.en.md) — it narrows reward hacking without eliminating it; verifiability is a spectrum, not a binary
 
 **III. Actually running it**
 
@@ -36,9 +36,11 @@ Post-training comes down to two things: **teaching by demonstration (SFT)** and 
 
 **IV. What it costs**
 
-9. *The alignment tax: what you lose by becoming agreeable* — to write. Diversity loss, entropy collapse, sycophancy, and the generalization/diversity tradeoff
+9. [The alignment tax: what you lose by becoming agreeable](alignment-tax.en.md) — trading distribution width for out-of-distribution robustness. **pass@1 up with pass@k down means you compressed the distribution into a point**
 
-Italics are unwritten. **This isn't roadmap theater — it's the todo list.** Drop the italics as each one lands.
+All nine are written; the line closes: **why teaching is still needed → teach by demonstration → teach by outcome → how it actually runs → what it costs.**
+
+Read in order it's about an hour. If you're here for one specific problem, the "In one sentence" opener of each piece is the index.
 
 ## Starting papers
 
