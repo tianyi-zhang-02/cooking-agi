@@ -174,3 +174,11 @@ The trade is coverage: it only applies where outcomes are automatically verifiab
 - [DPO](https://arxiv.org/abs/2305.18290)
 - [DeepSeekMath](https://arxiv.org/abs/2402.03300) — GRPO
 - [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325) — early evidence on KL and reward hacking
+
+## Further reading (Chinese)
+
+- [大模型中的强化学习 — RL in large models](https://zhuanlan.zhihu.com/p/693582342) — by @大家好我是爱因 on Zhihu (in Chinese).
+  This chapter deliberately covers only the RLHF trunk. The algorithm taxonomy is in
+  that piece: MDP elements, the Bellman equation, the bias-variance tradeoff across
+  MC/TD/GAE, PPO's four-model setup, DPO with IPO/KTO, and what GRPO, DAPO,
+  Dr. GRPO, RLOO, and REINFORCE++ each set out to fix.

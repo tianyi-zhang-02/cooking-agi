@@ -168,6 +168,14 @@ DPO 用了一个推导：带 KL 约束的奖励最大化有闭式最优解，把
 - [数据与反馈](../01-data-and-feedback/)：偏好标签本身的质量问题
 - [Evaluation](../07-evaluation/)：怎么判断对齐之后真的变好了
 
+## 中文导读
+
+- [大模型中的强化学习](https://zhuanlan.zhihu.com/p/693582342) — 知乎 @大家好我是爱因，专栏《机器学习小王子》。
+  本章只讲 RLHF 这条主干，刻意没有铺开算法谱系。那一半在这篇里：从 MDP 的要素、
+  贝尔曼方程、MC/TD/GAE 的偏差-方差权衡讲起，一路到 PPO 的四模型协同、DPO 与
+  IPO/KTO，再到 GRPO、DAPO、Dr. GRPO、RLOO、REINFORCE++ 各自想解决什么问题。
+  想看全景，从它开始。
+
 ## 起始论文
 
 - [InstructGPT](https://arxiv.org/abs/2203.02155) — 三阶段流程的出处
