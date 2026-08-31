@@ -1032,6 +1032,22 @@ main { padding-top: 2.8rem; }
   background: color-mix(in srgb, var(--panel) 42%, transparent); border-radius: 10px;
 }
 
+.bilingual-note {
+  position: relative; margin: 1.55rem 0 1.9rem; padding: 1rem 1.15rem 1rem 1.3rem;
+  border-left: 3px solid var(--link); border-radius: 2px 14px 14px 2px;
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  box-shadow: var(--shadow);
+}
+.bilingual-note > span {
+  display: block; margin-bottom: .45rem;
+  font: 750 .65rem/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--link);
+}
+.bilingual-note p { margin: 0; font-size: .94rem; line-height: 1.72; color: var(--ink-soft); }
+.bilingual-note strong { color: var(--ink); }
+.bilingual-intro { border-left-color: var(--ember); }
+.bilingual-intro > span { color: var(--ember); }
+
 @media (max-width: 1080px) {
   .shell { padding: 0 1.5rem; }
   main { padding-top: 2.1rem; }

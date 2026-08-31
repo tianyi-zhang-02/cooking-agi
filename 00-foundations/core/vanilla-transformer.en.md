@@ -11,11 +11,24 @@
   <div><span>Most common failure</span><strong>mixing up attention sites or masking the wrong direction</strong></div>
 </div>
 
+<div class="bilingual-note bilingual-intro">
+  <span>READING MODE · 阅读方式</span>
+  <p>The technical narrative stays in English—the language used in papers, code,
+  and interviews. 中文只补直觉、边界和容易混淆的点，不逐句翻译。</p>
+</div>
+
 ## In one sentence
 
 The original Transformer is an encoder–decoder. Attention moves information across positions, FFNs transform channels independently, and removing recurrence makes full-sequence training parallel.
 
 $$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V$$
+
+<div class="bilingual-note">
+  <span>中文直觉</span>
+  <p><strong>Attention moves information; the FFN transforms it.</strong>
+  Attention 负责跨 token 读取信息，FFN 只在当前 token 内加工通道；两者不要混成
+  “都是一层神经网络”。</p>
+</div>
 
 ## Three attention sites
 
@@ -55,6 +68,12 @@ PE(pos,2i+1)=\cos\!\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right).$$
 $PE$ is **added, not concatenated**, so the shape remains $(S,512)$. It gives
 attention the order signal needed to distinguish a sequence from a permutation of
 the same tokens. Dropout follows the embedding-plus-position sum.
+
+<div class="bilingual-note">
+  <span>中文直觉</span>
+  <p>Token ID 只是查表索引；真正进入网络的是 embedding。Position encoding 用
+  addition 而不是 concatenation，所以模型维度仍是 512。记住 shape 比背正弦公式重要。</p>
+</div>
 
 ### 2. One encoder layer
 
@@ -113,6 +132,13 @@ After six layers, the encoder produces memory
 
 $$C=\operatorname{Encoder}(X)\in\mathbb{R}^{S\times512}.$$
 
+<div class="bilingual-note">
+  <span>中文直觉</span>
+  <p><strong>Attention mixes across positions; the FFN mixes across channels.</strong>
+  前者回答“去哪里拿信息”，后者回答“拿回来以后怎么加工”。原版是 post-norm：
+  先做 sublayer 和 residual addition，再做 LayerNorm。</p>
+</div>
+
 ### 3. Why the target is shifted
 
 For the target sequence
@@ -132,6 +158,13 @@ however, used a shared vocabulary and tied both embedding matrices to the
 pre-softmax projection, while multiplying embedding values by
 $\sqrt{d_{\text{model}}}$. Separate weights are therefore not an invariant of the
 original Transformer.
+
+<div class="bilingual-note">
+  <span>中文易错点</span>
+  <p>Target shift 不等于训练仍要逐 token 跑。训练时完整答案已知，可以一次并行输入；
+  causal mask 只是把未来位置遮住。真正生成时未来 token 尚不存在，才必须 autoregressive
+  decoding。</p>
+</div>
 
 ### 4. One decoder layer
 
@@ -183,6 +216,13 @@ After six decoder layers,
 
 $$D\in\mathbb{R}^{T\times512}.$$
 
+<div class="bilingual-note">
+  <span>中文直觉</span>
+  <p><strong>Self-attention reads the target prefix; cross-attention reads the source.</strong>
+  Cross-attention 最值得背的是来源：Q 来自 decoder，K/V 来自 encoder；因此权重矩阵
+  是 $(T,S)$，不要求是方阵。</p>
+</div>
+
 ### 5. Vocabulary logits and probabilities
 
 Each 512-dimensional decoder state is projected to the target vocabulary. For
@@ -200,6 +240,12 @@ Training compares this distribution with the target token using cross-entropy.
 Inference uses greedy decoding, beam search, or sampling to select a token, feeds it
 back into the decoder, and continues. Softmax provides probabilities; it does not
 itself require argmax.
+
+<div class="bilingual-note">
+  <span>中文易错点</span>
+  <p>Linear layer 输出的是 <strong>logits</strong>，softmax 才得到 probabilities；
+  至于选 argmax、beam search 还是 sampling，是 decoding policy，不是 softmax 的一部分。</p>
+</div>
 
 The whole path is
 
