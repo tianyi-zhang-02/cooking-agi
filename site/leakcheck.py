@@ -22,11 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 RULES = [
-    # 雇主与平台内部叫法（用户在推荐语境里被叫成什么，是最容易漏的指纹）
+    # 雇主与平台内部叫法
     ("employer / internal term", r"linkedin|领英|字节跳动|bytedance"),
-    ("internal term for users", r"practice/.*", r"\bmembers?\b|会员"),
-    # 形如模型配置
-    ("model config", r"practice/.*", r"qwen[\w.-]*|(?<!sub-)\b\d+(\.\d+)?B\b"),
     # 形如集群规模与超参
     ("cluster size / hyperparam", r"\b\d+\s*(张卡|块卡|GPUs?|devices)\b|world_size\s*=\s*\d+"),
     ("internal config key", r"per_device\w*\s*[:=]\s*\d+|in_batch_negatives"),
@@ -38,7 +35,7 @@ EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--"]
 SCAN = ["00-foundations", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
         "07-evaluation", "08-model-experience", "09-personal-agi", "ai-infra",
-        "papers", "practice"]
+        "papers"]
 
 
 def main():

@@ -63,7 +63,7 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 
 后果是：你以为自己在做 on-policy，实际上采样策略和被优化的策略之间有一道你没建模的裂缝。裁剪机制会照常工作，但它裁的是一个被污染的比率。**而这件事不会报错**——loss 正常下降，指标正常波动，只是每一步的更新方向都带一点系统性的偏。
 
-这和我们在[负样本池](../practice/recommender-systems/negative-pool-size.md)里说的是同一类问题：**数值上完全正确，语义上已经不是你以为的那个东西，而且没有任何告警。**
+这类问题最危险的地方是：**数值上完全正确，语义上已经不是你以为的那个东西，而且没有任何告警。**
 
 把它压到 $10^{-7}$，等于把这道裂缝关上。收益不体现在任何一个公式里，体现在**之前所有的更新终于名副其实**。
 
@@ -96,7 +96,6 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 
 - [PPO 之后：每个算法都在删掉它的一部分](after-ppo.md)：算法那一半
 - [RLHF 的三个阶段](rlhf-pipeline.md)：四个模型各自在干嘛
-- [负样本池到底有多大](../practice/recommender-systems/negative-pool-size.md)：同一类"数值对但语义错"的问题
 
 ## 资料来源
 

@@ -50,6 +50,8 @@
    `markdown="1"` 让站点解析内部内容，GitHub 会忽略这个属性但同样能渲染。
    判断标准：**去掉这个块，主线还成立吗？** 不成立就说明它不该被折叠。
 7. **不确定就写不确定**。「我不知道为什么」比编一个解释好。
+8. **不提交公司实操。** 雇佣、招聘或具体公司场景里的实现、证据、复盘和案例，
+   即使已经脱敏也留在私有笔记。这里只接受能由公开来源或可复现实验独立支撑的内容。
 
 ## 目录约定
 
@@ -138,6 +140,9 @@ example → the main technical approaches → what it assumes → how it fails.*
    and renders it anyway. The test: **does the main line still stand without this
    block?** If not, it shouldn't have been collapsed.
 7. **Say when you're unsure.** "I don't know why this works" beats an invented explanation.
+8. **No company practice notes.** Implementations, evidence, retrospectives, and cases from
+   employment, recruiting, or a specific company stay private even after redaction. Public
+   contributions must stand independently on public sources or reproducible experiments.
 
 ## Local preview
 

@@ -18,20 +18,27 @@ Three of the questions below hang on this diagram.
 
 ```
 X                                   [B, T, d_model]
- ├─ Q = X·Wq ─┐
- ├─ K = X·Wk ─┤  split into h heads  [B, h, T, d_k],  d_k = d_model / h
- └─ V = X·Wv ─┘
+ ├─ Q = X·Wq ─┐                     [B, h, Tq, d_k]
+ ├─ K = X·Wk ─┤  split into h heads  [B, h, Tk, d_k]
+ └─ V = X·Wv ─┘                     [B, h, Tk, d_v]
  │
- ① scores = Q·Kᵀ / √d_k             [B, h, T, T]
+ ① scores = Q·Kᵀ / √d_k             [B, h, Tq, Tk]
  ② scores = scores + mask           ← the causal mask goes here
  ③ A      = softmax(scores, -1)     rows sum to 1
- ④ out    = A·V                     [B, h, T, d_k]
- ⑤ concat back to [B, T, d_model], through Wo
+ ④ out    = A·V                     [B, h, Tq, d_v]
+ ⑤ concat the heads, through Wo
 ```
 
 $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V$$
 
 **How to read $A$**: row $i$ is the distribution over which positions token $i$ attends to. With the causal mask, row $i$ is nonzero only in columns $\le i$. Row 1 is degenerate — it can only see itself, so softmax gives exactly 1.0.
+
+**Why $\sqrt{d_k}$ rather than $\sqrt{d_v}$ or $\sqrt{d_{\text{model}}}$**: each entry of
+$QK^\top$ sums exactly $d_k$ products. Q and K must share their last dimension; V's feature
+dimension may differ, although standard MHA usually sets $d_v=d_k$. At model width 768 with
+12 heads, a head has $d_k=64$, so the divisor is $\sqrt{64}$. See the
+[Transformer deep dive](transformer.en.md#scaled-dot-product-attention) for the derivation and
+the $Q=K$ edge case.
 
 Time $O(T^2 d)$, memory $O(T^2)$. That $T \times T$ matrix is the long-context bottleneck and the whole motivation for FlashAttention: **never materialize it**.
 
@@ -188,6 +195,44 @@ Shift the input and the feature map shifts by the same amount. **Invariance** �
 </details>
 
 ---
+
+## One more: Egg Drop gets easy when you reverse the state
+
+With $k$ eggs and $n$ floors, find the threshold in the worst case. The direct formulation is
+indeed a two-dimensional DP:
+
+$$T(k,n)=1+\min_{1\le x\le n}\max\big(T(k-1,x-1),\;T(k,n-x)\big).$$
+
+Drop at floor $x$: if it breaks, search below with one fewer egg; if it survives, search above
+with the same eggs. The minimum chooses the floor and the maximum pays for the worse branch.
+Correct, but every state still enumerates $x$.
+
+Reverse the question: **with $m$ moves and $k$ eggs, how many floors can I cover?** Let that be
+$F(m,k)$:
+
+$$F(m,k)=F(m-1,k-1)+1+F(m-1,k),\qquad F(0,k)=F(m,0)=0.$$
+
+After the first drop, the breaking branch covers $F(m-1,k-1)$ floors below, the current floor
+adds one, and the surviving branch covers $F(m-1,k)$ above.
+
+```python
+def min_moves(eggs, floors):
+    cover = [0] * (eggs + 1)
+    moves = 0
+    while cover[eggs] < floors:
+        moves += 1
+        for k in range(eggs, 0, -1):
+            cover[k] = cover[k] + cover[k - 1] + 1
+    return moves
+```
+
+The descending update keeps the right-hand side on the previous move. For 100 floors, two eggs
+need 14 moves because $1+\cdots+14=105$. Three eggs need 9 because $F(8,3)=92<100$ while
+$F(9,3)=129\ge100$.
+
+**The interview idea**: the original is an eggs-by-floors minimax DP. Reversing it gives a
+moves-by-eggs coverage DP that compresses to one dimension. “Shrinking the searchable space on
+every action” is exactly what this recurrence counts.
 
 ## Appendix: how to present the Transformer architecture
 

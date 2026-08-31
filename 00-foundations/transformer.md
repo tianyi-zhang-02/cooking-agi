@@ -28,11 +28,39 @@ Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐�
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 
+先把 shape 写全，就不会纠结「为什么一定是 $d_k$」：
+
+$$Q\in\mathbb{R}^{T_q\times d_k},\qquad
+K\in\mathbb{R}^{T_k\times d_k},\qquad
+V\in\mathbb{R}^{T_k\times d_v}.$$
+
+$QK^\top$ 的每个分数是一个 query 和一个 key 沿 **$d_k$ 个分量**做的点积，
+所以缩放项必须是 $\sqrt{d_k}$。矩阵乘法只要求 $Q$ 与 $K$ 的最后一维相同；
+$V$ 只需和 $K$ 有相同的 token 数 $T_k$，它的特征维 $d_v$ 可以不同。标准
+multi-head attention 通常为了拼接方便令 $d_v=d_k=d_{\text{model}}/h$，这是常见
+设计，不是注意力公式的数学要求。例如 $d_{\text{model}}=768,h=12$ 时，每个头
+$d_k=64$，除的是 $\sqrt{64}$，不是 $\sqrt{768}$。
+
 拆开看单个查询 $\mathbf{q}_i$：
 
 $$\alpha_{ij} = \frac{\exp\!\big(\mathbf{q}_i^\top \mathbf{k}_j / \sqrt{d_k}\big)}{\sum_{j'} \exp\!\big(\mathbf{q}_i^\top \mathbf{k}_{j'} / \sqrt{d_k}\big)}, \qquad \mathbf{o}_i = \sum_j \alpha_{ij}\, \mathbf{v}_j$$
 
 也就是：**用相似度当权重，对 value 做加权平均**。$\alpha_{ij}$ 每一行加起来是 1。
+
+### Softmax 不是 argmax，而是可微的分配
+
+Softmax 把任意实数分数变成正数且总和为 1 的权重：
+
+$$\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}}.$$
+
+例如 $[2,1,0]$ 会变成约 $[0.665,0.245,0.090]$。它不是只留下最高分，而是
+允许一个 query 同时读取多个位置。Attention 对 score 矩阵的**最后一维逐行**做
+softmax：第 $i$ 行回答「query $i$ 应该把多少权重分给每个 key $j$」。因此
+
+$$A=\operatorname{softmax}_{j}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right),
+\qquad O=AV,\qquad \mathbf{o}_i=\sum_j A_{ij}\mathbf{v}_j.$$
+
+一句话：$QK^\top$ 决定**从哪里读**，$AV$ 决定**按什么比例把读到的内容合起来**。
 
 ### 为什么要除以 $\sqrt{d_k}$
 
@@ -61,13 +89,68 @@ $$\frac{\partial\, \text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij} - \
 import torch, torch.nn.functional as F
 
 def attention(q, k, v, mask=None):
-    """q: (B, H, Tq, d)   k, v: (B, H, Tk, d)   mask: True = 屏蔽"""
+    """q: (B,H,Tq,dk)  k: (B,H,Tk,dk)  v: (B,H,Tk,dv)"""
     scores = q @ k.transpose(-2, -1) / q.size(-1) ** 0.5   # (B, H, Tq, Tk)
     if mask is not None:
         scores = scores.masked_fill(mask, float("-inf"))
     attn = scores.softmax(dim=-1)                          # 每行和为 1
     return attn @ v, attn
 ```
+
+<details markdown="1">
+<summary><b>追问</b>：如果 $Q=K$，attention 会变成什么</summary>
+
+此时缩放前的分数矩阵是 Gram matrix $QQ^\top$，因此它对称且半正定。但逐行
+softmax 之后一般**不再对称**，因为每一行有自己的归一化分母。
+
+- 所有 query 完全相同：每个点积相同，attention 每行是均匀分布；
+- query 两两正交且范数相同：对角分数最大；范数相对 softmax 温度足够大时，
+  attention 才接近单位矩阵；
+- 一般情况：更像自己的位置会获得更大权重，但并不保证只看自己。
+
+所以 $Q=K$ 并不会让注意力失效；它只是把「两个投影空间的匹配」变成同一个
+空间里的相似度。真正决定输出的仍是 row-wise softmax 和 $V$。
+
+</details>
+
+### 三个投影矩阵到底有没有“实际意义”
+
+对 self-attention 的输入 $X$，模型学习
+
+$$Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V.$$
+
+你的直觉要分成两层：
+
+- **单个参数值或某一维通常没有固定的人类语义。** 换一个随机种子，坐标轴和
+  权重数值可以完全不同，模型仍实现相近功能。
+- **三个矩阵承担的计算角色有意义。** $W_Q$ 产生查询，$W_K$ 产生用于匹配的
+  key，$W_V$ 决定匹配之后真正传递什么内容。
+
+为什么 Q/K 分开？只看同一序列的 self-attention，并强制 $W_Q=W_K=W$，则
+
+$$S=XWW^\top X^\top$$
+
+是对称的，原始 compatibility score 必须满足 $S_{ij}=S_{ji}$。分开以后
+
+$$S=XW_QW_K^\top X^\top,$$
+
+$W_QW_K^\top$ 不必对称，于是 raw score 可以表达有方向的关系。这里要区分三件事：
+
+1. 对称的是**加 mask 和 softmax 之前的 raw score**；
+2. row-wise softmax 的每行分母不同，得到的 attention weight 一般不对称；
+3. causal mask 本身也会破坏对称性。
+
+为什么 V 还要分开？Q/K 是寻址接口，V 是读取内容。两个位置可以因为某种特征
+匹配，但匹配后需要传递的是另一组特征；$W_V$ 让「为什么找到它」和「从它那里
+拿走什么」解耦。数据库类比可以用，但不要把它理解成三套人工命名的语义字段。
+
+更严格地说，这些内部坐标并不唯一。对任意可逆矩阵 $R$，令
+
+$$Q'=QR,\qquad K'=KR^{-\top},$$
+
+仍有 $Q'K'^\top=QK^\top$。也就是说，可以换一套内部基，功能完全不变。因此
+孤立地解释某个元素如 $W_Q[17,42]$ 通常没有意义；有意义的是整个投影实现的函数、
+它对输出的因果作用，以及 Q/K/V 之间的接口约束。
 
 `-inf` 而不是 0：屏蔽要发生在 softmax **之前**，否则被屏蔽的位置仍会分到概率质量。
 

@@ -21,7 +21,37 @@ The Transformer is one concrete way to build the learned coordinate transform fr
 
 $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 
+Write the full shapes and the reason for $d_k$ becomes mechanical:
+
+$$Q\in\mathbb{R}^{T_q\times d_k},\qquad
+K\in\mathbb{R}^{T_k\times d_k},\qquad
+V\in\mathbb{R}^{T_k\times d_v}.$$
+
+Every entry of $QK^\top$ is a dot product over the **$d_k$ components** of one query and
+one key, so the scale is $\sqrt{d_k}$. Matrix multiplication only requires Q and K to
+share their last dimension. V must share the key sequence length $T_k$, but its feature
+dimension $d_v$ may differ. Standard multi-head attention usually chooses
+$d_v=d_k=d_{\text{model}}/h$ for convenient concatenation; that is a design convention,
+not a mathematical requirement. With $d_{\text{model}}=768$ and $h=12$, each head has
+$d_k=64$, so divide by $\sqrt{64}$, not $\sqrt{768}$.
+
 Per query: $\alpha_{ij} = \text{softmax}_j(\mathbf{q}_i^\top\mathbf{k}_j/\sqrt{d_k})$, then $\mathbf{o}_i = \sum_j \alpha_{ij}\mathbf{v}_j$. A weighted average of the value vectors, with similarity as the weights.
+
+### Softmax is a differentiable allocation, not an argmax
+
+Softmax maps arbitrary real scores to positive weights that sum to one:
+
+$$\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}}.$$
+
+For example, $[2,1,0]$ becomes approximately $[0.665,0.245,0.090]$. It does not keep only
+the maximum; one query may read several positions at once. Attention applies softmax
+**row by row over the last dimension**: row $i$ answers how query $i$ allocates weight over
+keys $j$. Therefore
+
+$$A=\operatorname{softmax}_{j}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right),
+\qquad O=AV,\qquad \mathbf{o}_i=\sum_j A_{ij}\mathbf{v}_j.$$
+
+In one line: $QK^\top$ decides **where to read**; $AV$ decides **how to combine what was read**.
 
 ### Why $\sqrt{d_k}$
 
@@ -40,6 +70,50 @@ It is the same saturation as the sigmoid on [the previous page](from-linear-to-n
 
 </details>
 
+### Do the three projection matrices have intrinsic meaning?
+
+For self-attention input $X$, the model learns
+
+$$Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V.$$
+
+The right answer has two levels:
+
+- **An individual parameter or coordinate usually has no fixed human meaning.** A new random
+  seed may produce completely different axes and numbers while implementing similar behavior.
+- **The computational roles of the three matrices do matter.** $W_Q$ emits queries, $W_K$
+  emits matchable keys, and $W_V$ chooses the content transmitted after a match.
+
+Why separate Q and K? For self-attention over one sequence, forcing $W_Q=W_K=W$ gives
+
+$$S=XWW^\top X^\top,$$
+
+which is symmetric, so the raw compatibility score must satisfy $S_{ij}=S_{ji}$. Separating
+them gives
+
+$$S=XW_QW_K^\top X^\top,$$
+
+where $W_QW_K^\top$ need not be symmetric, allowing directional raw compatibility. Three
+distinctions matter:
+
+1. symmetry applies to the **raw scores before masks and softmax**;
+2. row-wise softmax has a different normalizer per row, so attention weights are generally
+   not symmetric;
+3. a causal mask also destroys symmetry.
+
+Why separate V? Q/K are the addressing interface; V is the content being read. Two positions
+may match on one set of features while a different set should be transmitted. $W_V$ decouples
+“why this position was found” from “what to take from it.” The database analogy is useful, but
+these are not three manually named semantic fields.
+
+More formally, the internal coordinates are non-identifiable. For any invertible $R$, let
+
+$$Q'=QR,\qquad K'=KR^{-\top}.$$
+
+Then $Q'K'^\top=QK^\top$: the basis can change while the function remains identical. This is
+why interpreting an isolated entry such as $W_Q[17,42]$ is usually meaningless. What matters
+is the function implemented by the whole projection, its causal effect on outputs, and the
+interface constraints among Q, K, and V.
+
 ```python
 def attention(q, k, v, mask=None):
     scores = q @ k.transpose(-2, -1) / q.size(-1) ** 0.5
@@ -48,6 +122,24 @@ def attention(q, k, v, mask=None):
     attn = scores.softmax(dim=-1)
     return attn @ v, attn
 ```
+
+<details markdown="1">
+<summary><b>follow-up</b>: what if $Q=K$?</summary>
+
+Before scaling, the score matrix is the Gram matrix $QQ^\top$, so it is symmetric and
+positive semidefinite. Row-wise softmax generally makes it **non-symmetric**, however,
+because each row has a different normalizer.
+
+- If all queries are identical, every score is identical and every attention row is uniform.
+- If queries are mutually orthogonal with equal norm, the diagonal wins; attention is close
+  to the identity only when that norm is large relative to the softmax temperature.
+- In the general case, a position tends to attend more to vectors similar to itself, but it
+  is not guaranteed to attend only to itself.
+
+Thus $Q=K$ does not break attention. It changes matching between two projected spaces into
+similarity inside one space; row-wise softmax and V still determine the output.
+
+</details>
 
 ## One module, three uses
 

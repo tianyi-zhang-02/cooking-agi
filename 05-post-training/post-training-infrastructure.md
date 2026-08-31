@@ -95,4 +95,3 @@ diff = logp_train - logp_rollout
 
 - [同一个基座能走多远](same-base-different-posttraining.md)：这三件事在一个真实系统里的实证
 - [PPO 之后](after-ppo.md)：算法那一半
-- [负样本池到底有多大](../practice/recommender-systems/negative-pool-size.md)：另一个"数值对但语义错"的例子

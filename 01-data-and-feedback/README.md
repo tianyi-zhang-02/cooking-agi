@@ -93,7 +93,6 @@ flowchart TB
 
 ## 它和其他知识点怎样连接
 
-- [从噪声反馈到可服务的现代检索系统](../practice/recommender-systems/noise-to-signal-retrieval.md) 展开一个完整例子：怎样连接信号构造、多模态内容理解、双塔 post-training、Serving 与评估。
 - [表征与记忆](../02-memory/) 决定这些数据怎样变成长期状态。
 - [Search](../04-search/) 决定系统会生成哪些新观察。
 - [Post-Training](../05-post-training/) 决定这些反馈怎样改变模型行为。

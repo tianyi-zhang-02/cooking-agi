@@ -63,7 +63,7 @@ The denominator is **reported by the inference engine**; the numerator is **comp
 
 The consequence: you believe you are on-policy, while a gap you never modeled sits between the sampling policy and the optimized one. Clipping still runs, but it clips a contaminated ratio. **And nothing errors** — loss descends normally, metrics move normally, and every update carries a small systematic tilt.
 
-This is the same species of problem as in [how big is your negative pool](../practice/recommender-systems/negative-pool-size.en.md): **numerically correct, semantically no longer what you think it is, and silent.**
+This class of problem is especially dangerous because it is **numerically correct, semantically no longer what you think it is, and silent.**
 
 Closing that gap to $10^{-7}$ doesn't show up in any formula. It shows up as **every previous update finally meaning what it claimed to mean.**
 
@@ -96,7 +96,6 @@ Drawing the boundary honestly:
 
 - [After PPO: every algorithm deletes one of its parts](after-ppo.en.md): the algorithm half
 - [The three stages of RLHF](rlhf-pipeline.en.md): what each model does
-- [How big is your negative pool, really](../practice/recommender-systems/negative-pool-size.en.md): the same species of silent numerical mismatch
 
 ## Sources
 

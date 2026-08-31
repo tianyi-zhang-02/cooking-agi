@@ -96,4 +96,3 @@ A very practical corollary: **when post-training isn't working, check these thre
 
 - [How far one base model can go](same-base-different-posttraining.en.md): these three in a real system
 - [After PPO](after-ppo.en.md): the algorithm half
-- [How big is your negative pool, really](../practice/recommender-systems/negative-pool-size.en.md): another "numerically right, semantically wrong" case

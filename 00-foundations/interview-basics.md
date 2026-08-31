@@ -18,20 +18,26 @@
 
 ```
 X                                   [B, T, d_model]
- ├─ Q = X·Wq ─┐
- ├─ K = X·Wk ─┤  split 成 h 个头     [B, h, T, d_k]，d_k = d_model / h
- └─ V = X·Wv ─┘
+ ├─ Q = X·Wq ─┐                     [B, h, Tq, d_k]
+ ├─ K = X·Wk ─┤  split 成 h 个头     [B, h, Tk, d_k]
+ └─ V = X·Wv ─┘                     [B, h, Tk, d_v]
  │
- ① scores = Q·Kᵀ / √d_k             [B, h, T, T]
+ ① scores = Q·Kᵀ / √d_k             [B, h, Tq, Tk]
  ② scores = scores + mask           ← 因果掩码在这一步
  ③ A      = softmax(scores, -1)     每行和为 1
- ④ out    = A·V                     [B, h, T, d_k]
- ⑤ concat 回 [B, T, d_model]，过 Wo
+ ④ out    = A·V                     [B, h, Tq, d_v]
+ ⑤ concat 各头，过 Wo
 ```
 
 $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V$$
 
 **怎么读 $A$**：第 $i$ 行是「token $i$ 把注意力分给谁」的概率分布。加了因果掩码后，第 $i$ 行只在列 $\le i$ 上非零。第 1 行是退化的——它只能看自己，softmax 出来恰好 1.0。
+
+**为什么除 $\sqrt{d_k}$，不是 $\sqrt{d_v}$ 或 $\sqrt{d_{\text{model}}}$**：分数来自
+$QK^\top$，每个分数恰好加了 $d_k$ 个乘积。Q/K 最后一维必须相同，V 的特征维
+可以不同；只是在标准 MHA 中通常令 $d_v=d_k$。例如 768 维、12 个头，单头
+$d_k=64$，所以除 $\sqrt{64}$。完整推导与 $Q=K$ 的极端情况见
+[Transformer 架构深拆](transformer.md#第一口锅缩放点积注意力)。
 
 时间 $O(T^2 d)$、显存 $O(T^2)$。那个 $T\times T$ 矩阵就是长上下文的瓶颈，也是 FlashAttention 的动机：**根本不把它算出来存下**。
 
@@ -188,6 +194,43 @@ $$f(T_x(I)) = T_x\big(f(I)\big)$$
 </details>
 
 ---
+
+## 加一道：Egg Drop 为什么换一个状态就简单了
+
+有 $k$ 个鸡蛋、$n$ 层楼，目标是在最坏情况下找出临界楼层。直接想法确实是二维
+DP：
+
+$$T(k,n)=1+\min_{1\le x\le n}\max\big(T(k-1,x-1),\;T(k,n-x)\big).$$
+
+在第 $x$ 层扔：碎了，只能往下且少一个蛋；没碎，只能往上且蛋数不变。
+`min` 选楼层，`max` 表示要为较坏的分支负责。它是对的，但每个状态还要枚举 $x$。
+
+更好的问法不是「这些楼需要几步」，而是：**给我 $m$ 次行动和 $k$ 个鸡蛋，最多能
+覆盖多少层？** 记作 $F(m,k)$：
+
+$$F(m,k)=F(m-1,k-1)+1+F(m-1,k),\qquad F(0,k)=F(m,0)=0.$$
+
+第一次扔下去后，碎的分支能覆盖下面 $F(m-1,k-1)$ 层，当前层算 1，没碎的分支
+能覆盖上面 $F(m-1,k)$ 层。于是每加一次行动，搜索空间就是两个旧子空间再加当前点。
+
+```python
+def min_moves(eggs, floors):
+    cover = [0] * (eggs + 1)
+    moves = 0
+    while cover[eggs] < floors:
+        moves += 1
+        for k in range(eggs, 0, -1):
+            cover[k] = cover[k] + cover[k - 1] + 1
+    return moves
+```
+
+倒序更新是为了让右侧都来自上一轮。100 层时：2 个鸡蛋要 14 次，因为
+$1+\cdots+14=105$；3 个鸡蛋要 9 次，因为 $F(8,3)=92<100$，而
+$F(9,3)=129\ge100$。
+
+**面试里的核心**：原题是「鸡蛋 × 楼层」二维 minimax DP；反转问题后变成
+「行动次数 × 鸡蛋」的覆盖 DP，并能压成一维。你说的“每次缩小可以搜索的 space”
+就是这个递推在计算的东西。
 
 ## 附：Transformer 结构怎么讲
 

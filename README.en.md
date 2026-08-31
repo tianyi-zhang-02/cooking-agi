@@ -143,6 +143,14 @@ I try not to restate a paper section by section. Each note should answer:
 
 This is a living notebook. Interpretations will change as I read, reproduce, and build.
 
+## Publication boundary
+
+This repository publishes foundations, mathematical derivations, public papers,
+reproducible experiments, AI infrastructure, and open-source work. Implementations,
+evidence, retrospectives, or practice notes tied to employment, recruiting, or a specific
+company remain private—even after names and numbers have been removed. A public note must
+stand on its own and be supportable from public sources or reproducible experiments.
+
 ## How the repository is organised
 
 - Numeric folder prefixes are the reading order; GitHub's alphabetical listing is the outline.
