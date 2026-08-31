@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import math
 import html
 import json
 import os
@@ -354,6 +355,22 @@ class Page:
         self.body = ""
         self.text = ""
         self.updated = last_updated(str(rel))
+        if section["dir"] == "." and rel.name in {"README.md", "README.en.md"}:
+            self.kind = "home"
+        elif any(part in {"code", "projects", "modules"} for part in rel.parts):
+            self.kind = "workshop"
+        elif rel.name in {"README.md", "README.en.md"}:
+            self.kind = "index"
+        elif any(key in rel.stem for key in ("interview", "hand-write", "EDITORIAL")):
+            self.kind = "guide"
+        else:
+            self.kind = "article"
+        self.position = 1
+        self.section_count = 1
+        self.read_minutes = 1
+        self.reviewed = ""
+        self.previous = None
+        self.next = None
 
     def rel(self, target: str) -> str:
         return ("../" * self.depth) + target if self.depth else target
@@ -385,6 +402,17 @@ def discover(nav):
             if en:
                 pages.append(en)
         if entry["pages"]:
+            count = len(entry["pages"])
+            for position, pair in enumerate(entry["pages"], 1):
+                for item in pair.values():
+                    if item:
+                        item.position = position
+                        item.section_count = count
+            for language in ("zh", "en"):
+                ordered = [pair[language] for pair in entry["pages"] if pair[language]]
+                for index, item in enumerate(ordered):
+                    item.previous = ordered[index - 1] if index else None
+                    item.next = ordered[index + 1] if index + 1 < len(ordered) else None
             sections.append(entry)
     return pages, sections
 
@@ -553,6 +581,24 @@ def build_page(page: Page, terms, repo: str, known: set):
 
     m = re.search(r"^#\s+(.+)$", raw, re.M)
     page.title = m.group(1).strip() if m else page.src.stem
+    raw = re.sub(r"^#\s+.+$", "", raw, count=1, flags=re.M)
+    if page.kind == "home":
+        # Useful on GitHub, but redundant (and oddly circular) on the site itself.
+        raw = re.sub(
+            r"^###\s+[^\n]*(?:阅读请到|Read online)[^\n]*\n(?:\n)?",
+            "",
+            raw,
+            count=1,
+            flags=re.M,
+        )
+    meta = re.search(r"^>\s*(?:阅读时间|Reading time)[:：]?\s*(.+)$", raw, re.M)
+    if meta:
+        parts = [p.strip() for p in meta.group(1).split("·")]
+        for part in parts:
+            hit = re.search(r"(?:最近审阅|Last reviewed)[:：]?\s*([0-9]{4}-[0-9]{2})", part)
+            if hit:
+                page.reviewed = hit.group(1)
+        raw = raw[:meta.start()] + raw[meta.end():]
     # the lang switcher line right under the title is redundant on the site
     raw = re.sub(r"^\*\*?(中文|English)\*\*?\s*[·|].*$", "", raw, count=1, flags=re.M)
     raw = re.sub(r"^\[中文\]\([^)]*\)\s*[·|].*$", "", raw, count=1, flags=re.M)
@@ -568,6 +614,10 @@ def build_page(page: Page, terms, repo: str, known: set):
                               for c in t.get("children", [])]}
                 for t in toc]
     page.text = strip_tags(body)[:1500]
+    plain = strip_tags(body)
+    cjk = len(re.findall(r"[\u3400-\u9fff]", plain))
+    latin = len(re.findall(r"\b[\w'-]+\b", re.sub(r"[\u3400-\u9fff]", " ", plain)))
+    page.read_minutes = max(1, math.ceil(cjk / 420 + latin / 220))
     page.glossary = used
     return page
 
@@ -656,6 +706,68 @@ def glossary_html(page):
             f'<dl>{"".join(rows)}</dl></details></section>')
 
 
+def page_header_html(page):
+    zh = page.lang == "zh"
+    section = page.section["zh" if zh else "en"]
+    labels = {
+        "home": "学习厨房" if zh else "Learning kitchen",
+        "index": "章节地图" if zh else "Chapter map",
+        "workshop": "动手实验" if zh else "Workshop",
+        "guide": "随手翻阅" if zh else "Field guide",
+        "article": "概念笔记" if zh else "Concept note",
+    }
+    read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"
+    position = (f"{page.position:02d} / {page.section_count:02d}"
+                if page.kind != "home" and page.section_count > 1 else "")
+    reviewed = (("审阅于 " if zh else "Reviewed ") + page.reviewed
+                if page.reviewed else "")
+    number_match = re.match(r"^(\d\d)-", page.section["dir"])
+    chapter_mark = (f'<em class="chapter-mark" aria-hidden="true">'
+                    f'{number_match.group(1)}</em>' if number_match else "")
+    bits = [f'<span>{html.escape(read)}</span>']
+    if reviewed:
+        bits.append(f'<span>{html.escape(reviewed)}</span>')
+    if position:
+        bits.append(f'<span class="page-position">{position}</span>')
+    return f"""
+<header class="article-head">
+  {chapter_mark}
+  <div class="article-kicker"><span>{html.escape(labels[page.kind])}</span>
+    <i>{html.escape(section)}</i></div>
+  <h1>{html.escape(page.title)}</h1>
+  <div class="article-meta">{'<b aria-hidden="true"></b>'.join(bits)}</div>
+</header>"""
+
+
+def mobile_toc_html(page):
+    toc = toc_html(page)
+    if not toc:
+        return ""
+    label = "展开本页路线" if page.lang == "zh" else "Open this page's route"
+    return (f'<details class="mobile-toc"><summary>{label}'
+            f'<span>{len(page.toc)}</span></summary><nav>{toc}</nav></details>')
+
+
+def page_nav_html(page):
+    if page.kind == "home":
+        return ""
+    if not page.previous and not page.next:
+        return ""
+    zh = page.lang == "zh"
+    items = []
+    for direction, target in (("prev", page.previous), ("next", page.next)):
+        if not target:
+            items.append('<span class="page-turn-empty"></span>')
+            continue
+        label = (("上一篇" if zh else "Previous") if direction == "prev"
+                 else ("下一篇" if zh else "Next"))
+        arrow = "←" if direction == "prev" else "→"
+        items.append(
+            f'<a class="page-turn-{direction}" href="{page.rel(target.url)}">'
+            f'<small>{arrow} {label}</small><strong>{html.escape(target.title)}</strong></a>')
+    return f'<nav class="page-turn" aria-label="{"继续阅读" if zh else "Continue reading"}">' + "".join(items) + "</nav>"
+
+
 def footer_html(page, people, repo, built):
     when = page.updated[:10] if page.updated else built[:10]
     src = f"https://github.com/{repo}/blob/main/{page.src.relative_to(ROOT)}"
@@ -700,16 +812,52 @@ def assemble(page, sections, people, nav, built, template):
     lang_href = page.rel(sib.url) if sib else "#"
     lang_cls = "" if sib else " disabled"
     prefix = "../" * page.depth
+    origin = site.get("origin", "").rstrip("/")
+    canonical = f"{origin}/{page.url}" if origin else page.url
+    og_type = "website" if page.kind in {"home", "index"} else "article"
+    social_image = ""
+    twitter_card = "summary"
+    if page.kind == "home":
+        twitter_card = "summary_large_image"
+        image_url = f"{origin}/static/og.png" if origin else f"{prefix}static/og.png"
+        escaped_image = html.escape(image_url, quote=True)
+        social_image = (f'<meta property="og:image" content="{escaped_image}">\n'
+                        f'<meta name="twitter:image" content="{escaped_image}">')
+    else:
+        image_match = re.search(r'<img\s+[^>]*src="([^"]+\.(?:png|jpe?g|webp))"',
+                                page.body, re.I)
+        if image_match:
+            twitter_card = "summary_large_image"
+            raw_image = image_match.group(1)
+            if re.match(r"https?://", raw_image):
+                image_url = raw_image
+            else:
+                image_path = os.path.normpath(str(page.out_rel.parent / raw_image)).replace(os.sep, "/")
+                image_url = f"{origin}/{image_path}" if origin else image_path
+            escaped_image = html.escape(image_url, quote=True)
+            social_image = (f'<meta property="og:image" content="{escaped_image}">\n'
+                            f'<meta name="twitter:image" content="{escaped_image}">')
+    description = re.sub(r"\s+", " ", page.text).strip()[:160]
+    if not description:
+        description = site["tagline_zh" if zh else "tagline_en"]
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
+            .replace("{{page_class}}", f"page-{page.kind}")
             .replace("{{title}}", html.escape(page.title))
             .replace("{{site_title}}", html.escape(site["title_zh" if zh else "title_en"]))
             .replace("{{tagline}}", html.escape(site["tagline_zh" if zh else "tagline_en"]))
+            .replace("{{description}}", html.escape(description, quote=True))
+            .replace("{{canonical}}", html.escape(canonical, quote=True))
+            .replace("{{og_type}}", og_type)
+            .replace("{{social_image}}", social_image)
+            .replace("{{twitter_card}}", twitter_card)
+            .replace("{{og_locale}}", "zh_CN" if zh else "en_US")
             .replace("{{home}}", page.rel("index.html" if zh else "index.en.html"))
             .replace("{{prefix}}", prefix)
             .replace("{{sidebar}}", sidebar_html(page, sections, nav.get("group", [])))
             .replace("{{toc}}", toc_html(page))
+            .replace("{{mobile_toc}}", mobile_toc_html(page))
             .replace("{{toc_label}}", "本页目录" if zh else "On this page")
             .replace("{{search_ph}}", "搜索笔记…" if zh else "Search notes…")
             .replace("{{lang_href}}", lang_href)
@@ -717,6 +865,8 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{lang_label}}", "EN" if zh else "中文")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", page.body)
+            .replace("{{page_header}}", page_header_html(page))
+            .replace("{{page_nav}}", page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))

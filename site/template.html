@@ -4,7 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{title}} · {{site_title}}</title>
-<meta name="description" content="{{tagline}}">
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="{{canonical}}">
+<meta property="og:type" content="{{og_type}}">
+<meta property="og:locale" content="{{og_locale}}">
+<meta property="og:site_name" content="{{site_title}}">
+<meta property="og:title" content="{{title}} · {{site_title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{canonical}}">
+<meta name="twitter:card" content="{{twitter_card}}">
+<meta name="twitter:title" content="{{title}} · {{site_title}}">
+<meta name="twitter:description" content="{{description}}">
+{{social_image}}
 <link rel="stylesheet" href="{{prefix}}static/style.css?v={{built}}">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -17,7 +28,9 @@
   })();
 </script>
 </head>
-<body>
+<body class="{{page_class}}">
+
+<div class="reading-progress" aria-hidden="true"><span></span></div>
 
 <a class="skip" href="#content">Skip to content</a>
 
@@ -65,6 +78,7 @@
     <div class="search">
       <input type="search" class="search-input" placeholder="{{search_ph}}"
              autocomplete="off" spellcheck="false" aria-label="{{search_ph}}">
+      <kbd class="search-key" aria-hidden="true">/</kbd>
       <div class="search-results" hidden></div>
     </div>
 
@@ -82,8 +96,13 @@
 
   <main id="content">
     <article class="prose">
-      {{content}}
-      {{glossary}}
+      {{page_header}}
+      {{mobile_toc}}
+      <div class="article-body">
+        {{content}}
+        {{glossary}}
+      </div>
+      {{page_nav}}
     </article>
     {{footer}}
   </main>

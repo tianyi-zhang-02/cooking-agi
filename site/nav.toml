@@ -12,6 +12,7 @@ title_en    = "Cooking AGI"
 tagline_zh  = "从一条直线，到会读世界的系统"
 tagline_en  = "From a straight line to a system that reads the world"
 base_url    = "/cooking-agi"
+origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]

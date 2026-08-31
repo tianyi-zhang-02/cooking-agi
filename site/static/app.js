@@ -8,6 +8,18 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
+  /* ---------------------------------------------------------- reading progress */
+  var progress = $(".reading-progress span");
+  if (progress) {
+    var updateProgress = function () {
+      var max = document.documentElement.scrollHeight - innerHeight;
+      progress.style.transform = "scaleX(" + (max > 0 ? Math.min(1, scrollY / max) : 0) + ")";
+    };
+    addEventListener("scroll", updateProgress, { passive: true });
+    addEventListener("resize", updateProgress, { passive: true });
+    updateProgress();
+  }
+
   /* ---------------------------------------------------------- bilingual bits */
   $$("[data-zh]").forEach(function (el) {
     var v = el.getAttribute(LANG === "en" ? "data-en" : "data-zh");
