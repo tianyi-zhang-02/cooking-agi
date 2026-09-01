@@ -2,7 +2,7 @@
 
 [中文](after-ppo.md) · **English**
 
-> Reading time: ~11 min · Type: chapter · Last reviewed: 2026-09
+> Reading time: ~14 min · Type: chapter · Last reviewed: 2026-09
 
 ## Start with what each algorithm removes
 
@@ -193,29 +193,102 @@ The extensions still fit the “what was removed?” lens: RLOO replaces the Cri
 
 ## How to choose
 
-**Ask first whether the reward can be verified.** If you can write a checker, write it — that pays more than any algorithm swap.
+<details class="interview" markdown="1">
+<summary>Step 1: can the reward be verified automatically?</summary>
 
-**Then ask whether you can sample online.** No (static preference data only) → the DPO family, accepting the mismatch. Yes → the GRPO family.
+**When verification is possible, consider a verifier / RLVR first.** Math answers, code tests, and structural constraints can be judged by a stable program without first fitting a Reward Model. Still audit whether the verifier checks only final answers, leaves test loopholes, or fails to represent the actual product objective.
 
-**Only then ask which component to delete.** Memory-bound → drop the Critic. Long outputs and worried about entropy collapse → ship DAPO's fixes alongside.
+</details>
 
-Don't invert that order — **picking the algorithm first and retrofitting the data is the most common source of rework in these projects.**
+<details class="interview" markdown="1">
+<summary>Step 2: can training keep sampling from the current policy?</summary>
+
+With only static chosen/rejected pairs, the DPO family is usually the direct choice, accepting coverage gaps and distribution mismatch. If training can keep rolling out and obtaining rewards or environment feedback, an online method such as PPO or GRPO can discover the current policy's new failures. It costs more generation compute, system complexity, and optimization variance.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Step 3: what is the real systems or optimization bottleneck?</summary>
+
+If Critic memory, compute, or stability is the bottleneck, consider critic-free methods such as GRPO or RLOO. If long responses are diluted, low-probability tokens cannot recover, or entropy keeps falling, consider DAPO's token-level loss, Clip-Higher, dynamic sampling, and length handling. Do not choose an algorithm name first and force the data to fit it afterwards.
+
+</details>
+
+The order is: **validate the feedback, decide whether an online loop is possible, then diagnose the system bottleneck.**
 
 ## Down to a checklist
 
-1. Is my reward learned or verified? If learned, am I watching for reward hacking?
-2. With a group-relative baseline, what fraction of groups is all-right or all-wrong? That fraction was sampled for nothing.
-3. What bias do my normalization terms introduce? Is response length climbing monotonically through training?
-4. Is each token in a long answer getting a thinner gradient than one in a short answer?
-5. If using DPO: which policy produced my preference data, and how far is it from the current one?
-6. If someone says “DPO completely replaces PPO,” have they ignored online exploration, environment interaction, and the current-policy data loop?
+<details class="interview" markdown="1">
+<summary>1. Is the reward learned or verified, and what should each monitor?</summary>
+
+For a learned Reward Model, monitor reward hacking, length or style shortcuts, and whether agreement with human judgment decays as the policy drifts. For a verifier, audit the specification gap: whether tests cover the real requirement, final-answer checking rewards guessing, or the model can exploit formatting and execution loopholes.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>2. What fraction of GRPO groups are all-right or all-wrong?</summary>
+
+Log the zero-variance group rate directly. When all rewards match, normalized advantages are zero and the rollouts supply no relative gradient. If the rate is high, adjust problem difficulty, group size, or reward resolution, or use dynamic sampling to filter uninformative groups—while monitoring the distribution shift caused by filtering.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>3. What bias do reward and length normalization introduce?</summary>
+
+Plot reward, correctness, response length, entropy, and within-group reward variance together. Group-standard-deviation normalization changes the weight of low-variance groups; response-length averaging can dilute tokens in long sequences. If length rises while correctness stays flat, the model may be exploiting normalization or a reward shortcut.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>4. Are long-response tokens being outweighed by short responses?</summary>
+
+First determine whether the loss uses a per-sequence mean or batch-wide per-token aggregation. If every response has equal total weight, a token in a 1000-token answer usually receives less weight than one in a 50-token answer. Long-reasoning tasks may need token-level loss aggregation and both response-level and token-level metrics.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>5. Which policy produced the DPO preference data, and why does it matter?</summary>
+
+Record the generation checkpoint, sampling temperature, decoding constraints, and annotation date. As the current policy moves away from the producer policy, fixed pairs cover fewer of its present failures. Test coverage on held-out prompts and resample, relabel, or switch to an iterative / online preference loop after meaningful drift.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>6. Can DPO fully replace PPO / GRPO?</summary>
+
+Not in general. Standard DPO is cheap and stable when high-quality offline pairs already cover the desired behavior. PPO / GRPO can roll out the current policy and receive new rewards, which fits exploration, environment interaction, and verifiable multi-step tasks more naturally—but training is more expensive and less stable. The feedback loop matters more than the loss name.
+
+</details>
 
 ## Can you explain it in two minutes?
 
-1. From memory, write PPO's $A\approx G-V$, GRPO's group-normalized advantage, and the DPO loss.
-2. Explain why GRPO removes the Critic but not rollout, and why an all-right or all-wrong group teaches nothing.
-3. Explain why DPO needs no explicit Reward Model and identify the exact equation behind “reward is absorbed implicitly.”
-4. Answer whether DPO can fully replace PPO: fixed preference pairs are cheap and stable, but they do not automatically explore a current policy's new failures. When the task needs online sampling, environment feedback, or verifiable multi-step outcomes, an online method in the PPO/GRPO family is more natural—and also more expensive and harder to stabilize.
+<details class="interview" markdown="1">
+<summary>Write the three central equations for PPO, GRPO, and DPO.</summary>
+
+PPO's direction starts with $\hat A_t\approx G_t-V_\phi(s_t)$ and uses a clipped probability-ratio surrogate to bound one update. GRPO replaces the learned value baseline with $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$. DPO uses $-\log\sigma\!\left(\beta[\Delta_w-\Delta_l]\right)$, where each $\Delta$ is the current policy's log-probability change relative to the Reference.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Why does GRPO remove the Critic but not rollout?</summary>
+
+It still needs the current or recent policy to generate multiple responses to one prompt and score every response; otherwise there is no group-relative baseline. What disappears is the Critic that learns $V_\phi(s)$. If a group is all-right or all-wrong, $R_i-\mu_R=0$, so it supplies no relative policy-gradient signal.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Why does DPO need no explicit Reward Model?</summary>
+
+The KL-constrained optimum satisfies $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+C(x)$. Substitute it into a Bradley–Terry preference probability and $C(x)$ cancels for two responses to the same prompt. The reward difference becomes a chosen/rejected policy-to-reference log-ratio. Reward did not vanish; it is implicit in the DPO loss.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Two-minute conclusion: can DPO fully replace PPO?</summary>
+
+No. DPO is simple and stable when fixed, high-quality preference pairs cover the target behavior, but it does not automatically explore a current policy's new failures. PPO / GRPO can keep sampling the current policy and receive feedback from an environment, Reward Model, or verifier, which better fits exploration and multi-step outcomes but costs more rollout compute and is harder to stabilize. Online DPO shows that the real boundary is whether data updates with the policy, not the algorithm's name.
+
+</details>
 
 ## Where to read next
 

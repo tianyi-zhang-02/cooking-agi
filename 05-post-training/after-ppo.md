@@ -2,7 +2,7 @@
 
 **中文** · [English](after-ppo.en.md)
 
-> 阅读时间：约 11 分钟 · 类型：教学 · 最近审阅：2026-09
+> 阅读时间：约 14 分钟 · 类型：教学 · 最近审阅：2026-09
 
 ## 先看这些算法在简化什么
 
@@ -193,29 +193,102 @@ $\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺�
 
 ## 怎么选
 
-**先问奖励能不能验证。** 能写检查器就写，这一步的收益比换算法大得多。
+<details class="interview" markdown="1">
+<summary>第一步：奖励能不能被自动验证？</summary>
 
-**再问能不能 online 采样。** 不能（只有静态偏好数据）→ DPO 系，并接受分布错配。能 → GRPO 系。
+**能验证时，优先考虑 verifier / RLVR。** 数学答案、代码测试、结构约束等可以由程序稳定判断，不必先拟合一个 Reward Model。但仍要审计 verifier 是否只检查最终答案、是否存在测试漏洞，以及它是否真的代表产品目标。
 
-**最后才问删哪个部件。** 显存是瓶颈就去 Critic；输出很长、要防熵坍塌，就把 DAPO 那几条修补一起上。
+</details>
 
-顺序别反过来——**先挑算法再回头适配数据，是这类项目最常见的返工来源。**
+<details class="interview" markdown="1">
+<summary>第二步：训练时能不能持续从当前 policy 采样？</summary>
+
+只有静态 chosen/rejected pairs 时，DPO 系通常最直接，但要接受覆盖不足与 distribution mismatch。能够持续 rollout、获得 reward 或环境反馈时，PPO / GRPO 一类 online method 能发现当前 policy 的新失败；代价是生成计算、系统复杂度和训练方差都更高。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>第三步：真正的资源或优化瓶颈是什么？</summary>
+
+Critic 的显存、计算或训练稳定性是瓶颈时，考虑 GRPO、RLOO 等 critic-free 方法。长回答被稀释、低概率 token 难以恢复或 entropy 持续下降时，再考虑 DAPO 的 token-level loss、Clip-Higher、动态采样和长度处理。不要先挑算法名，再回头勉强适配数据。
+
+</details>
+
+顺序是：**先看 feedback 是否可靠，再看能否形成 online loop，最后看系统瓶颈。**
 
 ## 选择算法时检查什么
 
-1. 我的奖励是学出来的还是验证出来的？如果是学出来的，我有没有在盯 reward hacking？
-2. 用了组相对基线的话，有多少比例的组是全对或全错？那部分数据是白采的。
-3. 我的归一化项引入了什么偏置？回答长度在训练过程中是不是单调变长？
-4. 长回答里每个 token 拿到的梯度，和短回答比是不是被摊薄了？
-5. 如果用 DPO：我的偏好数据是哪个策略产生的？和现在的策略差多远？
-6. 如果有人说“DPO 完全替代 PPO”，他是否忽略了 online exploration、环境交互和当前 policy 的数据闭环？
+<details class="interview" markdown="1">
+<summary>1. Reward 是 learned 还是 verified？分别监控什么？</summary>
+
+Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以及与人工判断的相关性是否随 policy 漂移。Verifier 要审计 specification gap：测试是否覆盖真实要求、只验最终答案是否奖励了猜测、模型能否钻格式或执行环境的漏洞。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>2. GRPO 中有多少组全对或全错？</summary>
+
+直接记录 zero-variance group rate。组内 reward 完全相同时，标准化 advantage 为 0，这些 rollout 不提供相对梯度。比例过高时，可以调整题目难度、增加组大小、改善 reward 分辨率，或用 dynamic sampling 过滤无信息组；但过滤也会改变训练数据分布，需要同时监控。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>3. Reward 与长度归一化引入了什么偏置？</summary>
+
+同时画 reward、正确率、response length、entropy 和每组 reward variance 的训练曲线。按组标准差归一化会让低方差组获得不同尺度的权重；按 response 长度平均则可能稀释长序列 token。若长度持续增长但正确率不涨，模型可能在优化归一化或 reward 的捷径。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>4. 长回答的 token 梯度是否被短回答压过？</summary>
+
+先确认 loss 是 per-sequence mean 还是全 batch 的 per-token aggregation。若每条 response 总权重相同，1000-token 回答中的单个 token 通常比 50-token 回答中的 token 分到更小权重。需要长推理时，可考虑 token-level loss aggregation，并分别报告按 response 和按 token 的指标。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>5. DPO 偏好数据来自哪个 policy？为什么重要？</summary>
+
+记录数据生成 checkpoint、sampling temperature、解码约束和标注时间。当前 policy 离数据生成 policy 越远，固定 pair 越难覆盖它现在会犯的错。用 held-out prompt 检查覆盖范围，并在明显漂移后重新采样、重新标注或切换到 iterative / online preference loop。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>6. DPO 能完全替代 PPO / GRPO 吗？</summary>
+
+不能一概而论。标准 DPO 用固定偏好对，便宜、稳定，适合高质量离线数据已经覆盖目标行为的场景；PPO / GRPO 能从当前 policy rollout 并接收新 reward，更适合 exploration、环境交互和多步可验证任务，但训练更贵、更不稳定。关键区别是 feedback loop，而不只是 loss 名字。
+
+</details>
 
 ## 面试时能否两分钟讲清楚
 
-1. 不看笔记写出 PPO 的 $A\approx G-V$、GRPO 的组标准化 advantage 和 DPO loss。
-2. 解释为什么 GRPO 省掉 Critic，却没有省掉 rollout；全对或全错的一组为什么学不到东西。
-3. 解释 DPO 为什么不需要显式 Reward Model，以及“reward 被隐式吸收”到底指哪条等式。
-4. 回答 DPO 能不能完全替代 PPO：固定偏好对便宜稳定，但不会自动探索当前 policy 的新失败；需要在线采样、环境反馈或多步可验证结果时，PPO/GRPO 一类 online method 更自然，也更贵、更难稳定。
+<details class="interview" markdown="1">
+<summary>请写出 PPO、GRPO 与 DPO 最关键的三个式子。</summary>
+
+PPO 的核心方向是 $\hat A_t\approx G_t-V_\phi(s_t)$，再用 probability ratio 的 clipped surrogate 限制单次更新。GRPO 把 learned value baseline 换成 $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$。DPO 使用 $-\log\sigma\!\left(\beta[\Delta_w-\Delta_l]\right)$，其中 $\Delta$ 是当前 policy 相对 Reference 的 log-probability 变化。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>为什么 GRPO 省掉 Critic，却没有省掉 rollout？</summary>
+
+它仍要让当前或近期 policy 对同一 prompt 生成多个回答，并给每个回答计算 reward；否则没有组内相对 baseline。它省掉的是训练 $V_\phi(s)$ 的 Critic。若同组全对或全错，$R_i-\mu_R=0$，所以这一组没有相对 policy-gradient signal。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>DPO 为什么不需要显式 Reward Model？</summary>
+
+带 KL 约束的最优策略满足 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+C(x)$。把它代入 Bradley–Terry 偏好概率时，同一 prompt 的 $C(x)$ 抵消，于是 reward difference 可以直接写成 chosen/rejected 的 policy/reference log-ratio。Reward 没消失，而是隐含在 DPO loss 中。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>两分钟结论：DPO 能完全替代 PPO 吗？</summary>
+
+不能。DPO 适合高质量、覆盖充分的固定偏好对，训练像监督学习一样简单稳定；它不会自动探索当前 policy 的新失败。PPO / GRPO 可以持续从当前 policy 采样并接收环境、Reward Model 或 verifier 的反馈，更适合需要 exploration 和多步结果的任务，但 rollout 更贵，优化也更难稳定。Online DPO 说明真正的分界在数据是否随 policy 更新，而不是算法名称本身。
+
+</details>
 
 ## 继续阅读
 
