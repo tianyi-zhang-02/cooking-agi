@@ -78,6 +78,38 @@ Search 负责找证据和候选，工具负责读取或改变外部状态。两�
 
 规则、executor、LLM Judge、人工审查和在线指标共同形成证据。失败案例还要回流成新的测试、数据或策略更新。
 
+## 例子：能查询订单并执行退款的客服 Agent
+
+这类系统不能只生成自然语言。它要读取不断变化的业务事实，并可能执行有副作用的动作：
+
+```text
+用户消息
+→ 语言、意图与风险识别
+→ 结构化会话状态
+→ 检索订单、物流、政策与商家证据
+→ 模型决定回复、追问或调用工具
+→ 权限、schema 与政策校验
+→ 执行 read / write tool
+→ 基于执行结果生成回答
+→ 置信度检查、澄清或转人工
+```
+
+订单状态、物流轨迹、退款资格和当前政策不能依赖模型参数记忆；它们必须从 retrieval 或
+tool calling 在运行时取得。Post-training 教模型**怎样使用证据和采取行动**，不负责保存
+不断变化的业务事实。
+
+状态也要分层：最近几轮原始对话用于语言连贯；结构化 task state 保存订单 ID、已经验证
+的身份、工具结果和待确认动作；长对话摘要只保留有 evidence 的事实与未解决事项；企业
+数据库和版本化政策仍是真相来源，不能被一段 summary 取代。
+
+退款这类 write action 至少需要 authorization、schema validation、用户确认、幂等键和
+audit log。工具 timeout 时可以安全重试，但不能让模型假装操作成功；证据不足、政策冲突
+或风险过高时，应澄清或转人工。
+
+评价时同时看 task resolution、grounding、policy compliance、tool-call correctness、
+unsafe-action rate、多语言一致性、escalation quality、延迟、成本、CSAT 与 repeat-contact
+rate。语言更自然只是其中一项。
+
 ## 为什么要看完整链路
 
 系统里的错误会向后传播：

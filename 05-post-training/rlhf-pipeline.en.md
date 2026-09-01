@@ -2,7 +2,7 @@
 
 [中文](rlhf-pipeline.md) · **English**
 
-> Reading time: ~14 min · Level: core · Last reviewed: 2026-08
+> Reading time: ~18 min · Level: core · Last reviewed: 2026-09
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>turning "people prefer this answer" into something optimisable</strong></div>
@@ -157,13 +157,66 @@ $$\hat A_i = \frac{r_i - \text{mean}(\mathbf{r})}{\text{std}(\mathbf{r})}$$
 
 If all you needed was a baseline for variance reduction, the group mean supplies one — no separate network required. That removes a full-size model *that was being trained*.
 
+### The four GRPO/PPO clipping cases
+
+GRPO changes where advantage comes from while commonly retaining a PPO-style clipped
+surrogate. Define the token-level probability ratio between the current and rollout
+policies:
+
+$$
+\rho_t(\theta)=
+\frac{\pi_\theta(a_t\mid s_t)}
+{\pi_{\text{old}}(a_t\mid s_t)}.
+$$
+
+The objective maximizes
+
+$$
+\min\left(
+\rho_t\hat A_t,
+\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\hat A_t
+\right).
+$$
+
+| Advantage | Ratio | Interpretation | Local gradient |
+| --- | --- | --- | --- |
+| $\hat A>0$ | $\rho\leq1+\epsilon$ | a good action is not over-promoted | keep increasing its probability |
+| $\hat A>0$ | $\rho>1+\epsilon$ | a good action was promoted too far | clipped branch; gradient is zero |
+| $\hat A<0$ | $\rho\geq1-\epsilon$ | a bad action is not over-suppressed | keep decreasing its probability |
+| $\hat A<0$ | $\rho<1-\epsilon$ | a bad action was suppressed too far | clipped branch; gradient is zero |
+
+Clipping does **not** hard-constrain $\rho$ to the interval at all times. It only stops
+excessive movement in the direction recommended by the advantage. Positive advantage
+clips only the upper side; if a good action became less likely, a ratio below the lower
+bound still receives a corrective upward gradient. Negative advantage clips only the
+lower side; if a bad action became more likely, a ratio above the upper bound still
+receives a downward gradient.
+
+Standard GRPO often applies one group-normalized sequence-level advantage to the
+generated tokens of that response. Implementations differ in token aggregation, KL
+placement, and clipping details; the table describes the classic local clipped-objective
+behavior.
+
 **DPO drops the RL loop entirely.** The key derivation: KL-constrained reward maximisation has a closed-form optimum, and inverting it expresses the reward in terms of the policy itself, so the preference loss can be taken **directly against the policy**:
 
 $$\mathcal{L}_{\text{DPO}} = -\mathbb{E}\left[\log\sigma\left(\beta\log\frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta\log\frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]$$
 
-No reward model, no sampling, no Critic. The cost is that it uses **offline** preference pairs: the policy changes during training while the data still comes from the old one, and that mismatch is DPO's main limitation.
+No reward model, no sampling, no Critic. Standard DPO usually uses **offline** preference pairs: the policy changes while the data distribution does not, so it cannot actively discover the current policy's new failures. Online DPO can resample and reduce this mismatch. The deeper distinction is whether data follows the current policy and whether feedback comes from preferences, a Reward Model, a verifier, or an environment.
 
 **RLVR replaces the reward with a program.** Maths problems have answers to check; code has tests to run. Rewards like that need not be learned at all. The learned reward model disappears, and so does most of the room for reward hacking — **what gets gamed is a fitted reward, not a verified one.**
+
+## Evaluation closes the loop
+
+A lower training loss or higher average reward does not imply a more useful model.
+Evaluate capability regression, factual grounding, safety and policy compliance, tool
+use and task completion, multi-turn consistency, latency, and cost separately.
+Open-ended responses can combine human review, calibrated LLM judges, and deterministic
+checks; maths, code, and structured tasks should prefer verifiers where possible.
+
+Keep a frozen regression suite before launch, then use shadow evaluation and controlled
+A/B tests. Do not feed every production failure straight back into training. Deduplicate,
+audit, and stratify it with a failure taxonomy, then decide whether it belongs as an SFT
+demonstration, preference pair, verifier case, or system rule.
 
 ## Interview questions
 
@@ -197,7 +250,9 @@ GRPO's observation: if a baseline is all you need, sampling a group of answers p
 
 DPO uses a derivation: KL-constrained reward maximisation has a closed-form optimum, so the reward can be rewritten in terms of the policy and the preference loss differentiated directly. The reward model and the RL loop both disappear.
 
-The cost is that DPO's preference pairs are **offline**. The policy moves during training while the data came from an older one — a distribution mismatch. PPO resamples with the current policy every round and is on-policy. So DPO is far cheaper and usually loses on tasks that need exploration.
+Standard DPO's cost is **offline** preference data. The policy changes while the data does not, so it cannot actively explore its current failures. PPO and other online RL methods resample from the current policy and are more natural for exploration, environment interaction, or verifiable multi-step outcomes, but rollout is expensive and training less stable.
+
+DPO therefore cannot replace PPO everywhere, but PPO is not universally better either. Use DPO when high-quality static preferences cover the task; use online methods when the current policy must keep producing new evidence. Online DPO variants reinforce that the real distinction is the data-and-feedback loop, not only the loss name.
 
 </details>
 
@@ -228,6 +283,7 @@ The trade is coverage: it only applies where outcomes are automatically verifiab
     <li>What happens without the KL penalty, and the symptoms of $\beta$ being too large or too small.</li>
     <li>Whether the Critic reduces variance or improves accuracy, and what GRPO replaces it with.</li>
     <li>Why DPO needs no reward model, and what it gives up for that.</li>
+    <li>For PPO-style clipping, which two combinations of advantage sign and ratio crossing make the local gradient zero?</li>
   </ol>
 </div>
 

@@ -234,6 +234,49 @@ $F(9,3)=129\ge100$.
 moves-by-eggs coverage DP that compresses to one dimension. “Shrinking the searchable space on
 every action” is exactly what this recurrence counts.
 
+## One more: Binary Tree Maximum Path Sum
+
+The central distinction is between a complete answer whose highest point is the current
+node and the state that can be returned to its parent.
+
+Let $G(u)$ be the maximum path sum that must start at $u$ and may extend downward through
+only one child. Ignore negative contributions:
+
+$$L=\max(0,G(u.left)),\qquad R=\max(0,G(u.right)).$$
+
+A complete path with $u$ as its highest point can use both sides:
+
+$$\text{candidate}=u.val+L+R.$$
+
+The value returned to the parent cannot branch, so it keeps only one side:
+
+$$G(u)=u.val+\max(L,R).$$
+
+```python
+def max_path_sum(root):
+    best = float("-inf")
+
+    def gain(node):
+        nonlocal best
+        if node is None:
+            return 0
+        left = max(0, gain(node.left))
+        right = max(0, gain(node.right))
+        best = max(best, node.val + left + right)
+        return node.val + max(left, right)
+
+    gain(root)
+    return best
+```
+
+Time is $O(n)$ and recursion space is $O(h)$. Initialize the global answer to negative
+infinity, not zero, so an all-negative tree cannot incorrectly choose an empty path.
+
+If the input is a list, clarify whether it is level-order serialization with `None`
+markers or heap-indexed storage with `left=2i+1, right=2i+2`. They are not equivalent
+for sparse trees. Defining unfamiliar serialization before coding protects correctness;
+it is not stalling.
+
 ## Appendix: how to present the Transformer architecture
 
 When asked to "walk through the architecture," don't recite the figure. **Go component → the problem it solves.**

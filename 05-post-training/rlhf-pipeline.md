@@ -2,7 +2,7 @@
 
 **中文** · [English](rlhf-pipeline.en.md)
 
-> 阅读时间：约 14 分钟 · 难度：必修 · 最近审阅：2026-08
+> 阅读时间：约 18 分钟 · 难度：必修 · 最近审阅：2026-09
 
 <div class="lesson-recipe">
   <div><span>解决什么问题</span><strong>把「人更喜欢哪个回答」变成可优化的目标</strong></div>
@@ -156,13 +156,60 @@ $$\hat A_i = \frac{r_i - \text{mean}(\mathbf{r})}{\text{std}(\mathbf{r})}$$
 
 既然只需要一个基线来降方差，那组内均值就够了，不必专门训一个网络去估它。省掉一个在训的全尺寸模型。
 
+### GRPO / PPO clipping 的四种更新情况
+
+GRPO 改变了 advantage 的来源，但常继续使用 PPO-style clipped surrogate。定义
+当前策略与 rollout policy 的 token-level probability ratio：
+
+$$
+\rho_t(\theta)=
+\frac{\pi_\theta(a_t\mid s_t)}
+{\pi_{\text{old}}(a_t\mid s_t)}.
+$$
+
+然后最大化：
+
+$$
+\min\left(
+\rho_t\hat A_t,
+\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\hat A_t
+\right).
+$$
+
+| Advantage | Ratio | 说明 | 局部梯度 |
+| --- | --- | --- | --- |
+| $\hat A>0$ | $\rho\leq1+\epsilon$ | 好动作还没被提高过头 | 继续提高其概率 |
+| $\hat A>0$ | $\rho>1+\epsilon$ | 好动作已经被提高太多 | clipped branch 生效，梯度为 0 |
+| $\hat A<0$ | $\rho\geq1-\epsilon$ | 坏动作还没被降低过头 | 继续降低其概率 |
+| $\hat A<0$ | $\rho<1-\epsilon$ | 坏动作已经被降低太多 | clipped branch 生效，梯度为 0 |
+
+Clipping **不是**永远把 $\rho$ 硬限制在 $[1-\epsilon,1+\epsilon]$。它只阻止
+策略沿 advantage 建议的方向走得过头。$\hat A>0$ 时只限制上界；若好动作反而变得
+更不可能，即使 $\rho<1-\epsilon$，仍有梯度把它拉回来。$\hat A<0$ 时只限制下界；
+若坏动作反而变得更可能，即使 $\rho>1+\epsilon$，仍有梯度把它压下去。
+
+标准 GRPO 常把同一 response 的 group-normalized sequence-level advantage 应用到它的
+生成 token；实现会在 token aggregation、KL placement 和 clipping 范围上有所变化。
+上表描述的是经典 PPO-style clipped objective 的局部行为。
+
 **DPO：连 RL 循环一起去掉。** 关键推导是：带 KL 约束的奖励最大化问题有闭式最优解，反解之后奖励可以用策略本身表示，于是偏好损失可以**直接对策略求**：
 
 $$\mathcal{L}_{\text{DPO}} = -\mathbb{E}\left[\log\sigma\left(\beta\log\frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta\log\frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]$$
 
-不用训奖励模型，不用采样，不用 Critic。代价是它只能用**离线**的偏好对——策略在训练中改变了，数据却还是旧策略产生的，这个分布错配是 DPO 的主要局限。
+不用训奖励模型，不用采样，不用 Critic。标准 DPO 通常使用**离线**偏好对：策略在训练中改变，数据分布却不跟着改变，因此不能主动发现当前策略的新失败模式。Online DPO 可以重新采样来缓解这个问题。真正的分界不是算法名字，而是数据是否跟随当前策略更新、反馈来自 preference、Reward Model、verifier 还是环境。
 
 **RLVR：奖励换成一个程序。** 数学题可以对答案，代码可以跑测试。这类任务的奖励不需要学，写一个检查器就行。学出来的奖励模型消失了，reward hacking 的空间也随之大幅收窄——**能被钻空子的是被拟合出来的奖励，不是被验证出来的**。
+
+## Evaluation 才让训练形成闭环
+
+训练 loss 或平均 reward 变好，不代表模型真的更可用。至少要分别检查：通用能力是否
+退化、事实是否有依据、安全与 policy compliance、工具调用与任务完成、多轮一致性，
+以及延迟和成本。开放式回答可以结合人工评审、经过校准的 LLM judge 与确定性检查；
+数学、代码和结构化任务则优先使用 verifier。
+
+上线前保留冻结的 regression suite，之后再做 shadow evaluation 与受控 A/B test。
+线上失败不能直接全部回灌：先按 failure taxonomy 去重、审计与分层采样，再决定它应该
+成为 SFT demonstration、chosen/rejected pair、verifier case，还是系统侧规则。
 
 ## 面试常见问题
 
@@ -198,7 +245,9 @@ GRPO 的观察是：既然只是要一个基线，那对同一个提示采样一
 
 DPO 用了一个推导：带 KL 约束的奖励最大化有闭式最优解，把奖励反解成策略的表达式之后，偏好损失可以直接对策略求梯度。于是奖励模型和 RL 循环都不需要了。
 
-代价是 DPO 用的是**离线**偏好对。训练中策略在变，数据却是旧策略采的，存在分布错配；PPO 每一轮都用当前策略重新采样，是 on-policy 的。所以 DPO 便宜很多，但在需要探索的任务上通常追不上。
+标准 DPO 的代价是使用**离线**偏好对。训练中策略在变，数据却不跟着变；它无法主动探索当前 policy 的新失败。PPO 或其他 online RL 可以从当前策略采样，更适合需要探索、环境交互或可验证多步结果的任务，但 rollout 更贵，训练也更不稳定。
+
+所以 DPO 不能完全替代 PPO，但 PPO 也不是所有场景都更好。高质量静态偏好数据可以先用 DPO；需要当前策略不断产生新数据时使用 online RL。Online DPO 等变体进一步说明，关键区别是数据与反馈闭环，而不只是 loss 的名字。
 
 </details>
 
@@ -229,6 +278,7 @@ Bradley–Terry 损失直接约束的是同一 prompt 下 chosen 与 rejected �
     <li>KL 惩罚去掉会发生什么？$\beta$ 调大调小分别是什么症状？</li>
     <li>Critic 的作用是降方差还是提高准确率？GRPO 用什么替代了它？</li>
     <li>为什么 DPO 不需要奖励模型？它因此付出了什么代价？</li>
+    <li>对 PPO-style clipping，$\hat A$ 正负与 $\rho$ 越界分别在哪两种情况下让梯度归零？</li>
   </ol>
 </div>
 

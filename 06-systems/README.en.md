@@ -66,6 +66,41 @@ Evaluation is not a final score. It continuously tests the system contract throu
 
 Deployed behavior becomes future data, but it is conditioned on the current policy. The system must distinguish what users prefer from what the system happened to expose.
 
+## Example: a support agent that can read orders and issue refunds
+
+This system cannot stop at natural-language generation. It reads changing business
+facts and may execute consequential actions:
+
+```text
+User message
+→ Language, intent, and risk detection
+→ Structured conversation state
+→ Retrieve order, logistics, policy, and seller evidence
+→ Model chooses a response, clarification, or tool call
+→ Authorization, schema, and policy validation
+→ Execute the read/write tool
+→ Ground the response in the execution result
+→ Confidence check, clarification, or human escalation
+```
+
+Order state, logistics events, refund eligibility, and current policy must come from
+retrieval and tools rather than model memory. Post-training teaches the model **how to
+use evidence and act**; it does not store changing business truth.
+
+State should be layered. Recent raw dialogue preserves linguistic continuity; structured
+task state stores order IDs, verified identity, tool results, and pending confirmations;
+a long-conversation summary keeps only evidence-backed facts and unresolved items. The
+enterprise database and versioned policy store remain the source of truth.
+
+Consequential write actions such as refunds require authorization, schema validation,
+user confirmation, idempotency, and audit logs. Tool timeouts permit safe retry but never
+fabricated success. Missing evidence, conflicting policy, or high risk should trigger
+clarification or human review.
+
+Evaluation spans task resolution, grounding, policy compliance, tool-call correctness,
+unsafe-action rate, multilingual consistency, escalation quality, latency, cost, CSAT,
+and repeat-contact rate. Natural language quality is only one dimension.
+
 ## A more reliable evaluation stack
 
 | Layer | Best for | Strength | Risk |

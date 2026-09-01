@@ -232,6 +232,49 @@ $F(9,3)=129\ge100$。
 「行动次数 × 鸡蛋」的覆盖 DP，并能压成一维。你说的“每次缩小可以搜索的 space”
 就是这个递推在计算的东西。
 
+## 再加一道：Binary Tree Maximum Path Sum
+
+这题最容易错的地方，是混淆「当前节点形成的完整答案」和「可以返回给父节点的状态」。
+
+定义 $G(u)$：必须从节点 $u$ 出发，只能沿一侧向下延伸的最大路径和。空节点返回 0，
+负贡献直接丢掉：
+
+$$L=\max(0,G(u.left)),\qquad R=\max(0,G(u.right)).$$
+
+以 $u$ 为最高点的完整路径可以同时使用左右两侧：
+
+$$\text{candidate}=u.val+L+R.$$
+
+但返回给父节点时不能分叉，只能选择一侧：
+
+$$G(u)=u.val+\max(L,R).$$
+
+```python
+def max_path_sum(root):
+    best = float("-inf")
+
+    def gain(node):
+        nonlocal best
+        if node is None:
+            return 0
+
+        left = max(0, gain(node.left))
+        right = max(0, gain(node.right))
+
+        best = max(best, node.val + left + right)
+        return node.val + max(left, right)
+
+    gain(root)
+    return best
+```
+
+每个节点只访问一次，时间 $O(n)$；递归栈为 $O(h)$。全局答案必须初始化成
+$-\infty$，不能是 0，否则全负数树会错误地选择一条不存在的空路径。
+
+如果输入是 list，先问清楚表示法：带 `None` 的 level-order serialization，还是
+heap-style 的 `left=2i+1, right=2i+2`？对稀疏树，二者不等价。面试官给了不熟悉的
+序列化格式时，先定义输入语义不是拖延，是在保护算法的正确性。
+
 ## 附：Transformer 结构怎么讲
 
 被问「讲一下结构」时别按论文插图顺序背，**按每个部件解决什么问题讲**：

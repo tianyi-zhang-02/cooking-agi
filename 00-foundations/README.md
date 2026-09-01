@@ -54,6 +54,14 @@ flowchart LR
 | [注意力的数学与形状](transformer.md) | $Q/K/V$、mask、多头、RoPE、GQA、RMSNorm、SwiGLU | 一次 attention 到底乘了哪些矩阵？ |
 | [语言模型目标与生成](deep-dives/language-model-objective.md) | causal loss、teacher forcing、exposure gap、sampling、cache | 训练时一次并行算完，为什么生成时仍要逐 token？ |
 
+## 面试速查
+
+| 专题 | 重点 |
+| --- | --- |
+| [ML 数学面试主线](ml-math-interview.md) | Softmax / CE / LSE、L1 / L2、Bias–Variance、MLE / MAP、BLUE |
+| [白板手写工具箱](hand-write-kit.md) | 稳定实现、梯度与数值检查 |
+| [面试基础题](interview-basics.md) | attention、normalization、训练与推理、Egg Drop 与树上 DP |
+
 进阶内容可以先跳过。保留这些章节，是因为模型出现问题时，真正需要定位的往往正是这些细节：梯度从哪里断了、mask 遮错了谁、训练和生成为什么对不上。
 
 ## 第三层：从零实现实验

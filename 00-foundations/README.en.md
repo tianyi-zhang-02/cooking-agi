@@ -54,6 +54,14 @@ After this level, you should be able to draw the complete path from text to logi
 | [Attention mathematics and shapes](transformer.en.md) | $Q/K/V$, masks, heads, RoPE, GQA, RMSNorm, SwiGLU | Which matrices are multiplied in one attention call? |
 | [Language-model objectives and generation](deep-dives/language-model-objective.en.md) | causal loss, teacher forcing, exposure gap, sampling, cache | Why is training parallel while generation remains sequential? |
 
+## Interview reference
+
+| Topic | Focus |
+| --- | --- |
+| [ML interview mathematics](ml-math-interview.en.md) | Softmax / CE / LSE, L1 / L2, bias–variance, MLE / MAP, BLUE |
+| [Hand-written formulas](hand-write-kit.en.md) | stable implementations, gradients, and numerical checks |
+| [Interview basics](interview-basics.en.md) | attention, normalization, train/inference, Egg Drop, and tree DP |
+
 ## Level three: build it
 
 <div class="lab-matrix">
