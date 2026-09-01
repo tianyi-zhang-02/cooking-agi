@@ -1,4 +1,4 @@
-# 多头注意力：手搓版
+# 多头注意力：从公式到实现
 
 **中文** · [English](multi-head-attention.en.md)
 
@@ -293,7 +293,7 @@ to have one clean, human-assigned semantic job.
 </div>
 </section>
 
-## 手搓时最容易错的六处
+## 从零实现时最容易错的六处
 
 这些是真正会被看出来的地方：
 
@@ -313,7 +313,7 @@ to have one clean, human-assigned semantic job.
 ## 动手：三种写法，互相对答案
 
 <details class="code-drop" markdown="1">
-<summary><b>手搓</b> · 纯 NumPy，不依赖任何框架</summary>
+<summary><b>从零实现</b> · 纯 NumPy，不依赖任何框架</summary>
 
 白板上要能默出来的就是这一版。
 
@@ -409,7 +409,7 @@ def causal_mask(t, device=None):
   weight on any future position                  : 0.00e+00
 ```
 
-能让手搓版和 `nn.MultiheadAttention` 对上，比「能跑」强得多。对不上时差异出在哪，本身就是最好的调试练习——顺带说，`nn.MultiheadAttention` 把 $W_Q, W_K, W_V$ 存成一个拼起来的 `in_proj_weight`，而 `nn.Linear` 存的是 $(out, in)$ 所以搬去 NumPy 要转置。
+能让从零实现的版本和 `nn.MultiheadAttention` 对上，比仅仅「能跑」更重要。对不上时定位差异，本身就是有效的调试练习。`nn.MultiheadAttention` 把 $W_Q, W_K, W_V$ 存成一个拼接的 `in_proj_weight`，而 `nn.Linear` 存的是 $(out, in)$，因此搬到 NumPy 时需要转置。
 
 ## 面试可能会问
 

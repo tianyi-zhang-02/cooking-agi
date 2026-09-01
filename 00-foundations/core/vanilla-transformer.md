@@ -32,7 +32,7 @@
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 出去找信息，回来加工信息
+## 先交换位置信息，再逐位置变换
 
 先忘掉那张塞满箭头的大框图。Transformer 一层其实只反复做两件事：**attention 去别的位置拿信息，FFN 留在当前位置加工信息。** 原版仍然是 encoder–decoder，但 recurrence 被彻底拿掉了。
 
@@ -52,7 +52,7 @@ still an encoder–decoder, but recurrence is removed completely.
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 一层只有两种“工种”
+## 一层只有两类计算
 
 1. **Attention mixing**：不同 token 之间交换信息。
 2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
@@ -141,7 +141,7 @@ approximately quadratically in time and memory with sequence length.
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 缺的一味：Attention 根本不知道顺序
+## 缺失的信息：Attention 本身不知道顺序
 
 Attention 本身不知道顺序。原版把固定 sinusoidal position encoding 加到 token embedding：
 
@@ -152,7 +152,7 @@ $$z_t = E[x_t] + PE_t$$
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
-<div class="concept-title-en concept-title-h2" role="heading" aria-level="2">The missing ingredient: attention does not know order</div>
+<div class="concept-title-en concept-title-h2" role="heading" aria-level="2">The missing information: attention does not know order</div>
 
 Attention alone is permutation-equivariant: reordering the input merely reorders the
 output. The original Transformer therefore adds fixed sinusoidal positional encoding
@@ -570,7 +570,7 @@ $$
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 别串菜：2017 原版不是今天的 Decoder-only
+## 不要混淆：2017 原版不是现代 Decoder-only
 
 | | 2017 vanilla | 现代 decoder-only |
 | --- | --- | --- |
@@ -593,7 +593,7 @@ $$
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
-<div class="concept-title-en concept-title-h2" role="heading" aria-level="2">Do not mix recipes: the 2017 model is not a modern decoder-only LLM</div>
+<div class="concept-title-en concept-title-h2" role="heading" aria-level="2">Do not conflate the 2017 architecture with a modern decoder-only LLM</div>
 
 | | 2017 vanilla | Modern decoder-only |
 | --- | --- | --- |
@@ -616,7 +616,7 @@ predicted.
 </div>
 </section>
 
-## 动手：别只看图，跑一次
+## 动手验证：运行完整示例
 
 - 快速跑通：[`../code/vanilla_demo.py`](../code/vanilla_demo.py)
 - 完整数学与现代组件：[Transformer 架构深拆](../transformer.md)

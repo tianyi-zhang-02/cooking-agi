@@ -1,4 +1,4 @@
-/* AGI 大锅烩 — site behaviour.
+/* AGI 学习笔记 — site behaviour.
    Everything here is progressive enhancement: the page is fully readable with
    JS disabled. Order: chrome, then the live widgets. */
 

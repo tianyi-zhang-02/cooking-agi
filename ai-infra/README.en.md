@@ -61,7 +61,7 @@ Did the optimization preserve correctness?
 ## Modern focus for this edition
 
 - compiler-aware PyTorch and kernel DSLs rather than framework calls alone;
-- BF16 as a baseline, with FP8, MXFP8, and NVFP4 treated as hardware-and-recipe decisions;
+- BF16 as a baseline, with FP8, MXFP8, and NVFP4 treated as hardware-and-configuration decisions;
 - FSDP2/DTensor, multidimensional device meshes, context parallelism, and expert parallelism;
 - token-level serving, KV-cache management, chunked prefill, speculative decoding, and disaggregation;
 - rollout, tracing, evaluation, canary, and rollback infrastructure for agents and learning loops.

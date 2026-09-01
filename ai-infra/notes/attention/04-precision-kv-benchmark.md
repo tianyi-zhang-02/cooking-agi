@@ -70,4 +70,4 @@ Prefill 的矩阵更大，通常更偏 compute-intensive；decode 每步 query �
 
 低精度是否成功由质量和系统收益共同决定；KV cache 是否成功由真实 decode workload 决定。离开 workload 的“更快”没有意义。
 
-返回：[Project 01 · 手搓 Attention](../../projects/01-attention-from-scratch.md)
+返回：[Project 01 · 从零实现 Attention](../../projects/01-attention-from-scratch.md)

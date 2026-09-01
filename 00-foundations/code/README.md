@@ -1,4 +1,4 @@
-# 手搓实验：从符号到生成
+# 从零实现实验：从符号到生成
 
 **中文** · [English](README.en.md)
 
@@ -6,7 +6,7 @@
 
 我喜欢把同一个东西写两遍。第一遍不用 PyTorch，逼自己看清每一个数字从哪里来；第二遍再交给 tensor、module 和 autograd，让它真的学起来。
 
-高层 API 当然不是坏东西，只是如果从第一行就把核心计算包起来，后面 shape、mask 或 state 一出错，很容易只剩一句“玄学不收敛”。
+高层 API 当然不是坏东西，但如果一开始就封装所有核心计算，后续 shape、mask 或 state 出错时，很难定位不收敛的原因。
 
 ## 第一遍：先别让框架替你想
 
@@ -26,7 +26,7 @@ python sequence_numpy.py
 
 | 文件 | 做什么 | 建议命令 |
 | --- | --- | --- |
-| [`sequence_torch.py`](sequence_torch.py) | 手写 RNN/LSTM cell；训练 delay-copy 或 encoder–decoder reversal | `python sequence_torch.py --model lstm --task reverse` |
+| [`sequence_torch.py`](sequence_torch.py) | 自行实现 RNN/LSTM cell；训练 delay-copy 或 encoder–decoder reversal | `python sequence_torch.py --model lstm --task reverse` |
 | [`vanilla.py`](vanilla.py) | 2017 encoder–decoder Transformer | 由 `vanilla_demo.py` 调用 |
 | [`vanilla_demo.py`](vanilla_demo.py) | 形状追踪、反转序列、cross-attention 对齐 | `python vanilla_demo.py` |
 | [`model.py`](model.py) | 现代 decoder-only：RMSNorm + RoPE + GQA + SwiGLU + KV cache | 由测试和训练脚本调用 |
@@ -35,7 +35,7 @@ python sequence_numpy.py
 
 这些实现不调用 `nn.MultiheadAttention` 或 `F.scaled_dot_product_attention`。PyTorch 只负责 tensor、参数管理和自动求导，模型结构仍然显式可见。
 
-## 懒人模式：先把检查全跑一遍
+## 快速验证
 
 ```bash
 python test_learning_path.py
@@ -44,7 +44,7 @@ python test_model.py
 
 `test_learning_path.py` 检查 tokenizer round-trip、RNN/LSTM 形状、causal attention 的上三角严格为 0，以及 PyTorch 两种 cell 的输出契约。
 
-## 我会按这个顺序玩
+## 建议运行顺序
 
 ```text
 tokenizer_from_scratch.py

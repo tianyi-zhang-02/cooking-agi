@@ -7,8 +7,8 @@
 
 [site]
 repo        = "tianyi-zhang-02/cooking-agi"
-title_zh    = "AGI 大锅烩"
-title_en    = "Cooking AGI"
+title_zh    = "AGI 学习笔记"
+title_en    = "AGI Study Notes"
 tagline_zh  = "从一条直线，到会读世界的系统"
 tagline_en  = "From a straight line to a system that reads the world"
 base_url    = "/cooking-agi"

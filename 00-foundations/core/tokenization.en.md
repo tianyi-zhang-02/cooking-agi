@@ -7,7 +7,7 @@
 <div class="lesson-recipe">
   <div><span>What we are making</span><strong>A finite symbol system for open-ended strings</strong></div>
   <div><span>Prerequisites</span><strong>raw text · vocabulary · merge rules</strong></div>
-  <div><span>What leaves the kitchen</span><strong>token IDs · attention mask · embeddings</strong></div>
+  <div><span>Output</span><strong>token IDs · attention mask · embeddings</strong></div>
   <div><span>Most common mistake</span><strong>Treating tokenization as neutral preprocessing</strong></div>
 </div>
 

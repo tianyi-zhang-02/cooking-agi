@@ -167,7 +167,7 @@ The paper does $\mathbf{x} \leftarrow \text{LayerNorm}(\mathbf{x} + \text{Sublay
 
 ![the residual path under post-norm and pre-norm](assets/transformer-block.svg)
 
-This is why the original recipe needs the Noam schedule
+This is why the original post-norm setup needs the Noam schedule
 
 $$\text{lr}(t) = d_\text{model}^{-0.5}\min\big(t^{-0.5},\; t\cdot t_\text{warmup}^{-1.5}\big)$$
 

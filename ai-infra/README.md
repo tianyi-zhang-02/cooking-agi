@@ -61,7 +61,7 @@ flowchart TB
 ## 本版的现代重点
 
 - 不只会调用框架，还要理解 compiler-aware PyTorch 与 kernel DSL；
-- 以 BF16 为基线，把 FP8、MXFP8、NVFP4 当成硬件与 recipe 的联合决策；
+- 以 BF16 为基线，把 FP8、MXFP8、NVFP4 当成硬件与配置的联合决策；
 - FSDP2/DTensor、多维 device mesh、context parallel 与 expert parallel；
 - token 级 serving、KV-cache 管理、chunked prefill、speculative decoding 与 disaggregation；
 - 面向 Agent 和学习循环的 rollout、tracing、evaluation、canary 与 rollback 基础设施。
@@ -87,7 +87,7 @@ flowchart TB
 | 笔记 | 核心问题 | 时效性 |
 | --- | --- | --- |
 | [05 · LLM 推理](modules/05-llm-inference.md) | KV cache、batching、prefill 和 decode 怎样影响 serving？ | 快速变化 |
-| [P01 · 手搓 Attention](projects/01-attention-from-scratch.md) | 怎样从 CPU reference 走到 tiled CUDA attention？ | 原理稳定，实现快速变化 |
+| [P01 · 从零实现 Attention](projects/01-attention-from-scratch.md) | 怎样从 CPU reference 走到 tiled CUDA attention？ | 原理稳定，实现快速变化 |
 
 ## Learning Loops
 
@@ -103,7 +103,7 @@ flowchart TB
 | 项目 | 产出 |
 | --- | --- |
 | [P00 · C/C++ Tensor Core](projects/00-c-cpp-tensor-core.md) | tensor、view、matmul、softmax、tests、benchmark |
-| [P01 · 手搓 Attention](projects/01-attention-from-scratch.md) | CPU/CUDA attention、online softmax、KV cache |
+| [P01 · 从零实现 Attention](projects/01-attention-from-scratch.md) | CPU/CUDA attention、online softmax、KV cache |
 | [P06 · Self-Improving Service](modules/08-capstone.md) | serving → eval → SFT → canary → rollback |
 
 ## 内容规则与时效性

@@ -96,7 +96,7 @@ assistant answer / end-of-message      → m_t = 1
 训练代码常把忽略位置的 label 设为 `-100`，让 cross-entropy 跳过它们。
 
 这是一种常见方案，不是唯一方案。多轮数据可能训练所有 assistant turns，也可能只训练
-最后一轮；有些 recipe 对整段序列计算 loss。最危险的工程错误不是选哪种，而是模板
+最后一轮；有些训练配置对整段序列计算 loss。最危险的工程错误不是选哪种，而是模板
 边界与 mask 错位，让 user 文本或 padding 意外进入目标。
 
 </div>
@@ -125,7 +125,7 @@ their reconstruction does not contribute loss. Training code commonly assigns ig
 labels the value `-100`, which tells cross-entropy to skip those positions.
 
 This is common, not universal. Multi-turn data may train every assistant turn or only
-the final one, and some recipes score the full sequence. The most dangerous engineering
+the final one, and some training setups score the full sequence. The most dangerous engineering
 failure is not choosing one policy over another; it is misaligning template boundaries
 and masks so user text or padding accidentally becomes a target.
 

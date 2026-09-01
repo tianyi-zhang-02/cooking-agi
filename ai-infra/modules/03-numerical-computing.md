@@ -36,7 +36,7 @@ TF32 通常是 Tensor Core 的矩阵计算模式，而不是把模型权重存�
 
 ### Block scaling 也是格式的一部分
 
-现代 FP8/FP4 路径不能只用单个元素的位数描述。MXFP8 为小块数值设置 scale；NVFP4 把小块 scale 与 tensor-level scale 组合起来。这些选择会影响精度、metadata、layout、transpose、支持的 shape 和通信。一个低精度结论如果没有说明 scaling recipe、累加精度、kernel 和硬件，就是不完整的。
+现代 FP8/FP4 路径不能只用单个元素的位数描述。MXFP8 为小块数值设置 scale；NVFP4 把小块 scale 与 tensor-level scale 组合起来。这些选择会影响精度、metadata、layout、transpose、支持的 shape 和通信。一个低精度结论如果没有说明 scaling configuration、累加精度、kernel 和硬件，就是不完整的。
 
 ### 混合精度
 
@@ -98,7 +98,7 @@ compression ratio ≈ original bits / quantized bits
 2. 用 FP32、FP16、BF16 完成同一个矩阵乘法并比较误差和时间。
 3. 对一个小模型记录 autocast 前后的 operator dtype。
 4. 实现简单的 per-tensor INT8 quantize/dequantize。
-5. 比较 BF16 与一种硬件支持的 FP8 或 FP4 recipe，记录精度、显存、吞吐、scale overhead 和不支持的 shape。
+5. 比较 BF16 与一种硬件支持的 FP8 或 FP4 配置，记录精度、显存、吞吐、scale overhead 和不支持的 shape。
 
 ## 常见误区
 

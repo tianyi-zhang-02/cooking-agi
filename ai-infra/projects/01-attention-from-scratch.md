@@ -1,4 +1,4 @@
-# Project 01 · 手搓 Attention
+# Project 01 · 从零实现 Attention
 
 **中文** · [English](01-attention-from-scratch.en.md) · [项目路线](README.md)
 

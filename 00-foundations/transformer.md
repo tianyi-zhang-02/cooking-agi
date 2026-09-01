@@ -17,14 +17,14 @@
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。
 
-## 一个直观的类比
+## 两类计算如何配合
 
-- **注意力**：每道工序前，先环顾整个案板，决定这一步该从哪几样食材取味。
-- **FFN**：拿到取来的味道之后，在自己这一格里加工。
-- **残差连接**：每一步都保留原样的一份，改动是叠加上去的，不是推倒重来。
-- **堆 N 层**：反复「环顾—加工」，直到答案浮出来。
+- **注意力**：让每个位置根据相关性读取其他位置的信息。
+- **FFN**：在每个位置内部独立变换特征。
+- **残差连接**：保留原状态，并把每个子层的改动叠加上去。
+- **堆叠 N 层**：反复进行跨位置通信与逐位置变换，逐层形成可用于预测的表示。
 
-## 第一口锅：缩放点积注意力
+## 核心公式：缩放点积注意力
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 
@@ -154,7 +154,7 @@ $$Q'=QR,\qquad K'=KR^{-\top},$$
 
 `-inf` 而不是 0：屏蔽要发生在 softmax **之前**，否则被屏蔽的位置仍会分到概率质量。
 
-## 三种菜式：同一个模块，换掉 Q/K/V 来源
+## 同一模块的三种用法：改变 Q/K/V 的来源
 
 这是原论文（2017）的 encoder-decoder 结构里最该盯住的地方。`self_attn(x, x, x)` 和 `cross_attn(x, memory, memory)` 是同一个类，只是喂进去的三个张量不同：
 
@@ -185,7 +185,7 @@ $$Q'=QR,\qquad K'=KR^{-\top},$$
 
 64/64 序列完全正确。
 
-## 分灶：为什么不是一个大注意力
+## 多头注意力：为什么不是一个大注意力
 
 $$\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O, \quad \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 
@@ -199,7 +199,7 @@ q = self.w_q(x).view(B, T, h, d_k).transpose(1, 2)   # (B, T, C) -> (B, h, T, d_
 y = out.transpose(1, 2).reshape(B, T, h * d_k)       # 拼回去
 ```
 
-## 火候：post-norm 为什么绑着 warmup
+## 训练稳定性：post-norm 为什么依赖 warmup
 
 论文写的是
 
@@ -262,7 +262,7 @@ def apply_rope(x, cos, sin):
 
 ⚠️ 配对方式有两种：split-half（通道 $i$ 配 $i + d/2$，GPT-NeoX/Llama）和交错（原 RoPE 论文）。两者差一个通道置换，**权重不能互换**——转模型时这是经典踩坑点。
 
-## 换成今天的配方：Decoder-only 还改了什么
+## 现代 Decoder-only 还改了什么
 
 | | vanilla (2017) | 现在 |
 | --- | --- | --- |
@@ -291,7 +291,7 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 
 把 $n_{\text{kv}}$ 从 32 降到 8 就直接省下 4 倍显存——长上下文推理时这是主要瓶颈。
 
-## 动手：手搓一遍，并故意找它的错
+## 动手：从零实现，并检查常见错误
 
 [`code/`](code/) 里两版实现都不调 `nn.MultiheadAttention` 和 `F.scaled_dot_product_attention`，只用 `nn.Linear` 和裸张量运算：
 
@@ -309,12 +309,12 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 
 ![prefill 与单步解码分别算了什么](assets/kv-cache.svg)
 
-带 cache 时最容易翻车的是 mask：query 的绝对位置是 `cache.pos + i`，key 从 0 数到 `cache.pos + T - 1`，所以 mask 是**非方阵**的 $(T, S)$；RoPE 的 cos/sin 也得从 `cache.pos` 切片。而且 `cache.pos` 每层前向只推进**一次**（在层循环之后），写在 `update()` 里会翻 $n_{\text{layer}}$ 倍。
+带 cache 时最容易出错的是 mask：query 的绝对位置是 `cache.pos + i`，key 从 0 数到 `cache.pos + T - 1`，所以 mask 是**非方阵**的 $(T, S)$；RoPE 的 cos/sin 也得从 `cache.pos` 切片。而且 `cache.pos` 每层前向只推进**一次**（在层循环之后），写在 `update()` 里会翻 $n_{\text{layer}}$ 倍。
 
 ## 自检
 
 <div class="taste-check advanced">
-  <strong>这一大锅拆完，至少要能守住四条线：</strong>
+  <strong>完成这一章后，至少要能解释四个关键问题：</strong>
   <ol>
     <li>为什么 attention score 要除以 $\sqrt{d_k}$？</li>
     <li>pre-norm 改变了哪条梯度高速路？</li>

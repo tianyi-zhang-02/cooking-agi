@@ -63,7 +63,7 @@ The denominator is **reported by the inference engine**; the numerator is **comp
 
 The consequence: you believe you are on-policy, while a gap you never modeled sits between the sampling policy and the optimized one. Clipping still runs, but it clips a contaminated ratio. **And nothing errors** — loss descends normally, metrics move normally, and every update carries a small systematic tilt.
 
-This class of problem is especially dangerous because it is **numerically correct, semantically no longer what you think it is, and silent.**
+This is the same species of problem as in [how big is your negative pool](../practice/recommender-systems/negative-pool-size.en.md): **numerically correct, semantically no longer what you think it is, and silent.**
 
 Closing that gap to $10^{-7}$ doesn't show up in any formula. It shows up as **every previous update finally meaning what it claimed to mean.**
 
@@ -71,7 +71,7 @@ Closing that gap to $10^{-7}$ doesn't show up in any formula. It shows up as **e
 
 **One: post-training's ceiling is higher than most people assume.** Same base, multiples on a specific task family. The base sets the upper bound on capability, but most models sit well below their own bound.
 
-**Two: capability gets *exposed*, not *injected*.** Their account is putting the model into ten times more long-horizon task environments. The ingredients were already in the base; post-training made them reliably callable. That's also why the lowest-baseline task moved most — the capability was always there, it had simply never been asked for.
+**Two: capability gets *exposed*, not *injected*.** Their account is putting the model into ten times more long-horizon task environments. Much of the capability already existed in the base; post-training made it reliably callable. That's also why the lowest-baseline task moved most — the capability had rarely been elicited before.
 
 **Three: the bottleneck is often sampling and numerics, not the loss.** Two of three changes are infrastructure. **This is the most underrated fact in post-training: public discussion concentrates on the algorithm taxonomy, while real gains often come from "how much experience per hour" and "are both sides computing the same number."**
 
@@ -96,6 +96,7 @@ Drawing the boundary honestly:
 
 - [After PPO: every algorithm deletes one of its parts](after-ppo.en.md): the algorithm half
 - [The three stages of RLHF](rlhf-pipeline.en.md): what each model does
+- [How big is your negative pool, really](../practice/recommender-systems/negative-pool-size.en.md): the same species of silent numerical mismatch
 
 ## Sources
 

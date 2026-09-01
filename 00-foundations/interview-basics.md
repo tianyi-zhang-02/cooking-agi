@@ -37,7 +37,7 @@ $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M
 $QK^\top$，每个分数恰好加了 $d_k$ 个乘积。Q/K 最后一维必须相同，V 的特征维
 可以不同；只是在标准 MHA 中通常令 $d_v=d_k$。例如 768 维、12 个头，单头
 $d_k=64$，所以除 $\sqrt{64}$。完整推导与 $Q=K$ 的极端情况见
-[Transformer 架构深拆](transformer.md#第一口锅缩放点积注意力)。
+[Transformer 架构深拆](transformer.md#核心公式缩放点积注意力)。
 
 时间 $O(T^2 d)$、显存 $O(T^2)$。那个 $T\times T$ 矩阵就是长上下文的瓶颈，也是 FlashAttention 的动机：**根本不把它算出来存下**。
 
@@ -64,8 +64,8 @@ $$\frac{\partial \mathcal{L}_{\text{BCE}}}{\partial p} = \frac{p-y}{p(1-p)} \;\L
 
 **后果**：$y=1$ 而模型极自信地说 0（$z\to-\infty$，$p\to0$）时——
 
-- MSE 梯度 $\approx 2(0-1)\cdot 0\cdot 1 = 0$。**错得最离谱时梯度消失，学不动。**
-- BCE 梯度 $= -1$。**错得最离谱时梯度最大。**
+- MSE 梯度 $\approx 2(0-1)\cdot 0\cdot 1 = 0$。**预测偏差最大时梯度反而消失，模型学不动。**
+- BCE 梯度 $= -1$。**预测偏差最大时仍能保留有效梯度。**
 
 **再深一层**：logistic regression 里 BCE 关于权重是凸的，MSE + sigmoid 不是。
 

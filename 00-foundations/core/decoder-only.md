@@ -162,7 +162,7 @@ which history deserves long-term retention.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 1. 先看一整块现代配方
+### 1. 现代 Block 的整体结构
 
 典型的 pre-norm decoder block 可以写成：
 
@@ -174,7 +174,7 @@ $$Y=H+\operatorname{SwiGLU}(\operatorname{RMSNorm}(H)).$$
 attention → output projection → residual addition → RMSNorm → SwiGLU → 第二次
 residual addition。堆完所有 block 后通常还有一次 final norm，再投影到词表 logits。
 
-这不是所有模型的硬性标准，而是一套常见配方。与 2017 原版相比，主体从
+这不是所有模型的硬性标准，而是一组常见设计。与 2017 原版相比，主体从
 encoder–decoder 变为 decoder-only，post-norm 常被 pre-norm 替代，LayerNorm 常被
 RMSNorm 替代，正弦位置编码常被 RoPE 替代，FFN 常使用 SwiGLU，注意力头也可能从
 MHA 变为 GQA 或 MQA。
@@ -194,7 +194,7 @@ The full path is RMSNorm → Q/K/V projections → RoPE on Q and K → causal at
 → output projection → residual addition → RMSNorm → SwiGLU → a second residual
 addition. A final norm usually follows the entire stack before the vocabulary logits.
 
-This is a common recipe, not a universal law. Relative to the 2017 encoder–decoder,
+This is a common design, not a universal law. Relative to the 2017 encoder–decoder,
 modern LLMs are often decoder-only, use pre-norm instead of post-norm, RMSNorm instead
 of LayerNorm, RoPE instead of additive sinusoidal positions, SwiGLU instead of a ReLU
 FFN, and sometimes GQA or MQA instead of standard MHA.
@@ -684,7 +684,7 @@ $$z_t=W_{\text{vocab}}h_t, \qquad p_t=\text{softmax}(z_t / \tau)$$
 - top-$p$ 保留累计概率达到阈值的最小候选集合；
 - greedy 每步取最大值，不等于全序列概率最大。
 
-Sampling 是推理时怎么“下筷子”，不会改掉锅里原本的概率分布。temperature 高不代表模型突然更有创造力，只是我们更愿意去尝那些本来概率较低的 token。
+Sampling 决定怎样从模型给出的概率分布中选择 token，但不会改变模型本身的 logits。temperature 较高不代表模型突然获得了更强的创造力，只是低概率 token 更容易被选中。
 
 ## 同一副骨架后来怎么 Post-Train
 

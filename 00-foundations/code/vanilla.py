@@ -167,7 +167,7 @@ class SublayerConnection(nn.Module):
 
     This is the single biggest difference from every modern implementation,
     which does x + Sublayer(LayerNorm(x)) instead. Post-norm puts a LayerNorm
-    on the residual highway itself, which is why the original recipe NEEDS the
+    on the residual highway itself, which is why the original post-norm setup NEEDS the
     warmup schedule: without warmup the early gradients through the stacked
     norms blow up and training diverges.
     """

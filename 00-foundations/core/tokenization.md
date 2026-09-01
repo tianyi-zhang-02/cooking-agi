@@ -14,7 +14,7 @@
     <div class="recipe-face" data-concept-en><span>Prerequisites · 前置知识</span><strong>Raw text · vocabulary · merge rules</strong></div>
   </div>
   <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>最后端上桌 · OUTPUT</span><strong>token IDs · attention mask · embeddings</strong></div>
+    <div class="recipe-face" data-concept-zh><span>最终输出 · OUTPUT</span><strong>token IDs · attention mask · embeddings</strong></div>
     <div class="recipe-face" data-concept-en><span>Output · 输出</span><strong>Token IDs · attention mask · embeddings</strong></div>
   </div>
   <div class="recipe-flip" data-concept-card>
@@ -257,7 +257,7 @@ Tokenizer 结束于 `(B, T)`；神经网络从 `(B, T, d)` 开始。
 
 ## 动手：自己切一次看看
 
-运行 [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py)。它只用 Python 标准库训练一个迷你 BPE，没有任何神秘依赖。最好顺手改掉训练语料：你会很直观地看到，同一句话为什么会被另一锅数据切成完全不同的样子。
+运行 [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py)。它只用 Python 标准库训练一个迷你 BPE，不需要额外依赖。可以修改训练语料，直接观察同一句话为什么会在另一份语料上被切成完全不同的 token。
 
 ## 自检
 

@@ -710,10 +710,10 @@ def page_header_html(page):
     zh = page.lang == "zh"
     section = page.section["zh" if zh else "en"]
     labels = {
-        "home": "学习厨房" if zh else "Learning kitchen",
-        "index": "章节地图" if zh else "Chapter map",
-        "workshop": "动手实验" if zh else "Workshop",
-        "guide": "随手翻阅" if zh else "Field guide",
+        "home": "学习笔记" if zh else "Study notes",
+        "index": "章节概览" if zh else "Chapter overview",
+        "workshop": "实践" if zh else "Practice",
+        "guide": "参考资料" if zh else "Reference",
         "article": "概念笔记" if zh else "Concept note",
     }
     read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"

@@ -53,7 +53,7 @@ flowchart TB
 
 ### Block-scaled 低精度
 
-BF16 仍是实用基线，FP8 和更新的 block-scaled 格式可以在支持的硬件上减少计算、内存和通信成本。MXFP8、NVFP4 等格式还引入 scale metadata 和 layout 约束，所以真正的研究单位是**格式 + scaling recipe + kernel + 硬件 + 精度证据**，而不是单独看位数。
+BF16 仍是实用基线，FP8 和更新的 block-scaled 格式可以在支持的硬件上减少计算、内存和通信成本。MXFP8、NVFP4 等格式还引入 scale metadata 和 layout 约束，所以真正的研究单位是**格式 + scaling configuration + kernel + 硬件 + 精度证据**，而不是单独看位数。
 
 ### 多维并行与稀疏模型
 

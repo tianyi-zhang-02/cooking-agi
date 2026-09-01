@@ -11,7 +11,7 @@
   <div><span>最后要能判断</span><strong>问题该修数据、采样、SFT，还是 sequence-level objective</strong></div>
 </div>
 
-## 问题上桌：一个模型，为什么跑出两种节奏
+## 核心问题：为什么训练和生成具有不同节奏
 
 训练与生成使用同一个参数化分布：
 
@@ -40,7 +40,7 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 不同 tokenizer 的 token 单位不同，perplexity 不能直接横向比较。
 
-## 拆解二：训练时有人递答案，生成时只能自己接着写
+## 拆解二：训练使用真实前缀，生成依赖自身输出
 
 训练时模型总在真实前缀上预测；生成时它必须在自己的输出上继续。某一步的小概率错误可能把后续上下文带到训练数据很少覆盖的区域。
 
@@ -65,7 +65,7 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 [`../code/test_model.py`](../code/test_model.py) 把 full forward 与 token-by-token decode 对齐，是比“生成看起来正常”更强的正确性证据。
 
-## 接到下一锅：Post-Training 到底改了哪里
+## Post-Training 到底改变了什么
 
 SFT、preference learning 与 RL 并不是另一套模型学。它们在同一个自回归分布上改变：训练样本来自哪里、哪些 token 计入 loss、不同输出如何被比较、回报如何分配给整条 trajectory。
 

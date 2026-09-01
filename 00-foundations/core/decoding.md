@@ -232,7 +232,7 @@ top-k 固定保留 $k$ 个候选；top-p 保留累积概率刚好达到 $p$ 的�
   <ol>
     <li>temperature 作用在哪一步？直接给概率乘系数为什么没用？</li>
     <li>同样是 0.9，top-p 的候选池在陡峭分布和平坦分布上分别有多大？</li>
-    <li>beam search 在什么任务上合适，什么任务上会翻车？为什么？</li>
+    <li>beam search 在什么任务上合适，什么任务上容易失败？为什么？</li>
     <li>为什么 RL rollout 不能开 top-p 截断？</li>
   </ol>
 </div>

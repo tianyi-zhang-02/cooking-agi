@@ -36,7 +36,7 @@ TF32 is normally a Tensor Core matrix-computation mode, not a new 19-bit storage
 
 ### Block scaling is part of the format
 
-Modern FP8/FP4 paths are not described by element bits alone. MXFP8 uses scale factors for small blocks of values; NVFP4 combines a small-block scale with a tensor-level scale. These choices affect accuracy, metadata, layout, transpose handling, supported shapes, and communication. Treat a precision claim as incomplete unless it names the scaling recipe, accumulation precision, kernel, and hardware.
+Modern FP8/FP4 paths are not described by element bits alone. MXFP8 uses scale factors for small blocks of values; NVFP4 combines a small-block scale with a tensor-level scale. These choices affect accuracy, metadata, layout, transpose handling, supported shapes, and communication. Treat a precision claim as incomplete unless it names the scaling configuration, accumulation precision, kernel, and hardware.
 
 ### Mixed precision
 
@@ -98,7 +98,7 @@ Measure error at three levels:
 2. Run the same matrix multiplication in FP32, FP16, and BF16; measure error and time.
 3. Record operator dtypes in a small model under autocast.
 4. Implement simple per-tensor INT8 quantize/dequantize.
-5. Compare BF16 with one hardware-supported FP8 or FP4 recipe; record accuracy, memory, throughput, scale overhead, and unsupported shapes.
+5. Compare BF16 with one hardware-supported FP8 or FP4 configuration; record accuracy, memory, throughput, scale overhead, and unsupported shapes.
 
 ## Common misconceptions
 

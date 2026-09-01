@@ -53,7 +53,7 @@ Framework code increasingly passes through graph capture and compiler layers bef
 
 ### Block-scaled low precision
 
-BF16 remains a practical baseline, while FP8 and newer block-scaled formats can reduce compute, memory, and communication costs on supporting hardware. Formats such as MXFP8 and NVFP4 add scale metadata and layout constraints, so the real unit of study is **format + scaling recipe + kernel + hardware + accuracy evidence**, not bit width alone.
+BF16 remains a practical baseline, while FP8 and newer block-scaled formats can reduce compute, memory, and communication costs on supporting hardware. Formats such as MXFP8 and NVFP4 add scale metadata and layout constraints, so the real unit of study is **format + scaling configuration + kernel + hardware + accuracy evidence**, not bit width alone.
 
 ### Multidimensional and sparse-model parallelism
 

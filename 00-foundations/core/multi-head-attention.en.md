@@ -1,4 +1,4 @@
-# Multi-head attention, by hand
+# Multi-head attention: from equations to implementation
 
 [中文](multi-head-attention.md) · **English**
 

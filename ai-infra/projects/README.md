@@ -20,7 +20,7 @@ written analysis
 | 项目 | 主要技能 | 最终产出 |
 | --- | --- | --- |
 | [P00 · C/C++ Tensor Core](00-c-cpp-tensor-core.md) | 指针、RAII、layout、测试、benchmark | 小型 CPU tensor library |
-| [P01 · 手搓 Attention](01-attention-from-scratch.md) | matmul、softmax、mask、CUDA、online softmax | CPU/CUDA attention 与分析报告 |
+| [P01 · 从零实现 Attention](01-attention-from-scratch.md) | matmul、softmax、mask、CUDA、online softmax | CPU/CUDA attention 与分析报告 |
 | P02 · Compiler-to-Kernel Lab | `torch.compile`、Triton、CUDA、fusion、profiling | 从 graph 追到 kernel 的算子报告 |
 | P03 · Mixed Precision Lab | BF16、FP8/MXFP8/NVFP4、scaling、误差 | 精度—吞吐—显存报告 |
 | P04 · Distributed Training Lab | DDP、FSDP2/DTensor、collective、device mesh | 多 GPU scaling report |

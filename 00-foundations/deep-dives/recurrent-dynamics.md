@@ -11,7 +11,7 @@
   <div><span>最后要能证明</span><strong>模型是真的记住，而不是碰巧猜中</strong></div>
 </div>
 
-## 问题上桌：为什么远处的东西这么难学
+## 核心问题：为什么远距离依赖难以学习
 
 普通 RNN 的状态更新是 $h_t=f(a_t)$，其中 $a_t=W_hh_{t-1}+W_xx_t+b$。一个早期状态怎样影响很晚的 loss，取决于 Jacobian 连乘：
 
@@ -20,7 +20,7 @@ $$\frac{\partial h_T}{\partial h_t}=\prod_{k=t+1}^{T}\frac{\partial h_k}{\partia
 
 如果这些矩阵的典型奇异值小于 1，梯度就会随着距离指数衰减；大于 1，则一路爆炸。所以“模型记不住很久以前的东西”不只是一个表示能力故事，它首先是一个**优化路径太长**的故事。
 
-## 拆解一：BPTT 没有想象中神秘
+## 拆解一：BPTT 是时间展开后的链式法则
 
 Backpropagation Through Time 只是把共享参数的 recurrent cell 展开，再按普通反向传播累计每个时间步对同一参数的梯度：
 
@@ -40,7 +40,7 @@ $$\frac{\partial c_t}{\partial c_{t-1}}=f_t$$
 
 模型可以把 $f_t$ 学到接近 1，使梯度不必每步穿过一个饱和的 $\tanh(W_hh)$。门不是神秘记忆模块，而是**可学习的梯度与信息流控制器**。
 
-## 翻车排查：真训练时我会先看这些
+## 训练排查：优先检查这些问题
 
 - gradient clipping 处理爆炸，不解决消失；
 - orthogonal initialization 让 recurrent Jacobian 初始更接近保范数；

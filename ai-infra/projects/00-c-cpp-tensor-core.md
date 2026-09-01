@@ -21,7 +21,7 @@ Tensor storage and views
 + tests and benchmarks
 ```
 
-完成后，它会成为 [手搓 Attention](01-attention-from-scratch.md) 的底层组件。
+完成后，它会成为 [从零实现 Attention](01-attention-from-scratch.md) 的底层组件。
 
 ## 建议目录
 
@@ -149,4 +149,4 @@ softmax(x_i) = exp(x_i - max(x)) / Σ exp(x_j - max(x))
 - README 解释 correctness、复杂度、layout 与瓶颈；
 - library 可以直接支持 Project 01 的 CPU attention。
 
-下一步：[Project 01 · 手搓 Attention](01-attention-from-scratch.md)
+下一步：[Project 01 · 从零实现 Attention](01-attention-from-scratch.md)

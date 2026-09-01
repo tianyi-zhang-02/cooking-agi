@@ -73,9 +73,9 @@ Other things worth measuring:
 
 Before training starts, measure all of the above on the base model and **save it as a baseline.**
 
-Because the perverse thing about the alignment tax is that **you can only see what you paid by comparing against "before."** By the time outputs start feeling samey, that "before" is often gone — checkpoints cleaned up, or the eval recipe changed and comparison is no longer valid.
+Alignment tax can only be measured against a pre-training baseline. By the time outputs start feeling samey, that baseline may be gone: checkpoints were cleaned up, or the evaluation configuration changed and the comparison is no longer valid.
 
-This is the same point as [freezing the eval recipe](../07-evaluation/): **you need the instrument before improvement means anything.**
+This is the same point as [freezing the evaluation protocol](../07-evaluation/): **a stable measurement baseline must exist before improvement means anything.**
 
 ## Down to a checklist
 
