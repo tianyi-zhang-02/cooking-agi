@@ -316,6 +316,55 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
 
 还是**预测减真值**。`lm_head` 就是那个线性分类器，类别数换成 vocab_size；底下几十层注意力存在的唯一目的，是把空间弯折到「下一个 token 是什么」变得线性可读为止。
 
+## 最终都是 function approximator 吗？
+
+广义上是。监督学习模型都在一个参数化的函数族里，寻找一个函数 $f_\theta$，去逼近未知的真实映射 $f^*$，或真实的条件分布 $p^*$：
+
+$$
+\theta^*=\arg\min_\theta \frac{1}{N}\sum_{i=1}^{N}\ell\big(f_\theta(x_i),y_i\big).
+$$
+
+这里最容易混淆的是：**“整个模型是 approximator”不等于“整个模型是 linear approximator”。**
+
+| 名称 | 形式 | 到底哪里是 linear |
+| --- | --- | --- |
+| 线性逼近器（linear approximator） | $\hat f(x)=\mathbf{w}^\top\mathbf{x}+b$ | 对输入和参数都线性 |
+| 固定 basis 的线性逼近器 | $\hat f(x)=\sum_j w_j\phi_j(x)$ | 对 $w_j$ 线性；对原始输入可以非线性 |
+| 神经网络逼近器（neural function approximator） | $f_\theta(x)=W_L\phi(\cdots\phi(W_1x))$ | 最后一层常是 linear readout，但整个映射通常非线性 |
+| 语言模型 | $p_\theta(x_t\mid x_{<t})$ | 逼近的是 next-token conditional distribution，不是一个固定答案函数 |
+
+所以 polynomial regression 很有代表性：加入 $x^2$ 后，它对 $x$ 已经不是线性的，但仍然**对参数线性（linear in parameters）**。神经网络再向前一步，连 basis / feature map $\phi$ 也一起从数据中学习。
+
+<details class="interview" markdown="1">
+<summary>Universal approximation theorem 到底保证了什么？</summary>
+
+对合适的非线性激活和足够宽的网络，在紧致集合（compact set）$K$ 上，对任意连续目标函数 $f^*$ 和任意 $\varepsilon>0$，都**存在**一组参数使
+
+$$
+\sup_{x\in K}\left|f_\theta(x)-f^*(x)\right|<\varepsilon.
+$$
+
+它说明网络的函数族有足够强的**表达能力（expressivity）**，但没有保证：
+
+- gradient descent 一定能找到这组参数；
+- 有限训练数据足以确定正确函数；
+- 所需网络足够小、训练足够便宜；
+- 训练分布外（out-of-distribution）仍能正确外推；
+- 训练 loss 很低就一定有好的 generalization。
+
+因此 “universal approximator” 是一个**存在性结论（existence result）**，不是“这个模型一定学得好”的质量认证。
+
+</details>
+
+对 Transformer 也一样：最后的 <code>lm_head</code> 是线性的，但
+
+$$
+x_{<t}\longmapsto \mathbf{h}_t\longmapsto
+\operatorname{softmax}(W_{\text{head}}\mathbf{h}_t)
+$$
+
+这条完整映射包含 attention、Softmax、MLP activation 和多层组合，所以整体是一个高度非线性的 conditional-distribution approximator。真正决定它是否有用的，不只是“能不能逼近”，还包括 **inductive bias、data、objective、optimization 与 evaluation**。
+
 ## 自检
 
 <div class="taste-check">
@@ -326,6 +375,8 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
     <li>“隐藏层学习一个新坐标系”这句话，怎样用 XOR 的图来证明？</li>
     <li>为什么 multi-label 用 Sigmoid，而 mutually exclusive multi-class 用 Softmax？</li>
     <li>为什么 LSTM 的 gate 用 Sigmoid，而 candidate memory 用 Tanh？</li>
+    <li>为什么 <code>lm_head</code> 是 linear readout，但整个 Transformer 不是 linear approximator？</li>
+    <li>Universal approximation theorem 保证了什么，又没有保证什么？</li>
   </ol>
 </div>
 

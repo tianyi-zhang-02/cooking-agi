@@ -223,6 +223,55 @@ $$\mathbf{h} = \text{TransformerBlocks}(\text{Embed}(\mathbf{x})), \qquad p_i = 
 
 Softmax generalises the sigmoid to many classes, and keeps the property that matters: with cross-entropy, $\partial\mathcal{L}/\partial z_i = p_i - y_i$ — still prediction minus target. `lm_head` is the linear classifier; every attention block beneath it exists to bend the space until the next token is linearly readable.
 
+## Are they all function approximators in the end?
+
+In the broad sense, yes. A supervised model searches a parameterized function family for some $f_\theta$ that approximates an unknown target mapping $f^*$ or conditional distribution $p^*$:
+
+$$
+\theta^*=\arg\min_\theta \frac{1}{N}\sum_{i=1}^{N}\ell\big(f_\theta(x_i),y_i\big).
+$$
+
+The key distinction is that **“the whole model is an approximator” does not mean “the whole model is a linear approximator.”**
+
+| Name | Form | What is linear? |
+| --- | --- | --- |
+| Linear approximator | $\hat f(x)=\mathbf{w}^\top\mathbf{x}+b$ | linear in both the input and the parameters |
+| Linear approximator over fixed bases | $\hat f(x)=\sum_j w_j\phi_j(x)$ | linear in $w_j$; possibly nonlinear in the raw input |
+| Neural function approximator | $f_\theta(x)=W_L\phi(\cdots\phi(W_1x))$ | the final layer is often a linear readout, but the complete map is nonlinear |
+| Language model | $p_\theta(x_t\mid x_{<t})$ | approximates a next-token conditional distribution, not one deterministic answer function |
+
+Polynomial regression is a useful boundary case. After adding $x^2$, it is nonlinear in $x$ but still **linear in parameters**. A neural network goes one step further and learns the basis or feature map $\phi$ from data as well.
+
+<details class="interview" markdown="1">
+<summary>What does the universal approximation theorem actually guarantee?</summary>
+
+With a suitable nonlinear activation and enough width, for any continuous target $f^*$ on a compact set $K$ and every $\varepsilon>0$, there **exists** a parameter setting such that
+
+$$
+\sup_{x\in K}\left|f_\theta(x)-f^*(x)\right|<\varepsilon.
+$$
+
+This establishes the function family's **expressivity**, but it does not guarantee that:
+
+- gradient descent will find those parameters;
+- finite training data identifies the right function;
+- the required network is small or cheap to train;
+- the model extrapolates outside the training distribution;
+- low training loss implies good generalization.
+
+“Universal approximator” is therefore an **existence result**, not a certificate that a particular model will learn well.
+
+</details>
+
+The same distinction applies to a Transformer. Its <code>lm_head</code> is linear, but the complete map
+
+$$
+x_{<t}\longmapsto \mathbf{h}_t\longmapsto
+\operatorname{softmax}(W_{\text{head}}\mathbf{h}_t)
+$$
+
+contains attention, Softmax, MLP activations, and many compositions. The overall model is a highly nonlinear conditional-distribution approximator. What makes it useful is not only approximation capacity, but also **inductive bias, data, objective, optimization, and evaluation**.
+
 ## Self-check
 
 <div class="taste-check">
@@ -233,6 +282,8 @@ Softmax generalises the sigmoid to many classes, and keeps the property that mat
     <li>How does XOR demonstrate a learned coordinate transformation?</li>
     <li>Why does multi-label classification use Sigmoid while mutually exclusive multiclass classification uses Softmax?</li>
     <li>Why do LSTM gates use Sigmoid while candidate memory uses Tanh?</li>
+    <li>Why is the <code>lm_head</code> a linear readout while the complete Transformer is not a linear approximator?</li>
+    <li>What does the universal approximation theorem guarantee, and what does it not guarantee?</li>
   </ol>
 </div>
 
