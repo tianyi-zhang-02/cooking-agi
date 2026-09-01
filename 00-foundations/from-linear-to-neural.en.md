@@ -129,7 +129,7 @@ If a unit remains negative, both output and gradient are zero and it may become 
 <summary>Softmax: why is it not an elementwise activation?</summary>
 
 $$
-p_i=\operatorname{softmax}(z)_i=rac{e^{z_i}}{\sum_j e^{z_j}},
+p_i=\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}},
 \qquad \sum_i p_i=1.
 $$
 

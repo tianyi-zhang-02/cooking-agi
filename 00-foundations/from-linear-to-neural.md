@@ -149,7 +149,7 @@ $x=0$ 输出 $0.5$；很大的负数趋近 0，很大的正数趋近 1。一个 
 
 $$
 \tanh(x)=\frac{e^x-e^{-x}}{e^x+e^{-x}},\qquad
-\tanh'(x)=1-\tanh^2(x),qquad
+\tanh'(x)=1-\tanh^2(x),\qquad
 \tanh(x)=2\sigma(2x)-1.
 $$
 
@@ -179,7 +179,7 @@ $$
 <summary>Softmax：为什么它不是逐元素 activation？</summary>
 
 $$
-p_i=\operatorname{softmax}(z)_i=rac{e^{z_i}}{\sum_j e^{z_j}},
+p_i=\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}},
 \qquad \sum_i p_i=1.
 $$
 
