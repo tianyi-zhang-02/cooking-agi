@@ -23,6 +23,25 @@
   </div>
 </div>
 
+## 快速学习：现代 LLM 的完整生成路径
+
+<details class="interview" markdown="1">
+<summary>从 messages 到 logits，再到 KV-cached decode</summary>
+
+**快速记忆**：Chat Template 把角色排成一条序列；causal Transformer 为每个位置预测下一个 token；prefill 并行处理 prompt，decode 每步新增一个 token 并复用 KV Cache。
+
+**面试回答**
+
+> Decoder-only 模型把 system、user、assistant 与工具消息序列化到同一上下文中，用 causal self-attention 保证每个位置只看左侧。训练对所有位置并行做 next-token prediction；推理先 prefill prompt，再逐 token decode，缓存每层历史 K/V 避免重复投影。
+
+<details markdown="1">
+<summary><b>深挖</b>：KV Cache 缓存什么，为什么不缓存 Q？</summary>
+
+历史 token 的 K/V 会被未来每个 query 重复读取，因此缓存后只需为新 token 计算一次。Query 只用于当前 token 发起读取，下一步会产生新的 query，没有跨步复用价值。Cache 优化计算但不改变 attention 语义，增量结果必须与 full causal forward 等价。
+
+</details>
+</details>
+
 ## 所有东西都排进同一条序列
 
 把 instruction、context 和 answer 全都排进同一条 token 序列，用 causal mask 挡住未来，然后每个位置只做一件事：猜下一个 token。这就是 decoder-only 最迷人的地方——结构反而比 encoder–decoder 更统一。

@@ -13,6 +13,37 @@
   <div><span>最后要能证明</span><strong>实现满足因果性、位置相对性与 cache 等价性</strong></div>
 </div>
 
+## 快速学习：Transformer 到底做了什么
+
+<details class="interview" markdown="1">
+<summary>先记主线，再展开标准回答与 deep dive</summary>
+
+**快速记忆**
+
+- Attention：token 之间交换信息。
+- FFN：每个 token 独立做非线性变换。
+- Residual + Norm：让两类计算可以稳定堆深。
+- Position information：让模型知道顺序与相对距离。
+
+**面试回答**
+
+> Transformer block 交替执行 token mixing 和 channel mixing。Self-attention 根据 QK 相似度在序列位置间汇总 V；FFN 对每个位置独立地扩维、激活再压回。Residual path 保留旧表示并提供梯度通路，Norm 控制子层输入尺度，位置编码补上 attention 本身缺失的顺序信息。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么最后是 linear head，整个模型却不是 linear？</summary>
+
+Attention 权重依赖输入：
+
+$$
+A(X)=\operatorname{softmax}\left(\frac{XW_Q(XW_K)^\top}{\sqrt{d_k}}\right).
+$$
+
+因此 $A(X)XW_V$ 已经是输入相关的非线性映射；FFN activation 又增加一层非线性。最终 linear head 只负责从学好的 hidden state 中读出 logits，不会把前面几十层重新变成线性模型。
+
+</details>
+
+</details>
+
 ## Attention 汇聚上下文，FFN 逐位置变换
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。

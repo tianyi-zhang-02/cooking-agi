@@ -11,6 +11,25 @@
   <div><span>Most common mistake</span><strong>Treating tokenization as neutral preprocessing</strong></div>
 </div>
 
+## Quick learning: what does a tokenizer do at the model boundary?
+
+<details class="interview" markdown="1">
+<summary>The standard text-to-IDs answer and one critical misconception</summary>
+
+**Quick memory**: a tokenizer segments text into vocabulary pieces and maps them to integers. A chat template first serializes role structure; special tokens are vocabulary IDs carrying boundary semantics.
+
+**Interview answer**
+
+> The complete path is messages to a chat template, then token IDs, then continuous vectors through embedding lookup. A Transformer never sees raw strings, and system, user, and assistant roles are not hard-coded in its architecture.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why can tokenizers and chat templates not be swapped arbitrarily?</summary>
+
+Whether a boundary string is one token, which ID it receives, and how assistant turns begin and end are all part of the model's training distribution. A mismatched template may split markers or map them incorrectly; tensor shapes still work while the model-level protocol is broken.
+
+</details>
+</details>
+
 ## Models receive token IDs, not text
 
 A tokenizer splits a string into tokens from a finite vocabulary and maps them to integer IDs. The model never sees “text”; it only sees those IDs.

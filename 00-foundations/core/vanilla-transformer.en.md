@@ -11,6 +11,25 @@
   <div><span>Most common failure</span><strong>mixing up attention sites or masking the wrong direction</strong></div>
 </div>
 
+## Quick learning: one 2017 Transformer layer from end to end
+
+<details class="interview" markdown="1">
+<summary>Encoder, decoder, and the boundary with modern decoder-only models</summary>
+
+**Quick memory**: an encoder has self-attention plus an FFN. A decoder adds masked self-attention and cross-attention. Residual paths and normalization surround every sublayer.
+
+**Interview answer**
+
+> Source tokens enter the encoder after embeddings and positional encoding. The decoder applies masked self-attention to right-shifted targets, reads encoder states through cross-attention, and uses a linear vocabulary head plus softmax to predict the next token. Training parallelizes target positions; generation remains autoregressive.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are both target shifting and a causal mask necessary?</summary>
+
+Shifting makes each position consume the previous true token. The causal mask prevents that position from attending to labels farther right. Shifting without masking still permits future leakage through deeper attention; masking without shifting places the target token itself at the position that predicts it.
+
+</details>
+</details>
+
 ## The original encoder–decoder structure
 
 The original Transformer is an encoder–decoder. Attention moves information across positions, FFNs transform channels independently, and removing recurrence makes full-sequence training parallel.

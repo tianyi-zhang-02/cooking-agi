@@ -2,6 +2,25 @@
 
 **中文** · [English](agent-observability.en.md)
 
+## 快速学习：Agent Observability 观察什么
+
+<details class="interview" markdown="1">
+<summary>Trace、state transition 与可复现失败</summary>
+
+**快速记忆**：Metrics 告诉你哪里异常，logs 给局部事件，traces 还原一次 run 中 model、retrieval、tool 与 state 的因果链。
+
+**面试回答**
+
+> Agent observability 的单位不是单次 API call，而是一条有状态 trajectory。每个 span 应记录版本、输入证据、决策、tool arguments/results、状态变更、latency、token/cost 与最终 outcome，并用 trace ID 串起来支持 replay 和 root-cause analysis。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么“把所有 prompt 都存下来”仍不等于 observability？</summary>
+
+原始文本没有明确因果关系，也可能泄漏敏感数据。可观测系统需要结构化 span、parent-child 关系、版本和状态 diff，并对 PII 做 redaction。目标是能定位“检索错、模型错、工具错还是 evaluator 错”，不是制造更长日志。
+
+</details>
+</details>
+
 ## Observability 要解释决策过程
 
 Agent Observability 的目标，不只是知道服务有没有报错，而是能还原：**Agent 看到了什么、做了哪些决定、状态怎样变化，以及失败从哪一步开始。**

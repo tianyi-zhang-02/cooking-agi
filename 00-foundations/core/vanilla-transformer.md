@@ -32,6 +32,25 @@
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
+## 快速学习：2017 Transformer 一层走一遍
+
+<details class="interview" markdown="1">
+<summary>Encoder、Decoder 与现代 Decoder-only 的分界</summary>
+
+**快速记忆**：Encoder 是 self-attention + FFN；Decoder 多 masked self-attention 与 cross-attention；每段外面都有 residual 与 norm。
+
+**面试回答**
+
+> Source tokens 经 embedding 与 position encoding 后进入 encoder；decoder 用右移后的 target 做 masked self-attention，再通过 cross-attention 读取 encoder states，最后由 linear vocabulary head 与 softmax 预测下一个 token。训练能并行所有 target positions，生成仍需自回归。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 target 右移和 causal mask 两个都需要？</summary>
+
+右移决定每个位置的输入是前一个真实 token；causal mask 决定该位置不能在 self-attention 中读取更右侧标签。只右移不 mask，深层 attention 仍能偷看未来；只 mask 不右移，则当前位置直接拿到它要预测的 token embedding。
+
+</details>
+</details>
+
 ## 先交换位置信息，再逐位置变换
 
 先忘掉那张塞满箭头的大框图。Transformer 一层其实只反复做两件事：**attention 去别的位置拿信息，FFN 留在当前位置加工信息。** 原版仍然是 encoder–decoder，但 recurrence 被彻底拿掉了。

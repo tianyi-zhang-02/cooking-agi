@@ -11,6 +11,25 @@
   <div><span>常见错误</span><strong>以为它是「防止过拟合」或者「加深就行」</strong></div>
 </div>
 
+## 快速学习：Residual Connection 为什么让深度可训练
+
+<details class="interview" markdown="1">
+<summary>Identity path、梯度与它没有解决的事</summary>
+
+**快速记忆**：$y=x+f(x)$ 让 block 只需学习相对输入的增量，并给前向信息与反向梯度都保留一条恒等通路。
+
+**面试回答**
+
+> Residual connection 的 Jacobian 是 $I+J_f$。即使分支的 Jacobian 很小，identity 项仍允许梯度直接回传；模型也可以令 $f(x)\approx0$，轻松实现不比浅层更差的恒等映射。
+
+<details markdown="1">
+<summary><b>深挖</b>：有 residual 就绝不会梯度消失吗？</summary>
+
+不会。跨层 Jacobian 仍是 $\prod_\ell(I+J_{f_\ell})$，其谱仍可能失控；Post-LN 还会把 $J_{\mathrm{LN}}$ 放回主路径。Residual 提供有利结构，不是无条件稳定性证明，因此初始化、normalization、residual scaling 与 optimizer 仍然重要。
+
+</details>
+</details>
+
 ## 残差路径提供恒等映射
 
 普通一层是「把输入换成新的东西」，残差一层是「在输入上**改一点**」：

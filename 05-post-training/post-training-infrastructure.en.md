@@ -4,6 +4,25 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
+## Quick learning: why post-training is first a systems problem
+
+<details class="interview" markdown="1">
+<summary>Rollout throughput, logprob consistency, and context lifecycle</summary>
+
+**Quick memory**: sampling often dominates RL cost. Trainer and inference logprobs must agree numerically. Long-task context, tool state, and checkpoints must be recoverable.
+
+**Interview answer**
+
+> A post-training system must make the rollout engine, trainer, and evaluator agree on the semantics of the same token sequence. Throughput determines available online data, numerical skew distorts importance ratios and KL, and context truncation or state loss silently changes the task being optimized.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why can near-zero mean logprob error still be dangerous?</summary>
+
+Positive and negative errors cancel in the mean, while PPO ratios exponentiate per-token differences. A small long tail can create extreme ratios, trigger clipping, or dominate gradients. Inspect quantiles, maxima, length slices, and token alignment rather than only mean error.
+
+</details>
+</details>
+
 ## Infrastructure decides whether the algorithm runs as intended
 
 Public discussion of post-training is almost entirely about algorithms — PPO or GRPO, Critic or no Critic. What actually stalls a post-training run is usually two other things: **how much experience you can collect per hour**, and **whether the training side and the inference side compute the same number**. Neither appears in any loss function.

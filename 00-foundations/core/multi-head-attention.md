@@ -23,6 +23,25 @@
   </div>
 </div>
 
+## 快速学习：Multi-Head Attention 的一句话与边界条件
+
+<details class="interview" markdown="1">
+<summary>匹配、归一化、聚合，以及为什么要多头</summary>
+
+**快速记忆**：Q/K 决定“读谁”，V 决定“读到什么”；每个 head 学一套匹配与传递子空间，多头不是为了凭空增加总维度。
+
+**面试回答**
+
+> 每个 query 与所有 keys 做缩放点积，mask 后逐行 softmax 得到权重，再加权汇总 values。Q/K 的最后一维必须相同才能点积，V 的维度只决定输出宽度。多个 heads 在固定计算预算下并行学习不同关系，拼接后由 $W_O$ 混合。
+
+<details markdown="1">
+<summary><b>深挖</b>：如果 Q=K，会发生什么？</summary>
+
+Softmax 之前的 Gram matrix $QQ^\top$ 是对称且半正定的，但逐行 softmax 的分母不同，所以最终 attention matrix 一般不对称。若进一步强制 $W_Q=W_K$，模型失去一部分有方向的匹配自由度；分开的投影允许“谁查询谁”与反方向拥有不同分数。
+
+</details>
+</details>
+
 ## 核心计算：匹配并聚合信息
 
 每个位置拿着自己的**问题**（query）去问所有位置的**索引**（key）。对得越上，就从那个位置的**内容**（value）里取越多。取回来的是一个加权平均。

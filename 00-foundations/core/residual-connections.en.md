@@ -11,6 +11,25 @@
   <div><span>Common mistakes</span><strong>believing it prevents overfitting, or that depth is now free</strong></div>
 </div>
 
+## Quick learning: why residual connections make depth trainable
+
+<details class="interview" markdown="1">
+<summary>The identity path, gradients, and what it does not guarantee</summary>
+
+**Quick memory**: $y=x+f(x)$ asks a block to learn an update relative to its input and preserves an identity route for both forward information and backward gradients.
+
+**Interview answer**
+
+> A residual block has Jacobian $I+J_f$. Even if the branch Jacobian is small, the identity term lets gradients travel directly. The model can also set $f(x)\approx0$, making an identity map easy instead of forcing every extra layer to relearn the input.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: does a residual path prove gradients can never vanish?</summary>
+
+No. The cross-layer Jacobian remains $\prod_\ell(I+J_{f_\ell})$, whose spectrum can still become unstable; Post-LN also puts $J_{\mathrm{LN}}$ back on the main route. Residual structure helps but is not an unconditional stability theorem, so initialization, normalization, residual scaling, and the optimizer still matter.
+
+</details>
+</details>
+
 ## The residual path provides an identity map
 
 An ordinary layer replaces its input. A residual layer **edits** it:

@@ -11,6 +11,23 @@
   <div><span>Evidence to demand</span><strong>The model remembers rather than exploits a shortcut</strong></div>
 </div>
 
+<details class="interview" markdown="1">
+<summary>Quick learning: BPTT, Jacobian products, and the LSTM additive path</summary>
+
+**Quick memory**: distant RNN dependencies cross a product of Jacobians. Clipping stops explosion but cannot recover vanished gradients. LSTM shortens the effective optimization path with a nearly additive cell state.
+
+**Interview answer**
+
+> BPTT unrolls recurrence into a deep network, and shared-parameter gradients sum contributions from all timesteps. The path from an early state to a late loss contains many Jacobian factors whose singular values cause exponential decay or growth. LSTM adds a cell-state route controlled by the forget gate.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: how do we prove memory rather than a shortcut?</summary>
+
+Measure performance and gradient norm against dependency length, intervene on the early decisive token, randomize irrelevant local cues, and inspect gate saturation. A prediction should change under a causal memory intervention, not merely correlate with a dataset shortcut.
+
+</details>
+</details>
+
 For $h_t=f(W_hh_{t-1}+W_xx_t+b)$, the influence of an early state is a product of Jacobians:
 
 $$\frac{\partial h_T}{\partial h_t}=\prod_{k=t+1}^{T}\text{diag}\!\big(f'(a_k)\big)W_h$$

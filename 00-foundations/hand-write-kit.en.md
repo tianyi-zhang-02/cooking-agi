@@ -4,6 +4,28 @@
 
 > Reading time: ~5 min · Type: quick reference · Last reviewed: 2026-08
 
+## Quick learning: five questions to ask for every handwritten formula
+
+<details class="interview" markdown="1">
+<summary>A formula is not dictation: inputs, purpose, gradient, numerics, and assumptions</summary>
+
+**Quick memory**
+
+For every formula, ask: what are the inputs and outputs, why is it defined this way, what is the gradient, what can fail numerically, and under which assumptions is the claim valid?
+
+**Interview answer**
+
+> I do not stop at the formula. I define variables and shapes, derive it from a probabilistic or optimization objective, give the key gradient and stable implementation, and state the assumptions. For example, CE has logit gradient $p-y$, is implemented with LogSumExp, and equals maximum likelihood only for the corresponding conditional likelihood.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are assumptions often the most discriminative part?</summary>
+
+BLUE requires linearity, unbiasedness, homoscedastic uncorrelated errors; L1 sparsity relies on the nonsmooth kink and optimality conditions; stable LogSumExp relies on shift invariance. Many candidates can recall formulas. Knowing when a theorem stops applying demonstrates actual understanding.
+
+</details>
+
+</details>
+
 ## What the seven formulas are checking
 
 These questions never test whether you remember the formula. They test **whether you know which line blows up**. Each one has a numerical or semantic trap, and the follow-up lands on exactly that line.

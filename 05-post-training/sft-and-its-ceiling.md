@@ -4,6 +4,25 @@
 
 > 阅读时间：约 12 分钟 · 类型：教学 · 最近审阅：2026-08
 
+## 快速学习：SFT 教会模型什么
+
+<details class="interview" markdown="1">
+<summary>Assistant-only CE、行为模仿与能力上限</summary>
+
+**快速记忆**：SFT 仍是 next-token CE，但通常只在 assistant tokens 上计 loss；它提高示范行为的概率，不会自动发现数据里没有的策略。
+
+**面试回答**
+
+> SFT 把结构化对话序列化后，用 system 与 user 作为条件，只监督 assistant answer 和结束 token。它适合学习格式、语气、工具协议和已有解法，但本质是 behavior cloning，受示范覆盖、质量和 teacher-forced token objective 限制。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么低 token CE 不等于完整回答更好？</summary>
+
+CE 把 sequence loss 分解到 token。一个决定最终正确性的关键 token，在长答案中只占很小权重；而长度、常见措辞和模板 token 会贡献很多位置。若目标是整体可验证结果或多步策略，sequence-level preference / RL signal 才能直接表达“整条轨迹是否好”。
+
+</details>
+</details>
+
 ## SFT 学到的是条件分布
 
 SFT 教的是「照着做」，所以它的上限就是示范的上限。但它真正危险的地方不是学不会——**是它会非常自信地学会你没打算教的东西**。

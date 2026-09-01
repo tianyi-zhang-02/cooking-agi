@@ -11,6 +11,25 @@
   <div><span>常见错误</span><strong>以为 temperature 作用在概率上；开放生成里用 beam search</strong></div>
 </div>
 
+## 快速学习：模型概率与 decoding policy 是两层
+
+<details class="interview" markdown="1">
+<summary>Temperature、top-k、top-p 的主线与组合顺序</summary>
+
+**快速记忆**：模型产生 logits；temperature 改变相对尖锐度，top-k/top-p 截断候选集合，sampling 才真正做随机选择。
+
+**面试回答**
+
+> Decoding 不改变模型参数，只把同一组 logits 转成不同的选择策略。通常先应用 penalties，再除以 temperature，随后做 top-k 或 top-p filtering，重新归一化后采样。Temperature 趋近 0 接近 argmax，但它本身不等于 greedy decoding。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 top-p 比固定 top-k 更能适应上下文？</summary>
+
+当分布很确定时，少数 token 已覆盖概率质量，top-p 自动保留很小集合；当分布平坦时，它会保留更多候选。固定 $k$ 无法同时适应这两种熵水平。代价是候选数随上下文变化，吞吐与可复现性更难控制。
+
+</details>
+</details>
+
 ## 模型输出概率分布，解码策略负责选择
 
 每一步前向之后，模型输出的是词表上的一个概率分布，比如：

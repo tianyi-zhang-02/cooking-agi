@@ -13,6 +13,37 @@
   <div><span>Evidence to demand</span><strong>causality, relative position, and cache equivalence</strong></div>
 </div>
 
+## Quick learning: what does a Transformer actually do?
+
+<details class="interview" markdown="1">
+<summary>Learn the spine first, then open the interview answer and deep dive</summary>
+
+**Quick memory**
+
+- Attention exchanges information between tokens.
+- The FFN applies a nonlinear transformation independently at every token.
+- Residual paths and Norm make the two operations stackable.
+- Position information supplies order and relative distance.
+
+**Interview answer**
+
+> A Transformer block alternates token mixing and channel mixing. Self-attention uses QK similarity to aggregate V across sequence positions; the FFN expands, activates, and contracts each position independently. The residual path preserves old representations and gradient flow, Norm controls sublayer input scale, and positional information supplies the ordering that attention itself lacks.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does a linear head not make the whole model linear?</summary>
+
+Attention weights depend on the input:
+
+$$
+A(X)=\operatorname{softmax}\left(\frac{XW_Q(XW_K)^\top}{\sqrt{d_k}}\right).
+$$
+
+So $A(X)XW_V$ is already an input-dependent nonlinear map, and the FFN activation adds another nonlinearity. The final linear head merely reads logits from the learned hidden state; it cannot turn the preceding stack back into a linear model.
+
+</details>
+
+</details>
+
 ## Attention gathers context; the FFN transforms each position
 
 The Transformer is one concrete way to build the learned coordinate transform from [the previous page](from-linear-to-neural.en.md). **Attention moves information across positions; the FFN processes each position on its own.** The two alternate for $N$ layers, and a linear classifier reads out the answer at the end.

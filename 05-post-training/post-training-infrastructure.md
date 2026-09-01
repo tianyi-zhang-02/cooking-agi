@@ -4,6 +4,25 @@
 
 > 阅读时间：约 7 分钟 · 类型：教学 · 最近审阅：2026-08
 
+## 快速学习：后训练为什么首先是 systems problem
+
+<details class="interview" markdown="1">
+<summary>Rollout throughput、logprob consistency 与 context lifecycle</summary>
+
+**快速记忆**：RL 成本常在 sampling；训练端与推理端 logprob 必须数值一致；长任务的 context、tool state 与 checkpoint 必须可恢复。
+
+**面试回答**
+
+> 后训练系统要让 rollout engine、trainer 和 evaluator 对同一 token 序列达成一致语义。吞吐决定可收集多少 online data，数值偏差会扭曲 importance ratio 和 KL，context truncation 或状态丢失则会把正确算法训练成错误任务。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么平均 logprob 差接近 0 仍可能很危险？</summary>
+
+正负误差可以在均值中抵消，但 PPO ratio 使用逐 token 的指数差。少量长尾误差会产生极端 ratio、触发 clipping 或主导梯度。因此要看分位数、最大值、按长度切片和 token-level alignment，而不只比较平均误差。
+
+</details>
+</details>
+
 ## 基础设施决定算法是否按预期运行
 
 关于后训练的公开讨论几乎都在算法上——用 PPO 还是 GRPO，要不要 Critic。但真正卡住一次后训练的，常常是另外两个问题：**一小时能采到多少经验**，以及**训练侧和推理侧算出来的是不是同一个数**。这两件事都不出现在任何损失函数里。

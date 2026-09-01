@@ -4,6 +4,25 @@
 
 > 阅读时间：约 14 分钟 · 类型：教学 · 最近审阅：2026-09
 
+## 快速学习：PPO、GRPO、DPO 在删什么
+
+<details class="interview" markdown="1">
+<summary>先看数据是否 online、奖励是否可验证，再选算法</summary>
+
+**快速记忆**：PPO 有 Actor + Critic + RM + Reference；GRPO 用同 prompt 的组相对 baseline 删 Critic；DPO 用静态 chosen/rejected pairs 连显式 RM 与 rollout loop 一起删。
+
+**面试回答**
+
+> DPO 便宜稳定，但主要学习离线偏好对，不能自动探索当前 policy 的新失败。GRPO 仍需 online rollout，只是用组内相对 reward 估 advantage。奖励可验证且需要多步探索时 online RL 更自然；只有静态偏好数据时 DPO 更合适。
+
+<details markdown="1">
+<summary><b>深挖</b>：GRPO 组内全对或全错为什么没有梯度信号？</summary>
+
+组标准化 advantage 使用 $(r_i-\bar r)/s_r$。若整组 reward 相同，去均值后全部为 0；实现即使给分母加 epsilon，也没有相对优劣可学。高比例的 homogeneous groups 说明 rollout 难度或采样多样性需要调整。
+
+</details>
+</details>
+
 ## 先看这些算法在简化什么
 
 PPO 之后出现的一长串算法，看起来像各自独立的发明，其实是同一件事的不同程度：**把 PPO 的某个部件删掉，然后处理删掉之后冒出来的问题。** 搞清楚每个删了什么、代价是什么，这张表就不用背了。

@@ -2,6 +2,25 @@
 
 [中文](agent-observability.md) · **English**
 
+## Quick learning: what should agent observability observe?
+
+<details class="interview" markdown="1">
+<summary>Traces, state transitions, and reproducible failures</summary>
+
+**Quick memory**: metrics show where behavior changed, logs capture local events, and traces reconstruct the causal chain across model, retrieval, tools, and state.
+
+**Interview answer**
+
+> The observability unit for an agent is a stateful trajectory rather than one API call. Every span should record versions, evidence, decisions, tool arguments and results, state changes, latency, tokens or cost, and final outcome, all connected by a trace ID for replay and root-cause analysis.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why is storing every prompt still not observability?</summary>
+
+Raw text lacks explicit causal structure and can leak sensitive data. Observability needs structured spans, parent-child relationships, versions, and state diffs with PII redaction. The goal is to distinguish retrieval, model, tool, and evaluator failures—not to create longer logs.
+
+</details>
+</details>
+
 ## Core view
 
 Traditional software observability asks whether a service is healthy. Agent observability must also ask:

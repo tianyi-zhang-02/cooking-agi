@@ -11,6 +11,25 @@
   <div><span>最后要能判断</span><strong>问题该修数据、采样、SFT，还是 sequence-level objective</strong></div>
 </div>
 
+## 快速学习：同一个 factorization，两种执行路径
+
+<details class="interview" markdown="1">
+<summary>Training、prefill、decode 与 loss weighting</summary>
+
+**快速记忆**：三者预测的是同一个 conditional distribution；训练/prefill 已知完整输入可并行，decode 不知道未来只能逐步生成；token CE 还隐含了按 token 频次和样本长度加权。
+
+**面试回答**
+
+> Causal LM 始终建模 $p(x_t\mid x_{<t})$。训练对已知序列的所有位置并行计算 CE，prefill 对 prompt 并行建立 KV Cache，decode 每步只为新 token 计算一次。质量问题要先区分数据覆盖、loss weighting、sampling 和 cache correctness，再决定是否需要 sequence-level objective。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 plausible text 不能证明 KV Cache 正确？</summary>
+
+轻微的 position、mask 或 K/V 排序错误仍可能生成流畅文本，却悄悄改变 logits。正确 invariant 是：相同前缀下，incremental decode 与 full causal forward 的每步 logits 在数值容差内一致；beam reorder 后各序列的 cache 也必须对应正确历史。
+
+</details>
+</details>
+
 ## 核心问题：为什么训练和生成具有不同节奏
 
 训练与生成使用同一个参数化分布：

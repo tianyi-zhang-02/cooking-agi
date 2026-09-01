@@ -23,6 +23,25 @@
   </div>
 </div>
 
+## 快速学习：Tokenizer 在模型边界做什么
+
+<details class="interview" markdown="1">
+<summary>从 text 到 IDs 的标准回答与一个关键误区</summary>
+
+**快速记忆**：Tokenizer 把文本切成词表片段并映射成整数；Chat Template 先把 role 结构序列化，special tokens 只是词表中承担边界语义的特殊 ID。
+
+**面试回答**
+
+> 完整路径是 messages 经 chat template 变成带角色边界的文本，再由 tokenizer 变成 token IDs，最后通过 embedding lookup 得到连续向量。Transformer 从未直接看到字符串，也没有在架构中写死 system、user 或 assistant。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 tokenizer 与 chat template 不能跨模型乱换？</summary>
+
+特殊字符串是否是单独 token、对应哪个 ID、assistant 起止边界怎样写，都是模型训练分布的一部分。模板与词表不匹配会把结构标记拆碎或映射到错误 ID；即使 tensor shape 正常，模型看到的协议已经变了。
+
+</details>
+</details>
+
 ## 模型接收的是 Token ID
 
 我们天天说模型“读”了一句话，但它其实从没看见过文字。Tokenizer 先把字符串切成有限词表里的 token，再映射成整数 ID；模型真正收到的，从头到尾都只是这些数字。

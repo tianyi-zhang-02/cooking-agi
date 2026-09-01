@@ -11,6 +11,33 @@
   <div><span>Most common failure</span><strong>long dependencies and sequential execution</strong></div>
 </div>
 
+## Quick learning: what do RNNs and LSTMs actually solve?
+
+<details class="interview" markdown="1">
+<summary>Remember the state recurrence, then see why gradients disappear</summary>
+
+**Quick memory**: an RNN repeatedly compresses history into one state. An LSTM adds an additive cell-state path and sigmoid gates for retention, writing, and reading.
+
+**Interview answer**
+
+> In a vanilla RNN, distant history and gradients repeatedly cross the same Jacobian, causing vanishing or explosion. An LSTM turns the main memory update into an approximately additive path, allowing gradients to travel more directly through cell state while gates control how much information passes.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are the gates not the whole answer?</summary>
+
+Sigmoids can saturate too. The crucial path is
+
+$$
+c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t,
+\qquad
+\frac{\partial c_t}{\partial c_{t-1}}=f_t.
+$$
+
+When the forget gate is near one, gradients need not repeatedly cross a fresh tanh and weight matrix. The additive path is more fundamental than merely “having three gates.”
+
+</details>
+</details>
+
 ## How hidden state carries information
 
 An RNN reads left to right with one shared update function and compresses the past into hidden state. An LSTM adds gates that learn what to write, preserve, and expose.

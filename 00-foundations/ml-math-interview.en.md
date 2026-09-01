@@ -10,6 +10,23 @@ For every formula, be ready to explain its input and output, why it has that for
 gradient, numerical failure modes, and the assumptions under which the conclusion
 holds.
 
+<details class="interview" markdown="1">
+<summary>Quick learning: the common spine behind the seven formulas</summary>
+
+**Quick memory**: Softmax, LSE, and CE connect normalization to likelihood; L1 and L2 connect geometry to priors; bias–variance decomposes generalization error; MLE and MAP trade data against prior information; BLUE is a minimum-variance statement among linear unbiased estimators.
+
+**Interview answer**
+
+> I define variables, shapes, and the objective first, then give the key gradient and stable implementation, and finally state theorem assumptions. CE has logit gradient $p-y$; L1 can create exact zeros because zero has a subgradient interval; Gauss–Markov needs linearity, unbiasedness, homoscedasticity, and uncorrelated errors, not Gaussian noise.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why is a proof strategy more useful than expanding every line?</summary>
+
+The structure is what transfers: CE follows from negative log-likelihood; L1 sparsity follows from KKT or subgradient geometry; and BLUE writes any linear unbiased estimator as OLS plus a component orthogonal to $X$, then shows the extra covariance is positive semidefinite.
+
+</details>
+</details>
+
 ## Softmax, Cross-Entropy, and LogSumExp
 
 $$p_i=\frac{e^{z_i}}{\sum_j e^{z_j}},\qquad

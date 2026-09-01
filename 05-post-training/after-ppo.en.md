@@ -4,6 +4,25 @@
 
 > Reading time: ~14 min · Type: chapter · Last reviewed: 2026-09
 
+## Quick learning: what do PPO, GRPO, and DPO remove?
+
+<details class="interview" markdown="1">
+<summary>Choose from data availability and reward verifiability, not algorithm fashion</summary>
+
+**Quick memory**: PPO uses Actor, Critic, RM, and Reference. GRPO removes the Critic with within-prompt relative baselines. DPO uses static chosen/rejected pairs and removes both an explicit RM and the rollout loop.
+
+**Interview answer**
+
+> DPO is cheap and stable but mainly learns from offline preference pairs and does not automatically explore current-policy failures. GRPO still requires online rollouts; it replaces the Critic with group-relative reward. Online RL is more natural for verifiable multi-step exploration, while DPO fits settings with only static preference data.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does an all-correct or all-wrong GRPO group carry no signal?</summary>
+
+Group-normalized advantage uses $(r_i-\bar r)/s_r$. If every reward is equal, centering makes every advantage zero; adding epsilon to the denominator cannot create a relative ordering. Many homogeneous groups indicate that rollout difficulty or sampling diversity needs adjustment.
+
+</details>
+</details>
+
 ## Start with what each algorithm removes
 
 The long list of algorithms that followed PPO looks like a pile of separate inventions. It isn't: each one **deletes a component of PPO and then deals with whatever surfaces afterwards.** Work out what each removed and what it cost, and you no longer have to memorize the table.

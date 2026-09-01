@@ -11,6 +11,23 @@
   <div><span>Decision to make</span><strong>Fix data, sampling, SFT, or a sequence-level objective?</strong></div>
 </div>
 
+<details class="interview" markdown="1">
+<summary>Quick learning: one factorization, two execution paths</summary>
+
+**Quick memory**: training, prefill, and decode model the same conditional distribution. Training and prefill know full inputs and parallelize positions; decode does not know the future. Token CE also weights behavior implicitly by token frequency and sample length.
+
+**Interview answer**
+
+> A causal LM always models $p(x_t\mid x_{<t})$. Training computes CE for all known positions in parallel, prefill builds the prompt's KV cache in parallel, and decode computes only the new token step. Diagnose data coverage, loss weighting, sampling, and cache correctness before reaching for a sequence-level objective.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does plausible text not prove KV-cache correctness?</summary>
+
+Small position, mask, or K/V-order errors can still produce fluent text while changing logits. The real invariant is that incremental decoding and a full causal forward pass produce matching per-step logits within numerical tolerance, including correct cache ownership after beam reordering.
+
+</details>
+</details>
+
 Training and generation use the same factorization:
 
 $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$

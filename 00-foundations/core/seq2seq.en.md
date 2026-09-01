@@ -11,6 +11,25 @@
   <div><span>Most common failure</span><strong>fixed-vector bottleneck and train–generation mismatch</strong></div>
 </div>
 
+## Quick learning: how the Seq2Seq bottleneck led to attention
+
+<details class="interview" markdown="1">
+<summary>The encoder–decoder spine, teacher forcing, and exposure bias</summary>
+
+**Quick memory**: the encoder maps the source into states and the decoder generates the target autoregressively. Compressing everything into one vector creates a bottleneck; attention lets every step read all encoder states as needed.
+
+**Interview answer**
+
+> Classic Seq2Seq conditions the decoder on the encoder's final state, forcing long sequences through a fixed-size bottleneck. Attention lets every decoding step address all encoder states with its current query. Teacher forcing supplies true prefixes during training, while inference consumes the model's own outputs, creating exposure bias.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: what did attention solve, and what did it not solve?</summary>
+
+It alleviated the information bottleneck and improved alignment, but the decoder still recurs over target time: token $t$ depends on earlier generated tokens, and training and inference still see different prefix distributions. Transformers later parallelized training-time sequence computation, not autoregressive generation itself.
+
+</details>
+</details>
+
 ## The encoder–decoder structure
 
 Seq2Seq separates reading from writing: an encoder represents the source, and a decoder generates the target one token at a time under that representation.

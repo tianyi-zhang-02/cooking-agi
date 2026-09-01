@@ -9,6 +9,25 @@
   <div><span>Most common mistake</span><strong>Assuming depth or sigmoid alone creates nonlinear boundaries</strong></div>
 </div>
 
+## Quick learning: linear readouts and learned feature maps
+
+<details class="interview" markdown="1">
+<summary>The one-line spine, interview answer, and function-approximator deep dive</summary>
+
+**Quick memory**: a linear model draws a hyperplane in a fixed feature space. A neural network learns new coordinates $\phi_\theta(x)$ through nonlinear layers and applies a linear readout there.
+
+**Interview answer**
+
+> Stacked linear layers without activations collapse into one matrix. Nonlinear activations such as ReLU let the network learn a piecewise nonlinear feature map that makes complex input-space boundaries linearly separable in hidden space. A linear final layer does not make the complete model linear.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does universal approximation not mean “it will learn well”?</summary>
+
+The theorem only says suitable parameters **exist** in a sufficiently rich family on a compact domain. It does not guarantee gradient descent finds them, finite data identifies them, the required network is efficient, extrapolation works, or the learned model generalizes. Expressivity, optimization, and generalization are separate questions.
+
+</details>
+</details>
+
 ## The central transition: learned feature maps
 
 A neural network is a **learned change of coordinates** followed by **a linear classifier**. The last layer is always logistic regression; it just lives in a space the network invented.

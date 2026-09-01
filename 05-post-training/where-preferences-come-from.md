@@ -4,6 +4,25 @@
 
 > 阅读时间：约 7 分钟 · 类型：教学 · 最近审阅：2026-08
 
+## 快速学习：Preference Data 与 Reward Model 的边界
+
+<details class="interview" markdown="1">
+<summary>为什么比较比绝对打分稳定，以及 reward scale 为什么不唯一</summary>
+
+**快速记忆**：chosen/rejected pair 提供相对次序；Reward Model 学一个与该次序一致的标量，但其绝对零点和尺度没有天然语义。
+
+**面试回答**
+
+> 偏好数据回答的是“同一 prompt 下哪个回答更好”，Bradley–Terry 用 reward difference 建模选择概率。Reward Model 因而只需恢复排序，不是测量客观效用；annotator disagreement、position bias、长度偏好与 policy drift 都会污染它。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 Reward Model 会过期？</summary>
+
+RM 在旧 policy 产生的回答分布上学会区分。Actor 更新后会探索新的文本区域，可能找到 RM 的盲点并放大 proxy reward；离线验证仍好看，在线 ranking 却失真。因此要持续采样当前 policy、做人类复核和 held-out adversarial evaluation。
+
+</details>
+</details>
+
 ## 偏好数据提供的是相对顺序
 
 RLHF 里的那个 **H** 全部发生在这一步。后面所有算法——PPO、GRPO、DPO——做的都是**放大这一步给出的信号**，而放大器放大不出信号里没有的东西。奖励模型学错了什么，整条流水线就忠实地朝那个方向优化。

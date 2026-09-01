@@ -11,6 +11,25 @@
   <div><span>Common mistakes</span><strong>thinking all four models train; thinking the KL term is optional</strong></div>
 </div>
 
+## Quick learning: Actor, RM, Critic, and Reference
+
+<details class="interview" markdown="1">
+<summary>Explain Base → SFT → Preference → RL → Evaluation in two minutes</summary>
+
+**Quick memory**: the Actor generates, the RM scores complete answers, the Critic estimates prefix return, and the Reference limits policy drift. Evaluation checks whether reward still matches the product objective.
+
+**Interview answer**
+
+> SFT first creates a usable policy; preference data trains a Reward Model; PPO updates the Actor with reward-derived advantages while clipping and reference KL constrain change. The Critic is a variance-reduction baseline, not the Reward Model. Current-policy sampling and independent evaluation close the loop.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are Reference KL and PPO clipping different constraints?</summary>
+
+Clipping limits one optimizer update relative to the rollout policy. Reference KL limits long-term drift from a fixed SFT policy. The former is a local trust region and the latter a behavioral prior; deleting either is not automatically compensated by the other.
+
+</details>
+</details>
+
 ## Why the detour is necessary
 
 The direct approach to "answer better" would be a loss function. But *better* has no closed form and no reference answer to compare against.

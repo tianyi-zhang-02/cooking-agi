@@ -2,6 +2,25 @@
 
 **中文** · [English](human-in-the-loop.en.md)
 
+## 快速学习：什么时候应该把控制权交给人
+
+<details class="interview" markdown="1">
+<summary>Risk × uncertainty × reversibility 的升级规则</summary>
+
+**快速记忆**：不是“模型不确定就问人”，而是当潜在损失高、不可逆、权限敏感或证据冲突时升级；人的反馈还要回流为可学习结构。
+
+**面试回答**
+
+> HITL 是 selective escalation policy。系统结合模型 uncertainty、action risk、reversibility、权限和业务规则决定自动执行、请求确认或转人工，并记录人修改了什么、依据什么和最终结果，用于更新规则、数据与 evaluation。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 uncertainty threshold 单独不够？</summary>
+
+模型可能对错误答案高度自信，且相同不确定度在“推荐一首歌”和“退款一万美元”上风险完全不同。升级策略要校准 uncertainty，并乘上 impact 与 irreversibility；还要考虑人工队列容量，否则系统会把风险转化为无限等待。
+
+</details>
+</details>
+
 ## HITL 是一种风险控制策略
 
 Human-in-the-Loop 不是“模型不会就全部交给人”，而是让系统在**风险高、证据不足、任务新颖或行动不可撤回**时，主动请求确认、纠正或接管。

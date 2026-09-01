@@ -9,6 +9,25 @@
   <div><span>常见错误</span><strong>误以为层数或 sigmoid 本身带来了非线性边界</strong></div>
 </div>
 
+## 快速学习：从 linear readout 到 learned feature map
+
+<details class="interview" markdown="1">
+<summary>一句话主线、标准回答与 function approximator 深挖</summary>
+
+**快速记忆**：线性模型在给定特征空间里画超平面；神经网络用 nonlinear layers 学习新的坐标 $\phi_\theta(x)$，再由 linear head 读出结果。
+
+**面试回答**
+
+> 多层 linear layers 没有 activation 时仍可合并成一个矩阵。加入 ReLU 等非线性后，网络可以学习 piecewise nonlinear feature map，使原空间中的复杂边界在 hidden space 里变得 linearly separable。最后一层线性不代表整个模型线性。
+
+<details markdown="1">
+<summary><b>深挖</b>：Universal approximation 为什么不是“肯定学得好”？</summary>
+
+它只说明足够大的函数族中**存在**参数可以在紧致域上逼近连续函数，不保证 gradient descent 找得到、有限数据能识别、参数量可承受、分布外能外推或最终能泛化。Expressivity、optimization 与 generalization 是三件不同的事。
+
+</details>
+</details>
+
 ## 线性模型的决策边界始终是超平面
 
 神经网络 = **学出来的坐标变换** + **一个线性分类器**。最后那一层永远是逻辑回归，只是它长在了新坐标系上。

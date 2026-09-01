@@ -11,6 +11,33 @@
   <div><span>常见错误</span><strong>长依赖、梯度消失，以及时间维无法并行</strong></div>
 </div>
 
+## 快速学习：RNN、LSTM 真正在解决什么
+
+<details class="interview" markdown="1">
+<summary>先记 state recurrence，再看梯度为什么消失</summary>
+
+**快速记忆**：RNN 用同一状态递推压缩历史；LSTM 用加法 cell-state path 和 sigmoid gates 控制保留、写入与读取。
+
+**面试回答**
+
+> 普通 RNN 的历史必须反复经过同一个 Jacobian，长距离梯度会因连乘而消失或爆炸。LSTM 把核心记忆改成近似加法更新，让梯度可以沿 cell state 更直接地传播，并用门控决定多少信息通过。
+
+<details markdown="1">
+<summary><b>深挖</b>：门控本身为什么不是全部答案？</summary>
+
+Sigmoid 也会饱和。LSTM 真正关键的是
+
+$$
+c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t,
+\qquad
+\frac{\partial c_t}{\partial c_{t-1}}=f_t.
+$$
+
+当 forget gate 接近 1，梯度不必反复穿过新的 tanh 与权重矩阵；加法通路比“用了三个 gate”更本质。
+
+</details>
+</details>
+
 ## 隐藏状态怎样传递信息
 
 RNN 每读一个 token，就把“我到目前为止知道什么”重新写进一张固定大小的小纸条，也就是隐藏状态。LSTM 没换掉这张纸，只是在旁边加了几道门，让模型自己决定什么该写、什么该留、什么可以忘。

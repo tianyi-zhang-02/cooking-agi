@@ -11,6 +11,25 @@
   <div><span>常见错误</span><strong>固定向量瓶颈与训练 / 生成不一致</strong></div>
 </div>
 
+## 快速学习：Seq2Seq 的瓶颈怎样催生 Attention
+
+<details class="interview" markdown="1">
+<summary>Encoder–Decoder 主线、teacher forcing 与 exposure bias</summary>
+
+**快速记忆**：Encoder 把 source 编成 states，Decoder 自回归生成 target；把整句压进单个向量形成瓶颈，attention 改成每一步按需读取全部 encoder states。
+
+**面试回答**
+
+> 经典 Seq2Seq 用 encoder final state 条件化 decoder，但长序列的信息被迫挤进固定长度向量。Attention 让每个 decode step 用当前 query 对所有 encoder states 寻址。训练时 teacher forcing 提供真实前缀，推理时只能消费自身输出，因此会产生 exposure bias。
+
+<details markdown="1">
+<summary><b>深挖</b>：Attention 解决了什么，又没解决什么？</summary>
+
+它缓解信息瓶颈并改善对齐，却没有移除 decoder 的时间递归：第 $t$ 个 target token 仍依赖前面生成结果，训练与推理前缀分布也仍不同。Transformer 后来并行化的是训练期的序列计算，不是自回归生成本身。
+
+</details>
+</details>
+
 ## 先建立整体结构
 
 输入和输出不一定一样长。翻译、摘要、问答都是“先读完一段，再写出另一段”。Seq2Seq 做的第一件事，就是很干脆地把这两件事拆开：encoder 负责读，decoder 负责写。

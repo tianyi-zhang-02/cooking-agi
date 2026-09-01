@@ -11,6 +11,25 @@
   <div><span>常见错误</span><strong>以为四个模型都在训练；以为 KL 项是可选的</strong></div>
 </div>
 
+## 快速学习：Actor、RM、Critic、Reference 谁做什么
+
+<details class="interview" markdown="1">
+<summary>两分钟讲清 Base → SFT → Preference → RL → Evaluation</summary>
+
+**快速记忆**：Actor 生成，RM 给完整回答打分，Critic 估计 prefix expected return，Reference 约束策略漂移；Evaluation 检查 reward 是否真的对应产品目标。
+
+**面试回答**
+
+> SFT 先提供可用策略；偏好数据训练 Reward Model；PPO 用 reward-derived advantage 更新 Actor，同时通过 clipping 和 reference KL 控制更新。Critic 是 variance-reduction baseline，不是 Reward Model。整个流程必须从当前 policy 重新采样并做独立评估，才构成闭环。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 Reference 与 PPO clipping 不是同一层约束？</summary>
+
+Clipping 限制一次 optimizer update 相对 rollout policy 的 ratio；reference KL 限制当前策略相对固定 SFT policy 的长期漂移。前者是局部 trust region，后者是行为先验。删掉任一项都不会自动由另一项完全补上。
+
+</details>
+</details>
+
 ## 为什么需要这么绕
 
 想让模型「回答得更好」，最直接的想法是写个损失函数。但「更好」写不出来——它没有闭式表达，也没有标准答案可以对照。

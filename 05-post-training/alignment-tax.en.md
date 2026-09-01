@@ -4,6 +4,25 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
+## Quick learning: alignment tax is not one score
+
+<details class="interview" markdown="1">
+<summary>Capability redistribution, Pareto frontiers, and sliced evaluation</summary>
+
+**Quick memory**: improving helpfulness or safety may reduce calibration, diversity, exploration, or some base capabilities. These are multiple trade-offs, not one tax rate.
+
+**Interview answer**
+
+> Alignment redistributes output probability from some behaviors to others. Evaluation cannot rely on an average win rate; it should slice by task, risk, language, length, refusal, and capability while tracking the quality–safety Pareto frontier.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: lost capability or suppressed capability?</summary>
+
+Compare base and aligned models under alternative system prompts, decoding settings, and controlled elicitation. A drop only in default behavior may reflect an access-policy change; failure across many elicitation methods is stronger evidence of forgetting or parameter interference.
+
+</details>
+</details>
+
 ## Alignment changes the distribution of capability
 
 Alignment isn't free. What you buy is a single output that better matches preferences; what you pay is **the width of the distribution** — how many different good answers the model can still give to the same question. And the bill is invisible on any average score, because **an average looks at one sample, and what you lost was the second sample being different.**

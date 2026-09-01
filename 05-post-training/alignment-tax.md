@@ -4,6 +4,25 @@
 
 > 阅读时间：约 7 分钟 · 类型：教学 · 最近审阅：2026-08
 
+## 快速学习：Alignment Tax 不是一个总分
+
+<details class="interview" markdown="1">
+<summary>能力重分配、Pareto frontier 与 slice evaluation</summary>
+
+**快速记忆**：对齐提高 helpfulness/safety 的同时，可能降低 calibration、diversity、探索性或某些 base capability；这是一组 trade-offs，不是单一税率。
+
+**面试回答**
+
+> Alignment 改变输出分布，把概率质量从某些行为移向另一些行为。评估不能只看平均 win rate，要按任务、风险、语言、长度、拒答与能力切片，并同时观察质量和安全的 Pareto frontier。
+
+<details markdown="1">
+<summary><b>深挖</b>：如何区分能力丢失与能力被 suppress？</summary>
+
+可以比较 base、aligned 与不同 system prompts / decoding settings，测试表示或受控 elicitation 是否仍能恢复能力。若只在默认行为上下降，可能是 access policy 改变；若多种 elicitation 下都消失，才更像参数层面的遗忘或干扰。
+
+</details>
+</details>
+
 ## 对齐改变的是能力分布
 
 对齐不是免费的。你换来的是更符合偏好的单次输出，付出去的是**分布的宽度**——模型在同一个问题上还能给出多少种不同的好答案。而这笔账在任何一个平均分上都看不出来，因为**平均分只看一次采样，而你失去的是第二次采样本可以不一样**。

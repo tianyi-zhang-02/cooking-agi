@@ -4,6 +4,25 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
+## Quick learning: the boundary between preference data and a reward model
+
+<details class="interview" markdown="1">
+<summary>Why comparisons are steadier than absolute scores and why reward scale is not unique</summary>
+
+**Quick memory**: a chosen/rejected pair supplies relative order. A reward model learns a scalar consistent with that order, but its absolute origin and scale have no intrinsic meaning.
+
+**Interview answer**
+
+> Preference data asks which answer is better for the same prompt. Bradley–Terry models that choice through a reward difference. The reward model therefore recovers an ordering rather than objective utility, and annotator disagreement, position bias, length preference, and policy drift can all distort it.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does a reward model become stale?</summary>
+
+The RM learns to discriminate outputs from an older policy distribution. As the actor changes, it explores new regions and may find blind spots that inflate proxy reward. Offline accuracy can remain high while online ranking fails, requiring current-policy sampling, human audits, and adversarial held-out evaluation.
+
+</details>
+</details>
+
 ## Preference data provides relative order
 
 The **H** in RLHF happens entirely at this step. Everything downstream — PPO, GRPO, DPO — **amplifies the signal this step produced**, and an amplifier cannot produce what isn't in the signal. Whatever the reward model learned wrong, the rest of the pipeline will faithfully optimize toward.

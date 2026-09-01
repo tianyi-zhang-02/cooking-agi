@@ -2,6 +2,25 @@
 
 **中文** · [English](llm-as-a-judge.en.md)
 
+## 快速学习：Judge 不是一个 prompt，而是一套 measurement system
+
+<details class="interview" markdown="1">
+<summary>Criterion、scoring、calibration 与 validation</summary>
+
+**快速记忆**：先定义可观察 criterion，再选 pairwise/ordinal/binary scoring；最后用专家标签、扰动测试与分布切片校准 judge。
+
+**面试回答**
+
+> LLM-as-a-Judge 需要明确输入证据、单一 criterion、行为锚点、输出 schema 和 aggregation。Pairwise 通常比绝对分更稳定，但仍有 position、verbosity、self-preference 和 reference leakage。上线前必须与专家审计交叉验证，并报告 disagreement 与置信度而不只给均值。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 weighted mean 会隐藏失败？</summary>
+
+相同均值可能来自“大家都给 3 分”或“半数 1 分、半数 5 分”，两者决策风险完全不同。应保留 score distribution、entropy/disagreement、criterion slices 与 judge version；对 high-stakes case 还要升级给人，而不是把不确定性压成一个标量。
+
+</details>
+</details>
+
 ## Judge 是评估系统，不是一个 Prompt
 
 LLM-as-a-Judge 不是一种固定 prompt，而是一组可以自由组合的设计选择：**给不给示范、给不给参考答案、怎样比较候选、判断什么 criterion，以及最后怎样聚合分数。**

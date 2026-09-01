@@ -4,6 +4,25 @@
 
 > 阅读时间：约 6 分钟 · 类型：教学 · 最近审阅：2026-08
 
+## 快速学习：可验证奖励换掉了什么
+
+<details class="interview" markdown="1">
+<summary>Verifier、稀疏奖励与 reward hacking 的新位置</summary>
+
+**快速记忆**：能写 checker 时，用程序验证结果比让 RM 猜质量更可靠；但模型仍可能 exploit checker、环境或题目分布。
+
+**面试回答**
+
+> Verifiable reward 把学出来的 proxy 替换为可重复检查的规则，例如单元测试、数学答案或环境终态。它减少 RM misgeneralization，却常产生稀疏二元信号，并把 reward hacking 转移到 verifier specification、sandbox 和数据生成流程。
+
+<details markdown="1">
+<summary><b>深挖</b>：Outcome reward 与 process reward 怎样取舍？</summary>
+
+Outcome reward 偏差小但 credit assignment 稀疏；process reward 更密集，却需要可靠地验证中间步骤，否则把人为偏见写进轨迹。实践中可用结果 verifier 作为硬终态，再用谨慎校准的过程信号改善搜索效率。
+
+</details>
+</details>
+
 ## 奖励从模型变成可检查规则
 
 数学题可以对答案，代码可以跑测试。这类任务的奖励**不需要学，写一个程序就行**。而这一步换掉的不只是一个模块——**能被钻空子的是被拟合出来的奖励，不是被验证出来的**。不过 reward hacking 并没有消失，它换了个地方：从骗奖励模型，变成骗验证器。

@@ -4,6 +4,28 @@
 
 > 阅读时间：约 10 分钟 · 类型：速查 · 最近审阅：2026-08
 
+## 快速学习：八股题其实在追什么
+
+<details class="interview" markdown="1">
+<summary>一分钟总答法，以及最容易漏掉的边界条件</summary>
+
+**快速记忆**
+
+大多数 Transformer 八股都在追四件事：**shape 是否闭合、信息是否因果、梯度是否能传、训练与推理是否一致。**
+
+**面试回答**
+
+> 我会先写清输入输出 shape，再说明信息沿哪条轴流动；随后检查 causal mask 或数据边界有没有泄漏，检查 residual path 和 normalization 对梯度的影响，最后比较 training、prefill 与 decode 是否执行等价计算。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么先讲 invariant 比先背结论更稳？</summary>
+
+诸如 Q/K 维度必须一致、V 维度可以不同、KV Cache 必须与 full forward 等价，都不是孤立事实，而是由矩阵乘法和语义 invariant 推出来的。面试官改变符号或实现时，背句子容易失效；从 shape、causality 和 equivalence 重新推导仍然成立。
+
+</details>
+
+</details>
+
 ## 这些题共同在检查什么
 
 这些题看着散——损失函数、掩码、归一化、RNN、CNN——其实只分三类：**梯度有没有一条不被衰减的路**、**训练和推理是不是同一件事**、**不变性是结构自带的还是花钱买的**。认出是哪一类，答案就不用背了。

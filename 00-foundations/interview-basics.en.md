@@ -4,6 +4,28 @@
 
 > Reading time: ~10 min · Type: quick reference · Last reviewed: 2026-08
 
+## Quick learning: what are the standard questions really testing?
+
+<details class="interview" markdown="1">
+<summary>A one-minute framework and the boundary conditions people miss</summary>
+
+**Quick memory**
+
+Most Transformer fundamentals test four things: **shape closure, causal information flow, gradient flow, and train/inference equivalence.**
+
+**Interview answer**
+
+> I first write the input and output shapes and identify the reduction axis. Then I check causal masks and data boundaries for leakage, inspect residual paths and normalization for gradient flow, and finally verify that training, prefill, and decode implement equivalent computations.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are invariants safer than memorized conclusions?</summary>
+
+Facts such as “Q and K dimensions must match,” “V may differ,” and “KV-cached decoding must equal a full forward pass” all follow from matrix shapes and semantic invariants. A memorized sentence breaks when notation or implementation changes; shape, causality, and equivalence let you derive the answer again.
+
+</details>
+
+</details>
+
 ## What these questions have in common
 
 These questions look scattered — losses, masks, normalization, RNNs, CNNs — but they fall into three groups: **does the gradient have an undamped path back**, **are training and inference the same thing**, and **is the invariance structural or paid for**. Recognize the group and you don't have to memorize the answer.

@@ -4,6 +4,25 @@
 
 > Reading time: ~6 min · Type: chapter · Last reviewed: 2026-08
 
+## Quick learning: what does a verifiable reward replace?
+
+<details class="interview" markdown="1">
+<summary>Verifiers, sparse reward, and the new location of reward hacking</summary>
+
+**Quick memory**: when a checker can be written, programmatic verification is more reliable than asking an RM to infer quality. The model may still exploit the checker, environment, or task distribution.
+
+**Interview answer**
+
+> Verifiable reward replaces a learned proxy with a reproducible rule such as unit tests, a mathematical answer, or an environment terminal state. It reduces RM misgeneralization but often creates sparse binary feedback and moves reward hacking into verifier specifications, sandboxes, and data generation.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: outcome reward or process reward?</summary>
+
+Outcome reward has lower specification bias but sparse credit assignment. Process reward is denser, yet unreliable intermediate checks can encode human bias into the trajectory. A common compromise uses a hard outcome verifier for terminal correctness and carefully calibrated process signals for search efficiency.
+
+</details>
+</details>
+
 ## Replace a learned reward with a checkable rule
 
 Math has answers to check; code has tests to run. For these, the reward **doesn't need to be learned — you write a program**. And that swap changes more than one module: **what can be gamed is a fitted reward, not a verified one.** Reward hacking doesn't disappear, though. It relocates: from fooling a reward model to fooling a verifier.

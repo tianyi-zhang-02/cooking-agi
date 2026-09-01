@@ -4,6 +4,25 @@
 
 > Reading time: ~6 min · Type: chapter · Last reviewed: 2026-08
 
+## Quick learning: what does SFT teach?
+
+<details class="interview" markdown="1">
+<summary>Assistant-only CE, behavior cloning, and the capability ceiling</summary>
+
+**Quick memory**: SFT remains next-token CE, usually masked to assistant tokens. It raises the probability of demonstrated behavior but does not discover strategies missing from the data.
+
+**Interview answer**
+
+> SFT serializes a conversation, treats system and user tokens as context, and supervises the assistant answer and end token. It is effective for format, tone, tool protocols, and known solutions, but remains behavior cloning constrained by demonstration coverage, quality, and a teacher-forced token objective.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does low token CE not imply a better complete answer?</summary>
+
+CE decomposes sequence loss over tokens. One decision-critical token can receive little weight inside a long answer, while common phrasing and template tokens contribute many positions. Whole-answer correctness or multi-step strategy needs sequence-level preferences or RL signals when token imitation cannot express the objective.
+
+</details>
+</details>
+
 ## SFT learns a conditional distribution
 
 SFT teaches "do it like this," so its ceiling is the ceiling of the demonstrations. But the dangerous part isn't what it fails to learn — **it's how confidently it learns things you never meant to teach.**

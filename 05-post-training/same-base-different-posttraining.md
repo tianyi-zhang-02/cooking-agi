@@ -4,6 +4,25 @@
 
 > 阅读时间：约 6 分钟 · 类型：案例 · 最近审阅：2026-08
 
+## 快速学习：同基座对照能证明什么
+
+<details class="interview" markdown="1">
+<summary>Natural experiment、confounders 与 train–serve alignment</summary>
+
+**快速记忆**：固定 base model 后，差异更可能来自数据、目标和系统；但 post-training recipe 往往同时改变多项，仍不是严格单变量因果实验。
+
+**面试回答**
+
+> Same-base comparison 能隔离一部分 pretraining 能力差异，帮助观察 SFT data、preference optimization、verifier 与 inference stack 的贡献。解读时要检查 tokenizer、context length、tool protocol、sampling 和 evaluation harness 是否也改变。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 train–serve alignment 可能比算法名字更重要？</summary>
+
+若训练模板、stop token、tool schema、sampling 或 logprob 实现与 serving 不同，模型在离线目标上学到的行为无法按同样条件被调用。算法提升可能被协议 skew 吞掉；反过来，修正一致性也可能看起来像“换算法”的收益。
+
+</details>
+</details>
+
 ## 这组对照最值得观察什么
 
 后训练很难被单独估价，因为它几乎总是和「更大的基座、更多的预训练数据」一起发布，你分不清收益来自哪一边。GLM-5.3 提供了一个少见的对照：**基座权重和 5.2 完全一样，改的只有后训练。** 这让"后训练值多少"第一次有了一个可读的数字——以及一个更值得看的结论：**收益的大头不在算法，在基础设施。**

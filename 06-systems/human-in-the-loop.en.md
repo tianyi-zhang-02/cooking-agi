@@ -2,6 +2,25 @@
 
 [中文](human-in-the-loop.md) · **English**
 
+## Quick learning: when should control pass to a human?
+
+<details class="interview" markdown="1">
+<summary>An escalation policy based on risk, uncertainty, and reversibility</summary>
+
+**Quick memory**: do not escalate merely because the model is uncertain. Escalate when potential impact is high, the action is irreversible or permission-sensitive, or evidence conflicts; return human decisions as structured learning signals.
+
+**Interview answer**
+
+> HITL is a selective escalation policy. The system combines calibrated uncertainty, action risk, reversibility, permissions, and business rules to choose automatic execution, confirmation, or human review. It records what the human changed, the evidence used, and the outcome for future rules, data, and evaluation.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why is an uncertainty threshold alone insufficient?</summary>
+
+Models can be confidently wrong, and identical uncertainty has different consequences for a song recommendation and a large refund. Escalation should combine calibrated uncertainty with impact and irreversibility while respecting reviewer capacity, or risk is merely converted into an unbounded queue.
+
+</details>
+</details>
+
 ## Core view
 
 Human in the Loop (HITL) does not mean sending every model failure to a person. It is a **control policy** that chooses between automatic execution, user confirmation, and expert escalation based on risk, uncertainty, novelty, and reversibility.

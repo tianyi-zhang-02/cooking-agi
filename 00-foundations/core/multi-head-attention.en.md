@@ -11,6 +11,25 @@
   <div><span>Common mistakes</span><strong>reshape order, mask timing, dividing by the wrong dimension</strong></div>
 </div>
 
+## Quick learning: multi-head attention in one sentence and its boundary conditions
+
+<details class="interview" markdown="1">
+<summary>Match, normalize, aggregate, and why multiple heads exist</summary>
+
+**Quick memory**: Q and K decide where to read; V decides what content is read. Each head learns a separate matching and transport subspace; multiple heads do not magically increase total model width.
+
+**Interview answer**
+
+> Every query takes scaled dot products with all keys, applies a mask and row-wise softmax, then uses those weights to aggregate values. Q and K must share their last dimension for the dot product; V only determines output width. Multiple heads learn different relations under a fixed compute budget and $W_O$ mixes their concatenated outputs.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: what happens if Q equals K?</summary>
+
+Before softmax, the Gram matrix $QQ^\top$ is symmetric and positive semidefinite. Row-wise softmax uses different denominators, so the final attention matrix is generally not symmetric. Forcing $W_Q=W_K$ also removes some directional matching freedom; separate projections let “who queries whom” differ from the reverse direction.
+
+</details>
+</details>
+
 ## The core computation: match and aggregate information
 
 Each position carries a **question** (query) and asks every position's **index** (key). The better they match, the more it takes from that position's **content** (value). What comes back is a weighted average.

@@ -11,6 +11,25 @@
   <div><span>最后要能证明</span><strong>模型是真的记住，而不是碰巧猜中</strong></div>
 </div>
 
+## 快速学习：长距离梯度问题的最小解释
+
+<details class="interview" markdown="1">
+<summary>BPTT、Jacobian 连乘与 LSTM 加法通路</summary>
+
+**快速记忆**：RNN 的远距离依赖经过 Jacobian 连乘；clipping 只能截住爆炸，不能恢复已经消失的梯度；LSTM 用接近恒等的 cell-state path 缩短有效优化路径。
+
+**面试回答**
+
+> BPTT 把时间递推展开成深网络，共享参数的梯度是所有时间步贡献之和。早期状态到晚期 loss 的梯度包含许多 Jacobian 的乘积，其奇异值决定指数衰减或增长。LSTM 用加法更新和 forget gate 给梯度提供更直接的路径。
+
+<details markdown="1">
+<summary><b>深挖</b>：怎样证明模型真的记住了，而不是利用 shortcut？</summary>
+
+除看平均 accuracy，还要随依赖距离画性能与 gradient norm，干预早期关键 token，打乱无关局部线索，并检查 gates 是否长期饱和。只有预测随因果记忆干预而变化，才能把“会做题”与“真的保存远端信息”分开。
+
+</details>
+</details>
+
 ## 核心问题：为什么远距离依赖难以学习
 
 普通 RNN 的状态更新是 $h_t=f(a_t)$，其中 $a_t=W_hh_{t-1}+W_xx_t+b$。一个早期状态怎样影响很晚的 loss，取决于 Jacobian 连乘：
