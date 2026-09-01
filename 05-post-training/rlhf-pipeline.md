@@ -2,11 +2,11 @@
 
 **中文** · [English](rlhf-pipeline.en.md)
 
-> 阅读时间：约 9 分钟 · 难度：必修 · 最近审阅：2026-08
+> 阅读时间：约 14 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
   <div><span>解决什么问题</span><strong>把「人更喜欢哪个回答」变成可优化的目标</strong></div>
-  <div><span>前置知识</span><strong>SFT · 偏好数据 · 策略梯度</strong></div>
+  <div><span>前置知识</span><strong>SFT · 偏好数据 · next-token prediction</strong></div>
   <div><span>核心机制</span><strong>学一个奖励模型，再用 RL 去优化它</strong></div>
   <div><span>常见错误</span><strong>以为四个模型都在训练；以为 KL 项是可选的</strong></div>
 </div>
@@ -23,6 +23,72 @@
 
 代价是引入了一层间接：你优化的不再是「人的偏好」，而是「一个模型对人偏好的拟合」。后面所有的麻烦都从这里来。
 
+## 先把普通 RL 映射到语言模型
+
+监督学习通常直接给出目标答案；强化学习（Reinforcement Learning, **RL**）只评价一段行为的结果。模型知道这次得了多少分，却未必知道是哪一步造成的，也没有一个逐步的标准答案可以照抄。
+
+语言模型生成一句话，正好可以写成一段序列决策：
+
+| RL 概念 | 在语言模型里是什么 |
+| --- | --- |
+| **Agent**（智能体） | 正在训练的语言模型 |
+| **State**（状态）$s_t$ | prompt 加上已经生成的前缀 $(x, y_{<t})$ |
+| **Action**（动作）$a_t$ | 下一枚 token $y_t$ |
+| **Policy**（策略）$\pi_\theta(a_t\mid s_t)$ | 模型 softmax 给出的 next-token 分布 |
+| **Trajectory**（轨迹）$\tau$ | 从回答开始到结束的整段 token 序列 |
+| **Reward**（奖励）$r_t$ | Reward Model、verifier 或真实环境给出的标量反馈 |
+
+这里的 Actor 不是包在语言模型外面的另一个决策器：**语言模型本身就是 policy**。在状态 $s_t=(x,y_{<t})$ 下从词表里采样下一枚 token，所用的概率就是
+
+$$a_t=y_t\sim\pi_\theta(\cdot\mid x,y_{<t}).$$
+
+token 被接到前缀后，便形成下一个状态。单纯文本生成时，这个状态转移几乎就是确定性的字符串拼接；到了工具调用或交互式 agent，环境还会返回搜索结果、执行结果或新的 observation。
+
+### Reward、Return 和奖励归因
+
+**Reward** $r_t$ 是某一步拿到的即时反馈；**Return** $G_t$ 是从这一步开始的累计未来奖励：
+
+$$G_t=r_t+\gamma r_{t+1}+\gamma^2r_{t+2}+\cdots.$$
+
+在经典偏好 RLHF 中，主要奖励经常等完整回答结束才由 Reward Model 给出。因此前面每一枚 token 都要共同为最后的分数负责：低分究竟是开头方向错了，还是中途出现事实错误？这就是 **credit assignment**（奖励归因）问题。实现里也常把逐 token 的 KL 惩罚当作较密集的 shaping reward，但它不等于人类偏好本身。
+
+### Value、Q 和 Advantage
+
+Critic 要学的不是「这个完整回答好不好」，而是当前前缀往后生成，预计还能拿到多少累计回报：
+
+$$V^\pi(s)=\mathbb E_\pi[G_t\mid s_t=s].$$
+
+如果还指定当前先选动作 $a$，则是 action value：
+
+$$Q^\pi(s,a)=\mathbb E_\pi[G_t\mid s_t=s,a_t=a].$$
+
+二者的差是 **Advantage**（优势）：
+
+$$A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).$$
+
+它问的不是「这次总分高不高」，而是「这个动作相对当前状态下的正常预期，好了多少」。同样拿到 $0.6$ 的回报：如果 Critic 原本预测 $0.8$，它低于预期；如果原本只预测 $0.2$，它就明显高于预期。减去这个 baseline 不会改变期望中的策略梯度，却能显著降低方差。
+
+策略梯度的核心因此可以写成：
+
+$$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
+
+$\hat A_t>0$ 时，提高这次采样动作的概率；$\hat A_t<0$ 时，降低它。这个公式只直接更新实际采样到的 token，并通过共享参数影响其他状态下的分布。Critic 则用 return 或 bootstrapped target 回归 $V_\phi(s_t)$；它的主要作用是**降低估计方差**，不是替 Actor 决定下一个 token。
+
+### Reward Model 不是 Critic
+
+这两个模型都输出标量，所以很容易混：
+
+| | Reward Model | Critic / Value Model |
+| --- | --- | --- |
+| 输入 | prompt + 完整回答 | 当前 prompt + 生成前缀 |
+| 输出 | 学到的偏好代理分数 | 从当前状态出发的预计 return |
+| 回答的问题 | 「这个完成的回答看起来有多好？」 | 「从这里按当前策略继续，预计能拿多少分？」 |
+| PPO 阶段 | 通常冻结 | 跟随当前 Actor 训练 |
+
+Reward Model 给出的不是「真实人类满意度」，而是从有限偏好数据学到的 **proxy reward**（代理奖励）。它会判断错、偏爱表面风格，也可能被策略钻空子。Critic 学的则是当前 policy 下的条件期望；Actor 一变，它要估计的目标也会跟着变。
+
+从完整回答粒度看，这套训练有一点像 contextual bandit：给一个 prompt，生成一个回答，最后拿一个整体分数。但 token 生成内部仍然是序列决策，状态会随前缀不断变化。两种说法只是抽象粒度不同。
+
 ## 三个阶段
 
 **第一阶段 SFT。** 拿人写的示范数据微调预训练模型，得到一个至少会按指令格式回答的起点。它决定了后面 RL 的初始策略，起点太差 RL 也救不回来。
@@ -31,7 +97,7 @@
 
 $$\mathcal{L}(\phi) = -\mathbb{E}_{(x, y_w, y_l)}\Big[\log \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big)\Big]$$
 
-注意它只学**相对**关系。$r_\phi$ 的绝对数值没有意义，加个常数不改变任何东西——这也是为什么奖励模型的分数不能跨批次直接比较。
+注意它只学**相对**关系。$r_\phi$ 的零点不可辨识：给所有分数加同一个常数，损失不会改变。因此原始分数不能直接解释成「人类满意度」，跨 prompt 或跨数据分布使用前也要检查校准；真正受训练目标直接约束的是同一 prompt 下 chosen 与 rejected 的分差。
 
 **第三阶段 用 RL 优化。** 这一阶段有四个模型同时在场，而它们的角色完全不同。
 
@@ -49,6 +115,8 @@ $$\mathcal{L}(\phi) = -\mathbb{E}_{(x, y_w, y_l)}\Big[\log \sigma\big(r_\phi(x, 
 **只有前两个在更新参数。** Reward 和 Reference 全程只做前向。
 
 Actor 和 Reference 一开始是同一份权重的两个副本——Actor 会被训练而慢慢偏离，Reference 停在原地当尺子。
+
+这是四种**概念角色**，不保证工程上一定对应四个完全独立、始终常驻显存的大模型。Critic 可以是共享 backbone 上的 value head，冻结模型也可以分片或 offload；角色之间的训练关系不变。
 
 ## 为什么必须有 Reference
 
@@ -73,6 +141,8 @@ $$A_t = R_t - V_t$$
 $$\mathcal{L}^{\text{CLIP}}(\theta) = \mathbb{E}_t\Big[\min\big(\rho_t A_t,\ \text{clip}(\rho_t, 1-\epsilon, 1+\epsilon)A_t\big)\Big], \qquad \rho_t = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}$$
 
 裁剪是为了防止一步走太远——策略一旦跑出旧策略的支撑集，重要性比 $\rho_t$ 就会爆炸。
+
+这里有两把不同的尺子：**PPO clipping** 比较当前 Actor 与采样数据时的旧 Actor，限制一次优化更新；**Reference KL** 比较 Actor 与冻结的 SFT Reference，限制整个训练过程的累计漂移。前者不能替代后者。
 
 ## 后来发生了什么
 
@@ -135,9 +205,9 @@ DPO 用了一个推导：带 KL 约束的奖励最大化有闭式最优解，把
 <details class="interview" markdown="1">
 <summary>奖励模型的分数可以直接比较大小吗？</summary>
 
-同一批内可以比，跨批次不行。Bradley–Terry 损失只约束**差值**，给所有分数加一个常数损失完全不变，所以绝对数值没有意义。
+Bradley–Terry 损失直接约束的是同一 prompt 下 chosen 与 rejected 的**分差**。给所有分数加一个常数，损失完全不变，所以零点没有可识别语义；一个 $2.4$ 不能直接读成「满意度 2.4」。
 
-实践中通常会对奖励做批内归一化，否则 KL 系数 $\beta$ 的效果会随批次漂移。
+固定 Reward Model 的原始输出当然可以拿来计算，但跨 prompt、领域或模型版本比较时，必须先确认校准与尺度是否稳定。训练实现也可能做 reward whitening 或 normalization；那是优化选择，不是 Bradley–Terry 必然要求的规则。
 
 </details>
 

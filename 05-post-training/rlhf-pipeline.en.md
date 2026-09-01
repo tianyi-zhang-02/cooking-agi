@@ -2,11 +2,11 @@
 
 [中文](rlhf-pipeline.md) · **English**
 
-> Reading time: ~9 min · Level: core · Last reviewed: 2026-08
+> Reading time: ~14 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>turning "people prefer this answer" into something optimisable</strong></div>
-  <div><span>Prerequisites</span><strong>SFT · preference data · policy gradients</strong></div>
+  <div><span>Prerequisites</span><strong>SFT · preference data · next-token prediction</strong></div>
   <div><span>Core mechanism</span><strong>learn a reward model, then optimise it with RL</strong></div>
   <div><span>Common mistakes</span><strong>thinking all four models train; thinking the KL term is optional</strong></div>
 </div>
@@ -24,6 +24,72 @@ people can compare → learn a model that predicts which they'd prefer
 
 The cost is a layer of indirection. You are no longer optimising human preference; you are optimising *a model's fit to* human preference. Every difficulty below comes from that.
 
+## Mapping ordinary RL onto a language model
+
+Supervised learning usually supplies a target answer. Reinforcement learning (**RL**) instead evaluates the outcome of a sequence of behaviour. The model can learn the score of a rollout without being told which individual step caused it or what the correct replacement action was.
+
+Language generation can be written directly as sequential decision-making:
+
+| RL concept | In a language model |
+| --- | --- |
+| **Agent** | the language model being trained |
+| **State** $s_t$ | the prompt plus generated prefix $(x, y_{<t})$ |
+| **Action** $a_t$ | the next token $y_t$ |
+| **Policy** $\pi_\theta(a_t\mid s_t)$ | the model's softmax next-token distribution |
+| **Trajectory** $\tau$ | the token sequence from the start to the end of a response |
+| **Reward** $r_t$ | scalar feedback from a Reward Model, verifier, or real environment |
+
+The Actor is not a separate controller wrapped around the language model: **the language model itself is the policy**. At state $s_t=(x,y_{<t})$, its next-token probabilities define
+
+$$a_t=y_t\sim\pi_\theta(\cdot\mid x,y_{<t}).$$
+
+Appending that token creates the next state. In plain text generation this transition is almost deterministic concatenation; tool-using or interactive agents also receive search results, execution outputs, or other observations from the environment.
+
+### Reward, return, and credit assignment
+
+A **reward** $r_t$ is immediate feedback at one step. A **return** $G_t$ accumulates future rewards from that step onward:
+
+$$G_t=r_t+\gamma r_{t+1}+\gamma^2r_{t+2}+\cdots.$$
+
+In classic preference-based RLHF, the main reward often arrives only after a complete answer is scored. Every earlier token must then share responsibility for the terminal score. Was a poor result caused by the opening direction or a factual mistake halfway through? That is the **credit-assignment problem**. Implementations often add per-token KL penalties as denser shaping rewards, but those penalties are not human preference themselves.
+
+### Value, Q, and advantage
+
+The Critic does not judge whether a completed answer is good. It predicts the cumulative return expected from the current prefix:
+
+$$V^\pi(s)=\mathbb E_\pi[G_t\mid s_t=s].$$
+
+Conditioning additionally on the current action gives the action value:
+
+$$Q^\pi(s,a)=\mathbb E_\pi[G_t\mid s_t=s,a_t=a].$$
+
+Their difference is the **advantage**:
+
+$$A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).$$
+
+It asks not whether the total score is high, but how much better this action was than the normal expectation at that state. The same return of $0.6$ is disappointing if the Critic predicted $0.8$ and encouraging if it predicted $0.2$. Subtracting this baseline leaves the expected policy gradient unchanged while greatly reducing its variance.
+
+The central policy-gradient expression is therefore
+
+$$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
+
+When $\hat A_t>0$, increase the probability of the sampled action; when it is negative, decrease it. The expression directly updates sampled tokens, with shared parameters carrying the effect to other states. The Critic regresses $V_\phi(s_t)$ toward returns or bootstrapped targets. Its main job is **variance reduction**, not choosing the Actor's next token.
+
+### A Reward Model is not a Critic
+
+Both emit scalars, which makes them easy to confuse:
+
+| | Reward Model | Critic / Value Model |
+| --- | --- | --- |
+| Input | prompt + completed answer | current prompt + generated prefix |
+| Output | learned proxy preference score | expected return from the current state |
+| Question answered | “How good does this completed answer look?” | “If the current policy continues from here, what return should it expect?” |
+| During PPO | usually frozen | trained alongside the current Actor |
+
+The Reward Model does not provide “true human satisfaction.” It supplies a **proxy reward** fitted on limited preference data, so it can be wrong, favour superficial styles, and be gamed. The Critic estimates a conditional expectation under the current policy; when the Actor changes, its target changes too.
+
+At whole-response granularity this resembles a contextual bandit: receive a prompt, generate one answer, then receive one overall score. Inside generation it remains a sequential decision process whose state changes with every token. The two descriptions differ only in abstraction level.
+
 ## The three stages
 
 **Stage 1, SFT.** Finetune the pretrained model on human demonstrations to get something that at least follows the instruction format. It becomes RL's initial policy, and RL cannot rescue a bad starting point.
@@ -32,7 +98,7 @@ The cost is a layer of indirection. You are no longer optimising human preferenc
 
 $$\mathcal{L}(\phi) = -\mathbb{E}_{(x, y_w, y_l)}\Big[\log \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big)\Big]$$
 
-It only learns **relative** order. Adding a constant to every score changes nothing, so the absolute values are meaningless — which is why reward scores are not comparable across batches.
+It learns **relative** order. Its zero point is unidentifiable: adding the same constant to every score changes no loss. Raw scores therefore are not literal units of “human satisfaction,” and comparisons across prompts or data distributions require calibration checks. The objective directly constrains the chosen–rejected gap for the same prompt.
 
 **Stage 3, optimise with RL.** Four models are present at once, in quite different roles.
 
@@ -50,6 +116,8 @@ This is the part most explanations blur:
 **Only the first two update weights.** Reward and Reference run forward passes and nothing else.
 
 Actor and Reference start as two copies of the same weights. The Actor trains and drifts; the Reference stays put as the measuring stick.
+
+These are four **conceptual roles**, not necessarily four independent full models that remain GPU-resident at all times. A Critic may be a value head on a shared backbone, while frozen models can be sharded or offloaded. Their training relationships stay the same.
 
 ## Why the Reference is mandatory
 
@@ -74,6 +142,8 @@ PPO then smooths this over multiple steps with GAE and clips the update into a t
 $$\mathcal{L}^{\text{CLIP}}(\theta) = \mathbb{E}_t\Big[\min\big(\rho_t A_t,\ \text{clip}(\rho_t, 1-\epsilon, 1+\epsilon)A_t\big)\Big], \qquad \rho_t = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}$$
 
 The clip exists to stop a single step going too far: once the policy leaves the old policy's support, the importance ratio $\rho_t$ explodes.
+
+Two different rulers are involved. **PPO clipping** compares the current Actor with the old Actor that produced the rollout and limits one optimisation update. **Reference KL** compares the Actor with the frozen SFT Reference and limits cumulative drift across training. The former does not replace the latter.
 
 ## What happened next
 
@@ -134,9 +204,9 @@ The cost is that DPO's preference pairs are **offline**. The policy moves during
 <details class="interview" markdown="1">
 <summary>Can reward-model scores be compared directly?</summary>
 
-Within a batch yes, across batches no. Bradley–Terry constrains only the *difference*, so adding a constant to every score leaves the loss unchanged and absolute values carry no meaning.
+Bradley–Terry directly constrains the **gap** between chosen and rejected answers to the same prompt. Adding a constant to every score leaves the loss unchanged, so the zero point has no identifiable meaning; a score of $2.4$ is not “2.4 units of satisfaction.”
 
-In practice rewards get normalised within the batch; otherwise the effective strength of $\beta$ drifts from batch to batch.
+A fixed Reward Model's raw outputs can of course be used numerically, but comparisons across prompts, domains, or model versions require evidence that calibration and scale are stable. Implementations may also whiten or normalise rewards; that is an optimisation choice, not a rule implied by Bradley–Terry.
 
 </details>
 
