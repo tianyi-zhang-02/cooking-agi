@@ -1048,6 +1048,73 @@ main { padding-top: 2.8rem; }
 .bilingual-intro { border-left-color: var(--ember); }
 .bilingual-intro > span { color: var(--ember); }
 
+.concept-card {
+  position: relative; margin: 2rem -.8rem 2.5rem; overflow: clip;
+  border: 1px solid color-mix(in srgb, var(--rule) 74%, transparent);
+  border-radius: 5px 20px 5px 20px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  box-shadow: var(--shadow);
+}
+.concept-card.has-flip { cursor: pointer; }
+.concept-card.is-en {
+  border-color: color-mix(in srgb, var(--link) 38%, var(--rule));
+  background: color-mix(in srgb, var(--panel) 88%, var(--link) 4%);
+}
+.concept-face { padding: 1.35rem 1.45rem 1.5rem; }
+.concept-face > h3:first-child {
+  max-width: calc(100% - 7rem); margin: .05rem 0 1.5rem;
+  font-size: 1.22rem; line-height: 1.32;
+}
+.concept-face > h2:first-child {
+  max-width: calc(100% - 7rem); margin: .05rem 0 1.5rem; padding: 0;
+  border: 0; font-size: 1.46rem; line-height: 1.28;
+}
+.concept-face > h2:first-child::before { display: none; }
+.concept-title-en {
+  max-width: calc(100% - 7rem); margin: .05rem 0 1.5rem;
+  color: var(--ink); font: 650 1.22rem/1.32 var(--serif); letter-spacing: -.012em;
+}
+.concept-title-h2 { font-size: 1.46rem; line-height: 1.28; }
+.concept-face > :last-child { margin-bottom: 0; }
+.concept-face-en { font-family: var(--serif); }
+.concept-flip {
+  position: absolute; z-index: 4; top: 1rem; right: 1rem;
+  display: inline-flex; align-items: center; gap: .45rem;
+  min-height: 2rem; padding: .34rem .62rem .34rem .72rem;
+  border: 1px solid color-mix(in srgb, var(--link) 30%, var(--rule));
+  border-radius: 999px; background: var(--panel); color: var(--link);
+  font: 700 .69rem/1 var(--sans); letter-spacing: .035em; cursor: pointer;
+  box-shadow: 0 8px 22px -16px rgba(35, 74, 84, .65);
+}
+.concept-flip:hover { color: var(--link-hover); border-color: var(--link); }
+.concept-flip:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+.concept-flip i { font: normal .9rem/1 var(--sans); transition: transform .18s ease; }
+.concept-card.is-en .concept-flip i { transform: rotate(180deg); }
+.concept-card:not(.has-flip) .concept-face + .concept-face {
+  border-top: 1px dashed var(--rule); background: color-mix(in srgb, var(--link) 4%, transparent);
+}
+.recipe-flip { cursor: pointer; }
+.recipe-face { height: 100%; padding-right: 3.2rem; }
+.recipe-flip.is-en { background: color-mix(in srgb, var(--panel) 90%, var(--link) 5%); }
+.recipe-flip .concept-flip {
+  top: .65rem; right: .65rem; min-height: 1.65rem;
+  padding: .23rem .42rem .23rem .5rem; font-size: .58rem;
+}
+.lesson-recipe .recipe-flip .concept-flip span {
+  display: inline; margin: 0; color: inherit; font: inherit; letter-spacing: inherit;
+  text-transform: none;
+}
+
+@media (max-width: 620px) {
+  .concept-card { margin-left: 0; margin-right: 0; border-radius: 4px 15px 4px 15px; }
+  .concept-face { padding: 1.15rem 1rem 1.3rem; }
+  .concept-face > h3:first-child { max-width: calc(100% - 5.8rem); font-size: 1.08rem; }
+  .concept-face > h2:first-child { max-width: calc(100% - 5.8rem); font-size: 1.22rem; }
+  .concept-title-en { max-width: calc(100% - 5.8rem); font-size: 1.08rem; }
+  .concept-title-h2 { font-size: 1.22rem; }
+  .concept-flip { top: .85rem; right: .8rem; }
+}
+
 @media (max-width: 1080px) {
   .shell { padding: 0 1.5rem; }
   main { padding-top: 2.1rem; }

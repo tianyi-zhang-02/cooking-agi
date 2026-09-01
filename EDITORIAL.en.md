@@ -51,6 +51,23 @@ Each note normally has:
 
 Large topics use an index plus short notes. A project overview remains short, while detailed milestones move into child notes or code directories.
 
+## Bilingual reading contract
+
+Chinese is the default reading surface, without hiding the canonical English
+terminology:
+
+- the Chinese concept card is the front, with technical terms linked to their
+  standard English names through the glossary;
+- every concept card has a complete, one-to-one English back—not merely a summary;
+- readers switch language in place on the current card, without returning to the top
+  or navigating away;
+- formulas, shapes, examples, and caveats remain equivalent on both sides;
+- the standalone English page remains available for continuous English reading, but
+  it is not the primary bilingual-comparison interface.
+
+When a concept changes, both sides are updated together. If an accurate counterpart
+is not ready, do not publish a permanently drifting pair.
+
 ## Diagram standard
 
 A diagram must explain a relationship that prose would make harder to scan. Keep one visual question per diagram, use short labels, and preserve a consistent grammar: rounded nodes for outcomes, cylinders for versioned state or evidence, diamonds for gates, solid arrows for the forward path, and dotted arrows for feedback or control. Group by phase only when it improves the reading order, and render-check every Mermaid block before publishing.

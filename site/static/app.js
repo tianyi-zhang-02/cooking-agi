@@ -26,6 +26,51 @@
     if (v) el.textContent = v;
   });
 
+  /* ---------------------------------------------- concept-level bilingual flip */
+  $$("[data-concept-card]").forEach(function (card) {
+    var zh = $("[data-concept-zh]", card), en = $("[data-concept-en]", card);
+    if (!zh || !en) return;
+
+    card.classList.add("has-flip");
+    card.dataset.side = "zh";
+    zh.lang = "zh-Hans";
+    en.lang = "en";
+    en.hidden = true;
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "concept-flip";
+    btn.setAttribute("aria-pressed", "false");
+    card.insertBefore(btn, card.firstChild);
+
+    function show(side, animate) {
+      var english = side === "en";
+      card.dataset.side = side;
+      card.classList.toggle("is-en", english);
+      zh.hidden = english;
+      en.hidden = !english;
+      btn.setAttribute("aria-pressed", String(english));
+      btn.setAttribute("aria-label", english ? "切换回中文" : "查看对应英文");
+      btn.innerHTML = "<span>" + (english ? "中文" : "English") +
+        "</span><i aria-hidden=\"true\">↻</i>";
+      if (animate && !matchMedia("(prefers-reduced-motion: reduce)").matches && card.animate) {
+        card.animate([
+          { opacity: .72, transform: "translateY(2px)" },
+          { opacity: 1, transform: "translateY(0)" }
+        ], { duration: 170, easing: "ease-out" });
+      }
+    }
+
+    function flip() { show(card.dataset.side === "zh" ? "en" : "zh", true); }
+    btn.addEventListener("click", function (e) { e.stopPropagation(); flip(); });
+    card.addEventListener("click", function (e) {
+      if (e.target.closest("a, button, pre, code, input, textarea, summary, details")) return;
+      if (window.getSelection && window.getSelection().toString()) return;
+      flip();
+    });
+    show("zh", false);
+  });
+
   /* ---------------------------------------------------------- theme */
   var root = document.documentElement;
   var themeBtn = $(".icon-btn.theme");
