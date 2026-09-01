@@ -113,6 +113,48 @@ After six layers, the encoder produces memory
 
 $$C=\operatorname{Encoder}(X)\in\mathbb{R}^{S\times512}.$$
 
+### Attention dimensions and edge cases
+
+For one attention head, the general shapes are
+
+$$Q\in\mathbb R^{L_q\times d_k},\qquad
+K\in\mathbb R^{L_{kv}\times d_k},\qquad
+V\in\mathbb R^{L_{kv}\times d_v}.$$
+
+Therefore
+
+$$QK^\top\in\mathbb R^{L_q\times L_{kv}},\qquad
+\operatorname{softmax}(QK^\top)V\in\mathbb R^{L_q\times d_v}.$$
+
+Q and K need the same final dimension $d_k$ for their dot product. K and V need the
+same sequence length $L_{kv}$ because every key indexes one value. The value width
+$d_v$ need not equal $d_k$; it determines the output width. The original model's
+$d_k=d_v=64$ was a design choice, not a mathematical requirement.
+
+If q and k have approximately independent, zero-mean, unit-variance components, then
+
+$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,qquad
+\operatorname{Var}(q^\top k)\approx d_k.$$
+
+Dividing by $\sqrt{d_k}$ keeps the score variance near one. Without scaling, larger
+head dimensions create larger logits, softmax saturates toward nearly one-hot weights,
+and gradients at non-maximum positions shrink. The scale uses the Q/K matching width
+$d_k$, not $d_v$.
+
+$W_Q,W_K,W_V$ have no fixed human-readable coordinate semantics, but their roles are
+different: Q represents what to look for, K how an item should be matched, and V what
+content to transmit. Thus $QK^\top$ performs addressing while V supplies the retrieved
+content.
+
+If Q is forced to equal K, the pre-mask, pre-softmax score is
+
+$$S=QQ^\top,$$
+
+which is symmetric and positive semidefinite. Row-wise softmax need not remain
+symmetric, and a causal mask also breaks symmetry, but the underlying match is still
+restricted to a symmetric similarity. Separate $W_Q,W_K$ allow directional relations;
+separate $W_V$ decouples how information is located from what is read.
+
 ### 3. Why the target is shifted
 
 For the target sequence
@@ -219,6 +261,9 @@ Run [`../code/vanilla_demo.py`](../code/vanilla_demo.py), then use [the full Tra
   <strong>After drawing the architecture, answer:</strong>
   <ol>
     <li>Where do Q, K, and V come from at each attention site?</li>
+    <li>Why must Q and K share a final dimension while $d_v$ may differ?</li>
+    <li>Why divide by $\sqrt{d_k}$, and what happens to softmax without it?</li>
+    <li>What constraint appears in the raw score matrix if Q is forced to equal K?</li>
     <li>Why is training parallel while generation remains sequential?</li>
     <li>What information disappears without positional encoding?</li>
   </ol>

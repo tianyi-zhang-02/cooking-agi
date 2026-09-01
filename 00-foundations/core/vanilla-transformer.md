@@ -233,6 +233,111 @@ the same tokens. Dropout follows the embedding-plus-position sum.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
+### Attention 的维度与边界条件
+
+对单个 attention head，更一般的 shape 是：
+
+$$Q\in\mathbb R^{L_q\times d_k},\qquad
+K\in\mathbb R^{L_{kv}\times d_k},\qquad
+V\in\mathbb R^{L_{kv}\times d_v}.$$
+
+于是
+
+$$QK^\top\in\mathbb R^{L_q\times L_{kv}},\qquad
+\operatorname{softmax}(QK^\top)V\in\mathbb R^{L_q\times d_v}.$$
+
+这里有两个真正的 shape 约束：Q 与 K 的最后一维都必须是 $d_k$，才能计算点积；
+K 与 V 的序列长度都必须是 $L_{kv}$，因为每个 key 都要对应一份被读取的 value。
+$d_v$ 不必等于 $d_k$，输出通道数由 $d_v$ 决定。原版每个头取
+$d_k=d_v=64$ 是设计选择，不是 attention 的数学要求。
+
+为什么 score 要除以 $\sqrt{d_k}$？若 $q_i,k_i$ 近似独立、均值为 0、方差为 1，
+那么
+
+$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,qquad
+\operatorname{Var}(q^\top k)\approx d_k.$$
+
+点积的标准差因此随 $\sqrt{d_k}$ 增长。缩放后
+
+$$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
+
+score 不会仅仅因为 head dimension 变大就把 softmax 推到饱和区。否则注意力会过早接近
+one-hot，非最大位置的梯度很小。这里使用的是 Q/K 的匹配维度 $d_k$，与 $d_v$ 无关。
+
+$W_Q,W_K,W_V$ 的单个坐标没有固定的人类语义，但三套投影承担不同角色：Q 表达“我要找
+什么”，K 表达“我怎样被匹配”，V 表达“匹配后传递什么内容”。因此
+
+$$QK^\top=\text{addressing / routing},\qquad V=\text{retrieved content}.$$
+
+如果强制 $Q=K$，mask 和 softmax 之前的 score 变成
+
+$$S=QQ^\top,$$
+
+它是对称的 positive-semidefinite matrix，满足 $S_{ij}=S_{ji}$。逐行 softmax 后不一定
+仍对称，causal mask 也会破坏对称性，但底层匹配函数已经被限制成对称相似度，难以自然
+表达“$i$ 查询 $j$”与“$j$ 查询 $i$”不同的方向关系。分开的 $W_Q,W_K$ 解除这个约束；
+分开的 $W_V$ 则把“怎样找到信息”和“找到后读取什么”解耦。
+
+</div>
+<div class="concept-face concept-en" data-concept-en markdown="1">
+
+<div class="concept-title-en" role="heading" aria-level="3">Attention dimensions and edge cases</div>
+
+For one attention head, the general shapes are
+
+$$Q\in\mathbb R^{L_q\times d_k},\qquad
+K\in\mathbb R^{L_{kv}\times d_k},\qquad
+V\in\mathbb R^{L_{kv}\times d_v}.$$
+
+Therefore
+
+$$QK^\top\in\mathbb R^{L_q\times L_{kv}},\qquad
+\operatorname{softmax}(QK^\top)V\in\mathbb R^{L_q\times d_v}.$$
+
+There are two actual shape constraints. Q and K need the same final dimension $d_k$
+for their dot product. K and V need the same sequence length $L_{kv}$ because every
+key indexes one value. The value width $d_v$ need not equal $d_k$; it determines the
+output width. Setting both to 64 in the original model was a design choice, not a
+mathematical requirement of attention.
+
+Why divide the score by $\sqrt{d_k}$? If the components of q and k are approximately
+independent with zero mean and unit variance, then
+
+$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,qquad
+\operatorname{Var}(q^\top k)\approx d_k.$$
+
+The dot product's standard deviation grows like $\sqrt{d_k}$. Scaling gives
+
+$$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
+
+so increasing head width alone does not push softmax into saturation. Without the
+scaling, attention can become nearly one-hot too early and gradients at non-maximum
+positions become small. The relevant width is the Q/K matching dimension $d_k$, not
+$d_v$.
+
+The individual coordinates of $W_Q,W_K,W_V$ have no fixed human meaning, but their
+computational roles differ: Q represents what to look for, K how an item can be
+matched, and V what content should be transmitted after a match. In short,
+
+$$QK^\top=\text{addressing / routing},\qquad V=\text{retrieved content}.$$
+
+If Q is forced to equal K, the pre-mask, pre-softmax score becomes
+
+$$S=QQ^\top,$$
+
+a symmetric positive-semidefinite matrix with $S_{ij}=S_{ji}$. Row-wise softmax need
+not preserve symmetry, and a causal mask also breaks it, but the underlying matching
+function has already been restricted to a symmetric similarity. It cannot naturally
+express different strengths for “i queries j” and “j queries i.” Separate
+$W_Q,W_K$ remove this constraint, while a separate $W_V$ decouples how information is
+located from what information is read.
+
+</div>
+</section>
+
+<section class="concept-card" data-concept-card markdown="1">
+<div class="concept-face concept-zh" data-concept-zh markdown="1">
+
 ### 2. 一个 encoder layer 算什么
 
 原版堆叠 6 个相同结构的 encoder layer。每层都是：
@@ -628,6 +733,9 @@ predicted.
   <strong>画完结构图后，再问自己：</strong>
   <ol>
     <li>encoder self-attention、decoder self-attention 和 cross-attention 的 Q/K/V 分别来自哪里？</li>
+    <li>为什么 Q/K 的最后一维必须相同，而 $d_v$ 可以不同？</li>
+    <li>为什么除以 $\sqrt{d_k}$？不缩放时 softmax 和梯度会怎样？</li>
+    <li>若强制 $Q=K$，原始 score 矩阵有什么性质，表达能力受到什么限制？</li>
     <li>为什么 Transformer 训练可以并行，生成却仍然逐 token？</li>
     <li>如果拿掉位置编码，模型具体失去了什么信息？</li>
   </ol>
