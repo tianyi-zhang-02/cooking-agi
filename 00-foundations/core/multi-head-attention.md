@@ -5,10 +5,22 @@
 > 阅读时间：约 9 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>让每个位置去序列里取它需要的信息</strong></div>
-  <div><span>前置知识</span><strong>三个投影 W_Q, W_K, W_V · 一个输出投影 W_O</strong></div>
-  <div><span>核心机制</span><strong>缩放点积 · 切头 · mask 在 softmax 之前</strong></div>
-  <div><span>常见错误</span><strong>reshape 的顺序、mask 的时机、除错了维度</strong></div>
+  <div class="recipe-flip" data-concept-card>
+    <div class="recipe-face" data-concept-zh><span>解决什么问题 · PROBLEM</span><strong>让每个位置去序列里取它需要的信息</strong></div>
+    <div class="recipe-face" data-concept-en><span>Problem · 问题</span><strong>Let each position retrieve the information it needs from the sequence</strong></div>
+  </div>
+  <div class="recipe-flip" data-concept-card>
+    <div class="recipe-face" data-concept-zh><span>前置知识 · PREREQUISITES</span><strong>三个投影 W_Q, W_K, W_V · 一个输出投影 W_O</strong></div>
+    <div class="recipe-face" data-concept-en><span>Prerequisites · 前置知识</span><strong>Three projections W_Q, W_K, W_V · one output projection W_O</strong></div>
+  </div>
+  <div class="recipe-flip" data-concept-card>
+    <div class="recipe-face" data-concept-zh><span>核心机制 · CORE MECHANISM</span><strong>缩放点积 · 切头 · mask 在 softmax 之前</strong></div>
+    <div class="recipe-face" data-concept-en><span>Core mechanism · 核心机制</span><strong>Scaled dot product · split heads · mask before softmax</strong></div>
+  </div>
+  <div class="recipe-flip" data-concept-card>
+    <div class="recipe-face" data-concept-zh><span>常见错误 · COMMON MISTAKES</span><strong>reshape 的顺序、mask 的时机、除错了维度</strong></div>
+    <div class="recipe-face" data-concept-en><span>Common mistakes · 常见错误</span><strong>Reshape order, mask timing, and scaling by the wrong dimension</strong></div>
+  </div>
 </div>
 
 ## 一句话：查字典，然后加权平均
@@ -129,15 +141,157 @@ $$\frac{\partial\,\text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij}-\alp
 
 ⚠️ 除的是 $\sqrt{d_k} = \sqrt{d_\text{head}}$，**不是** $\sqrt{d_\text{model}}$。手写时很容易顺手写成后者。
 
-## 为什么要多头
+## 为什么要多头：不是为了把维度做大
 
-单个注意力只能算一种相似度、产出一个加权平均。切成 $h$ 份之后：
+<div class="bilingual-note bilingual-intro">
+  <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
+  <p>下面三张卡默认中文；点 <strong>English ↻</strong> 可在原位置查看完整英文。</p>
+</div>
 
-$$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V), \quad \text{MultiHead} = \text{Concat}(\text{head}_1..\text{head}_h)W^O$$
+<section class="concept-card" data-concept-card markdown="1">
+<div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-每份 $d_k = d_\text{model}/h$ 维，**总计算量不变**——切头是把同样的预算分给几个不同的问题，不是加预算。
+### 1. 多头的核心：多套注意力关系
 
-实现上不需要 $h$ 组小矩阵：用一个 $(d_\text{model}, d_\text{model})$ 的投影再 reshape 成 $h$ 个头，数学上等价，但只有一次 GEMM。
+假设 $d_{\text{model}}=512$。一个完整维度的单头会计算
+
+$$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.$$
+
+关键限制不是“512 维不够”，而是所有 value 通道共享同一套注意力矩阵 $A$。处理
+“小明把书送给小红，因为她很喜欢阅读”中的“她”时，模型可能同时需要追踪指代、
+语法依赖、语义角色和局部邻近；单头必须把这些关系压进一套分布。
+
+多头让第 $i$ 个头学习自己的投影和权重：
+
+$$Q_i=XW_i^Q,\qquad K_i=XW_i^K,\qquad V_i=XW_i^V,$$
+
+$$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
+
+于是模型得到 $A_1,\ldots,A_h$ 多套读取方式。某些头可能偏向指代，另一些偏向
+邻近或语法，但这些职责不是人工指定的，也可能彼此重叠。更准确的结论是：
+**不同特征可以使用不同的注意力权重，不必全部共享一套分布。**
+
+</div>
+<div class="concept-face concept-en" data-concept-en markdown="1">
+
+<div class="concept-title-en" role="heading" aria-level="3">1. The core purpose: multiple attention relations</div>
+
+Suppose $d_{\text{model}}=512$. One full-width attention head computes
+
+$$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.$$
+
+The main limitation is not that 512 dimensions are insufficient. It is that every
+value channel shares the same attention matrix $A$. Resolving a pronoun may require
+coreference, syntactic dependency, semantic role, and local-neighborhood signals at
+the same time; one head must compress all of them into one distribution.
+
+Head $i$ instead learns its own projections and weights:
+
+$$Q_i=XW_i^Q,\qquad K_i=XW_i^K,\qquad V_i=XW_i^V,$$
+
+$$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
+
+The model therefore obtains $A_1,\ldots,A_h$: several ways to read the sequence.
+Some heads may emphasize coreference, locality, or syntax, but those jobs are not
+assigned by hand and can overlap. The precise advantage is that **different feature
+groups can use different attention weights instead of sharing one distribution.**
+
+</div>
+</section>
+
+<section class="concept-card" data-concept-card markdown="1">
+<div class="concept-face concept-zh" data-concept-zh markdown="1">
+
+### 2. 拆分维度是在控制预算
+
+原版使用 $d_{\text{model}}=512,h=8$，通常令
+
+$$d_k=d_v=\frac{512}{8}=64,$$
+
+所以 $8\times64=512$。如果 8 个头都保留完整 512 维，参数和计算会大幅增长；
+把总宽度拆开，才能在接近单头的预算下得到 8 套关系。
+
+单头完整投影有
+
+$$W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.$$
+
+多头每组投影是 $512\times64$，8 组合计仍为
+
+$$8\times(512\times64)=512\times512.$$
+
+因此标准 MHA 的 Q/K/V 和输出投影总参数量约为 $4d_{\text{model}}^2$，与头数本身
+无关。代码也通常只做一次大投影，再 reshape 成 `(B, H, T, d_head)`；不是顺序执行
+8 次小模型。
+
+</div>
+<div class="concept-face concept-en" data-concept-en markdown="1">
+
+<div class="concept-title-en" role="heading" aria-level="3">2. Splitting dimensions controls the budget</div>
+
+The original model uses $d_{\text{model}}=512$ and $h=8$, usually with
+
+$$d_k=d_v=\frac{512}{8}=64,$$
+
+so $8\times64=512$. Giving all eight heads the full 512 dimensions would multiply
+parameters and compute. Splitting a fixed total width yields eight attention
+relations at roughly the budget of one full-width head.
+
+A full-width projection has
+
+$$W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.$$
+
+Eight $512\times64$ head projections contain the same total number of elements:
+
+$$8\times(512\times64)=512\times512.$$
+
+Standard MHA therefore has about $4d_{\text{model}}^2$ parameters across Q, K, V,
+and the output projection, independent of head count. Implementations perform one
+large projection and reshape to `(B, H, T, d_head)` rather than running eight small
+models sequentially.
+
+</div>
+</section>
+
+<section class="concept-card" data-concept-card markdown="1">
+<div class="concept-face concept-zh" data-concept-zh markdown="1">
+
+### 3. 表达能力不等于泛化保证
+
+多头首先增加的是表达能力：它允许多种 token 关系、匹配函数和上下文摘要并存。
+更好的表示有时会改善未见数据上的表现，但“用了多头”并不自动推出 generalization
+更好。
+
+头数过多时可能出现每头维度太小、多个头功能重复、参数利用率低，甚至过拟合。
+实践中经常可以剪掉部分头而几乎不损失性能。所以：
+
+$$\boxed{\text{多头不是为了把维度做大，而是在相近成本下获得多套注意力关系。}}$$
+
+“不同表示子空间”也不要过度解释。每个头确实有独立参数，因此可以学习不同匹配
+函数；但“某个头一定负责公司语义、另一个一定负责水果语义”并不是预先设计或必然
+可解释的事实。
+
+</div>
+<div class="concept-face concept-en" data-concept-en markdown="1">
+
+<div class="concept-title-en" role="heading" aria-level="3">3. Expressivity is not a generalization guarantee</div>
+
+Multi-head attention primarily increases expressivity: several token relations,
+matching functions, and contextual summaries can coexist. Better representations may
+improve performance on unseen data, but using multiple heads does not guarantee
+better generalization.
+
+Too many heads can make each head too narrow, create redundant attention patterns,
+waste capacity, or contribute to overfitting. In practice, some heads can often be
+pruned with little quality loss. Therefore:
+
+$$\boxed{\text{Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.}}$$
+
+“Different representation subspaces” should not be over-interpreted either. Separate
+parameters let heads learn different matching functions, but no head is guaranteed
+to have one clean, human-assigned semantic job.
+
+</div>
+</section>
 
 ## 手搓时最容易错的六处
 
