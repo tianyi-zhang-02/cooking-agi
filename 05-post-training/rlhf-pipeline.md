@@ -94,7 +94,7 @@ $$\mathcal{L}_{\text{DPO}} = -\mathbb{E}\left[\log\sigma\left(\beta\log\frac{\pi
 
 **RLVR：奖励换成一个程序。** 数学题可以对答案，代码可以跑测试。这类任务的奖励不需要学，写一个检查器就行。学出来的奖励模型消失了，reward hacking 的空间也随之大幅收窄——**能被钻空子的是被拟合出来的奖励，不是被验证出来的**。
 
-## 面试可能会问
+## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>RLHF 第三阶段有几个模型？分别训不训？</summary>
@@ -162,7 +162,7 @@ DPO 用了一个推导：带 KL 约束的奖励最大化有闭式最优解，把
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 - [Post-Training 总览](README.md)：SFT、偏好学习、RL 各自适合什么问题
 - [数据与反馈](../01-data-and-feedback/)：偏好标签本身的质量问题
@@ -176,7 +176,7 @@ DPO 用了一个推导：带 KL 约束的奖励最大化有闭式最优解，把
   IPO/KTO，再到 GRPO、DAPO、Dr. GRPO、RLOO、REINFORCE++ 各自想解决什么问题。
   想看全景，从它开始。
 
-## 起始论文
+## 参考论文
 
 - [InstructGPT](https://arxiv.org/abs/2203.02155) — 三阶段流程的出处
 - [PPO](https://arxiv.org/abs/1707.06347) — 裁剪目标与信任域

@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Evolving · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 The defining property of a self-evolving system is not that its model can be updated. It is that every update has credible evidence, known provenance, regression protection, and a rollback path. This module turns interactions into a controlled learning loop.
 
@@ -90,7 +90,7 @@ A candidate model reaches canary only after passing fixed regression sets, recen
 
 Continual learning must also test catastrophic forgetting. Improving a new slice can degrade prior capability, calibration, diversity, or safety.
 
-## Quantities to calculate
+## Key calculations
 
 Track at least:
 
@@ -121,7 +121,7 @@ Online metrics must preserve the exposure policy. Clicks, dwell time, and contin
 - User clicks are affected by the old policy and are not IID preference labels.
 - More frequent updates do not guarantee faster system improvement.
 
-## Mastery check
+## Learning check
 
 - Why can a trace not be used directly as training data?
 - How does data lineage help explain behavior changes?

@@ -4,7 +4,7 @@
 
 > Reading time: ~6 min · Type: chapter · Last reviewed: 2026-08
 
-## In one sentence
+## SFT learns a conditional distribution
 
 SFT teaches "do it like this," so its ceiling is the ceiling of the demonstrations. But the dangerous part isn't what it fails to learn — **it's how confidently it learns things you never meant to teach.**
 

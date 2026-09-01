@@ -71,7 +71,7 @@ No choice is always best, but the lifetime contract must be explicit.
 4. Construct a dangling view, then remove it through sanitizer evidence or API redesign.
 5. Compare memory and access costs of a transpose view and contiguous transpose.
 
-## Remember
+## Key conclusions
 
 A raw pointer describes location, an RAII type describes ownership, and a view describes borrowing. Confusing them is a major source of correctness bugs in C++ tensor code.
 

@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Advanced · 时效性：Fast-moving · 最近审阅：2026-08
 
-## 只解决一个问题
+## 核心问题
 
 怎样证明一个低精度或 decode attention 优化值得使用？
 
@@ -66,7 +66,7 @@ Prefill 的矩阵更大，通常更偏 compute-intensive；decode 每步 query �
 4. 对 context length 做 sweep，观察 bandwidth 与 latency。
 5. 保存硬件、CUDA、compiler、flags、commit 和完整 shape。
 
-## 记住
+## 关键结论
 
 低精度是否成功由质量和系统收益共同决定；KV cache 是否成功由真实 decode workload 决定。离开 workload 的“更快”没有意义。
 

@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-## In one sentence
+## Evaluation begins by defining what “good” means
 
 Evaluation is not producing one score. It is collecting enough evidence to determine whether a change improves the intended behavior without creating a more important regression elsewhere.
 

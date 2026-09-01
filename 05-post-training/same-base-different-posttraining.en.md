@@ -4,7 +4,7 @@
 
 > Reading time: ~6 min · Type: case study · Last reviewed: 2026-08
 
-## In one sentence
+## What this comparison can actually tell us
 
 Post-training is hard to price on its own, because it almost always ships alongside a bigger base and more pretraining data, and you can't tell which side the gains came from. GLM-5.3 offers a rare control: **the base weights are identical to 5.2; only post-training changed.** That gives "what is post-training worth" a readable number for once — and a more interesting conclusion: **most of the gain came from infrastructure, not from the algorithm.**
 

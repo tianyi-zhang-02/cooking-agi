@@ -4,7 +4,7 @@
 
 > Reading time: ~6 min · Type: chapter · Last reviewed: 2026-08
 
-## In one sentence
+## Replace a learned reward with a checkable rule
 
 Math has answers to check; code has tests to run. For these, the reward **doesn't need to be learned — you write a program**. And that swap changes more than one module: **what can be gamed is a fitted reward, not a verified one.** Reward hacking doesn't disappear, though. It relocates: from fooling a reward model to fooling a verifier.
 

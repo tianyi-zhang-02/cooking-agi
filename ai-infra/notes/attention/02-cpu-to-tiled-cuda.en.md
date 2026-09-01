@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Evolving · Last reviewed: 2026-08
 
-## One question
+## Core problem
 
 How can attention move onto the GPU incrementally while every failure remains localizable?
 
@@ -70,7 +70,7 @@ Tiling aims to increase reuse and arithmetic intensity. Verify bytes, bandwidth,
 4. Compare two tile sizes and record occupancy and bandwidth.
 5. Explain where the bottleneck moved after optimization.
 
-## Remember
+## Key conclusions
 
 Make errors localizable before introducing fusion. A naive multi-kernel version is not a failure; it is the essential test base for high-performance versions.
 

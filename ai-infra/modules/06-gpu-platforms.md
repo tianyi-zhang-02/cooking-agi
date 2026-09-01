@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Intermediate · 时效性：Evolving · 最近审阅：2026-08
 
-## 这一模块解决什么
+## 核心问题
 
 单个脚本成功运行只是开始。平台工程要让不同用户、模型和优先级在共享 GPU 集群中可重复、可观测、可恢复地运行，并控制资源浪费和故障影响范围。
 
@@ -62,7 +62,7 @@ submit → validate → queue → schedule → initialize
 
 可观测性要能从“任务慢了”下钻到具体节点、rank、kernel、collective 或存储请求。
 
-## 需要会算
+## 关键计算
 
 集群使用率至少要区分：
 
@@ -97,7 +97,7 @@ active utilization = useful busy time / allocated GPU time
 - 追求平均利用率可能伤害 P99 延迟或高优先级任务；
 - 没有统一 job identity 和版本信息，日志再多也难以关联。
 
-## 掌握检查
+## 学习检查
 
 - 为什么分布式任务需要 gang scheduling？
 - device plugin 解决什么，不解决什么？

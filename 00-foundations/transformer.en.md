@@ -13,7 +13,7 @@
   <div><span>Evidence to demand</span><strong>causality, relative position, and cache equivalence</strong></div>
 </div>
 
-## In one sentence
+## Attention gathers context; the FFN transforms each position
 
 The Transformer is one concrete way to build the learned coordinate transform from [the previous page](from-linear-to-neural.en.md). **Attention moves information across positions; the FFN processes each position on its own.** The two alternate for $N$ layers, and a linear classifier reads out the answer at the end.
 

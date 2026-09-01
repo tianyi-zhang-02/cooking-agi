@@ -2,11 +2,11 @@
 
 **中文** · [English](README.en.md)
 
-## 先用一句话讲清楚
+## 先明确：Search 是一个决策过程
 
 Search 不只是从数据库里找最相似的内容，而是帮助模型在信息不完整时，决定**该找什么、去哪里找、还缺什么证据，以及什么时候可以停止**。
 
-## 一个最简单的例子
+## 从一个模型答不了的问题开始
 
 用户说：“把我上次提到的那篇关于 Agent memory 的论文找出来。”
 
@@ -87,14 +87,14 @@ Search 还需要考虑：
 - 加入检索后，最终任务是否真的更好；
 - 系统是否在证据不足时继续搜索或正确追问。
 
-## 从哪里继续读
+## 继续阅读
 
 - [表征与记忆](../02-memory/)
 - [数据与反馈](../01-data-and-feedback/)
 - [Evaluation](../07-evaluation/)
 - [Agent Observability](../06-systems/agent-observability.md)
 
-## 起始论文
+## 参考论文
 
 - [Dense Passage Retrieval](https://arxiv.org/abs/2004.04906)
 - [ColBERT](https://arxiv.org/abs/2004.12832)

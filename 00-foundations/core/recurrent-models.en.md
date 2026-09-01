@@ -11,7 +11,7 @@
   <div><span>Most common failure</span><strong>long dependencies and sequential execution</strong></div>
 </div>
 
-## In one sentence
+## How hidden state carries information
 
 An RNN reads left to right with one shared update function and compresses the past into hidden state. An LSTM adds gates that learn what to write, preserve, and expose.
 
@@ -19,11 +19,11 @@ $$h_t=\tanh(W_xx_t+W_hh_{t-1}+b), \qquad y_t=W_oh_t$$
 
 The same cell is unrolled $T$ times; parameters are shared across time.
 
-## Why ordinary RNNs forget
+## Why early information gradually disappears
 
 An early state receives gradients through a long product of recurrent Jacobians. Repeated slight contraction drives the gradient toward zero; repeated expansion makes it explode. Both information and gradients must traverse one narrow state path.
 
-## What LSTM adds
+## How LSTM gates manage information
 
 $$f_t=\sigma(W_f[x_t;h_{t-1}]+b_f), \qquad i_t=\sigma(W_i[x_t;h_{t-1}]+b_i)$$
 
@@ -31,7 +31,7 @@ $$c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t, \qquad h_t=o_t\odot\tanh(c_t)$$
 
 The forget gate preserves old memory, the input gate writes a candidate, and the output gate controls exposure. The additive cell-state path makes long gradient flow easier when $f_t$ stays near one.
 
-## Defining limitations
+## What LSTM still cannot solve
 
 1. Time cannot be parallelized because $h_t$ depends on $h_{t-1}$.
 2. A long sequence is repeatedly compressed into fixed-size state.

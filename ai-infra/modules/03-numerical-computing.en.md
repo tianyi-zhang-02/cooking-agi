@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Fast-moving · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 Lower precision can increase throughput and reduce memory and communication, but it sacrifices numerical range or resolution. This module builds a decision framework: **which values can use lower precision, which operations need higher precision, and how is damage detected?**
 
@@ -70,7 +70,7 @@ Important choices include:
 
 Outliers force a scale to cover a wider range, reducing effective resolution for ordinary values. Quantization is therefore a data-distribution problem as well as a format conversion.
 
-## Quantities to calculate
+## Key calculations
 
 Basic tensor storage is:
 
@@ -108,7 +108,7 @@ Measure error at three levels:
 - Theoretical compression does not equal end-to-end memory reduction.
 - Kernel availability, layout, and hardware support often matter more than the dtype name.
 
-## Mastery check
+## Learning check
 
 - Why does BF16 have a wider dynamic range than FP16?
 - Why can matrix multiplication use low-precision inputs and higher-precision accumulation?

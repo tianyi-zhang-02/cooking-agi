@@ -4,7 +4,7 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
-## In one sentence
+## Start with what each algorithm removes
 
 The long list of algorithms that followed PPO looks like a pile of separate inventions. It isn't: each one **deletes a component of PPO and then deals with whatever surfaces afterwards.** Work out what each removed and what it cost, and you no longer have to memorize the table.
 

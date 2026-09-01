@@ -58,7 +58,7 @@ offset(row, col) = row × columns + col
 3. 故意写一次越界访问，用 AddressSanitizer 捕获。
 4. 让两个 pointer alias，观察 in-place operator 是否仍正确。
 
-## 记住
+## 关键结论
 
 Pointer 是地址，不是 tensor。安全、高性能的 tensor API 还必须表达长度、layout、mutability、ownership 和 lifetime。
 

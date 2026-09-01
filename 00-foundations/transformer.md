@@ -13,7 +13,7 @@
   <div><span>最后要能证明</span><strong>实现满足因果性、位置相对性与 cache 等价性</strong></div>
 </div>
 
-## Attention 搬信息，FFN 加工信息
+## Attention 汇聚上下文，FFN 逐位置变换
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。
 
@@ -323,13 +323,13 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 - [从线性模型到神经网络](from-linear-to-neural.md) —— 为什么最后一层永远是线性分类器
 - [Post-Training](../05-post-training/) —— 这些参数后来怎么被继续改
 - [系统总览](../06-systems/) —— 它在整套系统里的位置
 
-## 起始论文
+## 参考论文
 
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762) — 原版
 - [On Layer Normalization in the Transformer Architecture](https://arxiv.org/abs/2002.04745) — pre-norm 为什么能去掉 warmup

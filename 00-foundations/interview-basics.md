@@ -4,7 +4,7 @@
 
 > 阅读时间：约 10 分钟 · 类型：速查 · 最近审阅：2026-08
 
-## 先用一句话讲清楚
+## 这些题共同在检查什么
 
 这些题看着散——损失函数、掩码、归一化、RNN、CNN——其实只分三类：**梯度有没有一条不被衰减的路**、**训练和推理是不是同一件事**、**不变性是结构自带的还是花钱买的**。认出是哪一类，答案就不用背了。
 
@@ -254,7 +254,7 @@ $F(9,3)=129\ge100$。
 | ReLU FFN | SwiGLU | 同等算力下更好 |
 | MHA | GQA / MQA | **KV cache 是推理显存瓶颈** |
 
-## 从哪里继续读
+## 继续阅读
 
 - [Vanilla Transformer](core/vanilla-transformer.md) · [多头注意力](core/multi-head-attention.md) · [Decoder-only](core/decoder-only.md)
 - [归一化](core/normalization.md) · [残差连接](core/residual-connections.md)

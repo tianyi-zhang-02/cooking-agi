@@ -11,7 +11,7 @@
   <div><span>Common mistakes</span><strong>believing it prevents overfitting, or that depth is now free</strong></div>
 </div>
 
-## Do nothing by default
+## The residual path provides an identity map
 
 An ordinary layer replaces its input. A residual layer **edits** it:
 
@@ -31,7 +31,7 @@ Expand it and one term is $I \cdot I \cdots I = I$: **a path exists along which 
 
 Without the residual it is a bare product $\prod_l \partial f_l / \partial x_{l-1}$. Slightly below 1 per layer and it decays exponentially; slightly above and it explodes. You have to tune the initialisation to sit exactly at the critical point.
 
-## Measured, not theoretical
+## How gradients change without residual paths
 
 A 40-layer MLP, tanh, initialisation set 20% below critical — the ordinary case of "not tuned perfectly." Same weights, same input; the only difference is the plus sign:
 
@@ -88,7 +88,7 @@ pre-norm moves the norm into the branch and leaves the identity path intact, at 
 
 ![post-norm versus pre-norm residual paths](../assets/transformer-block.svg)
 
-## Interview questions
+## Common interview questions
 
 <details class="interview" markdown="1">
 <summary>What problem do residual connections solve?</summary>

@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Evolving · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 One script running successfully is only the beginning. Platform engineering makes workloads from different users, models, and priorities reproducible, observable, and recoverable on a shared GPU cluster while controlling waste and limiting failures.
 
@@ -62,7 +62,7 @@ At least three signal types are needed:
 
 Observability should let an operator drill from “the job is slow” to a particular node, rank, kernel, collective, or storage request.
 
-## Quantities to calculate
+## Key calculations
 
 Cluster utilization should distinguish:
 
@@ -97,7 +97,7 @@ Capacity planning should also measure:
 - Optimizing mean utilization may harm P99 latency or high-priority workloads.
 - Without unified job identity and version metadata, abundant logs remain difficult to correlate.
 
-## Mastery check
+## Learning check
 
 - Why do distributed jobs need gang scheduling?
 - What does a device plugin solve, and what does it not solve?

@@ -633,6 +633,6 @@ predicted.
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。

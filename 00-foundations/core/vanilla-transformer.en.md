@@ -11,7 +11,7 @@
   <div><span>Most common failure</span><strong>mixing up attention sites or masking the wrong direction</strong></div>
 </div>
 
-## In one sentence
+## The original encoder–decoder structure
 
 The original Transformer is an encoder–decoder. Attention moves information across positions, FFNs transform channels independently, and removing recurrence makes full-sequence training parallel.
 

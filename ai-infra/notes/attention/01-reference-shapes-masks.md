@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Intermediate · 时效性：Stable · 最近审阅：2026-08
 
-## 只解决一个问题
+## 核心问题
 
 怎样建立一个慢但可信的 attention correctness oracle？
 
@@ -69,7 +69,7 @@ softmax(x_i) = exp(x_i - max(x)) / Σ exp(x_j - max(x))
 3. 故意制造 off-by-one causal mask，确认测试会失败。
 4. Permute heads，确认不同 head 不互相污染。
 
-## 记住
+## 关键结论
 
 优化版本永远与同一个独立 oracle 对比，不与前一个优化版本对比。否则一个早期错误会被所有后续实现继承。
 

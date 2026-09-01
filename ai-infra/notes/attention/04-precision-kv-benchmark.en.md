@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Advanced · Freshness: Fast-moving · Last reviewed: 2026-08
 
-## One question
+## Core problem
 
 How can we prove that a lower-precision or decode-attention optimization is worth using?
 
@@ -66,7 +66,7 @@ At minimum, separate:
 4. Sweep context length and observe bandwidth and latency.
 5. Preserve hardware, CUDA, compiler, flags, commit, and complete shapes.
 
-## Remember
+## Key conclusions
 
 Lower precision succeeds only when quality and system gains agree; KV cache succeeds only on realistic decode workloads. “Faster” has no meaning without a workload.
 

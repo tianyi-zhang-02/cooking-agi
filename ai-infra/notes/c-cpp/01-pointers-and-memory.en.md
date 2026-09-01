@@ -58,7 +58,7 @@ Two pointers may overlap. A compiler must handle potential aliases conservativel
 3. Add one deliberate bounds error and catch it with AddressSanitizer.
 4. Alias two pointers and test whether an in-place operator remains correct.
 
-## Remember
+## Key conclusions
 
 A pointer is an address, not a tensor. A safe, high-performance tensor API also expresses length, layout, mutability, ownership, and lifetime.
 

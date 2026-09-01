@@ -2,11 +2,11 @@
 
 **中文** · [English](README.en.md)
 
-## 先用一句话讲清楚
+## 用户体验是一段长期轨迹
 
 Model Experience 不是某一次回答写得多漂亮，而是用户在连续使用中感受到：模型是否理解上下文、是否值得信任、是否给人控制感，以及是否真的越来越有帮助。
 
-## 一个最简单的例子
+## 用户感受到的是连续使用过程
 
 两个助手都能正确回答“帮我规划一周健身”。
 
@@ -75,7 +75,7 @@ Recall、NDCG、judge score、task success 都有用，但每个指标只看见�
 - [Evaluation](../07-evaluation/) 把主观体验拆成可以验证的证据。
 - [Human-in-the-Loop](../06-systems/human-in-the-loop.md) 提供控制、升级和纠正机制。
 
-## 起始论文
+## 参考论文
 
 - [Lost in the Middle](https://arxiv.org/abs/2307.03172)
 - [InstructGPT](https://arxiv.org/abs/2203.02155)

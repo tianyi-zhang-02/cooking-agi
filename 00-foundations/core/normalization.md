@@ -11,7 +11,7 @@
   <div><span>常见错误</span><strong>把 BatchNorm 用到变长序列和自回归生成上</strong></div>
 </div>
 
-## 区别只有一句话
+## 核心区别：归一化轴不同
 
 **BatchNorm 沿着「一批样本」求统计量，LayerNorm 沿着「一个样本自己的特征」求。**
 
@@ -37,7 +37,7 @@ $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_{k} x_{ik}^2+\epsilon}}
 
 三种写法里，$\gamma$ 和 $\beta$ 都是**按特征维**走的，长度都是 $d$。真正变的只有一件事：统计量沿哪条轴算。
 
-## BatchNorm 为什么在语言模型里用不了
+## 为什么 BatchNorm 不适合语言模型
 
 **1. 训练和推理是两套行为。** 训练时它用当前批次的统计量，推理时改用训练期间累积的滑动平均。同一份权重，两种前向，这在常见的层里几乎是独一份。微调、分布漂移、忘了调 `model.eval()`，都会在这里出事。
 
@@ -56,7 +56,7 @@ got input size torch.Size([1, 8])
 
 LayerNorm 对上面四条**全部免疫**，因为它只看一个 token 自己的那 $d$ 个数。
 
-## 所以什么时候用哪个
+## 怎样选择归一化方法
 
 | 场景 | 用什么 | 为什么 |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ LayerNorm 对上面四条**全部免疫**，因为它只看一个 token 自己�
 
 图由 [`../code/make_norm_figures.py`](../code/make_norm_figures.py) 生成。
 
-## 面试可能会问
+## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>BatchNorm 和 LayerNorm 的区别是什么？</summary>
@@ -152,6 +152,6 @@ post-norm 是 $\text{Norm}(x + f(x))$，norm 压在残差通路上；pre-norm �
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 归一化让每层输入的尺度可控，但深度真正可行还差另一半——[残差连接](residual-connections.md)。

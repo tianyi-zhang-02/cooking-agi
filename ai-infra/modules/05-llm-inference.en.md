@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Fast-moving · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 Training optimizes the process that produces a model; inference optimizes how that model serves real requests. This module studies how to control latency, throughput, memory, and cost when request lengths and arrival times are irregular.
 
@@ -59,7 +59,7 @@ Disaggregation is not automatically more modern or faster. Consider it when phas
 - **Tensor/Pipeline Parallel:** serve models that do not fit on one GPU.
 - **Admission control:** limit incoming work before the system becomes overloaded.
 
-## Quantities to calculate
+## Key calculations
 
 A simplified KV-cache estimate is:
 
@@ -96,7 +96,7 @@ Latency must be reported with percentiles and a workload distribution. One mean 
 - KV-cache OOM is different from model weights not fitting.
 - Ignoring cancellation, timeout, retry, and streaming disconnects leads to incorrect capacity estimates.
 
-## Mastery check
+## Learning check
 
 - Why do prefill and decode have different bottlenecks?
 - Why is continuous batching better suited to LLMs than static batching?

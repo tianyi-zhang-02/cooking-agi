@@ -2,7 +2,7 @@
 
 **中文** · [English](llm-as-a-judge.en.md)
 
-## 先用一句话讲清楚
+## Judge 是评估系统，不是一个 Prompt
 
 LLM-as-a-Judge 不是一种固定 prompt，而是一组可以自由组合的设计选择：**给不给示范、给不给参考答案、怎样比较候选、判断什么 criterion，以及最后怎样聚合分数。**
 

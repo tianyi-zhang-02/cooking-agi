@@ -1,180 +1,203 @@
-# NVIDIA NeMo-RL: from correctness to distributed post-training
+# NVIDIA NeMo RL: from isolated PRs to understanding a post-training system
 
 [中文](README.md) · **English** · [Back to Open source](../README.en.md)
 
-> Reading time: ~12 min · Type: Contribution notes · Freshness: Evolving · Last reviewed: 2026-08
+> Reading time: ~15 min · Type: Contribution notes · Freshness: Evolving · Last reviewed: 2026-08
 
-NeMo-RL is NVIDIA's open-source LLM post-training framework, spanning SFT, RL, distillation, and coordination between trainers and inference engines.
+## Why I started looking beneath the abstractions
 
-I entered through small correctness questions: did a configuration actually take effect, was a large computation provably redundant, and did a mask survive the call chain to the place that consumed it? With enough context, they stopped looking like unrelated defects. They became different views of one question: **does the experiment expressed by configuration agree with the mathematics expressed by the objective and the behavior expressed by distributed execution?**
+When I first encountered LLM post-training, I knew the names—SFT, PPO, GRPO, distillation—and could follow the objectives in a paper. Once the diagram became a real codebase, however, I could not answer many basic questions clearly. Who generates the rollouts? Where are log-probabilities recomputed? Why do the trainer and inference engine each hold a copy of the model? How do updated weights return to generation? Does a configuration value ever reach the gradient?
 
-When those layers diverge, training either optimizes the wrong target or spends substantial resources on computation that cannot affect the result. Correctness and efficiency are not separate concerns here: a fast wrong answer is useless, and a mathematically cancelled computation is waste no matter how accurately it runs.
+I often heard people refer to the “underlying system,” but the phrase was vague. It does not simply mean CUDA, nor does reading deeper source files automatically produce understanding. I now think of it as a traceable chain:
 
-See the whole path first, then jump to the part you care about:
+| Layer | Question that has to be answered |
+| --- | --- |
+| Mathematical objective | What do the loss, ratio, KL term, and advantage require? |
+| Tensor semantics | Do shapes, masks, normalization, and reductions preserve that meaning? |
+| Runtime data flow | Which components carry rollouts, teacher signals, training targets, and model state? |
+| Distributed execution | Where do data and weights move across GPUs, processes, and nodes, and are their versions consistent? |
+| Open-source contract | Do configuration, interfaces, tests, and compatibility let other people depend on the path? |
 
-```mermaid
-flowchart LR
-    A["Configuration and data"] --> B["Training objective<br/>log-prob · advantage · distillation"]
-    B --> C["Distributed trainer"]
-    C --> D["Weight synchronization"]
-    D --> E["Inference engine<br/>vLLM / SGLang"]
-    A -. "silent configuration and reproducibility" .-> P1["1 · Correctness"]
-    B -. "masks, normalization, API contracts" .-> P2["2 / 3 · Objective and efficiency"]
-    D -. "weights crossing parallel layouts" .-> P3["4 · Distributed integration"]
-```
+Understanding what is underneath is therefore not knowing one lower-level term. It is being able to follow a research idea from its equation to its real execution and identify where each layer may diverge.
 
-The sections move from low to high context. The first needs only software-engineering intuition; the last reaches the distributed seam between trainer and inference engine.
+I began contributing to NeMo RL not because I had already resolved these questions, but because I had not. An open-source codebase gave me a concrete learning loop: start from a reproducible problem, follow the call chain to the real consumer, use mathematics or an experiment to show what is wrong, then let maintainers and CI test whether the claim survives.
 
-## Why this belongs under open-source ecosystems
+My first changes were small: did a configuration take effect, did checkpoint selection behave deterministically, and was a full-vocabulary softmax doing work that could not affect the result? I gradually moved into masks, importance ratios, cross-tokenizer distillation, cross-node weight synchronization, and finally the newer asynchronous SingleController path. In retrospect these were not unrelated PRs. They were the order in which I learned the post-training system.
 
-Viewed as diffs, many of these changes are small. Viewed as ecosystem work, they protect assumptions other users treat as facts: configuration takes effect, checkpoints are reproducible, the loss is the loss described in the documentation, and updated weights return safely to the inference engine.
+## Why open source matters here
 
-This is where upstream differs from a personal project. A solution cannot merely be cleaner in isolation. It has to preserve old callers, support test doubles, fit multiple backends, and remain maintainable after its author leaves. Review is often not asking only whether code runs, but **whether this abstraction makes the ecosystem easier to evolve.**
+When reading alone, it is easy to stop at “I mostly understand this.” Contributing upstream does not permit that shortcut. A claim must be explicit, a regression test must actually fail under the broken implementation, unverified boundaries must be stated, and people with deeper context must be able to challenge the reasoning line by line.
 
-```mermaid
-flowchart LR
-    A["Find the broken invariant"] --> B["Prove it in code or mathematics"]
-    B --> C["Make the smallest maintainable repair"]
-    C --> D["Leave a failing test and an explicit boundary"]
-```
+The value of open source is therefore more than publishing code or accumulating merged changes. It turns private understanding into public, inspectable, and extensible technical assets:
 
-The patch repairs the current branch. The test, contract, and explanation protect the future ecosystem.
+- a bug fix removes the current failure;
+- a regression test makes the same failure harder to reintroduce;
+- a clear interface or invariant makes the system easier to extend;
+- review tightens a locally plausible idea into something other workloads can safely depend on.
 
----
+The work covered in this note now spans more than twenty contributions: small correctness repairs, distillation efficiency, runtime safety, and asynchronous-training integration. The count shows sustained effort, but the more important change is that the context has begun to connect. I no longer see only the edited line; I ask which system contract the change protects.
 
-<a id="config-correctness"></a>
+My recent focus is **SingleController**, NeMo RL's newer asynchronous training path. It is a useful test of this understanding: what does asynchrony actually improve, and which algorithmic and systems problems does it make harder to hide?
 
-## 1 · Set, but never applied
+<a id="what-is-nemo-rl"></a>
 
-Starting with the category that needs the least background. This one has little to do with machine learning — any system with a config file can catch it. The user writes a line, the program accepts it, and then nothing happens. No error, no warning.
+## What NeMo RL connects
 
-I fixed four of these.
+Training a post-trained model does not end with one call to `loss.backward()`.
 
-Misspell a key in a dataset config and it is silently dropped. You believe the setting took effect; in fact nobody ever read that line. ([#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271), merged)
-
-Another dataset's `subset` parameter went further: documented, accepted by the config, never used in the code. While chasing it I also found the documented validation split was wrong. ([#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389), merged)
-
-When picking the "best checkpoint", a tie on the metric resolved by iteration order. Run the same experiment twice and you can get different models. ([#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071), merged)
-
-My favourite was the last one: a clearly written error message that was dead code. The function read a dictionary key that only gets written on the success branch, and it read it *before* resolving the thing that would populate it. So a real failure died on a bare `KeyError`, and the message written specifically for that case never got its turn. ([#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515), under review)
-
-These are worth fixing because silent failure costs far more than a crash. A crash at least tells you where to look. A silently ignored setting lets you keep tuning with a wrong mental model — and you will suspect the algorithm and the data long before you suspect that line of config.
-
----
-
-<a id="compute-efficiency"></a>
-
-## 2 · Computing something that cancels
-
-The second category needs a little maths, but each argument is short and none of them require reading a paper.
-
-The cleanest one is in knowledge distillation. The student model was running `log_softmax` over the entire vocabulary — 150k columns — when the loss only ever uses 64 of them.
-
-The whole argument is one sentence: the normalizer `log Z` is the same number for every term, so it **cancels** in the top-k ratio. Since it cancels, that full-vocabulary normalization is wasted work; doing it over the 64 gathered columns gives the same answer. ([#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314), merged)
-
-The interesting part is that once you recognize this shape, you see it everywhere:
-
-| Situation | What was computed | What was needed |
-| --- | --- | --- |
-| One token's probability ([#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484)) | The whole softmax distribution | One position's value |
-| Upcasting in distillation ([#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496)) | Cast `[B, S, 150k]` to fp32, *then* take 64 columns | Only those 64 columns in fp32 |
-| Cross-tokenizer projection ([#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564)) | Project onto the full 128k-column teacher vocabulary | Keep only 8192 of them |
-
-The second one holds because gathering then casting and casting then gathering give identical values, so the cast can move later.
-
-The third is the most interesting. That projection is a sparse matrix multiply, and each output column of a matmul is an independent contraction over the input axis — meaning the discarded columns cannot mathematically influence the ones kept. So the slice can move *before* the matmul, and about 94% of the compute, memory and cross-device communication simply disappears.
-
-The one thing that would break the identity is a renormalization over the full vocabulary. There isn't one: the renormalization in that code happens strictly inside the 8192 columns that survive. ([#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564), under review)
-
-I fell into a trap here worth recording. I wrote the equivalence test as `torch.equal`, i.e. bitwise. It passed on its own and failed inside the full suite. The reason is that the two matmuls have different widths — 128k columns versus 8192 — so BLAS is free to block and accumulate differently, and floating-point addition is not associative. "Mathematically equivalent" and "bitwise identical" are two different claims; I conflated them and CI caught me immediately.
-
----
-
-<a id="objective-correctness"></a>
-
-## 3 · Saying one thing, doing another
-
-This category assumes you know roughly what the objective looks like, so here is the minimum background.
-
-Reinforcement-learning training turns on a quantity called the importance ratio: for the same token, the probability under the updated policy divided by the probability under the policy that sampled it. The entire PPO and GRPO objective rests on that ratio, so if the ratio is wrong, the gradient is wrong.
-
-There is a function called `mask_out_neg_inf_logprobs`. It prints a line:
-
-> *"…Masking out these positions."*
-
-It then genuinely computes a narrowed mask — and returns only the probabilities, discarding the mask. All five call sites carry on with the original, un-narrowed one. ([#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551), under review)
-
-Why does that matter? Because the value substituted at the "masked" positions is `0.0`, and these are *log* probabilities. `log p = 0` means `p = 1`. That is not "ignore this position"; that is "absolutely certain".
-
-The true sampling-time probability at the same position is finite — a log of roughly −5.4. So a fabricated ratio of `exp(5.4) ≈ 224` flowed straight into the train/inference consistency metrics. Worse, under sequence-level importance sampling that difference is accumulated across the whole sequence and then exponentiated, so an inflated weight multiplies the entire sequence's loss. At that point it is no longer just a dirty metric; it reaches the gradient.
-
-The most convincing corroboration is written in the repository itself. Elsewhere, the same filtering is disabled for the reference policy, with the reason given as *"-inf mismatches … cannot be resolved by masking"*. The authors had already stopped trusting the mechanism.
-
-A neighbouring problem, while I was in there: six advantage estimators, some returning a tensor, some a tuple, some parking their metrics on the instance for callers to fish out with `hasattr`. Call sites had become guessing games. That is not six separate bugs — it is a missing contract, and one dataclass fixed it. ([#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512), under review)
-
-That change failed on first submission for a very typical reason: after my branch was cut, main added new test doubles that still returned bare tuples, and I had deleted the compatibility branch. The lesson is that a PR changing a contract has to be re-tested *after* rebasing onto current main. Green on your own branch proves nothing.
-
----
-
-<a id="distributed-integration"></a>
-
-## 4 · Adding a capability that wasn't there
-
-The first three categories are about finding faults. This one is different — it fills a gap. It is also the only one that needed real GPUs, and the only one a maintainer asked for by name.
-
-To explain it, you need the loop:
+GRPO and on-policy distillation, for example, repeatedly execute a loop like this:
 
 ```mermaid
 flowchart LR
-    A["1. Rollout<br/>vLLM / SGLang"] --> B["2. Score<br/>reward / environment"]
-    B --> C["3. Advantage"]
-    C --> D["4. Train<br/>update weights"]
-    D --> E["5. Refit<br/>push weights back"]
+    A["Generate rollouts"] --> B["Reward or teacher signal"]
+    B --> C["Build training targets"]
+    C --> D["Update policy"]
+    D --> E["Send new weights back"]
     E --> A
 ```
 
-The first three categories all live in steps 3 and 4. This one lives in step 5.
+NeMo RL closes that loop and scales it across devices and nodes:
 
-The difficulty is that the same policy exists in two places at once, sharded differently — the trainer shards for training, the inference engine shards for serving. After every step the weights have to move from one to the other, which is what refit means. If both sit on the same GPUs, CUDA IPC handles it and it is fast; if they don't, it has to cross the network.
+- vLLM or SGLang generates rollouts;
+- an environment, reward model, or teacher provides the learning signal;
+- DTensor or Megatron Core performs training;
+- Ray coordinates workers;
+- weight refit sends the updated policy back to the inference engine.
 
-A maintainer filed an issue: cross-node weight sync only works for vLLM, can it also work for SGLang? ([#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519), under review)
+The framework supports SFT, DPO, GRPO, PPO-style training, and knowledge distillation. The difficult part is not the list of algorithm names. It is keeping data, model state, and weight versions semantically consistent across the entire loop.
 
-The root cause is structural. vLLM runs framework code *inside* the engine process, so a receive loop can write weights straight into engine memory. SGLang is an HTTP service spawned as a subprocess, and there is simply no such hook.
+<a id="single-controller"></a>
 
-My approach was to terminate the cross-node transport inside the Ray actor — which sits on the same node as the SGLang service — land the weights in local GPU memory, and reuse a channel already running in production for the last hop. That channel's HTTP request carries CUDA IPC handles rather than the weight data itself, so it never touches the network.
+## Why SingleController exists
 
-One more thing needed handling: each device computes its transport bucket boundaries independently, while the receiving end wants every device's payload in one request. So the two streams have to be re-aligned by weight name.
+Synchronous training is easy to picture: wait for a complete rollout batch, take one training step, then refresh the generation model.
 
-What this PR taught me was not to start coding too early. My first design rested on an assumption I was rather pleased with; I later found that verl had solved the same problem and picked a better shape — one receiver per inference GPU, rather than cramming them all into a single actor. Two extra hours reading someone else's implementation saved a rewrite.
+Rollouts do not finish uniformly. One slow environment or long response can leave the other GPUs waiting. SingleController lets generation and training continue independently:
 
-As for validation, the boundary is clear. One node can prove that an IPC handle imported across processes lands bit-exact. It cannot prove the cross-node network path, which needs two nodes I do not have. Writing that boundary into the PR honestly beats pretending it was covered.
+```mermaid
+flowchart LR
+    R["Rollout pump"] --> Q[("TransferQueue")]
+    Q --> T["Train pump"]
+    T --> W["Weight sync"]
+    W -. "new policy version" .-> R
+    SC["SingleController<br/>control only"] --> R
+    SC --> T
+```
 
----
+SingleController itself is a CPU-only coordinator. It does not move large tensors or run model forward passes. It schedules the two pumps, chooses which rollouts enter training, supervises failures, and triggers weight synchronization at the right time.
 
-## Appendix · One that fits none of the above
+TransferQueue is the data plane between them. Completed rollouts enter the queue, and the trainer draws a batch according to a sampler policy.
 
-Importing the training entrypoint pulls in wandb, mlflow, swanlab, matplotlib, fastapi and uvicorn — 7150 modules, about nine seconds. Every CLI invocation, every Ray actor and every test collection pays it.
+This arrangement overlaps generation and training, but it introduces a new problem: the trainer may consume data generated by an older policy. Better utilization makes policy freshness, importance correction, and failure supervision more important, not less.
 
-The trick here was not chasing the wrong source. I first measured a very plausible-looking fix, moving a `fastapi` import out of one inference backend: module count 7150, completely unchanged. The real source was the training entrypoint pulling in a memory-tracking utility, which pulls in Ray's *command-line* entrypoint, which drags the whole dashboard stack along.
+<a id="current-work"></a>
 
-Another constraint made it interesting. The logging module's tests contain roughly a hundred patches aimed at module-level names; moving those imports into functions makes the names disappear and breaks 28 tests. Rewriting 28 tests to buy startup time is a bad trade. A lazy proxy object avoided it: the names stay, the patches keep working, and not a single test changed.
+## What I am adding to SingleController
 
-The result was 9.04s down to 3.77s, and 7150 modules down to 5256. ([#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552), under review)
+### Put distillation inside the same loop
 
----
+On-policy distillation can be summarized as follows: the student generates an answer, then a teacher examines the same token sequence and indicates which outputs it would prefer at each position.
 
-## Looking back
+SingleController already had rollout and policy update stages, but no teacher stage between them. My work makes the teacher a natural part of the train pump:
 
-The reusable part is not a particular API. It is the working discipline behind the changes.
+```mermaid
+flowchart LR
+    A["Student rollout"] --> Q[("TransferQueue")]
+    Q --> T["Frozen teacher<br/>top-k forward"]
+    T --> Q
+    Q --> L["Distillation loss"]
+    L --> S["Student update"]
+```
 
-**Verify before proposing.** Several attractive ideas died before I wrote any code — the optimization already existed, or nothing actually reached that path. An idea you can kill yourself is not one a maintainer should spend time killing.
+Several design choices matter here.
 
-**"It runs" is not "it is tested".** My test for one critical function asserted the weight *names* and not the values. But the implementation itself enforces name equality, so the assertion was true under any permutation. I deliberately mutated the code to send every shard to the wrong device and the whole suite stayed green. That kind of test is worse than no test, because it manufactures confidence. Since then I write the test, then break the implementation on purpose to confirm it really goes red.
+The teacher does not need a new abstraction. It is still a policy, except that it has no optimizer and never updates. The teacher and student can also share training GPUs: temporarily offload the student, run the teacher forward pass, then release the teacher. This saves resources, but only if the load and offload lifecycle is explicit.
 
-**Say what you did not verify.** Every PR gets a section listing what I could not check. It looks like weakening your own case; it does the opposite. What reviewers fear is the pit they cannot see — draw the boundary and they become more willing to merge.
+Distillation also does not need reward, advantage, previous log-probabilities, or reference KL. An asynchronous framework cannot assume that every algorithm consumes one universal record. Each algorithm should declare the fields and stages it actually needs.
 
-**The most expensive mistake is publishing a wrong technical claim.** A few analyses produced confident but incorrect conclusions. Checked line by line against the code, not one survived. In public, a wrong technical assertion costs far more than being half an hour late.
+Finally, the teacher returns top-k logits and vocabulary indices. If teacher and student tokenizers are incompatible, tensors can still flow and produce plausible numbers with the wrong meaning. That mismatch should fail before model loading, not after the loss has begun returning values.
 
-**Maintenance is ecosystem building, not second-tier work.** New algorithms set the ceiling of capability; configuration, interfaces, tests, documentation, and backend compatibility determine how many people can actually use that capability and whether the next generation of work can inherit it. Healthy projects need both, and the latter often lacks contributors willing to accumulate context over time.
+### Check that asynchrony did not quietly change the algorithm
 
-I do not want the lasting description to be “someone who merged several NeMo-RL PRs.” I want to develop reliable judgment inside an important subsystem: knowing which constraints are mathematical, which are compatibility debt, where optimization is safe, and where evidence has to come first. That kind of ownership is the part of open-source ecosystems I value most.
+The most dangerous bugs in an asynchronous migration are often not crashes. They are cases where a configuration still exists but no longer affects execution.
+
+Examples include whether filtered samples actually disappear from the loss, whether reward scaling and advantage clipping enter the advantage computation, whether KL clamps stay consistent between reward and loss paths, and whether fully masked microbatches contaminate aggregated metrics.
+
+They appear to be separate mask, configuration, and metric issues, but they protect one invariant:
+
+> **Changing the runtime must not silently change the training objective.**
+
+I therefore no longer stop when I see a configuration field or function call. I follow the value to its real consumer and verify that it changes the data entering the gradient.
+
+### Make the runtime report how asynchronous it is
+
+When rollout and training advance concurrently, the trainer may use data produced several policy updates ago. Higher throughput is not enough; the runtime must expose the age of that data:
+
+```text
+trajectory age = current training weight version
+               - rollout starting weight version
+```
+
+The starting version matters because it is the policy that produced the tokens. The version observed at rollout completion only shows how far the trainer advanced during generation; it does not identify the behavior policy.
+
+Failure supervision has a similar lifecycle issue. After the rollout pump exits, the train pump may still be draining the queue. A watchdog cannot disappear simply because the main producer is finished. A reliable asynchronous runtime must answer at least two questions: **how old is the training data, and is anything still supervising a stalled system?**
+
+## The trade-off
+
+SingleController is not unconditionally better.
+
+**What it gains:**
+
+- rollouts no longer wait at a full-batch barrier;
+- generation and training can overlap;
+- tensors stay in the data plane rather than passing through the controller;
+- the sampler can make the throughput-versus-freshness trade-off explicit.
+
+**What it adds:**
+
+- data from older policies needs importance correction;
+- algorithm-specific fields are easier to omit;
+- the queue, sampler, two pumps, and model offload form a more complex state machine;
+- unit tests can prove local invariants, while the complete multi-GPU path still needs functional validation.
+
+I no longer begin with “is asynchrony faster?” I begin with whether we can still identify where each example came from, which policy produced it, which transformations it passed through, and who is responsible for stopping the system when something fails.
+
+<a id="merged-work"></a>
+
+## How the earlier contributions led here
+
+My earlier merged work concentrated on data correctness and distillation efficiency.
+
+On the data side, I worked on silent configuration, dataset-subset handling, and checkpoint tie-breaking. The shared failure mode was an experiment that appeared to run while executing something different from what the user configured.
+
+On the efficiency side, I removed unnecessary full-vocabulary work from distillation and inference log-probability paths. The core technique was not writing a faster kernel. It was first proving that the final loss depends on only a subset of columns, then deleting softmax, casting, or projection work that cannot affect the result.
+
+This progression explains why I moved toward SingleController. The valuable next step was no longer finding one more local optimization; it was learning which invariants an entire subsystem has to preserve. Local correctness, mathematical equivalence, and distributed data flow turned out not to be separate topics. They all protect the semantics of the experiment.
+
+## How I would explain it in an interview
+
+> NeMo RL is NVIDIA's open-source runtime for closing the post-training loop between rollout generation, reward or teacher signals, distributed policy updates, and weight synchronization.
+>
+> My recent focus is SingleController, its newer asynchronous path. It overlaps rollout generation and policy training through a shared data plane, which can improve utilization but also makes policy freshness, algorithm-specific data contracts, and failure supervision much more important.
+>
+> I have been using on-policy distillation as a concrete way to extend that architecture: introducing a frozen teacher into the same loop without forcing every algorithm through RL-specific stages. At the same time, I have been auditing whether moving to the new runtime preserves the semantics of masking, reward transformation, KL control, and metric aggregation, and whether the system exposes how stale its training data is.
+>
+> The common theme is not infrastructure for its own sake. It is understanding how an asynchronous learning system can become faster without becoming less faithful to the experiment the researcher intended.
+
+## What matters to me now
+
+I do not want to reduce open-source work to a PR count, or reduce “underlying systems” to knowing more low-level names. The important change is that I can form continuous judgment in one area: which constraints come from the algorithm, which are execution details, where optimization is safe, where the system should fail fast, and where only real multi-GPU evidence is sufficient.
+
+Open source helped turn confusion into a sequence of falsifiable questions. Papers explain why a method might work; code shows how it actually happens; review and real workloads reveal what my understanding left out.
+
+That is the beginning of subsystem ownership for me. It does not mean claiming to understand the entire framework. It means knowing which path to follow, what evidence can support a claim, and when to say explicitly that a boundary has not yet been verified.
+
+<details>
+<summary>Implementation and PR references</summary>
+
+- SingleController distillation: [top-k data path #3843](https://github.com/NVIDIA-NeMo/RL/pull/3843), [teacher stage #3846](https://github.com/NVIDIA-NeMo/RL/pull/3846), [functional path #3849](https://github.com/NVIDIA-NeMo/RL/pull/3849)
+- Algorithm parity: [sample mask #3786](https://github.com/NVIDIA-NeMo/RL/pull/3786), [reward / advantage #3787](https://github.com/NVIDIA-NeMo/RL/pull/3787), [valid samples #3850](https://github.com/NVIDIA-NeMo/RL/pull/3850), [KL clamps #3853](https://github.com/NVIDIA-NeMo/RL/pull/3853)
+- Runtime safety: [trajectory age #3759](https://github.com/NVIDIA-NeMo/RL/pull/3759), [watchdog supervision #3783](https://github.com/NVIDIA-NeMo/RL/pull/3783), [config guards #3854](https://github.com/NVIDIA-NeMo/RL/pull/3854), [transport validation #3855](https://github.com/NVIDIA-NeMo/RL/pull/3855)
+- Earlier merged work: [dataset config #3271](https://github.com/NVIDIA-NeMo/RL/pull/3271), [checkpoint selection #3071](https://github.com/NVIDIA-NeMo/RL/pull/3071), [top-k distillation #3314](https://github.com/NVIDIA-NeMo/RL/pull/3314), [inference log-prob #3484](https://github.com/NVIDIA-NeMo/RL/pull/3484), [cross-tokenizer projection #3564](https://github.com/NVIDIA-NeMo/RL/pull/3564)
+
+</details>

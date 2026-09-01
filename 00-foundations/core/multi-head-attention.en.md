@@ -11,13 +11,13 @@
   <div><span>Common mistakes</span><strong>reshape order, mask timing, dividing by the wrong dimension</strong></div>
 </div>
 
-## In one sentence: look it up, then average
+## The core computation: match and aggregate information
 
 Each position carries a **question** (query) and asks every position's **index** (key). The better they match, the more it takes from that position's **content** (value). What comes back is a weighted average.
 
 Multi-head means asking several different questions at once — one head tracking syntax, another coreference, another simple adjacency — then concatenating the answers.
 
-## From input to output: what is actually inside the attention matrix?
+## What the attention matrix represents
 
 First set aside the mnemonic. $Q$, $K$, and $V$ are simply three learned linear projections of the same input $X$:
 
@@ -125,7 +125,7 @@ collapses toward the zero matrix — no gradient. Dividing by $\sqrt{d_k}$ resto
 
 ⚠️ It is $\sqrt{d_\text{head}}$, **not** $\sqrt{d_\text{model}}$. Easy to write the wrong one from memory.
 
-## Why several heads
+## Why use multiple heads
 
 $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V), \quad \text{MultiHead} = \text{Concat}(\text{head}_1..\text{head}_h)W^O$$
 
@@ -148,7 +148,7 @@ In code it is one $(d_\text{model}, d_\text{model})$ projection reshaped into he
 
 **The intuition for #3.** Zeroing entries after the softmax leaves the row no longer summing to 1, and the masked positions have already taken probability mass. $-\infty$ is what "this route does not exist" actually means.
 
-## Verify it: three implementations that agree
+## Experiment: verify three equivalent implementations
 
 <details class="code-drop" markdown="1">
 <summary><b>From scratch</b> · pure NumPy, no framework</summary>
@@ -241,7 +241,7 @@ In production those middle lines collapse to `F.scaled_dot_product_attention(q, 
 
 Matching `nn.MultiheadAttention` is a far stronger claim than merely running. Where they disagree is the best debugging exercise available — and note that `nn.MultiheadAttention` stacks $W_Q, W_K, W_V$ into one `in_proj_weight`, while `nn.Linear` stores $(out, in)$, so moving weights to NumPy needs a transpose.
 
-## Interview questions
+## Common interview questions
 
 <details class="interview" markdown="1">
 <summary>How many parameters does multi-head attention have?</summary>

@@ -70,7 +70,7 @@ A profiler does not directly prescribe a fix. It provides evidence about where t
 4. Check whether the compiler vectorizes the inner loop.
 5. Save an experiment table and explain why the fastest version wins.
 
-## Remember
+## Key conclusions
 
 Tests demonstrate behavior on covered inputs, sanitizers expose selected violations, profilers describe resource use, and benchmarks compare controlled workloads. They complement rather than replace one another.
 

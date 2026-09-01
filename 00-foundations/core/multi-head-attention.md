@@ -23,13 +23,13 @@
   </div>
 </div>
 
-## 一句话：查字典，然后加权平均
+## 核心计算：匹配并聚合信息
 
 每个位置拿着自己的**问题**（query）去问所有位置的**索引**（key）。对得越上，就从那个位置的**内容**（value）里取越多。取回来的是一个加权平均。
 
 多头的意思是：同一句话同时问好几个不同的问题——一个头盯语法搭配，一个头盯指代，一个头盯位置邻近。问完各自取一份，再拼起来。
 
-## 从输入到输出：attention matrix 到底装了什么
+## Attention Matrix 表示什么
 
 先把容易误解的比喻放下。$Q$、$K$、$V$ 本质上只是同一个输入 $X$ 经过三组不同的可学习线性投影：
 
@@ -125,7 +125,7 @@ $$\alpha_{ij} = \frac{\exp(\mathbf{q}_i^\top \mathbf{k}_j / \sqrt{d_k})}{\sum_{j
 
 每一行 $\alpha_{i\cdot}$ 加起来是 1。所以输出永远是 value 的凸组合——**注意力不创造新信息，它只决定从哪里搬**。
 
-## 为什么非要除以 $\sqrt{d_k}$
+## 为什么除以 $\sqrt{d_k}$
 
 面试最爱问这个，答案不是「经验值」。
 
@@ -141,7 +141,7 @@ $$\frac{\partial\,\text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij}-\alp
 
 ⚠️ 除的是 $\sqrt{d_k} = \sqrt{d_\text{head}}$，**不是** $\sqrt{d_\text{model}}$。手写时很容易顺手写成后者。
 
-## 为什么要多头：不是为了把维度做大
+## 为什么使用多头：目的不是增加维度
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
@@ -310,7 +310,7 @@ to have one clean, human-assigned semantic job.
 
 **第 3 条的直觉。** softmax 之后再把某些位置置零，剩下的权重加起来就不是 1 了；而且被屏蔽的位置在 softmax 时已经分走了概率质量。填 $-\infty$ 才是「这条路根本不存在」。
 
-## 动手：三种写法，互相对答案
+## 实验：验证三种实现等价
 
 <details class="code-drop" markdown="1">
 <summary><b>从零实现</b> · 纯 NumPy，不依赖任何框架</summary>
@@ -411,7 +411,7 @@ def causal_mask(t, device=None):
 
 能让从零实现的版本和 `nn.MultiheadAttention` 对上，比仅仅「能跑」更重要。对不上时定位差异，本身就是有效的调试练习。`nn.MultiheadAttention` 把 $W_Q, W_K, W_V$ 存成一个拼接的 `in_proj_weight`，而 `nn.Linear` 存的是 $(out, in)$，因此搬到 NumPy 时需要转置。
 
-## 面试可能会问
+## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>多头注意力有多少参数？</summary>
@@ -467,6 +467,6 @@ def causal_mask(t, device=None):
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 注意力有了，但它对顺序完全不敏感，而且堆深了就训不动。先看[残差连接](residual-connections.md)和[归一化](normalization.md)怎么让深度变得可行，再回到[原版 Transformer](vanilla-transformer.md) 把整块拼起来。

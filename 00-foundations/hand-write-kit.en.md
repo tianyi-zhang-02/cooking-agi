@@ -4,7 +4,7 @@
 
 > Reading time: ~5 min · Type: quick reference · Last reviewed: 2026-08
 
-## In one sentence
+## What the seven formulas are checking
 
 These questions never test whether you remember the formula. They test **whether you know which line blows up**. Each one has a numerical or semantic trap, and the follow-up lands on exactly that line.
 

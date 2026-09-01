@@ -4,9 +4,11 @@
 
 > Reading time: ~4 min · Type: Section index · Freshness: Evolving · Last reviewed: 2026-08
 
-I do not want this section to become a PR scoreboard. A merged patch is satisfying, but the interesting part comes later: other workloads execute it, tests preserve its contract, maintainers reshape it, and future contributors begin to treat it as part of the ground they can stand on.
+I do not want this section to become a PR scoreboard. A merged patch is satisfying, but the interesting part comes later: other workloads execute it, tests preserve its contract, maintainers reshape it, and future contributors begin to treat it as part of the system they can rely on.
 
-This section therefore records two things: **how I build judgment inside an unfamiliar production-grade codebase, and how a local repair becomes reusable public capability.**
+I entered NeMo RL with a great deal of uncertainty. I could follow the algorithms in papers, but rollout workers, trainers, inference engines, Ray actors, and weight refit did not yet form one coherent picture. I began contributing not because I already understood the underlying system, but because real problems gave me a way to understand it.
+
+This section therefore records three things: **how I build judgment inside an unfamiliar codebase, how isolated contributions connect into a systems view, and how a local repair becomes reusable public capability.**
 
 ## Why the ecosystem matters to me
 
@@ -23,9 +25,9 @@ flowchart LR
 
 That is what I mean by an ecosystem: not merely many repositories, but a feedback loop that accumulates technical judgment. A good contribution fixes today's problem, makes the same class of failure harder to repeat, and leaves the next reader with a clearer explanation of why the system has its current shape.
 
-## The thread I follow in NeMo-RL
+## The thread I follow in NeMo RL
 
-[NVIDIA NeMo-RL](nemo-rl/) spans SFT, RL, distillation, and the seam between trainers and inference engines. It is a useful place to learn this kind of judgment because the mathematical objective, framework contracts, and distributed execution must agree at once. My contributions fall into four threads:
+[NVIDIA NeMo RL](nemo-rl/) spans SFT, RL, distillation, and the seam between trainers and inference engines. It is a useful place to learn this kind of judgment because the mathematical objective, framework contracts, and distributed execution must agree at once. My recent focus has expanded from local correctness into **SingleController**: keeping asynchronous rollout, training, distillation, and weight synchronization semantically aligned on one shared data plane.
 
 ```mermaid
 flowchart TB
@@ -34,6 +36,7 @@ flowchart TB
     A --> C["Objective<br/>masks, log-probabilities, importance ratios"]
     A --> D["Efficiency<br/>avoid unnecessary softmax, casts, and projections"]
     A --> E["Distributed integration<br/>trainer ↔ inference-engine weight sync"]
+    A --> F["SingleController<br/>distillation · parity · staleness · liveness"]
 ```
 
 They look unrelated, but ask the same question: **does the training code faithfully and economically implement the objective we think we are optimizing?** This is also why maintenance work matters to me: model capability eventually has to pass through these seemingly small contracts.
@@ -42,10 +45,10 @@ They look unrelated, but ask the same question: **does the training code faithfu
 
 | If you care about | Start here | Central question |
 | --- | --- | --- |
-| Post-training correctness | [Set, but never applied](nemo-rl/#config-correctness) | Why is silent failure more expensive than a crash? |
-| Mathematics and performance | [Computing something that cancels](nemo-rl/#compute-efficiency) | How do you prove that a large computation cannot affect the result? |
-| RL objective implementation | [Saying one thing, doing another](nemo-rl/#objective-correctness) | How can one wrong mask reach the importance ratio and gradient? |
-| Distributed systems | [Adding a missing capability](nemo-rl/#distributed-integration) | How do trainer weights cross nodes into a differently sharded inference engine? |
+| Motivation | [Why I started looking beneath the abstractions](nemo-rl/#why-i-started-looking-beneath-the-abstractions) | What does “underlying” actually include? |
+| Full post-training loop | [What NeMo RL connects](nemo-rl/#what-is-nemo-rl) | How do rollout, training, and weight synchronization close the loop? |
+| Asynchronous training | [Why SingleController exists](nemo-rl/#single-controller) | Why do freshness and supervision matter more when utilization improves? |
+| Current work | [What I am adding to SingleController](nemo-rl/#current-work) | How can distillation enter the runtime without changing algorithm semantics? |
 
 ## Which layer each contribution protects
 
@@ -54,10 +57,11 @@ PR count is less informative than the layer each change protects:
 | Direction | Representative contributions | Status |
 | --- | --- | --- |
 | Configuration and reproducibility | [#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271) config-key warnings · [#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389) dataset parameter · [#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071) checkpoint tie-breaking | merged |
-| Distillation and inference efficiency | [#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314) remove full-vocab log-softmax · [#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484) skip softmax materialization | merged |
-| Objective and interface correctness | [#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551) log-prob mask · [#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512) advantage contract · [#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515) reachable error semantics | under review |
-| Compute and memory paths | [#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564) top-k projection · [#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496) deferred fp32 cast · [#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552) lazy optional dependencies | under review |
-| Trainer / inference seam | [#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519) cross-node SGLang weight sync | under review |
+| Distillation and inference efficiency | [#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314) remove full-vocab log-softmax · [#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484) skip softmax materialization · [#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564) teacher top-k projection | merged |
+| SingleController distillation | [#3843](https://github.com/NVIDIA-NeMo/RL/pull/3843) teacher top-k path · [#3846](https://github.com/NVIDIA-NeMo/RL/pull/3846) train-pump wiring · [#3849](https://github.com/NVIDIA-NeMo/RL/pull/3849) functional path | under review |
+| SingleController correctness | [#3786](https://github.com/NVIDIA-NeMo/RL/pull/3786) sample mask · [#3787](https://github.com/NVIDIA-NeMo/RL/pull/3787) reward / advantage semantics · [#3850](https://github.com/NVIDIA-NeMo/RL/pull/3850) valid-sample contract | under review |
+| SingleController observability | [#3759](https://github.com/NVIDIA-NeMo/RL/pull/3759) trajectory age · [#3783](https://github.com/NVIDIA-NeMo/RL/pull/3783) watchdog supervision · [#3760](https://github.com/NVIDIA-NeMo/RL/pull/3760) async PPO failure policy | under review |
+| Objective and interface correctness | [#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551) log-prob mask · [#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512) advantage contract · [#3853](https://github.com/NVIDIA-NeMo/RL/pull/3853) reward-side KL clamp | under review |
 
 ## When is a change worth sending upstream?
 
@@ -71,14 +75,16 @@ I now ask five questions:
 
 The detailed note preserves this reasoning rather than only the final diff. Locating the failure, drawing the boundary, and aligning with maintainers are what transfer to the next codebase.
 
-## The contributor I want to become
+## From uncertainty to subsystem ownership
 
 I do not want to optimize for easy-to-merge patches, nor arrive by proposing a rewrite of the core. I would rather accumulate context: begin with small, falsifiable problems, learn why maintainers reject some elegant-looking solutions, and gradually become responsible for an interface, a correctness invariant, or a cross-component data path.
 
-Open source turns “I think this design is reasonable” into a public, refutable technical claim that has to survive evidence and review. It also makes one thing obvious: a capability reaches users not because of one model or one author, but because an ecosystem carries it the rest of the way.
+Open source turns “I think this design is reasonable” into a public, refutable technical claim that has to survive evidence and review. It also turns a vague desire to “understand the underlying system” into a path I can keep following: trace one configuration, understand one objective, then follow a cross-component data flow, and eventually take responsibility for an invariant in a subsystem.
+
+A capability reaches users not because of one model or one author, but because an ecosystem carries it the rest of the way. I want to accumulate more than PR numbers: I want judgment that makes that ecosystem more reliable and easier for the next contributor to understand.
 
 ## Continue reading
 
-- [NVIDIA NeMo-RL: from correctness to distributed post-training](nemo-rl/)
+- [NVIDIA NeMo RL: from isolated PRs to understanding a post-training system](nemo-rl/)
 - [Merged commits on main](https://github.com/NVIDIA-NeMo/RL/commits/main/?author=tianyi-zhang-02)
 - [NeMo-RL repository](https://github.com/NVIDIA-NeMo/RL)

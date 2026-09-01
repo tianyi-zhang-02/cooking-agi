@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Intermediate · 时效性：Fast-moving · 最近审阅：2026-08
 
-## 这一模块解决什么
+## 核心问题
 
 训练优化的是得到模型的过程，推理优化的是模型服务真实请求的过程。本模块关注如何在请求长度和到达时间都不规则时，同时控制延迟、吞吐、显存和成本。
 
@@ -59,7 +59,7 @@ Disaggregation 不会因为更新就自动更快。只有已经测到 phase inte
 - **Tensor/Pipeline Parallel**：让单卡放不下的模型跨设备运行；
 - **Admission control**：在过载前限制进入系统的工作量。
 
-## 需要会算
+## 关键计算
 
 简化的 KV cache 大小：
 
@@ -96,7 +96,7 @@ throughput = completed tokens or requests / wall-clock time
 - KV cache OOM 不等于模型权重本身放不下；
 - 忽略取消、超时、重试和流式断开会产生错误容量估计。
 
-## 掌握检查
+## 学习检查
 
 - 为什么 prefill 和 decode 的瓶颈不同？
 - continuous batching 为什么比静态 batching 更适合 LLM？

@@ -71,7 +71,7 @@ Tensor transpose、slice 和 reshape 经常创建 view。API 必须选择：
 4. 构造 dangling view，并用 sanitizer 或 API redesign 消除它。
 5. 比较 view transpose 与 contiguous transpose 的内存和访问成本。
 
-## 记住
+## 关键结论
 
 Raw pointer 描述位置；RAII type 描述 ownership；view 描述借用。把三者混在一起，是 C++ tensor code 最常见的正确性来源之一。
 

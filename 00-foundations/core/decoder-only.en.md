@@ -11,7 +11,7 @@
   <div><span>Most common mistake</span><strong>Assuming parallel training implies parallel generation</strong></div>
 </div>
 
-## In one sentence
+## Autoregressive generation in one shared sequence
 
 A decoder-only model consumes one token stream, uses a causal mask so each position sees only the left prefix, and predicts the next token at every position.
 
@@ -26,7 +26,7 @@ Input and target are the same sequence shifted by one position. Placing instruct
 
 The final hidden state becomes vocabulary logits through a linear head. Temperature changes sharpness; top-$k$ and top-$p$ truncate the sampling set. Sampling changes inference, not the learned distribution.
 
-## The path to post-training
+## How post-training acts on the same architecture
 
 Pre-training, SFT, preference learning, and RL usually preserve the decoder-only backbone. They change the data distribution, loss, comparison structure, and which tokens receive gradient.
 

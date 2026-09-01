@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-## In one sentence
+## Start here: memory is not complete history
 
 Memory is not storing every historical event. It is preserving information that remains useful, has clear provenance, can be retrieved at the right moment, and can be revised by new evidence.
 

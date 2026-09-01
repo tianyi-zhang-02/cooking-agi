@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Advanced · Freshness: Stable principle, evolving implementations · Last reviewed: 2026-08
 
-## One question
+## Core problem
 
 Why should attention avoid writing the complete `N×N` score matrix to HBM?
 
@@ -63,7 +63,7 @@ Masks must apply inside the current score block, and a causal boundary may cross
 - Record latency too; lower memory with excessive computation or synchronization may lose.
 - Check long sequences and large scores for NaN and Inf.
 
-## Remember
+## Key conclusions
 
 FlashAttention is not “a faster softmax.” It is an IO-aware reordering of attention. Correctness comes from the online-normalization invariant; performance comes from reducing movement across expensive storage levels.
 

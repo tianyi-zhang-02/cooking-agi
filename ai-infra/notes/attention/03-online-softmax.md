@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Advanced · 时效性：原理稳定、实现持续变化 · 最近审阅：2026-08
 
-## 只解决一个问题
+## 核心问题
 
 为什么 attention 不应该总是把完整 `N×N` score matrix 写入 HBM？
 
@@ -63,7 +63,7 @@ Mask 必须在当前 score block 中正确应用；causal boundary 可能穿过 
 - 同时记录 latency，避免只减少内存却增加过多计算或同步；
 - 对长 sequence 和大 magnitude score 检查 NaN/Inf。
 
-## 记住
+## 关键结论
 
 FlashAttention 不是“一个更快的 softmax”。它是 attention 的 IO-aware 重排。正确性来自 online normalization invariant，性能来自减少高成本存储层之间的数据移动。
 

@@ -11,7 +11,7 @@
   <div><span>Most common failure</span><strong>fixed-vector bottleneck and train–generation mismatch</strong></div>
 </div>
 
-## In one sentence
+## The encoder–decoder structure
 
 Seq2Seq separates reading from writing: an encoder represents the source, and a decoder generates the target one token at a time under that representation.
 
@@ -27,7 +27,7 @@ $$\mathcal L=-\sum_{t=1}^{T}\log p_\theta(y_t\mid y_{<t},x)$$
 
 The mismatch means generation errors can move later prefixes away from the training distribution.
 
-## What remained unsolved
+## What recurrence still leaves unsolved
 
 - recurrent encoders and decoders are still sequential;
 - distant positions still communicate through long paths;

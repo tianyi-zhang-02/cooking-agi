@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Intermediate · 时效性：Evolving · 最近审阅：2026-08
 
-## 只解决一个问题
+## 核心问题
 
 怎样逐步把 attention 搬到 GPU，同时让每次错误仍然能定位？
 
@@ -70,7 +70,7 @@ Tiling 的目标是增加复用和 arithmetic intensity。必须用 profile 验�
 4. 比较两个 tile size，记录 occupancy 与 bandwidth。
 5. 解释优化后瓶颈转移到了哪里。
 
-## 记住
+## 关键结论
 
 先让错误可以局部化，再做融合。Naive multi-kernel 版本不是失败，而是高性能版本不可缺少的测试基座。
 

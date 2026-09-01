@@ -11,7 +11,7 @@
   <div><span>Most common mistake</span><strong>Treating tokenization as neutral preprocessing</strong></div>
 </div>
 
-## In one sentence
+## Models receive token IDs, not text
 
 A tokenizer splits a string into tokens from a finite vocabulary and maps them to integer IDs. The model never sees “text”; it only sees those IDs.
 
@@ -23,7 +23,7 @@ An embedding table turns each ID into a vector:
 
 $$x_t=E[\text{token\_id}_t], \qquad E\in\mathbb{R}^{|V|\times d}$$
 
-## Why not split on words
+## Why not tokenize by whole words
 
 A word vocabulary is open-ended: names, spelling variants, code, emoji, and languages never stop arriving. Characters or bytes avoid unknown inputs but produce long sequences. Subwords keep frequent fragments whole and split rare strings into smaller units.
 
@@ -37,7 +37,7 @@ A word vocabulary is open-ended: names, spelling variants, code, emoji, and lang
 
 Byte Pair Encoding repeatedly merges the most frequent adjacent symbol pair in the training corpus. Training produces an **ordered list of merge rules**; encoding applies those rules in order. BPE is compression over recurring string patterns, not linguistic morphology.
 
-## Four objects to separate
+## Four objects that are easy to confuse
 
 1. **Vocabulary:** the static token-to-ID map.
 2. **Merge model:** how primitive symbols become tokens.

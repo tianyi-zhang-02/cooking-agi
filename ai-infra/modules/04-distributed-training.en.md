@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Fast-moving · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 When model state, activations, or optimizer state exceed one GPU's capacity, training must be partitioned. This module asks what to partition, how to synchronize it, and whether the added communication, scheduling, and failure complexity is justified.
 
@@ -70,7 +70,7 @@ Overlap is not automatic: dependencies, bucket sizes, stream scheduling, link co
 
 Sharded training may produce sharded checkpoints. Reliable recovery must capture model and optimizer state, schedulers, random state, data position, and parallel topology. It must also support topology changes or explicitly reject incompatible recovery.
 
-## Quantities to calculate
+## Key calculations
 
 Basic parameter storage is:
 
@@ -110,7 +110,7 @@ Any throughput comparison must define global batch, token count, and gradient ac
 - NCCL bandwidth alone cannot explain every communication wait.
 - Successfully writing a checkpoint does not prove correct restoration.
 
-## Mastery check
+## Learning check
 
 - Why can DDP not solve a model that does not fit on one GPU?
 - What communication does FSDP exchange for memory savings?

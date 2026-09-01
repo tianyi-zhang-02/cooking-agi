@@ -4,7 +4,7 @@
 
 > 阅读时间：约 12 分钟 · 类型：总览 · 最近审阅：2026-08
 
-## 先用一句话讲清楚
+## Post-Training 改变的是模型行为
 
 Pretraining 让模型学会“世界里通常有什么”，Post-Training 则让它学会“面对某类任务时，应该怎样表现和行动”。
 
@@ -344,13 +344,13 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 
 按顺序读一遍大约一小时。只想解决手头某个具体问题的话，每篇开头那句「先用一句话讲清楚」就是索引。
 
-## 从哪里继续读
+## 继续阅读
 
 - [数据与反馈](../01-data-and-feedback/)
 - [Evaluation](../07-evaluation/)
 - [Model Experience](../08-model-experience/)
 
-## 起始论文
+## 参考论文
 
 - [InstructGPT](https://arxiv.org/abs/2203.02155)
 - [Direct Preference Optimization](https://arxiv.org/abs/2305.18290)

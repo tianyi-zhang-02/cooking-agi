@@ -80,7 +80,7 @@ Warning、sanitizer、test、debugger 和 profiler 解决不同问题。Release 
 
 完整规格：[Project 00 · C/C++ Tensor Core](../projects/00-c-cpp-tensor-core.md)
 
-## 掌握检查
+## 学习检查
 
 - 数组退化为指针后丢失了什么？
 - raw pointer 是否表示 ownership？

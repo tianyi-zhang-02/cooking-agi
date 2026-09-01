@@ -4,7 +4,7 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
-## In one sentence
+## Alignment changes the distribution of capability
 
 Alignment isn't free. What you buy is a single output that better matches preferences; what you pay is **the width of the distribution** — how many different good answers the model can still give to the same question. And the bill is invisible on any average score, because **an average looks at one sample, and what you lost was the second sample being different.**
 

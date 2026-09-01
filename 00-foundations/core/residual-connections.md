@@ -11,7 +11,7 @@
   <div><span>常见错误</span><strong>以为它是「防止过拟合」或者「加深就行」</strong></div>
 </div>
 
-## 默认什么都不做
+## 残差路径提供恒等映射
 
 普通一层是「把输入换成新的东西」，残差一层是「在输入上**改一点**」：
 
@@ -33,7 +33,7 @@ $$\frac{\partial y_L}{\partial x_0} = \prod_{l=1}^{L}\left(I + \frac{\partial f_
 
 没有残差时是纯连乘 $\prod_l \frac{\partial f_l}{\partial x_{l-1}}$。每层稍微小于 1，$L$ 层之后就是指数级衰减；稍微大于 1 就指数级爆炸。你必须把初始化调到恰好临界，才能两边都不塌。
 
-## 不是「理论上会衰减」，是真的会
+## 没有残差时梯度如何变化
 
 40 层 MLP，tanh，初始化定在临界值下方 20%（也就是「没调到最好」的常见情况），同样的权重同样的输入，唯一区别是有没有那个加号：
 
@@ -92,7 +92,7 @@ pre-norm 把 norm 挪进分支里，恒等通路完整保留，代价是输出�
 
 ![post-norm 与 pre-norm 的残差通路](../assets/transformer-block.svg)
 
-## 面试可能会问
+## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>残差连接解决了什么问题？</summary>
@@ -162,6 +162,6 @@ post-norm 在训得起来的前提下，最终效果有时略好（每层输出�
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 注意力、归一化、残差都齐了，可以拼成一整块——[原版 Transformer](vanilla-transformer.md)。

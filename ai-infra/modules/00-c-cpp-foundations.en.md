@@ -80,7 +80,7 @@ Warnings, sanitizers, tests, debuggers, and profilers answer different questions
 
 Full specification: [Project 00 · C/C++ Tensor Core](../projects/00-c-cpp-tensor-core.en.md)
 
-## Mastery check
+## Learning check
 
 - What information disappears when an array decays to a pointer?
 - Does a raw pointer imply ownership?

@@ -2,11 +2,11 @@
 
 **中文** · [English](agent-observability.en.md)
 
-## 先用一句话讲清楚
+## Observability 要解释决策过程
 
 Agent Observability 的目标，不只是知道服务有没有报错，而是能还原：**Agent 看到了什么、做了哪些决定、状态怎样变化，以及失败从哪一步开始。**
 
-## 一个最简单的例子
+## 一次失败运行里发生了什么
 
 用户让 Agent 订周五的餐厅，最后却订成了周六。
 

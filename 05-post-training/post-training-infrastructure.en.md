@@ -4,7 +4,7 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
-## In one sentence
+## Infrastructure decides whether the algorithm runs as intended
 
 Public discussion of post-training is almost entirely about algorithms — PPO or GRPO, Critic or no Critic. What actually stalls a post-training run is usually two other things: **how much experience you can collect per hour**, and **whether the training side and the inference side compute the same number**. Neither appears in any loss function.
 

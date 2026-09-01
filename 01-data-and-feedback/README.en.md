@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-## In one sentence
+## Start here: logs are not user intent
 
 Training data is not the world itself. It is the trace left after the world passes through an existing policy, product interface, and logging system.
 

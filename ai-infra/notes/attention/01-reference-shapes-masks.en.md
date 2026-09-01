@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Intermediate · Freshness: Stable · Last reviewed: 2026-08
 
-## One question
+## Core problem
 
 How do we build a slow but trustworthy attention correctness oracle?
 
@@ -69,7 +69,7 @@ Fixed golden cases make debugging easy; randomized property tests prevent overfi
 3. Introduce an off-by-one causal mask and confirm that tests fail.
 4. Permute heads and verify that they remain independent.
 
-## Remember
+## Key conclusions
 
 Every optimized implementation compares against the same independent oracle, not the preceding optimization. Otherwise one early bug propagates through the entire project.
 

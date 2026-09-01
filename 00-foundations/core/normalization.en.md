@@ -11,7 +11,7 @@
   <div><span>Common mistakes</span><strong>BatchNorm meeting variable-length sequences or decoding</strong></div>
 </div>
 
-## The difference is a single sentence
+## The core difference: normalization axes
 
 **BatchNorm takes its statistics across a batch of examples. LayerNorm takes them across one example's own features.**
 
@@ -35,7 +35,7 @@ $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_k x_{ik}^2 + \epsilon}}
 
 In all three, $\gamma$ and $\beta$ are **per feature**, length $d$. Only the statistics axis changes.
 
-## Why BatchNorm cannot be used in a language model
+## Why BatchNorm is a poor fit for language models
 
 **1. Train and inference are two different functions.** BatchNorm uses the current batch during training and an accumulated running average at inference. It is the one module whose forward pass depends on which mode it is in — forget `model.eval()` and single requests disagree with batched ones.
 
@@ -52,7 +52,7 @@ got input size torch.Size([1, 8])
 
 LayerNorm is immune to all four, because it only ever looks at one token's own $d$ numbers.
 
-## So which one, when
+## How to choose a normalization method
 
 | Situation | Use | Why |
 | --- | --- | --- |
@@ -82,7 +82,7 @@ An angle that gets missed: normalisation removes the weights' scale degree of fr
 
 [`../code/norm_compare.py`](../code/norm_compare.py) runs all three on the same activations, shows which axis each reduces over, and demonstrates the batch-size-1 failure.
 
-## Interview questions
+## Common interview questions
 
 <details class="interview" markdown="1">
 <summary>What is the difference between BatchNorm and LayerNorm?</summary>

@@ -2,11 +2,11 @@
 
 **中文** · [English](README.en.md)
 
-## 先用一句话讲清楚
+## Personal AGI 需要可修正的用户状态
 
 Personal AGI 不是一个知道你姓名的聊天机器人，而是一个能在长期交互中形成理解、承认不确定、接受纠正，并逐渐学会怎样帮助你的系统。
 
-## 一个最简单的例子
+## 从一次被误解的推荐说起
 
 你对模型说：“帮我安排下个月的旅行。”
 
@@ -78,7 +78,7 @@ Personal AGI 想进一步处理：
 
 一次回答很难证明模型真的理解用户。更重要的是它是否减少重复沟通、能否吸收纠正，以及几周后是否仍然有帮助。
 
-## 从哪里继续读
+## 继续阅读
 
 - [表征与记忆](../02-memory/)
 - [数据与反馈](../01-data-and-feedback/)
@@ -86,7 +86,7 @@ Personal AGI 想进一步处理：
 - [Model Experience](../08-model-experience/)
 - [Human-in-the-Loop](../06-systems/human-in-the-loop.md)
 
-## 起始论文
+## 参考论文
 
 - [Generative Agents](https://arxiv.org/abs/2304.03442)
 - [MemGPT](https://arxiv.org/abs/2310.08560)

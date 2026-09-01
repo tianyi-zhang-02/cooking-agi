@@ -9,7 +9,7 @@
   <div><span>Most common mistake</span><strong>Assuming depth or sigmoid alone creates nonlinear boundaries</strong></div>
 </div>
 
-## In one sentence
+## The central transition: learned feature maps
 
 A neural network is a **learned change of coordinates** followed by **a linear classifier**. The last layer is always logistic regression; it just lives in a space the network invented.
 

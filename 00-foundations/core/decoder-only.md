@@ -42,7 +42,7 @@ target:  [今,  天, 天, 气, 好]
 
 每个位置都提供一次监督，因此大规模无标注文本天然能构造训练样本。
 
-## Encoder 去哪了
+## 为什么可以去掉 Encoder
 
 把“输入”和“输出”串在同一条序列里即可：
 
@@ -686,7 +686,7 @@ $$z_t=W_{\text{vocab}}h_t, \qquad p_t=\text{softmax}(z_t / \tau)$$
 
 Sampling 决定怎样从模型给出的概率分布中选择 token，但不会改变模型本身的 logits。temperature 较高不代表模型突然获得了更强的创造力，只是低概率 token 更容易被选中。
 
-## 同一副骨架后来怎么 Post-Train
+## Post-Training 如何作用于同一架构
 
 | 阶段 | 数据告诉模型什么 | 常见目标 |
 | --- | --- | --- |
@@ -704,7 +704,7 @@ Sampling 决定怎样从模型给出的概率分布中选择 token，但不会�
 
 </details>
 
-## 动手：把训练和生成两条路都验一遍
+## 实验：验证训练与生成路径
 
 [`../code/model.py`](../code/model.py) 是手写的现代 decoder-only；[`../code/test_model.py`](../code/test_model.py) 验证 causal mask、RoPE、GQA 和 KV cache；[`../code/train.py`](../code/train.py) 让它学习一个需要跨位置复制的任务。
 
@@ -719,6 +719,6 @@ Sampling 决定怎样从模型给出的概率分布中选择 token，但不会�
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 继续读 [语言模型目标与生成](../deep-dives/language-model-objective.md)，再接到 [Post-Training](../../05-post-training/)。

@@ -1,182 +1,205 @@
-# NVIDIA NeMo-RL：从 correctness 到 distributed post-training
+# NVIDIA NeMo RL：从零散 PR 到理解 Post-Training 系统
 
 **中文** · [English](README.en.md) · [返回开源项目](../README.md)
 
-> 阅读时间：约 12 分钟 · 类型：贡献笔记 · 时效性：Evolving · 最近审阅：2026-08
+> 阅读时间：约 15 分钟 · 类型：贡献笔记 · 时效性：Evolving · 最近审阅：2026-08
 
-NeMo-RL 是 NVIDIA 开源的 LLM 后训练框架，覆盖预训练之后的 SFT、RL、蒸馏，以及训练器与推理引擎之间的协作。
+<a id="why-underlying"></a>
 
-我最开始是从几个很小的 correctness 问题进去的：一个配置有没有真的生效，一段计算是不是白做，一个 mask 有没有沿着调用链传到真正使用它的地方。看久以后才发现，这些并不是散落在仓库里的小毛病，而是同一条主线的不同切面：**配置表达的实验、目标函数表达的数学、分布式执行表达的系统行为，到底有没有对齐。**
+## 我为什么开始看“底层”
 
-不对齐时，要么训练在优化错误目标，要么大量算力花在不会影响结果的东西上。对一个后训练框架来说，correctness 和 efficiency 也不是两份工作——算错的结果再快也没意义，数学上会抵消的东西算得再准也是浪费。
+刚开始接触 LLM post-training 时，我知道 SFT、PPO、GRPO、distillation 这些名字，也能读懂论文里的目标函数。但一旦论文图变成真实代码，很多最基本的问题反而说不清：rollout 到底由谁生成，log-prob 在哪里重算，trainer 和 inference engine 为什么各有一份模型，训练后的权重怎样回到生成端，一条配置最后有没有真的改变梯度。
 
-先看全图，再按兴趣跳读：
+那段时间我经常听到 “underlying system” 或“底层原理”，但这个词很模糊。底层不是单独指 CUDA，也不是把框架源码读得越深越好。对我来说，它后来变成了一条可以追踪的链路：
 
-```mermaid
-flowchart LR
-    A["用户配置与数据"] --> B["训练目标<br/>log-prob · advantage · distillation"]
-    B --> C["分布式训练器"]
-    C --> D["权重同步"]
-    D --> E["推理引擎<br/>vLLM / SGLang"]
-    A -. "静默配置与复现问题" .-> P1["1 · Correctness"]
-    B -. "mask、归一化与接口契约" .-> P2["2 / 3 · Objective 与 Efficiency"]
-    D -. "不同并行布局之间搬运权重" .-> P3["4 · Distributed integration"]
-```
+| 层次 | 真正要回答的问题 |
+| --- | --- |
+| 数学目标 | 论文里的 loss、ratio、KL 和 advantage 到底要求什么？ |
+| Tensor 语义 | shape、mask、normalization 与 reduction 是否保持了那个数学含义？ |
+| Runtime 数据流 | rollout、teacher signal、training target 和 model state 经过哪些组件？ |
+| 分布式执行 | 数据与权重在哪些 GPU、进程和节点之间移动，版本是否一致？ |
+| 开源契约 | 配置、接口、测试和兼容性是否让别人可以可靠地依赖这条路径？ |
 
-下面按理解成本由低到高展开。第一部分只需要软件工程常识；最后一部分才进入训练器和推理引擎的分布式接缝。
+所谓理解 underlying，不是知道某一个更低层的名词，而是能够把一个研究想法从公式一路追到真实执行，并指出每一层可能在哪里偏离。
 
-## 为什么我把这些放在“开源生态”下面
+我开始给 NeMo RL 做贡献，并不是因为这些问题已经想明白了，恰恰是因为没有想明白。开源代码给了我一条很具体的学习路径：从一个可复现的问题出发，沿调用链找到真正的 consumer，用数学或实验说明哪里不对，再让维护者和 CI 检查我的判断是否站得住。
 
-单看 diff，很多改动都不大；放回生态里，它们保护的是别人默认相信的东西：配置会生效、checkpoint 可以复现、loss 真的是文档里那个 loss、训练出来的新权重能安全回到推理引擎。
+最初我修的都是很小的地方：配置有没有真的生效、checkpoint 选得对不对、某段 full-vocabulary softmax 是否白算了。后来逐渐进入 mask、importance ratio、跨词表蒸馏、跨节点权重同步，再到新的异步训练路径 SingleController。回头看，这些不是彼此无关的 PR，而是我理解 post-training system 的顺序。
 
-这也是 upstream 和个人项目最不一样的地方。一个方案不能只在理论上更漂亮，还要兼容旧调用方、接住测试替身、适应不同后端，并且让维护者愿意在你离开以后继续承担它。很多时候，review 讨论的不是“代码能不能跑”，而是**这个抽象以后会不会让整个生态更容易演化。**
+## 为什么开源对这件事很重要
 
-我逐渐开始把一次贡献看成四步：
+自己读源码时，很容易在“我大概懂了”那里停下。开源贡献不允许这样：你必须把 claim 写清楚，给出能失败的测试，解释没验证到的边界，并接受熟悉这套系统的人逐条反驳。
 
-```mermaid
-flowchart LR
-    A["找到被破坏的 invariant"] --> B["用代码或数学证明"]
-    B --> C["做最小且可维护的修复"]
-    C --> D["留下会失败的测试与清楚的边界"]
-```
+因此，开源的意义不只是把代码免费放出来，也不只是累计合并数量。它把个人理解变成公共、可检查、能继续演化的技术资产：
 
-最后一步尤其重要。Patch 修的是当前分支，测试、契约和解释保护的才是未来的生态。
+- 一个 bug fix 让当前问题消失；
+- 一个 regression test 让同类问题以后更难回来；
+- 一个清楚的接口或 invariant 让后来的人更容易扩展系统；
+- 一次 review 把只在本地成立的想法，收紧成其他 workload 也能依赖的结论。
 
----
+截至这篇记录，我在 NeMo RL 里的工作已经覆盖二十多项贡献，既有小而确定的 correctness 修复，也有蒸馏效率、runtime safety 和异步训练集成。数量能说明投入，但真正重要的是上下文开始连起来了：我不再只看某一行代码，而是会问这个改动保护了哪条系统契约。
 
-<a id="config-correctness"></a>
+我最近的重点是 **SingleController**，NeMo RL 新的异步训练路径。它很适合检验这种理解：异步到底解决什么，又会把哪些原本隐藏的算法与系统问题放大。
 
-## 1 · 设置了，但没生效
+<a id="what-is-nemo-rl"></a>
 
-先从最不需要背景的一类说起。这类问题跟机器学习没什么关系，任何有配置文件的系统都会得这个病：用户写了一行配置，程序收下了，然后什么也没发生。不报错，不告警。
+## NeMo RL 把哪些系统连起来
 
-我修过四个：
+训练一个 post-trained model，不是调用一次 `loss.backward()` 就结束了。
 
-数据集配置里写错一个键，会被静默丢掉。你以为设置生效了，其实那行字从头到尾没人读过。（[#3271](https://github.com/NVIDIA-NeMo/RL/pull/3271)，已合并）
-
-另一个数据集的 `subset` 参数更彻底，文档里写着、配置里接受、代码里从来不用。查这个的时候顺手发现文档描述的验证集划分也是错的。（[#3389](https://github.com/NVIDIA-NeMo/RL/pull/3389)，已合并）
-
-选「最佳 checkpoint」的时候，如果两个指标打平，选哪一个取决于遍历顺序。同样的实验跑两次可能拿到不同的模型。（[#3071](https://github.com/NVIDIA-NeMo/RL/pull/3071)，已合并）
-
-最后一个我很喜欢：有一句写得很清楚的报错，是死代码。函数在解析目标之前，就去读一个只有解析成功才会被写入的字典键。所以真出错的时候，程序死于一个裸 `KeyError`，那句为这个情况精心准备的提示，永远轮不到它出场。（[#3515](https://github.com/NVIDIA-NeMo/RL/pull/3515)，审核中）
-
-这类问题值得修，是因为沉默的失败比崩溃贵得多。崩溃至少告诉你去哪儿看；静默忽略会让你带着一个错误的心智模型继续调下去，而且你会先怀疑算法、怀疑数据，最后才想到去怀疑那行配置。
-
----
-
-<a id="compute-efficiency"></a>
-
-## 2 · 算了一个会被抵消的东西
-
-第二类需要一点数学，但每个论证都很短，不用读论文。
-
-最干净的一个是知识蒸馏。学生模型原本对整个词表做 log-softmax，十五万列，而损失只用得上其中六十四列。
-
-关键只有一句话：log-softmax 的归一化常数 `log Z` 对每一项都是同一个数，在 top-k 的比值里会抵消掉。既然会抵消，那次全词表的归一化就是白算的，直接在取出来的六十四列上做就行。（[#3314](https://github.com/NVIDIA-NeMo/RL/pull/3314)，已合并）
-
-有意思的是，认出这个形状之后，就会到处看见它：
-
-| 场景 | 实际算了 | 真正需要 |
-| --- | --- | --- |
-| 求某个 token 的概率（[#3484](https://github.com/NVIDIA-NeMo/RL/pull/3484)） | 整个 softmax 分布 | 一个位置的值 |
-| 蒸馏路径升精度（[#3496](https://github.com/NVIDIA-NeMo/RL/pull/3496)） | 把 `[B, S, 15万]` 整个升到 fp32，再取 64 列 | 只对那 64 列升精度 |
-| 跨词表蒸馏的投影（[#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564)） | 投影到完整教师词表的 12.8 万列 | 只保留其中 8192 列 |
-
-第二个的道理是，先取出来再升精度和先升精度再取出来，数值上完全一样，所以升精度这一步可以往后挪。
-
-第三个最有嚼头。那个投影是一次稀疏矩阵乘，而矩阵乘的每个输出列，都是对输入轴的一次独立收缩——换句话说，被丢掉的那些列，在数学上根本影响不到留下来的列。既然如此，切片就可以挪到矩阵乘之前做，于是九成四的计算量、显存和跨卡通信一起消失。
-
-唯一能破坏这个恒等式的，是在完整词表上做一次重新归一化。代码里恰好没有这一步，那里的归一化只发生在留下来的 8192 列内部。（[#3564](https://github.com/NVIDIA-NeMo/RL/pull/3564)，审核中）
-
-我在这里踩了个坑，值得记下来。我把等价性测试写成了 `torch.equal`，也就是要求逐位相同。单独跑没问题，放进整个测试套件就挂了。原因是两次矩阵乘的宽度不一样，十二万八千列和八千一百九十二列，BLAS 可以用不同的分块和累加顺序，而浮点加法不满足结合律。「数学上等价」和「浮点上逐位相同」是两回事，我把它们混为一谈，结果在 CI 上被当场抓住。
-
----
-
-<a id="objective-correctness"></a>
-
-## 3 · 说要做，但没做
-
-这一类要求你知道目标函数长什么样，所以先补一点最小的背景。
-
-强化学习训练里有个核心的量，叫重要性比值：同一个 token，在更新后的策略下和当初采样时的策略下，概率各是多少，两者相除。整个 PPO 和 GRPO 的目标都建立在这个比值上。所以比值算错，梯度就是错的。
-
-有个函数叫 `mask_out_neg_inf_logprobs`。它会打印一行日志：
-
-> *"…Masking out these positions."*（正在 mask 掉这些位置）
-
-然后它确实算出了一个收窄后的 mask。接着它只把概率值返回出去，把那个 mask 扔了。五个调用点，全都还在用原来那个没收窄的 mask。（[#3551](https://github.com/NVIDIA-NeMo/RL/pull/3551)，审核中）
-
-这为什么不是小事？因为被「mask 掉」的位置，填进去的值是 `0.0`。而这里是对数概率，`log p = 0` 意味着 `p = 1`。这不是「忽略这个位置」，这是「百分之百确定」。
-
-同一个位置在采样时的真实概率是有限的，对数大约是负五点四。于是 `exp(5.4) ≈ 224` 这么一个凭空造出来的比值，就流进了训练和推理一致性的健康指标里。更糟的是，如果 importance ratio 按整条序列聚合，这个差值会先沿序列累加再取指数，最后让虚高的权重乘上整条序列的损失。到这一步就不只是指标脏了，是真的进梯度。
-
-最有说服力的旁证，其实是仓库自己写的。另一处代码给参考策略关掉了同款过滤，理由写着 *"-inf mismatches … cannot be resolved by masking"*。作者自己早就不信任这个机制了。
-
-顺带说一个相邻的问题。六个 advantage estimator，有的返回张量，有的返回元组，还有的把指标挂在实例上让调用方用 `hasattr` 去捞。于是调用点写成了猜谜游戏。这不是六个函数各自有毛病，是缺一个契约，统一成一个数据类就解决了。（[#3512](https://github.com/NVIDIA-NeMo/RL/pull/3512)，审核中）
-
-这个改动第一次提交的时候挂了，原因很典型：我的分支切出去之后，主干新增了几个测试替身，仍然返回裸元组，而我把兼容分支删掉了。教训是改契约的 PR 必须 rebase 到最新主干之后再跑一遍测试，绿在自己分支上不说明任何问题。
-
----
-
-<a id="distributed-integration"></a>
-
-## 4 · 补一块缺失的能力
-
-前面三类都是找毛病，这一类不一样，是补一块本来就没有的能力。它也是唯一需要真卡的，和唯一由维护者点名要的。
-
-要讲清楚它，得先看整个循环长什么样：
+以 GRPO 或 on-policy distillation 为例，系统需要不断重复下面这个循环：
 
 ```mermaid
 flowchart LR
-    A["① 生成 rollout<br/>vLLM / SGLang"] --> B["② 打分<br/>reward / 环境"]
-    B --> C["③ 算 advantage"]
-    C --> D["④ 训练<br/>更新权重"]
-    D --> E["⑤ refit<br/>把新权重推回引擎"]
+    A["Generate rollouts"] --> B["Reward or teacher signal"]
+    B --> C["Build training targets"]
+    C --> D["Update policy"]
+    D --> E["Send new weights back"]
     E --> A
 ```
 
-前面三类问题都发生在第三步和第四步，这一类在第五步。
+NeMo RL 做的，就是把这个循环接起来并扩展到多卡、多节点：
 
-难点在于，同一个策略同时存在于两个地方，而且切法不一样。训练侧为了训练而切，推理侧为了服务而切。每走完一步，权重得从前者搬到后者，这个动作叫 refit。如果两边在同一批卡上，走 CUDA IPC 就行，很快；不在同一批卡上，就得过网络。
+- vLLM / SGLang 负责生成 rollout；
+- environment、reward model 或 teacher 提供训练信号；
+- DTensor 或 Megatron Core 负责训练；
+- Ray 负责组织不同 worker；
+- weight refit 把新 policy 送回生成引擎。
 
-维护者开了个 issue：跨节点的权重同步目前只支持 vLLM，能不能也支持 SGLang。（[#3519](https://github.com/NVIDIA-NeMo/RL/pull/3519)，审核中）
+它支持 SFT、DPO、GRPO、PPO 类训练和知识蒸馏，但真正困难的地方不是算法名字，而是数据、模型状态和权重版本能否沿着整个循环保持一致。
 
-根因是两个后端的结构不同。vLLM 让框架的代码跑在引擎进程内部，所以接收循环可以直接把权重写进引擎的显存；而 SGLang 是一个被拉起来的 HTTP 服务子进程，压根没有这个钩子。
+<a id="single-controller"></a>
 
-我的做法是让跨节点传输在 Ray actor 里终结——它和 SGLang 服务在同一个节点上——权重先落到本地显存，最后一跳复用一条已经在生产环境跑着的通道。那条通道的 HTTP 请求里传的是 CUDA IPC 句柄，不是权重数据本身，所以完全不过网络。
+## SingleController 为什么出现
 
-还有一件事得处理：每张卡的传输分桶边界是各算各的，而接收端要求一次请求带上所有卡的载荷，所以两条流得按权重名重新对齐。
+同步训练很容易理解：先等一批 rollout 全部完成，再训练一步，然后更新生成模型。
 
-这个 PR 教我的是别急着写代码。我最初的设计里有个自认为聪明的假设，后来发现 verl 早就解决过同样的问题，而且选了个更好的形状：每张推理卡配一个接收者，而不是把所有接收者塞进同一个 actor。多花两小时读别人的实现，省掉了一次重写。
+问题是 rollout 的时间并不整齐。一个慢 environment 或长回答就能让其他 GPU 等着。SingleController 的做法，是让生成和训练各自持续工作：
 
-至于验证，单卡能证什么、证不了什么，边界是清楚的。能证明 IPC 句柄跨进程导入之后权重逐位正确；证不了跨节点的网络传输，那需要两个节点，我没有。把这条边界老老实实写进 PR，比假装覆盖到了要好。
+```mermaid
+flowchart LR
+    R["Rollout pump"] --> Q[("TransferQueue")]
+    Q --> T["Train pump"]
+    T --> W["Weight sync"]
+    W -. "new policy version" .-> R
+    SC["SingleController<br/>control only"] --> R
+    SC --> T
+```
 
----
+SingleController 本身是一个 CPU-only coordinator。它不搬大 tensor，也不做模型 forward；它负责调度两个 pump、选择哪些 rollout 进入训练、监督异常，并在合适的时候同步权重。
 
-## 附 · 一个不属于上面任何一类的
+TransferQueue 是中间的数据层。Rollout 完成后把结果放进去，trainer 按 sampler policy 取出一批数据训练。
 
-`import` 一下训练入口模块，会连带把 wandb、mlflow、swanlab、matplotlib、fastapi、uvicorn 全拉起来，七千一百五十个模块，差不多九秒。而每次命令行调用、每个 Ray actor、每次跑测试，都要付这笔钱。
+这个设计能够让 generation 和 training overlap，但它也带来一个新问题：trainer 看到的数据可能来自旧 policy。吞吐提高了，freshness、importance correction 和 failure handling 就必须变得更严格。
 
-这件事的关键是别追错源头。我先量了一个看起来很合理的改法，把某个推理后端里的 fastapi 导入挪走，结果模块数七千一百五十，纹丝不动。真正的来源是训练入口引了内存追踪工具，而它引了 Ray 的命令行入口，那个东西把整个 dashboard 栈都拖了进来。
+<a id="current-work"></a>
 
-另一个约束也挺有意思。日志模块的测试里有大约一百处 patch 挂在模块级的名字上，直接把 import 挪进函数会让这些名字消失，一下挂掉二十八个测试。为了一个启动速度的改动去改二十八个测试，是很糟的交换。最后用惰性代理对象绕过去了：名字还在，patch 照常工作，一行测试都没动。
+## 我目前在 SingleController 里补什么
 
-结果是九点零四秒降到三点七七秒，模块数从七千一百五十降到五千二百五十六。（[#3552](https://github.com/NVIDIA-NeMo/RL/pull/3552)，审核中）
+### 先把 distillation 放进这个循环
 
----
+On-policy distillation 可以理解成：student 先生成回答，teacher 再看同一串 token，并告诉 student 自己在这些位置上更偏向哪些输出。
 
-## 回头看
+SingleController 原本已经有 rollout 和 policy update，但中间没有 teacher。我做的事情，是让 teacher 成为 train pump 中一个自然的 stage：
 
-真正能复用的经验不在具体 API 里，而在下面这些工作习惯里。
+```mermaid
+flowchart LR
+    A["Student rollout"] --> Q[("TransferQueue")]
+    Q --> T["Frozen teacher<br/>top-k forward"]
+    T --> Q
+    Q --> L["Distillation loss"]
+    L --> S["Student update"]
+```
 
-**先验证，再提议。** 好几个看起来很漂亮的想法，在动手之前就被我自己推翻了，有的是那个优化早就存在，有的是那条路径根本没人走。能被自己杀掉的想法，就不该让维护者花时间去杀。
+有几个设计我觉得很关键。
 
-**「跑通了」不等于「测到了」。** 我给一个关键函数写的测试，只断言了权重的名字，没断言数值。而实现本身就强制名字一致，所以那个断言在任何排列下都恒为真。我故意把代码改成把每个分片发给错误的卡，整个测试套件依然全绿。这种测试比没有测试更危险，因为它制造虚假的安全感。之后我养成了习惯：写完测试就故意把实现改坏，确认它真的会红。
+Teacher 不需要一套新抽象。它仍然是一种 policy，只是没有 optimizer，也不会更新。Teacher 和 student 也可以复用训练 GPU：student 暂时 offload，teacher 完成 forward 后再退出。这样能省资源，但模型的 load/offload 顺序必须非常清楚。
 
-**主动说出自己没证到的东西。** 每个 PR 我都写一节「我没验证的部分」。看起来像在削弱自己，实际正好相反——审稿人最怕的是看不见的坑，你把边界画出来，他反而敢合。
+另外，distillation 不需要 reward、advantage、previous log-prob 或 reference KL。异步框架不能假设所有算法都消费同一组字段；每种算法应该明确声明自己真正需要什么。
 
-**最贵的错误，是把一个不成立的结论写进公开评论。** 有几次分析给出了很有说服力但错误的结论，回到代码里逐条核对之后，没有一条站得住。在公开场合，一个错误技术论断的成本，远高于晚发半小时。
+最后，teacher 传回来的是 top-k logits 和 vocabulary indices。只要 teacher 与 student 的词表不兼容，数值仍然可能正常流动，但含义已经错了。这类错误应该在模型加载前被拒绝，而不是等 loss 给出一个看似合理的数字。
 
-**把维护看成生态建设，而不是低一等的工作。** 新算法决定能力的上限，但配置、接口、测试、文档和跨后端兼容性，决定这项能力有多少人真的能用、能不能被下一代工作继续继承。一个健康的开源项目需要两者，而且后者往往更缺愿意长期积累上下文的人。
+### 再确认异步没有悄悄改变算法
 
-我希望自己最后不是“在 NeMo-RL 合过一些 PR 的人”，而是能在一个重要子系统里形成可靠判断的人：知道哪里是数学约束，哪里是历史兼容，哪里可以优化，哪里必须先补证据。这种 ownership 才是我觉得开源生态最有价值的部分。
+我逐渐发现，异步重构最危险的 bug 往往不是 crash，而是“配置还在，但没人用了”。
+
+例如被过滤的 sample 是否真的从 loss 里消失，reward scaling 和 advantage clipping 是否真的进入 advantage，KL 的 clamp 是否在 reward 与 loss 两条路径上保持一致，fully-masked microbatch 是否还会污染统计量。
+
+这些问题看起来分别落在 mask、配置和 metric 上，实际上都在检查同一个 invariant：
+
+> **换一个 runtime，不应该顺便换掉训练目标。**
+
+所以我现在读一条训练路径，不会停在“配置字段存在”或“函数被调用”。我会继续追到真正的 consumer，确认这个值最后是否改变了进入梯度的数据。
+
+### 最后让异步系统说清楚自己有多异步
+
+Rollout 和 trainer 同时前进时，训练使用的数据可能来自几次更新之前的 policy。只知道系统吞吐更高还不够，我们还需要知道这批数据到底有多旧：
+
+```text
+trajectory age = current training weight version
+               - rollout starting weight version
+```
+
+这里必须使用 rollout 开始时的 version，因为那才是产生 token 的 policy。生成结束时的 version 只说明生成期间 trainer 前进了多少，并不代表数据来自哪个分布。
+
+同样，rollout pump 结束后，train pump 可能还在 drain queue。这时 watchdog 不能因为主流程进入收尾就没人等待。一个可靠的 async runtime 至少要回答两个问题：**训练用了多旧的数据，以及系统卡住时是否真的有人还在看。**
+
+## 这些设计的取舍
+
+SingleController 并不是无条件更好。
+
+**它带来的好处：**
+
+- rollout 不再被整步 batch barrier 卡住；
+- generation 和 training 可以重叠；
+- tensor 留在 data plane，不绕控制器传输；
+- sampler 可以明确决定吞吐和 freshness 的取舍。
+
+**它新增的成本：**
+
+- 旧 policy 产生的数据需要 importance correction；
+- algorithm-specific fields 更容易漏接；
+- queue、sampler、两个 pump 和 model offload 形成了更复杂的状态机；
+- unit test 能证明局部 invariant，完整多 GPU 路径仍需要 functional validation。
+
+我现在看这类系统不会先问“异步是不是更快”，而是先问：快了以后，我们是否还知道每条数据从哪来、由哪个 policy 产生、经过哪些变换，以及失败时谁负责停下来。
+
+<a id="merged-work"></a>
+
+## 早期贡献怎样把我带到这里
+
+我之前的 merged contributions 主要在数据 correctness 和蒸馏效率。
+
+数据侧，我处理过 silent config、dataset subset 和 checkpoint tie-breaking。这些问题的共同点是：实验表面上能跑，但实际执行的并不是用户配置的实验。
+
+效率侧，我去掉了蒸馏和 inference log-prob 路径里不必要的 full-vocabulary work。核心方法不是“写一个更快的 kernel”，而是先证明最终 loss 只依赖少数列，然后把不会影响结果的 softmax、cast 或 projection 从计算图里删除。
+
+这段经历也解释了我为什么会转向 SingleController：做久以后，最有价值的已经不是再找到一个局部优化，而是开始理解一个完整子系统应该守住哪些 invariant。局部 correctness、数学等价性和分布式数据流原来不是三类互不相干的题，它们最终都在保护同一个实验语义。
+
+## 面试时我会这样讲
+
+> NeMo RL is NVIDIA's open-source runtime for closing the post-training loop between rollout generation, reward or teacher signals, distributed policy updates, and weight synchronization.
+>
+> My recent focus is SingleController, its newer asynchronous path. It overlaps rollout generation and policy training through a shared data plane, which can improve utilization but also makes policy freshness, algorithm-specific data contracts, and failure supervision much more important.
+>
+> I have been using on-policy distillation as a concrete way to extend that architecture: introducing a frozen teacher into the same loop without forcing every algorithm through RL-specific stages. At the same time, I have been auditing whether moving to the new runtime preserves the semantics of masking, reward transformation, KL control, and metric aggregation, and whether the system exposes how stale its training data is.
+>
+> The common theme is not infrastructure for its own sake. It is understanding how an asynchronous learning system can become faster without becoming less faithful to the experiment the researcher intended.
+
+## 我现在最在意的事
+
+我不想把开源贡献写成 PR 数量，也不想把“底层”理解成会背更多系统名词。更重要的是，我开始能对一个区域形成连续判断：哪里是算法语义，哪里是执行细节，哪里可以优化，哪里必须 fail fast，哪里只能等真实多卡证据。
+
+开源给我的最大帮助，是把迷茫变成一个个可以验证的问题。论文告诉我一个方法为什么可能有效，代码告诉我它实际怎样发生，review 和真实 workload 则告诉我自己的理解遗漏了什么。
+
+对我来说，这才是从“修过一些 bug”走向 subsystem ownership 的开始：不是声称自己已经懂了整套系统，而是知道该沿哪条链路继续追、该拿什么证据说服别人，也知道什么时候应该明确地说“这一部分我还没有验证”。
+
+<details>
+<summary>对应实现与 PR，面试需要时再打开</summary>
+
+- SingleController distillation：[top-k data path #3843](https://github.com/NVIDIA-NeMo/RL/pull/3843)、[teacher stage #3846](https://github.com/NVIDIA-NeMo/RL/pull/3846)、[recipe / functional test #3849](https://github.com/NVIDIA-NeMo/RL/pull/3849)
+- Algorithm parity：[sample mask #3786](https://github.com/NVIDIA-NeMo/RL/pull/3786)、[reward / advantage #3787](https://github.com/NVIDIA-NeMo/RL/pull/3787)、[valid samples #3850](https://github.com/NVIDIA-NeMo/RL/pull/3850)、[KL clamps #3853](https://github.com/NVIDIA-NeMo/RL/pull/3853)
+- Runtime safety：[trajectory age #3759](https://github.com/NVIDIA-NeMo/RL/pull/3759)、[watchdog supervision #3783](https://github.com/NVIDIA-NeMo/RL/pull/3783)、[config guards #3854](https://github.com/NVIDIA-NeMo/RL/pull/3854)、[transport validation #3855](https://github.com/NVIDIA-NeMo/RL/pull/3855)
+- Earlier merged work：[dataset config #3271](https://github.com/NVIDIA-NeMo/RL/pull/3271)、[checkpoint selection #3071](https://github.com/NVIDIA-NeMo/RL/pull/3071)、[top-k distillation #3314](https://github.com/NVIDIA-NeMo/RL/pull/3314)、[inference log-prob #3484](https://github.com/NVIDIA-NeMo/RL/pull/3484)、[cross-tokenizer projection #3564](https://github.com/NVIDIA-NeMo/RL/pull/3564)
+
+</details>

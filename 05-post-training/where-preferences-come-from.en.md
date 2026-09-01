@@ -4,7 +4,7 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
-## In one sentence
+## Preference data provides relative order
 
 The **H** in RLHF happens entirely at this step. Everything downstream — PPO, GRPO, DPO — **amplifies the signal this step produced**, and an amplifier cannot produce what isn't in the signal. Whatever the reward model learned wrong, the rest of the pipeline will faithfully optimize toward.
 

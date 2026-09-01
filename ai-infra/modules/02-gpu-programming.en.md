@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Foundation · Freshness: Stable concepts / Evolving hardware · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 GPU performance requires more than launching additional threads. This module studies how a kernel maps onto the GPU and how computation, memory access, synchronization, and scheduling jointly determine performance.
 
@@ -64,7 +64,7 @@ framework graph (`torch.compile` / Inductor)
 
 Higher layers provide faster iteration and portability; lower layers expose more control over layouts, instructions, and scheduling. Graph breaks, shape guards, or recompilation can erase compiler gains, while a custom kernel can lose end-to-end by adding copies or launch overhead. Compare the whole workload before moving down the ladder.
 
-## Quantities to calculate
+## Key calculations
 
 Arithmetic intensity is:
 
@@ -97,7 +97,7 @@ time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 - Small operators may be dominated by launch overhead.
 - Optimizing without understanding tensor layout often targets the wrong data path.
 
-## Mastery check
+## Learning check
 
 - Why does divergence within one warp reduce efficiency?
 - How does tiling reduce HBM traffic?

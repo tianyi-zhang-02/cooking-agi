@@ -160,7 +160,7 @@ def step(p, X, y, lr=0.05):
 
 完整可运行版本在 [`code/why_nonlinear.py`](code/why_nonlinear.py)（PyTorch）和 [`code/make_figures.py`](code/make_figures.py)（生成本页所有图）。
 
-## 动手验证：XOR 不接受“差不多懂了”
+## 用 XOR 验证表达能力
 
 四团高斯点，对角同类。没有任何直线能分开——这就是 1969 年 Minsky & Papert 用来说明感知机做不到什么的例子。
 
@@ -222,13 +222,13 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
   </ol>
 </div>
 
-## 从哪里继续读
+## 继续阅读
 
 - [Transformer 架构](transformer.md) —— 那个 $\phi$ 具体长什么样
 - [Post-Training](../05-post-training/) —— 训练完之后还怎么改它
 - [表征与记忆](../02-memory/) —— $\mathbf{h}$ 里该留下什么
 
-## 起始论文
+## 参考论文
 
 - [Learning representations by back-propagating errors](https://www.nature.com/articles/323533a0) — Rumelhart, Hinton & Williams, 1986
 - [Multilayer feedforward networks are universal approximators](https://www.sciencedirect.com/science/article/abs/pii/0893608089900208) — Hornik et al., 1989

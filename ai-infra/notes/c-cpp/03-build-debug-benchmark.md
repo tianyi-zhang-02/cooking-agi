@@ -70,7 +70,7 @@ Profiler 不直接告诉你修复方案。它提供“时间和资源在哪里�
 4. 检查编译器是否 vectorize inner loop。
 5. 保存一张实验表，解释最快版本为什么更快。
 
-## 记住
+## 关键结论
 
 Test 证明已覆盖输入下的行为，sanitizer 暴露特定错误，profiler 描述资源使用，benchmark 比较受控 workload。四者互相补充，不能替代。
 

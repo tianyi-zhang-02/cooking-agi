@@ -4,7 +4,7 @@
 
 > Reading time: ~10 min · Type: quick reference · Last reviewed: 2026-08
 
-## In one sentence
+## What these questions have in common
 
 These questions look scattered — losses, masks, normalization, RNNs, CNNs — but they fall into three groups: **does the gradient have an undamped path back**, **are training and inference the same thing**, and **is the invariance structural or paid for**. Recognize the group and you don't have to memorize the answer.
 

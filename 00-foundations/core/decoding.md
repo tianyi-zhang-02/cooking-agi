@@ -11,7 +11,7 @@
   <div><span>常见错误</span><strong>以为 temperature 作用在概率上；开放生成里用 beam search</strong></div>
 </div>
 
-## 先分清：模型给的是分布，不是答案
+## 模型输出概率分布，解码策略负责选择
 
 每一步前向之后，模型输出的是词表上的一个概率分布，比如：
 
@@ -68,7 +68,7 @@ $$\text{保留最小的集合 } V^{(p)} \text{ 使得} \sum_{i \in V^{(p)}} p_i 
 
 两者可以叠加：先 top-k 兜住上限，再 top-p 动态收紧。很多实现默认就是这么串的。
 
-## 顺序很重要，而且常被说反
+## 常见的处理顺序
 
 网上不少材料写「先 top-k、再 top-p、最后 temperature」。**实际实现是反过来的。**
 
@@ -111,7 +111,7 @@ $$z_i \leftarrow z_i - \alpha_{\text{presence}}\cdot\mathbb{1}[c_i > 0] - \alpha
 
 一般起点：两个都设 0，出现明显重复再往上加，一次加 0.1–0.3，很少需要超过 1.0。
 
-## Beam search：为什么大模型基本不用它
+## Beam Search：为什么生成式 LLM 很少使用它
 
 Beam search 同时维护 $k$ 条候选序列，每步扩展后按**累积对数概率**保留最好的 $k$ 条，最后输出整体概率最高的那条。
 
@@ -123,7 +123,7 @@ Beam search 同时维护 $k$ 条候选序列，每步扩展后按**累积对数�
 
 所以：**有唯一正解的任务用 beam search，开放生成用采样。**
 
-## 实际怎么设
+## 实际参数怎样设置
 
 | 场景 | temperature | top-p | 说明 |
 | --- | --- | --- | --- |
@@ -154,7 +154,7 @@ Beam search 同时维护 $k$ 条候选序列，每步扩展后按**累积对数�
 
 </details>
 
-## 面试可能会问
+## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>temperature 是作用在 logits 上还是概率上？为什么？</summary>
@@ -237,7 +237,7 @@ top-k 固定保留 $k$ 个候选；top-p 保留累积概率刚好达到 $p$ 的�
   </ol>
 </div>
 
-## 继续读
+## 继续阅读
 
 - [Decoder-only：自回归生成](decoder-only.md)：这些分布是怎么一步步产生的
 - [RLHF 的三个阶段](../../05-post-training/rlhf-pipeline.md)：rollout 采样参数为什么会影响梯度

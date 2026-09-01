@@ -4,7 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：Foundation · 时效性：Stable concepts / Evolving hardware · 最近审阅：2026-08
 
-## 这一模块解决什么
+## 核心问题
 
 GPU 性能不是“开更多线程”这么简单。本模块研究一个 kernel 怎样映射到 GPU，以及计算、访存、同步和调度如何共同决定性能。
 
@@ -64,7 +64,7 @@ framework graph（`torch.compile` / Inductor）
 
 上层迭代更快、可移植性更好；下层能更细地控制 layout、指令和调度。Graph break、shape guard 或 recompile 可能吃掉 compiler 收益，而 custom kernel 也可能因为额外 copy 或 launch overhead 让端到端更慢。只有比较完整 workload 后，才决定是否继续下沉。
 
-## 需要会算
+## 关键计算
 
 Arithmetic intensity：
 
@@ -97,7 +97,7 @@ time ≥ max(FLOPs / compute throughput, bytes / memory bandwidth)
 - 小算子可能主要消耗在 launch overhead；
 - 不理解 tensor layout 时，很容易优化错误的数据路径。
 
-## 掌握检查
+## 学习检查
 
 - 为什么同一 warp 内的分支分歧会降低效率？
 - tiling 怎样减少 HBM 流量？

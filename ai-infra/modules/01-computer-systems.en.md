@@ -4,7 +4,7 @@
 
 > Reading time: ~5 minutes · Level: Foundation · Freshness: Stable · Last reviewed: 2026-08
 
-## What this module solves
+## Core problem
 
 Before optimizing GPUs, training, or inference, it helps to understand how a program is executed by the CPU, operating system, and memory system. This module establishes the first performance question: **is time spent computing, waiting for data, or waiting for other work?**
 
@@ -59,7 +59,7 @@ Virtual addresses are translated through page tables. A TLB caches recent transl
 
 More threads may improve throughput without reducing request latency. Too many threads can instead add scheduling, synchronization, and cache contention.
 
-## Quantities to calculate
+## Key calculations
 
 A basic CPU-time approximation is:
 
@@ -91,7 +91,7 @@ These are not complete performance models, but they reveal useful physical limit
 - Sufficient memory capacity does not imply sufficient bandwidth or low latency.
 - A benchmark that includes initialization, disk reads, or warm-up can support the wrong conclusion.
 
-## Mastery check
+## Learning check
 
 - Why is a sequential scan usually faster than random access?
 - Why does a branch misprediction waste cycles?
