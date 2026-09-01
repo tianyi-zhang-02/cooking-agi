@@ -2,7 +2,7 @@
 
 **中文** · [English](decoder-only.en.md)
 
-> 阅读时间：约 22 分钟 · 难度：必修 · 最近审阅：2026-08
+> 阅读时间：约 28 分钟 · 难度：必修 · 最近审阅：2026-08
 
 <div class="lesson-recipe">
   <div class="recipe-flip" data-concept-card>
@@ -53,6 +53,104 @@ target:  [今,  天, 天, 气, 好]
 回答 token 能通过 self-attention 看见左侧 prompt；prompt token 不需要看见未来回答。原来 encoder–decoder 的条件关系，被 causal sequence 本身表达了。
 
 这不代表 encoder 没价值。双向表征、分类和部分检索任务仍常使用 encoder；decoder-only 的优势是**一个目标统一预训练、条件生成与对话**。
+
+## 从 Messages 到一轮或多轮生成
+
+<div class="bilingual-note bilingual-intro">
+  <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
+  <p>下面两张卡默认中文；点 <strong>English ↻</strong> 可在当前位置查看等价英文。</p>
+</div>
+
+<section class="concept-card" data-concept-card markdown="1">
+<div class="concept-face concept-zh" data-concept-zh markdown="1">
+
+### 1. 推理：最后一个 Assistant 标记是生成起点
+
+用户提交结构化 messages 后，应用先用 [chat template 与 tokenizer](tokenization.md)
+生成带角色边界的 token IDs。典型 prompt 结束在 assistant 起始标记：
+
+```text
+<system> You are helpful <end>
+<user> 你好吗？ <end>
+<assistant>
+```
+
+然后模型重复同一循环：预测下一个 token，把它追加回上下文，再预测下一个；直到产生
+end-of-message / EOS、命中其他 stop condition，或达到长度上限。
+
+```text
+<assistant> → 我 → 很好 → 。 → <end>
+```
+
+角色结构没有改变 decoder 的公式。它只是让“现在该由谁继续说”也成为 token context
+的一部分；模型仍然执行 causal next-token prediction。
+
+</div>
+<div class="concept-face concept-en" data-concept-en markdown="1">
+
+<div class="concept-title-en" role="heading" aria-level="3">1. Inference: the final assistant marker is the generation boundary</div>
+
+After the user submits structured messages, the application uses a
+[chat template and tokenizer](tokenization.md) to create token IDs with role boundaries.
+A typical prompt ends at the assistant-start marker:
+
+```text
+<system> You are helpful <end>
+<user> How are you? <end>
+<assistant>
+```
+
+The model then repeats one loop: predict the next token, append it to the context, and
+predict again. Generation stops on an end-of-message or EOS token, another configured
+stop condition, or a maximum-length limit.
+
+```text
+<assistant> → I → am fine → . → <end>
+```
+
+Role structure does not change the decoder equation. It makes “whose turn is next” part
+of the token context while the model continues ordinary causal next-token prediction.
+
+</div>
+</section>
+
+<section class="concept-card" data-concept-card markdown="1">
+<div class="concept-face concept-zh" data-concept-zh markdown="1">
+
+### 2. 多轮对话只是更长的左侧上下文
+
+第二轮生成时，序列通常包含 system、第一轮 user、第一轮 assistant、第二轮 user，
+最后再加新的 assistant 起始标记。由于 causal attention 可以读取左侧所有未被截断的
+token，新回答能利用此前对话保持连贯。
+
+这不等于模型拥有脱离输入的永久记忆。若历史消息没有重新放进 prompt，模型在当前
+forward pass 里就看不到它；如果总长度超过 context window，应用还必须截断、总结，
+或通过 retrieval / external memory 选回重要信息。
+
+KV cache 只缓存**本次推理序列**里已计算的 K/V，减少重复计算；它不会自动把一次会话
+变成跨会话知识库，也不会替你决定哪些历史值得长期保留。
+
+</div>
+<div class="concept-face concept-en" data-concept-en markdown="1">
+
+<div class="concept-title-en" role="heading" aria-level="3">2. Multi-turn dialogue is a longer left context</div>
+
+For the second response, the sequence usually contains the system message, first user
+turn, first assistant turn, second user turn, and a new assistant-start marker. Causal
+attention can read every untruncated token to the left, so the new response can remain
+consistent with earlier dialogue.
+
+This is not permanent memory independent of the input. If history is not placed back in
+the prompt, the current forward pass cannot see it. When the sequence exceeds the
+context window, the application must truncate, summarize, or recover important facts
+through retrieval or external memory.
+
+KV cache stores already-computed K/V for the **current inference sequence** to avoid
+recomputation. It does not turn one session into a cross-session knowledge base or decide
+which history deserves long-term retention.
+
+</div>
+</section>
 
 ## 现代 Decoder Block：哪些东西真的变了
 
