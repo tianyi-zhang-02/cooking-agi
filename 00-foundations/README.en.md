@@ -50,6 +50,7 @@ After this level, you should be able to draw the complete path from text to logi
 
 | Topic | What to understand | Question you can answer |
 | --- | --- | --- |
+| [From linear models to neural networks](from-linear-to-neural.en.md) | Sigmoid / Softmax / ReLU / Tanh, feature maps, backpropagation, XOR | Why are the four functions not interchangeable, and what does nonlinearity change? |
 | [Sequence gradients and gates](deep-dives/recurrent-dynamics.en.md) | BPTT, Jacobian products, vanishing / exploding gradients, LSTM cell state | Why is remembering first an optimization problem? |
 | [Attention mathematics and shapes](transformer.en.md) | $Q/K/V$, masks, heads, RoPE, GQA, RMSNorm, SwiGLU | Which matrices are multiplied in one attention call? |
 | [Language-model objectives and generation](deep-dives/language-model-objective.en.md) | causal loss, teacher forcing, exposure gap, sampling, cache | Why is training parallel while generation remains sequential? |

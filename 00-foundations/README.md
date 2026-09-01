@@ -50,6 +50,7 @@ flowchart LR
 
 | 专题 | 真正要弄懂的东西 | 读完能回答 |
 | --- | --- | --- |
+| [从线性模型到神经网络](from-linear-to-neural.md) | Sigmoid / Softmax / ReLU / Tanh、特征映射、反向传播、XOR | 四个函数为什么不能互换？非线性到底改变了什么？ |
 | [序列梯度与门控](deep-dives/recurrent-dynamics.md) | BPTT、Jacobian 连乘、梯度消失 / 爆炸、LSTM cell state | 为什么“能记住”首先是一个优化问题？ |
 | [注意力的数学与形状](transformer.md) | $Q/K/V$、mask、多头、RoPE、GQA、RMSNorm、SwiGLU | 一次 attention 到底乘了哪些矩阵？ |
 | [语言模型目标与生成](deep-dives/language-model-objective.md) | causal loss、teacher forcing、exposure gap、sampling、cache | 训练时一次并行算完，为什么生成时仍要逐 token？ |

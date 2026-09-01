@@ -110,6 +110,111 @@ def fit_logistic(X, y, lr=0.1, steps=2000):
     return w, b
 ```
 
+## 四个常见函数：看起来都在“变数值”，角色完全不同
+
+$$
+\boxed{
+\begin{aligned}
+\text{Sigmoid}&:\text{独立的软开关或二分类概率}\\
+\text{Softmax}&:\text{在多个选项之间分配总量为 1 的概率}\\
+\text{ReLU}&:\text{给隐藏层引入分段线性非线性}\\
+\text{Tanh}&:\text{产生带正负方向的有界状态}
+\end{aligned}}
+$$
+
+| 函数 | 怎样处理输入 | 输出范围 | 输出和为 1？ | 导数 / Jacobian | 典型角色 |
+| --- | --- | --- | --- | --- | --- |
+| Sigmoid | 逐元素 | $(0,1)$ | 否 | $\sigma(x)(1-\sigma(x))$ | 二分类、多标签、gate |
+| Softmax | 一个向量联合归一化 | 每项 $(0,1)$ | **是** | $p_i(\delta_{ij}-p_j)$ | 多分类、attention、词表分布 |
+| ReLU | 逐元素 | $[0,\infty)$ | 否 | $\mathbf 1[x>0]$（$x=0$ 取约定的 subgradient） | 隐藏层非线性 |
+| Tanh | 逐元素 | $(-1,1)$ | 否 | $1-\tanh^2(x)$ | RNN state、LSTM candidate |
+
+最重要的分类不是“输出长什么样”，而是**元素是否竞争**。Sigmoid、ReLU、Tanh 对每个元素独立计算；Softmax 的每个输出都依赖整条输入向量，增大一个 logit 会改变其他类别的相对概率。
+
+<details class="interview" markdown="1">
+<summary>Sigmoid：什么时候把一个 logit 解释成概率或开关？</summary>
+
+$$
+\sigma(x)=\frac{1}{1+e^{-x}},\qquad \sigma'(x)=\sigma(x)(1-\sigma(x)).
+$$
+
+$x=0$ 输出 $0.5$；很大的负数趋近 0，很大的正数趋近 1。一个 binary classifier 可以把 $\sigma(z)$ 解释为正类概率；multi-label classifier 则对每个标签独立做 sigmoid，因此“人、汽车、道路”可以同时为真。LSTM 的 forget / input / output gate 也使用它，把每个通道控制在 0 到 1。
+
+代价是饱和：导数最大只有 $0.25$，$|x|$ 很大时趋近 0。因此它适合**输出与门控语义**，而不是现代深层网络的一般隐藏层。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Tanh：为什么 RNN 状态需要正负都有的有界值？</summary>
+
+$$
+\tanh(x)=\frac{e^x-e^{-x}}{e^x+e^{-x}},\qquad
+\tanh'(x)=1-\tanh^2(x),qquad
+\tanh(x)=2\sigma(2x)-1.
+$$
+
+Tanh 以 0 为中心，把值压进 $(-1,1)$。普通 RNN 用
+
+$$h_t=\tanh(W_xx_t+W_hh_{t-1}+b),$$
+
+LSTM 用它生成带正负方向的 candidate memory。Sigmoid gate 回答“通过多少”，tanh candidate 回答“写入什么带符号的内容”。它同样会在大绝对值区域饱和，所以不能解决长距离梯度消失；LSTM 真正关键的是 cell-state 的加法通路。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>ReLU：为什么一个简单的 max 能让深层网络不再等价于线性层？</summary>
+
+$$
+\operatorname{ReLU}(x)=\max(0,x),\qquad
+\operatorname{ReLU}'(x)=\begin{cases}0,&x<0\\1,&x>0.\end{cases}
+$$
+
+没有 activation 时，$W_2(W_1x)=(W_2W_1)x$，多层仍是一层线性映射。ReLU 在不同输入区域打开不同的线性路径，使网络成为 piecewise-linear function。正区间的导数为 1，避免了 sigmoid / tanh 的正侧饱和，计算也很便宜。
+
+若一个单元长期落在负区间，输出和梯度都为 0，可能出现 dying ReLU。Leaky ReLU 保留负侧小斜率；现代 Transformer FFN 则更常见 GELU、SiLU 与 SwiGLU。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Softmax：为什么它不是逐元素 activation？</summary>
+
+$$
+p_i=\operatorname{softmax}(z)_i=rac{e^{z_i}}{\sum_j e^{z_j}},
+\qquad \sum_i p_i=1.
+$$
+
+Softmax 把整组 logits 变成一个 categorical distribution。$[2,1,0]$ 大约变成 $[0.665,0.245,0.090]$。它用于 mutually exclusive 多分类、attention 每一行的权重，以及语言模型的 next-token distribution。
+
+它对整体平移不变，因此稳定实现先减最大值：
+
+$$
+\operatorname{softmax}(z)=\operatorname{softmax}(z-\max_j z_j).
+$$
+
+这一步避免 $e^{z_i}$ 上溢但不改变结果。Softmax 本身不是“选最大值”；它保留多个非零权重，只是在 logit 差距很大时趋近 one-hot 并出现饱和。
+
+</details>
+
+### Sigmoid 与 Softmax：独立标签还是互斥选择
+
+| 问题 | 输出层 | 原因 |
+| --- | --- | --- |
+| “图片里有哪些物体？” | 每类独立 Sigmoid + BCE | 人、车、道路可以同时出现，概率不必和为 1 |
+| “图片的唯一主类别是什么？” | Softmax + categorical CE | 类别相互竞争，概率总和为 1 |
+| “是否为正类？” | 单 logit Sigmoid，或两个 logits 的 Softmax | 二分类时，两类 Softmax 等价于对 logit difference 做 Sigmoid |
+
+### 把四者放回模型
+
+```text
+LSTM gates                 → Sigmoid：每个通道通过多少
+LSTM candidate / RNN state → Tanh：写入带正负方向的值
+Transformer attention      → row-wise Softmax：在 key 之间分配注意力
+LM head                    → vocabulary Softmax：下一个 token 的分布
+Vanilla Transformer FFN    → ReLU；现代模型多用 GELU / SiLU / SwiGLU
+```
+
+一句话记忆：**Sigmoid 像独立阀门，Softmax 像在候选项之间分票，ReLU 像截断负半轴，Tanh 像把带方向的状态压进 $(-1,1)$。**
+
 ## 神经网络真正多做的事：把 $\phi$ 学出来
 
 $$\mathbf{h} = \phi(W_1 \mathbf{x} + \mathbf{b}_1), \qquad \hat{y} = \sigma(\mathbf{w}_2^\top \mathbf{h} + b_2)$$
@@ -219,6 +324,8 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
     <li>为什么很多层 linear layer 中间没有 activation，最后仍然只是一层 linear？</li>
     <li>sigmoid + cross-entropy 真正改善的是表达能力，还是优化行为？</li>
     <li>“隐藏层学习一个新坐标系”这句话，怎样用 XOR 的图来证明？</li>
+    <li>为什么 multi-label 用 Sigmoid，而 mutually exclusive multi-class 用 Softmax？</li>
+    <li>为什么 LSTM 的 gate 用 Sigmoid，而 candidate memory 用 Tanh？</li>
   </ol>
 </div>
 
