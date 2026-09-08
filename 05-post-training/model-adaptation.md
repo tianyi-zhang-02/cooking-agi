@@ -93,8 +93,17 @@ $P$ 叫 **soft prompt**。它不是一句隐藏的自然语言，也不对应词
 Transformer，但只有 $P$ 更新：
 
 $$
-\nabla_\theta\mathcal L=0,qquad \nabla_P\mathcal L\neq0.
+\nabla_\theta\mathcal L=0,\qquad \nabla_P\mathcal L\neq0.
 $$
+
+它的直接参数量就是：
+
+$$
+N_{\text{prompt}}=m\,d_{model}.
+$$
+
+例如 prompt length $m=4$、hidden dimension $d_{model}=1024$，只训练
+$4\times1024=4096$ 个参数；embedding table 与其余模型参数全部不动。
 
 每个任务可以保存一份很小的 $P_k$，共享同一个大模型：
 
@@ -140,7 +149,26 @@ pretraining、LoRA 或 full fine-tuning。
 ### Prefix Tuning：不只在输入层加向量
 
 Prompt Tuning 通常只在 embedding 层加 virtual tokens；Prefix Tuning 为每一层 attention
-提供可学习的 prefix key/value。它更直接影响各层注意力，参数更多、表达力也通常更强：
+直接提供可学习的 prefix key/value：
+
+$$
+K_l'=[P_l^K;K_l],\qquad V_l'=[P_l^V;V_l].
+$$
+
+普通 token 的 Query 可以在每一层关注这些虚拟 K/V。若每层的总 KV 维度是
+$d_{KV}=n_{kv\_heads}d_{head}$，直接存储 prefix KV 的规模近似为：
+
+$$
+N_{\text{prefix}}\approx2Lmd_{KV}.
+$$
+
+标准 MHA 中 $d_{KV}=d_{model}$，因此就是你记的 $2\times L\times m\times d_{model}$。
+例如 $L=24,m=4,d_{model}=1024$，大约是 $196{,}608$ 个 prefix KV 参数。GQA / MQA
+因为 KV heads 更少，应当使用 $d_{KV}$，不能直接套 $d_{model}$。
+
+有些实现用一个小 MLP 生成每层 prefix K/V，所以上式更准确地说是**最终 prefix-state
+规模**；若采用 reparameterization，实际 trainable parameter count 还要把 MLP 算进去。
+它比 Prompt Tuning 更直接影响各层注意力，参数更多、表达力也通常更强：
 
 ```text
 Prompt Tuning：input embedding 前加 P
@@ -148,6 +176,15 @@ Prefix Tuning：每一层 attention 都加入 learned K/V prefix
 ```
 
 两者都属于 parameter-efficient fine-tuning（PEFT），但不是同一个机制。
+
+<details class="interview" markdown="1">
+<summary>一句话分清：为什么 Prompt Tuning 也会产生每层 K/V，却仍不等于 Prefix Tuning？</summary>
+
+Prompt tokens 像普通 token 一样从输入层逐层传播，因此当然会在每层产生 K/V；但这些
+状态都由**同一组输入 embeddings 间接演化**而来。Prefix Tuning 则为各层直接提供
+layer-specific prefix K/V，每层拥有独立控制信号。
+
+</details>
 
 ## 分类输出怎么保证只落在合法标签里
 

@@ -99,8 +99,18 @@ indices). It generally cannot be translated into readable words. Gradients pass 
 the Transformer, but only $P$ updates:
 
 $$
-\nabla_\theta\mathcal L=0,qquad \nabla_P\mathcal L\neq0.
+\nabla_\theta\mathcal L=0,\qquad \nabla_P\mathcal L\neq0.
 $$
+
+Its direct parameter count is
+
+$$
+N_{\text{prompt}}=m\,d_{model}.
+$$
+
+For prompt length $m=4$ and hidden dimension $d_{model}=1024$, only
+$4\times1024=4096$ parameters train. The embedding table and all other model weights
+remain frozen.
 
 Each task can store a tiny $P_k$ while sharing one large model:
 
@@ -149,7 +159,28 @@ is more appropriate.
 ### Prefix Tuning: parameters enter every layer
 
 Prompt Tuning usually adds virtual tokens only at the embedding layer. Prefix Tuning
-provides learned prefix keys and values to attention at every layer. It influences each
+directly provides learned prefix keys and values to attention at every layer:
+
+$$
+K_l'=[P_l^K;K_l],\qquad V_l'=[P_l^V;V_l].
+$$
+
+Ordinary token queries can attend to these virtual K/V states at every layer. If the
+total KV dimension per layer is $d_{KV}=n_{kv\_heads}d_{head}$, the directly stored
+prefix KV state has approximate size
+
+$$
+N_{\text{prefix}}\approx2Lmd_{KV}.
+$$
+
+For standard MHA, $d_{KV}=d_{model}$, giving the familiar
+$2\times L\times m\times d_{model}$. With $L=24,m=4,d_{model}=1024$, that is about
+$196{,}608$ prefix KV parameters. GQA and MQA have fewer KV heads, so use $d_{KV}$
+rather than blindly substituting $d_{model}$.
+
+Some implementations use a small MLP to generate layer-wise prefix K/V. The expression
+above then describes the **final prefix-state size**; the actual trainable parameter
+count must also include the reparameterization network. Prefix Tuning influences every
 attention block more directly, uses more parameters, and often has greater capacity:
 
 ```text
@@ -158,6 +189,16 @@ Prefix Tuning: add learned K/V prefixes at every attention layer
 ```
 
 Both are parameter-efficient fine-tuning (PEFT), but they are different mechanisms.
+
+<details class="interview" markdown="1">
+<summary>One-sentence distinction: Prompt Tuning also produces K/V at every layer, so why is it different?</summary>
+
+Prompt tokens propagate like ordinary tokens and therefore produce K/V at every layer,
+but those states evolve indirectly from **one shared set of input embeddings**. Prefix
+Tuning directly supplies layer-specific prefix K/V, giving each layer its own control
+signal.
+
+</details>
 
 ## Guaranteeing valid classification output
 
