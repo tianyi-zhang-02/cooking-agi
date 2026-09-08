@@ -15,30 +15,31 @@ Post-training is fundamentally a problem of turning imperfect observations of hu
 
 ## How to read this series
 
-Post-training comes down to two things: **teaching by demonstration (SFT)** and **teaching by outcome (RL)**. The series is ordered by dependency — skip ahead and the later pieces won't land.
+Model adaptation begins with two questions: **what supplies the learning signal**, and **which parameters may change**. Post-training then shapes behavior through demonstrations, preferences, and outcomes. The series is ordered by dependency — skip ahead and the later pieces will not land.
 
 **I. Foundations: why more teaching is needed**
 
 1. Why pretraining isn't enough (this page) — what learning problem SFT, preference learning, and RL each solve
-2. [SFT: how far imitation goes, and where it stops](sft-and-its-ceiling.en.md) — why cross-entropy can't see the pivotal token, and how demonstrations that always contain an answer train hallucination in
-3. [Where preferences come from](where-preferences-come-from.en.md) — Bradley-Terry learns order but not scale, and a reward model **expires** as the policy drifts
+2. [Model adaptation: Full Fine-Tuning, LoRA, Prompt Tuning, and Distillation](model-adaptation.en.md) — separate the learning objective from parameterization, then constrain classification output at serving time
+3. [SFT: how far imitation goes, and where it stops](sft-and-its-ceiling.en.md) — why cross-entropy can't see the pivotal token, and how demonstrations that always contain an answer train hallucination in
+4. [Where preferences come from](where-preferences-come-from.en.md) — Bradley-Terry learns order but not scale, and a reward model **expires** as the policy drifts
 
 **II. Teaching by outcome: the RL line**
 
-4. [The three stages of RLHF, and what came after](rlhf-pipeline.en.md) — four models, which train and which are frozen
-5. [After PPO: every algorithm deletes one of its parts](after-ppo.en.md) — one reading that covers GRPO / RLOO / REINFORCE++ / DAPO / DPO
-6. [Verifiable rewards: when the reward doesn't need learning](verifiable-rewards.en.md) — it narrows reward hacking without eliminating it; verifiability is a spectrum, not a binary
+5. [The three stages of RLHF, and what came after](rlhf-pipeline.en.md) — four models, which train and which are frozen
+6. [After PPO: every algorithm deletes one of its parts](after-ppo.en.md) — one reading that covers GRPO / RLOO / REINFORCE++ / DAPO / DPO
+7. [Verifiable rewards: when the reward doesn't need learning](verifiable-rewards.en.md) — it narrows reward hacking without eliminating it; verifiability is a spectrum, not a binary
 
 **III. Actually running it**
 
-7. [Post-training infrastructure: sampling, numerics, context](post-training-infrastructure.en.md) — none of the three changes the objective; all of them decide what you can do to it. **The least discussed layer, and often where runs actually stall**
-8. [How far one base model can go](same-base-different-posttraining.en.md) — a rare natural experiment: base pinned, post-training only, showing what those three are worth
+8. [Post-training infrastructure: sampling, numerics, context](post-training-infrastructure.en.md) — none of the three changes the objective; all of them decide what you can do to it. **The least discussed layer, and often where runs actually stall**
+9. [How far one base model can go](same-base-different-posttraining.en.md) — a rare natural experiment: base pinned, post-training only, showing what those three are worth
 
 **IV. What it costs**
 
-9. [The alignment tax: what you lose by becoming agreeable](alignment-tax.en.md) — trading distribution width for out-of-distribution robustness. **pass@1 up with pass@k down means you compressed the distribution into a point**
+10. [The alignment tax: what you lose by becoming agreeable](alignment-tax.en.md) — trading distribution width for out-of-distribution robustness. **pass@1 up with pass@k down means you compressed the distribution into a point**
 
-All nine are written; the line closes: **why teaching is still needed → teach by demonstration → teach by outcome → how it actually runs → what it costs.**
+The ten notes now form one line: **choose supervision and parameterization → teach by demonstration → teach by outcome → make it run → measure what it costs.**
 
 Read in order it's about an hour. If you're here for one specific problem, the "In one sentence" opener of each piece is the index.
 
