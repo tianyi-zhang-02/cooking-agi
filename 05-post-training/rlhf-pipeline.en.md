@@ -2,7 +2,7 @@
 
 [中文](rlhf-pipeline.md) · **English**
 
-> Reading time: ~18 min · Level: core · Last reviewed: 2026-09
+> Reading time: ~22 min · Level: core · Last reviewed: 2026-09
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>turning "people prefer this answer" into something optimisable</strong></div>
@@ -45,7 +45,46 @@ The cost is a layer of indirection. You are no longer optimising human preferenc
 
 ## Mapping ordinary RL onto a language model
 
-Supervised learning usually supplies a target answer. Reinforcement learning (**RL**) instead evaluates the outcome of a sequence of behaviour. The model can learn the score of a rollout without being told which individual step caused it or what the correct replacement action was.
+The cleanest way to understand RL is to separate two layers: the **environment layer** describes how the world changes, while the **learning layer** describes how an agent improves its policy from experience. Supervised learning usually supplies a target answer. Reinforcement learning (**RL**) instead evaluates the outcome of a sequence of behaviour. The model can learn the score of a rollout without being told which individual step caused it or what the correct replacement action was.
+
+### Environment layer: how the world works
+
+| Component | Question it answers | Driving example |
+| --- | --- | --- |
+| **State** $s_t$ | What is the complete situation of the world? | position, speed, nearby traffic, and road conditions |
+| **Observation** $o_t$ | What information can the agent actually see? | camera, LiDAR, and speedometer readings |
+| **Policy** $\pi_\theta(a\mid o)$ | How should actions be distributed from this input? | assign braking high probability at a red light |
+| **Action** $a_t$ | What did the agent actually do? | steer, accelerate, or brake |
+| **Dynamics** $P$ | How does an action change the world? | how braking changes speed and position |
+| **Reward** $r_t$ | What score did this step or outcome receive? | positive for safe progress, negative for a collision |
+
+One transition or experience is commonly written as
+
+$$
+(s_t,a_t,r_t,s_{t+1}),
+$$
+
+and a sequence of them forms a trajectory:
+
+$$
+\tau=(s_0,a_0,r_0,s_1,a_1,r_1,\ldots).
+$$
+
+**State need not equal observation.** State is the complete information needed to determine how the world evolves; observation is the signal available to the agent. Textbook MDPs often assume $o_t=s_t$. Robots, games, and conversational agents are often partially observed and closer to POMDPs. Their policies must act from observations or a summary of history rather than an inaccessible true state.
+
+### Learning layer: how policy behaviour is judged
+
+| Quantity | Question it answers |
+| --- | --- |
+| Immediate reward $r_t$ | “What feedback did I receive now?” |
+| Return $G_t$ | “What did this rollout actually receive from now onward?” |
+| Value $V^\pi(s_t)$ | “What do I normally expect if the current policy continues from here?” |
+| Q-value $Q^\pi(s_t,a_t)$ | “What do I expect after choosing this particular action here?” |
+| Advantage $A_t$ | “Was this action better or worse than normal here?” |
+
+The first layer produces experience; the second turns experience into a training signal. Reward is feedback from the environment or evaluator. Return, value, Q, and advantage are quantities constructed or estimated for learning.
+
+### Mapping the pieces onto a language model
 
 Language generation can be written directly as sequential decision-making:
 
@@ -88,11 +127,62 @@ $$A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).$$
 
 It asks not whether the total score is high, but how much better this action was than the normal expectation at that state. The same return of $0.6$ is disappointing if the Critic predicted $0.8$ and encouraging if it predicted $0.2$. Subtracting this baseline leaves the expected policy gradient unchanged while greatly reducing its variance.
 
+### Bellman equations update value, not reward
+
+The Bellman equation writes long-term value as a one-step recursion:
+
+$$
+V^\pi(s_t)
+=\mathbb E_{a_t\sim\pi,\,s_{t+1}\sim P}
+\left[r_t+\gamma V^\pi(s_{t+1})\right].
+$$
+
+It is not a rule for modifying rewards. The environment, Reward Model, or verifier normally supplies $r_t$; the Bellman relation uses that observed reward and the next state's value to update the current **value estimate**. Expanding the recursion gives
+
+$$
+V^\pi(s_t)=\mathbb E[r_t+\gamma r_{t+1}+\gamma^2r_{t+2}+\cdots].
+$$
+
+When $0<\gamma<1$, distant rewards receive less weight. The discount also defines an effective planning horizon and helps keep returns finite in continuing tasks. Discounting distant outcomes is not part of the definition of RL, however: finite LLM episodes often use $\gamma=1$, so a terminal reward does not shrink merely because a token occurred earlier.
+
+One observed transition gives a one-step TD target:
+
+$$
+y_t=r_t+\gamma V_\phi(s_{t+1}),
+\qquad
+\delta_t=y_t-V_\phi(s_t).
+$$
+
+$\delta_t$ is the **temporal-difference error**: the difference between the new target—one-step reward plus future value—and the old estimate. Monte Carlo uses the complete $G_t$, giving low bias but high variance. TD bootstraps from a value estimate, reducing variance while introducing approximation bias. PPO commonly uses GAE to interpolate between these behaviours.
+
 The central policy-gradient expression is therefore
 
 $$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
 
 When $\hat A_t>0$, increase the probability of the sampled action; when it is negative, decrease it. The expression directly updates sampled tokens, with shared parameters carrying the effect to other states. The Critic regresses $V_\phi(s_t)$ toward returns or bootstrapped targets. Its main job is **variance reduction**, not choosing the Actor's next token.
+
+### On-policy, off-policy, and offline RL
+
+The distinction is not whether the code is literally running online. Ask instead: **is the behaviour policy that generated the data the same as, or sufficiently close to, the target policy being learned?**
+
+| Setting | How data is produced | Typical property |
+| --- | --- | --- |
+| **On-policy** | the current or recent policy samples new trajectories | matched distribution, but rollouts are expensive and data expires quickly |
+| **Off-policy** | another behaviour policy or an older policy generated the data | can reuse replay buffers and logs, but must handle distribution mismatch |
+| **Offline RL** | training receives one fixed dataset and cannot collect more environment interaction | usually a special off-policy setting, strongly limited by dataset coverage |
+
+PPO samples with $\pi_{\text{old}}$ and performs several constrained updates to $\pi_\theta$ on that batch. Although both old and new policies appear, they remain close and the batch is soon replaced by fresh rollouts, so PPO is still on-policy or near-on-policy. Off-policy is not synonymous with offline: SAC may keep collecting data while repeatedly learning from replay-buffer experience produced by earlier policies.
+
+Standard DPO uses fixed chosen/rejected pairs and therefore has offline-data characteristics, but it has no Bellman backup, Critic, or environment rollout. **Offline preference optimization** is more precise than calling it classical off-policy RL.
+
+<details class="interview" markdown="1">
+<summary>When does industry actually need RL?</summary>
+
+RL is most useful when an action changes later states and the product cares about long-term outcomes. Recommenders may trade immediate clicks against long-term retention; ad systems balance conversions, budgets, and user experience; logistics and robotics optimise interdependent action sequences; Conversational AI can treat retrieval, tool calls, clarification, answers, and human escalation as one episode.
+
+Real exploration can harm users or incur cost. Production systems therefore combine logged data, simulation, offline evaluation, action constraints, limited exploration, and controlled A/B tests. The algorithm name is not the first decision: define state, action, and reward; determine whether reward is verifiable, who generates the data, and whether new trajectories can be collected safely.
+
+</details>
 
 ### A Reward Model is not a Critic
 

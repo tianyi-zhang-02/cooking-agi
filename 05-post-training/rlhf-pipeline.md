@@ -2,7 +2,7 @@
 
 **中文** · [English](rlhf-pipeline.en.md)
 
-> 阅读时间：约 18 分钟 · 难度：必修 · 最近审阅：2026-09
+> 阅读时间：约 22 分钟 · 难度：必修 · 最近审阅：2026-09
 
 <div class="lesson-recipe">
   <div><span>解决什么问题</span><strong>把「人更喜欢哪个回答」变成可优化的目标</strong></div>
@@ -44,7 +44,46 @@ Clipping 限制一次 optimizer update 相对 rollout policy 的 ratio；referen
 
 ## 先把普通 RL 映射到语言模型
 
-监督学习通常直接给出目标答案；强化学习（Reinforcement Learning, **RL**）只评价一段行为的结果。模型知道这次得了多少分，却未必知道是哪一步造成的，也没有一个逐步的标准答案可以照抄。
+理解 RL 最清楚的方式，是先把它拆成两层：**环境层**描述世界怎样变化，**学习层**描述 agent 怎样从经验中改进 policy。监督学习通常直接给出目标答案；强化学习（Reinforcement Learning, **RL**）只评价一段行为的结果。模型知道这次得了多少分，却未必知道是哪一步造成的，也没有一个逐步的标准答案可以照抄。
+
+### 环境层：世界如何运行
+
+| Component | 它回答什么问题 | 自动驾驶例子 |
+| --- | --- | --- |
+| **State**（状态）$s_t$ | 世界此刻的完整情况是什么？ | 车辆位置、速度、周围车辆和路况 |
+| **Observation**（观测）$o_t$ | agent 实际看到了什么？ | camera、LiDAR、speedometer |
+| **Policy**（策略）$\pi_\theta(a\mid o)$ | 看到这些信息后，动作怎样分布？ | 红灯前给刹车更高概率 |
+| **Action**（动作）$a_t$ | agent 真正做了什么？ | 转向、加速或刹车 |
+| **Dynamics**（转移规律）$P$ | 动作会怎样改变世界？ | 刹车后速度和位置如何变化 |
+| **Reward**（奖励）$r_t$ | 这一步或最终结果得到什么评分？ | 安全行驶为正，碰撞为负 |
+
+一次 transition / experience 常写成
+
+$$
+(s_t,a_t,r_t,s_{t+1}),
+$$
+
+把许多步连起来便得到 trajectory：
+
+$$
+\tau=(s_0,a_0,r_0,s_1,a_1,r_1,\ldots).
+$$
+
+**State 不一定等于 observation。** State 是决定未来演化所需的完整世界信息；observation 是 agent 能取得的部分信号。教科书 MDP 常假设 $o_t=s_t$，现实中的机器人、游戏和对话 agent 往往只能部分观测，此时更接近 POMDP。Policy 实际只能根据 observation 或历史摘要做决定，而不是读取不可见的真实 state。
+
+### 学习层：怎样判断 policy 的行为
+
+| Quantity | 它回答的问题 |
+| --- | --- |
+| Immediate reward $r_t$ | “我现在拿到了什么反馈？” |
+| Return $G_t$ | “这次 rollout 从现在往后实际拿了多少？” |
+| Value $V^\pi(s_t)$ | “从这里按当前 policy 继续，平均预计拿多少？” |
+| Q-value $Q^\pi(s_t,a_t)$ | “在这里先做这个 action，平均预计拿多少？” |
+| Advantage $A_t$ | “这个 action 比这里的正常选择好还是差？” |
+
+前一层产生 experience，后一层把 experience 转成训练信号。Reward 是环境或 evaluator 给出的反馈；return、value、Q 和 advantage 是为了学习而构造或估计的量。
+
+### 映射到语言模型
 
 语言模型生成一句话，正好可以写成一段序列决策：
 
@@ -87,11 +126,62 @@ $$A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).$$
 
 它问的不是「这次总分高不高」，而是「这个动作相对当前状态下的正常预期，好了多少」。同样拿到 $0.6$ 的回报：如果 Critic 原本预测 $0.8$，它低于预期；如果原本只预测 $0.2$，它就明显高于预期。减去这个 baseline 不会改变期望中的策略梯度，却能显著降低方差。
 
+### Bellman equation：更新的是 value，不是 reward
+
+Bellman equation 把长期价值写成一步递归：
+
+$$
+V^\pi(s_t)
+=\mathbb E_{a_t\sim\pi,\,s_{t+1}\sim P}
+\left[r_t+\gamma V^\pi(s_{t+1})\right].
+$$
+
+它不是一种“修改 reward 的规则”。$r_t$ 通常由环境、Reward Model 或 verifier 给出；Bellman relation 用这个观测到的 reward 和下一状态的 value，更新当前的 **value estimate**。展开递归便是
+
+$$
+V^\pi(s_t)=\mathbb E[r_t+\gamma r_{t+1}+\gamma^2r_{t+2}+\cdots].
+$$
+
+当 $0<\gamma<1$ 时，越远的 reward 权重越小；$\gamma$ 同时定义有效 planning horizon，并在无限时域问题中帮助回报保持有限。但“远期必然折扣”不是 RL 的定义：有限长度的 LLM episode 常使用 $\gamma=1$，让 terminal reward 对前面 token 不因距离而衰减。
+
+使用一次实际 transition，可以构造 one-step TD target：
+
+$$
+y_t=r_t+\gamma V_\phi(s_{t+1}),
+\qquad
+\delta_t=y_t-V_\phi(s_t).
+$$
+
+$\delta_t$ 是 **temporal-difference error**（时序差分误差）：新观察到的“一步 reward 加未来估值”与旧估值相差多少。Monte Carlo 直接使用完整 $G_t$，偏差低但方差高；TD 会 bootstrap，方差低但引入 value approximation bias。PPO 常用 GAE 在两者之间调节。
+
 策略梯度的核心因此可以写成：
 
 $$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
 
 $\hat A_t>0$ 时，提高这次采样动作的概率；$\hat A_t<0$ 时，降低它。这个公式只直接更新实际采样到的 token，并通过共享参数影响其他状态下的分布。Critic 则用 return 或 bootstrapped target 回归 $V_\phi(s_t)$；它的主要作用是**降低估计方差**，不是替 Actor 决定下一个 token。
+
+### On-policy、off-policy 与 offline RL
+
+判断标准不是“代码是否在线运行”，而是：**生成训练数据的 behavior policy，与正在学习的 target policy 是不是同一个或足够接近。**
+
+| Setting | 数据怎样产生 | 典型特点 |
+| --- | --- | --- |
+| **On-policy** | 当前或最近的 policy 采样新 trajectory | 分布匹配，但 rollout 贵，旧数据很快失效 |
+| **Off-policy** | 另一个 behavior policy 或历史 policy 产生数据 | 能复用 replay buffer / logs，但要处理 distribution mismatch |
+| **Offline RL** | 只有一份固定数据集，训练时不能再与环境交互 | 通常是 off-policy 的特殊情形，最受数据覆盖范围限制 |
+
+PPO 用 $\pi_{\text{old}}$ 采一批数据，再让 $\pi_\theta$ 在这批数据上做几次受限更新，看起来同时有 old/new policy；但二者足够接近，而且数据很快会被新 rollout 替换，所以仍属于 on-policy / near-on-policy。Off-policy 则不等于 offline：SAC 可以一边继续收集数据，一边反复学习 replay buffer 中由过去策略生成的经验。
+
+标准 DPO 使用固定 chosen/rejected pairs，具有 offline data 的特征，但没有 Bellman backup、Critic 或环境 rollout；更准确的名字是 **offline preference optimization**，而不是经典 off-policy RL。
+
+<details class="interview" markdown="1">
+<summary>工业里什么时候真的需要 RL？</summary>
+
+当一个动作会改变后续状态，而且产品关心的是长期结果时，RL 的抽象最有价值：推荐系统要权衡即时点击与长期留存；广告系统要同时考虑转化、预算和用户体验；物流与机器人要优化一连串相互影响的动作；Conversational AI 要把检索、工具调用、澄清、回答和人工升级看成完整 episode。
+
+真实探索会伤害用户或产生成本，因此工业系统通常组合 logged data、simulation、offline evaluation、action constraints、小流量探索和 A/B test。算法名字不是第一步：先定义 state/action/reward，确认 reward 能否验证、数据由谁生成，以及是否允许安全地收集新 trajectory。
+
+</details>
 
 ### Reward Model 不是 Critic
 
