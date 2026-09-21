@@ -38,6 +38,10 @@ jobs:
       - name: Leak check
         run: python site/leakcheck.py
 
+      # 报告用，不拦截：中英两版结构是否一致（缺英文版、少章节、少公式）。
+      - name: Check zh/en parity
+        run: python site/paritycheck.py
+
       - name: Build
         env:
           GITHUB_TOKEN: ${{ github.token }}
