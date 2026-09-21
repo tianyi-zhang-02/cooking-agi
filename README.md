@@ -10,6 +10,18 @@
 
 ---
 
+<!-- widget:roadmap -->
+
+<!-- widget:blocks -->
+
+<!-- widget:gallery -->
+
+<!-- widget:threads -->
+
+<!-- widget:categories -->
+
+<!-- widget:about-head -->
+
 这个仓库记录我对现代 AI 系统的学习与实践理解。
 
 我想弄明白的，不只是“怎样训练一个更大的模型”，而是怎样把数据、记忆、搜索、工具、反馈和评估放在一起，做出一个**真的会理解人、会找信息、也会越用越好的 AI 系统**。

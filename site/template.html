@@ -40,7 +40,14 @@
       <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
     </svg>
   </button>
-  <a class="topbar-brand" href="{{home}}">{{site_title}}</a>
+  <a class="topbar-brand" href="{{home}}">
+    <svg viewBox="0 0 28 28" width="22" height="22" aria-hidden="true">
+      <path d="M4.5 6.5h6.8c1.5 0 2.7 1.2 2.7 2.7v12.3c0-1.5-1.2-2.7-2.7-2.7H4.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M23.5 6.5h-6.8c-1.5 0-2.7 1.2-2.7 2.7v12.3c0-1.5 1.2-2.7 2.7-2.7h6.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+    <span>{{site_title}}</span>
+  </a>
+  {{tabs}}
   <div class="topbar-right">
     <a class="lang-btn{{lang_cls}}" href="{{lang_href}}">{{lang_label}}</a>
     <button class="icon-btn theme" aria-label="Theme">
@@ -95,6 +102,7 @@
   <div class="side-scrim" hidden></div>
 
   <main id="content">
+    {{subtabs}}
     <article class="prose">
       {{page_header}}
       {{mobile_toc}}
@@ -123,6 +131,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
         crossorigin="anonymous"></script>
-<script defer src="{{prefix}}static/app.js"></script>
+<script defer src="{{prefix}}static/app.js?v={{built}}"></script>
 </body>
 </html>

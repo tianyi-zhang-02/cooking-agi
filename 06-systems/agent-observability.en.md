@@ -1,86 +1,125 @@
-# AI Agent Observability
+# AI Agent Observability: What Did the Agent Actually Just Do?
 
 [中文](agent-observability.md) · **English**
 
-## Quick learning: what should agent observability observe?
+## Quick learning: what does agent observability observe?
 
 <details class="interview" markdown="1">
 <summary>Traces, state transitions, and reproducible failures</summary>
 
-**Quick memory**: metrics show where behavior changed, logs capture local events, and traces reconstruct the causal chain across model, retrieval, tools, and state.
+**Quick memory**: metrics tell you where something is abnormal, logs give local events, and traces reconstruct the causal chain across model, retrieval, tools, and state within one run.
 
 **Interview answer**
 
-> The observability unit for an agent is a stateful trajectory rather than one API call. Every span should record versions, evidence, decisions, tool arguments and results, state changes, latency, tokens or cost, and final outcome, all connected by a trace ID for replay and root-cause analysis.
+> The unit of agent observability is not a single API call but a stateful trajectory. Every span should record versions, input evidence, decisions, tool arguments and results, state changes, latency, tokens or cost, and the final outcome, all tied together by a trace ID to support replay and root-cause analysis.
 
 <details markdown="1">
-<summary><b>Deep dive</b>: why is storing every prompt still not observability?</summary>
+<summary><b>Deep dive</b>: why is “storing every prompt” still not observability?</summary>
 
-Raw text lacks explicit causal structure and can leak sensitive data. Observability needs structured spans, parent-child relationships, versions, and state diffs with PII redaction. The goal is to distinguish retrieval, model, tool, and evaluator failures—not to create longer logs.
+Raw text has no explicit causal structure and may leak sensitive data. An observable system needs structured spans, parent-child relationships, versions, and state diffs, with PII redacted. The goal is to be able to tell “retrieval was wrong, the model was wrong, the tool was wrong, or the evaluator was wrong,” not to produce longer logs.
 
 </details>
 </details>
 
-## Core view
+## Observability has to explain the decision process
 
-Traditional software observability asks whether a service is healthy. Agent observability must also ask:
-
-> **What did the agent see, what did it believe, why did it choose this action, and where did failure begin to propagate?**
+The goal of agent observability is not only to know whether a service threw an error, but to be able to reconstruct: **what the agent saw, which decisions it made, how state changed, and at which step the failure began.**
 
 The final answer and an error code are not enough. Failure may originate in retrieval, stale memory, tool behavior, state transitions, loops, evaluation mismatch, or an incorrect model decision over correct evidence.
 
-## What one run should capture
+## What happened inside one failed run
 
-### Identity and version
+The user asks the agent to book a restaurant for Friday, and it ends up booked for Saturday.
 
-- Model, prompt, tool, retriever, memory policy, and evaluator versions
-- Data, index, feature, and configuration versions
-- Session, user, task, trace, and experiment identifiers
+Looking only at the final answer, all we know is that the date is wrong. A full trace might tell us:
 
-### Context and evidence
+```text
+Original user request: Friday
+Memory read: last week's conversation mentioned a Saturday dinner
+Model decision: prioritize the old memory
+Tool call: date=Saturday
+Tool result: success
+Final answer: booking confirmed
+```
 
-- Instructions, memory, retrieved evidence, and tool results shown to the model
-- Candidates filtered, truncated, or reranked
-- Token, latency, and cost-budget allocation
+The tool did not fail, and the model did not hallucinate an order that does not exist. The real problem is that an old memory wrongly overrode an explicit current instruction.
 
-### Decisions and state transitions
+## How metrics, logs, and traces differ
 
-- The action selected at each step
-- Inputs, outputs, exceptions, and retries
-- State before and after execution
-- Cancellation, timeout, fallback, and human takeover
-
-### Outcome and evaluation
-
-- Task completion rather than text generation alone
-- Deterministic invariants, reference checks, and LLM-judge results
-- User correction, subsequent behavior, and long-term outcomes
-
-## Traces are not accumulated logs
-
-Useful traces organize a causal chain. Common spans include `model`, `retrieval`, `tool`, `memory`, `policy`, `evaluation`, and `human_review`. Each span should preserve the relevant version, evidence, transition, latency, cost, and outcome.
-
-## From monitoring to understanding
-
-| Layer | Question answered |
+| Form | The question it answers best |
 | --- | --- |
-| Metrics | What changed across the system? |
-| Logs | What event did a component report? |
-| Traces | Which decisions and dependencies shaped one request? |
-| Replay | Can the failure be reproduced with the same evidence and versions? |
-| Evaluation | Did the trajectory satisfy the task contract? |
+| Metrics | Did the overall error rate, latency, or cost change today? |
+| Logs | What event did a given component report at a given time? |
+| Traces | In what order did one request pass through which decisions and dependencies? |
+| Replay | With the same versions and evidence, can this failure be reproduced? |
+| Evaluation | Did this complete trajectory satisfy the task requirements? |
 | Slicing | Which users, tasks, tools, or environments concentrate failure? |
 
-## Important failure modes
+Agents especially need traces, because one result is usually produced jointly by many model, retrieval, and tool calls.
 
-- **Loop:** repeated reasoning or tool calls without material state change.
-- **Context drift:** later actions no longer serve the original goal or evidence.
-- **Memory contamination:** incorrect, stale, or cross-user information enters persistent state.
-- **Tool mismatch:** model assumptions differ from actual API semantics.
-- **Silent fallback:** degraded execution still produces a plausible-looking result.
-- **Evaluator blind spot:** evaluation inspects final text but ignores process and side effects.
-- **Cost runaway:** additional tokens, calls, or retries produce no corresponding progress.
+## What one run should record
 
-## My current view
+### Versions
 
-Observability should produce three actionable artifacts: reproducible failures, behavioral trajectories for offline evaluation, and clear attribution that can change prompts, policies, tools, memory, or post-training. If a trace cannot help decide what to change next, it is mostly expensive log storage.
+Which version of the model, prompt, retriever, tools, memory policy, evaluator, data, and configuration was in use.
+
+Alongside the versions, record index and feature versions and the identifiers that tie the run together: session, user, task, trace, and experiment IDs.
+
+### Input evidence
+
+Which instructions, memory, retrieved results, and tool outputs the model saw; which content was truncated, filtered, or reordered.
+
+Also record how the token, latency, and cost budget was allocated.
+
+### Decision process
+
+Which action was chosen at each step, why it continued or stopped, and whether there was a retry, fallback, timeout, or human takeover.
+
+### State changes
+
+What changed in the user state, the task state, and the external system state before and after execution.
+
+### Final outcome
+
+Whether the task was really completed, rather than only whether a plausible-looking piece of text was generated.
+
+Keep the evaluation with it: deterministic invariants, reference checks, and LLM-judge results, plus user corrections, subsequent behavior, and long-term outcomes.
+
+## A trace should not be just a longer log
+
+A good trace is organized around the causal chain. Common spans can include:
+
+- `model`: context, output, tokens, latency, and version;
+- `retrieval`: query, candidates, scores, filtering, and the final evidence;
+- `tool`: arguments, results, exceptions, retries, and side effects;
+- `memory`: reads, writes, compression, forgetting, and confidence changes;
+- `policy`: routing, stopping, fallback, and risk judgments;
+- `evaluation`: criteria, evidence, verdict, and evaluator version;
+- `human_review`: why it was escalated, how the human changed it, and the rationale for the change.
+
+## Common agent failures
+
+- **Loop:** the same tool is called repeatedly while state does not materially change.
+- **Goal drift:** later steps have already departed from the user's original task.
+- **Memory contamination:** wrong, stale, or other-context information enters long-term state.
+- **Tool-semantics mismatch:** the API behavior the model assumes differs from the actual implementation.
+- **Silent fallback:** after falling back, the system still answers in its normal tone, and the user does not know quality has dropped.
+- **Evaluation blind spot:** only the final text is checked, not the process, the tools, or the side effects.
+- **Cost runaway:** more tokens, searches, and retries bring no new progress.
+
+## What to do after recording
+
+The end point of observability is not a dashboard. It is the ability to produce three things:
+
+1. a stable, reproducible failure case;
+2. a complete trajectory that can be added to the offline eval set;
+3. a clear direction for the change: should it be the prompt, search, the tools, memory, the policy, or the training data?
+
+If a trace cannot help answer “what do we change next,” it is closer to an expensive log warehouse.
+
+## Connections to other chapters
+
+- [Evaluation](../07-evaluation/README.en.md) decides how to judge a trajectory as a success or a failure.
+- [Human-in-the-Loop](human-in-the-loop.en.md) decides which trajectories need human intervention.
+- [Representation and memory](../02-memory/README.en.md) explains how state gets written and contaminated.
+- [Search](../04-search/README.en.md) explains how evidence enters the context.

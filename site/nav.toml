@@ -14,12 +14,46 @@ tagline_en  = "From a straight line to a system that reads the world"
 base_url    = "/cooking-agi"
 origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 
+# The personal homepage this site belongs to. It is the first item of the top bar on every page,
+# so the homepage and the notes read as one site. ?lang= keeps the visitor's language across the two.
+author_zh   = "张天毅"
+author_en   = "Tianyi Zhang"
+author_url  = "/"
+
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]
 "open-source/nemo-rl.html" = "open-source/nemo-rl/index.html"
 "open-source/nemo-rl.en.html" = "open-source/nemo-rl/index.en.html"
 
-# 侧边栏的主题分组。顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id。
+# 三个大类。顶栏的 tab、侧边栏的分组标题和首页的三张入口卡片都来自这里。
+# home 是这个大类的落地页；每个 [[group]] 用 category 指到这里的 id。
+[[category]]
+id = "learn"
+zh = "学习笔记"
+en = "Study notes"
+home = "00-foundations/README.md"
+blurb_zh = "大模型基础、系统的各个环节，以及开源项目里的动手实践。"
+blurb_en = "LLM foundations, every stage of the system, and hands-on work in open source."
+
+[[category]]
+id = "career"
+zh = "求职"
+en = "Career"
+home = "career/README.md"
+blurb_zh = "技术面怎么准备，以及我自己找工作的时间线、踩过的坑和岗位认知。"
+blurb_en = "How to prepare for technical interviews, plus my own job-search timeline, mistakes and notes on roles."
+
+[[category]]
+id = "reference"
+zh = "资料"
+en = "Reference"
+home = "papers/README.md"
+blurb_zh = "论文笔记、写作与时效性规范、模板。"
+blurb_en = "Paper notes, the editorial and freshness rules, and templates."
+
+# 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
+# 顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id；home 是点这个板块时落到哪一页（不写就用第一页）。
+# 不带 category 的分组（开始）排在最前面，不属于任何大类。
 [[group]]
 id = "start"
 zh = "开始"
@@ -27,21 +61,60 @@ en = "Start here"
 
 [[group]]
 id = "foundations"
-zh = "大模型学习"
-en = "Learn LLMs"
+category = "learn"
+zh = "大模型基础"
+en = "LLM foundations"
+home = "00-foundations/README.md"
 
 [[group]]
-id = "pipeline"
-zh = "系统的各个环节"
-en = "The pipeline"
+id = "posttrain"
+category = "learn"
+zh = "Fine-tuning 与 Post-training"
+en = "Fine-tuning & post-training"
+home = "05-post-training/README.md"
+
+[[group]]
+id = "eval"
+category = "learn"
+zh = "评估"
+en = "Evaluation"
+home = "07-evaluation/README.md"
+
+[[group]]
+id = "data-retrieval"
+category = "learn"
+zh = "数据、记忆与检索"
+en = "Data, memory & retrieval"
+home = "01-data-and-feedback/README.md"
+
+[[group]]
+id = "systems"
+category = "learn"
+zh = "系统、多模态与体验"
+en = "Systems, multimodal & experience"
+home = "06-systems/README.md"
 
 [[group]]
 id = "open-source"
+category = "learn"
 zh = "开源项目"
 en = "Open source"
 
 [[group]]
+id = "interview"
+category = "career"
+zh = "技术面"
+en = "Tech interviews"
+
+[[group]]
+id = "career"
+category = "career"
+zh = "求职与规划"
+en = "Job search & planning"
+
+[[group]]
 id = "reference"
+category = "reference"
 zh = "资料"
 en = "Reference"
 
@@ -51,14 +124,14 @@ dir   = "."
 group = "start"
 zh    = "开始"
 en    = "Start here"
-order = ["README.md", "EDITORIAL.md"]
+order = ["README.md"]
 
 [[section]]
 dir   = "00-foundations"
 group = "foundations"
 zh    = "学习地图与总览"
 en    = "Map and overview"
-order = ["README.md", "from-linear-to-neural.md", "transformer.md", "interview-basics.md", "hand-write-kit.md"]
+order = ["README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
 dir = "00-foundations/core"
@@ -84,58 +157,58 @@ en  = "Labs · Python / PyTorch"
 
 [[section]]
 dir = "01-data-and-feedback"
-group = "pipeline"
+group = "data-retrieval"
 zh  = "数据与反馈"
 en  = "Data & feedback"
 
 [[section]]
 dir = "02-memory"
-group = "pipeline"
+group = "data-retrieval"
 zh  = "表征与记忆"
 en  = "Representation & memory"
 
 [[section]]
 dir = "03-multimodal-learning"
-group = "pipeline"
+group = "systems"
 zh  = "多模态学习"
 en  = "Multimodal learning"
 
 [[section]]
 dir = "04-search"
-group = "pipeline"
+group = "data-retrieval"
 zh  = "搜索与检索"
 en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
 order = ["README.md", "model-adaptation.md", "sft-and-its-ceiling.md", "where-preferences-come-from.md", "rlhf-pipeline.md", "after-ppo.md", "verifiable-rewards.md", "post-training-infrastructure.md", "same-base-different-posttraining.md", "alignment-tax.md"]
-group = "pipeline"
+group = "posttrain"
 zh  = "模型适配与 Post-Training"
 en  = "Model adaptation & post-training"
 
 [[section]]
 dir   = "06-systems"
-group = "pipeline"
+group = "systems"
 zh    = "系统总览"
 en    = "Systems"
 order = ["README.md", "agent-observability.md", "human-in-the-loop.md"]
 
 [[section]]
 dir   = "07-evaluation"
-group = "pipeline"
+group = "eval"
 zh    = "评估"
 en    = "Evaluation"
 order = ["README.md", "llm-as-a-judge.md"]
 
 [[section]]
 dir = "08-model-experience"
-group = "pipeline"
+group = "systems"
 zh  = "模型体验"
 en  = "Model experience"
 
 [[section]]
 dir = "09-personal-agi"
-group = "pipeline"
+group = "systems"
 zh  = "Personal AGI"
 en  = "Personal AGI"
 
@@ -157,11 +230,38 @@ order = ["README.md"]
 
 [[section]]
 dir   = "rl"
-group = "pipeline"
+group = "posttrain"
 zh    = "强化学习基础"
 en    = "RL basics"
 order = ["README.md", "mdp-and-policy-gradient.md", "baseline-and-advantage.md",
          "ppo.md"]
+
+# --- 求职：技术面 + 求职与规划 ------------------------------------------------
+# 面试笔记的文件仍在 00-foundations/ 里（URL 不变）；include 只改变它们在导航里的归属。
+
+[[section]]
+dir     = "interview"
+group   = "interview"
+zh      = "面试准备"
+en      = "Interview prep"
+order   = ["README.md", "questions.md", "transformer-followups.md", "interview-basics.md",
+           "hand-write-kit.md", "ml-math-interview.md"]
+include = ["00-foundations/interview-basics.md", "00-foundations/hand-write-kit.md",
+           "00-foundations/ml-math-interview.md"]
+
+[[section]]
+dir   = "career"
+group = "career"
+zh    = "心路历程与岗位认知"
+en    = "Journey and roles"
+order = ["README.md", "journey.md", "roles.md"]
+
+[[section]]
+dir   = "."
+group = "reference"
+zh    = "写作规范"
+en    = "Editorial"
+order = ["EDITORIAL.md"]
 
 [[section]]
 dir = "papers"
