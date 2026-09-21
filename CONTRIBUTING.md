@@ -16,6 +16,9 @@
 | 补一个例子或反例 | 直接加到对应的 `.md` 里 |
 | 加一篇论文笔记 | 复制 [`templates/paper-note.md`](templates/paper-note.md) 到 [`papers/`](papers/) |
 | 加一个术语的中英对照 | 往 [`site/glossary.tsv`](site/glossary.tsv) 加一行，全站自动生效 |
+| 补一条职业路线，或给某条路线补一层 tech stack | 在 [`site/roadmap.toml`](site/roadmap.toml) 里加 `[[track]]` / `[[layer]]`，规则写在文件开头；不是站点作者本人的路线请标 `kind = "side"` 并用 `by` 署名 |
+| 给某个知识板块加考题 | 在对应笔记里加一节 `## 面试常见问题`，每道题写成 `<details><summary>问题</summary>答案</details>`；[考前速查](interview/questions.md)会自动收录，不用另外登记 |
+| 改了一篇中文笔记 | 同一个 PR 里把对应的 `.en.md` 一起改掉，然后跑 `python3 site/paritycheck.py` 确认两版结构一致 |
 | 写一整节新内容 | 先开 issue 聊聊放在哪一章，避免撞车 |
 
 ## 写作约定
@@ -106,6 +109,9 @@ by most recent commit. Nothing to sign up for.
 | Add an example or a counterexample | Edit the `.md` directly |
 | Add a paper note | Copy [`templates/paper-note.en.md`](templates/paper-note.en.md) into [`papers/`](papers/) |
 | Add a term to the glossary | One line in [`site/glossary.tsv`](site/glossary.tsv); it applies site-wide |
+| Add a career route, or a tech-stack layer to one | Add a `[[track]]` / `[[layer]]` to [`site/roadmap.toml`](site/roadmap.toml); the rules are at the top of the file. A route that is not the site author's own gets `kind = "side"` and a `by` credit |
+| Add interview questions to a knowledge block | Add an `## Interview questions` section to the relevant note (`## 面试常见问题` in the Chinese file), one `<details><summary>question</summary>answer</details>` per question; the [quick review](interview/questions.en.md) picks them up automatically |
+| Change a Chinese note | Update the matching `.en.md` in the same PR, then run `python3 site/paritycheck.py` to confirm the two versions still match in structure |
 | Write a whole new section | Open an issue first so we don't collide |
 
 ## Conventions
