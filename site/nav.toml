@@ -252,9 +252,9 @@ include = ["00-foundations/interview-basics.md", "00-foundations/hand-write-kit.
 [[section]]
 dir   = "career"
 group = "career"
-zh    = "心路历程与岗位认知"
-en    = "Journey and roles"
-order = ["README.md", "journey.md", "roles.md"]
+zh    = "MLE / RE 求职笔记"
+en    = "MLE / RE job-search notes"
+order = ["README.md", "journey.md"]
 
 [[section]]
 dir   = "."

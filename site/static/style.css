@@ -1422,33 +1422,6 @@ p.q-src { margin-top: .8rem; padding-top: .55rem; border-top: 1px dashed var(--r
 .cat-meta { margin-top: .35rem; font-size: .72rem; color: var(--muted); }
 .article-body .cat-card, .article-body .rm-mod a { text-decoration: none; }
 
-/* -------- roles widget (career/roles.md) ---------------------------------- */
-.roles-body { font-family: var(--sans), var(--cjk); }
-.role-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
-.role-chip {
-  font: inherit; font-size: .8rem; font-weight: 600; padding: .4rem .85rem; cursor: pointer;
-  color: var(--ink-soft); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px;
-  transition: color .15s ease, border-color .15s ease, background .15s ease;
-}
-.role-chip:hover { border-color: var(--ember); color: var(--ember); }
-.role-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.topic-cloud { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .9rem; }
-.topic {
-  padding: .28rem .55rem; border: 1px solid var(--rule); border-radius: 6px; font-size: .76rem; color: var(--muted);
-  opacity: .4; transition: opacity .25s ease, border-color .25s ease, background .25s ease, color .25s ease;
-}
-.topic small { margin-left: .4rem; font-size: .68rem; color: var(--muted); }
-.topic.on { opacity: 1; color: var(--ink); border-color: var(--faint); }
-.topic.shared { opacity: 1; color: var(--ink); border-color: var(--link); background: color-mix(in srgb, var(--link) 11%, transparent); }
-.role-meter { margin-top: .95rem; display: grid; gap: .45rem; }
-.role-meter-track { display: flex; height: 10px; border-radius: 999px; background: var(--code-bg); overflow: hidden; }
-.role-meter-track span { display: block; height: 100%; width: 0; transition: width .45s ease; }
-.role-meter-shared { background: var(--link); }
-.role-meter-solo { background: var(--faint); }
-.role-meter-text { font-size: .86rem; line-height: 1.6; color: var(--ink); }
-.role-legend { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .72rem; color: var(--muted); }
-.role-legend i { display: inline-block; width: .7rem; height: .7rem; border-radius: 3px; margin-right: .35rem; vertical-align: -1px; }
-
 @media (max-width: 760px) { .cat-cards { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
   .prose .stack-layer > summary { grid-template-columns: minmax(0, 1fr) auto auto; }

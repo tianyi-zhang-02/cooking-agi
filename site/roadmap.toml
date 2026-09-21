@@ -467,13 +467,6 @@ desc_en = "Train a tiny network on XOR in your browser; switch ReLU off and see 
 note = "00-foundations/from-linear-to-neural.md"
 layer = "ml"
 
-[[viz]]
-zh = "同时准备几个岗位，有多少能复用"
-en = "Preparing for several roles at once: how much transfers"
-desc_zh = "点选岗位，看要准备的方向有多少、其中几个是重叠的。"
-desc_en = "Select roles and see how many topic areas that means, and how few are shared."
-note = "career/roles.md"
-
 # ───────────────────────────── 串联（meta） ─────────────────────────────
 # 把几条线穿起来的文章：不属于某一个板块，而是解释板块之间怎么连。connects 写它串起来的 layer id。
 # 没有 note 的是打算写的串联文章，显示成“待补”。

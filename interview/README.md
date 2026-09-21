@@ -30,4 +30,4 @@
 - [解码策略：temperature、top-k、top-p](../00-foundations/core/decoding.md)
 - [Post-Training 总览](../05-post-training/README.md) —— SFT、偏好学习、RLHF 与之后的算法
 
-想按岗位来安排顺序，见[首页的路线图](../README.md)；想知道不同岗位的差别，见[岗位认知](../career/roles.md)。
+想按岗位来安排顺序，见[首页的路线图](../README.md)。

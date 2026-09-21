@@ -5,22 +5,10 @@
 > Reading time: ~9 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Problem · 问题</span><strong>Let each position retrieve the information it needs from the sequence</strong></div>
-    <div class="recipe-face" data-concept-zh><span>解决什么问题 · PROBLEM</span><strong>让每个位置去序列里取它需要的信息</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Prerequisites · 前置知识</span><strong>Three projections W_Q, W_K, W_V · one output projection W_O</strong></div>
-    <div class="recipe-face" data-concept-zh><span>前置知识 · PREREQUISITES</span><strong>三个投影 W_Q, W_K, W_V · 一个输出投影 W_O</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Core mechanism · 核心机制</span><strong>Scaled dot product · split heads · mask before softmax</strong></div>
-    <div class="recipe-face" data-concept-zh><span>核心机制 · CORE MECHANISM</span><strong>缩放点积 · 切头 · mask 在 softmax 之前</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Common mistakes · 常见错误</span><strong>Reshape order, mask timing, and scaling by the wrong dimension</strong></div>
-    <div class="recipe-face" data-concept-zh><span>常见错误 · COMMON MISTAKES</span><strong>reshape 的顺序、mask 的时机、除错了维度</strong></div>
-  </div>
+  <div><span>Problem</span><strong>Let each position retrieve the information it needs from the sequence</strong></div>
+  <div><span>Prerequisites</span><strong>Three projections W_Q, W_K, W_V · one output projection W_O</strong></div>
+  <div><span>Core mechanism</span><strong>Scaled dot product · split heads · mask before softmax</strong></div>
+  <div><span>Common mistakes</span><strong>Reshape order, mask timing, and scaling by the wrong dimension</strong></div>
 </div>
 
 ## Quick learning: multi-head attention in one sentence and its boundary conditions
@@ -166,14 +154,6 @@ $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V), \quad \text{MultiHea
 
 One attention computes one similarity and returns one average. Splitting into $h$ heads of $d_k = d_\text{model}/h$ lets different heads track different relations **at the same total cost** — it divides the budget, it does not add to it. The three points below make that precise.
 
-<div class="bilingual-note bilingual-intro">
-  <span>Concept-by-concept · 逐概念双语</span>
-  <p>The three cards below default to English; select <strong>中文 ↻</strong> to view the equivalent Chinese in place.</p>
-</div>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 1. The core of multi-head: multiple sets of attention relations
 
 Suppose $d_{\text{model}}=512$. One full-width attention head computes
@@ -198,35 +178,6 @@ jobs are not assigned by hand and can overlap. The more precise conclusion is th
 **different features can use different attention weights instead of all sharing one
 distribution.**
 
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">1. 多头的核心：多套注意力关系</div>
-
-假设 $d_{\text{model}}=512$。一个完整维度的单头会计算
-
-$$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.$$
-
-关键限制不是“512 维不够”，而是所有 value 通道共享同一套注意力矩阵 $A$。处理
-“小明把书送给小红，因为她很喜欢阅读”中的“她”时，模型可能同时需要追踪指代、
-语法依赖、语义角色和局部邻近；单头必须把这些关系压进一套分布。
-
-多头让第 $i$ 个头学习自己的投影和权重：
-
-$$Q_i=XW_i^Q,\qquad K_i=XW_i^K,\qquad V_i=XW_i^V,$$
-
-$$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
-
-于是模型得到 $A_1,\ldots,A_h$ 多套读取方式。某些头可能偏向指代，另一些偏向
-邻近或语法，但这些职责不是人工指定的，也可能彼此重叠。更准确的结论是：
-**不同特征可以使用不同的注意力权重，不必全部共享一套分布。**
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 2. Splitting dimensions controls the budget
 
 The original model uses $d_{\text{model}}=512$ and $h=8$, usually with
@@ -250,36 +201,6 @@ and the output projection, independent of the head count itself. Code also usual
 performs one large projection and then reshapes to `(B, H, T, d_head)` rather than
 running eight small models in sequence — identical maths, a single GEMM.
 
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">2. 拆分维度是在控制预算</div>
-
-原版使用 $d_{\text{model}}=512,h=8$，通常令
-
-$$d_k=d_v=\frac{512}{8}=64,$$
-
-所以 $8\times64=512$。如果 8 个头都保留完整 512 维，参数和计算会大幅增长；
-把总宽度拆开，才能在接近单头的预算下得到 8 套关系。
-
-单头完整投影有
-
-$$W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.$$
-
-多头每组投影是 $512\times64$，8 组合计仍为
-
-$$8\times(512\times64)=512\times512.$$
-
-因此标准 MHA 的 Q/K/V 和输出投影总参数量约为 $4d_{\text{model}}^2$，与头数本身
-无关。代码也通常只做一次大投影，再 reshape 成 `(B, H, T, d_head)`；不是顺序执行
-8 次小模型。
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 3. Expressivity is not a generalization guarantee
 
 What multi-head attention increases first is expressivity: it lets several token
@@ -298,27 +219,6 @@ $$\boxed{\text{Multi-head attention obtains multiple relations at similar cost; 
 head does have independent parameters and can therefore learn a different matching
 function; but “one head must handle the company sense and another must handle the
 fruit sense” is neither designed in advance nor guaranteed to be interpretable.
-
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">3. 表达能力不等于泛化保证</div>
-
-多头首先增加的是表达能力：它允许多种 token 关系、匹配函数和上下文摘要并存。
-更好的表示有时会改善未见数据上的表现，但“用了多头”并不自动推出 generalization
-更好。
-
-头数过多时可能出现每头维度太小、多个头功能重复、参数利用率低，甚至过拟合。
-实践中经常可以剪掉部分头而几乎不损失性能。所以：
-
-$$\boxed{\text{多头不是为了把维度做大，而是在相近成本下获得多套注意力关系。}}$$
-
-“不同表示子空间”也不要过度解释。每个头确实有独立参数，因此可以学习不同匹配
-函数；但“某个头一定负责公司语义、另一个一定负责水果语义”并不是预先设计或必然
-可解释的事实。
-
-</div>
-</section>
 
 ## The six places a from-scratch implementation goes wrong
 

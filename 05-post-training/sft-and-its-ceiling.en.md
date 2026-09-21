@@ -39,14 +39,6 @@ Being simple is exactly why it works well for these things: fixed task formats, 
 
 ## How one conversation sample actually enters SFT
 
-<div class="bilingual-note bilingual-intro">
-  <span>Concept-by-concept · 逐概念双语</span>
-  <p>The three cards below default to English; select <strong>中文 ↻</strong> to view the equivalent Chinese in place.</p>
-</div>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 1. Pre-training and SFT: similar equations, different supervision
 
 Pre-training text supplies its own next-token targets. Given $x_1,\ldots,x_T$:
@@ -66,33 +58,6 @@ Both stages can use next-token cross-entropy, but their training is not “compl
 same.” Data provenance, sequence structure, loss masks, mixtures, and optimization
 intent differ: pre-training learns a language distribution, while SFT shapes existing
 capability into selected behavior.
-
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">1. Pre-Training 与 SFT：公式相似，监督含义不同</div>
-
-预训练文本自己提供下一个 token 标签。给定 $x_1,\ldots,x_T$：
-
-$$
-\mathcal L_{\text{pretrain}}
-=-\sum_{t=2}^{T}\log p_\theta(x_t\mid x_{<t}).
-$$
-
-它不需要人为逐 token 标注，因此称为 self-supervised learning。SFT 的示范则告诉模型：
-给定 system 和 user 上下文，理想的 assistant 行为是什么。示范可以由人编写、由模型
-生成后筛选，或由多种来源组合；“supervised”指目标行为被外部选定，不等于每个字都由
-人手写。
-
-二者都能使用 next-token cross-entropy，但不能说训练“完全相同”。它们的数据来源、
-序列结构、loss mask、数据混合与优化目标不同：预训练主要学习语言分布，SFT 主要把
-已有能力塑造成指定行为。
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
 
 ### 2. Label shifting remains, but only selected targets contribute loss
 
@@ -121,39 +86,6 @@ the final one, and some training setups score the full sequence. The most danger
 failure is not choosing one policy over another; it is misaligning template boundaries
 and masks so user text or padding accidentally becomes a target.
 
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">2. Label Shift 仍然存在，但只有部分目标计入 Loss</div>
-
-对话先经过 [chat template 与 tokenizer](../00-foundations/core/tokenization.en.md) 得到
-序列 $z_1,\ldots,z_T$。输入和标签仍然错开一位：模型根据 $z_{<t}$ 预测 $z_t$。
-常见的 assistant-only objective 再加入 mask：
-
-$$
-\mathcal L_{\text{SFT}}
-=-\sum_{t=2}^{T}m_t\log p_\theta(z_t\mid z_{<t}),
-\qquad m_t\in\{0,1\}.
-$$
-
-```text
-system / user / assistant role marker  → m_t = 0
-assistant answer / end-of-message      → m_t = 1
-```
-
-这样 system 和 user 仍在左侧上下文里影响预测，但不会因“是否被模型复述得好”贡献损失。
-训练代码常把忽略位置的 label 设为 `-100`，让 cross-entropy 跳过它们。
-
-这是一种常见方案，不是唯一方案。多轮数据可能训练所有 assistant turns，也可能只训练
-最后一轮；有些训练配置对整段序列计算 loss。最危险的工程错误不是选哪种，而是模板
-边界与 mask 错位，让 user 文本或 padding 意外进入目标。
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 3. The end token is behavioral supervision too
 
 If a target contains only “I am fine.” but omits an end-of-message or EOS token, the
@@ -173,28 +105,6 @@ configuration.
 A maximum-length limit remains a necessary safety fallback, but it is not the same as
 teaching natural termination. One forcibly truncates the system; the other makes the
 model assign high probability to “the answer is complete.”
-
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">3. End Token 也是行为监督</div>
-
-如果目标回答只包含“我很好。”却不包含 end-of-message / EOS，模型只学会怎样开始和
-延续回答，没有收到“此处应该停”的明确监督。常见 SFT target 会把结束标记也设为
-$m_t=1$：
-
-```text
-我 → 很好 → 。 → <|im_end|>
-```
-
-推理系统把对应 token 放入 stop set，检测到它便终止当前消息。这里必须同时对齐三件事：
-训练 target 中的结束标记、tokenizer 的 special-token ID，以及推理引擎的停止配置。
-
-长度上限仍然需要作为安全兜底，但它不等价于让模型学会自然结束；前者是系统强制截断，
-后者是模型给“回答完成”分配高概率。
-
-</div>
-</section>
 
 ## Limit one: only what's in the data
 

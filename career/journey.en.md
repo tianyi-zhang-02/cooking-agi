@@ -24,7 +24,7 @@ All of this is normal. There is a real gap between school and industry :) Steppi
 
 At the start I knew nothing. I did not filter by company size or by role; I applied wherever I could.
 
-This is where it went wrong: **with limited time, every interview was different**, because they were not even the same domain. Data Engineer, Data Scientist, MLE, SDE and Quant Researcher test almost non-overlapping things (see [Roles](roles.en.md)), so I could not prepare properly, let alone get deep in any one direction.
+This is where it went wrong: **with limited time, every interview was different**, because they were not even the same domain. Data Engineer, Data Scientist, MLE, SDE and Quant Researcher test almost non-overlapping things, so I could not prepare properly, let alone get deep in any one direction.
 
 So…
 

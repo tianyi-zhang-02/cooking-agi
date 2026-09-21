@@ -24,7 +24,7 @@
 
 一开始我什么都不懂。公司大小不挑，岗位也不挑，能投的都投了。
 
-问题出在这里：**在时间有限的情况下，每一场面试都不一样**——因为它们根本不是一个 domain。Data Engineer、Data Scientist、MLE、SDE 和 Quant Researcher 考的东西几乎不重叠（见[岗位认知](roles.md)），结果就是我没有办法好好准备，更没办法把任何一个方向吃透。
+问题出在这里：**在时间有限的情况下，每一场面试都不一样**——因为它们根本不是一个 domain。Data Engineer、Data Scientist、MLE、SDE 和 Quant Researcher 考的东西几乎不重叠，结果就是我没有办法好好准备，更没办法把任何一个方向吃透。
 
 所以……
 
