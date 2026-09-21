@@ -4,7 +4,7 @@
 
 > Reading time: ~2 min · Last reviewed: 2026-09
 
-Two kinds of things live here: **how to prepare for technical interviews**, and **a record of my own job search**. Three things need saying before you read on.
+Two kinds of things live here: **how to prepare for technical interviews**, and **a record of my own job search**. The scope is **MLE / RE (research engineer)** roles only: that is the direction I am on myself, and I do not write about the others. Three things need saying before you read on.
 
 > **Read this first**
 >
@@ -16,6 +16,5 @@ Two kinds of things live here: **how to prepare for technical interviews**, and 
 
 - [Tech interviews: how to use these notes](../interview/README.en.md): interview basics, whiteboard coding, the ML math line, and a Transformer you can play with
 - [Looking for a job: notes from the road](journey.en.md): the timeline, the mistakes, and how I got from one step to the next
-- [Roles: different roles test different domains](roles.en.md): how much actually transfers when you prepare for several directions at once
 
 If you do not know where to start, go back to [the roadmap on the home page](../README.en.md) and pick a track.

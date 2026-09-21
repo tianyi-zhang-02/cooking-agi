@@ -5,7 +5,7 @@
     python3 site/paritycheck.py --strict   # 有缺口就返回非零（给 CI 用）
 
 它不比较措辞，只比较**结构**：有没有英文版、标题数、代码块、公式块、表格行、
-折叠块、交互 widget、图片。结构对得上，不代表翻译得好；结构对不上，几乎一定
+折叠块、交互 widget、图片。中文笔记里概念卡的英文背面不算结构（那是翻译）。结构对得上，不代表翻译得好；结构对不上，几乎一定
 是某一边少了内容。规范见 EDITORIAL.md 的“双语阅读原则”。
 """
 import re
@@ -22,7 +22,29 @@ COUNTERS = {
 }
 
 
+def own_language(text: str) -> str:
+    """A Chinese note may carry an English back-face on its concept cards (flipped in place on the
+    site). That face is a translation, not structure: drop it, and the flip copy of each recipe item,
+    so the note is compared with its English page one-to-one. English pages carry no Chinese faces."""
+    for marker in (r'<div class="concept-face concept-en"[^>]*>', r'<div class="recipe-face" data-concept-en>'):
+        while True:
+            m = re.search(marker, text)
+            if not m:
+                break
+            depth, end = 0, None
+            for t in re.finditer(r"<div\b[^>]*>|</div>", text[m.start():]):
+                depth += 1 if t.group(0).startswith("<div") else -1
+                if depth == 0:
+                    end = m.start() + t.end()
+                    break
+            if end is None:
+                break
+            text = text[:m.start()] + text[end:]
+    return text
+
+
 def shape(text: str) -> dict:
+    text = own_language(text)
     fenced = re.sub(r"```.*?```", "```\n```", text, flags=re.S)     # headings inside code are not headings
     out = {k: len(re.findall(rx, fenced if k in ("h2", "h3", "table rows") else text)) for k, rx in COUNTERS.items()}
     out["code"] //= 2

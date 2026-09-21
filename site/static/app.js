@@ -403,61 +403,6 @@
     paint();
   });
 
-  /* ---- roles: how much preparation transfers between roles ------------------ */
-  $$('[data-widget="roles"]').forEach(function (root) {
-    var ROLES = [["de", "Data Engineer"], ["ds", "Data Scientist"], ["mle", "MLE"], ["sde", "SDE"], ["quant", "Quant Researcher"]];
-    var TOPICS = [
-      ["SQL", "SQL", ["de", "ds"]], ["数据建模", "Data modeling", ["de"]], ["ETL 与数据管道", "ETL & pipelines", ["de"]],
-      ["分布式系统基础", "Distributed-systems basics", ["de", "sde"]], ["数据结构与算法", "Data structures & algorithms", ["de", "mle", "sde"]],
-      ["统计推断", "Statistical inference", ["ds", "quant"]], ["A/B testing", "A/B testing", ["ds"]], ["Product sense", "Product sense", ["ds"]],
-      ["概率", "Probability", ["ds", "mle", "quant"]], ["ML 基础", "ML fundamentals", ["ds", "mle"]],
-      ["深度学习与 LLM", "Deep learning & LLMs", ["mle"]], ["ML system design", "ML system design", ["mle"]],
-      ["线性代数", "Linear algebra", ["mle", "quant"]], ["System design", "System design", ["sde"]],
-      ["面向对象与工程实践", "OO design & engineering practice", ["sde"]],
-      ["期望与心算", "Expectation & mental math", ["quant"]], ["逻辑推理题", "Logic puzzles", ["quant"]]
-    ];
-    var zh = LANG !== "en", picked = { mle: true };
-    var chips = $(".role-chips", root), cloud = $(".topic-cloud", root), text = $(".role-meter-text", root);
-    var barShared = $(".role-meter-shared", root), barSolo = $(".role-meter-solo", root);
-    var chipEls = ROLES.map(function (role) {
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "role-chip"; b.textContent = role[1];
-      b.addEventListener("click", function () { picked[role[0]] = !picked[role[0]]; render(); });
-      chips.appendChild(b);
-      return b;
-    });
-    var topicEls = TOPICS.map(function (topic) {
-      var s = document.createElement("span");
-      s.className = "topic"; s.textContent = topic[zh ? 0 : 1];
-      if (topic[0] !== topic[1]) {                       // 中英对照: the other language rides along, smaller
-        var alt = document.createElement("small");
-        alt.textContent = topic[zh ? 1 : 0];
-        s.appendChild(alt);
-      }
-      cloud.appendChild(s);
-      return s;
-    });
-    function render() {
-      var nRoles = 0, needed = 0, shared = 0;
-      ROLES.forEach(function (role, i) { var on = !!picked[role[0]]; nRoles += on; chipEls[i].setAttribute("aria-pressed", on ? "true" : "false"); });
-      TOPICS.forEach(function (topic, i) {
-        var hits = topic[2].filter(function (r) { return picked[r]; }).length;
-        needed += hits > 0; shared += hits > 1;
-        topicEls[i].className = "topic" + (hits > 1 ? " shared" : hits === 1 ? " on" : "");
-      });
-      barShared.style.width = (shared / TOPICS.length * 100) + "%";
-      barSolo.style.width = ((needed - shared) / TOPICS.length * 100) + "%";
-      text.textContent = !nRoles
-        ? (zh ? "先选一个岗位。" : "Pick a role to start.")
-        : nRoles === 1
-          ? (zh ? "只准备这一个岗位：" + needed + " 个方向，每一个都只为它服务，准备可以一直往深处走。"
-                : "One role: " + needed + " areas, all serving the same goal, so your preparation keeps compounding.")
-          : (zh ? "同时准备 " + nRoles + " 个岗位 = " + needed + " 个方向，其中只有 " + shared + " 个能复用。"
-                : nRoles + " roles at once = " + needed + " areas, and only " + shared + " of them are shared.");
-    }
-    render();
-  });
-
   /* ---- quick-review question bank: open all, close all, draw one at random ---- */
   $$("[data-qbank-tools]").forEach(function (bar) {
     var cards = $$("details.qa");

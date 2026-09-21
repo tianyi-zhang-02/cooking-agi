@@ -5,22 +5,10 @@
 > Reading time: ~12 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Problem · 问题</span><strong>Fit infinitely variable strings into a finite vocabulary</strong></div>
-    <div class="recipe-face" data-concept-zh><span>解决什么问题 · PROBLEM</span><strong>把无限变化的字符串，装进一个有限词表</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Prerequisites · 前置知识</span><strong>Raw text · vocabulary · merge rules</strong></div>
-    <div class="recipe-face" data-concept-zh><span>前置知识 · PREREQUISITES</span><strong>原始文本 · vocabulary · merge rules</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Output · 输出</span><strong>Token IDs · attention mask · embeddings</strong></div>
-    <div class="recipe-face" data-concept-zh><span>最终输出 · OUTPUT</span><strong>token IDs · attention mask · embeddings</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-en><span>Common mistake · 常见错误</span><strong>Treating the tokenizer as inconsequential preprocessing</strong></div>
-    <div class="recipe-face" data-concept-zh><span>常见错误 · COMMON MISTAKE</span><strong>把 tokenizer 当成无关紧要的预处理</strong></div>
-  </div>
+  <div><span>Problem</span><strong>Fit infinitely variable strings into a finite vocabulary</strong></div>
+  <div><span>Prerequisites</span><strong>Raw text · vocabulary · merge rules</strong></div>
+  <div><span>Output</span><strong>Token IDs · attention mask · embeddings</strong></div>
+  <div><span>Common mistake</span><strong>Treating the tokenizer as inconsequential preprocessing</strong></div>
 </div>
 
 ## Quick learning: what a tokenizer does at the model boundary
@@ -104,14 +92,6 @@ So the tokenizer is not inconsequential preprocessing; it defines the basic unit
 
 ## How a conversation becomes a string of IDs the model can read
 
-<div class="bilingual-note bilingual-intro">
-  <span>Concept-by-concept · 逐概念双语</span>
-  <p>The three cards below default to English; select <strong>中文 ↻</strong> to view the equivalent Chinese in place.</p>
-</div>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 1. Chat templates serialize role structure
 
 An application may represent a conversation as
@@ -140,40 +120,6 @@ there. Other checkpoints may use `[INST]...[/INST]`, header tokens, or entirely
 different formats. The **chat template must match the checkpoint and tokenizer** rather
 than being copied across model families.
 
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">1. Chat Template：把角色结构序列化</div>
-
-应用层拿到的对话可能是：
-
-```json
-[
-  {"role": "system", "content": "You are a helpful assistant"},
-  {"role": "user", "content": "你好吗？"}
-]
-```
-
-Transformer 不会直接收到这个字典。Chat template 会先把消息序列化成模型训练时见过的格式。以 ChatML 风格为例：
-
-```text
-<|im_start|>system
-You are a helpful assistant<|im_end|>
-<|im_start|>user
-你好吗？<|im_end|>
-<|im_start|>assistant
-```
-
-推理时最后只有 assistant 起始标记，没有答案；模型从这里继续生成。不同模型可能使用
-`[INST]...[/INST]`、header tokens 或其他格式，因此 **chat template 必须与 checkpoint
-及 tokenizer 匹配**，不能把一个模型的模板随意套给另一个模型。
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
 ### 2. Special tokens are still vocabulary symbols
 
 To the model, system, user, assistant, and message boundaries eventually become token
@@ -188,27 +134,6 @@ markers, message content, and target responses in its training data.
 Do not copy numeric IDs from a screenshot. Special-token strings, IDs, stop sets, and
 embeddings are part of a specific tokenizer/checkpoint protocol and must be loaded again
 when the model changes.
-
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">2. 特殊 Token 仍然只是词表里的符号</div>
-
-从模型角度看，system、user、assistant 和消息边界最终都只是 token IDs。若
-`<|im_start|>` 被 tokenizer 注册成 special token，它通常整体映射到一个 ID；若没有
-注册，就可能被拆成多个普通片段。角色名本身是一个还是多个 token，也取决于具体词表。
-
-模型架构里没有一条写死的规则说“system 权限最高”。它是在训练数据中反复看到角色
-标记、内容和目标回答的组合后，学会这些符号通常怎样影响后续 token。
-
-因此不要手抄截图里的数字 ID。特殊 token 的字符串、ID、终止集合和 embedding 都属于
-具体 tokenizer/checkpoint 的协议，换模型后必须重新读取配置。
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-en" data-concept-en markdown="1">
 
 ### 3. The full boundary: messages → template → IDs → embeddings
 
@@ -233,34 +158,6 @@ table turns integers into model-width vectors.
 
 A chat template does not alter the attention equation. It gives an ordinary token
 sequence a learnable grammatical structure.
-
-</div>
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-<div class="concept-title-zh" role="heading" aria-level="3">3. 完整边界：Messages → Template → IDs → Embeddings</div>
-
-整个输入管线是：
-
-$$
-\boxed{
-\text{structured messages}
-\xrightarrow{\text{chat template}}
-\text{serialized token text}
-\xrightarrow{\text{tokenizer}}
-\text{token IDs}
-\xrightarrow{\text{embedding table}}
-\text{vectors}
-}
-$$
-
-很多库把“应用模板”和“tokenize”封装进同一个函数，但概念边界仍然重要：template
-决定角色和消息边界怎样排列；tokenizer 决定这些字符串切成哪些词表单元；embedding
-table 才把整数变成模型维度里的向量。
-
-Chat template 没有改变 attention 公式，它只是给普通序列加了可学习的语法结构。
-
-</div>
-</section>
 
 ## Connecting the output shapes to the neural network
 

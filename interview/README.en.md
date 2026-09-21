@@ -29,4 +29,4 @@ These pages cover the same knowledge as the “Learn” side, presented differen
 - [Decoder-only: autoregressive generation](../00-foundations/core/decoder-only.en.md)
 - [Post-training overview](../05-post-training/README.en.md): SFT, preference learning, RLHF and what came after
 
-To order things by role, see [the roadmap on the home page](../README.en.md); for how roles differ, see [Roles](../career/roles.en.md).
+To order things by role, see [the roadmap on the home page](../README.en.md).

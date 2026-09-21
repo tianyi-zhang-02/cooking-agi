@@ -360,28 +360,6 @@ for _name, _zh, _en in TX_LAB:
 """
 
 
-WIDGETS["roles"] = """
-<figure class="widget" data-widget="roles">
-  <figcaption class="widget-head">
-    <span class="widget-kicker">live</span>
-    <span class="widget-title" data-zh="点选岗位：要准备的方向里，有多少能复用"
-          data-en="Select roles: how much of the preparation is shared"></span>
-  </figcaption>
-  <div class="widget-body roles-body">
-    <div class="role-chips"></div>
-    <div class="topic-cloud"></div>
-    <div class="role-meter">
-      <div class="role-meter-track"><span class="role-meter-shared"></span><span class="role-meter-solo"></span></div>
-      <div class="role-legend">
-        <span><i class="role-meter-shared"></i><span data-zh="多个岗位共用" data-en="shared by several roles"></span></span>
-        <span><i class="role-meter-solo"></i><span data-zh="只为一个岗位准备" data-en="needed by one role only"></span></span>
-      </div>
-      <div class="role-meter-text"></div>
-    </div>
-  </div>
-</figure>
-"""
-
 
 # Filled by discover(): "00-foundations/transformer.md" -> {"zh": Page, "en": Page | None}
 BY_SRC = {}
@@ -409,21 +387,18 @@ def note_link(page, note: str):
 
 
 def both(d, zh: bool, key=""):
-    """(primary, alternate) text for a bilingual entry: the page language first, the other one
-    second, so every label can show its 中英对照 instead of hiding one language."""
+    """(text, "") for a bilingual entry in the page's own language. The second slot used to carry the
+    other language as a small caption; pages now keep to one language, so it is always empty."""
     a, b = d.get(f"{key}zh" if key else "zh", ""), d.get(f"{key}en" if key else "en", "")
-    main, alt = (a, b) if zh else (b, a)
-    return html.escape(main or alt), html.escape(alt if alt and alt != main else "")
+    return html.escape((a or b) if zh else (b or a)), ""
 
 
-def block_head(page, kicker, anchor, title, alt, desc) -> str:
+def block_head(page, anchor, title, desc) -> str:
     """One numbered home-page block: every block opens the same way, numbered in page order."""
     page.block_count = getattr(page, "block_count", 0) + 1
     num = f"{page.block_count:02d}"
-    alt_html = f'<em>{alt}</em>' if alt else ""
     return (f'<header class="block-head" id="{anchor}"><span class="block-num">{num}</span>'
-            f'<span class="block-kicker">{kicker}</span>'
-            f'<h2 class="block-title">{title}{alt_html}</h2><p class="block-desc">{desc}</p></header>')
+            f'<h2 class="block-title">{title}</h2><p class="block-desc">{desc}</p></header>')
 
 
 def roadmap_html(page) -> str:
@@ -442,8 +417,7 @@ def roadmap_html(page) -> str:
     for track in tracks:
         for ref in track.get("layers", []):
             users.setdefault(ref["id"], []).append(track["zh" if zh else "en"])
-    weight_label = ({"core": "必备 · Core", "plus": "加分 · Plus"} if zh else
-                    {"core": "Core · 必备", "plus": "Plus · 加分"})
+    weight_label = {"core": "必备", "plus": "加分"} if zh else {"core": "Core", "plus": "Plus"}
     done_label = "标记为已读" if zh else "Mark as read"
 
     live = {(v.get("note"), v.get("anchor", "")) for v in data.get("viz", [])}
@@ -459,7 +433,7 @@ def roadmap_html(page) -> str:
         if not link:
             return (f'<li class="rm-mod is-planned"><span class="rm-dot" aria-hidden="true"></span>'
                     f'<span class="rm-planned"><span class="rm-mod-title">{main}</span>{alt_html}'
-                    f'<span class="rm-mod-meta">{"待补 · planned" if zh else "planned · 待补"}</span></span></li>'), None
+                    f'<span class="rm-mod-meta">{"待补" if zh else "planned"}</span></span></li>'), None
         href, title, minutes, native = link
         anchor = topic.get("anchor", "")
         key = html.escape(topic["note"][:-3] + (f"#{anchor}" if anchor else ""), quote=True)
@@ -513,7 +487,7 @@ def roadmap_html(page) -> str:
         if kind in badges:
             a_, b_ = badges[kind] if zh else badges[kind][::-1]
             by = f' · {html.escape(track["by"])}' if kind == "side" and track.get("by") else ""
-            badge = f'<span class="rm-kind{"" if kind == "main" else " is-side"}">{a_} · {b_}{by}</span>'
+            badge = f'<span class="rm-kind{"" if kind == "main" else " is-side"}">{a_}{by}</span>'
         caveat = ""
         if kind == "draft":
             caveat = ('<p class="rm-caveat">这条路线我打算聊，但现在只有提纲：stack 的分层是我准备写的大纲，'
@@ -532,13 +506,11 @@ def roadmap_html(page) -> str:
             f'<span class="rm-count">0 / {len(keys)}</span>'
             f'<button type="button" class="rm-expand" data-open="{"全部展开" if zh else "Expand all"}" '
             f'data-close="{"全部收起" if zh else "Collapse all"}"></button></div></div>'
-            f'<div class="stack-axis" aria-hidden="true"><span>{"↑ 岗位专属 · role-specific" if zh else "↑ role-specific · 岗位专属"}</span></div>'
+            f'<div class="stack-axis" aria-hidden="true"><span>{"↑ 岗位专属" if zh else "↑ role-specific"}</span></div>'
             f'<div class="stack">{"".join(slabs)}</div>'
-            f'<div class="stack-axis" aria-hidden="true"><span>{"↓ 通用基础 · shared foundations" if zh else "↓ shared foundations · 通用基础"}</span></div></div>')
+            f'<div class="stack-axis" aria-hidden="true"><span>{"↓ 通用基础" if zh else "↓ shared foundations"}</span></div></div>')
 
-    head = block_head(page, "Routes × Tech stack", "routes",
-                      "职业路线与 tech stack" if zh else "Career routes and their tech stack",
-                      "Career routes" if zh else "职业路线",
+    head = block_head(page, "routes", "职业路线与 tech stack" if zh else "Career routes and their tech stack",
                       "先选一条职业路线，看它需要的 tech stack 一层一层是什么；点开任意一层，就是这一层的知识点，每个知识点跳到对应的笔记。"
                       if zh else
                       "Pick a career route and see its tech stack layer by layer. Open any layer for its knowledge breakdown; every topic jumps to the note that covers it.")
@@ -662,13 +634,13 @@ def question_bank_md(page) -> str:
         layers = [l for l in data.get("layer", []) if l.get("area") == area["id"]]
         if not any(bank.get(l["id"]) for l in layers):
             continue
-        out.append(f'\n## {area["zh" if zh else "en"]} · {area["en" if zh else "zh"]}\n')
+        out.append(f'\n## {area["zh" if zh else "en"]}\n')
         for layer in layers:
             rows = bank.get(layer["id"])
             if not rows:
                 continue
             out.append(f'\n<a id="q-{layer["id"]}"></a>\n\n### {layer["zh" if zh else "en"]}\n')
-            out.append(f'<p class="q-meta">{html.escape(layer["en" if zh else "zh"])} · {len(rows)} {"道" if zh else "questions"}</p>\n')
+            out.append(f'<p class="q-meta">{len(rows)} {"道题" if zh else "questions"}</p>\n')
             quick = [r for r in rows if r[4]]
             for q, note, anchor, title, answer in quick:
                 source = f'<p class="q-src">{"出处" if zh else "From"}：<a href="{rel(note)}#{anchor}">{html.escape(title)}</a></p>'
@@ -730,8 +702,7 @@ def blocks_html(page) -> str:
         a_main, a_alt = both(area, zh)
         rows.append(f'<div class="kb-area"><div class="kb-area-name"><strong>{a_main}</strong>'
                     f'{f"<em>{a_alt}</em>" if a_alt else ""}</div><div class="kb-grid">{"".join(cards)}</div></div>')
-    head = block_head(page, "Knowledge blocks", "blocks",
-                      "知识板块" if zh else "Knowledge blocks", "Knowledge blocks" if zh else "知识板块",
+    head = block_head(page, "blocks", "知识板块" if zh else "Knowledge blocks",
                       "不按岗位、按主题看：大模型基础、fine-tuning 与 post-training、评估……每一块有多少知识点、写了多少、有没有能动手玩的图。虚线的板块还没有笔记。"
                       if zh else
                       "By subject instead of by role: LLM foundations, fine-tuning and post-training, evaluation and so on. For each block: how many topics, how many are written, and whether there is something to play with. Dashed blocks have no notes yet.")
@@ -756,8 +727,7 @@ def gallery_html(page) -> str:
                      f'<span class="viz-desc">{both(v, zh, "desc_")[0]}</span></a>')
     if not cards:
         return ""
-    head = block_head(page, "Live figures", "figures",
-                      "交互图解" if zh else "Live figures", "Live figures" if zh else "交互图解",
+    head = block_head(page, "figures", "交互图解" if zh else "Live figures",
                       "能拖、能点、能现场训练的图都在这里。数字在你的浏览器里实时计算，玩具例子都会如实标注。" if zh else
                       "Everything you can drag, click or train live. Numbers are computed in your browser, and toy examples are labelled as such.")
     return f'<section class="home-block" data-widget="gallery">{head}<div class="viz-grid">{"".join(cards)}</div></section>'
@@ -780,11 +750,10 @@ def threads_html(page) -> str:
             meta = f"{link[2]} 分钟" if zh else f"{link[2]} min"
             cards.append(f'<a class="thread-card" href="{html.escape(link[0], quote=True)}">{body}<span class="thread-meta">{meta}</span></a>')
         else:
-            cards.append(f'<div class="thread-card is-planned">{body}<span class="thread-meta">{"待补 · planned" if zh else "planned · 待补"}</span></div>')
+            cards.append(f'<div class="thread-card is-planned">{body}<span class="thread-meta">{"待补" if zh else "planned"}</span></div>')
     if not cards:
         return ""
-    head = block_head(page, "Threads", "threads",
-                      "串联：把几条线穿起来" if zh else "Threads: tying the lines together", "Threads" if zh else "串联",
+    head = block_head(page, "threads", "串联：把几条线穿起来" if zh else "Threads: tying the lines together",
                       "这些文章不属于某一个板块，它们的工作是解释板块之间怎么连。每篇下面标着它串起了哪几块。" if zh else
                       "These pieces belong to no single block: their job is to explain how the blocks connect. Each one lists the blocks it ties together.")
     return f'<section class="home-block" data-widget="threads">{head}<div class="thread-grid">{"".join(cards)}</div></section>'
@@ -815,8 +784,7 @@ def categories_html(page) -> str:
                      f'<span class="cat-meta">{unit} · {names}</span></a>')
     if not cards:
         return ""
-    head = block_head(page, "Library", "library",
-                      "三个大类" if zh else "Three categories", "Three categories" if zh else "三个大类",
+    head = block_head(page, "library", "三个大类" if zh else "Three categories",
                       "不想按路线走？所有笔记都归在这三类里，侧边栏和顶栏也是同一套分类。" if zh else
                       "Rather browse? Every note lives in one of these three categories; the sidebar and the top bar use the same split.")
     return f'<section class="home-block" data-widget="categories">{head}<div class="cat-cards">{"".join(cards)}</div></section>'
@@ -825,8 +793,7 @@ def categories_html(page) -> str:
 def about_head_html(page) -> str:
     zh = page.lang == "zh"
     return ('<section class="home-block about-block">' +
-            block_head(page, "About", "about", "关于这份笔记" if zh else "About these notes",
-                       "About these notes" if zh else "关于这份笔记",
+            block_head(page, "about", "关于这份笔记" if zh else "About these notes",
                        "我想弄明白什么、怎么写、哪些公开哪些不公开。" if zh else
                        "What I am trying to understand, how the notes are written, and what is and is not public.") +
             '</section>')
@@ -1252,7 +1219,7 @@ def tabs_html(page):
             items.append((cat, page.rel(target.url)))
     active = ' class="active" aria-current="true"'
     links = "".join(f'<a href="{href}"{active if cat["id"] == current else ""}>'
-                    f'<span>{both(cat, zh)[0]}</span><small>{both(cat, zh)[1]}</small></a>' for cat, href in items)
+                    f'<span>{both(cat, zh)[0]}</span></a>' for cat, href in items)
     site = NAV.get("site", {})
     if site.get("author_url"):
         sep = "&" if "?" in site["author_url"] else "?"
@@ -1271,7 +1238,7 @@ def subtabs_html(page):
     if current == "home":
         blocks = [("routes", "职业路线", "Routes"), ("blocks", "知识板块", "Knowledge blocks"), ("figures", "交互图解", "Live figures"),
                   ("threads", "串联", "Threads"), ("library", "三个大类", "Library"), ("about", "关于", "About")]
-        links = "".join(f'<a href="#{anchor}"><span>{a if zh else b}</span><small>{b if zh else a}</small></a>' for anchor, a, b in blocks)
+        links = "".join(f'<a href="#{anchor}"><span>{a if zh else b}</span></a>' for anchor, a, b in blocks)
         label = "路线图" if zh else "Roadmap"
     else:
         cat = next((c for c in NAV.get("category", []) if c["id"] == current), None)
@@ -1284,8 +1251,7 @@ def subtabs_html(page):
             if not target:
                 continue
             cls = ' class="active" aria-current="true"' if group["id"] == here else ""
-            links += (f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span>'
-                      f'<small>{both(group, zh)[1]}</small></a>')
+            links += f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span></a>'
         label = both(cat, zh)[0]
     if not links:
         return ""
