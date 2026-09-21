@@ -273,7 +273,7 @@ $d_k=d_v=64$ 是设计选择，不是 attention 的数学要求。
 为什么 score 要除以 $\sqrt{d_k}$？若 $q_i,k_i$ 近似独立、均值为 0、方差为 1，
 那么
 
-$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,qquad
+$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,\qquad
 \operatorname{Var}(q^\top k)\approx d_k.$$
 
 点积的标准差因此随 $\sqrt{d_k}$ 增长。缩放后
@@ -322,7 +322,7 @@ mathematical requirement of attention.
 Why divide the score by $\sqrt{d_k}$? If the components of q and k are approximately
 independent with zero mean and unit variance, then
 
-$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,qquad
+$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,\qquad
 \operatorname{Var}(q^\top k)\approx d_k.$$
 
 The dot product's standard deviation grows like $\sqrt{d_k}$. Scaling gives

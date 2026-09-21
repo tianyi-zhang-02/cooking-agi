@@ -68,8 +68,8 @@ flowchart LR
 ## 第三层：从零实现实验
 
 <div class="lab-matrix">
-  <div><span>不调用 PyTorch</span><strong>看清每个数字从哪来</strong><p>纯 Python 写 BPE；NumPy 写 RNN、LSTM 与 scaled dot-product attention。</p><a href="code/README.md#不用-pytorch先看清计算">查看实验 →</a></div>
-  <div><span>调用 PyTorch</span><strong>让同一机制真的学起来</strong><p>自行实现 module、使用自动求导、训练 seq2seq，并验证 Transformer 的因果性与 KV cache。</p><a href="code/README.md#用-pytorch让它真正训练">查看实验 →</a></div>
+  <div><span>不调用 PyTorch</span><strong>看清每个数字从哪来</strong><p>纯 Python 写 BPE；NumPy 写 RNN、LSTM 与 scaled dot-product attention。</p><a href="code/README.md#python-numpy">查看实验 →</a></div>
+  <div><span>调用 PyTorch</span><strong>让同一机制真的学起来</strong><p>自行实现 module、使用自动求导、训练 seq2seq，并验证 Transformer 的因果性与 KV cache。</p><a href="code/README.md#pytorch">查看实验 →</a></div>
 </div>
 
 ```bash

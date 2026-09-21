@@ -48,7 +48,8 @@ PROTECTED = {"code", "pre", "a", "script", "style", "abbr",
 # Structured components whose text is laid out by CSS. An inline gloss chip
 # inside one splits a word in half and breaks the grid, so they are skipped
 # wholesale -- the annotation belongs in running prose, not in a summary card.
-NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid"}
+NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid",
+                   "home-block"}
 
 # elements that never carry an end tag, so they must not push onto the stack
 VOID = {"br", "img", "hr", "input", "meta", "link", "source", "col", "wbr"}
@@ -60,6 +61,12 @@ VOID = {"br", "img", "hr", "input", "meta", "link", "source", "col", "wbr"}
 def load_nav():
     with open(SITE / "nav.toml", "rb") as f:
         return tomllib.load(f)
+
+
+def load_roadmap():
+    """site/roadmap.toml: the tracks, stages and modules shown on the home page."""
+    f = SITE / "roadmap.toml"
+    return tomllib.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
 
 
 def load_glossary():
@@ -286,6 +293,10 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
             path = path[: -len("README" + suffix)] + "index" + suffix
 
         resolved = os.path.normpath(str(here / path)).replace(os.sep, "/")
+        if resolved not in known and path.endswith(".en.html"):
+            zh_path = path[:-8] + ".html"   # no English version yet: the Chinese page beats a GitHub blob
+            if os.path.normpath(str(here / zh_path)).replace(os.sep, "/") in known:
+                return f'{attr}="{zh_path}{frag}"'
         if resolved not in known:
             return f'{attr}="{gh(raw, "tree" if raw.endswith("/") else "blob")}"'
         return f'{attr}="{path}{frag}"'
@@ -325,9 +336,515 @@ WIDGETS = {
 }
 
 
-def expand_widgets(md_text: str) -> str:
-    return re.sub(r"<!--\s*widget:([a-z0-9_-]+)\s*-->",
-                  lambda m: WIDGETS.get(m.group(1), ""), md_text)
+# Transformer lab (static/tx-lab.js). The figures build themselves in the browser,
+# so the markup here is only the shell plus a no-JS fallback line.
+TX_LAB = [
+    ("tx-arch", "结构图：选一个模型家族，看哪里变了", "Architecture map: pick a family and watch what moves"),
+    ("tx-attention", "Self-attention 一步一步算（6 个 token 的玩具例子）", "Self-attention step by step (a six-token toy)"),
+    ("tx-kv-cache", "解码 10 个 token：每一步到底算了什么", "Decoding 10 tokens: what each step computes"),
+    ("tx-kv-heads", "每个 token 要缓存多少个 K/V head", "How many K/V heads each token has to cache"),
+    ("tx-windows", "谁能看到谁：attention pattern", "Who can see whom: attention patterns"),
+    ("tx-rope", "RoPE：位置就是旋转", "RoPE: position as rotation"),
+    ("tx-moe", "MoE：一次一个 token 经过 FFN", "MoE: one token at a time through the FFN"),
+    ("tx-flash", "FlashAttention：attention 矩阵放在哪里", "FlashAttention: where the attention matrix lives"),
+]
+for _name, _zh, _en in TX_LAB:
+    WIDGETS[_name] = f"""
+<figure class="widget tx-lab" id="{_name}" data-widget="{_name}">
+  <figcaption class="widget-head">
+    <span class="widget-kicker">live</span>
+    <span class="widget-title" data-zh="{_zh}" data-en="{_en}"></span>
+  </figcaption>
+  <div class="widget-body"><p class="tx-fallback" data-zh="这张交互图需要启用 JavaScript。" data-en="This interactive figure needs JavaScript."></p></div>
+</figure>
+"""
+
+
+WIDGETS["roles"] = """
+<figure class="widget" data-widget="roles">
+  <figcaption class="widget-head">
+    <span class="widget-kicker">live</span>
+    <span class="widget-title" data-zh="点选岗位：要准备的方向里，有多少能复用"
+          data-en="Select roles: how much of the preparation is shared"></span>
+  </figcaption>
+  <div class="widget-body roles-body">
+    <div class="role-chips"></div>
+    <div class="topic-cloud"></div>
+    <div class="role-meter">
+      <div class="role-meter-track"><span class="role-meter-shared"></span><span class="role-meter-solo"></span></div>
+      <div class="role-legend">
+        <span><i class="role-meter-shared"></i><span data-zh="多个岗位共用" data-en="shared by several roles"></span></span>
+        <span><i class="role-meter-solo"></i><span data-zh="只为一个岗位准备" data-en="needed by one role only"></span></span>
+      </div>
+      <div class="role-meter-text"></div>
+    </div>
+  </div>
+</figure>
+"""
+
+
+# Filled by discover(): "00-foundations/transformer.md" -> {"zh": Page, "en": Page | None}
+BY_SRC = {}
+NAV = {}
+
+
+def estimate_minutes(src: Path) -> int:
+    """Reading time straight from the markdown, so a widget can show it before the note is rendered."""
+    text = re.sub(r"```.*?```", " ", src.read_text(encoding="utf-8"), flags=re.S)
+    text = re.sub(r"<[^>]+>|[#>*_`|$-]", " ", text)
+    cjk = len(re.findall(r"[\u3400-\u9fff]", text))
+    latin = len(re.findall(r"\b[\w'-]+\b", re.sub(r"[\u3400-\u9fff]", " ", text)))
+    return max(1, math.ceil(cjk / 420 + latin / 220))
+
+
+def note_link(page, note: str):
+    """(href, title, minutes, has_own_language) for a note path, written as a source-relative
+    .md link so rewrite_links resolves it exactly like a hand-written one."""
+    pair = BY_SRC.get(note)
+    if not pair:
+        return None
+    target = pair.get(page.lang) or pair["zh"]
+    href = os.path.relpath(ROOT / note, page.src.parent).replace(os.sep, "/")
+    return href, target.title, estimate_minutes(target.src), pair.get(page.lang) is not None
+
+
+def both(d, zh: bool, key=""):
+    """(primary, alternate) text for a bilingual entry: the page language first, the other one
+    second, so every label can show its 中英对照 instead of hiding one language."""
+    a, b = d.get(f"{key}zh" if key else "zh", ""), d.get(f"{key}en" if key else "en", "")
+    main, alt = (a, b) if zh else (b, a)
+    return html.escape(main or alt), html.escape(alt if alt and alt != main else "")
+
+
+def block_head(page, kicker, anchor, title, alt, desc) -> str:
+    """One numbered home-page block: every block opens the same way, numbered in page order."""
+    page.block_count = getattr(page, "block_count", 0) + 1
+    num = f"{page.block_count:02d}"
+    alt_html = f'<em>{alt}</em>' if alt else ""
+    return (f'<header class="block-head" id="{anchor}"><span class="block-num">{num}</span>'
+            f'<span class="block-kicker">{kicker}</span>'
+            f'<h2 class="block-title">{title}{alt_html}</h2><p class="block-desc">{desc}</p></header>')
+
+
+def roadmap_html(page) -> str:
+    """Career route -> tech stack -> knowledge breakdown.
+
+    A route is a stack of layers (role-specific on top, shared foundations at the bottom); a layer
+    lists the concrete tools and breaks down into knowledge topics; a topic links to a note or is
+    honestly marked as planned. Everything is plain <details> + links, so it works without
+    JavaScript; app.js only adds the route switcher, expand-all and the read-it checkmarks."""
+    zh = page.lang == "zh"
+    data = load_roadmap()
+    tracks, layers = data.get("track", []), {l["id"]: l for l in data.get("layer", [])}
+    if not tracks:
+        return ""
+    users = {}                     # layer id -> names of the routes that use it
+    for track in tracks:
+        for ref in track.get("layers", []):
+            users.setdefault(ref["id"], []).append(track["zh" if zh else "en"])
+    weight_label = ({"core": "必备 · Core", "plus": "加分 · Plus"} if zh else
+                    {"core": "Core · 必备", "plus": "Plus · 加分"})
+    done_label = "标记为已读" if zh else "Mark as read"
+
+    live = {(v.get("note"), v.get("anchor", "")) for v in data.get("viz", [])}
+
+    def topic_html(topic):
+        main, alt = both(topic, zh)
+        if (topic.get("note"), topic.get("anchor", "")) in live and topic.get("anchor"):
+            main += ' <i class="rm-live">live</i>'
+        alt_html = f'<span class="rm-mod-alt">{alt}</span>' if alt else ""
+        link = note_link(page, topic["note"]) if "note" in topic else None
+        if "note" in topic and not link:
+            print(f"  roadmap: no such note {topic['note']!r} -- shown as planned")
+        if not link:
+            return (f'<li class="rm-mod is-planned"><span class="rm-dot" aria-hidden="true"></span>'
+                    f'<span class="rm-planned"><span class="rm-mod-title">{main}</span>{alt_html}'
+                    f'<span class="rm-mod-meta">{"待补 · planned" if zh else "planned · 待补"}</span></span></li>'), None
+        href, title, minutes, native = link
+        anchor = topic.get("anchor", "")
+        key = html.escape(topic["note"][:-3] + (f"#{anchor}" if anchor else ""), quote=True)
+        href = html.escape(href + (f"#{anchor}" if anchor else ""), quote=True)
+        meta = (f"{minutes} 分钟" if zh else f"{minutes} min") + ("" if native else " · 中文")
+        return (f'<li class="rm-mod" data-key="{key}">'
+                f'<button type="button" class="rm-check" aria-pressed="false" aria-label="{done_label}"></button>'
+                f'<a href="{href}" title="{html.escape(title, quote=True)}"><span class="rm-mod-title">{main}</span>{alt_html}'
+                f'<span class="rm-mod-meta">{meta}</span></a></li>'), key
+
+    tabs, panels = [], []
+    for ti, track in enumerate(tracks):
+        name = html.escape(track["zh" if zh else "en"])
+        kind = track.get("kind", "covered")
+        side = kind in {"side", "draft"}          # dashed tab: not (yet) a fully written route
+        tabs.append(f'<button type="button" class="rm-tab{" is-side" if side else ""}" role="tab" data-track="{track["id"]}" '
+                    f'aria-selected="{"true" if ti == 0 else "false"}">{name}</button>')
+        slabs, keys = [], set()
+        for li, ref in enumerate(track.get("layers", [])):
+            layer = layers.get(ref["id"])
+            if not layer:
+                continue
+            main, alt = both(layer, zh)
+            tools = layer.get("tools" if zh else "tools_en") or layer.get("tools", [])
+            rendered = [topic_html(t) for t in layer.get("topics", [])]
+            have = [k for _, k in rendered if k]
+            keys.update(have)
+            shared = [u for u in users.get(ref["id"], []) if u != track["zh" if zh else "en"]]
+            shared_html = (f'<p class="sl-shared">{"这一层也出现在" if zh else "This layer is shared with"}：'
+                           f'{html.escape(" · ".join(shared))}</p>' if shared else
+                           f'<p class="sl-shared">{"这一层是这条路线专属的。" if zh else "This layer is specific to this route."}</p>')
+            weight = ref.get("weight", "core")
+            n_q = len(collect_bank(page).get(ref["id"], []))
+            bank_link = note_link(page, QUESTION_BANK) if n_q else None
+            if bank_link:
+                label = f"这一层的 {n_q} 道考题 →" if zh else f"{n_q} interview questions for this layer →"
+                shared_html += f'<p class="sl-questions"><a href="{html.escape(bank_link[0], quote=True)}#q-{ref["id"]}">{label}</a></p>'
+            slabs.append(
+                f'<details class="stack-layer is-{weight}"{" open" if li == 0 else ""}><summary>'
+                f'<span class="sl-weight">{weight_label.get(weight, weight)}</span>'
+                f'<span class="sl-name"><strong>{main}</strong>{f"<em>{alt}</em>" if alt else ""}</span>'
+                f'<span class="sl-tools">{"".join(f"<i>{html.escape(t)}</i>" for t in tools)}</span>'
+                f'<span class="sl-count" title="{"已有笔记 / 知识点" if zh else "notes written / topics"}">{len(have)} / {len(rendered)}</span>'
+                f'</summary><div class="sl-body">{shared_html}'
+                f'<ul class="rm-modules">{"".join(h for h, _ in rendered)}</ul></div></details>')
+        # main = the author's own line; covered = written by the author, no badge; draft = an outline the
+        # author intends to fill in; side = a route contributed by someone else (credited with `by`).
+        badges = {"main": ("我的主线", "My main line"), "draft": ("骨架 · 笔记待补", "Outline · notes to come"),
+                  "side": ("社区贡献", "Community route")}
+        badge = ""
+        if kind in badges:
+            a_, b_ = badges[kind] if zh else badges[kind][::-1]
+            by = f' · {html.escape(track["by"])}' if kind == "side" and track.get("by") else ""
+            badge = f'<span class="rm-kind{"" if kind == "main" else " is-side"}">{a_} · {b_}{by}</span>'
+        caveat = ""
+        if kind == "draft":
+            caveat = ('<p class="rm-caveat">这条路线我打算聊，但现在只有提纲：stack 的分层是我准备写的大纲，'
+                      '大部分知识点还没有笔记，如实标为待补。</p>' if zh else
+                      '<p class="rm-caveat">I plan to write about this route, but for now it is an outline: the layers are the '
+                      'structure I intend to fill in, and most topics have no note yet. They are marked as planned.</p>')
+        elif kind == "side":
+            caveat = ('<p class="rm-caveat">这条路线由社区贡献，不是站点作者本人的方向。</p>' if zh else
+                      '<p class="rm-caveat">This route was contributed by the community; it is not the site author’s own direction.</p>')
+        panels.append(
+            f'<div class="rm-track" role="tabpanel" data-track="{track["id"]}" id="track-{track["id"]}">'
+            f'<div class="rm-track-head"><strong class="rm-track-name">{name}</strong>'
+            f'{badge}'
+            f'<p class="rm-blurb">{both(track, zh, "blurb_")[0]}</p>{caveat}'
+            f'<div class="rm-progress"><span class="rm-bar"><i></i></span>'
+            f'<span class="rm-count">0 / {len(keys)}</span>'
+            f'<button type="button" class="rm-expand" data-open="{"全部展开" if zh else "Expand all"}" '
+            f'data-close="{"全部收起" if zh else "Collapse all"}"></button></div></div>'
+            f'<div class="stack-axis" aria-hidden="true"><span>{"↑ 岗位专属 · role-specific" if zh else "↑ role-specific · 岗位专属"}</span></div>'
+            f'<div class="stack">{"".join(slabs)}</div>'
+            f'<div class="stack-axis" aria-hidden="true"><span>{"↓ 通用基础 · shared foundations" if zh else "↓ shared foundations · 通用基础"}</span></div></div>')
+
+    head = block_head(page, "Routes × Tech stack", "routes",
+                      "职业路线与 tech stack" if zh else "Career routes and their tech stack",
+                      "Career routes" if zh else "职业路线",
+                      "先选一条职业路线，看它需要的 tech stack 一层一层是什么；点开任意一层，就是这一层的知识点，每个知识点跳到对应的笔记。"
+                      if zh else
+                      "Pick a career route and see its tech stack layer by layer. Open any layer for its knowledge breakdown; every topic jumps to the note that covers it.")
+    source = f'https://github.com/{NAV.get("site", {}).get("repo", "")}/blob/main/site/roadmap.toml'
+    note = ("圆点可以标记已读，进度只存在你自己的浏览器里。“待补”的知识点还没有笔记，不假装有。岗位要求变得很快，这张图有时效性。"
+            if zh else
+            "Tick a dot to mark a topic as read: progress is stored only in your browser. “Planned” topics have no note yet and do not pretend to. Role requirements change quickly, so this map is time-sensitive.")
+    extend = (f'这里只有我自己在做或打算聊的方向。Data Scientist、Data Engineer、Quant、AI Infra 等路线不是我的 focus——'
+              f'欢迎你来补：在 <a href="{source}">site/roadmap.toml</a> 里加一个 <code>[[track]]</code> 就行，文件开头写了怎么加。'
+              if zh else
+              f'Only directions I work on, or plan to write about, are here. Data Scientist, Data Engineer, Quant, AI Infra and others are not my focus. '
+              f'You are welcome to add them: one <code>[[track]]</code> in <a href="{source}">site/roadmap.toml</a>, with instructions at the top of the file.')
+    return (f'<section class="roadmap home-block" data-widget="roadmap" aria-labelledby="routes">{head}'
+            f'<div class="rm-tabs" role="tablist">{"".join(tabs)}</div>'
+            f'{"".join(panels)}<p class="rm-note">{note}</p><p class="rm-note rm-extend">{extend}</p></section>')
+
+
+QUESTION_BANK = "interview/questions.md"
+
+
+def top_level_details(body: str):
+    """(summary, inner markdown) for each outermost <details> in a section; nested ones stay inside."""
+    out, depth, start = [], 0, None
+    for m in re.finditer(r"<details[^>]*>|</details>", body):
+        if m.group(0).startswith("<details"):
+            if depth == 0:
+                start = m.end()
+            depth += 1
+        else:
+            depth -= 1
+            if depth == 0 and start is not None:
+                block = body[start:m.start()]
+                s = re.search(r"<summary>(.*?)</summary>", block, flags=re.S)
+                if s:
+                    out.append((re.sub(r"\s+", " ", strip_tags(s.group(1))).strip(), block[s.end():].strip()))
+                start = None
+    return out
+
+
+def note_questions(src_path: Path):
+    """(question, anchor, answer markdown) triples a note already contains: the Q&A of its interview
+    section (answer included), and the items of its self-check box (no answer: go back and read).
+    The note stays the single source; nothing is copied by hand."""
+    text = src_path.read_text(encoding="utf-8")
+    out = []
+    parts = re.split(r"(?m)^(#{2,3} .*)$", text)
+    for i in range(1, len(parts), 2):
+        if re.search(r"面试|interview", parts[i], re.I):
+            for q, answer in top_level_details(parts[i + 1]):
+                if q and not re.match(r"(深挖|进阶|deep dive|deeper)", q, re.I):
+                    out.append((q, "interview", answer))
+    box = re.search(r'<div class="taste-check[^"]*">(.*?)</div>', text, flags=re.S)
+    if box:
+        for li in re.findall(r"<li>(.*?)</li>", box.group(1), flags=re.S):
+            out.append((re.sub(r"\s+", " ", strip_tags(li)).strip(), "self-check", ""))
+    return out
+
+
+def rebase_links(md: str, note: str, page) -> str:
+    """An answer lifted out of its note keeps working links: relative URLs are re-pointed from the
+    note's folder to the page's folder, and bare #anchors go back to the note."""
+    note_dir, here = (ROOT / note).parent, page.src.parent
+
+    def fix(url):
+        if re.match(r"^(https?:|mailto:|data:|/)", url):
+            return url
+        if url.startswith("#"):
+            return os.path.relpath(ROOT / note, here).replace(os.sep, "/") + url
+        p, _, frag = url.partition("#")
+        return os.path.relpath(note_dir / p, here).replace(os.sep, "/") + (f"#{frag}" if frag else "")
+
+    md = re.sub(r"\]\(([^)\s]+)\)", lambda m: "](" + fix(m.group(1)) + ")", md)
+    return re.sub(r'\b(href|src)="([^"]+)"', lambda m: f'{m.group(1)}="{fix(m.group(2))}"', md)
+
+
+def collect_bank(page):
+    """{layer id: [(question, note path, anchor, note title, answer md)]}. A note feeds the first block that links it."""
+    cache = getattr(collect_bank, "cache", {})
+    if page.lang in cache:
+        return cache[page.lang]
+    data = load_roadmap()
+    order = [l for a in data.get("area", []) for l in data.get("layer", []) if l.get("area") == a["id"]]
+    bank, seen = {}, set()
+    for layer in order:
+        rows = []
+        notes = [t["note"] for t in layer.get("topics", []) if "note" in t] + ([layer["home"]] if layer.get("home") else [])
+        for note in dict.fromkeys(notes):
+            pair = BY_SRC.get(note)
+            if not pair or note in seen or note == QUESTION_BANK:
+                continue
+            seen.add(note)
+            target = pair.get(page.lang) or pair["zh"]
+            rows += [(q, note, anchor, target.title, answer) for q, anchor, answer in note_questions(target.src)]
+        bank[layer["id"]] = rows
+    cache[page.lang] = bank
+    collect_bank.cache = cache
+    return bank
+
+
+def question_bank_md(page) -> str:
+    """The quick-review side of the site. Same material as the knowledge blocks, different job:
+    there you learn it, here you run through it before an interview. Questions with an answer in the
+    notes open in place; self-check questions point back to the note.
+
+    Emitted as *markdown*, so headings land in the page outline, math renders, and links go through
+    the same rewriting as hand-written ones."""
+    zh = page.lang == "zh"
+    data = load_roadmap()
+    bank, viz = collect_bank(page), data.get("viz", [])
+    rel = lambda note: os.path.relpath(ROOT / note, page.src.parent).replace(os.sep, "/")
+    esc = lambda s: s.replace("[", "\\[").replace("]", "\\]")
+    total = sum(len(rows) for rows in bank.values())
+    answered = sum(1 for rows in bank.values() for r in rows if r[4])
+    tools = (f'<div class="qb-tools" data-qbank-tools><span class="qb-count">{total} {"道题" if zh else "questions"} · '
+             f'{answered} {"道带答案" if zh else "with answers"}</span>'
+             f'<button type="button" class="btn" data-qb="open">{"全部展开" if zh else "Open all"}</button>'
+             f'<button type="button" class="btn" data-qb="close">{"全部收起" if zh else "Close all"}</button>'
+             f'<button type="button" class="btn" data-qb="random">{"随机抽一题" if zh else "Random question"}</button></div>')
+    out = [tools, ""]
+    for area in data.get("area", []):
+        layers = [l for l in data.get("layer", []) if l.get("area") == area["id"]]
+        if not any(bank.get(l["id"]) for l in layers):
+            continue
+        out.append(f'\n## {area["zh" if zh else "en"]} · {area["en" if zh else "zh"]}\n')
+        for layer in layers:
+            rows = bank.get(layer["id"])
+            if not rows:
+                continue
+            out.append(f'\n<a id="q-{layer["id"]}"></a>\n\n### {layer["zh" if zh else "en"]}\n')
+            out.append(f'<p class="q-meta">{html.escape(layer["en" if zh else "zh"])} · {len(rows)} {"道" if zh else "questions"}</p>\n')
+            quick = [r for r in rows if r[4]]
+            for q, note, anchor, title, answer in quick:
+                source = f'<p class="q-src">{"出处" if zh else "From"}：<a href="{rel(note)}#{anchor}">{html.escape(title)}</a></p>'
+                out.append(f'<details class="qa" markdown="1">\n<summary>{html.escape(q)}</summary>\n\n'
+                           f'{rebase_links(answer, note, page)}\n\n{source}\n\n</details>\n')
+            checks = [r for r in rows if not r[4]]
+            if checks:
+                out.append(f'<p class="q-sub">{"再问自己（答案在笔记里）" if zh else "Ask yourself (the answer is in the note)"}</p>\n')
+                for q, note, anchor, title, _ in checks:
+                    out.append(f'- [{esc(q)}]({rel(note)}#{anchor}) <span class="q-src">{html.escape(title)}</span>')
+                out.append("")
+            figs = [v for v in viz if v.get("layer") == layer["id"] and v.get("anchor")]
+            if figs:
+                links = " · ".join(f'[{esc(v["zh" if zh else "en"])}]({rel(v["note"])}#{v["anchor"]})' for v in figs)
+                out.append(f'<p class="q-sub">{"想学透，而不只是过一遍：去知识板块动手玩" if zh else "To learn it rather than skim it: the live figures in the knowledge blocks"}</p>\n\n{links}\n')
+    return "\n".join(out) + "\n"
+
+
+def layer_stats(page, layer, viz):
+    """(notes written, topics, live figures) for one knowledge block."""
+    topics = layer.get("topics", [])
+    have = sum(1 for t in topics if "note" in t and note_link(page, t["note"]))
+    figures = sum(1 for v in viz if v.get("layer") == layer["id"])
+    return have, len(topics), figures
+
+
+def blocks_html(page) -> str:
+    """Every knowledge block, grouped by area and independent of any route."""
+    zh = page.lang == "zh"
+    data = load_roadmap()
+    layers, viz = data.get("layer", []), data.get("viz", [])
+    if not layers:
+        return ""
+    used = {}
+    for track in data.get("track", []):
+        for ref in track.get("layers", []):
+            used.setdefault(ref["id"], []).append(track["zh" if zh else "en"].split(" · ")[0])
+    rows = []
+    for area in data.get("area", []):
+        cards = []
+        for layer in (l for l in layers if l.get("area") == area["id"]):
+            main, alt = both(layer, zh)
+            have, total, figures = layer_stats(page, layer, viz)
+            link = note_link(page, layer["home"]) if layer.get("home") else None
+            meta = [(f"{have} / {total} 个知识点已有笔记" if zh else f"{have} / {total} topics written")]
+            if figures:
+                meta.append(f"{figures} 个交互图" if zh else f"{figures} live figures")
+            n_q = len(collect_bank(page).get(layer["id"], []))
+            if n_q:
+                meta.append(f"{n_q} 道考题" if zh else f"{n_q} questions")
+            routes = " · ".join(html.escape(r) for r in used.get(layer["id"], []))
+            inner = (f'<strong>{main}</strong>{f"<em>{alt}</em>" if alt else ""}'
+                     f'<span class="kb-meta">{" · ".join(meta)}</span>'
+                     + (f'<span class="kb-routes">{"路线" if zh else "Routes"}：{routes}</span>' if routes else ""))
+            if link and have:
+                cards.append(f'<a class="kb-card" href="{html.escape(link[0], quote=True)}">{inner}</a>')
+            else:
+                cards.append(f'<div class="kb-card is-planned">{inner}</div>')
+        a_main, a_alt = both(area, zh)
+        rows.append(f'<div class="kb-area"><div class="kb-area-name"><strong>{a_main}</strong>'
+                    f'{f"<em>{a_alt}</em>" if a_alt else ""}</div><div class="kb-grid">{"".join(cards)}</div></div>')
+    head = block_head(page, "Knowledge blocks", "blocks",
+                      "知识板块" if zh else "Knowledge blocks", "Knowledge blocks" if zh else "知识板块",
+                      "不按岗位、按主题看：大模型基础、fine-tuning 与 post-training、评估……每一块有多少知识点、写了多少、有没有能动手玩的图。虚线的板块还没有笔记。"
+                      if zh else
+                      "By subject instead of by role: LLM foundations, fine-tuning and post-training, evaluation and so on. For each block: how many topics, how many are written, and whether there is something to play with. Dashed blocks have no notes yet.")
+    return f'<section class="home-block" data-widget="blocks">{head}{"".join(rows)}</section>'
+
+
+def gallery_html(page) -> str:
+    """Everything on the site you can drag, click or train, in one place."""
+    zh = page.lang == "zh"
+    data = load_roadmap()
+    names = {l["id"]: l for l in data.get("layer", [])}
+    cards = []
+    for v in data.get("viz", []):
+        link = note_link(page, v["note"])
+        if not link:
+            continue
+        href = link[0] + (f'#{v["anchor"]}' if v.get("anchor") else "")
+        main, alt = both(v, zh)
+        block = both(names[v["layer"]], zh)[0] if v.get("layer") in names else ("求职" if zh else "Career")
+        cards.append(f'<a class="viz-card" href="{html.escape(href, quote=True)}"><span class="viz-kicker"><i>live</i>{block}</span>'
+                     f'<strong>{main}</strong>{f"<em>{alt}</em>" if alt else ""}'
+                     f'<span class="viz-desc">{both(v, zh, "desc_")[0]}</span></a>')
+    if not cards:
+        return ""
+    head = block_head(page, "Live figures", "figures",
+                      "交互图解" if zh else "Live figures", "Live figures" if zh else "交互图解",
+                      "能拖、能点、能现场训练的图都在这里。数字在你的浏览器里实时计算，玩具例子都会如实标注。" if zh else
+                      "Everything you can drag, click or train live. Numbers are computed in your browser, and toy examples are labelled as such.")
+    return f'<section class="home-block" data-widget="gallery">{head}<div class="viz-grid">{"".join(cards)}</div></section>'
+
+
+def threads_html(page) -> str:
+    """Meta pieces: notes that belong to no single block because their job is to connect several."""
+    zh = page.lang == "zh"
+    data = load_roadmap()
+    names = {l["id"]: l for l in data.get("layer", [])}
+    cards = []
+    for th in data.get("thread", []):
+        main, alt = both(th, zh)
+        chips = "".join(f'<i>{both(names[c], zh)[0]}</i>' for c in th.get("connects", []) if c in names)
+        link = note_link(page, th["note"]) if "note" in th else None
+        body = (f'<strong>{main}</strong>{f"<em>{alt}</em>" if alt else ""}'
+                + (f'<span class="thread-desc">{both(th, zh, "desc_")[0]}</span>' if th.get("desc_zh") else "")
+                + f'<span class="thread-chips">{chips}</span>')
+        if link:
+            meta = f"{link[2]} 分钟" if zh else f"{link[2]} min"
+            cards.append(f'<a class="thread-card" href="{html.escape(link[0], quote=True)}">{body}<span class="thread-meta">{meta}</span></a>')
+        else:
+            cards.append(f'<div class="thread-card is-planned">{body}<span class="thread-meta">{"待补 · planned" if zh else "planned · 待补"}</span></div>')
+    if not cards:
+        return ""
+    head = block_head(page, "Threads", "threads",
+                      "串联：把几条线穿起来" if zh else "Threads: tying the lines together", "Threads" if zh else "串联",
+                      "这些文章不属于某一个板块，它们的工作是解释板块之间怎么连。每篇下面标着它串起了哪几块。" if zh else
+                      "These pieces belong to no single block: their job is to explain how the blocks connect. Each one lists the blocks it ties together.")
+    return f'<section class="home-block" data-widget="threads">{head}<div class="thread-grid">{"".join(cards)}</div></section>'
+
+
+def category_home(cat):
+    return BY_SRC.get(cat.get("home", ""))
+
+
+def categories_html(page) -> str:
+    """The three big categories as cards: what is in each, how much, and where to start."""
+    zh = page.lang == "zh"
+    groups = NAV.get("group", [])
+    cards = []
+    for i, cat in enumerate(NAV.get("category", []), 1):
+        mine = [g for g in groups if g.get("category") == cat["id"]]
+        ids = {g["id"] for g in mine}
+        count = sum(len(sec["pages"]) for sec in NAV.get("_sections", []) if sec["group"] in ids)
+        link = note_link(page, cat.get("home", ""))
+        if not link:
+            continue
+        main, alt = both(cat, zh)
+        names = " · ".join(html.escape(g["zh" if zh else "en"]) for g in mine)
+        unit = f"{count} 篇" if zh else f"{count} notes"
+        cards.append(f'<a class="cat-card" href="{html.escape(link[0], quote=True)}">'
+                     f'<span class="cat-num">{chr(64 + i)}</span><strong>{main}{f"<em>{alt}</em>" if alt else ""}</strong>'
+                     f'<span class="cat-blurb">{both(cat, zh, "blurb_")[0]}</span>'
+                     f'<span class="cat-meta">{unit} · {names}</span></a>')
+    if not cards:
+        return ""
+    head = block_head(page, "Library", "library",
+                      "三个大类" if zh else "Three categories", "Three categories" if zh else "三个大类",
+                      "不想按路线走？所有笔记都归在这三类里，侧边栏和顶栏也是同一套分类。" if zh else
+                      "Rather browse? Every note lives in one of these three categories; the sidebar and the top bar use the same split.")
+    return f'<section class="home-block" data-widget="categories">{head}<div class="cat-cards">{"".join(cards)}</div></section>'
+
+
+def about_head_html(page) -> str:
+    zh = page.lang == "zh"
+    return ('<section class="home-block about-block">' +
+            block_head(page, "About", "about", "关于这份笔记" if zh else "About these notes",
+                       "About these notes" if zh else "关于这份笔记",
+                       "我想弄明白什么、怎么写、哪些公开哪些不公开。" if zh else
+                       "What I am trying to understand, how the notes are written, and what is and is not public.") +
+            '</section>')
+
+
+DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
+                   "roadmap": roadmap_html, "blocks": blocks_html, "gallery": gallery_html,
+                   "threads": threads_html, "categories": categories_html,
+                   "about-head": about_head_html}
+
+
+def expand_widgets(md_text: str, page=None) -> str:
+    def expand(m):
+        name = m.group(1)
+        if page is not None and name in DYNAMIC_WIDGETS:
+            return DYNAMIC_WIDGETS[name](page)
+        return WIDGETS.get(name, "")
+    return re.sub(r"<!--\s*widget:([a-z0-9_-]+)\s*-->", expand, md_text)
 
 
 # --------------------------------------------------------------------------- #
@@ -378,12 +895,18 @@ class Page:
 
 def discover(nav):
     pages, sections = [], []
+    # A section may `include` notes that live in another folder. Their URLs stay where the
+    # file is (no redirects, no broken links); only the sidebar grouping and prev/next move.
+    claimed = {x for sec in nav["section"] for x in sec.get("include", [])}
     for sec in nav["section"]:
         d = ROOT if sec["dir"] == "." else ROOT / sec["dir"]
-        if not d.exists():
+        include = [ROOT / x for x in sec.get("include", []) if (ROOT / x).exists()]
+        if not d.exists() and not include:
             continue
         order = sec.get("order", [])
-        files = [p for p in d.glob("*.md") if not p.name.endswith(".en.md")]
+        files = ([p for p in d.glob("*.md") if not p.name.endswith(".en.md")]
+                 if d.exists() else [])
+        files = [p for p in files if p.relative_to(ROOT).as_posix() not in claimed] + include
         if sec["dir"] == ".":
             files = [p for p in files if p.name in order]
         rank = {n: i for i, n in enumerate(order)}
@@ -398,6 +921,7 @@ def discover(nav):
             if en:
                 en.sibling = zh
             entry_pages.append({"zh": zh, "en": en})
+            BY_SRC[f.relative_to(ROOT).as_posix()] = {"zh": zh, "en": en}
             pages.append(zh)
             if en:
                 pages.append(en)
@@ -414,6 +938,8 @@ def discover(nav):
                     item.previous = ordered[index - 1] if index else None
                     item.next = ordered[index + 1] if index + 1 < len(ordered) else None
             sections.append(entry)
+    NAV.update(nav)
+    NAV["_sections"] = sections
     return pages, sections
 
 
@@ -576,7 +1102,7 @@ def build_page(page: Page, terms, repo: str, known: set):
     if "\x00" in raw:
         bad = [i for i, l in enumerate(raw.splitlines(), 1) if "\x00" in l]
         raise SystemExit(f"{page.src}: NUL byte on line(s) {bad} -- corrupted source")
-    raw = expand_widgets(raw)
+    raw = expand_widgets(raw, page)
     raw = protect_mermaid(raw)
 
     m = re.search(r"^#\s+(.+)$", raw, re.M)
@@ -585,7 +1111,7 @@ def build_page(page: Page, terms, repo: str, known: set):
     if page.kind == "home":
         # Useful on GitHub, but redundant (and oddly circular) on the site itself.
         raw = re.sub(
-            r"^###\s+[^\n]*(?:阅读请到|Read online)[^\n]*\n(?:\n)?",
+            r"^###\s+[^\n]*(?:阅读请到|Read online|Read it at)[^\n]*\n(?:\n)?",
             "",
             raw,
             count=1,
@@ -608,13 +1134,18 @@ def build_page(page: Page, terms, repo: str, known: set):
     if page.lang == "zh":
         body, used = annotate(body, terms)
     body = rewrite_links(body, page, repo, known)
+    # stable targets for the question bank, whatever the heading slug turned out to be
+    body = re.sub(r'(<h[23] id="[^"]*">)(?=[^<]*(?:面试|[Ii]nterview))', r'<a id="interview"></a>\1', body, count=1)
+    body = body.replace('<div class="taste-check', '<div id="self-check" class="taste-check', 1)
     page.body = wrap_tables(body)
     page.toc = [{"id": t["id"], "name": strip_tags(t["name"]), "level": t["level"],
                  "children": [{"id": c["id"], "name": strip_tags(c["name"])}
                               for c in t.get("children", [])]}
                 for t in toc]
-    page.text = strip_tags(body)[:1500]
-    plain = strip_tags(body)
+    # the generated home blocks (routes, category cards) are navigation, not reading
+    prose_only = re.sub(r'<section class="[^"]*home-block.*?</section>', " ", body, flags=re.S)
+    page.text = strip_tags(prose_only)[:1500]
+    plain = strip_tags(prose_only)
     cjk = len(re.findall(r"[\u3400-\u9fff]", plain))
     latin = len(re.findall(r"\b[\w'-]+\b", re.sub(r"[\u3400-\u9fff]", " ", plain)))
     page.read_minutes = max(1, math.ceil(cjk / 420 + latin / 220))
@@ -655,11 +1186,24 @@ def sidebar_html(page, sections, groups):
     for sec in sections:
         by_group.setdefault(sec.get("group", "reference"), []).append(sec)
 
-    out = []
-    for g in groups:
+    out, seen_cat = [], None
+    cats = {c["id"]: c for c in NAV.get("category", [])}
+    scope = page_category(page)
+    if scope in cats:
+        groups = [g for g in groups if g.get("category") == scope]
+    ordered = sorted(groups, key=lambda g: list(cats).index(g["category"]) if g.get("category") in cats else -1)
+    for g in ordered:
         secs = by_group.get(g["id"])
         if not secs:
             continue
+        cat = cats.get(g.get("category"))
+        if cat and cat["id"] != seen_cat:
+            seen_cat = cat["id"]
+            home = category_home(cat)
+            target = home and (home.get(page.lang) or home["zh"])
+            label_cat = html.escape(cat["zh" if page.lang == "zh" else "en"])
+            out.append(f'<li class="cat"><a href="{page.rel(target.url)}">{label_cat}</a></li>' if target
+                       else f'<li class="cat"><span>{label_cat}</span></li>')
         rendered = [section_html(page, s) for s in secs]
         body = "".join(h for h, _ in rendered)
         is_active = any(a for _, a in rendered)
@@ -676,6 +1220,77 @@ def sidebar_html(page, sections, groups):
             f'<span class="grp-count">{n_pages}</span></summary>'
             f'<ul class="grp-body">{body}</ul></details></li>')
     return f'<ul class="nav">{"".join(out)}</ul>'
+
+
+def page_category(page):
+    """Which top-level direction a page belongs to ("home" for the roadmap page)."""
+    if page.url in {"index.html", "index.en.html"}:
+        return "home"
+    groups = {g["id"]: g for g in NAV.get("group", [])}
+    return groups.get(page.section.get("group"), {}).get("category")
+
+
+def group_target(page, group):
+    """The page a block tab lands on: the group's `home`, else the first page of its first section."""
+    pair = BY_SRC.get(group.get("home", ""))
+    if not pair:
+        secs = [s for s in NAV.get("_sections", []) if s["group"] == group["id"] and s["pages"]]
+        pair = secs[0]["pages"][0] if secs else None
+    return pair and (pair.get(page.lang) or pair["zh"])
+
+
+def tabs_html(page):
+    """Level 1, in the top bar on every page: the roadmap plus the big directions."""
+    zh = page.lang == "zh"
+    current = page_category(page)
+    home = {"id": "home", "zh": "路线图", "en": "Roadmap"}
+    items = [(home, page.rel("index.html" if zh else "index.en.html"))]
+    for cat in NAV.get("category", []):
+        pair = category_home(cat)
+        target = pair and (pair.get(page.lang) or pair["zh"])
+        if target:
+            items.append((cat, page.rel(target.url)))
+    active = ' class="active" aria-current="true"'
+    links = "".join(f'<a href="{href}"{active if cat["id"] == current else ""}>'
+                    f'<span>{both(cat, zh)[0]}</span><small>{both(cat, zh)[1]}</small></a>' for cat, href in items)
+    site = NAV.get("site", {})
+    if site.get("author_url"):
+        sep = "&" if "?" in site["author_url"] else "?"
+        author = html.escape(site["author_zh" if zh else "author_en"])
+        links = (f'<a class="tab-author" href="{site["author_url"]}{sep}lang={"zh" if zh else "en"}"><span>{author}</span></a>'
+                 f'<i class="tab-sep" aria-hidden="true"></i>') + links
+    label_nav = "大方向" if zh else "Directions"
+    return f'<nav class="topbar-tabs" aria-label="{label_nav}">{links}</nav>'
+
+
+def subtabs_html(page):
+    """Level 2, at the top of the content column: the blocks inside the chosen direction.
+    On the roadmap page the same strip jumps between the home blocks."""
+    zh = page.lang == "zh"
+    current = page_category(page)
+    if current == "home":
+        blocks = [("routes", "职业路线", "Routes"), ("blocks", "知识板块", "Knowledge blocks"), ("figures", "交互图解", "Live figures"),
+                  ("threads", "串联", "Threads"), ("library", "三个大类", "Library"), ("about", "关于", "About")]
+        links = "".join(f'<a href="#{anchor}"><span>{a if zh else b}</span><small>{b if zh else a}</small></a>' for anchor, a, b in blocks)
+        label = "路线图" if zh else "Roadmap"
+    else:
+        cat = next((c for c in NAV.get("category", []) if c["id"] == current), None)
+        if not cat:
+            return ""
+        here = page.section.get("group")
+        links = ""
+        for group in (g for g in NAV.get("group", []) if g.get("category") == current):
+            target = group_target(page, group)
+            if not target:
+                continue
+            cls = ' class="active" aria-current="true"' if group["id"] == here else ""
+            links += (f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span>'
+                      f'<small>{both(group, zh)[1]}</small></a>')
+        label = both(cat, zh)[0]
+    if not links:
+        return ""
+    return (f'<nav class="subtabs" aria-label="{"板块" if zh else "Blocks"}">'
+            f'<span class="subtabs-label">{label}</span>{links}</nav>')
 
 
 def toc_html(page):
@@ -729,9 +1344,12 @@ def page_header_html(page):
         bits.append(f'<span>{html.escape(reviewed)}</span>')
     if position:
         bits.append(f'<span class="page-position">{position}</span>')
+    sky = ('<span class="hero-sky" aria-hidden="true"><i class="hero-stars"></i>'
+           '<i class="hero-ridge hero-ridge-far"></i><i class="hero-ridge hero-ridge-near"></i></span>'
+           if page.kind == "home" else "")
     return f"""
 <header class="article-head">
-  {chapter_mark}
+  {sky}{chapter_mark}
   <div class="article-kicker"><span>{html.escape(labels[page.kind])}</span>
     <i>{html.escape(section)}</i></div>
   <h1>{html.escape(page.title)}</h1>
@@ -856,6 +1474,8 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{home}}", page.rel("index.html" if zh else "index.en.html"))
             .replace("{{prefix}}", prefix)
             .replace("{{sidebar}}", sidebar_html(page, sections, nav.get("group", [])))
+            .replace("{{tabs}}", tabs_html(page))
+            .replace("{{subtabs}}", subtabs_html(page))
             .replace("{{toc}}", toc_html(page))
             .replace("{{mobile_toc}}", mobile_toc_html(page))
             .replace("{{toc_label}}", "本页目录" if zh else "On this page")

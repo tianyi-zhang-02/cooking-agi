@@ -5,10 +5,10 @@
 > Reading time: ~8 min · Level: core · Last reviewed: 2026-08
 
 <div class="lesson-recipe">
-  <div><span>What we are making</span><strong>A variable-length output conditioned on an input sequence</strong></div>
-  <div><span>Prerequisites</span><strong>source · target · BOS / EOS</strong></div>
-  <div><span>Core technique</span><strong>encoder · decoder · teacher forcing · attention</strong></div>
-  <div><span>Most common failure</span><strong>fixed-vector bottleneck and train–generation mismatch</strong></div>
+  <div><span>The problem</span><strong>Turn one input sequence into an output sequence of a different length</strong></div>
+  <div><span>Prerequisites</span><strong>source sequence · target sequence · BOS / EOS</strong></div>
+  <div><span>Core mechanism</span><strong>encoder · decoder · teacher forcing · attention</strong></div>
+  <div><span>Common mistakes</span><strong>the fixed-vector bottleneck and the training / generation mismatch</strong></div>
 </div>
 
 ## Quick learning: how the Seq2Seq bottleneck led to attention
@@ -16,53 +16,94 @@
 <details class="interview" markdown="1">
 <summary>The encoder–decoder spine, teacher forcing, and exposure bias</summary>
 
-**Quick memory**: the encoder maps the source into states and the decoder generates the target autoregressively. Compressing everything into one vector creates a bottleneck; attention lets every step read all encoder states as needed.
+**Quick memory**: the encoder turns the source into states and the decoder generates the target autoregressively. Squeezing the whole sentence into a single vector creates a bottleneck; attention instead lets every step read all encoder states on demand.
 
 **Interview answer**
 
-> Classic Seq2Seq conditions the decoder on the encoder's final state, forcing long sequences through a fixed-size bottleneck. Attention lets every decoding step address all encoder states with its current query. Teacher forcing supplies true prefixes during training, while inference consumes the model's own outputs, creating exposure bias.
+> Classic Seq2Seq conditions the decoder on the encoder's final state, so the information in a long sequence is forced into a fixed-length vector. Attention lets every decode step address all encoder states with its current query. During training, teacher forcing supplies the true prefix; at inference the model can only consume its own outputs, which produces exposure bias.
 
 <details markdown="1">
 <summary><b>Deep dive</b>: what did attention solve, and what did it not solve?</summary>
 
-It alleviated the information bottleneck and improved alignment, but the decoder still recurs over target time: token $t$ depends on earlier generated tokens, and training and inference still see different prefix distributions. Transformers later parallelized training-time sequence computation, not autoregressive generation itself.
+It relieves the information bottleneck and improves alignment, but it does not remove the decoder's recurrence over time: target token $t$ still depends on what was generated before it, and the prefix distributions in training and inference still differ. What the Transformer later parallelized is the sequence computation at training time, not autoregressive generation itself.
 
 </details>
 </details>
 
-## The encoder–decoder structure
+## Start with the overall structure
 
-Seq2Seq separates reading from writing: an encoder represents the source, and a decoder generates the target one token at a time under that representation.
+The input and the output need not have the same length. Translation, summarization, and question answering are all “read one passage to the end, then write another.” The first thing Seq2Seq does is split these two jobs cleanly: the encoder reads, the decoder writes.
 
-The earliest version compressed the whole source into the final encoder state $c=h_S$, creating a fixed-vector bottleneck. Attention replaces that single vector with a fresh weighted read over all encoder states at every output step:
+## A fixed-length vector creates an information bottleneck
 
-$$e_{tj}=\text{score}(s_{t-1},h_j), \quad \alpha_{tj}=\text{softmax}_j(e_{tj}), \quad c_t=\sum_j\alpha_{tj}h_j$$
+$$h_1,\ldots,h_S = \text{Encoder}(x_1,\ldots,x_S), \qquad c = h_S$$
 
-## Teacher forcing
+$$s_t = \text{Decoder}(y_{t-1}, s_{t-1}, c), \qquad p(y_t)=\text{softmax}(W s_t)$$
 
-During training, step $t$ receives the true previous token $y_{t-1}$. During inference it receives its own previous prediction. The objective is
+The input length is $S$ and the output length is $T$; the two need not be equal. The problem is that the whole input must end up squeezed into one fixed vector $c$. A short sentence gets by; a long one is like writing a whole book on a sticky note.
 
-$$\mathcal L=-\sum_{t=1}^{T}\log p_\theta(y_t\mid y_{<t},x)$$
+## Attention reads the encoder states on demand
 
-The mismatch means generation errors can move later prefixes away from the training distribution.
+If one sticky note cannot hold everything, stop giving the decoder only one. Every time it writes a token, let it go back over the encoder states again and pick the positions that actually matter at this moment:
 
-## What recurrence still leaves unsolved
+$$e_{tj}=\text{score}(s_{t-1},h_j), \qquad \alpha_{tj}=\text{softmax}_j(e_{tj})$$
 
-- recurrent encoders and decoders are still sequential;
-- distant positions still communicate through long paths;
-- attention fixes dynamic reading, not recurrent throughput.
+$$c_t = \sum_j \alpha_{tj}h_j$$
 
-The Transformer keeps attention and removes recurrence. Run the `reverse` task in [`../code/sequence_torch.py`](../code/sequence_torch.py).
+$c_t$ is no longer a fixed bottleneck. It answers “when generating token $t$, which input positions should information come from?” This is the ancestor of cross-attention.
+
+```mermaid
+flowchart LR
+    X["source tokens"] --> E["Encoder states<br/>h₁ … hₛ"]
+    E --> A["Attention<br/>query by decoder state"]
+    A --> D["Decoder"]
+    D --> Y["next token"]
+    Y -. "feed back" .-> D
+```
+
+## Training technique: teacher forcing
+
+At training step $t$, the decoder is fed the true $y_{t-1}$. During generation, it can only be fed the $\hat y_{t-1}$ it has just predicted.
+
+The training loss is
+
+$$\mathcal{L} = -\sum_{t=1}^{T}\log p_\theta(y_t \mid y_{<t}, x)$$
+
+Training has access to the complete correct prefix; at inference, an error enters the later context and keeps propagating. This train–inference mismatch is commonly called exposure bias.
+
+## Training and generation see different input distributions
+
+| Concept | Training | Inference |
+| --- | --- | --- |
+| decoder input | the true prefix shifted right by one | the prefix it generated itself |
+| time-step computation | an RNN is still sequential | sequential |
+| termination | the target ends with EOS | EOS is generated or the length limit is reached |
+
+Beam search only changes how candidate sequences are kept at inference time; it does not change the training objective.
+
+## What remains unsolved: recurrent computation cannot be parallelized
+
+- the RNNs inside the encoder and decoder cannot be parallelized over time;
+- the information path between two arbitrary positions can still be very long;
+- attention has already solved dynamic reading, but recurrent state still limits throughput.
+
+The Transformer's key move was not “inventing attention.” It was removing recurrence entirely and keeping only attention and position-wise computation.
+
+## Experiment: learn sequence reversal
+
+Run [`../code/sequence_torch.py`](../code/sequence_torch.py) with `--task reverse` and watch the encoder–decoder learn the alignment on a sequence-reversal task. Then compare with the existing [`../code/vanilla_demo.py`](../code/vanilla_demo.py) to see how the same task is handled by Transformer cross-attention.
 
 ## Self-check
 
 <div class="taste-check">
-  <strong>Explain these without the diagram:</strong>
+  <strong>Try explaining these three things to someone who has never studied them:</strong>
   <ol>
-    <li>Why may source and target lengths differ?</li>
-    <li>Which fixed-context assumption does attention remove?</li>
-    <li>Why does teacher forcing leave an exposure gap?</li>
+    <li>Why does it not matter that the source and the target have different lengths?</li>
+    <li>Compared with a fixed context vector, exactly which assumption does attention relax?</li>
+    <li>Why does teacher forcing make training easy yet leave an exposure gap for generation?</li>
   </ol>
 </div>
 
-Continue to [Vanilla Transformer](vanilla-transformer.en.md).
+## Next
+
+Continue to [Vanilla Transformer](vanilla-transformer.en.md) to see how self-attention lets both the encoder and the decoder be trained in parallel internally.

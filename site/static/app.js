@@ -31,11 +31,13 @@
     var zh = $("[data-concept-zh]", card), en = $("[data-concept-en]", card);
     if (!zh || !en) return;
 
+    // Each page opens on its own language; the other face is one click away.
+    var home = LANG === "en" ? "en" : "zh";
     card.classList.add("has-flip");
-    card.dataset.side = "zh";
+    card.dataset.side = home;
     zh.lang = "zh-Hans";
     en.lang = "en";
-    en.hidden = true;
+    (home === "en" ? zh : en).hidden = true;
 
     var btn = document.createElement("button");
     btn.type = "button";
@@ -68,7 +70,7 @@
       if (window.getSelection && window.getSelection().toString()) return;
       flip();
     });
-    show("zh", false);
+    show(home, false);
   });
 
   /* ---------------------------------------------------------- theme */
@@ -342,6 +344,160 @@
 
     return { loss: loss / N, acc: ok / N };
   };
+
+  /* ---- roadmap: route switcher, expand-all + read-it checkmarks -------------------------
+     The markup (site/roadmap.toml -> build.py) is complete without this script:
+     every module is already a link. Here we only hide the other tracks and keep
+     a private "done" list in localStorage. */
+  $$('[data-widget="roadmap"]').forEach(function (root) {
+    var tabs = $$(".rm-tab", root), tracks = $$(".rm-track", root);
+    var store = {
+      get: function (key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; } },
+      set: function (key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
+    };
+    var done = store.get("roadmap-done", {});
+
+    function progress(track) {
+      var keys = {};
+      $$(".rm-mod[data-key]", track).forEach(function (m) { keys[m.dataset.key] = true; });
+      var all = Object.keys(keys), n = all.filter(function (k) { return done[k]; }).length;
+      $(".rm-bar i", track).style.width = (all.length ? n / all.length * 100 : 0) + "%";
+      $(".rm-count", track).textContent = n + " / " + all.length;
+    }
+    function paint() {
+      $$(".rm-mod[data-key]", root).forEach(function (mod) {
+        var on = !!done[mod.dataset.key];
+        mod.classList.toggle("is-done", on);
+        $(".rm-check", mod).setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      tracks.forEach(progress);
+    }
+    function select(id, remember) {
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", t.dataset.track === id ? "true" : "false"); });
+      tracks.forEach(function (t) { t.classList.toggle("is-current", t.dataset.track === id); });
+      if (remember) store.set("roadmap-track", id);
+    }
+
+    $$(".rm-expand", root).forEach(function (btn) {
+      btn.setAttribute("aria-pressed", "false");
+      btn.addEventListener("click", function () {
+        var open = btn.getAttribute("aria-pressed") !== "true";
+        $$(".stack-layer", btn.closest(".rm-track")).forEach(function (layer) { layer.open = open; });
+        btn.setAttribute("aria-pressed", open ? "true" : "false");
+      });
+    });
+    root.classList.add("is-live");
+    tabs.forEach(function (tab) { tab.addEventListener("click", function () { select(tab.dataset.track, true); }); });
+    root.addEventListener("click", function (e) {
+      var check = e.target.closest && e.target.closest(".rm-check");
+      if (!check) return;
+      var key = check.parentNode.dataset.key;
+      if (done[key]) delete done[key]; else done[key] = 1;
+      store.set("roadmap-done", done);
+      paint();
+    });
+    var fromHash = (location.hash.match(/^#track-([a-z0-9-]+)$/) || [])[1];
+    var ids = tracks.map(function (t) { return t.dataset.track; });
+    var first = ids.indexOf(fromHash) >= 0 ? fromHash : ids.indexOf(store.get("roadmap-track", "")) >= 0 ? store.get("roadmap-track", "") : ids[0];
+    select(first, false);
+    paint();
+  });
+
+  /* ---- roles: how much preparation transfers between roles ------------------ */
+  $$('[data-widget="roles"]').forEach(function (root) {
+    var ROLES = [["de", "Data Engineer"], ["ds", "Data Scientist"], ["mle", "MLE"], ["sde", "SDE"], ["quant", "Quant Researcher"]];
+    var TOPICS = [
+      ["SQL", "SQL", ["de", "ds"]], ["数据建模", "Data modeling", ["de"]], ["ETL 与数据管道", "ETL & pipelines", ["de"]],
+      ["分布式系统基础", "Distributed-systems basics", ["de", "sde"]], ["数据结构与算法", "Data structures & algorithms", ["de", "mle", "sde"]],
+      ["统计推断", "Statistical inference", ["ds", "quant"]], ["A/B testing", "A/B testing", ["ds"]], ["Product sense", "Product sense", ["ds"]],
+      ["概率", "Probability", ["ds", "mle", "quant"]], ["ML 基础", "ML fundamentals", ["ds", "mle"]],
+      ["深度学习与 LLM", "Deep learning & LLMs", ["mle"]], ["ML system design", "ML system design", ["mle"]],
+      ["线性代数", "Linear algebra", ["mle", "quant"]], ["System design", "System design", ["sde"]],
+      ["面向对象与工程实践", "OO design & engineering practice", ["sde"]],
+      ["期望与心算", "Expectation & mental math", ["quant"]], ["逻辑推理题", "Logic puzzles", ["quant"]]
+    ];
+    var zh = LANG !== "en", picked = { mle: true };
+    var chips = $(".role-chips", root), cloud = $(".topic-cloud", root), text = $(".role-meter-text", root);
+    var barShared = $(".role-meter-shared", root), barSolo = $(".role-meter-solo", root);
+    var chipEls = ROLES.map(function (role) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "role-chip"; b.textContent = role[1];
+      b.addEventListener("click", function () { picked[role[0]] = !picked[role[0]]; render(); });
+      chips.appendChild(b);
+      return b;
+    });
+    var topicEls = TOPICS.map(function (topic) {
+      var s = document.createElement("span");
+      s.className = "topic"; s.textContent = topic[zh ? 0 : 1];
+      if (topic[0] !== topic[1]) {                       // 中英对照: the other language rides along, smaller
+        var alt = document.createElement("small");
+        alt.textContent = topic[zh ? 1 : 0];
+        s.appendChild(alt);
+      }
+      cloud.appendChild(s);
+      return s;
+    });
+    function render() {
+      var nRoles = 0, needed = 0, shared = 0;
+      ROLES.forEach(function (role, i) { var on = !!picked[role[0]]; nRoles += on; chipEls[i].setAttribute("aria-pressed", on ? "true" : "false"); });
+      TOPICS.forEach(function (topic, i) {
+        var hits = topic[2].filter(function (r) { return picked[r]; }).length;
+        needed += hits > 0; shared += hits > 1;
+        topicEls[i].className = "topic" + (hits > 1 ? " shared" : hits === 1 ? " on" : "");
+      });
+      barShared.style.width = (shared / TOPICS.length * 100) + "%";
+      barSolo.style.width = ((needed - shared) / TOPICS.length * 100) + "%";
+      text.textContent = !nRoles
+        ? (zh ? "先选一个岗位。" : "Pick a role to start.")
+        : nRoles === 1
+          ? (zh ? "只准备这一个岗位：" + needed + " 个方向，每一个都只为它服务，准备可以一直往深处走。"
+                : "One role: " + needed + " areas, all serving the same goal, so your preparation keeps compounding.")
+          : (zh ? "同时准备 " + nRoles + " 个岗位 = " + needed + " 个方向，其中只有 " + shared + " 个能复用。"
+                : nRoles + " roles at once = " + needed + " areas, and only " + shared + " of them are shared.");
+    }
+    render();
+  });
+
+  /* ---- quick-review question bank: open all, close all, draw one at random ---- */
+  $$("[data-qbank-tools]").forEach(function (bar) {
+    var cards = $$("details.qa");
+    bar.addEventListener("click", function (e) {
+      var action = e.target.getAttribute && e.target.getAttribute("data-qb");
+      if (!action) return;
+      if (action === "random") {
+        if (!cards.length) return;
+        cards.forEach(function (c) { c.classList.remove("is-picked"); });
+        var pick = cards[Math.floor(Math.random() * cards.length)];
+        pick.open = false;                        // answer in your head first
+        pick.classList.add("is-picked");
+        pick.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        return;
+      }
+      cards.forEach(function (c) { c.open = action === "open"; });
+    });
+  });
+
+  /* ---- block tabs: on a narrow screen the strip scrolls, so bring the current block into view ---- */
+  $$(".subtabs, .topbar-tabs").forEach(function (strip) {
+    var current = $("a.active", strip);
+    if (current && strip.scrollWidth > strip.clientWidth) {
+      strip.scrollLeft = current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2;
+    }
+  });
+
+  /* ---- Transformer lab -----------------------------------------------------
+     Eight SVG figures (static/tx-lab.js + tx-lab.css). Only pages that embed a
+     tx-* widget pay for them. */
+  if ($('[data-widget^="tx-"]')) {
+    var txBase = ((window.SITE && window.SITE.prefix) || "") + "static/tx-lab";
+    var txVer = "?v=" + ((window.SITE && window.SITE.built) || "");
+    var txCss = document.createElement("link");
+    txCss.rel = "stylesheet"; txCss.href = txBase + ".css" + txVer;
+    document.head.appendChild(txCss);
+    var txJs = document.createElement("script");
+    txJs.src = txBase + ".js" + txVer;
+    document.body.appendChild(txJs);
+  }
 
   $$('[data-widget="xor"]').forEach(function (root) {
     var cv = $(".xor-canvas", root), ctx = cv.getContext("2d");
