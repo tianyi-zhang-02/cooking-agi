@@ -1183,6 +1183,8 @@ def sidebar_html(page, sections, groups):
         groups = [g for g in groups if g.get("category") == scope]
     ordered = sorted(groups, key=lambda g: list(cats).index(g["category"]) if g.get("category") in cats else -1)
     for g in ordered:
+        if not g.get("category"):          # "start" is the home page itself; the top bar links it
+            continue
         secs = [s for s in by_group.get(g["id"], []) if s["pages"]]
         if not secs:
             continue
@@ -1235,7 +1237,7 @@ def tabs_html(page):
     """Level 1, in the top bar on every page: the roadmap plus the big directions."""
     zh = page.lang == "zh"
     current = page_category(page)
-    home = {"id": "home", "zh": "路线图", "en": "Roadmap"}
+    home = {"id": "home", "zh": "首页", "en": "Home"}
     items = [(home, page.rel("index.html" if zh else "index.en.html"))]
     for cat in NAV.get("category", []):
         pair = category_home(cat)
@@ -1255,28 +1257,23 @@ def tabs_html(page):
 
 
 def subtabs_html(page):
-    """Level 2, at the top of the content column: the blocks inside the chosen direction.
-    On the roadmap page the same strip jumps between the home blocks."""
+    """Level 2, at the top of the content column: the blocks inside the chosen direction."""
     zh = page.lang == "zh"
     current = page_category(page)
     if current == "home":
-        blocks = [("routes", "职业路线", "Routes"), ("blocks", "知识板块", "Knowledge blocks"), ("figures", "交互图解", "Live figures"),
-                  ("threads", "串联", "Threads"), ("library", "三个大类", "Library"), ("about", "关于", "About")]
-        links = "".join(f'<a href="#{anchor}"><span>{a if zh else b}</span></a>' for anchor, a, b in blocks)
-        label = "路线图" if zh else "Roadmap"
-    else:
-        cat = next((c for c in NAV.get("category", []) if c["id"] == current), None)
-        if not cat:
-            return ""
-        here = page.section.get("group")
-        links = ""
-        for group in (g for g in NAV.get("group", []) if g.get("category") == current):
-            target = group_target(page, group)
-            if not target:
-                continue
-            cls = ' class="active" aria-current="true"' if group["id"] == here else ""
-            links += f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span></a>'
-        label = both(cat, zh)[0]
+        return ""                         # the home page is one short page; the top bar is enough
+    cat = next((c for c in NAV.get("category", []) if c["id"] == current), None)
+    if not cat:
+        return ""
+    here = page.section.get("group")
+    links = ""
+    for group in (g for g in NAV.get("group", []) if g.get("category") == current):
+        target = group_target(page, group)
+        if not target:
+            continue
+        cls = ' class="active" aria-current="true"' if group["id"] == here else ""
+        links += f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span></a>'
+    label = both(cat, zh)[0]
     if not links:
         return ""
     return (f'<nav class="subtabs" aria-label="{"板块" if zh else "Blocks"}">'

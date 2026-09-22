@@ -280,7 +280,7 @@ en  = "Templates"
 # ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
 # without a label falls back to its title up to the first colon.
 [label]
-"README.md"                                             = ["路线图", "Roadmap"]
+"README.md"                                             = ["首页", "Home"]
 "00-foundations/README.md"                              = ["学习地图", "Learning map"]
 "00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
 "00-foundations/transformer.md"                         = ["Transformer 架构", "Transformer"]

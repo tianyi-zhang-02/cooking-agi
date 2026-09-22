@@ -1501,7 +1501,6 @@ main { padding: 2.6rem 0 6rem; }
 
 /* -------- share-ready polish: the strip, the head on phones, the home measure -------- */
 .subtabs-label { flex: none; }
-.page-home .article-body > p { max-width: 42rem; }
 .article-head h1 { max-width: 18ch; font-size: clamp(2.1rem, 1.2rem + 2.4vw, 3.4rem); line-height: 1.1; }
 .chapter-mark { font-size: 7rem; }
 @media (max-width: 1080px) {
@@ -1560,3 +1559,5 @@ main { padding: 2.6rem 0 6rem; }
 .subtabs { gap: .3rem; }
 .subtabs-label { margin-right: .25rem; }
 .subtabs a { padding: .34rem .66rem; }
+/* the home page is one short read now: same measure as a note */
+.page-home .prose, .page-home .page-foot { max-width: 42rem; }
