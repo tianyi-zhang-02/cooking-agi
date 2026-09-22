@@ -1686,3 +1686,370 @@
   }
   render();
 })();
+
+/* 11 · MoE router. One token, eight experts: router logits → softmax → keep the top k →
+   renormalise over the kept ones → the output is the gated sum of the chosen experts. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-moe-router', { title: ['MoE router · one token, eight experts', 'MoE router · 一个 token，八个 expert'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var N = 8;
+  var TOKENS = [
+    { id: 0, en: '"return"', zh: '“return”', logits: [2.1, 0.3, -0.4, 1.6, -1.0, 0.2, -0.6, 0.5] },
+    { id: 1, en: '"∫"', zh: '“∫”', logits: [-0.5, 2.4, 0.1, -0.8, 1.9, -0.2, 0.4, -1.1] },
+    { id: 2, en: '"cat"', zh: '“猫”', logits: [0.2, -0.9, 1.8, 0.1, -0.4, 1.7, 0.9, -0.3] },
+    { id: 3, en: '"the"', zh: '“的”', logits: [0.6, 0.4, 0.7, 0.5, 0.3, 0.8, 0.6, 0.4] }
+  ];
+  var tok = 0, k = 2, noiseSeed = 0;
+
+  var segTok = TX.seg(TOKENS.map(function (x) { return { id: x.id, en: x.en, zh: x.zh }; }), 0, function (v) { tok = v; noiseSeed = 0; render(); }, t('Token', 'Token'));
+  var segK = TX.seg([{ id: 1, en: 'top-1', zh: 'top-1' }, { id: 2, en: 'top-2', zh: 'top-2' }, { id: 4, en: 'top-4', zh: 'top-4' }], 2, function (v) { k = v; render(); }, 'k');
+  var noiseBtn = TX.button('Add router noise', '加一次 router 噪声', function () { noiseSeed += 1; render(); });
+  var clearBtn = TX.button('No noise', '去掉噪声', function () { noiseSeed = 0; render(); });
+  fig.controls.appendChild(segTok.el);
+  fig.controls.appendChild(segK.el);
+  fig.controls.appendChild(h('div', { class: 'rl-steps' }, [noiseBtn, clearBtn]));
+  var svg = s('svg', { viewBox: '0 0 640 290', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var formula = h('p', { class: 'fig-insight mr-formula' });
+  var caption = h('p', { class: 'fig-caption' });
+  var roActive = TX.readout('Experts that run', '真正计算的 expert'), roShare = TX.readout('Share of expert parameters used', '用到的 expert 参数占比');
+  fig.foot.appendChild(formula);
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roActive.el, roShare.el]));
+  fig.foot.appendChild(caption);
+
+  function render() {
+    var base = TOKENS[tok].logits, rnd = TX.rng(1000 + tok * 17 + noiseSeed);
+    var logits = base.map(function (v) { return noiseSeed ? v + (rnd() * 2 - 1) * 0.9 : v; });
+    var mx = Math.max.apply(null, logits), ex = logits.map(function (v) { return Math.exp(v - mx); });
+    var sum = ex.reduce(function (a, b) { return a + b; }, 0), p = ex.map(function (v) { return v / sum; });
+    var order = p.map(function (v, i) { return i; }).sort(function (a, b) { return p[b] - p[a]; });
+    var sel = order.slice(0, k), selSum = sel.reduce(function (a, i) { return a + p[i]; }, 0);
+    var w = {}; sel.forEach(function (i) { w[i] = p[i] / selSum; });
+
+    TX.clear(svg);
+    svg.appendChild(s('defs', null, [s('marker', { id: 'mr-h', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }, [s('path', { d: 'M0,0 L10,5 L0,10 z', class: 'r-head-on' })])]));
+    // token → router
+    function box(x, y, w0, h0, cls, a, b, c, d) {
+      var g = s('g', { class: 'r-box ' + cls });
+      g.appendChild(s('rect', { x: x, y: y, width: w0, height: h0, rx: 8 }));
+      g.appendChild(s('text', { class: 's-title', x: x + w0 / 2, y: y + h0 / 2 - 2, 'text-anchor': 'middle', bi: [a, b] }));
+      if (c) g.appendChild(s('text', { class: 's-sub', x: x + w0 / 2, y: y + h0 / 2 + 13, 'text-anchor': 'middle', bi: [c, d] }));
+      return g;
+    }
+    svg.appendChild(box(14, 112, 92, 52, 'r-data on', TOKENS[tok].en, TOKENS[tok].zh, 'hidden state x', '隐藏状态 x'));
+    svg.appendChild(box(132, 112, 104, 52, 'r-out on', 'Router', 'Router', 'logits = W_r · x', 'logits = W_r · x'));
+    svg.appendChild(s('line', { class: 'r-edge on', x1: 106, y1: 138, x2: 132, y2: 138, 'marker-end': 'url(#mr-h)' }));
+    // probability bars, one per expert
+    var X0 = 268, COL = 45, BASE = 190, HMAX = 150;
+    svg.appendChild(s('line', { class: 'pc-axis', x1: X0 - 6, y1: BASE, x2: X0 + N * COL, y2: BASE }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: X0 - 6, y: 22, bi: ['softmax over all 8, kept ones renormalised', '8 个一起 softmax，留下的再归一化'] }));
+    for (var i = 0; i < N; i++) {
+      var on = w[i] != null, x = X0 + i * COL, bh = Math.max(2, p[i] * HMAX);
+      svg.appendChild(s('rect', { class: on ? 'mr-bar on' : 'mr-bar', x: x + 6, y: BASE - bh, width: COL - 14, height: bh, rx: 3 }));
+      svg.appendChild(s('text', { class: 'pc-tick', x: x + COL / 2 - 1, y: BASE - bh - 6, 'text-anchor': 'middle', text: Math.round(p[i] * 100) + '%' }));
+      var g = s('g', { class: 'r-box ' + (on ? 'r-train on' : 'r-dim') });
+      g.appendChild(s('rect', { x: x + 3, y: 214, width: COL - 8, height: 34, rx: 6 }));
+      g.appendChild(s('text', { class: 's-tag', x: x + COL / 2 - 1, y: 235, 'text-anchor': 'middle', text: 'E' + (i + 1) }));
+      svg.appendChild(g);
+      if (on) svg.appendChild(s('text', { class: 'pc-note', x: x + COL / 2 - 1, y: 266, 'text-anchor': 'middle', text: 'w=' + w[i].toFixed(2) }));
+    }
+    svg.appendChild(s('line', { class: 'r-edge on', x1: 236, y1: 138, x2: X0 - 8, y2: 138, 'marker-end': 'url(#mr-h)' }));
+    svg.setAttribute('aria-label', t('Router probabilities for eight experts; the top ' + k + ' are kept.', '八个 expert 的 router 概率；保留最高的 ' + k + ' 个。'));
+
+    formula.textContent = 'y = ' + sel.map(function (i) { return w[i].toFixed(2) + '·E' + (i + 1) + '(x)'; }).join(' + ');
+    roActive.set(k + ' / ' + N + '  (' + sel.map(function (i) { return 'E' + (i + 1); }).join(', ') + ')');
+    roShare.set(Math.round(k / N * 100) + '%');
+    var gap = p[order[k - 1]] - p[order[k]];
+    TX.bi(caption,
+      (tok === 3 ? 'A function word: the router has no strong preference, so the probabilities are nearly flat and a little noise can change which experts run. ' : '') +
+      'Only the ' + k + ' chosen experts compute anything; the other ' + (N - k) + ' are skipped for this token. The gap between the last kept and the first dropped expert is ' + (gap * 100).toFixed(1) + ' points' + (noiseSeed ? ', with noise added to the logits (noisy top-k, used in early MoE to spread load).' : '.'),
+      (tok === 3 ? '功能词：router 没有明显偏好，概率几乎是平的，一点噪声就可能换掉被选中的 expert。' : '') +
+      '只有被选中的 ' + k + ' 个 expert 真正计算，其余 ' + (N - k) + ' 个对这个 token 完全跳过。最后一个留下的和第一个被丢掉的，概率差 ' + (gap * 100).toFixed(1) + ' 个百分点' + (noiseSeed ? '；现在 logits 上加了噪声（noisy top-k，早期 MoE 用它来分散负载）。' : '。'));
+  }
+  render();
+})();
+
+/* 12 · Load balancing, as a toy. Tokens from eight topics of unequal frequency; the router
+   reinforces whichever expert already gets a topic, so without balancing it collapses.
+   Compare an auxiliary loss (pushes router probabilities towards uniform) with a per-expert
+   bias that only changes which expert is selected (DeepSeek-V3's auxiliary-loss-free idea). */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-moe-balance', { title: ['Load balancing · a toy router, eight experts, top-1', '负载均衡 · 玩具 router，8 个 expert，top-1'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var N = 8, T = 64, MAX_STEPS = 160;
+  var freq = (function () { var f = [], z = 0; for (var i = 0; i < N; i++) { f.push(1 / Math.pow(i + 1, 0.7)); z += f[i]; } return f.map(function (v) { return v / z; }); })();
+  var mode = 'none', cf = 1.25, A, b, step, rnd, loads, dropped, hist, playing = false;
+
+  function reset() {
+    rnd = TX.rng(42); A = []; b = []; step = 0; hist = []; loads = []; dropped = 0;
+    for (var i = 0; i < N; i++) { A.push([]); b.push(0); for (var j = 0; j < N; j++) A[i].push((rnd() - 0.5) * 0.3 + (j === 0 ? 0.05 : 0)); }
+    tick(true);
+  }
+  function sampleTopic() { var r = rnd(), c = 0; for (var i = 0; i < N; i++) { c += freq[i]; if (r < c) return i; } return N - 1; }
+  function tick(quiet) {
+    var cap = Math.ceil(cf * T / N), load = [], kept = [], drop = 0, i, j;
+    for (j = 0; j < N; j++) { load.push(0); kept.push(0); }
+    var routed = [];
+    for (var n = 0; n < T; n++) {
+      var topic = sampleTopic(), best = 0, bestScore = -1e9;
+      for (j = 0; j < N; j++) { var sc = A[topic][j] + (mode === 'bias' ? b[j] : 0) + (rnd() - 0.5) * 0.4; if (sc > bestScore) { bestScore = sc; best = j; } }
+      load[best]++;
+      if (kept[best] < cap) { kept[best]++; routed.push([topic, best]); } else drop++;
+    }
+    // an expert that gets more tokens gets better, at its topics and in general: rich get richer
+    routed.forEach(function (r) { A[r[0]][r[1]] += 0.001; });
+    var f = load.map(function (v) { return v / T; });
+    for (j = 0; j < N; j++) for (i = 0; i < N; i++) A[i][j] += 0.1 * (f[j] - 1 / N);
+    if (mode === 'aux') for (j = 0; j < N; j++) for (i = 0; i < N; i++) A[i][j] -= 0.5 * (f[j] - 1 / N);
+    if (mode === 'bias') for (j = 0; j < N; j++) b[j] -= 0.015 * Math.sign(f[j] - 1 / N);
+    loads = load; dropped = drop; step++;
+    var mean = T / N; hist.push(Math.max.apply(null, load) / mean);
+    if (!quiet) render();
+  }
+
+  var segMode = TX.seg([{ id: 'none', en: 'No balancing', zh: '不做均衡' }, { id: 'aux', en: 'Auxiliary loss', zh: '辅助 loss' }, { id: 'bias', en: 'Bias only (aux-loss-free)', zh: '只调 bias（无辅助 loss）' }], 'none',
+    function (v) { mode = v; reset(); render(); }, t('Balancing method', '均衡方式'));
+  var play = TX.button('Play', '播放', function () { playing = !playing; if (step >= MAX_STEPS) { reset(); } sync(); });
+  var again = TX.button('Reset', '重置', function () { reset(); render(); });
+  var sCf = TX.slider({ en: 'capacity factor', zh: 'capacity factor', min: 1, max: 2, step: 0.25, value: cf, format: function (v) { return v.toFixed(2) + ' → ' + Math.ceil(v * T / N) + t(' slots', ' 个位置'); }, onInput: function (v) { cf = v; render(); } });
+  fig.controls.appendChild(segMode.el);
+  fig.controls.appendChild(h('div', { class: 'rl-steps' }, [play, again]));
+  fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sCf.el]));
+  var svg = s('svg', { viewBox: '0 0 640 270', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var roStep = TX.readout('Training step', '训练步数'), roImb = TX.readout('Busiest expert ÷ average', '最忙 expert ÷ 平均'), roDrop = TX.readout('Tokens over capacity (dropped)', '超出容量被丢弃的 token');
+  var caption = h('p', { class: 'fig-caption' });
+  var note = h('p', { class: 'fig-note', bi: ['A toy, not a trained model: 64 tokens per step from eight topics of unequal frequency, and a router that gets better at whatever it is already sent. The shapes are illustrative; the numbers are not measurements.', '这是玩具模拟，不是真实训练：每步 64 个 token，来自出现频率不同的 8 个主题；router 会越来越擅长它已经在处理的东西。曲线形状用来说明问题，数值不是测量结果。'] });
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roStep.el, roImb.el, roDrop.el]));
+  fig.foot.appendChild(caption);
+  fig.foot.appendChild(note);
+
+  function sync() { TX.bi(play, playing ? 'Pause' : 'Play', playing ? '暂停' : '播放'); }
+  function render() {
+    var cap = Math.ceil(cf * T / N), X0 = 40, COL = 44, BASE = 200, TOP = 14, SC = 90 / cap;
+    TX.clear(svg);
+    svg.appendChild(s('line', { class: 'pc-axis', x1: X0 - 4, y1: BASE, x2: X0 + N * COL, y2: BASE }));
+    var capY = BASE - cap * SC;
+    for (var j = 0; j < N; j++) {
+      var L = loads[j] || 0, keep = Math.min(L, cap), over = L - keep, x = X0 + j * COL;
+      var yKeep = BASE - keep * SC, yTop = Math.max(TOP, BASE - L * SC);
+      svg.appendChild(s('rect', { class: 'mb-bar', x: x + 6, y: yKeep, width: COL - 12, height: keep * SC, rx: 3 }));
+      if (over > 0) svg.appendChild(s('rect', { class: 'mb-over', x: x + 6, y: yTop, width: COL - 12, height: Math.max(0, yKeep - yTop), rx: 3 }));
+      svg.appendChild(s('text', { class: 'pc-tick', x: x + COL / 2, y: BASE + 15, 'text-anchor': 'middle', text: 'E' + (j + 1) }));
+      svg.appendChild(s('text', { class: over > 0 ? 'pc-plabel' : 'pc-tick', x: x + COL / 2, y: Math.max(TOP - 3, yTop - 5), 'text-anchor': 'middle', text: String(L) + (BASE - L * SC < TOP ? '↑' : '') }));
+    }
+    svg.appendChild(s('line', { class: 'mb-cap', x1: X0 - 4, y1: capY, x2: X0 + N * COL, y2: capY }));
+    svg.appendChild(s('text', { class: 'pc-plabel', x: X0 + N * COL, y: capY - 5, 'text-anchor': 'end', bi: ['capacity', '容量'] }));
+    // imbalance over time
+    var GX = 420, GW = 200, GY = 40, GH = 140;
+    svg.appendChild(s('rect', { class: 'mb-frame', x: GX, y: GY, width: GW, height: GH, rx: 6 }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: GX, y: GY - 8, bi: ['busiest ÷ average, over steps', '最忙 ÷ 平均，随训练步数'] }));
+    var ymax = 8; function gy(v) { return GY + GH - Math.min(v, ymax) / ymax * GH; }
+    svg.appendChild(s('line', { class: 'pc-guide', x1: GX, y1: gy(1), x2: GX + GW, y2: gy(1) }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: GX + GW - 4, y: gy(1) - 4, 'text-anchor': 'end', bi: ['1 = perfectly even', '1 = 完全均匀'] }));
+    if (hist.length > 1) {
+      var d = hist.map(function (v, i) { return (i ? 'L' : 'M') + (GX + i / MAX_STEPS * GW).toFixed(1) + ',' + gy(v).toFixed(1); }).join(' ');
+      svg.appendChild(s('path', { class: 'pc-obj', d: d }));
+    }
+    var mean = T / N, imb = loads.length ? Math.max.apply(null, loads) / mean : 1;
+    roStep.set(step + ' / ' + MAX_STEPS);
+    roImb.set(imb.toFixed(2) + '×');
+    roDrop.set(dropped + ' / ' + T + '  (' + Math.round(dropped / T * 100) + '%)');
+    var msg = {
+      none: ['Nothing pushes back: an expert that happens to get a topic gets better at it and attracts more. A few experts end up doing almost everything, the rest barely train, and tokens past capacity are dropped.', '没有任何反向约束：碰巧拿到某个主题的 expert 越学越擅长，吸走更多 token。最后少数几个 expert 干了几乎所有的活，其余的几乎学不到东西，超出容量的 token 被丢掉。'],
+      aux: ['An auxiliary loss adds a penalty that grows with f_i · P_i, so overloaded experts lose router probability. Load evens out, but the penalty acts on the same router scores the language-model loss is trying to learn, and the two can pull against each other.', '辅助 loss 加了一个随 f_i · P_i 增大的惩罚，超载的 expert 会被压低 router 概率。负载会变均匀，但这个惩罚作用在语言模型 loss 想学的同一组 router 分数上，两者可能互相拉扯。'],
+      bias: ['Each expert gets a bias that is nudged down when it is overloaded and up when it is idle. The bias only decides which expert is selected; the gating weight still comes from the original score, so no extra gradient reaches the router.', '每个 expert 有一个 bias：超载就调低一点，空闲就调高一点。bias 只影响选谁，门控权重仍然来自原始分数，所以没有额外梯度打到 router 上。']
+    }[mode];
+    TX.bi(caption, msg[0], msg[1]);
+    svg.setAttribute('aria-label', t(msg[0], msg[1]));
+  }
+  var ticker = TX.loop(function (now, dt) {
+    if (!playing) return;
+    ticker.acc = (ticker.acc || 0) + dt;
+    if (ticker.acc < 90) return;
+    ticker.acc = 0;
+    if (step >= MAX_STEPS) { playing = false; sync(); return; }
+    tick();
+  });
+  reset();
+  if (TX.reduced) { while (step < MAX_STEPS) tick(true); }
+  render(); sync();
+  TX.whenVisible(fig.root, function () { ticker.start(); }, function () { ticker.stop(); });
+})();
+
+/* 13 · Looped Transformer, folded and unrolled. One block of k layers reused L times:
+   parameters stay at k layers, while depth, compute and per-token KV grow with L. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-loop-unroll', { title: ['Looping · one block, reused L times', '循环 · 同一个 block，重复用 L 次'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var K = 4, loops = 3, inject = true;
+  var sL = TX.slider({ en: 'loops L', zh: '循环次数 L', min: 1, max: 8, step: 1, value: loops, format: function (v) { return '× ' + v; }, onInput: function (v) { loops = v; render(); } });
+  var segInj = TX.seg([{ id: 1, en: 'Re-inject the input each loop', zh: '每圈重新注入输入' }, { id: 0, en: 'Input only at the start', zh: '只在开头输入' }], 1, function (v) { inject = !!v; render(); }, t('Input injection', '输入注入'));
+  fig.controls.appendChild(segInj.el);
+  fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sL.el]));
+  var svg = s('svg', { viewBox: '0 0 640 330', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var roP = TX.readout('Parameters', '参数'), roD = TX.readout('Effective depth', '有效深度'), roC = TX.readout('Compute per token', '每个 token 的计算'), roKV = TX.readout('K/V per token (if every loop keeps its own)', '每个 token 的 K/V（每圈各存一份时）');
+  var caption = h('p', { class: 'fig-caption' });
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roP.el, roD.el, roC.el, roKV.el]));
+  fig.foot.appendChild(caption);
+
+  function layers(g, x, y, w, hh, n, cls) {
+    var lh = (hh - (n - 1) * 3) / n;
+    for (var i = 0; i < n; i++) g.appendChild(s('rect', { class: cls, x: x, y: y + i * (lh + 3), width: w, height: Math.max(2, lh), rx: 3 }));
+  }
+  function render() {
+    TX.clear(svg);
+    svg.appendChild(s('defs', null, [s('marker', { id: 'lu-h', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }, [s('path', { d: 'M0,0 L10,5 L0,10 z', class: 'r-head-on' })])]));
+    // folded
+    svg.appendChild(s('text', { class: 's-sub', x: 130, y: 18, 'text-anchor': 'middle', bi: ['folded: what is stored', '折叠：实际存下的'] }));
+    var g = s('g'); layers(g, 70, 110, 120, 110, K, 'lu-layer'); svg.appendChild(g);
+    svg.appendChild(s('text', { class: 's-title', x: 130, y: 102, 'text-anchor': 'middle', bi: ['block θ · ' + K + ' layers', 'block θ · ' + K + ' 层'] }));
+    svg.appendChild(s('path', { class: 'r-edge on', d: 'M190,200 C240,200 240,130 190,130', fill: 'none', 'marker-end': 'url(#lu-h)' }));
+    svg.appendChild(s('text', { class: 'pc-note', x: 236, y: 170, text: '× ' + loops }));
+    svg.appendChild(s('rect', { class: 'lu-emb', x: 80, y: 252, width: 100, height: 30, rx: 6 }));
+    svg.appendChild(s('text', { class: 's-sub', x: 130, y: 271, 'text-anchor': 'middle', bi: ['embedding e', 'embedding e'] }));
+    svg.appendChild(s('line', { class: 'r-edge on', x1: 130, y1: 252, x2: 130, y2: 222, 'marker-end': 'url(#lu-h)' }));
+    svg.appendChild(s('rect', { class: 'lu-emb', x: 80, y: 40, width: 100, height: 30, rx: 6 }));
+    svg.appendChild(s('text', { class: 's-sub', x: 130, y: 59, 'text-anchor': 'middle', bi: ['output head', '输出层'] }));
+    svg.appendChild(s('line', { class: 'r-edge on', x1: 130, y1: 108, x2: 130, y2: 72, 'marker-end': 'url(#lu-h)' }));
+    // unrolled
+    svg.appendChild(s('text', { class: 's-sub', x: 470, y: 18, 'text-anchor': 'middle', bi: ['unrolled: what is computed', '展开：实际算的'] }));
+    var top = 40, bottom = 290, gap = 8, bh = (bottom - top - gap * (loops - 1)) / loops;
+    for (var l = 0; l < loops; l++) {
+      var y = bottom - (l + 1) * bh - l * gap, gg = s('g');
+      layers(gg, 410, y, 120, bh, K, 'lu-layer');
+      svg.appendChild(gg);
+      svg.appendChild(s('text', { class: 'pc-tick', x: 540, y: y + bh / 2 + 4, bi: ['loop ' + (l + 1), '第 ' + (l + 1) + ' 圈'] }));
+      if (inject) {
+        svg.appendChild(s('line', { class: 'lu-inj', x1: 340, y1: y + bh / 2, x2: 406, y2: y + bh / 2, 'marker-end': 'url(#lu-h)' }));
+      }
+      if (l > 0) svg.appendChild(s('line', { class: 'r-edge on', x1: 470, y1: y + bh + gap - 1, x2: 470, y2: y + bh + 1 }));
+    }
+    svg.appendChild(s('line', { class: inject ? 'lu-inj' : 'lu-inj r-dim', x1: 340, y1: top, x2: 340, y2: bottom }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: 336, y: bottom + 16, 'text-anchor': 'middle', text: 'e' }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: 470, y: bottom + 16, 'text-anchor': 'middle', bi: ['same weights θ in every loop', '每一圈都是同一组权重 θ'] }));
+    roP.set(K + t(' layers (does not grow with L)', ' 层（不随 L 增长）'));
+    roD.set(K * loops + t(' layers', ' 层'));
+    roC.set('≈ ' + K * loops + t(' layers of FLOPs', ' 层的计算量'));
+    roKV.set(K * loops + t(' layers of K/V', ' 层的 K/V'));
+    TX.bi(caption,
+      'The stored model is ' + K + ' layers; running it ' + loops + ' times computes like a ' + K * loops + '-layer model. Depth and compute are now a dial you can turn after training; parameter count is not.' + (inject ? ' Re-feeding the embedding e into every loop keeps the original input in view no matter how many loops run.' : ' Without re-injection, the input is only seen at the start and has to survive every loop in the hidden state.'),
+      '存下的模型只有 ' + K + ' 层；跑 ' + loops + ' 圈，计算上相当于 ' + K * loops + ' 层。深度和计算量变成了训练后还能拧的旋钮，参数量不变。' + (inject ? '每圈都把 embedding e 重新喂进去，不管转多少圈，原始输入都还看得见。' : '不重新注入时，输入只在开头出现一次，要靠隐藏状态一圈一圈保存下来。'));
+  }
+  render();
+})();
+
+/* 14 · Why loops help with multi-hop problems: an idealised chain where one pass of the block
+   can follow one hop. A fixed-depth model stops at its depth; a looped one keeps going. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-loop-reach', { title: ['Multi-hop · each pass follows one more link', '多跳 · 每过一遍多走一跳'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var hops = 6, loops = 3, FIXED = 4;
+  var sH = TX.slider({ en: 'hops needed', zh: '需要几跳', min: 2, max: 10, step: 1, value: hops, format: function (v) { return String(v); }, onInput: function (v) { hops = v; render(); } });
+  var sL = TX.slider({ en: 'loops', zh: '循环次数', min: 1, max: 10, step: 1, value: loops, format: function (v) { return '× ' + v; }, onInput: function (v) { loops = v; render(); } });
+  fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sH.el, sL.el]));
+  var svg = s('svg', { viewBox: '0 0 640 220', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var roNeed = TX.readout('Hops needed', '需要的跳数'), roLoop = TX.readout('Looped block (1-layer params)', '循环 block（1 层的参数）'), roFixed = TX.readout('Fixed ' + FIXED + '-layer model (4× the params)', '固定 ' + FIXED + ' 层模型（4 倍参数）');
+  var caption = h('p', { class: 'fig-caption' });
+  var note = h('p', { class: 'fig-note', bi: ['Idealised on purpose: it assumes one pass through the block can follow exactly one link, as in pointer chasing or composing facts. Real models are messier, but the dependence of reachable hops on depth is the point results on looped models build on.', '这是刻意理想化的：假设每过一遍 block 正好能多跟一条链接，像 pointer chasing 或者把事实一条条串起来。真实模型没这么整齐，但「能走多少跳取决于深度」正是 looped 模型相关结果的出发点。'] });
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roNeed.el, roLoop.el, roFixed.el]));
+  fig.foot.appendChild(caption);
+  fig.foot.appendChild(note);
+
+  function row(y, reach, label) {
+    svg.appendChild(s('text', { class: 's-sub', x: 16, y: y + 4, bi: label }));
+    var X0 = 150, step = Math.min(46, 470 / hops);
+    for (var i = 0; i <= hops; i++) {
+      var x = X0 + i * step, lit = i <= reach, goal = i === hops;
+      if (i > 0) svg.appendChild(s('line', { class: 'r-edge' + (i <= reach ? ' on' : ''), x1: x - step + 9, y1: y, x2: x - 9, y2: y }));
+      svg.appendChild(s('circle', { class: 'lr-node' + (lit ? ' on' : '') + (goal ? ' goal' : ''), cx: x, cy: y, r: 8 }));
+    }
+    var ok = reach >= hops;
+    svg.appendChild(s('text', { class: ok ? 'pc-note' : 'pc-plabel', x: X0 + hops * step + 18, y: y + 4, bi: ok ? ['answer reached', '走到答案'] : ['stuck at hop ' + reach, '停在第 ' + reach + ' 跳'] }));
+  }
+  function render() {
+    TX.clear(svg);
+    svg.appendChild(s('text', { class: 'pc-tick', x: 150, y: 24, bi: ['start → … → answer', '起点 → … → 答案'] }));
+    row(78, Math.min(loops, hops), ['looped block', '循环 block']);
+    row(150, Math.min(FIXED, hops), ['fixed 4 layers', '固定 4 层']);
+    roNeed.set(String(hops));
+    roLoop.set(Math.min(loops, hops) >= hops ? t('reaches it', '能走到') : t('stops at ', '停在第 ') + Math.min(loops, hops) + t('', ' 跳'));
+    roFixed.set(FIXED >= hops ? t('reaches it', '能走到') : t('stops at ', '停在第 ') + FIXED + t('', ' 跳'));
+    var enough = loops >= hops;
+    TX.bi(caption,
+      (enough ? 'Enough loops: the looped block follows all ' + hops + ' links with the parameters of a single layer. ' : 'Not enough loops yet: add loops, not parameters. ') + 'The fixed model gets ' + FIXED + ' hops however hard the question is, because its depth was set at training time.',
+      (enough ? '圈数够了：循环 block 只用一层的参数就跟完了全部 ' + hops + ' 跳。' : '圈数还不够：加的是圈数，不是参数。') + '固定深度的模型不管问题多难都只能走 ' + FIXED + ' 跳，因为它的深度在训练时就定死了。');
+    svg.setAttribute('aria-label', t(caption.textContent, caption.textContent));
+  }
+  render();
+})();
+
+/* 15 · Adaptive depth. Each token has its own confidence curve over loops; it exits at the
+   first loop where the exit score clears the threshold, capped at the maximum. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-loop-exit', { title: ['Adaptive depth · each token decides when to stop', '自适应深度 · 每个 token 自己决定转几圈'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var MAXL = 8, tau = 0.85;
+  var WORDS = TX.lang() === 'en'
+    ? [['The', .05], ['cat', .25], ['sat', .2], ['on', .05], ['the', .05], ['mat', .3], ['because', .5], ['it', .9], ['was', .15], ['tired', .6]]
+    : [['那只', .1], ['猫', .25], ['坐', .2], ['在', .05], ['垫子', .3], ['上', .05], ['因为', .5], ['它', .9], ['很', .1], ['累', .6]];
+  function conf(d, l) { return 1 - Math.exp(-l * (0.35 + (1 - d) * 1.6)) * (0.6 + d * 0.4); }
+  function exitAt(d) { for (var l = 1; l <= MAXL; l++) if (conf(d, l) >= tau) return l; return MAXL; }
+  var sT = TX.slider({ en: 'exit threshold', zh: '退出阈值', min: 0.5, max: 0.99, step: 0.01, value: tau, format: function (v) { return v.toFixed(2); }, onInput: function (v) { tau = v; render(); } });
+  fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sT.el]));
+  var svg = s('svg', { viewBox: '0 0 640 300', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var roAvg = TX.readout('Average loops per token', '平均每个 token 转几圈'), roSave = TX.readout('Compute vs always ' + MAXL, '相对固定转 ' + MAXL + ' 圈的计算量'), roCap = TX.readout('Tokens that hit the cap', '转满上限的 token');
+  var caption = h('p', { class: 'fig-caption' });
+  var note = h('p', { class: 'fig-note', bi: ['Toy confidence curves, not a trained gate. Ouro trains its exit gate with an entropy-regularised objective; Mixture-of-Recursions trains a router that assigns each token a depth. Both aim at what this picture shows.', '置信度曲线是玩具，不是训练出来的 gate。Ouro 用带熵正则的目标训练退出 gate；Mixture-of-Recursions 训练一个 router 给每个 token 分配深度。两者想达到的就是这张图的效果。'] });
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roAvg.el, roSave.el, roCap.el]));
+  fig.foot.appendChild(caption);
+  fig.foot.appendChild(note);
+
+  function render() {
+    TX.clear(svg);
+    var X0 = 96, CW = 58, Y0 = 34, RH = 24;
+    for (var l = 1; l <= MAXL; l++) svg.appendChild(s('text', { class: 'pc-tick', x: X0 + (l - 0.5) * CW, y: Y0 - 10, 'text-anchor': 'middle', bi: ['loop ' + l, '第 ' + l + ' 圈'] }));
+    var total = 0, capped = 0;
+    WORDS.forEach(function (w, i) {
+      var y = Y0 + i * RH, e = exitAt(w[1]);
+      total += e; if (e === MAXL && conf(w[1], MAXL) < tau) capped++;
+      svg.appendChild(s('text', { class: 's-tag', x: X0 - 12, y: y + 15, 'text-anchor': 'end', text: w[0] }));
+      for (var l = 1; l <= MAXL; l++) {
+        var used = l <= e;
+        svg.appendChild(s('rect', { class: 'le-cell' + (used ? ' on' : '') + (l === e ? ' exit' : ''), x: X0 + (l - 1) * CW + 3, y: y + 3, width: CW - 6, height: RH - 6, rx: 3, 'fill-opacity': used ? (0.35 + 0.65 * conf(w[1], l)).toFixed(2) : null }));
+      }
+    });
+    var avg = total / WORDS.length;
+    roAvg.set(avg.toFixed(1) + ' / ' + MAXL);
+    roSave.set(Math.round(avg / MAXL * 100) + '%');
+    roCap.set(String(capped));
+    TX.bi(caption,
+      'Function words stop after a loop or two; "it", which has to be resolved to "the cat", keeps going. Raising the threshold buys accuracy with compute; lowering it saves compute and risks stopping before a hard token is settled.',
+      '功能词一两圈就停；“它”要回指到“猫”，会一直转下去。阈值调高，是用计算换准确；调低，省计算，但难的 token 可能还没想清楚就停了。');
+    svg.setAttribute('aria-label', t(caption.textContent, caption.textContent));
+  }
+  render();
+})();

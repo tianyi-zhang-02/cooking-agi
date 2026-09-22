@@ -81,7 +81,7 @@ The FFN holds roughly two thirds of a dense block's parameters. A mixture-of-exp
 
 <!-- widget:tx-moe -->
 
-The grids are drawn at true scale (8, 128 or 256 experts), so the sparsity you see is the real sparsity. DeepSeek-V3 adds one shared expert that every token visits. The router in the figure is random and only there to show how load spreads; a real router is a learned linear layer, kept balanced by an auxiliary loss or a bias term.
+The grids are drawn at true scale (8, 128 or 256 experts), so the sparsity you see is the real sparsity. DeepSeek-V3 adds one shared expert that every token visits. The router in the figure is random and only there to show how load spreads; a real router is a learned linear layer, kept balanced by an auxiliary loss or a bias term. The full series is in [MoE](moe/README.en.md).
 
 ## FlashAttention: same math, less memory traffic
 

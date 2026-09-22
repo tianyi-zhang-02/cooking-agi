@@ -81,7 +81,7 @@ RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维
 
 <!-- widget:tx-moe -->
 
-格子按真实数量画（8、128 或 256 个 expert），所以你看到的稀疏度就是真实的稀疏度。DeepSeek-V3 多了一个所有 token 都会经过的 shared expert。图里的 router 是随机的，只为演示负载分布；真实的 router 是一个学出来的线性层，负载均衡要靠辅助 loss 或 bias 项来维持。
+格子按真实数量画（8、128 或 256 个 expert），所以你看到的稀疏度就是真实的稀疏度。DeepSeek-V3 多了一个所有 token 都会经过的 shared expert。图里的 router 是随机的，只为演示负载分布；真实的 router 是一个学出来的线性层，负载均衡要靠辅助 loss 或 bias 项来维持。完整的一组笔记见 [MoE 系列](moe/)。
 
 ## FlashAttention：数学不变，少搬显存
 
