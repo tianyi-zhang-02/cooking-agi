@@ -2053,3 +2053,185 @@
   }
   render();
 })();
+
+/* 16 · The agent loop, on one small task: fix a failing test. In agent mode the model picks the
+   next step after every observation and keeps going until the tests pass; in workflow mode the
+   steps are fixed in code, which is cheaper and predictable but cannot react to a new failure. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-agent-loop', { title: ['The agent loop · fixing a failing test', 'Agent 循环 · 修一个失败的测试'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  // [actor, en, zh, tool call or '', result en, result zh, tests state]
+  var AGENT = [
+    ['env', 'Read the task and the failing log', '读任务和失败日志', '', 'test_parse_date: expected 2026-09-22, got 2026-22-09', 'test_parse_date：期望 2026-09-22，实际 2026-22-09', '2 failing'],
+    ['model', 'Month and day look swapped in a format string', '日期格式里月和日好像写反了', '', '', '', '2 failing'],
+    ['tool', 'Search the code', '搜索代码', 'search_code("strftime")', 'utils/dates.py:14  fmt = "%Y-%d-%m"', 'utils/dates.py:14  fmt = "%Y-%d-%m"', '2 failing'],
+    ['tool', 'Fix the format', '改掉格式', 'edit_file("utils/dates.py", "%Y-%d-%m" → "%Y-%m-%d")', 'file saved', '已保存', '2 failing'],
+    ['tool', 'Run the tests', '跑测试', 'run_tests()', '41 passed, 1 failed: test_parse_date_tz', '41 通过，1 失败：test_parse_date_tz', '1 failing'],
+    ['model', 'A second failure: the parser drops the timezone', '还有一个：解析时把时区丢了', '', '', '', '1 failing'],
+    ['tool', 'Fix it and run again', '改掉再跑', 'edit_file(...); run_tests()', '42 passed', '42 全部通过', 'all pass'],
+    ['stop', 'Stop: the stopping condition is met; report the diff and the test output', '停下：满足停止条件，汇报改动和测试结果', '', '', '', 'all pass']
+  ];
+  var FLOW = [AGENT[0], AGENT[2], AGENT[3], AGENT[4],
+    ['stop', 'Stop: the script has no more steps, one test still fails', '停下：脚本写好的步骤走完了，还有一个测试没过', '', '', '', '1 failing']];
+  var mode = 'agent', step = 0;
+  var segMode = TX.seg([{ id: 'agent', en: 'Agent: the model picks the next step', zh: 'Agent：模型决定下一步' }, { id: 'flow', en: 'Workflow: fixed steps', zh: 'Workflow：固定步骤' }], 'agent',
+    function (v) { mode = v; step = 0; render(); }, t('Mode', '模式'));
+  var prev = TX.button('← Back', '← 上一步', function () { step = Math.max(0, step - 1); render(); });
+  var next = TX.button('Next →', '下一步 →', function () { var n = (mode === 'agent' ? AGENT : FLOW).length; step = step + 1 < n ? step + 1 : 0; render(); });
+  var count = h('span', { class: 'rl-count' });
+  fig.controls.appendChild(segMode.el);
+  fig.controls.appendChild(h('div', { class: 'rl-steps' }, [prev, count, next]));
+  var svg = s('svg', { viewBox: '0 0 640 200', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var trace = h('ol', { class: 'ag-trace' });
+  fig.stage.appendChild(trace);
+  var roModel = TX.readout('Model calls so far', '到目前为止的模型调用'), roTool = TX.readout('Tool calls so far', '到目前为止的工具调用'), roTests = TX.readout('Tests', '测试');
+  var caption = h('p', { class: 'fig-caption' });
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roModel.el, roTool.el, roTests.el]));
+  fig.foot.appendChild(caption);
+
+  var NODE = { model: [60, 70, 150, 60, 'Model', '模型', 'decides the next step', '决定下一步'], tool: [260, 70, 150, 60, 'Tools', '工具', 'search · edit · run', '搜索 · 编辑 · 运行'], env: [460, 70, 150, 60, 'Environment', '环境', 'repo · test results', '代码仓库 · 测试结果'] };
+  function render() {
+    var steps = mode === 'agent' ? AGENT : FLOW, cur = steps[step];
+    TX.clear(svg);
+    svg.appendChild(s('defs', null, ['', 'on'].map(function (k) {
+      return s('marker', { id: 'ag-h' + k, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, [s('path', { d: 'M0,0 L10,5 L0,10 z', class: k ? 'r-head-on' : 'r-head' })]);
+    })));
+    var lit = { model: cur[0] === 'model' || cur[0] === 'stop', tool: cur[0] === 'tool', env: cur[0] === 'env' || cur[0] === 'tool' };
+    if (mode === 'flow') lit.model = false;
+    function edge(x1, y1, x2, y2, on, label, curve) {
+      var d = curve ? 'M' + x1 + ',' + y1 + ' C' + x1 + ',' + (y1 + 60) + ' ' + x2 + ',' + (y2 + 60) + ' ' + x2 + ',' + y2 : 'M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2;
+      svg.appendChild(s('path', { class: 'r-edge' + (on ? ' on' : ''), d: d, fill: 'none', 'marker-end': 'url(#ag-h' + (on ? 'on' : '') + ')' }));
+      if (label) svg.appendChild(s('text', { class: 'r-elabel' + (on ? ' on' : ''), x: curve ? (x1 + x2) / 2 : (x1 + x2) / 2, y: curve ? y1 + 52 : y1 - 8, 'text-anchor': 'middle', bi: label }));
+    }
+    edge(210, 92, 260, 92, cur[0] === 'tool', ['act', '行动']);
+    edge(410, 92, 460, 92, cur[0] === 'tool', ['', '']);
+    edge(535, 130, 135, 130, cur[0] === 'env' || cur[0] === 'model', ['observe', '观察'], true);
+    Object.keys(NODE).forEach(function (k) {
+      var n = NODE[k], g = s('g', { class: 'r-box ' + (k === 'model' ? 'r-out' : k === 'tool' ? 'r-train' : 'r-data') + (lit[k] ? ' on' : ' r-dim') });
+      g.appendChild(s('rect', { x: n[0], y: n[1], width: n[2], height: n[3], rx: 8 }));
+      g.appendChild(s('text', { class: 's-title', x: n[0] + n[2] / 2, y: n[1] + 26, 'text-anchor': 'middle', bi: [n[4], n[5]] }));
+      g.appendChild(s('text', { class: 's-sub', x: n[0] + n[2] / 2, y: n[1] + 43, 'text-anchor': 'middle', bi: [n[6], n[7]] }));
+      svg.appendChild(g);
+    });
+    if (mode === 'flow') svg.appendChild(s('text', { class: 'pc-note', x: 135, y: 56, 'text-anchor': 'middle', bi: ['steps fixed in code', '步骤写死在代码里'] }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: 320, y: 22, 'text-anchor': 'middle', bi: [cur[1], cur[2]] }));
+    // the trace so far
+    TX.clear(trace);
+    var models = 0, tools = 0;
+    steps.forEach(function (st, i) {
+      if (i > step) return;
+      if (st[0] === 'model' || (mode === 'agent' && (st[0] === 'tool' || st[0] === 'stop'))) models++;
+      if (st[0] === 'tool') tools += st[3].indexOf(';') >= 0 ? 2 : 1;
+      var li = h('li', { class: i === step ? 'on' : '' }, [h('span', { class: 'ag-who', bi: [{ env: 'observe', model: 'think', tool: 'act', stop: 'stop' }[st[0]], { env: '观察', model: '思考', tool: '行动', stop: '停止' }[st[0]]] }), h('span', { bi: [st[1], st[2]] })]);
+      if (st[3]) li.appendChild(h('code', { text: st[3] }));
+      if (st[4]) li.appendChild(h('span', { class: 'ag-out', bi: ['→ ' + st[4], '→ ' + st[5]] }));
+      trace.appendChild(li);
+    });
+    count.textContent = (step + 1) + ' / ' + steps.length;
+    roModel.set(String(models));
+    roTool.set(String(tools));
+    roTests.set({ '2 failing': t('2 failing', '2 个失败'), '1 failing': t('1 failing', '1 个失败'), 'all pass': t('all passing', '全部通过') }[cur[6]]);
+    var end = step === steps.length - 1;
+    TX.bi(caption,
+      mode === 'agent' ? (end ? 'The agent found a second failure it was never told about and kept going until the stopping condition held. It also made a model call before every action, which is where the extra cost and variance come from.' : 'After every observation the model chooses what to do next; nothing about the path is fixed in advance.')
+                       : (end ? 'The workflow did exactly what it was written to do, cheaply and the same way every time, and stopped with a failure it had no step for. For well-understood tasks that predictability is the point.' : 'Each step is written in code; the model, if used at all, fills in one step and never chooses the next one.'),
+      mode === 'agent' ? (end ? 'Agent 发现了一个没人告诉它的新失败，一直做到满足停止条件为止。代价是每次行动前都有一次模型调用，额外的成本和不确定性就来自这里。' : '每看到一次结果，模型就自己决定下一步做什么；路径没有事先写死。')
+                       : (end ? 'Workflow 完全按写好的步骤走：便宜、每次都一样，但遇到没写到的失败就停在那里。对已经想清楚的任务，这种可预测正是它的价值。' : '每一步都写在代码里；模型就算用上，也只负责填其中一步，不决定下一步。'));
+    svg.setAttribute('aria-label', t(cur[1], cur[2]));
+  }
+  render();
+})();
+
+/* 17 · Frontier API or self-hosted: a rough monthly cost model. Every default is an example to
+   replace with real quotes; the point is the shape — a per-token line against a step function
+   with a fixed floor. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-agent-cost', { title: ['Frontier API or self-hosted · a rough monthly cost model', '用 API 还是自己 serve · 粗略的月成本模型'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var P = { tasks: 3, ktok: 60, pin: 3, pout: 15, gpuHr: 2.5, gpus: 8, tps: 6000, util: 0.5, ops: 12000 };
+  function fmt$(v) { return '$' + (v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : v >= 1e4 ? Math.round(v / 1e3) + 'k' : v >= 1000 ? (v / 1e3).toFixed(1) + 'k' : Math.round(v).toString()); }
+  function tasksOf(x) { return Math.pow(10, x); }
+  function monthTok(tasks) { return tasks * 30 * P.ktok * 1000; }
+  function api(tasks) { return monthTok(tasks) * (0.8 * P.pin + 0.2 * P.pout) / 1e6; }
+  function replicas(tasks) { return Math.max(1, Math.ceil(monthTok(tasks) / (P.tps * 3600 * 24 * 30 * P.util))); }
+  function self(tasks) { return replicas(tasks) * P.gpus * P.gpuHr * 24 * 30 + P.ops; }
+  function sl(key, en, zh, min, max, step, f) {
+    return TX.slider({ en: en, zh: zh, min: min, max: max, step: step, value: P[key], format: f, onInput: function (v) { P[key] = v; render(); } }).el;
+  }
+  var usage = h('div', { class: 'calc' }, [h('div', { class: 'calc-title', bi: ['Workload', '负载'] }), h('div', { class: 'calc-controls' }, [
+    sl('tasks', 'tasks per day', '每天任务数', 1, 6, 0.1, function (v) { return Math.round(tasksOf(v)).toLocaleString('en-US'); }),
+    sl('ktok', 'tokens per task (all steps)', '每个任务的 token（所有步骤）', 5, 400, 5, function (v) { return v + 'k'; })])]);
+  var apiBox = h('div', { class: 'calc' }, [h('div', { class: 'calc-title', bi: ['API (example prices)', 'API（示例价格）'] }), h('div', { class: 'calc-controls' }, [
+    sl('pin', '$ per 1M input tokens', '每 1M 输入 token 的价格', 0.1, 20, 0.1, function (v) { return '$' + v.toFixed(1); }),
+    sl('pout', '$ per 1M output tokens', '每 1M 输出 token 的价格', 0.5, 80, 0.5, function (v) { return '$' + v.toFixed(1); })])]);
+  var selfBox = h('div', { class: 'calc' }, [h('div', { class: 'calc-title', bi: ['Self-hosted (example numbers)', '自己 serve（示例数字）'] }), h('div', { class: 'calc-controls' }, [
+    sl('gpuHr', '$ per GPU-hour', '每 GPU 小时', 0.5, 10, 0.1, function (v) { return '$' + v.toFixed(1); }),
+    sl('gpus', 'GPUs per replica', '每组副本的 GPU 数', 1, 16, 1, function (v) { return String(v); }),
+    sl('tps', 'tokens/s per replica', '每组副本每秒 token', 500, 30000, 500, function (v) { return v.toLocaleString('en-US'); }),
+    sl('util', 'average utilisation', '平均利用率', 0.1, 0.9, 0.05, function (v) { return Math.round(v * 100) + '%'; }),
+    sl('ops', 'people and ops per month', '每月人力与运维', 0, 60000, 1000, function (v) { return fmt$(v); })])]);
+  fig.stage.appendChild(h('div', { class: 'ctl-row ac-panels' }, [usage, apiBox, selfBox]));
+  var svg = s('svg', { viewBox: '0 0 640 260', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var roApi = TX.readout('API per month', 'API 每月'), roSelf = TX.readout('Self-hosted per month', '自己 serve 每月'), roRep = TX.readout('Replicas needed', '需要几组副本'), roBE = TX.readout('Break-even volume', '两者持平的任务量');
+  var caption = h('p', { class: 'fig-caption' });
+  var note = h('p', { class: 'fig-note', bi: ['A rough model: input is taken as 80% of tokens; throughput lumps prefill and decode together; replicas run around the clock. Replace every default with your own quotes and measurements before using it for a decision.', '这是粗略模型：假设输入占 80% 的 token；吞吐把 prefill 和 decode 合在一起算；副本全天运行。用它做决定之前，把每个默认值换成你自己的报价和实测。'] });
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roApi.el, roSelf.el, roRep.el, roBE.el]));
+  fig.foot.appendChild(caption);
+  fig.foot.appendChild(note);
+
+  var X0 = 70, X1 = 620, Y0 = 20, Y1 = 214, XMIN = 1, XMAX = 6;
+  function sx(x) { return X0 + (x - XMIN) / (XMAX - XMIN) * (X1 - X0); }
+  function render() {
+    var ys = [], i, x;
+    for (x = XMIN; x <= XMAX + 1e-9; x += 0.05) ys.push(api(tasksOf(x)), self(tasksOf(x)));
+    var lo = Math.log10(Math.max(1, Math.min.apply(null, ys))), hi = Math.log10(Math.max.apply(null, ys));
+    lo = Math.floor(lo); hi = Math.ceil(hi); if (hi - lo < 2) hi = lo + 2;
+    function sy(v) { return Y1 - (Math.log10(Math.max(1, v)) - lo) / (hi - lo) * (Y1 - Y0); }
+    TX.clear(svg);
+    svg.appendChild(s('line', { class: 'pc-axis', x1: X0, y1: Y1, x2: X1, y2: Y1 }));
+    svg.appendChild(s('line', { class: 'pc-axis', x1: X0, y1: Y0, x2: X0, y2: Y1 }));
+    for (x = XMIN; x <= XMAX; x++) {
+      svg.appendChild(s('text', { class: 'pc-tick', x: sx(x), y: Y1 + 16, 'text-anchor': x === XMAX ? 'end' : 'middle', text: Math.round(tasksOf(x)).toLocaleString('en-US') }));
+    }
+    svg.appendChild(s('text', { class: 'pc-tick', x: X1, y: Y1 + 32, 'text-anchor': 'end', bi: ['tasks per day (log scale)', '每天任务数（对数刻度）'] }));
+    for (var e = lo; e <= hi; e++) {
+      svg.appendChild(s('line', { class: 'pc-guide', x1: X0, y1: sy(Math.pow(10, e)), x2: X1, y2: sy(Math.pow(10, e)) }));
+      svg.appendChild(s('text', { class: 'pc-tick', x: X0 - 6, y: sy(Math.pow(10, e)) + 4, 'text-anchor': 'end', text: fmt$(Math.pow(10, e)) }));
+    }
+    function path(fn) { var d = ''; for (var xx = XMIN; xx <= XMAX + 1e-9; xx += 0.01) d += (d ? ' L' : 'M') + sx(xx).toFixed(1) + ',' + sy(fn(tasksOf(xx))).toFixed(1); return d; }
+    svg.appendChild(s('path', { class: 'ac-api', d: path(api) }));
+    svg.appendChild(s('path', { class: 'ac-self', d: path(self) }));
+    svg.appendChild(s('text', { class: 'ac-lapi', x: X1 - 4, y: sy(api(tasksOf(XMAX))) - 6, 'text-anchor': 'end', bi: ['API', 'API'] }));
+    svg.appendChild(s('text', { class: 'ac-lself', x: sx(XMIN) + 6, y: sy(self(tasksOf(XMIN))) - 6, bi: ['self-hosted', '自己 serve'] }));
+    // break-even: the first volume where self-hosting gets cheaper
+    var be = null;
+    for (x = XMIN; x <= XMAX + 1e-9; x += 0.01) if (self(tasksOf(x)) <= api(tasksOf(x))) { be = x; break; }
+    if (be != null) {
+      svg.appendChild(s('line', { class: 'pc-drop', x1: sx(be), y1: Y0, x2: sx(be), y2: Y1 }));
+      svg.appendChild(s('text', { class: 'pc-note', x: sx(be) + 4, y: Y0 + 12, bi: ['break-even', '持平点'] }));
+    }
+    var now = tasksOf(P.tasks);
+    svg.appendChild(s('circle', { class: 'ac-dot-api', cx: sx(P.tasks), cy: sy(api(now)), r: 5 }));
+    svg.appendChild(s('circle', { class: 'ac-dot', cx: sx(P.tasks), cy: sy(self(now)), r: 5 }));
+    var a = api(now), b = self(now);
+    roApi.set(fmt$(a));
+    roSelf.set(fmt$(b));
+    roRep.set(String(replicas(now)));
+    roBE.set(be == null ? t('none in range', '范围内没有') : Math.round(tasksOf(be)).toLocaleString('en-US') + t(' / day', ' / 天'));
+    TX.bi(caption,
+      (a < b ? 'At this volume the API is cheaper: self-hosting pays a fixed floor of GPUs that run all day plus the people who run them, whether or not traffic arrives. ' : 'At this volume self-hosting is cheaper: the fixed floor is spread over enough tokens. ') + 'Cost is only one axis: the capability gap, latency, data rules, and whether you need to fine-tune usually decide first.',
+      (a < b ? '在这个量级上 API 更便宜：自己 serve 有一块固定的底，全天运行的 GPU 加上维护它的人，不管有没有流量都要付。' : '在这个量级上自己 serve 更便宜：固定成本被足够多的 token 摊薄了。') + '成本只是一个维度：能力差距、延迟、数据合规、要不要微调，往往先一步决定了答案。');
+    svg.setAttribute('aria-label', t(caption.textContent, caption.textContent));
+  }
+  render();
+})();

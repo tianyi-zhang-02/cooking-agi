@@ -354,6 +354,8 @@ TX_LAB = [
     ("tx-loop-unroll", "循环：同一个 block 重复用 L 次", "Looping: one block reused L times"),
     ("tx-loop-reach", "多跳：每过一遍多走一跳", "Multi-hop: one more link per pass"),
     ("tx-loop-exit", "自适应深度：每个 token 自己决定转几圈", "Adaptive depth: each token decides when to stop"),
+    ("tx-agent-loop", "Agent 循环：修一个失败的测试", "The agent loop: fixing a failing test"),
+    ("tx-agent-cost", "用 API 还是自己 serve：粗略的月成本模型", "Frontier API or self-hosted: a rough monthly cost model"),
 ]
 for _name, _zh, _en in TX_LAB:
     WIDGETS[_name] = f"""
