@@ -35,7 +35,7 @@ EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--"]
 SCAN = ["00-foundations", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
         "07-evaluation", "08-model-experience", "09-personal-agi", "ai-infra",
-        "papers", "career", "interview"]
+        "10-agents", "papers", "career", "interview"]
 
 
 def main():

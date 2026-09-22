@@ -99,6 +99,13 @@ en = "Systems & multimodal"
 home = "06-systems/README.md"
 
 [[group]]
+id = "agents"
+category = "learn"
+zh = "Agents"
+en = "Agents"
+home = "10-agents/README.md"
+
+[[group]]
 id = "open-source"
 category = "learn"
 zh = "开源项目"
@@ -247,6 +254,13 @@ zh  = "Personal AGI"
 en  = "Personal AGI"
 
 [[section]]
+dir   = "10-agents"
+group = "agents"
+zh    = "Agents"
+en    = "Agents"
+order = ["README.md", "patterns.md", "scenarios.md", "model-choice.md", "review.md"]
+
+[[section]]
 dir   = "open-source"
 group = "open-source"
 zh    = "总览"
@@ -393,3 +407,8 @@ en  = "Templates"
 "00-foundations/looped/models.md"                                = ["Huginn · Ouro · MoR", "Huginn · Ouro · MoR"]
 "00-foundations/looped/costs.md"                                 = ["代价与局限", "Costs & limits"]
 "00-foundations/looped/review.md"                                = ["复习题", "Review"]
+"10-agents/README.md"                                            = ["总览", "Overview"]
+"10-agents/patterns.md"                                          = ["常见结构", "Building blocks"]
+"10-agents/scenarios.md"                                         = ["不同场景", "Settings"]
+"10-agents/model-choice.md"                                      = ["API 还是自己 serve", "API or self-hosted"]
+"10-agents/review.md"                                            = ["复习题", "Review"]

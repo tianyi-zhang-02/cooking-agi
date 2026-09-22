@@ -180,6 +180,7 @@ topics = [
   { zh = "多模态", en = "Multimodal learning", note = "03-multimodal-learning/README.md" },
   { zh = "Model experience", en = "Model experience", note = "08-model-experience/README.md" },
   { zh = "Personal AGI", en = "Personal AGI", note = "09-personal-agi/README.md" },
+  { zh = "Agents：结构、场景与怎么选模型", en = "Agents: structures, settings, choosing a model", note = "10-agents/review.md" },
 ]
 
 [[layer]]

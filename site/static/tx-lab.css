@@ -302,3 +302,22 @@ svg text{font-family:var(--sans),var(--cjk)}
 .tx-lab .le-cell{fill:var(--code-bg);stroke:var(--rule);stroke-width:1}
 .tx-lab .le-cell.on{fill:var(--c-q);stroke:none}
 .tx-lab .le-cell.exit{stroke:var(--link);stroke-width:2}
+/* 16 agent loop */
+.tx-lab .ag-trace{display:grid;gap:6px;margin:.2rem 0 0;padding:0;list-style:none;counter-reset:ag}
+.tx-lab .ag-trace li{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:7px 10px;border:1px solid var(--rule);border-radius:7px;background:var(--paper);font-size:13.5px;line-height:1.5;color:var(--muted)}
+.tx-lab .ag-trace li.on{border-color:var(--link);color:var(--ink)}
+.tx-lab .ag-who{min-width:3.2em;font:650 11px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--link)}
+.tx-lab .ag-trace code{font:500 12px/1.4 var(--mono);color:var(--c-k);background:none;padding:0}
+.tx-lab .ag-out{flex-basis:100%;padding-left:calc(3.2em + 10px);font:500 12px/1.45 var(--mono);color:var(--muted)}
+/* 17 API vs self-hosted */
+.tx-lab .ac-panels{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:.5rem}
+.tx-lab .ac-panels .ctl{grid-template-columns:1fr auto;grid-template-areas:"l v" "i i";gap:4px 10px}
+.tx-lab .ac-panels .ctl-label{grid-area:l;white-space:normal}
+.tx-lab .ac-panels .ctl input{grid-area:i}
+.tx-lab .ac-panels .ctl-val{grid-area:v;min-width:0}
+.tx-lab .ac-api{fill:none;stroke:var(--c-q);stroke-width:2.4}
+.tx-lab .ac-self{fill:none;stroke:var(--c-k);stroke-width:2.4}
+.tx-lab .ac-lapi{font-size:11px;font-weight:650;fill:var(--c-q)}
+.tx-lab .ac-lself{font-size:11px;font-weight:650;fill:var(--c-k)}
+.tx-lab .ac-dot{fill:var(--c-k);stroke:var(--panel);stroke-width:2}
+.tx-lab .ac-dot-api{fill:var(--c-q);stroke:var(--panel);stroke-width:2}
