@@ -1136,22 +1136,32 @@ def build_page(page: Page, terms, repo: str, known: set):
 # --------------------------------------------------------------------------- #
 # html assembly
 # --------------------------------------------------------------------------- #
-def section_html(page, sec):
-    """One section: its number badge, its label, and its page links."""
+def nav_label(page) -> str:
+    """The short name a note goes by in the sidebar: nav.toml [label] if listed, else its
+    title up to the first colon ("Tokenization：从文本到 ID" -> "Tokenization")."""
+    key = str(page.src.relative_to(ROOT)).replace(os.sep, "/")
+    key = key[:-6] + ".md" if key.endswith(".en.md") else key
+    pair = NAV.get("label", {}).get(key)
+    if pair:
+        return pair[0] if page.lang == "zh" else pair[1]
+    head = re.split(r"[：:]", page.title, maxsplit=1)[0].strip()
+    return head if 1 < len(head) < len(page.title) else page.title
+
+
+def section_html(page, sec, show_head=True):
+    """One section: an optional small heading and its page links, each under its short label
+    with the full title on hover. The heading is left out where the block name already says it."""
     label = html.escape(sec["zh" if page.lang == "zh" else "en"])
     items, has_active = [], False
     for pair in sec["pages"]:
         target = pair[page.lang] or pair["zh"]
         active = target.url == page.url
         has_active = has_active or active
-        cls = ' class="active"' if active else ""
-        items.append(f'<li><a{cls} href="{page.rel(target.url)}">'
-                     f'{html.escape(target.title)}</a></li>')
-    # only top-level chapters carry the curriculum number; a subdirectory
-    # section like 00-foundations/code would otherwise repeat it
-    num = sec["dir"].split("-")[0] if re.match(r"^\d\d-[^/]+$", sec["dir"]) else ""
-    badge = f'<span class="sec-num">{num}</span>' if num else ""
-    return (f'<li class="sec">{badge}<span class="sec-name">{label}</span>'
+        cls = ' class="active" aria-current="page"' if active else ""
+        items.append(f'<li><a{cls} href="{page.rel(target.url)}" title="{html.escape(target.title, quote=True)}">'
+                     f'{html.escape(nav_label(target))}</a></li>')
+    head = f'<span class="sec-name">{label}</span>' if show_head else ""
+    return (f'<li class="sec{"" if show_head else " sec-flat"}">{head}'
             f'<ul>{"".join(items)}</ul></li>'), has_active
 
 
@@ -1173,7 +1183,7 @@ def sidebar_html(page, sections, groups):
         groups = [g for g in groups if g.get("category") == scope]
     ordered = sorted(groups, key=lambda g: list(cats).index(g["category"]) if g.get("category") in cats else -1)
     for g in ordered:
-        secs = by_group.get(g["id"])
+        secs = [s for s in by_group.get(g["id"], []) if s["pages"]]
         if not secs:
             continue
         cat = cats.get(g.get("category"))
@@ -1184,7 +1194,9 @@ def sidebar_html(page, sections, groups):
             label_cat = html.escape(cat["zh" if page.lang == "zh" else "en"])
             out.append(f'<li class="cat"><a href="{page.rel(target.url)}">{label_cat}</a></li>' if target
                        else f'<li class="cat"><span>{label_cat}</span></li>')
-        rendered = [section_html(page, s) for s in secs]
+        # a heading only where it adds something: several sections in the block, and
+        # more than one note in this one (a lone note's label already names it)
+        rendered = [section_html(page, s, len(secs) > 1 and len(s["pages"]) > 1) for s in secs]
         body = "".join(h for h, _ in rendered)
         is_active = any(a for _, a in rendered)
         n_pages = sum(len(s["pages"]) for s in secs)

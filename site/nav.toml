@@ -63,14 +63,14 @@ en = "Start here"
 id = "foundations"
 category = "learn"
 zh = "大模型基础"
-en = "LLM foundations"
+en = "Foundations"
 home = "00-foundations/README.md"
 
 [[group]]
 id = "posttrain"
 category = "learn"
-zh = "Fine-tuning 与 Post-training"
-en = "Fine-tuning & post-training"
+zh = "Post-training"
+en = "Post-training"
 home = "05-post-training/README.md"
 
 [[group]]
@@ -83,15 +83,15 @@ home = "07-evaluation/README.md"
 [[group]]
 id = "data-retrieval"
 category = "learn"
-zh = "数据、记忆与检索"
-en = "Data, memory & retrieval"
+zh = "数据与检索"
+en = "Data & retrieval"
 home = "01-data-and-feedback/README.md"
 
 [[group]]
 id = "systems"
 category = "learn"
-zh = "系统、多模态与体验"
-en = "Systems, multimodal & experience"
+zh = "系统与多模态"
+en = "Systems & multimodal"
 home = "06-systems/README.md"
 
 [[group]]
@@ -104,13 +104,13 @@ en = "Open source"
 id = "interview"
 category = "career"
 zh = "技术面"
-en = "Tech interviews"
+en = "Interviews"
 
 [[group]]
 id = "career"
 category = "career"
 zh = "求职与规划"
-en = "Job search & planning"
+en = "Job search"
 
 [[group]]
 id = "reference"
@@ -129,15 +129,15 @@ order = ["README.md"]
 [[section]]
 dir   = "00-foundations"
 group = "foundations"
-zh    = "学习地图与总览"
-en    = "Map and overview"
+zh    = "入门"
+en    = "First steps"
 order = ["README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
 dir = "00-foundations/core"
 group = "foundations"
-zh  = "必修 · 从 Token 到生成"
-en  = "Core · Token to generation"
+zh  = "必修"
+en  = "Core"
 order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
          "multi-head-attention.md", "normalization.md", "residual-connections.md",
          "vanilla-transformer.md", "decoder-only.md", "decoding.md"]
@@ -145,15 +145,15 @@ order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
 [[section]]
 dir = "00-foundations/deep-dives"
 group = "foundations"
-zh  = "进阶 · 数学与训练"
-en  = "Deep dives · Math and training"
+zh  = "进阶"
+en  = "Deep dives"
 order = ["README.md", "recurrent-dynamics.md", "language-model-objective.md"]
 
 [[section]]
 dir = "00-foundations/code"
 group = "foundations"
-zh  = "实验 · 纯 Python / PyTorch"
-en  = "Labs · Python / PyTorch"
+zh  = "实验"
+en  = "Labs"
 
 [[section]]
 dir = "01-data-and-feedback"
@@ -183,13 +183,13 @@ en  = "Search & retrieval"
 dir = "05-post-training"
 order = ["README.md", "model-adaptation.md", "sft-and-its-ceiling.md", "where-preferences-come-from.md", "rlhf-pipeline.md", "after-ppo.md", "verifiable-rewards.md", "post-training-infrastructure.md", "same-base-different-posttraining.md", "alignment-tax.md"]
 group = "posttrain"
-zh  = "模型适配与 Post-Training"
-en  = "Model adaptation & post-training"
+zh  = "Post-training"
+en  = "Post-training"
 
 [[section]]
 dir   = "06-systems"
 group = "systems"
-zh    = "系统总览"
+zh    = "系统"
 en    = "Systems"
 order = ["README.md", "agent-observability.md", "human-in-the-loop.md"]
 
@@ -274,3 +274,62 @@ dir = "templates"
 group = "reference"
 zh  = "模板"
 en  = "Templates"
+
+# Sidebar labels: the short name each note goes by in the sidebar, [中文, English].
+# The block (group) already says the topic, so a label only names the note inside it
+# ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
+# without a label falls back to its title up to the first colon.
+[label]
+"README.md"                                             = ["路线图", "Roadmap"]
+"00-foundations/README.md"                              = ["学习地图", "Learning map"]
+"00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
+"00-foundations/transformer.md"                         = ["Transformer 架构", "Transformer"]
+"00-foundations/transformer-lab.md"                     = ["Transformer 交互图解", "Transformer lab"]
+"00-foundations/core/README.md"                         = ["总览", "Overview"]
+"00-foundations/core/tokenization.md"                   = ["Tokenization", "Tokenization"]
+"00-foundations/core/recurrent-models.md"               = ["RNN 与 LSTM", "RNN & LSTM"]
+"00-foundations/core/seq2seq.md"                        = ["Seq2Seq", "Seq2Seq"]
+"00-foundations/core/multi-head-attention.md"           = ["多头注意力", "Multi-head attention"]
+"00-foundations/core/normalization.md"                  = ["归一化", "Normalization"]
+"00-foundations/core/residual-connections.md"           = ["残差连接", "Residual connections"]
+"00-foundations/core/vanilla-transformer.md"            = ["Vanilla Transformer", "Vanilla Transformer"]
+"00-foundations/core/decoder-only.md"                   = ["Decoder-only", "Decoder-only"]
+"00-foundations/core/decoding.md"                       = ["解码策略", "Decoding"]
+"00-foundations/deep-dives/README.md"                   = ["总览", "Overview"]
+"00-foundations/deep-dives/recurrent-dynamics.md"       = ["BPTT 与门控", "BPTT & gates"]
+"00-foundations/deep-dives/language-model-objective.md" = ["语言模型目标", "LM objective"]
+"00-foundations/code/README.md"                         = ["从零实现实验", "Labs from scratch"]
+"01-data-and-feedback/README.md"                        = ["数据与反馈", "Data & feedback"]
+"02-memory/README.md"                                   = ["表征与记忆", "Representation & memory"]
+"03-multimodal-learning/README.md"                      = ["多模态学习", "Multimodal learning"]
+"04-search/README.md"                                   = ["搜索与检索", "Search & retrieval"]
+"05-post-training/README.md"                            = ["总览", "Overview"]
+"05-post-training/model-adaptation.md"                  = ["微调与 LoRA", "Fine-tuning & LoRA"]
+"05-post-training/sft-and-its-ceiling.md"               = ["SFT", "SFT"]
+"05-post-training/where-preferences-come-from.md"       = ["偏好与奖励模型", "Reward models"]
+"05-post-training/rlhf-pipeline.md"                     = ["RLHF 三阶段", "RLHF"]
+"05-post-training/after-ppo.md"                         = ["PPO 之后", "After PPO"]
+"05-post-training/verifiable-rewards.md"                = ["可验证奖励", "Verifiable rewards"]
+"05-post-training/post-training-infrastructure.md"      = ["训练基础设施", "Infrastructure"]
+"05-post-training/same-base-different-posttraining.md"  = ["同一个基座", "One base model"]
+"05-post-training/alignment-tax.md"                     = ["对齐税", "Alignment tax"]
+"06-systems/README.md"                                  = ["总览", "Overview"]
+"06-systems/agent-observability.md"                     = ["Agent 可观测性", "Agent observability"]
+"06-systems/human-in-the-loop.md"                       = ["人在回路", "Human in the loop"]
+"07-evaluation/README.md"                               = ["总览", "Overview"]
+"07-evaluation/llm-as-a-judge.md"                       = ["LLM-as-a-Judge", "LLM-as-a-judge"]
+"08-model-experience/README.md"                         = ["模型体验", "Model experience"]
+"09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
+"open-source/README.md"                                 = ["总览", "Overview"]
+"open-source/nemo-rl/README.md"                         = ["NeMo RL", "NeMo RL"]
+"interview/README.md"                                   = ["使用说明", "How to use"]
+"interview/questions.md"                                = ["考前速查", "Question bank"]
+"interview/transformer-followups.md"                    = ["Transformer 追问", "Transformer follow-ups"]
+"00-foundations/interview-basics.md"                    = ["基础题", "Basics"]
+"00-foundations/hand-write-kit.md"                      = ["白板手写", "Whiteboard coding"]
+"00-foundations/ml-math-interview.md"                   = ["ML 数学", "ML math"]
+"career/README.md"                                      = ["先读这一页", "Read this first"]
+"career/journey.md"                                     = ["我的心路历程", "My journey"]
+"EDITORIAL.md"                                          = ["写作规范", "Editorial policy"]
+"papers/README.md"                                      = ["论文笔记", "Paper notes"]
+"templates/paper-note.md"                               = ["论文模板", "Paper template"]
