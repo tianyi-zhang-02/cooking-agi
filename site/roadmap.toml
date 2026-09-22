@@ -55,7 +55,7 @@ topics = [
   { zh = "模型适配：full fine-tuning、LoRA、prompt tuning、蒸馏", en = "Adaptation: full fine-tuning, LoRA, prompt tuning, distillation", note = "05-post-training/model-adaptation.md" },
   { zh = "SFT 能做到哪、做不到哪", en = "What SFT can and cannot do", note = "05-post-training/sft-and-its-ceiling.md" },
   { zh = "偏好数据与 reward model", en = "Preference data and reward models", note = "05-post-training/where-preferences-come-from.md" },
-  { zh = "RLHF 三阶段", en = "The three stages of RLHF", note = "05-post-training/rlhf-pipeline.md" },
+  { zh = "RLHF 三阶段", en = "The three stages of RLHF", note = "05-post-training/rlhf/evaluation-and-review.md" },
   { zh = "PPO 之后：DPO、GRPO 等", en = "After PPO: DPO, GRPO and friends", note = "05-post-training/after-ppo.md" },
   { zh = "可验证奖励（RLVR）", en = "Verifiable rewards (RLVR)", note = "05-post-training/verifiable-rewards.md" },
   { zh = "后训练的基础设施：采样、数值、上下文", en = "Post-training infrastructure: sampling, numerics, context", note = "05-post-training/post-training-infrastructure.md" },

@@ -172,6 +172,6 @@ They aren't two interchangeable buttons; they solve different learning problems.
 
 ## Where to read next
 
-- [The three stages of RLHF](rlhf-pipeline.en.md): what the two stages after SFT do
+- [The three stages of RLHF](rlhf/three-stages.en.md): what the two stages after SFT do
 - [After PPO](after-ppo.en.md): the family tree of algorithms on the RL line
 - [Data and feedback](../01-data-and-feedback/README.en.md): the quality of demonstration and preference data itself

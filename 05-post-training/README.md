@@ -328,7 +328,7 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 
 **二、用结果教：RL 那条线**
 
-5. [RLHF 的三个阶段，和后来发生了什么](rlhf-pipeline.md) —— 四个模型，谁在训谁被冻住
+5. [RLHF 的三个阶段，和后来发生了什么](rlhf/) —— 四个模型，谁在训谁被冻住
 6. [PPO 之后：每个算法都在删掉它的一部分](after-ppo.md) —— GRPO / RLOO / REINFORCE++ / DAPO / DPO 的统一读法
 7. [可验证奖励：当奖励不需要学](verifiable-rewards.md) —— 它收窄了 reward hacking，但没有消灭它；可验证性是连续谱不是二分
 

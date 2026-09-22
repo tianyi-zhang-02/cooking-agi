@@ -262,6 +262,6 @@ RL 能处理这件事，是因为奖励函数可以给「放弃回答」一个�
 
 ## 继续阅读
 
-- [RLHF 的三个阶段](rlhf-pipeline.md)：SFT 之后那两个阶段在做什么
+- [RLHF 的三个阶段](rlhf/three-stages.md)：SFT 之后那两个阶段在做什么
 - [PPO 之后](after-ppo.md)：RL 那条线的算法谱系
 - [数据与反馈](../01-data-and-feedback/)：示范和偏好数据本身的质量问题

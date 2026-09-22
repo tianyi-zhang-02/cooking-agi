@@ -171,7 +171,7 @@ $$
 r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}+C(x).
 $$
 
-Substitute this relation into the preference probability: $C(x)$ cancels in the reward difference for the same prompt, so a policy/reference log-ratio directly represents the implicit reward difference. Reward has not vanished; it has been **absorbed into the policy objective**. See [the three stages of RLHF](rlhf-pipeline.en.md) for the full derivation.
+Substitute this relation into the preference probability: $C(x)$ cancels in the reward difference for the same prompt, so a policy/reference log-ratio directly represents the implicit reward difference. Reward has not vanished; it has been **absorbed into the policy objective**. See [the three stages of RLHF](rlhf/after-rlhf.en.md) for the full derivation.
 
 ### DPO versus SFT
 
@@ -311,7 +311,7 @@ No. DPO is simple and stable when fixed, high-quality preference pairs cover the
 
 ## Where to read next
 
-- [The three stages of RLHF, and what came after](rlhf-pipeline.en.md): what each model does, and the DPO derivation
+- [The three stages of RLHF, and what came after](rlhf/README.en.md): what each model does, and the DPO derivation
 - [Data and feedback](../01-data-and-feedback/): the quality of preference labels themselves
 - [Evaluation](../07-evaluation/): telling whether alignment actually helped
 

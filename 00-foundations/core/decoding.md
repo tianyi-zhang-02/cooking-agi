@@ -259,4 +259,4 @@ top-k 固定保留 $k$ 个候选；top-p 保留累积概率刚好达到 $p$ 的�
 ## 继续阅读
 
 - [Decoder-only：自回归生成](decoder-only.md)：这些分布是怎么一步步产生的
-- [RLHF 的三个阶段](../../05-post-training/rlhf-pipeline.md)：rollout 采样参数为什么会影响梯度
+- [RLHF 的三个阶段](../../05-post-training/rlhf/)：rollout 采样参数为什么会影响梯度

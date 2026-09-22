@@ -29,7 +29,7 @@ Outcome reward 偏差小但 credit assignment 稀疏；process reward 更密集�
 
 ## 换掉了什么
 
-回顾 [RLHF 的四个模型](rlhf-pipeline.md)：Policy、Critic、Reward、Reference。可验证奖励删掉的是 **Reward Model**——那个用[偏好数据](where-preferences-come-from.md)拟合出来的网络。
+回顾 [RLHF 的四个模型](rlhf/three-stages.md)：Policy、Critic、Reward、Reference。可验证奖励删掉的是 **Reward Model**——那个用[偏好数据](where-preferences-come-from.md)拟合出来的网络。
 
 $$r(x,y) = \text{verify}(y) \in \{0, 1\}$$
 

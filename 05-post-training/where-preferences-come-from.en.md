@@ -99,7 +99,7 @@ It also explains the mechanism of reward hacking. Those high-scoring terrible re
 
 ## Where to read next
 
-- [The three stages of RLHF](rlhf-pipeline.en.md): what happens to this reward model next
+- [The three stages of RLHF](rlhf/three-stages.en.md): what happens to this reward model next
 - [Verifiable rewards](verifiable-rewards.en.md): which of these traps disappear when the reward isn't learned
 - [The alignment tax](alignment-tax.en.md): what the bias in preferences grows into downstream
 - [Data and feedback](../01-data-and-feedback/): label quality in general

@@ -22,6 +22,8 @@ author_url  = "/"
 
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]
+"05-post-training/rlhf-pipeline.html" = "05-post-training/rlhf/index.html"
+"05-post-training/rlhf-pipeline.en.html" = "05-post-training/rlhf/index.en.html"
 "07-evaluation/llm-as-a-judge.html" = "07-evaluation/llm-as-a-judge/index.html"
 "07-evaluation/llm-as-a-judge.en.html" = "07-evaluation/llm-as-a-judge/index.en.html"
 "open-source/nemo-rl.html" = "open-source/nemo-rl/index.html"
@@ -183,10 +185,19 @@ en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
-order = ["README.md", "model-adaptation.md", "sft-and-its-ceiling.md", "where-preferences-come-from.md", "rlhf-pipeline.md", "after-ppo.md", "verifiable-rewards.md", "post-training-infrastructure.md", "same-base-different-posttraining.md", "alignment-tax.md"]
+order = ["README.md", "model-adaptation.md", "sft-and-its-ceiling.md", "where-preferences-come-from.md", "after-ppo.md", "verifiable-rewards.md", "post-training-infrastructure.md", "same-base-different-posttraining.md", "alignment-tax.md"]
 group = "posttrain"
-zh  = "Post-training"
-en  = "Post-training"
+zh  = "方法与取舍"
+en  = "Methods & trade-offs"
+
+[[section]]
+dir   = "05-post-training/rlhf"
+group = "posttrain"
+zh    = "RLHF"
+en    = "RLHF"
+order = ["README.md", "rl-for-language-models.md", "value-and-advantage.md", "on-off-policy.md",
+         "three-stages.md", "reference-and-critic.md", "after-rlhf.md", "ppo-clipping.md",
+         "evaluation-and-review.md"]
 
 [[section]]
 dir   = "06-systems"
@@ -316,7 +327,15 @@ en  = "Templates"
 "05-post-training/model-adaptation.md"                  = ["微调与 LoRA", "Fine-tuning & LoRA"]
 "05-post-training/sft-and-its-ceiling.md"               = ["SFT", "SFT"]
 "05-post-training/where-preferences-come-from.md"       = ["偏好与奖励模型", "Reward models"]
-"05-post-training/rlhf-pipeline.md"                     = ["RLHF 三阶段", "RLHF"]
+"05-post-training/rlhf/README.md"   = ["总览", "Overview"]
+"05-post-training/rlhf/rl-for-language-models.md" = ["RL 映射到语言模型", "RL for language models"]
+"05-post-training/rlhf/value-and-advantage.md" = ["Value 与 Advantage", "Value & advantage"]
+"05-post-training/rlhf/on-off-policy.md" = ["On / off-policy", "On- vs off-policy"]
+"05-post-training/rlhf/three-stages.md" = ["三个阶段 · 四个模型", "Stages & models"]
+"05-post-training/rlhf/reference-and-critic.md" = ["Reference 与 Critic", "Reference & Critic"]
+"05-post-training/rlhf/after-rlhf.md" = ["后来：GRPO · DPO · RLVR", "Then: GRPO · DPO · RLVR"]
+"05-post-training/rlhf/ppo-clipping.md" = ["PPO clipping", "PPO clipping"]
+"05-post-training/rlhf/evaluation-and-review.md" = ["评估与复习题", "Evaluation & review"]
 "05-post-training/after-ppo.md"                         = ["PPO 之后", "After PPO"]
 "05-post-training/verifiable-rewards.md"                = ["可验证奖励", "Verifiable rewards"]
 "05-post-training/post-training-infrastructure.md"      = ["训练基础设施", "Infrastructure"]

@@ -171,7 +171,7 @@ $$
 r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}+C(x).
 $$
 
-代回偏好概率后，$C(x)$ 在同一个 prompt 的 reward difference 中抵消，reward difference 就能直接用 policy/reference log-ratio 表示。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。完整推导见 [RLHF 的三个阶段](rlhf-pipeline.md)。
+代回偏好概率后，$C(x)$ 在同一个 prompt 的 reward difference 中抵消，reward difference 就能直接用 policy/reference log-ratio 表示。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。完整推导见 [RLHF 的三个阶段](rlhf/after-rlhf.md)。
 
 ### DPO 和 SFT 到底差在哪
 
@@ -311,7 +311,7 @@ PPO 的核心方向是 $\hat A_t\approx G_t-V_\phi(s_t)$，再用 probability ra
 
 ## 继续阅读
 
-- [RLHF 的三个阶段，和后来发生了什么](rlhf-pipeline.md)：四个模型各自在干嘛，DPO 的推导
+- [RLHF 的三个阶段，和后来发生了什么](rlhf/)：四个模型各自在干嘛，DPO 的推导
 - [数据与反馈](../01-data-and-feedback/)：偏好标签本身的质量问题
 - [Evaluation](../07-evaluation/)：怎么判断对齐之后真的变好了
 

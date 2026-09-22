@@ -4,27 +4,19 @@
    The blue is a more saturated sibling of --link: the site's ink-blue reads as gray next to
    two other hues, and this trio passes the CVD / contrast checks on both surfaces. */
 .tx-lab{
-  --c-q:#2b6aa6; --c-q-soft:rgba(43,106,166,.10);
-  --c-k:#c8501e; --c-k-soft:rgba(200,80,30,.10);
-  --c-v:#16996b; --c-v-soft:rgba(22,153,107,.10);
-  --c-on:#ffffff;
-  --tx-line-strong:color-mix(in srgb,var(--faint) 55%,var(--rule));
-  --tx-accent-soft:color-mix(in srgb,var(--link) 11%,transparent);
-  font-family:var(--sans),var(--cjk);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .tx-lab{
-    --c-q:#4a8ad4; --c-q-soft:rgba(74,138,212,.15);
-    --c-k:#d9622b; --c-k-soft:rgba(217,98,43,.16);
-    --c-v:#199e70; --c-v-soft:rgba(25,158,112,.16);
-    --c-on:#14161a;
-  }
-}
-:root[data-theme="dark"] .tx-lab{
   --c-q:#4a8ad4; --c-q-soft:rgba(74,138,212,.15);
   --c-k:#d9622b; --c-k-soft:rgba(217,98,43,.16);
   --c-v:#199e70; --c-v-soft:rgba(25,158,112,.16);
   --c-on:#14161a;
+  --tx-line-strong:color-mix(in srgb,var(--faint) 55%,var(--rule));
+  --tx-accent-soft:color-mix(in srgb,var(--link) 11%,transparent);
+  font-family:var(--sans),var(--cjk);
+}
+:root[data-theme="light"] .tx-lab{
+  --c-q:#2b6aa6; --c-q-soft:rgba(43,106,166,.10);
+  --c-k:#c8501e; --c-k-soft:rgba(200,80,30,.10);
+  --c-v:#16996b; --c-v-soft:rgba(22,153,107,.10);
+  --c-on:#ffffff;
 }
 .tx-lab{scroll-margin-top:5rem}
 .tx-lab .widget-body{container-type:inline-size;padding:.9rem .9rem 1rem}
@@ -254,3 +246,38 @@ svg text{font-family:var(--sans),var(--cjk)}
 .tx-lab .split-side .ctl input[type=range]{grid-row:2;grid-column:1/-1}
 /* "computed now" cells switch on instantly so they never lag the block outline; only leaving fades */
 .tx-lab .fl-cell.hot,.tx-lab .kv-cell.hot,.tx-lab .kv-slot.hot{transition:none}
+/* 09 RLHF step by step */
+.tx-lab .rl-steps{display:flex;align-items:center;gap:8px;margin-left:auto}
+.tx-lab .rl-count{min-width:4.2em;font:600 12.5px/1 var(--mono);color:var(--muted);text-align:center}
+.tx-lab .r-box rect{fill:var(--code-bg);stroke:var(--tx-line-strong);stroke-width:1.2}
+.tx-lab .r-data rect{fill:var(--c-v-soft);stroke:var(--c-v)}
+.tx-lab .r-out rect{fill:var(--c-q-soft);stroke:var(--c-q)}
+.tx-lab .r-train rect{fill:var(--c-k-soft);stroke:var(--c-k)}
+.tx-lab .r-frozen rect{fill:var(--code-bg);stroke:var(--muted);stroke-dasharray:4 3}
+.tx-lab .r-box.on rect{stroke-width:2.2}
+.tx-lab .r-box.r-upd rect{stroke:var(--link);stroke-width:3}
+.tx-lab .r-dim{opacity:.26}
+.tx-lab .r-edge{stroke:var(--muted);stroke-width:1.4}
+.tx-lab .r-edge.on{stroke:var(--link);stroke-width:2.2}
+.tx-lab .r-head{fill:var(--muted)}
+.tx-lab .r-head-on{fill:var(--link)}
+.tx-lab .r-elabel{font:600 11px var(--mono);fill:var(--muted)}
+.tx-lab .r-elabel.on{fill:var(--link)}
+.tx-lab .r-badge{font-size:10px;font-weight:700;letter-spacing:.04em}
+.tx-lab .r-badge-train{fill:var(--c-k)}
+.tx-lab .r-badge-frozen{fill:var(--muted)}
+/* 10 PPO clipping explorer */
+.tx-lab .pc-sliders{margin-bottom:.4rem}
+.tx-lab .pc-plateau{fill:var(--c-k-soft)}
+.tx-lab .pc-plabel{font-size:11px;font-weight:650;fill:var(--c-k)}
+.tx-lab .pc-axis{stroke:var(--tx-line-strong);stroke-width:1.2}
+.tx-lab .pc-guide{stroke:var(--tx-line-strong);stroke-width:1;stroke-dasharray:4 4}
+.tx-lab .pc-tick{font:500 10.5px var(--mono);fill:var(--muted)}
+.tx-lab .pc-gl{font-weight:650;fill:var(--ink)}
+.tx-lab .pc-raw{stroke:var(--muted);stroke-width:1.3;stroke-dasharray:5 4}
+.tx-lab .pc-obj{fill:none;stroke:var(--c-k);stroke-width:2.6}
+.tx-lab .pc-drop{stroke:var(--link);stroke-width:1;stroke-dasharray:2 3}
+.tx-lab .pc-dot{fill:var(--link);stroke:var(--panel);stroke-width:2}
+.tx-lab .pc-push{stroke:var(--link);stroke-width:2}
+.tx-lab .pc-pushhead{fill:var(--link)}
+.tx-lab .pc-note{font-size:11px;font-weight:650;fill:var(--link)}
