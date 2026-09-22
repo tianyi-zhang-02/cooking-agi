@@ -1235,9 +1235,8 @@ def tabs_html(page):
                     f'<span>{both(cat, zh)[0]}</span></a>' for cat, href in items)
     site = NAV.get("site", {})
     if site.get("author_url"):
-        sep = "&" if "?" in site["author_url"] else "?"
         author = html.escape(site["author_zh" if zh else "author_en"])
-        links = (f'<a class="tab-author" href="{site["author_url"]}{sep}lang={"zh" if zh else "en"}"><span>{author}</span></a>'
+        links = (f'<a class="tab-author" href="{site["author_url"]}"><span>{author}</span></a>'
                  f'<i class="tab-sep" aria-hidden="true"></i>') + links
     label_nav = "大方向" if zh else "Directions"
     return f'<nav class="topbar-tabs" aria-label="{label_nav}">{links}</nav>'
