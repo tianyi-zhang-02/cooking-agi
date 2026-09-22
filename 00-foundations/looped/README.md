@@ -13,28 +13,28 @@
 
 ## 深度和参数，本来是绑在一起的
 
-一个普通的 $L$ 层 Transformer，每一层都有自己的权重。想让模型对每个 token 做更多步串行计算，就只能加层，参数也跟着加。
+普通的 $L$ 层 Transformer，每层都有自己的一套权重。想让模型对一个 token 多做几步串行计算，只能加层，参数跟着一起涨。
 
 ## 把 block 循环起来
 
-Looped Transformer 只存一个 $k$ 层的 block，把它反复用 $L$ 次：
+Looped Transformer 只存一个 $k$ 层的 block，反复用 $L$ 次：
 
 $$h^{(t+1)} = f_\theta\big(h^{(t)},\, e\big), \qquad t = 0, 1, \ldots, L-1$$
 
-$\theta$ 在每一圈都一样；$e$ 是输入的 embedding，很多设计会在每一圈把它重新喂进去（叫 input injection）。参数是 $k$ 层，有效深度和计算量是 $kL$ 层。
+每一圈用的都是同一个 $\theta$；$e$ 是输入的 embedding，不少设计会每圈都把它重新喂一遍（叫 input injection）。存下来的是 $k$ 层，算起来却相当于 $kL$ 层。
 
 <!-- widget:tx-loop-unroll -->
 
 ## 老想法，新用法
 
-- **Universal Transformer**（2018）：一个在所有位置、所有步之间共享的 transition function，再加上每个位置自己决定何时停下的 ACT。
-- **ALBERT**（2019）也在层之间共享参数（默认全部共享），参数从 BERT-base 的 108M 降到 12M，但推理计算量不变。它的目的是省参数，不是把深度变成可调的旋钮。
-- **最近两年**，循环被放进了大规模预训练：Huginn（3.5B）、Ouro（1.4B、2.6B）这样的 looped LM，把「转几圈」当作推理时可以加的计算量。
+- **Universal Transformer**（2018）：所有位置、所有步共用一个 transition function，再配上让每个位置自己决定什么时候停的 ACT。
+- **ALBERT**（2019）也在层之间共享参数（默认全共享），参数从 BERT-base 的 108M 压到 12M，但推理的计算量一点没少。它图的是省参数，不是把深度变成一个能拧的旋钮。
+- **最近两年**，循环被搬进了大规模预训练：Huginn（3.5B）、Ouro（1.4B、2.6B）这些 looped LM，把「转几圈」当成推理时可以临时加的计算量。
 
 ## 这一组怎么读
 
-1. [为什么循环有助于推理](why-loops-reason.md)：串行步数、理论结果，以及和 CoT 的关系（可以动手拖）
-2. [每个 token 该转几圈](adaptive-depth.md)：ACT、PonderNet、Ouro 的退出 gate、Mixture-of-Recursions（可以动手拖）
+1. [为什么循环有助于推理](why-loops-reason.md)：串行步数、理论结果，以及和 CoT 的关系（图能拖）
+2. [每个 token 该转几圈](adaptive-depth.md)：ACT、PonderNet、Ouro 的退出 gate、Mixture-of-Recursions（图能拖）
 3. [现在的 looped LM 长什么样](models.md)：Huginn、Ouro、Relaxed Recursive Transformers
 4. [代价与局限](costs.md)：延迟、KV cache、训练稳定性，以及它不能多记知识
 5. [复习题](review.md)：面试题和自检
