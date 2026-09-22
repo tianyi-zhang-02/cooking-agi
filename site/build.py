@@ -1413,6 +1413,37 @@ def footer_html(page, people, repo, built):
 </footer>"""
 
 
+def share_description(page) -> str:
+    """The line a chat app or social card shows under the title: the note's own
+    one-sentence framing (the recipe block's "解决什么问题" and "核心机制" cells) when the
+    note has one, otherwise its first paragraph cut at a sentence end. The home
+    page returns nothing and falls back to the tagline."""
+    if page.kind == "home":
+        return ""
+    body = page.body or ""
+
+    def clean(fragment: str) -> str:
+        return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", fragment))).strip().rstrip("。．.;；")
+
+    zh = page.lang == "zh"
+    i = body.find('class="lesson-recipe')
+    if i >= 0:
+        cells = [clean(c) for c in re.findall(r"<strong>(.*?)</strong>", body[i:i + 3000], re.S)]
+        cells = [c for c in cells if c]
+        if len(cells) >= 3:
+            return f"{cells[0]}；{cells[2]}。" if zh else f"{cells[0]}. {cells[2]}."
+        if cells:
+            return cells[0] + ("。" if zh else ".")
+    j = body.find('class="article-body"')
+    rest = re.sub(r"<blockquote.*?</blockquote>", "", body[j:] if j >= 0 else body, flags=re.S)  # skip the notices
+    m = re.search(r"<p[^>]*>(.*?)</p>", rest, re.S)
+    text = clean(m.group(1)) if m else ""
+    if len(text) > 150:
+        stops = [k for k, ch in enumerate(text[:150]) if ch in "。！？.!?" and k > 50]
+        text = text[:stops[-1] + 1] if stops else text[:148].rstrip() + "…"
+    return text
+
+
 def assemble(page, sections, people, nav, built, template):
     site = nav["site"]
     zh = page.lang == "zh"
@@ -1423,31 +1454,25 @@ def assemble(page, sections, people, nav, built, template):
     origin = site.get("origin", "").rstrip("/")
     canonical = f"{origin}/{page.url}" if origin else page.url
     og_type = "website" if page.kind in {"home", "index"} else "article"
-    social_image = ""
-    twitter_card = "summary"
-    if page.kind == "home":
-        twitter_card = "summary_large_image"
-        image_url = f"{origin}/static/og.png" if origin else f"{prefix}static/og.png"
-        escaped_image = html.escape(image_url, quote=True)
-        social_image = (f'<meta property="og:image" content="{escaped_image}">\n'
-                        f'<meta name="twitter:image" content="{escaped_image}">')
-    else:
-        image_match = re.search(r'<img\s+[^>]*src="([^"]+\.(?:png|jpe?g|webp))"',
-                                page.body, re.I)
+    # Every page gets a card image: the note's first picture when it has one, else the site card.
+    card = f"{origin}/static/og.png" if origin else f"{prefix}static/og.png"
+    image_url, image_dims = card, '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'
+    if page.kind != "home":
+        image_match = re.search(r'<img\s+[^>]*src="([^"]+\.(?:png|jpe?g|webp))"', page.body, re.I)
         if image_match:
-            twitter_card = "summary_large_image"
             raw_image = image_match.group(1)
             if re.match(r"https?://", raw_image):
                 image_url = raw_image
             else:
                 image_path = os.path.normpath(str(page.out_rel.parent / raw_image)).replace(os.sep, "/")
                 image_url = f"{origin}/{image_path}" if origin else image_path
-            escaped_image = html.escape(image_url, quote=True)
-            social_image = (f'<meta property="og:image" content="{escaped_image}">\n'
-                            f'<meta name="twitter:image" content="{escaped_image}">')
-    description = re.sub(r"\s+", " ", page.text).strip()[:160]
-    if not description:
-        description = site["tagline_zh" if zh else "tagline_en"]
+            image_dims = ""
+    escaped_image = html.escape(image_url, quote=True)
+    social_image = (f'<meta property="og:image" content="{escaped_image}">\n{image_dims}'
+                    f'<meta property="og:image:alt" content="{html.escape(page.title, quote=True)}">\n'
+                    f'<meta name="twitter:image" content="{escaped_image}">')
+    twitter_card = "summary_large_image"
+    description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")

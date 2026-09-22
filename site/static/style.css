@@ -1498,3 +1498,26 @@ main { padding: 2.6rem 0 6rem; }
 .toc li a { padding: .28rem 0 .28rem .75rem; font-size: .78rem; line-height: 1.45; }
 .toc li.l3 { display: none; }
 .topbar { border-bottom-color: var(--rule-soft); }
+
+/* -------- share-ready polish: the strip, the head on phones, the home measure -------- */
+.subtabs-label { flex: none; }
+.page-home .article-body > p { max-width: 42rem; }
+.article-head h1 { max-width: 18ch; font-size: clamp(2.1rem, 1.2rem + 2.4vw, 3.4rem); line-height: 1.1; }
+.chapter-mark { font-size: 7rem; }
+@media (max-width: 1080px) {
+  /* the direction strip scrolls on narrow screens; fade the edges so the cut-off text reads as "more" */
+  .topbar-tabs { padding: 0 .2rem;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent); }
+}
+@media (max-width: 620px) {
+  .topbar { gap: .45rem; padding: 0 .65rem; }
+  .topbar-tabs a { padding: 0 .55rem; }
+  .topbar-tabs a::after { left: .55rem; right: .55rem; }
+  .topbar-tabs a span { font-size: .86rem; }
+  .topbar-tabs .tab-sep { margin: 0 .2rem; }
+  .article-head { margin-bottom: 2rem; padding: .5rem 0 1.5rem 1rem; }
+  .article-head h1 { font-size: clamp(1.7rem, 6.8vw, 2rem); max-width: none; letter-spacing: -.03em; line-height: 1.18; }
+  .chapter-mark { font-size: 5rem; top: -.35rem; }
+  .article-meta { margin-top: .9rem; }
+}
