@@ -116,18 +116,27 @@
 
   /* ------------------------------------------------ contributor universe */
   var universe = $(".contributor-universe");
-  if (universe && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    universe.addEventListener("pointermove", function (e) {
-      var box = universe.getBoundingClientRect();
-      var x = (e.clientX - box.left) / box.width - 0.5;
-      var y = (e.clientY - box.top) / box.height - 0.5;
-      universe.style.setProperty("--star-x", (x * 13).toFixed(2) + "px");
-      universe.style.setProperty("--star-y", (y * 10).toFixed(2) + "px");
+  if (universe) {
+    var motionButton = $(".crew-motion", universe);
+    var userPaused = false;
+    var crewVisible = true;
+    function updateCrewMotion() {
+      universe.classList.toggle("is-paused", userPaused || !crewVisible || document.hidden);
+      motionButton.setAttribute("aria-pressed", String(userPaused));
+      motionButton.textContent = userPaused ? motionButton.dataset.play : motionButton.dataset.pause;
+    }
+    motionButton.hidden = false;
+    motionButton.addEventListener("click", function () {
+      userPaused = !userPaused;
+      updateCrewMotion();
     });
-    universe.addEventListener("pointerleave", function () {
-      universe.style.setProperty("--star-x", "0px");
-      universe.style.setProperty("--star-y", "0px");
-    });
+    document.addEventListener("visibilitychange", updateCrewMotion);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        crewVisible = entries[0].isIntersecting;
+        updateCrewMotion();
+      }).observe(universe);
+    }
   }
 
   /* ---------------------------------------------------------- code copy */

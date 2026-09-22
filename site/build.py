@@ -1361,6 +1361,9 @@ def glossary_html(page):
 
 def page_header_html(page):
     zh = page.lang == "zh"
+    if page.url in {"contributors.html", "contributors.en.html"}:
+        return (f'<header class="crew-heading"><p>BEHIND THE NOTES</p>'
+                f'<h1>{html.escape(page.title)}</h1></header>')
     section = page.section["zh" if zh else "en"]
     labels = {
         "home": "学习笔记" if zh else "Study notes",
@@ -1428,12 +1431,11 @@ def footer_html(page, people, repo, built):
     zh = page.lang == "zh"
     portal = page.rel("contributors.html" if zh else "contributors.en.html")
     contributor_portal = "" if page.url in {"contributors.html", "contributors.en.html"} else f"""
-  <div class="contrib">
+  <div class="crew-footer">
     <a class="contributor-portal" href="{portal}">
-      <span class="portal-orbit" aria-hidden="true"><i></i><b>✦</b></span>
-      <span><strong>{'进入贡献者宇宙' if zh else 'Enter the contributor universe'}</strong>
-      <small>{'看看是谁在轨道里漂着，以及怎样加入' if zh else 'Meet the crew in orbit—and join them'}</small></span>
-      <em aria-hidden="true">→</em>
+      <span aria-hidden="true">✧</span>
+      <span>{'幕后船员' if zh else 'Behind the notes'}</span>
+      <span aria-hidden="true">↗</span>
     </a>
   </div>"""
     return f"""
@@ -1451,69 +1453,52 @@ def footer_html(page, people, repo, built):
 
 
 def contributor_universe_html(people, page, site):
-    """A build-time crew manifest rendered as floating astronauts and film credits."""
     zh = page.lang == "zh"
-    owner_login = site.get("owner_login", "")
-    owner_url = site.get("owner_url", "")
-    positions = [
-        (12, 18, 19, -8, -7), (68, 13, 23, -15, 6), (39, 58, 21, -4, -3),
-        (78, 61, 25, -12, 8), (21, 68, 22, -17, 4), (47, 22, 27, -9, -8),
-        (84, 34, 20, -3, 5), (8, 45, 24, -14, -5), (57, 74, 26, -6, 7),
-        (31, 35, 18, -11, 3), (70, 78, 23, -19, -6), (50, 43, 21, -1, 4),
-    ]
-    crew, credits = [], []
+    crew = []
     for index, person in enumerate(people):
-        x, y, duration, delay, tilt = positions[index % len(positions)]
         login = person.get("login")
-        is_owner = bool(login and login.lower() == owner_login.lower())
-        url = owner_url if is_owner and owner_url else person.get("url")
+        is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
+        url = site.get("owner_url") if is_owner else person.get("url")
         handle = f"@{login}" if login else person["name"]
-        role = (("AI 协作者" if zh else "AI co-pilot") if person.get("kind") == "ai"
-                else ("GitHub 贡献者" if zh else "GitHub contributor"))
-        count = person["commits"]
-        count_label = f"{count} 次提交" if zh else f"{count} commits"
-        if person.get("kind") == "ai":
-            face = '<span class="astro-ai" aria-hidden="true">AI</span>'
-        elif person.get("avatar"):
-            face = f'<img src="{html.escape(person["avatar"], quote=True)}" alt="" loading="lazy">'
-        else:
-            face = f'<span class="astro-ai" aria-hidden="true">{html.escape(person["initial"])}</span>'
-        astronaut = (
-            '<span class="astronaut" aria-hidden="true">'
-            '<i class="astro-pack"></i><i class="astro-arm arm-left"></i>'
-            '<i class="astro-arm arm-right"></i><i class="astro-leg leg-left"></i>'
-            '<i class="astro-leg leg-right"></i><span class="astro-body"><i></i></span>'
-            f'<span class="astro-helmet">{face}</span></span>')
-        body = (f'<span class="crew-handle">{html.escape(handle)}</span>{astronaut}'
-                f'<span class="crew-role">{role} · {count_label}</span>')
-        style = (f'--crew-x:{x}%;--crew-y:{y}%;--crew-duration:{duration}s;'
-                 f'--crew-delay:{delay}s;--crew-tilt:{tilt}deg')
-        title = html.escape(f"{handle} · {role} · {count_label}", quote=True)
-        crew.append((f'<a class="crew-member {person.get("kind", "human")}" href="{html.escape(url, quote=True)}" '
-                     f'style="{style}" title="{title}">{body}</a>')
-                    if url else
-                    f'<div class="crew-member {person.get("kind", "human")}" style="{style}" title="{title}">{body}</div>')
-        credits.append(f'<div class="credit-line"><strong>{html.escape(handle)}</strong>'
-                       f'<span>{role}</span><small>{count_label}</small></div>')
-
-    hint = "移动鼠标改变星流 · 点击船员拜访主页" if zh else "Move to bend the starfield · click a crew member to visit"
-    fin = "未完待续……" if zh else "TO BE CONTINUED…"
+        role = (("AI 协作" if zh else "AI collaborator") if person.get("kind") == "ai"
+                else ("笔记与代码" if zh else "Notes & code"))
+        face = (f'<image href="{html.escape(person["avatar"], quote=True)}" x="36" y="20" '
+                f'width="40" height="36" preserveAspectRatio="xMidYMid slice" clip-path="url(#visor-{index})"/>'
+                if person.get("avatar") else
+                '<path d="M46 37h20m-10-10v20m-7-17 14 14m0-14L49 44" class="suit-accent"/>')
+        astronaut = f"""
+<svg class="astronaut" viewBox="0 0 112 144" aria-hidden="true">
+  <defs><clipPath id="visor-{index}"><rect x="36" y="20" width="40" height="36" rx="16"/></clipPath></defs>
+  <g class="suit">
+    <rect x="31" y="55" width="51" height="50" rx="12"/>
+    <path d="M35 64C23 61 20 75 15 84l-5 9q-2 7 5 10t11-4l14-23M76 64c11-3 12-15 17-23l5-7q5-4 9 1t0 11L88 78"/>
+    <path d="m40 99-8 20-11 7q-5 7 3 10h14l17-28m9-9 8 21 13 2q8 3 4 11H71q-6 0-9-9l-7-16"/>
+    <rect x="33" y="56" width="46" height="50" rx="15"/>
+    <rect x="28" y="12" width="56" height="52" rx="25"/>
+  </g>
+  <rect class="visor" x="36" y="20" width="40" height="36" rx="16"/>
+  {face}
+  <path d="M41 26q10-5 18-2" class="visor-shine"/>
+  <rect class="suit-panel" x="45" y="73" width="24" height="15" rx="3"/>
+  <path d="M49 79h8m-8 4h5M38 95h34" class="suit-detail"/>
+  <circle class="suit-accent" cx="63" cy="79" r="2"/>
+</svg>"""
+        title = html.escape(person["name"])
+        name = f'<a href="{html.escape(url, quote=True)}">{title}<span aria-hidden="true"> ↗</span></a>' if url else title
+        crew.append(
+            f'<div class="crew-credit" style="--crew-delay:-{index * 3}s;--crew-tilt:{-9 if index % 2 == 0 else 8}deg">'
+            f'<div class="crew-float"><span class="crew-handle">{html.escape(handle)}</span>{astronaut}</div>'
+            f'<div class="crew-caption"><strong>{name}</strong><span>{role}</span></div></div>')
     return f"""
-<section class="contributor-universe" data-contributor-universe>
-  <div class="orbit-stars" aria-hidden="true"></div>
-  <p class="orbit-hint">{hint}</p>
+<section class="contributor-universe" aria-label="{'贡献者' if zh else 'Contributors'}">
   <div class="crew-field">{"".join(crew)}</div>
-</section>
-<section class="credit-cinema" aria-label="{'贡献者片尾' if zh else 'Contributor credits'}">
-  <div class="credit-fade credit-fade-top" aria-hidden="true"></div>
-  <div class="credit-roll">
-    <p class="credit-kicker">{'AGI 学习笔记' if zh else 'AGI STUDY NOTES'}</p>
-    <h2>{'本宇宙由以下船员共同推进' if zh else 'MOVED THROUGH ORBIT BY'}</h2>
-    {"".join(credits)}
-    <p class="credit-thanks">{'谢谢每一个认真留下痕迹的人。' if zh else 'Thank you to everyone who left a thoughtful trace.'}</p>
-    <p class="credit-fin">{fin}</p>
+  <div class="crew-ending">
+    <span aria-hidden="true">✧</span>
+    <p>{'未完待续，下次开锅见。' if zh else 'More notes to come. See you in the kitchen.'}</p>
+    <button type="button" class="crew-motion" aria-pressed="false" hidden
+      data-pause="{'暂停漂浮' if zh else 'Pause motion'}"
+      data-play="{'继续漂浮' if zh else 'Resume motion'}">{'暂停漂浮' if zh else 'Pause motion'}</button>
   </div>
-  <div class="credit-fade credit-fade-bottom" aria-hidden="true"></div>
 </section>"""
 
 
@@ -1588,7 +1573,7 @@ def assemble(page, sections, people, nav, built, template):
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
-            .replace("{{page_class}}", f"page-{page.kind}")
+            .replace("{{page_class}}", "page-crew" if 'data-contributors-universe' in page.body else f"page-{page.kind}")
             .replace("{{title}}", html.escape(page.title))
             .replace("{{site_title}}", html.escape(site["title_zh" if zh else "title_en"]))
             .replace("{{tagline}}", html.escape(site["tagline_zh" if zh else "tagline_en"]))
@@ -1614,7 +1599,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", content)
             .replace("{{page_header}}", page_header_html(page))
-            .replace("{{page_nav}}", page_nav_html(page))
+            .replace("{{page_nav}}", "" if 'data-contributors-universe' in page.body else page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))
