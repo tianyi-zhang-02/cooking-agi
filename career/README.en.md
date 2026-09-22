@@ -22,4 +22,10 @@ Two kinds of things live here: **how to prepare for technical interviews**, and 
 
 The technical part comes last on purpose: technique is usually the least important layer. Work out what you want first, and be happy :)
 
+## One more thing I believe
+
+I think learning to be a decent person comes first. Skill is maybe 30% of it; the other 70% is how you get on with people, and whether they come to trust you.
+
+That is a broad thing to say, and I am still working it out myself, but the core of it is probably this: **be a good person.**
+
 If you do not know where to start, go back to [the roadmap on the home page](../README.en.md) and pick a track.
