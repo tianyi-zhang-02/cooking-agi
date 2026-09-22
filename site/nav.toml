@@ -15,7 +15,7 @@ base_url    = "/cooking-agi"
 origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 
 # The personal homepage this site belongs to. It is the first item of the top bar on every page,
-# so the homepage and the notes read as one site. ?lang= keeps the visitor's language across the two.
+# so the homepage and the notes read as one site.
 author_zh   = "张天毅"
 author_en   = "Tianyi Zhang"
 author_url  = "/"
