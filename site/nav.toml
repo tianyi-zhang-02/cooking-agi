@@ -112,16 +112,16 @@ zh = "开源项目"
 en = "Open source"
 
 [[group]]
-id = "interview"
-category = "career"
-zh = "技术面"
-en = "Interviews"
-
-[[group]]
 id = "career"
 category = "career"
 zh = "求职与规划"
 en = "Job search"
+
+[[group]]
+id = "interview"
+category = "career"
+zh = "技术面"
+en = "Interviews"
 
 [[group]]
 id = "reference"
@@ -302,7 +302,7 @@ dir   = "career"
 group = "career"
 zh    = "MLE / RE 求职笔记"
 en    = "MLE / RE job-search notes"
-order = ["README.md", "journey.md"]
+order = ["README.md", "not-binary.md", "journey.md", "one-interview.md"]
 
 [[section]]
 dir   = "."
@@ -391,7 +391,9 @@ en  = "Templates"
 "00-foundations/hand-write-kit.md"                      = ["白板手写", "Whiteboard coding"]
 "00-foundations/ml-math-interview.md"                   = ["ML 数学", "ML math"]
 "career/README.md"                                      = ["先读这一页", "Read this first"]
+"career/not-binary.md" = ["心态", "Mindset"]
 "career/journey.md"                                     = ["我的心路历程", "My journey"]
+"career/one-interview.md" = ["一次面试复盘", "One interview"]
 "EDITORIAL.md"                                          = ["写作规范", "Editorial policy"]
 "papers/README.md"                                      = ["论文笔记", "Paper notes"]
 "templates/paper-note.md"                               = ["论文模板", "Paper template"]

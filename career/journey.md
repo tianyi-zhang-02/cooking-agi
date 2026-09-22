@@ -6,11 +6,15 @@
 
 > **先读这个**：很多内容有时效性，你读到的时候或许已经不适用了；我是 international student，所以这些经验对有绿卡或者 US citizen 的同学不一定完全适用；这里不写面试题，也不写任何一家公司特定的面试流程。完整说明见[求职：先读这一页](README.md)。
 
+## 背景
+
+我之前没有业界实习，读的是 GT 的 MSCS。2025 年 8 月，从零开始准备：刷 LeetCode、准备 BQ，一边准备一边投。
+
 ## 时间线
 
-- **2025 年 8 月前后**：开始准备找工作。
-- **之后**：开始大规模投递。小、中、大 tech 我都投；Data Engineer、Data Scientist、MLE、SDE 我都投。
-- **同一时期**：也有幸面了 HRT、SIG、Tower Research 的 Quant Researcher。
+- **2025 年 8 月前后**：从 0 开始准备，同时开始投递。
+- **之后**：大规模投递。公司不挑大小，岗位也不挑——QR、QT、MLE、SDE、DS 都投过。
+- **再之后**：把目标收窄到 MLE / Research Engineer。
 
 ## 我踩过的三个坑
 
@@ -26,6 +30,33 @@
 
 问题出在这里：**在时间有限的情况下，每一场面试都不一样**——因为它们根本不是一个 domain。Data Engineer、Data Scientist、MLE、SDE 和 Quant Researcher 考的东西几乎不重叠，结果就是我没有办法好好准备，更没办法把任何一个方向吃透。
 
-所以……
+## 拿到过的面试
 
-> *未完待续——后面的部分我还在写。*
+HRT Algo Dev、SIG QR、LinkedIn MLE、Millennium AI Engineer、Amazon Bedrock AI SDE、Apple AI/ML SDE、Tower Research Ventures MLE、Google SDE、Databricks DS 等等。
+
+这里只列岗位。每一家的流程、轮次和题目都不写。
+
+## 三条经验
+
+### 1. 目标别铺太开
+
+SDE、MLE、QR 的面试天差地别，要的 skill set 也很不一样，时间有限的时候很难同时准备（大佬除外）。
+
+我最大的问题就是跑去准备 QR：之前完全没了解过这类面试到底偏爱考什么——stats 还是 coding，每家 hedge fund、每家 quant 的口味都不一样——拿到面试才开始准备，根本来不及，还把精力摊薄了。反省之后，想清楚自己更喜欢 product + research，就专心找 MLE / Research Engineer 了。
+
+### 2. LeetCode 一定要过硬
+
+到现在为止，算法题基本还是必考，顶多换个场景包装一下。我拿到某家面试之后，一个月刷了 120 道（在那之前完全没有刷题基础），但最后还是因为 coding 速度和思路，在加面之后挂掉了，挺可惜的。
+
+### 3. 身份确实有影响
+
+有影响。小厂、中厂很多不给 sponsorship，这部分我基本没拿到面试。身边一圈人里，有身份的和没身份的差别很明显——可选的路少了很多。
+
+## 关于公司和面试官
+
+从职业发展的角度，我没什么话语权：我并不知道每家公司的 culture 到底什么样，也没法靠一套面试体系去评价一家公司。不过确实有些公司的面试官太抽象了 😂
+
+## 继续
+
+- [一次 MLE 面试的复盘](one-interview.md)：刚从实习回来之后的一场面试，趁热写的
+- [它只是人生的一部分](not-binary.md)：找工作这件事，本来也不是一道判断题
