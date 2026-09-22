@@ -16,6 +16,20 @@ The things that matter most in a person — trust, a steady character — take a
 
 But remember that solving problems is not the only way through. This is just tech, which needs people who can execute :)
 
+## Why nobody can cover everything
+
+What I would tell people: **don't prepare for everything, and also prepare for everything.**
+
+It sounds contradictory, but that is what interviews look like in 2026. They are not standardised tests like TOEFL, the SAT, or the GRE, where one body of preparation covers every variation. Company interviews have become strange, and every team wants something different:
+
+- **QR**: statistics and probability basics;
+- **frontier startup labs**: domain knowledge, straight away;
+- **large companies, and companies in China**: LeetCode, and ML basics too — even if your work is on LLMs, you may well get asked about CV or something else entirely.
+
+The deeper point: **different career tracks want fundamentally different candidates.** Very few people fit both job description A and job description B — that may have been workable once, but it feels harder every year.
+
+Covering all of it is genuinely hard. I am not saying this to depress anyone, but so you know: **it is not that you alone failed to prepare enough.**
+
 ## Don't overfit to the criteria
 
 Bay Area standards make it easy to believe they are the only standards: a big offer, climbing the ladder, always at the frontier.
@@ -31,6 +45,10 @@ There are countless businesses in the world and countless possibilities. Do what
 ## What to do when you fail an interview
 
 Failing interviews is normal, I think. Learn from your mistakes, don't let them happen again, and that is enough.
+
+**Failing does not mean you are not good.** Most of the time you and the company simply are not a match, and there are countless factors you never see — compared side by side, another candidate may have actually worked in that area and can be hands-on from day one.
+
+So don't overthink it. But do keep learning, keep preparing, keep your options open, and spend your limited time on the right things: after one rejection I realised my ML basics were too weak and went to fix them, and then the next interview turned around and grilled my LeetCode instead, which, well, nothing I could do about that one.
 
 People have limits too; nobody can cover everything. I believe everyone gradually finds what they are good at and the direction that suits them :) Don't let it weigh on you. Life is meant to be enjoyed.
 
