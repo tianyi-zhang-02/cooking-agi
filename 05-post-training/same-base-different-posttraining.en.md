@@ -114,7 +114,7 @@ Drawing the boundary honestly:
 ## Where to read next
 
 - [After PPO: every algorithm deletes one of its parts](after-ppo.en.md): the algorithm half
-- [The three stages of RLHF](rlhf-pipeline.en.md): what each model does
+- [The three stages of RLHF](rlhf/three-stages.en.md): what each model does
 - [How big is your negative pool, really](../practice/recommender-systems/negative-pool-size.en.md): the same species of silent numerical mismatch
 
 ## Sources

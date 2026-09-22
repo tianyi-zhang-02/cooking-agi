@@ -347,6 +347,8 @@ TX_LAB = [
     ("tx-rope", "RoPE：位置就是旋转", "RoPE: position as rotation"),
     ("tx-moe", "MoE：一次一个 token 经过 FFN", "MoE: one token at a time through the FFN"),
     ("tx-flash", "FlashAttention：attention 矩阵放在哪里", "FlashAttention: where the attention matrix lives"),
+    ("tx-rlhf", "RLHF 一步一步：三个阶段，四个模型", "RLHF step by step: three stages, four models"),
+    ("tx-ppo-clip", "PPO clipping：拖动 ρ，看它什么时候停止鼓励", "PPO clipping: drag ρ and watch when the encouragement stops"),
 ]
 for _name, _zh, _en in TX_LAB:
     WIDGETS[_name] = f"""

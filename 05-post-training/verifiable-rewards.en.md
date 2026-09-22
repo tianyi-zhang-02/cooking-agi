@@ -29,7 +29,7 @@ Math has answers to check; code has tests to run. For these, the reward **doesn'
 
 ## What gets swapped out
 
-Recall [RLHF's four models](rlhf-pipeline.en.md): Policy, Critic, Reward, Reference. Verifiable rewards delete the **Reward Model** — the network fitted to [preference data](where-preferences-come-from.en.md).
+Recall [RLHF's four models](rlhf/three-stages.en.md): Policy, Critic, Reward, Reference. Verifiable rewards delete the **Reward Model** — the network fitted to [preference data](where-preferences-come-from.en.md).
 
 $$r(x,y) = \text{verify}(y) \in \{0, 1\}$$
 

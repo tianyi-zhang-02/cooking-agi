@@ -114,7 +114,7 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 ## 继续阅读
 
 - [PPO 之后：每个算法都在删掉它的一部分](after-ppo.md)：算法那一半
-- [RLHF 的三个阶段](rlhf-pipeline.md)：四个模型各自在干嘛
+- [RLHF 的三个阶段](rlhf/three-stages.md)：四个模型各自在干嘛
 
 ## 资料来源
 

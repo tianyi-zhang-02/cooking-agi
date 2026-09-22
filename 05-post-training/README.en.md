@@ -207,7 +207,7 @@ Model adaptation begins with two questions: **what supplies the learning signal*
 
 **II. Teaching by outcome: the RL line**
 
-5. [The three stages of RLHF, and what happened next](rlhf-pipeline.en.md) — four models, which train and which are frozen
+5. [The three stages of RLHF, and what happened next](rlhf/README.en.md) — four models, which train and which are frozen
 6. [After PPO: every algorithm deletes one of its parts](after-ppo.en.md) — one reading that covers GRPO / RLOO / REINFORCE++ / DAPO / DPO
 7. [Verifiable rewards: when the reward doesn't need learning](verifiable-rewards.en.md) — it narrows reward hacking without eliminating it; verifiability is a spectrum, not a binary
 

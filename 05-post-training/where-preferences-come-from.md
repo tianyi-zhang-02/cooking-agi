@@ -99,7 +99,7 @@ $$\mathcal{L}_{\text{RM}} = -\mathbb{E}_{(x,y_w,y_l)}\left[\log \sigma\big(r(x,y
 
 ## 继续阅读
 
-- [RLHF 的三个阶段](rlhf-pipeline.md)：这个奖励模型接下来被怎么用
+- [RLHF 的三个阶段](rlhf/three-stages.md)：这个奖励模型接下来被怎么用
 - [可验证奖励](verifiable-rewards.md)：当奖励不需要学的时候，上面这些坑消失了哪些
 - [对齐税](alignment-tax.md)：偏好里的偏置在下游长成什么样
 - [数据与反馈](../01-data-and-feedback/)：标签质量的一般性问题

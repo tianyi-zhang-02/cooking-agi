@@ -1561,3 +1561,5 @@ main { padding: 2.6rem 0 6rem; }
 .subtabs a { padding: .34rem .66rem; }
 /* the home page is one short read now: same measure as a note */
 .page-home .prose, .page-home .page-foot { max-width: 42rem; }
+/* a note without section headings has nothing to list: no empty "on this page" box */
+.rail-inner:not(:has(.toc a)) { display: none; }

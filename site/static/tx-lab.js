@@ -1463,3 +1463,226 @@
   render();
   TX.whenVisible(fig.root, function () { if (playing) ticker.start(); }, function () { ticker.stop(); });
 })();
+
+/* 09 · RLHF step by step. Stage one and two in one move each; stage three walked one move at a
+   time, so it is clear which of the four models acts at each step and that only two ever update. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-rlhf', { title: ['RLHF step by step · three stages, four models', 'RLHF 一步一步 · 三个阶段，四个模型'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var id = 'rl' + Math.floor(Math.random() * 1e6);
+
+  // [x, y, w, h, kind, title en, title zh, sub en, sub zh]
+  var NODES = {
+    1: { demo: [40, 118, 170, 64, 'data', 'Demonstrations', '示范数据', '(x, y*) written by people', '人写的 (x, y*)'],
+         base: [275, 118, 150, 64, 'plain', 'Pretrained model', '预训练模型', 'next-token prediction', 'next-token prediction'],
+         sft:  [490, 118, 170, 64, 'out', 'SFT model', 'SFT 模型', 'follows the instruction format', '会按指令格式回答'] },
+    2: { pairs: [40, 118, 170, 64, 'data', 'Preference pairs', '偏好对', 'same prompt: y_w ≻ y_l', '同一 prompt：y_w ≻ y_l'],
+         bt:    [275, 118, 150, 64, 'plain', 'Bradley–Terry loss', 'Bradley–Terry 损失', '−log σ(r_w − r_l)', '−log σ(r_w − r_l)'],
+         rm:    [490, 118, 170, 64, 'out', 'Reward model r_φ', '奖励模型 r_φ', 'learns the gap only', '只学分差'] },
+    3: { prompt: [20, 121, 86, 56, 'data', 'Prompt x', 'Prompt x', 'from the data', '来自数据'],
+         actor:  [150, 103, 160, 92, 'train', 'Actor', 'Actor（策略）', 'copy of SFT', 'SFT 副本'],
+         reward: [440, 18, 200, 62, 'frozen', 'Reward', 'Reward（奖励）', 'from stage 2', '第二阶段产物'],
+         ref:    [440, 118, 200, 62, 'frozen', 'Reference', 'Reference（参考）', 'copy of SFT', 'SFT 副本'],
+         critic: [440, 218, 200, 62, 'train', 'Critic', 'Critic（价值）', 'often init. from RM', '常从奖励模型初始化'],
+         update: [150, 232, 160, 48, 'plain', 'PPO update', 'PPO 更新', 'clipped objective', 'clipped objective'] }
+  };
+  // [from xy, to xy, label]
+  var EDGES = {
+    1: { 'demo-base': [[210, 150], [275, 150], ['fine-tune', '微调']], 'base-sft': [[425, 150], [490, 150], ['', '']] },
+    2: { 'pairs-bt': [[210, 150], [275, 150], ['', '']], 'bt-rm': [[425, 150], [490, 150], ['train', '训练']] },
+    3: { 'prompt-actor': [[106, 149], [150, 149], ['', '']],
+         'actor-reward': [[310, 124], [440, 52], ['y', 'y']],
+         'actor-ref': [[310, 149], [440, 149], ['KL', 'KL']],
+         'actor-critic': [[310, 174], [440, 246], ['V_t', 'V_t']],
+         'update-actor': [[230, 232], [230, 195], ['', '']],
+         'update-critic': [[310, 256], [440, 252], ['', '']] }
+  };
+  var STEPS = [
+    { stage: 1, on: ['demo', 'base', 'sft'], edges: ['demo-base', 'base-sft'], upd: t('the model being fine-tuned', '被微调的那个模型'),
+      en: 'Stage 1 · SFT. Fine-tune the pretrained model on demonstrations people wrote. The result answers in the instruction format, and it becomes the starting policy for everything that follows.',
+      zh: '第一阶段 · SFT。用人写的示范数据微调预训练模型，得到一个会按指令格式回答的起点；后面 RL 的初始策略就是它。' },
+    { stage: 2, on: ['pairs', 'bt', 'rm'], edges: ['pairs-bt', 'bt-rm'], upd: t('the reward model', '奖励模型'),
+      en: 'Stage 2 · reward model. People see two answers to one prompt and pick the better one; a Bradley–Terry loss pushes r_φ to score the chosen answer above the rejected one. It only learns the gap, never an absolute score.',
+      zh: '第二阶段 · 奖励模型。同一个 prompt 的两个回答，人标出哪个更好；Bradley–Terry 损失让 r_φ 给 chosen 打得比 rejected 高。它只学分差，不学绝对分。' },
+    { stage: 3, on: ['actor', 'critic', 'reward', 'ref'], edges: [], upd: t('will train: Actor, Critic · frozen: Reward, Reference', '会训练：Actor、Critic · 冻结：Reward、Reference'),
+      en: 'Stage 3 begins with four models. Actor and Reference start as two copies of the SFT model; Reward is the model from stage 2; the Critic is often initialised from the reward model.',
+      zh: '第三阶段开始时有四个模型：Actor 和 Reference 是 SFT 模型的两份副本，Reward 是第二阶段训好的奖励模型，Critic 常从奖励模型初始化。' },
+    { stage: 3, on: ['prompt', 'actor'], edges: ['prompt-actor', 'actor-reward'], upd: t('none, forward pass only', '无，只做前向'),
+      en: '① The Actor reads a prompt x and samples an answer y, one token at a time. The Actor is the policy being optimised.',
+      zh: '① Actor 读一个 prompt x，一枚一枚 token 采样出回答 y。它就是要被优化的策略。' },
+    { stage: 3, on: ['reward'], edges: ['actor-reward'], upd: t('none, forward pass only', '无，只做前向'),
+      en: '② The frozen Reward model scores the whole answer, r_φ(x, y): one number, given only when the answer ends.',
+      zh: '② 冻结的 Reward 给完整回答打分 r_φ(x, y)：一个数，回答结束时才给。' },
+    { stage: 3, on: ['ref', 'actor'], edges: ['actor-ref'], upd: t('none, forward pass only', '无，只做前向'),
+      en: '③ The frozen Reference measures how far the Actor has drifted: total reward = r_φ − β · KL(π_θ ‖ π_ref).',
+      zh: '③ 冻结的 Reference 衡量 Actor 跑了多远：总奖励 = r_φ − β · KL(π_θ ‖ π_ref)。' },
+    { stage: 3, on: ['critic'], edges: ['actor-critic'], upd: t('none, forward pass only', '无，只做前向'),
+      en: '④ The Critic estimates V_t for each prefix. The advantage A_t = R_t − V_t says how much better than expected each token turned out.',
+      zh: '④ Critic 估计每个前缀的 V_t；优势 A_t = R_t − V_t 说明每个 token 比预期好了多少。' },
+    { stage: 3, on: ['actor', 'critic', 'update'], edges: ['update-actor', 'update-critic'], upd: t('Actor and Critic, nothing else', 'Actor 和 Critic，仅此两个'), update: true,
+      en: '⑤ One PPO step updates only the Actor and the Critic; Reward and Reference only ever run forward. Then back to ①, sampling again from the new Actor.',
+      zh: '⑤ 一次 PPO 更新只改 Actor 和 Critic 的参数；Reward 和 Reference 全程只做前向。然后回到 ①，用新的 Actor 重新采样。' }
+  ];
+  var step = 0;
+
+  var stageSeg = TX.seg([{ id: 1, en: '1 · SFT', zh: '1 · SFT' }, { id: 2, en: '2 · Reward model', zh: '2 · 奖励模型' }, { id: 3, en: '3 · RL', zh: '3 · RL' }], 1,
+    function (v) { step = STEPS.findIndex(function (x) { return x.stage === v; }); render(); }, t('Stage', '阶段'));
+  var prev = TX.button('← Back', '← 上一步', function () { step = Math.max(0, step - 1); render(); });
+  var next = TX.button('Next →', '下一步 →', function () { step = step + 1 < STEPS.length ? step + 1 : 0; render(); });
+  var count = h('span', { class: 'rl-count' });
+  fig.controls.appendChild(stageSeg.el);
+  fig.controls.appendChild(h('div', { class: 'rl-steps' }, [prev, count, next]));
+
+  var svg = s('svg', { viewBox: '0 0 680 300', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var caption = h('p', { class: 'fig-caption' });
+  var roStage = TX.readout('Stage', '阶段'), roUpd = TX.readout('Updating parameters in this step', '这一步更新参数的');
+  fig.foot.appendChild(caption);
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roStage.el, roUpd.el]));
+
+  function defs() {
+    return s('defs', null, ['', 'on'].map(function (k) {
+      return s('marker', { id: id + '-h' + k, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' },
+        [s('path', { d: 'M0,0 L10,5 L0,10 z', class: k ? 'r-head-on' : 'r-head' })]);
+    }));
+  }
+  function box(key, n, cls, stage3) {
+    var g = s('g', { class: 'r-box r-' + n[4] + cls });
+    g.appendChild(s('rect', { x: n[0], y: n[1], width: n[2], height: n[3], rx: 8 }));
+    var cx = n[0] + n[2] / 2, cy = n[1] + n[3] / 2;
+    g.appendChild(s('text', { class: 's-title', x: cx, y: cy - 3, 'text-anchor': 'middle', bi: [n[5], n[6]] }));
+    g.appendChild(s('text', { class: 's-sub', x: cx, y: cy + 13, 'text-anchor': 'middle', bi: [n[7], n[8]] }));
+    if (stage3 && (n[4] === 'train' || n[4] === 'frozen')) {
+      var train = n[4] === 'train';
+      g.appendChild(s('text', { class: 'r-badge ' + (train ? 'r-badge-train' : 'r-badge-frozen'), x: n[0] + n[2] - 8, y: n[1] + 14, 'text-anchor': 'end',
+        bi: train ? ['trains', '训练'] : ['frozen', '冻结'] }));
+    }
+    return g;
+  }
+  function edge(e, on) {
+    var g = s('g', { class: on ? '' : 'r-dim' });
+    g.appendChild(s('line', { x1: e[0][0], y1: e[0][1], x2: e[1][0], y2: e[1][1], class: 'r-edge' + (on ? ' on' : ''), 'marker-end': 'url(#' + id + '-h' + (on ? 'on' : '') + ')' }));
+    if (e[2][0]) {
+      g.appendChild(s('text', { class: 'r-elabel' + (on ? ' on' : ''), x: (e[0][0] + e[1][0]) / 2 + 4, y: (e[0][1] + e[1][1]) / 2 - 6, bi: e[2] }));
+    }
+    return g;
+  }
+
+  function render() {
+    var st = STEPS[step], nodes = NODES[st.stage], edges = EDGES[st.stage], all = st.stage < 3;
+    TX.clear(svg);
+    svg.appendChild(defs());
+    Object.keys(edges).forEach(function (k) { svg.appendChild(edge(edges[k], all || st.edges.indexOf(k) >= 0)); });
+    Object.keys(nodes).forEach(function (k) {
+      var lit = all || st.on.indexOf(k) >= 0;
+      var cls = (lit ? ' on' : ' r-dim') + (st.update && (k === 'actor' || k === 'critic') ? ' r-upd' : '');
+      svg.appendChild(box(k, nodes[k], cls, st.stage === 3));
+    });
+    svg.setAttribute('aria-label', t(st.en, st.zh));
+    stageSeg.set(st.stage);
+    count.textContent = (step + 1) + ' / ' + STEPS.length;
+    TX.bi(caption, st.en, st.zh);
+    roStage.set([t('1 · SFT', '1 · SFT'), t('2 · Reward model', '2 · 奖励模型'), t('3 · RL (PPO)', '3 · RL（PPO）')][st.stage - 1]);
+    roUpd.set(st.upd);
+  }
+  render();
+})();
+
+/* 10 · PPO clipping explorer. One sampled token: flip the sign of its advantage, drag the
+   probability ratio, and see which of the four cases it is in and whether it still gets gradient. */
+(function () {
+  'use strict';
+  var TX = window.TX;
+  if (!TX) return;
+  var fig = TX.figure('tx-ppo-clip', { title: ['PPO clipping · drag ρ, flip the sign of A', 'PPO clipping · 拖动 ρ，切换 A 的正负'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+  var id = 'pc' + Math.floor(Math.random() * 1e6);
+  var sign = 1, rho = 1.3, eps = 0.2;
+  var X0 = 58, X1 = 620, Y0 = 26, Y1 = 232, RMIN = 0.4, RMAX = 1.6;
+  function sx(r) { return X0 + (r - RMIN) / (RMAX - RMIN) * (X1 - X0); }
+  function sy(v) { var lo = sign > 0 ? 0.3 : -1.7, hi = sign > 0 ? 1.7 : -0.3; return Y1 - (v - lo) / (hi - lo) * (Y1 - Y0); }
+  function obj(r) { return sign > 0 ? Math.min(r, 1 + eps) : -Math.max(r, 1 - eps); }
+  function grad(r) { return sign > 0 ? (r < 1 + eps ? 1 : 0) : (r > 1 - eps ? -1 : 0); }
+
+  var segA = TX.seg([{ id: 1, en: 'A > 0 · a good token', zh: 'A > 0 · 好 token' }, { id: -1, en: 'A < 0 · a bad token', zh: 'A < 0 · 坏 token' }], 1,
+    function (v) { sign = v; render(); }, t('Sign of the advantage', 'advantage 的正负'));
+  var sRho = TX.slider({ en: 'ratio ρ', zh: 'ratio ρ', min: 0.4, max: 1.6, step: 0.01, value: rho,
+    format: function (v) { return v.toFixed(2); }, onInput: function (v) { rho = v; render(); } });
+  var sEps = TX.slider({ en: 'clip range ε', zh: '裁剪范围 ε', min: 0.05, max: 0.4, step: 0.01, value: eps,
+    format: function (v) { return '±' + v.toFixed(2); }, onInput: function (v) { eps = v; render(); } });
+  fig.controls.appendChild(segA.el);
+  fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sRho.el, sEps.el]));
+  var svg = s('svg', { viewBox: '0 0 640 280', role: 'img' });
+  fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
+  var caption = h('p', { class: 'fig-caption' });
+  var insight = h('p', { class: 'fig-insight', bi: ['A decides the direction, ρ reports how far the probability has moved, and the clip only stops a correct move from going too far.', 'A 决定方向，ρ 报告步幅，clip 只阻止正确方向走得过头。'] });
+  var roDir = TX.readout('ρ − 1 (what the new policy did)', 'ρ − 1（新策略做了什么）'), roSign = TX.readout('(ρ − 1) · A', '(ρ − 1) · A'),
+      roGrad = TX.readout('∂ℓ / ∂ρ (still pushed?)', '∂ℓ / ∂ρ（还在推吗）'), roClip = TX.readout('Clipped?', '被裁了吗');
+  fig.foot.appendChild(caption);
+  fig.foot.appendChild(h('div', { class: 'readouts' }, [roDir.el, roSign.el, roGrad.el, roClip.el]));
+  fig.foot.appendChild(insight);
+
+  function render() {
+    TX.clear(svg);
+    svg.appendChild(s('defs', null, [s('marker', { id: id + '-h', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' },
+      [s('path', { d: 'M0,0 L10,5 L0,10 z', class: 'pc-pushhead' })])]));
+    var lo = 1 - eps, hi = 1 + eps;
+    // the plateau: where this term gives no gradient
+    var px0 = sign > 0 ? sx(hi) : X0, px1 = sign > 0 ? X1 : sx(lo);
+    svg.appendChild(s('rect', { class: 'pc-plateau', x: px0, y: Y0, width: Math.max(0, px1 - px0), height: Y1 - Y0 }));
+    svg.appendChild(s('text', { class: 'pc-plabel', x: (px0 + px1) / 2, y: Y1 - 10, 'text-anchor': 'middle', bi: ['gradient = 0', '梯度 = 0'] }));
+    // axes and guides
+    svg.appendChild(s('line', { class: 'pc-axis', x1: X0, y1: Y1, x2: X1, y2: Y1 }));
+    for (var r = 0.4; r <= 1.6001; r += 0.2) {
+      svg.appendChild(s('line', { class: 'pc-axis', x1: sx(r), y1: Y1, x2: sx(r), y2: Y1 + 4 }));
+      svg.appendChild(s('text', { class: 'pc-tick', x: sx(r), y: Y1 + 16, 'text-anchor': 'middle', text: r.toFixed(1) }));
+    }
+    [[lo, '1−ε'], [1, '1'], [hi, '1+ε']].forEach(function (g) {
+      svg.appendChild(s('line', { class: 'pc-guide', x1: sx(g[0]), y1: Y0, x2: sx(g[0]), y2: Y1 }));
+      svg.appendChild(s('text', { class: 'pc-tick pc-gl', x: sx(g[0]), y: Y1 + 30, 'text-anchor': 'middle', text: g[1] }));
+    });
+    svg.appendChild(s('text', { class: 'pc-tick', x: X1, y: Y1 + 44, 'text-anchor': 'end', bi: ['ρ = π_θ(a|s) / π_old(a|s), for one sampled token', 'ρ = π_θ(a|s) / π_old(a|s)，同一个已采样 token'] }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: X0 - 6, y: Y0 - 8, bi: ['objective ℓ(ρ)', '目标 ℓ(ρ)'] }));
+    // unclipped ρ·A, then the clipped objective
+    svg.appendChild(s('line', { class: 'pc-raw', x1: sx(RMIN), y1: sy(sign * RMIN), x2: sx(RMAX), y2: sy(sign * RMAX) }));
+    svg.appendChild(s('text', { class: 'pc-tick', x: sx(sign > 0 ? 1.52 : 0.48), y: sy(sign * (sign > 0 ? 1.52 : 0.48)) - 8, 'text-anchor': 'middle', bi: ['ρ·A, unclipped', 'ρ·A（不裁剪）'] }));
+    var d = '';
+    for (var x = RMIN; x <= RMAX + 1e-9; x += 0.01) d += (d ? ' L' : 'M') + sx(x).toFixed(1) + ',' + sy(obj(x)).toFixed(1);
+    svg.appendChild(s('path', { class: 'pc-obj', d: d }));
+    // where this token is, and which way the gradient pushes ρ
+    var mx = sx(rho), my = sy(obj(rho)), g = grad(rho);
+    svg.appendChild(s('line', { class: 'pc-drop', x1: mx, y1: my, x2: mx, y2: Y1 }));
+    if (g !== 0) {
+      var dx = g > 0 ? 48 : -48;
+      svg.appendChild(s('line', { class: 'pc-push', x1: mx, y1: my - 16, x2: mx + dx, y2: my - 16, 'marker-end': 'url(#' + id + '-h)' }));
+      svg.appendChild(s('text', { class: 'pc-note', x: mx + dx / 2, y: my - 24, 'text-anchor': 'middle', bi: ['pushed', '继续推'] }));
+    } else {
+      svg.appendChild(s('text', { class: 'pc-note', x: mx, y: my - 14, 'text-anchor': 'middle', bi: ['no push', '不再推'] }));
+    }
+    svg.appendChild(s('circle', { class: 'pc-dot', cx: mx, cy: my, r: 6 }));
+
+    var up = rho > 1, clipped = g === 0, right = (rho - 1) * sign > 0, flat = Math.abs(rho - 1) < 0.005;
+    roDir.set((rho - 1 >= 0 ? '+' : '−') + Math.abs(rho - 1).toFixed(2) + ' · ' + (flat ? t('unchanged', '没变') : up ? t('probability raised', '概率提高了') : t('probability lowered', '概率降低了')));
+    roSign.set(flat ? '0' : right ? t('> 0 · right direction', '> 0 · 方向正确') : t('< 0 · wrong direction', '< 0 · 方向错误'));
+    roGrad.set(g > 0 ? '+1 · ' + t('raise it', '往上推') : g < 0 ? '−1 · ' + t('lower it', '往下推') : '0 · ' + t('left alone', '不管了'));
+    roClip.set(clipped ? t('yes · on the plateau', '是 · 在平台上') : t('no', '否'));
+    var c;
+    if (sign > 0) {
+      if (rho > hi) c = ['It raised the probability of a good token, the right direction, and is already past 1+ε: this term stops rewarding it. It does not pull ρ back into the range, it just stops pushing.', '提高了好 token 的概率，方向正确；已经超过 1+ε，这一项停止继续奖励。它不会把 ρ 拉回区间，只是不再往外推。'];
+      else if (!flat && !up) c = ['It lowered the probability of a good token, the wrong direction. There is no lower clip for A > 0, so the gradient stays and pulls the probability back up.', '降低了好 token 的概率，方向错误；A > 0 时没有下界裁剪，梯度保留，把概率拉回来。'];
+      else c = ['It raised the probability of a good token (or has not moved yet), and is still inside the range: keep encouraging it.', '提高了好 token 的概率（或还没动），而且还在区间内：继续鼓励。'];
+    } else {
+      if (rho < lo) c = ['It lowered the probability of a bad token, the right direction, and is already below 1−ε: this term stops rewarding it.', '降低了坏 token 的概率，方向正确；已经低于 1−ε，这一项停止继续奖励。'];
+      else if (!flat && up) c = ['It raised the probability of a bad token, the wrong direction. There is no upper clip for A < 0, so the gradient stays and pushes the probability back down.', '提高了坏 token 的概率，方向错误；A < 0 时没有上界裁剪，梯度保留，把概率压下去。'];
+      else c = ['It lowered the probability of a bad token (or has not moved yet), and is still inside the range: keep encouraging it.', '降低了坏 token 的概率（或还没动），而且还在区间内：继续鼓励。'];
+    }
+    TX.bi(caption, c[0], c[1]);
+    svg.setAttribute('aria-label', t(c[0], c[1]));
+  }
+  render();
+})();

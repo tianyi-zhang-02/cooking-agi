@@ -259,4 +259,4 @@ This is a bug that raises no error and only makes training drift off course slow
 ## Where to read next
 
 - [Decoder-only: autoregressive generation](decoder-only.en.md): how these distributions are produced step by step
-- [The three stages of RLHF](../../05-post-training/rlhf-pipeline.en.md): why rollout sampling parameters affect the gradient
+- [The three stages of RLHF](../../05-post-training/rlhf/README.en.md): why rollout sampling parameters affect the gradient
