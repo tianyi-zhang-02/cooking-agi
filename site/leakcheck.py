@@ -30,7 +30,10 @@ RULES = [
     # 形如内部代码路径
     ("internal code path", r"\b\w+\.py:\d+"),
 ]
-EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--"]
+EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--",
+          # career/journey: the owner's own list of companies that interviewed them, all
+          # already public on their homepage. Scoped to that one line, not to the name.
+          r"HRT Algo Dev"]
 
 SCAN = ["00-foundations", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",

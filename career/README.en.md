@@ -14,7 +14,11 @@ Two kinds of things live here: **how to prepare for technical interviews**, and 
 
 ## What is here
 
-- [Tech interviews: how to use these notes](../interview/README.en.md): interview basics, whiteboard coding, the ML math line, and a Transformer you can play with
-- [Looking for a job: notes from the road](journey.en.md): the timeline, the mistakes, and how I got from one step to the next
+- [It is only one part of life](not-binary.en.md) — mindset: what an interview is, and why not to overfit to someone else's criteria
+- [Looking for a job: notes from the road](journey.en.md) — the timeline, the mistakes, how I got here step by step
+- [A retrospective on one MLE interview](one-interview.en.md) — written right after the interview
+- [Tech interviews: how to use these notes](../interview/README.en.md) — interview basics, whiteboard coding, the ML maths line, and an interactive Transformer lab
+
+The technical part comes last on purpose: technique is usually the least important layer. Work out what you want first, and be happy :)
 
 If you do not know where to start, go back to [the roadmap on the home page](../README.en.md) and pick a track.
