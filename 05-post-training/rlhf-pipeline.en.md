@@ -464,7 +464,7 @@ The trade is coverage: it only applies where outcomes are automatically verifiab
 
 ## Further reading (Chinese)
 
-- [大模型中的强化学习 — RL in large models](https://zhuanlan.zhihu.com/p/693582342) — by @大家好我是爱因 on Zhihu (in Chinese).
+- [Reinforcement learning in large models](https://zhuanlan.zhihu.com/p/693582342) — a Zhihu article, in Chinese.
   This chapter deliberately covers only the RLHF trunk. The algorithm taxonomy is in
   that piece: MDP elements, the Bellman equation, the bias-variance tradeoff across
   MC/TD/GAE, PPO's four-model setup, DPO with IPO/KTO, and what GRPO, DAPO,

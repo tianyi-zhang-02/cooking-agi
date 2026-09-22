@@ -327,4 +327,4 @@ No. DPO is simple and stable when fixed, high-quality preference pairs cover the
 
 ## Further reading (Chinese)
 
-- [大模型中的强化学习 — RL in large models](https://zhuanlan.zhihu.com/p/693582342) — by @大家好我是爱因 on Zhihu. This chapter is organized along a single axis, "what got deleted," and covers only the trunk. That piece is the encyclopedic view — MDP elements, the Bellman equation, MC/TD/GAE, then each algorithm in detail. Start there if you want the fuller map.
+- [Reinforcement learning in large models](https://zhuanlan.zhihu.com/p/693582342) — a Zhihu article, in Chinese. This chapter is organized along a single axis, "what got deleted," and covers only the trunk. That piece is the encyclopedic view — MDP elements, the Bellman equation, MC/TD/GAE, then each algorithm in detail. Start there if you want the fuller map.
