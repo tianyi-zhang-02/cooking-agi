@@ -15,6 +15,7 @@ Two kinds of things live here: **how to prepare for technical interviews**, and 
 ## What is here
 
 - [It is only one part of life](not-binary.en.md) — mindset: what an interview is, and why not to overfit to someone else's criteria
+- [Don't let a metric lock you in](metrics.en.md) — "I did X, so I should get Y" is not how the world works
 - [Looking for a job: notes from the road](journey.en.md) — the timeline, the mistakes, how I got here step by step
 - [A retrospective on one MLE interview](one-interview.en.md) — written right after the interview
 - [Tech interviews: how to use these notes](../interview/README.en.md) — interview basics, whiteboard coding, the ML maths line, and an interactive Transformer lab

@@ -302,7 +302,7 @@ dir   = "career"
 group = "career"
 zh    = "MLE / RE 求职笔记"
 en    = "MLE / RE job-search notes"
-order = ["README.md", "not-binary.md", "journey.md", "one-interview.md"]
+order = ["README.md", "not-binary.md", "metrics.md", "journey.md", "one-interview.md"]
 
 [[section]]
 dir   = "."
@@ -392,6 +392,7 @@ en  = "Templates"
 "00-foundations/ml-math-interview.md"                   = ["ML 数学", "ML math"]
 "career/README.md"                                      = ["先读这一页", "Read this first"]
 "career/not-binary.md" = ["心态", "Mindset"]
+"career/metrics.md"    = ["别被指标锁死", "Metrics"]
 "career/journey.md"                                     = ["我的心路历程", "My journey"]
 "career/one-interview.md" = ["一次面试复盘", "One interview"]
 "EDITORIAL.md"                                          = ["写作规范", "Editorial policy"]
