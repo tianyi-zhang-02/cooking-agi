@@ -4,24 +4,24 @@
 
 ### 📖 Read it at **<https://tianyi-zhang-02.github.io/cooking-agi/>**
 
-## Why this exists
+## Why I write these notes
 
-This is where I keep what I have understood about modern AI systems, written up so that other people can learn from it directly.
+This is the learning path I am building for myself. Understanding one idea at a time is usually manageable; the harder part is connecting the pieces: what the model learns from, how it remembers and retrieves information, when it should use a tool, and why a better metric should count as real progress.
 
-What I want to figure out is not only “how to train a bigger model,” but how to put data, memory, search, tools, feedback, and evaluation together into **an AI system that really understands people, can find information, and gets better the more it is used**.
+I care about more than “how to train a bigger model.” I want to understand how data, representation, memory, search, feedback, training, and evaluation work together so that an AI system can **understand a need more accurately, find evidence, and revise itself when the feedback says it was wrong**.
 
-So every note starts with the problem it solves and why it is needed, explains it with the simplest example, and only then goes into the technical detail, ending with what it assumes and where it fails. The notes are written modern-first: they start from today's LLM systems, and history appears only where it explains a current design.
+I try to write every note in the same order: where the problem comes from, the smallest example that builds intuition, the mathematics and implementation, the engineering trade-offs, and finally the assumptions and open questions. The perspective is modern-first: I start with today's LLM systems and bring in history only when it helps explain a current design.
 
-This is a personal understanding under continuous revision, not a final answer.
+These notes reflect what I understand today, and I expect them to keep changing as I learn and build more.
 
 ## Where to start
 
-- **Study notes**: start with [Foundations](00-foundations/README.en.md) and read block by block; every figure in [the Transformer lab](00-foundations/transformer-lab.en.md) can be dragged.
-- **Career**: [Interviews](interview/README.en.md) is for a quick run-through before an interview; [Job search](career/README.en.md) is the record of my own MLE / RE job search.
-- **Reference**: [paper notes](papers/README.en.md) and the [editorial policy](EDITORIAL.en.md).
+- **To learn systematically**: start with [Foundations](00-foundations/README.en.md) and move through the sections; the figures in [the Transformer lab](00-foundations/transformer-lab.en.md) are interactive.
+- **To prepare for interviews**: use [Interviews](interview/README.en.md) for a quick review; [Job search](career/README.en.md) records what I learned while looking for MLE / RE roles.
+- **To look something up**: browse the [paper notes](papers/README.en.md); the [editorial policy](EDITORIAL.en.md) explains how the material is maintained.
 
 ## Write it with us
 
-Pointing out something wrong, saying a passage did not make sense, adding an example, adding a note — all of it counts; a single typo counts too. This repository is the site's source; see [CONTRIBUTING.md](CONTRIBUTING.md) for how to take part.
+If something is wrong, unclear, or missing a better example, please point it out; fixing a typo counts too. This repository is the source for the site, and [CONTRIBUTING.md](CONTRIBUTING.md) explains how to take part.
 
 Only foundational principles, derivations, public papers, reproducible experiments, and open-source project notes are published here; nothing from a specific company or a recruiting process goes in.

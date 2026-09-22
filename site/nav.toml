@@ -9,8 +9,8 @@
 repo        = "tianyi-zhang-02/cooking-agi"
 title_zh    = "AGI 学习笔记"
 title_en    = "AGI Study Notes"
-tagline_zh  = "从一条直线，到会读世界的系统"
-tagline_en  = "From a straight line to a system that reads the world"
+tagline_zh  = "从基础概念，到真正能工作的 AI 系统"
+tagline_en  = "From first principles to AI systems that work"
 base_url    = "/cooking-agi"
 origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 
@@ -36,24 +36,24 @@ id = "learn"
 zh = "学习笔记"
 en = "Study notes"
 home = "00-foundations/README.md"
-blurb_zh = "大模型基础、系统的各个环节，以及开源项目里的动手实践。"
-blurb_en = "LLM foundations, every stage of the system, and hands-on work in open source."
+blurb_zh = "从大模型基础一路读到训练、评估、Agent 和开源实践。"
+blurb_en = "From LLM foundations to training, evaluation, agents, and open-source practice."
 
 [[category]]
 id = "career"
 zh = "求职"
 en = "Career"
 home = "career/README.md"
-blurb_zh = "技术面怎么准备，以及我自己找工作的时间线、踩过的坑和岗位认知。"
-blurb_en = "How to prepare for technical interviews, plus my own job-search timeline, mistakes and notes on roles."
+blurb_zh = "面试怎么准备，以及我找工作时踩过的坑、做过的选择和留下的复盘。"
+blurb_en = "Interview preparation, plus the mistakes, decisions, and lessons from my own job search."
 
 [[category]]
 id = "reference"
 zh = "资料"
 en = "Reference"
 home = "papers/README.md"
-blurb_zh = "论文笔记、写作与时效性规范、模板。"
-blurb_en = "Paper notes, the editorial and freshness rules, and templates."
+blurb_zh = "论文笔记、写作规范和可以复用的模板。"
+blurb_en = "Paper notes, writing guidelines, and reusable templates."
 
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
 # 顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id；home 是点这个板块时落到哪一页（不写就用第一页）。
