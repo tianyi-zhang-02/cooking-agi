@@ -8,6 +8,10 @@
 
 Technical interviews look like a grab bag, but most of them keep asking the same thing: do you really understand the mechanism, can you go from the formula to code, and can you explain why. These notes are ordered that way.
 
+## Algorithm questions
+
+- [How I practise LeetCode](leetcode.en.md) — what to practise, my routine, the list of question types, and how far to take it
+
 ## A quick run-through before the interview
 
 These pages cover the same knowledge as the “Learn” side, presented differently: there it is explained in full and you can play with it; here only the questions and answers are left, for the night before. The overlap is deliberate.
