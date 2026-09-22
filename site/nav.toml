@@ -140,44 +140,51 @@ order = ["README.md"]
 [[section]]
 dir   = "00-foundations"
 group = "foundations"
-zh    = "入门"
-en    = "First steps"
+zh    = "学习路线"
+en    = "Learning path"
 order = ["README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
 dir = "00-foundations/core"
 group = "foundations"
-zh  = "必修"
-en  = "Core"
+zh  = "核心机制"
+en  = "Core mechanisms"
 order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
          "multi-head-attention.md", "normalization.md", "residual-connections.md",
          "vanilla-transformer.md", "decoder-only.md", "decoding.md"]
 
 [[section]]
+dir = "00-foundations/code"
+group = "foundations"
+zh  = "从零实现"
+en  = "Build from scratch"
+
+[[section]]
 dir = "00-foundations/deep-dives"
 group = "foundations"
-zh  = "进阶"
-en  = "Deep dives"
+zh  = "进阶 · 原理"
+en  = "Advanced · mechanisms"
 order = ["README.md", "recurrent-dynamics.md", "language-model-objective.md"]
 
 [[section]]
-dir = "00-foundations/code"
+dir = "00-foundations/model-families"
 group = "foundations"
-zh  = "实验"
-en  = "Labs"
+zh  = "进阶 · 模型家族"
+en  = "Advanced · model families"
+order = ["README.md", "llama.md", "qwen.md", "deepseek.md", "gemma.md"]
 
 [[section]]
 dir   = "00-foundations/moe"
 group = "foundations"
-zh    = "MoE"
-en    = "MoE"
+zh    = "进阶 · MoE"
+en    = "Advanced · MoE"
 order = ["README.md", "router.md", "load-balancing.md", "fine-grained-and-shared.md", "systems.md", "review.md"]
 
 [[section]]
 dir   = "00-foundations/looped"
 group = "foundations"
-zh    = "Looped Transformer"
-en    = "Looped Transformer"
+zh    = "进阶 · Looped"
+en    = "Advanced · Looped"
 order = ["README.md", "why-loops-reason.md", "adaptive-depth.md", "models.md", "costs.md", "review.md"]
 
 [[section]]

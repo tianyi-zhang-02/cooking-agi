@@ -86,7 +86,7 @@ topics = [
   { zh = "MoE：router、负载均衡与系统代价", en = "MoE: routing, load balancing, system cost", note = "00-foundations/moe/review.md" },
   { zh = "Looped Transformer 与自适应深度", en = "Looped Transformers and adaptive depth", note = "00-foundations/looped/review.md" },
   { zh = "FlashAttention 与 sliding window", en = "FlashAttention and sliding windows", note = "00-foundations/transformer-lab.md", anchor = "tx-flash" },
-  { zh = "不同模型家族的架构差异", en = "How model families differ", note = "00-foundations/transformer-lab.md", anchor = "tx-arch" },
+  { zh = "模型家族精读：架构、训练与系统取舍", en = "Model family deep dives: architecture, training, and systems", note = "00-foundations/model-families/README.md" },
 ]
 
 [[layer]]

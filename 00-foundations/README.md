@@ -2,7 +2,7 @@
 
 **中文** · [English](README.en.md)
 
-> 阅读时间：约 6 分钟 · 类型：学习地图 · 最近审阅：2026-08
+> 阅读时间：约 7 分钟 · 类型：学习地图 · 最近审阅：2026-09
 
 我一直不太喜欢那种一上来就画 Transformer 大框图的教程：每个方块似乎都认识，真让你从一段文字走到下一个 token，却很容易在中间迷路。
 
@@ -11,6 +11,7 @@
 <div class="curriculum-hero">
   <div><span class="level-chip core">必修</span><strong>先知道它为什么会出现</strong><p>每页只抓住核心计算、张量形状，以及上一代到底卡在哪里。</p></div>
   <div><span class="level-chip deep">进阶</span><strong>觉得“不对劲”时再往下挖</strong><p>推梯度、拆 mask，看训练目标和推理路径是怎么接上的。</p></div>
+  <div><span class="level-chip deep">进阶</span><strong>横向读模型家族</strong><p>不背型号；用同一把尺子比较架构、训练、推理成本和行为差异。</p></div>
   <div><span class="level-chip lab">实验</span><strong>别只相信图，自己跑一次</strong><p>同一个机制分别用纯 Python / NumPy 与 PyTorch 写出来。</p></div>
 </div>
 
@@ -46,7 +47,11 @@ flowchart LR
 
 读完这一层，最理想的状态不是会背名词，而是能拿一张白纸，把文字一路画到 logits，中间每一步都知道为什么在那里。
 
-## 第二层：进阶拆解
+## 主线之外：两种进阶读法
+
+主线读通以后，可以沿两个方向继续：一种是往机制内部钻，弄清公式、梯度和执行路径；另一种是横向比较模型家族，看同一个问题有哪些不同解法。两条路会在系统成本和评估上重新汇合。
+
+### 1. 深挖机制
 
 | 专题 | 真正要弄懂的东西 | 读完能回答 |
 | --- | --- | --- |
@@ -54,6 +59,19 @@ flowchart LR
 | [序列梯度与门控](deep-dives/recurrent-dynamics.md) | BPTT、Jacobian 连乘、梯度消失 / 爆炸、LSTM cell state | 为什么“能记住”首先是一个优化问题？ |
 | [注意力的数学与形状](transformer.md) | $Q/K/V$、mask、多头、RoPE、GQA、RMSNorm、SwiGLU | 一次 attention 到底乘了哪些矩阵？ |
 | [语言模型目标与生成](deep-dives/language-model-objective.md) | causal loss、teacher forcing、exposure gap、sampling、cache | 训练时一次并行算完，为什么生成时仍要逐 token？ |
+
+### 2. 横向读模型家族
+
+知道 Transformer 的零件以后，下一步不是继续背模型名，而是学会判断：**一个家族为什么改这个部件，它把成本转移到了哪里，又靠什么训练和评估把能力做出来。**
+
+<div class="curriculum-grid">
+  <a class="curriculum-card" href="model-families/llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>把现代 dense decoder 当作基线：架构相对克制，重点落在数据、训练规模和完整 post-training pipeline。</p><b>精读 →</b></a>
+  <a class="curriculum-card" href="model-families/qwen.md"><span class="card-step">One family, many modes</span><h3>Qwen</h3><p>看一个家族怎样覆盖 dense / MoE、不同尺寸，以及 thinking / non-thinking 两种推理方式。</p><b>精读 →</b></a>
+  <a class="curriculum-card" href="model-families/deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>把 MLA、MoE、训练系统与 reasoning post-training 放在同一条成本—能力链上理解。</p><b>精读 →</b></a>
+  <a class="curriculum-card" href="model-families/gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>从较小模型和部署约束出发，看 local/global attention、distillation 与视觉能力怎样组合。</p><b>精读 →</b></a>
+</div>
+
+先去[模型家族地图](model-families/)看阅读方法；想直接比较 block 里哪里变了，可以打开[交互式架构图](transformer-lab.md#tx-arch)。
 
 ## 面试速查
 
@@ -65,7 +83,7 @@ flowchart LR
 
 进阶内容可以先跳过。保留这些章节，是因为模型出现问题时，真正需要定位的往往正是这些细节：梯度从哪里断了、mask 遮错了谁、训练和生成为什么对不上。
 
-## 第三层：从零实现实验
+## 动手实验：把理解跑起来
 
 <div class="lab-matrix">
   <div><span>不调用 PyTorch</span><strong>看清每个数字从哪来</strong><p>纯 Python 写 BPE；NumPy 写 RNN、LSTM 与 scaled dot-product attention。</p><a href="code/README.md#python-numpy">查看实验 →</a></div>
@@ -91,6 +109,10 @@ python test_learning_path.py
 ### 我想把它讲清楚，而不只是“听说过”
 
 每读完一个必修节点，就去读对应进阶页，并做到三件事：写出核心公式、标出每个张量形状、说出该架构解决了前一代的哪个瓶颈。
+
+### 我想看懂一篇新的模型报告
+
+先用[模型家族精读](model-families/)里的六个问题做骨架，再回到交互图比较 block。不要先抄参数；先判断变化发生在架构、训练、post-training、推理，还是评估。
 
 ### 我想亲手写到它出 bug
 

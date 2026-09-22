@@ -17,6 +17,7 @@
 ## 从哪里开始
 
 - **想系统学习**：从[大模型基础](00-foundations/)开始，按板块往下读；[Transformer 交互图解](00-foundations/transformer-lab.md)里的图可以直接拖动和试验。
+- **想看懂不同模型为什么这样设计**：进入[模型家族精读](00-foundations/model-families/)，用同一组问题比较 Llama、Qwen、DeepSeek 和 Gemma，而不是只背参数表。
 - **准备面试**：[技术面](interview/)适合面试前快速复习；[求职笔记](career/)记录我找 MLE / RE 工作时踩过的坑和想法。
 - **查资料**：看[论文笔记](papers/)；关于这些内容怎样维护，见[写作规范](EDITORIAL.md)。
 

@@ -1,0 +1,70 @@
+# 模型家族精读：别只看参数表
+
+**中文** · [English](README.en.md)
+
+> 阅读时间：约 8 分钟 · 类型：阅读地图 · 最近审阅：2026-09
+
+模型发布时，最显眼的通常是参数量、上下文长度和 benchmark。但真正值得追的是另一条线：**这个家族把能力瓶颈放在哪里，又用什么架构、训练和系统选择去解它。**
+
+这里不会把技术报告缩写成一张参数表。每篇都用同一组问题拆一个模型家族，再回到公开论文、config 和可复现实验验证。这样读完以后，留下的不是“我见过这个名字”，而是一套遇到新模型也能继续用的判断方法。
+
+<div class="lesson-recipe advanced">
+  <div><span>先看什么</span><strong>目标与约束，而不是参数量</strong></div>
+  <div><span>再拆什么</span><strong>架构 · 数据与训练 · post-training · 推理系统 · 评估</strong></div>
+  <div><span>最后比较什么</span><strong>能力从哪里来，成本被转移到了哪里</strong></div>
+  <div><span>证据标准</span><strong>论文、公开 config、消融和可复现实验</strong></div>
+</div>
+
+## 先看地图，再进家族
+
+先打开 [Transformer 交互图解](../transformer-lab.md#tx-arch)，在不同家族之间切换。那张图回答“block 里哪里变了”；这一组精读继续回答“为什么变、怎么训、部署时付出什么”。
+
+```mermaid
+flowchart LR
+    A["目标与约束"] --> B["架构选择"]
+    B --> C["预训练数据与目标"]
+    C --> D["Post-training"]
+    D --> E["推理与服务成本"]
+    E --> F["行为与评估"]
+    F -. 新证据 .-> A
+```
+
+## 每个家族都问这六个问题
+
+| 视角 | 要问的问题 | 容易掉进的坑 |
+| --- | --- | --- |
+| 目标 | 它优先解决能力、成本、长度、多模态，还是部署？ | 把所有改动都解释成“更强” |
+| 架构 | attention、FFN、norm、位置编码和模态接口改了什么？ | 只记组件名，不看张量和数据流 |
+| 训练 | 数据、目标、规模和 curriculum 怎样配合？ | 把架构收益和数据收益混在一起 |
+| Post-training | SFT、偏好优化、RL、蒸馏分别改变什么行为？ | 用 base model 的结构解释 chat model 的行为 |
+| 系统 | KV cache、激活参数、通信和延迟的账怎么算？ | 只看总参数，不看每 token 实际成本 |
+| 证据 | 哪些结论有消融、外部评估或可复现结果？ | 用一张 leaderboard 代替机制证据 |
+
+## 四个入口
+
+<div class="curriculum-grid">
+  <a class="curriculum-card" href="llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>一个相对克制的 dense decoder，适合拿来分清架构收益、规模收益和 post-training 收益。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="qwen.md"><span class="card-step">Family design</span><h3>Qwen</h3><p>同一家族覆盖 dense / MoE、不同尺寸与 thinking / non-thinking，适合研究“模型家族”本身怎样设计。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>MLA、细粒度 MoE、训练系统和 reasoning post-training 不是四个孤立亮点，而是一套协同设计。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>从较小模型、长上下文与视觉输入出发，看部署约束怎样反过来塑造 attention 和蒸馏方案。</p><b>开始精读 →</b></a>
+</div>
+
+## 按你的问题选择读法
+
+- **想补架构主线**：Llama → DeepSeek。先建立 dense baseline，再看 MLA 与 MoE 怎样改成本结构。
+- **想补 post-training**：Llama → Qwen → DeepSeek。比较通用对齐、模式切换与 reasoning RL 各自解决什么。
+- **想补部署与多模态**：Gemma → Qwen。重点看模型尺寸、上下文、模态接口和推理预算怎样共同决定产品形态。
+
+## 读完后的自检
+
+<div class="taste-check advanced">
+  <strong>不要背“谁用了什么”，试着回答：</strong>
+  <ol>
+    <li>如果把模型名遮住，你能从 attention、FFN 和 post-training 看出它在优化什么吗？</li>
+    <li>某个能力提升来自结构、数据、训练规模，还是 post-training？证据够不够把它们分开？</li>
+    <li>一个设计省下的 FLOPs、显存或延迟，是否在通信、路由或数据上重新付了出去？</li>
+    <li>这套设计在什么 workload 下成立，换一个 workload 最可能先坏哪里？</li>
+  </ol>
+</div>
+
+这组页面只覆盖公开信息；模型家族更新很快，具体配置以每篇末尾链接的原始报告和公开 config 为准。

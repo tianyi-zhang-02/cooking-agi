@@ -17,6 +17,7 @@ These notes reflect what I understand today, and I expect them to keep changing 
 ## Where to start
 
 - **To learn systematically**: start with [Foundations](00-foundations/README.en.md) and move through the sections; the figures in [the Transformer lab](00-foundations/transformer-lab.en.md) are interactive.
+- **To understand why model families make different choices**: use the [model family deep dives](00-foundations/model-families/README.en.md) to compare Llama, Qwen, DeepSeek, and Gemma through the same questions instead of memorising parameter tables.
 - **To prepare for interviews**: use [Interviews](interview/README.en.md) for a quick review; [Job search](career/README.en.md) records what I learned while looking for MLE / RE roles.
 - **To look something up**: browse the [paper notes](papers/README.en.md); the [editorial policy](EDITORIAL.en.md) explains how the material is maintained.
 
