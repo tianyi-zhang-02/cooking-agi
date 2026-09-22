@@ -82,7 +82,7 @@ merely permutes the output in the same way.
 
 ## From token IDs to the next token: the complete path
 
-Use a tiny English-to-Chinese example to connect the entire forward path of the 2017
+Use a tiny English-to-German example to connect the entire forward path of the 2017
 Transformer. Look only at shapes first, then at each module's job.
 
 ### 1. How the source enters the encoder
@@ -233,8 +233,8 @@ $$C=\operatorname{Encoder}(X)\in\mathbb{R}^{S\times512}.$$
 If the correct translation is
 
 ```text
-target labels: [我, 爱, 你, <EOS>]
-decoder input: [<BOS>, 我, 爱, 你]
+target labels: [ich, liebe, dich, <EOS>]
+decoder input: [<BOS>, ich, liebe, dich]
 ```
 
 the two are offset by one position, which is what lets position $t$ learn to
@@ -287,7 +287,7 @@ $$Q=H_1W_Q,\qquad K=CW_K,\qquad V=CW_V.$$
 
 That is, **Q comes from the decoder, while K/V come from the encoder memory**. With
 target length $T$ and source length $S$, the attention weights have shape $(T,S)$ and
-need not be square. For example, when preparing to generate “爱”, the decoder state
+need not be square. For example, when preparing to generate “liebe”, the decoder state
 can use its query to read the values in the encoder that relate to `love`:
 
 $$H_2=\operatorname{LN}\big(H_1+

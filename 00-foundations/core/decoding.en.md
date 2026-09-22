@@ -67,7 +67,7 @@ Sort the distribution, keep the top $k$, set the rest to zero, renormalize, and 
 
 The problem is that $k$ is fixed, while the shape of the distribution keeps changing:
 
-- After “中华人民共和国万” (the slogan “Long live the People's Republic of China”, one character short of complete) there is almost exactly one reasonable choice, and the distribution is extremely steep. Here $k=50$ also puts 49 nearly impossible words into the candidate pool.
+- After “The United States of Ame” there is almost exactly one reasonable choice, and the distribution is extremely steep. Here $k=50$ also puts 49 nearly impossible words into the candidate pool.
 - After “He thought this movie” there are hundreds of reasonable continuations, and the distribution is very flat. Here $k=50$ cuts too hard and removes options that were perfectly reasonable.
 
 **No single $k$ can fit both cases at once.**

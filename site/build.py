@@ -805,12 +805,25 @@ DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
                    "about-head": about_head_html}
 
 
+def localize_shell(shell: str, page) -> str:
+    """Widget shells carry their labels as data-zh / data-en pairs for app.js to fill in. Fill them
+    at build time in the page's language instead, so the page reads right without JavaScript, and
+    an English page ships no Chinese at all (its data-zh attributes are dropped)."""
+    def fill(m):
+        zh, en, rest = m.group(1), m.group(2), m.group(3)
+        if page.lang == "en":
+            return f'data-en="{en}"{rest}>{en}</'
+        return f'data-zh="{zh}" data-en="{en}"{rest}>{zh}</'
+    return re.sub(r'data-zh="([^"]*)"\s+data-en="([^"]*)"([^>]*)>\s*</', fill, shell)
+
+
 def expand_widgets(md_text: str, page=None) -> str:
     def expand(m):
         name = m.group(1)
         if page is not None and name in DYNAMIC_WIDGETS:
             return DYNAMIC_WIDGETS[name](page)
-        return WIDGETS.get(name, "")
+        shell = WIDGETS.get(name, "")
+        return localize_shell(shell, page) if page is not None else shell
     return re.sub(r"<!--\s*widget:([a-z0-9_-]+)\s*-->", expand, md_text)
 
 
@@ -1310,12 +1323,9 @@ def page_header_html(page):
         bits.append(f'<span>{html.escape(reviewed)}</span>')
     if position:
         bits.append(f'<span class="page-position">{position}</span>')
-    sky = ('<span class="hero-sky" aria-hidden="true"><i class="hero-stars"></i>'
-           '<i class="hero-ridge hero-ridge-far"></i><i class="hero-ridge hero-ridge-near"></i></span>'
-           if page.kind == "home" else "")
     return f"""
 <header class="article-head">
-  {sky}{chapter_mark}
+  {chapter_mark}
   <div class="article-kicker"><span>{html.escape(labels[page.kind])}</span>
     <i>{html.escape(section)}</i></div>
   <h1>{html.escape(page.title)}</h1>
