@@ -1521,3 +1521,42 @@ main { padding: 2.6rem 0 6rem; }
   .chapter-mark { font-size: 5rem; top: -.35rem; }
   .article-meta { margin-top: .9rem; }
 }
+
+/* -------- sidebar: a block, then short entries under it ----------------------------------
+   The block (group) names the topic; entries are short labels hanging off one guide line,
+   the full title shows on hover. Section headings appear only inside mixed blocks. */
+.nav .cat { margin: 1.5rem 0 .5rem; padding: 0 .6rem; }
+.nav .cat:first-child { margin-top: .3rem; }
+.nav .cat a, .nav .cat span { font: 650 .64rem/1 var(--sans); letter-spacing: .15em; text-transform: uppercase; color: var(--ember); text-decoration: none; }
+.nav .grp + .grp { margin-top: .15rem; }
+.nav details > summary {
+  padding: .45rem .6rem .45rem .45rem; gap: .5rem; border-radius: 7px;
+  font: 600 .9rem/1.3 var(--sans), var(--cjk); letter-spacing: -.005em; text-transform: none; color: var(--ink-soft);
+}
+.nav details > summary:hover { background: var(--rule-soft); color: var(--ink); }
+.nav details[open] > summary, .nav details:has(a.active) > summary { color: var(--ink); }
+.nav details > summary .chev { color: var(--faint); }
+.nav details[open] > summary .chev { color: var(--ember); }
+.grp-count { font: .66rem/1 var(--mono); color: var(--faint); }
+.grp-body { margin: .1rem 0 .7rem 1.05rem; padding: .1rem 0; border-left: 1px solid var(--rule); }
+.nav .sec { margin: 0; }
+.nav .sec + .sec { margin-top: .5rem; }
+.nav .sec-flat + .sec-flat { margin-top: 0; }
+.nav .sec-num { display: none; }
+.nav .sec-name {
+  display: block; padding: .3rem .8rem .2rem; font: 650 .62rem/1.2 var(--sans), var(--cjk);
+  letter-spacing: .13em; text-transform: uppercase; color: var(--faint);
+}
+.nav .sec > ul { margin: 0; }
+.nav .sec:not(.sec-flat) > ul { margin-left: .55rem; }
+.nav .sec > ul > li > a {
+  display: block; margin-left: -1px; padding: .3rem .7rem .3rem .8rem;
+  font-size: .87rem; line-height: 1.4; color: var(--muted); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border-left: 2px solid transparent; border-radius: 0 6px 6px 0;
+}
+.nav .sec > ul > li > a:hover { color: var(--ink); background: var(--rule-soft); }
+.nav .sec > ul > li > a.active { color: var(--ink); font-weight: 600; background: var(--ember-bg); border-left-color: var(--ember); }
+.subtabs { gap: .3rem; }
+.subtabs-label { margin-right: .25rem; }
+.subtabs a { padding: .34rem .66rem; }
