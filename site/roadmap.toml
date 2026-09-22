@@ -10,10 +10,8 @@
 #
 # 规则：
 #   - 只链接真的存在的笔记；没写的就让它“待补”，不要包装。
-#   - 我讲的路线：MLE · LLM / Post-training、Applied ML · 搜广推、SDE，外加两条还只有提纲的
-#     Frontier model 与 Robotics。
-#     kind = "main" 会标出“我的主线”；kind = "covered" 不加标记；
-#     kind = "draft" 是我打算聊、但目前只有提纲的路线（Frontier model、Robotics），页面会标“骨架”。
+#   - 只有一条路线：MLE / Research Engineer。其它方向不是我的 focus，欢迎别人来扩展（见下）。
+#     kind = "main" 会标出“我的主线”。
 #   - Data Scientist、Data Engineer、Quant Researcher、AI Infra 等方向不是我的 focus，
 #     所以这里没有。欢迎别人来扩展（见下）。
 #
@@ -42,11 +40,6 @@ en = "Large models"
 id = "applied"
 zh = "应用与系统"
 en = "Applied & systems"
-
-[[area]]
-id = "embodied"
-zh = "具身"
-en = "Embodied"
 
 # ───────────────────────────── layers ─────────────────────────────
 
@@ -95,37 +88,6 @@ topics = [
 ]
 
 [[layer]]
-id = "recsys"
-area = "applied"
-zh = "搜广推主链路：召回 · 排序 · 重排"
-en = "Search / ads / recsys pipeline: recall · ranking · re-ranking"
-tools = ["多路召回 + ANN", "GBDT / DNN 排序模型", "多目标（MMoE / PLE）", "Feature store"]
-tools_en = ["Multi-channel recall + ANN", "GBDT / DNN rankers", "Multi-task (MMoE / PLE)", "Feature stores"]
-topics = [
-  { zh = "整条链路：召回 → 粗排 → 精排 → 重排", en = "The pipeline: recall → pre-ranking → ranking → re-ranking" },
-  { zh = "召回：双塔、多路召回与负采样", en = "Recall: two-tower models, multi-channel recall, negative sampling" },
-  { zh = "排序模型的演进：LR → GBDT → Wide&Deep / DeepFM → 序列建模", en = "How rankers evolved: LR → GBDT → Wide&Deep / DeepFM → sequence models" },
-  { zh = "多目标与多任务学习", en = "Multi-objective and multi-task learning" },
-  { zh = "重排、多样性与冷启动", en = "Re-ranking, diversity and cold start" },
-  { zh = "特征工程与训练 / 服务一致性", en = "Feature engineering and train / serve consistency" },
-  { zh = "LLM 进入搜广推之后变了什么", en = "What changes once LLMs enter search, ads and recsys" },
-]
-
-[[layer]]
-id = "ads"
-area = "applied"
-zh = "广告：预估、出价与拍卖"
-en = "Ads: prediction, bidding and auctions"
-tools = ["CTR / CVR 预估", "校准", "出价与 pacing", "拍卖机制（GSP / VCG）"]
-tools_en = ["CTR / CVR prediction", "Calibration", "Bidding and pacing", "Auction mechanisms (GSP / VCG)"]
-topics = [
-  { zh = "CTR / CVR 预估与延迟反馈", en = "CTR / CVR prediction and delayed feedback" },
-  { zh = "为什么广告要校准，推荐不一定要", en = "Why ads need calibration and recommendations may not" },
-  { zh = "出价、预算与 pacing", en = "Bidding, budgets and pacing" },
-  { zh = "拍卖机制：GSP 与 VCG", en = "Auction mechanisms: GSP and VCG" },
-]
-
-[[layer]]
 id = "pretrain"
 area = "llm"
 home = "00-foundations/deep-dives/language-model-objective.md"
@@ -169,35 +131,6 @@ topics = [
   { zh = "为什么只有文字还不够", en = "Why text alone is not enough", note = "03-multimodal-learning/README.md" },
   { zh = "VLM 的结构：视觉编码器怎么接到 LLM 上", en = "VLM architecture: connecting a vision encoder to an LLM" },
   { zh = "World models", en = "World models" },
-]
-
-[[layer]]
-id = "embodied"
-area = "embodied"
-zh = "具身策略学习"
-en = "Embodied policy learning"
-tools = ["Imitation learning", "VLA 模型", "Diffusion policy", "RL + sim-to-real"]
-tools_en = ["Imitation learning", "VLA models", "Diffusion policy", "RL + sim-to-real"]
-topics = [
-  { zh = "模仿学习与 behavior cloning", en = "Imitation learning and behavior cloning" },
-  { zh = "VLA：把 VLM 接到动作上", en = "VLA: connecting a VLM to actions" },
-  { zh = "Diffusion policy 与动作分块", en = "Diffusion policy and action chunking" },
-  { zh = "RL 与 sim-to-real", en = "RL and sim-to-real" },
-  { zh = "数据：遥操作、仿真与数据飞轮", en = "Data: teleoperation, simulation, the data flywheel" },
-  { zh = "评测：成功率、泛化与安全", en = "Evaluation: success rate, generalisation, safety" },
-]
-
-[[layer]]
-id = "robotbasics"
-area = "embodied"
-zh = "机器人学基础"
-en = "Robotics fundamentals"
-tools = ["运动学与控制", "感知", "ROS", "仿真器（Isaac、MuJoCo 等）"]
-tools_en = ["Kinematics and control", "Perception", "ROS", "Simulators (Isaac, MuJoCo, …)"]
-topics = [
-  { zh = "运动学、动力学与控制", en = "Kinematics, dynamics and control" },
-  { zh = "感知与状态估计", en = "Perception and state estimation" },
-  { zh = "仿真器与 ROS", en = "Simulators and ROS" },
 ]
 
 [[layer]]
@@ -262,19 +195,6 @@ topics = [
 ]
 
 [[layer]]
-id = "sysdesign"
-area = "applied"
-zh = "系统设计"
-en = "System design"
-tools = ["分布式系统基础", "存储 / 缓存 / 队列", "ML system design"]
-tools_en = ["Distributed-systems basics", "Storage / caches / queues", "ML system design"]
-topics = [
-  { zh = "System design 基础", en = "System design basics" },
-  { zh = "ML system design：怎么拆一个检索 / 排序 / LLM 系统", en = "ML system design: breaking down a retrieval / ranking / LLM system" },
-  { zh = "分布式系统基础", en = "Distributed-systems basics" },
-]
-
-[[layer]]
 id = "ml"
 area = "foundation"
 home = "00-foundations/from-linear-to-neural.md"
@@ -318,69 +238,20 @@ topics = [
 ]
 
 # ───────────────────────────── tracks ─────────────────────────────
-# layers 从上到下：上面是岗位专属，下面是通用基础。
+# 一条路线：我自己在走的 MLE / Research Engineer。layers 从上到下，上面是岗位专属，下面是通用基础。
+# 别的方向（搜广推、SDE、DS、Quant、Robotics、AI Infra……）不是我的 focus，不写；欢迎别人按文件开头的说明加 [[track]]。
 
 [[track]]
 id = "mle"
 kind = "main"
-zh = "MLE · LLM / Post-training"
-en = "MLE · LLM / Post-training"
-blurb_zh = "做大模型训练、post-training 或评估的 MLE。这是我自己的主线，站内大部分笔记都落在这一摞里。"
-blurb_en = "MLE roles around LLM training, post-training and evaluation. This is my own main line, and most notes on this site sit in this stack."
+zh = "MLE / Research Engineer · LLM 与 post-training"
+en = "MLE / Research Engineer · LLMs & post-training"
+blurb_zh = "在大模型团队做训练、post-training、评估的 MLE / RE。这是我自己在走的方向，站内的笔记基本都落在这一摞里。"
+blurb_en = "MLE / research-engineer roles around LLM training, post-training and evaluation. This is the direction I am on myself; nearly every note on this site sits in this stack."
 layers = [
-  { id = "posttrain", weight = "core" }, { id = "llm", weight = "core" }, { id = "eval", weight = "core" },
-  { id = "systems", weight = "plus" }, { id = "sysdesign", weight = "plus" },
-  { id = "ml", weight = "core" }, { id = "math", weight = "core" }, { id = "coding", weight = "core" },
-]
-
-[[track]]
-id = "applied"
-kind = "covered"
-zh = "Applied ML · 搜广推"
-en = "Applied ML · Search / Ads / RecSys"
-blurb_zh = "传统搜广推（搜索、广告、推荐）和 LLM 时代的检索。系统视角的笔记已经有了，主链路和广告的专题还在写，所以“待补”会多一些。"
-blurb_en = "Classic search, ads and recommendation, plus retrieval in the LLM era. The system-level notes exist; the pipeline and ads topics are still being written, so expect more “planned”."
-layers = [
-  { id = "recsys", weight = "core" }, { id = "ads", weight = "plus" }, { id = "retrieval", weight = "core" },
-  { id = "eval", weight = "core" }, { id = "data", weight = "core" },
-  { id = "llm", weight = "plus" }, { id = "systems", weight = "plus" }, { id = "sysdesign", weight = "plus" },
-  { id = "ml", weight = "core" }, { id = "math", weight = "core" }, { id = "coding", weight = "core" },
-]
-
-[[track]]
-id = "sde"
-kind = "covered"
-zh = "SDE"
-en = "SDE"
-blurb_zh = "通用软件工程方向：数据结构与算法、系统设计是主体。这条线的笔记还在补。"
-blurb_en = "General software engineering: data structures, algorithms and system design carry most of the weight. Notes for this route are still being written."
-layers = [
-  { id = "sysdesign", weight = "core" }, { id = "coding", weight = "core" }, { id = "data", weight = "plus" },
-]
-
-[[track]]
-id = "frontier"
-kind = "draft"
-zh = "Frontier model · 前沿模型研发"
-en = "Frontier models · research engineering"
-blurb_zh = "在前沿模型团队做预训练、推理与 RL、多模态。和 MLE 那条线共用大半摞 stack，上面多出预训练与前沿专题。"
-blurb_en = "Pretraining, reasoning and RL, multimodal work on a frontier-model team. It shares most of its stack with the MLE route, with pretraining and frontier topics on top."
-layers = [
-  { id = "pretrain", weight = "core" }, { id = "reasoning", weight = "core" }, { id = "multimodal", weight = "plus" },
-  { id = "posttrain", weight = "core" }, { id = "llm", weight = "core" }, { id = "eval", weight = "core" },
-  { id = "ml", weight = "core" }, { id = "math", weight = "core" }, { id = "coding", weight = "core" },
-]
-
-[[track]]
-id = "robotics"
-kind = "draft"
-zh = "Robotics · 具身智能"
-en = "Robotics · embodied AI"
-blurb_zh = "把基础模型接到真实世界的动作上。"
-blurb_en = "Connecting foundation models to actions in the physical world."
-layers = [
-  { id = "embodied", weight = "core" }, { id = "robotbasics", weight = "core" }, { id = "multimodal", weight = "core" },
-  { id = "llm", weight = "plus" }, { id = "posttrain", weight = "plus" },
+  { id = "posttrain", weight = "core" }, { id = "llm", weight = "core" }, { id = "reasoning", weight = "core" },
+  { id = "eval", weight = "core" }, { id = "pretrain", weight = "plus" }, { id = "multimodal", weight = "plus" },
+  { id = "systems", weight = "plus" }, { id = "retrieval", weight = "plus" },
   { id = "ml", weight = "core" }, { id = "math", weight = "core" }, { id = "coding", weight = "core" },
 ]
 

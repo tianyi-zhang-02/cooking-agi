@@ -1272,6 +1272,21 @@ def subtabs_html(page):
             f'<span class="subtabs-label">{label}</span>{links}</nav>')
 
 
+def hero_html(page) -> str:
+    """The home page opens on the night sky with one line; other pages have no hero."""
+    if page.url not in {"index.html", "index.en.html"}:
+        return ""
+    zh = page.lang == "zh"
+    site = NAV.get("site", {})
+    kicker = f'{site["title_zh"]} · {site.get("author_zh", "")}' if zh else f'{site["title_en"]} · {site.get("author_en", "")}'
+    title = site["tagline_zh" if zh else "tagline_en"]
+    label = "封面" if zh else "Cover"
+    hint = "往下看" if zh else "Scroll to the notes"
+    return (f'<section class="hero" aria-label="{label}"><p class="hero-kicker">{html.escape(kicker.strip(" ·"))}</p>'
+            f'<h1 class="hero-title">{html.escape(title)}</h1>'
+            f'<a class="hero-scroll" href="#content" aria-label="{hint}"><span></span></a></section>')
+
+
 def toc_html(page):
     if not page.toc:
         return ""
@@ -1450,6 +1465,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{home}}", page.rel("index.html" if zh else "index.en.html"))
             .replace("{{prefix}}", prefix)
             .replace("{{sidebar}}", sidebar_html(page, sections, nav.get("group", [])))
+            .replace("{{hero}}", hero_html(page))
             .replace("{{tabs}}", tabs_html(page))
             .replace("{{subtabs}}", subtabs_html(page))
             .replace("{{toc}}", toc_html(page))

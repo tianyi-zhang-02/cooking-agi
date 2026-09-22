@@ -30,7 +30,6 @@
 </head>
 <body class="{{page_class}}">
 
-<div class="sky-backdrop" aria-hidden="true"><i class="sky-stars"></i><i class="sky-horizon"></i><i class="sky-ridge sky-ridge-far"></i><i class="sky-ridge sky-ridge-near"></i></div>
 
 <div class="reading-progress" aria-hidden="true"><span></span></div>
 
@@ -65,6 +64,10 @@
     </button>
   </div>
 </header>
+
+<canvas class="sky" aria-hidden="true"></canvas>
+
+{{hero}}
 
 <div class="shell">
 
@@ -134,5 +137,6 @@
         integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
         crossorigin="anonymous"></script>
 <script defer src="{{prefix}}static/app.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/sky.js?v={{built}}"></script>
 </body>
 </html>
