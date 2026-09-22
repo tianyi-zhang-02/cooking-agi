@@ -18,7 +18,11 @@ But remember that solving problems is not the only way through. This is just tec
 
 ## Don't overfit to the criteria
 
-Bay Area standards make it easy to believe they are the only standards: a big offer, climbing the ladder, always at the frontier. An anonymous user on a Chinese job-hunting forum once described the Bay Area as a trap that draws in young talent and returns tired middle-aged people. Harsh, but worth sitting with.
+Bay Area standards make it easy to believe they are the only standards: a big offer, climbing the ladder, always at the frontier.
+
+How it feels to me: the Bay Area is one big trap. It draws in bright young people and returns tired middle-aged ones who all look the same, releasing a few of the winners now and then to give everyone else some hope. The dangerous part is not the entertainment that keeps you numb; it is a decent salary plus a little hope, traded for the best years of your life. Traded for what? That is the part worth working out for yourself.
+
+A $1M package looks like a lot, but at what cost? Does it suit everyone? Can everyone even get there?
 
 There are countless businesses in the world and countless possibilities. Do what suits you; there is no need to overfit to a set of criteria someone else assembled.
 
@@ -37,3 +41,9 @@ What is the job for? To work on harder problems at the frontier, or something el
 If that question never gets an answer, it is easy to stop one day, look back, and find yourself lost. And how thick your wallet is does not depend only on how hard you grind — tech built a system that makes it feel like more effort always buys a step up the ladder, and that mindset is hard to shake.
 
 So: work out what you need, do what you enjoy, and be as happy as you can. **The job search is only one part of it.**
+
+## And not only the job search
+
+None of this is really about job hunting alone. Saving money, buying a place, getting married — none of those are black-and-white progress either, and not every step has to be the optimal one.
+
+Life is more colourful than that :)
