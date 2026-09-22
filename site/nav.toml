@@ -22,6 +22,8 @@ author_url  = "/"
 
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]
+"07-evaluation/llm-as-a-judge.html" = "07-evaluation/llm-as-a-judge/index.html"
+"07-evaluation/llm-as-a-judge.en.html" = "07-evaluation/llm-as-a-judge/index.en.html"
 "open-source/nemo-rl.html" = "open-source/nemo-rl/index.html"
 "open-source/nemo-rl.en.html" = "open-source/nemo-rl/index.en.html"
 
@@ -196,9 +198,16 @@ order = ["README.md", "agent-observability.md", "human-in-the-loop.md"]
 [[section]]
 dir   = "07-evaluation"
 group = "eval"
-zh    = "评估"
-en    = "Evaluation"
-order = ["README.md", "llm-as-a-judge.md"]
+zh    = "评估基础"
+en    = "Evaluation basics"
+order = ["README.md", "evaluation-stack.md", "metric-robustness.md"]
+
+[[section]]
+dir   = "07-evaluation/llm-as-a-judge"
+group = "eval"
+zh    = "LLM-as-a-Judge"
+en    = "LLM-as-a-Judge"
+order = ["README.md", "criteria.md", "scoring.md", "probability-scores.md", "bias-and-workflow.md"]
 
 [[section]]
 dir = "08-model-experience"
@@ -317,7 +326,13 @@ en  = "Templates"
 "06-systems/agent-observability.md"                     = ["Agent 可观测性", "Agent observability"]
 "06-systems/human-in-the-loop.md"                       = ["人在回路", "Human in the loop"]
 "07-evaluation/README.md"                               = ["总览", "Overview"]
-"07-evaluation/llm-as-a-judge.md"                       = ["LLM-as-a-Judge", "LLM-as-a-judge"]
+"07-evaluation/evaluation-stack.md" = ["评估栈", "Evaluation stack"]
+"07-evaluation/metric-robustness.md" = ["指标靠得住吗", "Is the metric robust?"]
+"07-evaluation/llm-as-a-judge/README.md" = ["总览", "Overview"]
+"07-evaluation/llm-as-a-judge/criteria.md" = ["Criterion 怎么写", "Writing criteria"]
+"07-evaluation/llm-as-a-judge/scoring.md" = ["打分方式", "Scoring modes"]
+"07-evaluation/llm-as-a-judge/probability-scores.md" = ["概率加权分数", "Probability scores"]
+"07-evaluation/llm-as-a-judge/bias-and-workflow.md" = ["偏差与稳健流程", "Biases & workflow"]
 "08-model-experience/README.md"                         = ["模型体验", "Model experience"]
 "09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
 "open-source/README.md"                                 = ["总览", "Overview"]
