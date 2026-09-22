@@ -100,7 +100,7 @@ def last_updated(rel_path: str) -> str:
 
 
 def contributors(repo: str):
-    """Everyone who has committed, most recent first.
+    """Everyone who has committed or is credited as a co-author, most recent first.
 
     Tries the GitHub API for avatars (CI has a token and it is the accurate
     source), falls back to `git log` so a local build still works offline.
@@ -116,6 +116,31 @@ def contributors(repo: str):
         counts[key] = counts.get(key, 0) + 1
         if key not in recency or when > recency[key][0]:
             recency[key] = (when, email.strip())
+
+    # AI-assisted and pair-authored commits keep their credit in trailers even
+    # when the primary Git author is the repository owner. Aggregate Claude
+    # model names into one honest "Claude Code" crew member instead of
+    # pretending each model version is a different person.
+    ai_models = set()
+    coauthor_log = git(
+        "log",
+        "--format=%cI%x09%(trailers:key=Co-authored-by,valueonly,separator=%x1f)",
+    )
+    for line in coauthor_log.splitlines():
+        if "\t" not in line:
+            continue
+        when, credits = line.split("\t", 1)
+        for credit in credits.split("\x1f"):
+            match = re.match(r"\s*(.*?)\s*<([^>]+)>\s*$", credit)
+            if not match:
+                continue
+            name, email = match.groups()
+            key = "Claude Code" if "claude" in name.lower() else name.strip()
+            if key == "Claude Code":
+                ai_models.add(name.strip())
+            counts[key] = counts.get(key, 0) + 1
+            if key not in recency or when > recency[key][0]:
+                recency[key] = (when, email.strip())
 
     logins = {}
     for name, (_, email) in recency.items():  # 12345+login@users.noreply.github.com
@@ -153,6 +178,8 @@ def contributors(repo: str):
             "commits": info.get("commits", counts.get(name, 0)),
             "last": when[:10],
             "initial": name[:1].upper(),
+            "kind": "ai" if name == "Claude Code" else "human",
+            "models": sorted(ai_models) if name == "Claude Code" else [],
         })
     return out
 
@@ -1295,7 +1322,7 @@ def hero_html(page) -> str:
         return ""
     zh = page.lang == "zh"
     site = NAV.get("site", {})
-    kicker = f'{site["title_zh"]} · {site.get("author_zh", "")}' if zh else f'{site["title_en"]} · {site.get("author_en", "")}'
+    kicker = site["title_zh" if zh else "title_en"]
     title = site["tagline_zh" if zh else "tagline_en"]
     label = "封面" if zh else "Cover"
     hint = "往下看" if zh else "Scroll to the notes"
@@ -1398,16 +1425,17 @@ def footer_html(page, people, repo, built):
     when = page.updated[:10] if page.updated else built[:10]
     src = f"https://github.com/{repo}/blob/main/{page.src.relative_to(ROOT)}"
     edit = f"https://github.com/{repo}/edit/main/{page.src.relative_to(ROOT)}"
-    chips = []
-    for p in people:
-        av = (f'<img src="{p["avatar"]}" alt="" loading="lazy">' if p["avatar"]
-              else f'<span class="ini">{html.escape(p["initial"])}</span>')
-        inner = (f'{av}<span class="who">{html.escape(p["name"])}</span>'
-                 f'<span class="cnt">{p["commits"]}</span>')
-        chips.append(f'<a class="person" href="{p["url"]}" title="{html.escape(p["name"])} · '
-                     f'{p["commits"]} commits · last {p["last"]}">{inner}</a>'
-                     if p["url"] else f'<span class="person">{inner}</span>')
     zh = page.lang == "zh"
+    portal = page.rel("contributors.html" if zh else "contributors.en.html")
+    contributor_portal = "" if page.url in {"contributors.html", "contributors.en.html"} else f"""
+  <div class="contrib">
+    <a class="contributor-portal" href="{portal}">
+      <span class="portal-orbit" aria-hidden="true"><i></i><b>✦</b></span>
+      <span><strong>{'进入贡献者宇宙' if zh else 'Enter the contributor universe'}</strong>
+      <small>{'看看是谁在轨道里漂着，以及怎样加入' if zh else 'Meet the crew in orbit—and join them'}</small></span>
+      <em aria-hidden="true">→</em>
+    </a>
+  </div>"""
     return f"""
 <footer class="page-foot">
   <div class="foot-meta">
@@ -1418,17 +1446,75 @@ def footer_html(page, people, repo, built):
     <span class="sep">·</span>
     <a href="{edit}">{'提交修改' if zh else 'Suggest an edit'}</a>
   </div>
-  <div class="contrib">
-    <h3>{'贡献者' if zh else 'Contributors'}
-      <small>{'按最近提交排序，自动生成' if zh else 'most recent first, generated at build time'}</small>
-    </h3>
-    <div class="people">{"".join(chips)}</div>
-    <p class="join">{'欢迎参与：改一个错字、补一段解释、加一篇笔记都算。'
-                     if zh else 'Everyone is welcome: a typo fix counts.'}
-      <a href="https://github.com/{repo}/blob/main/CONTRIBUTING.md">{'怎样参与' if zh else 'How to contribute'} &#8594;</a>
-    </p>
-  </div>
+  {contributor_portal}
 </footer>"""
+
+
+def contributor_universe_html(people, page, site):
+    """A build-time crew manifest rendered as floating astronauts and film credits."""
+    zh = page.lang == "zh"
+    owner_login = site.get("owner_login", "")
+    owner_url = site.get("owner_url", "")
+    positions = [
+        (12, 18, 19, -8, -7), (68, 13, 23, -15, 6), (39, 58, 21, -4, -3),
+        (78, 61, 25, -12, 8), (21, 68, 22, -17, 4), (47, 22, 27, -9, -8),
+        (84, 34, 20, -3, 5), (8, 45, 24, -14, -5), (57, 74, 26, -6, 7),
+        (31, 35, 18, -11, 3), (70, 78, 23, -19, -6), (50, 43, 21, -1, 4),
+    ]
+    crew, credits = [], []
+    for index, person in enumerate(people):
+        x, y, duration, delay, tilt = positions[index % len(positions)]
+        login = person.get("login")
+        is_owner = bool(login and login.lower() == owner_login.lower())
+        url = owner_url if is_owner and owner_url else person.get("url")
+        handle = f"@{login}" if login else person["name"]
+        role = (("AI 协作者" if zh else "AI co-pilot") if person.get("kind") == "ai"
+                else ("GitHub 贡献者" if zh else "GitHub contributor"))
+        count = person["commits"]
+        count_label = f"{count} 次提交" if zh else f"{count} commits"
+        if person.get("kind") == "ai":
+            face = '<span class="astro-ai" aria-hidden="true">AI</span>'
+        elif person.get("avatar"):
+            face = f'<img src="{html.escape(person["avatar"], quote=True)}" alt="" loading="lazy">'
+        else:
+            face = f'<span class="astro-ai" aria-hidden="true">{html.escape(person["initial"])}</span>'
+        astronaut = (
+            '<span class="astronaut" aria-hidden="true">'
+            '<i class="astro-pack"></i><i class="astro-arm arm-left"></i>'
+            '<i class="astro-arm arm-right"></i><i class="astro-leg leg-left"></i>'
+            '<i class="astro-leg leg-right"></i><span class="astro-body"><i></i></span>'
+            f'<span class="astro-helmet">{face}</span></span>')
+        body = (f'<span class="crew-handle">{html.escape(handle)}</span>{astronaut}'
+                f'<span class="crew-role">{role} · {count_label}</span>')
+        style = (f'--crew-x:{x}%;--crew-y:{y}%;--crew-duration:{duration}s;'
+                 f'--crew-delay:{delay}s;--crew-tilt:{tilt}deg')
+        title = html.escape(f"{handle} · {role} · {count_label}", quote=True)
+        crew.append((f'<a class="crew-member {person.get("kind", "human")}" href="{html.escape(url, quote=True)}" '
+                     f'style="{style}" title="{title}">{body}</a>')
+                    if url else
+                    f'<div class="crew-member {person.get("kind", "human")}" style="{style}" title="{title}">{body}</div>')
+        credits.append(f'<div class="credit-line"><strong>{html.escape(handle)}</strong>'
+                       f'<span>{role}</span><small>{count_label}</small></div>')
+
+    hint = "移动鼠标改变星流 · 点击船员拜访主页" if zh else "Move to bend the starfield · click a crew member to visit"
+    fin = "未完待续……" if zh else "TO BE CONTINUED…"
+    return f"""
+<section class="contributor-universe" data-contributor-universe>
+  <div class="orbit-stars" aria-hidden="true"></div>
+  <p class="orbit-hint">{hint}</p>
+  <div class="crew-field">{"".join(crew)}</div>
+</section>
+<section class="credit-cinema" aria-label="{'贡献者片尾' if zh else 'Contributor credits'}">
+  <div class="credit-fade credit-fade-top" aria-hidden="true"></div>
+  <div class="credit-roll">
+    <p class="credit-kicker">{'AGI 学习笔记' if zh else 'AGI STUDY NOTES'}</p>
+    <h2>{'本宇宙由以下船员共同推进' if zh else 'MOVED THROUGH ORBIT BY'}</h2>
+    {"".join(credits)}
+    <p class="credit-thanks">{'谢谢每一个认真留下痕迹的人。' if zh else 'Thank you to everyone who left a thoughtful trace.'}</p>
+    <p class="credit-fin">{fin}</p>
+  </div>
+  <div class="credit-fade credit-fade-bottom" aria-hidden="true"></div>
+</section>"""
 
 
 def share_description(page) -> str:
@@ -1491,6 +1577,14 @@ def assemble(page, sections, people, nav, built, template):
                     f'<meta name="twitter:image" content="{escaped_image}">')
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
+    content = page.body
+    if 'data-contributors-universe' in content:
+        content = re.sub(
+            r'<div\s+data-contributors-universe(?:="")?\s*>\s*</div>',
+            contributor_universe_html(people, page, site),
+            content,
+            count=1,
+        )
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
@@ -1518,7 +1612,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{lang_cls}}", lang_cls)
             .replace("{{lang_label}}", "EN" if zh else "中文")
             .replace("{{repo}}", site["repo"])
-            .replace("{{content}}", page.body)
+            .replace("{{content}}", content)
             .replace("{{page_header}}", page_header_html(page))
             .replace("{{page_nav}}", page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))

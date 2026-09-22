@@ -14,11 +14,9 @@ tagline_en  = "From first principles to AI systems that work"
 base_url    = "/cooking-agi"
 origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 
-# The personal homepage this site belongs to. It is the first item of the top bar on every page,
-# so the homepage and the notes read as one site.
-author_zh   = "张天毅"
-author_en   = "Tianyi Zhang"
-author_url  = "/"
+# The notes stand on their own. The maintainer only appears in the contributor universe.
+owner_login = "tianyi-zhang-02"
+owner_url   = "https://tianyi-zhang-02.github.io/"
 
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]
@@ -135,7 +133,7 @@ dir   = "."
 group = "start"
 zh    = "开始"
 en    = "Start here"
-order = ["README.md"]
+order = ["README.md", "contributors.md"]
 
 [[section]]
 dir   = "00-foundations"
@@ -389,6 +387,7 @@ en  = "Templates"
 "07-evaluation/llm-as-a-judge/bias-and-workflow.md" = ["偏差与稳健流程", "Biases & workflow"]
 "08-model-experience/README.md"                         = ["模型体验", "Model experience"]
 "09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
+"contributors.md"                                      = ["贡献者宇宙", "Contributor universe"]
 "open-source/README.md"                                 = ["总览", "Overview"]
 "open-source/nemo-rl/README.md"                         = ["NeMo RL", "NeMo RL"]
 "interview/README.md"                                   = ["使用说明", "How to use"]

@@ -114,6 +114,22 @@
   var active = $(".nav a.active");
   if (active) active.scrollIntoView({ block: "nearest" });
 
+  /* ------------------------------------------------ contributor universe */
+  var universe = $(".contributor-universe");
+  if (universe && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    universe.addEventListener("pointermove", function (e) {
+      var box = universe.getBoundingClientRect();
+      var x = (e.clientX - box.left) / box.width - 0.5;
+      var y = (e.clientY - box.top) / box.height - 0.5;
+      universe.style.setProperty("--star-x", (x * 13).toFixed(2) + "px");
+      universe.style.setProperty("--star-y", (y * 10).toFixed(2) + "px");
+    });
+    universe.addEventListener("pointerleave", function () {
+      universe.style.setProperty("--star-x", "0px");
+      universe.style.setProperty("--star-y", "0px");
+    });
+  }
+
   /* ---------------------------------------------------------- code copy */
   $$(".prose pre").forEach(function (pre) {
     var wrap = document.createElement("div");
