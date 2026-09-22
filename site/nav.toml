@@ -160,6 +160,20 @@ zh  = "实验"
 en  = "Labs"
 
 [[section]]
+dir   = "00-foundations/moe"
+group = "foundations"
+zh    = "MoE"
+en    = "MoE"
+order = ["README.md", "router.md", "load-balancing.md", "fine-grained-and-shared.md", "systems.md", "review.md"]
+
+[[section]]
+dir   = "00-foundations/looped"
+group = "foundations"
+zh    = "Looped Transformer"
+en    = "Looped Transformer"
+order = ["README.md", "why-loops-reason.md", "adaptive-depth.md", "models.md", "costs.md", "review.md"]
+
+[[section]]
 dir = "01-data-and-feedback"
 group = "data-retrieval"
 zh  = "数据与反馈"
@@ -367,3 +381,15 @@ en  = "Templates"
 "EDITORIAL.md"                                          = ["写作规范", "Editorial policy"]
 "papers/README.md"                                      = ["论文笔记", "Paper notes"]
 "templates/paper-note.md"                               = ["论文模板", "Paper template"]
+"00-foundations/moe/README.md"                                   = ["总览", "Overview"]
+"00-foundations/moe/router.md"                                   = ["Router 与 top-k", "Router & top-k"]
+"00-foundations/moe/load-balancing.md"                           = ["负载均衡", "Load balancing"]
+"00-foundations/moe/fine-grained-and-shared.md"                  = ["细粒度与共享专家", "Fine-grained & shared"]
+"00-foundations/moe/systems.md"                                  = ["系统代价", "System cost"]
+"00-foundations/moe/review.md"                                   = ["复习题", "Review"]
+"00-foundations/looped/README.md"                                = ["总览", "Overview"]
+"00-foundations/looped/why-loops-reason.md"                      = ["为什么有助于推理", "Why it helps reasoning"]
+"00-foundations/looped/adaptive-depth.md"                        = ["自适应深度", "Adaptive depth"]
+"00-foundations/looped/models.md"                                = ["Huginn · Ouro · MoR", "Huginn · Ouro · MoR"]
+"00-foundations/looped/costs.md"                                 = ["代价与局限", "Costs & limits"]
+"00-foundations/looped/review.md"                                = ["复习题", "Review"]

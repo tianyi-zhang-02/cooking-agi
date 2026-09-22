@@ -83,6 +83,8 @@ topics = [
   { zh = "MHA → GQA → MQA → MLA", en = "MHA → GQA → MQA → MLA", note = "00-foundations/transformer-lab.md", anchor = "tx-kv-heads" },
   { zh = "RoPE 与位置编码", en = "RoPE and position encoding", note = "00-foundations/transformer-lab.md", anchor = "tx-rope" },
   { zh = "MoE", en = "Mixture of experts", note = "00-foundations/transformer-lab.md", anchor = "tx-moe" },
+  { zh = "MoE：router、负载均衡与系统代价", en = "MoE: routing, load balancing, system cost", note = "00-foundations/moe/review.md" },
+  { zh = "Looped Transformer 与自适应深度", en = "Looped Transformers and adaptive depth", note = "00-foundations/looped/review.md" },
   { zh = "FlashAttention 与 sliding window", en = "FlashAttention and sliding windows", note = "00-foundations/transformer-lab.md", anchor = "tx-flash" },
   { zh = "不同模型家族的架构差异", en = "How model families differ", note = "00-foundations/transformer-lab.md", anchor = "tx-arch" },
 ]

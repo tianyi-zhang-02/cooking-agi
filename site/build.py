@@ -349,6 +349,11 @@ TX_LAB = [
     ("tx-flash", "FlashAttention：attention 矩阵放在哪里", "FlashAttention: where the attention matrix lives"),
     ("tx-rlhf", "RLHF 一步一步：三个阶段，四个模型", "RLHF step by step: three stages, four models"),
     ("tx-ppo-clip", "PPO clipping：拖动 ρ，看它什么时候停止鼓励", "PPO clipping: drag ρ and watch when the encouragement stops"),
+    ("tx-moe-router", "MoE router：一个 token 怎样选 expert", "MoE router: how one token picks its experts"),
+    ("tx-moe-balance", "负载均衡：不做、辅助 loss、只调 bias", "Load balancing: none, auxiliary loss, bias only"),
+    ("tx-loop-unroll", "循环：同一个 block 重复用 L 次", "Looping: one block reused L times"),
+    ("tx-loop-reach", "多跳：每过一遍多走一跳", "Multi-hop: one more link per pass"),
+    ("tx-loop-exit", "自适应深度：每个 token 自己决定转几圈", "Adaptive depth: each token decides when to stop"),
 ]
 for _name, _zh, _en in TX_LAB:
     WIDGETS[_name] = f"""

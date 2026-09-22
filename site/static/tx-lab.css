@@ -281,3 +281,24 @@ svg text{font-family:var(--sans),var(--cjk)}
 .tx-lab .pc-push{stroke:var(--link);stroke-width:2}
 .tx-lab .pc-pushhead{fill:var(--link)}
 .tx-lab .pc-note{font-size:11px;font-weight:650;fill:var(--link)}
+/* 11 MoE router */
+.tx-lab .mr-bar{fill:var(--tx-line-strong);opacity:.55}
+.tx-lab .mr-bar.on{fill:var(--c-k);opacity:1}
+.tx-lab .mr-formula{font-family:var(--mono);font-weight:600}
+/* 12 load balancing */
+.tx-lab .mb-bar{fill:var(--c-q)}
+.tx-lab .mb-over{fill:var(--c-k);opacity:.55}
+.tx-lab .mb-cap{stroke:var(--c-k);stroke-width:1.4;stroke-dasharray:6 4}
+.tx-lab .mb-frame{fill:none;stroke:var(--rule)}
+/* 13 loop unroll */
+.tx-lab .lu-layer{fill:var(--c-q-soft);stroke:var(--c-q);stroke-width:1.1}
+.tx-lab .lu-emb{fill:var(--c-v-soft);stroke:var(--c-v);stroke-width:1.1}
+.tx-lab .lu-inj{stroke:var(--c-v);stroke-width:1.4;stroke-dasharray:4 3}
+/* 14 multi-hop reach */
+.tx-lab .lr-node{fill:var(--code-bg);stroke:var(--tx-line-strong);stroke-width:1.4}
+.tx-lab .lr-node.on{fill:var(--c-q);stroke:var(--c-q)}
+.tx-lab .lr-node.goal{stroke:var(--c-k);stroke-width:2.4}
+/* 15 adaptive exit */
+.tx-lab .le-cell{fill:var(--code-bg);stroke:var(--rule);stroke-width:1}
+.tx-lab .le-cell.on{fill:var(--c-q);stroke:none}
+.tx-lab .le-cell.exit{stroke:var(--link);stroke-width:2}
