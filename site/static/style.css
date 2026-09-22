@@ -1498,17 +1498,6 @@ body { background: transparent; }
   animation:sky-breathe 9s ease-in-out infinite alternate;
 }
 @keyframes sky-breathe{from{opacity:.35}to{opacity:1}}
-.sky-moon{                      /* a dark disc lit along one edge, the way Moonshot's eclipse ring is */
-  position:absolute;right:clamp(24px,7vw,120px);bottom:clamp(120px,22vh,260px);
-  width:clamp(110px,13vw,176px);height:clamp(110px,13vw,176px);border-radius:50%;
-  opacity:var(--moon);
-  background:radial-gradient(circle at 42% 40%,#141a33 0,#0a0d1c 58%,#080a17 100%);
-  box-shadow:
-    inset -.9em -.55em 1.6em rgba(226,232,255,.62),
-    inset .4em .3em 1.2em rgba(0,0,0,.35),
-    0 0 40px rgba(190,205,255,.16),
-    0 0 120px rgba(160,180,255,.10);
-}
 .sky-horizon{                   /* a little light left along the ridge line */
   position:absolute;left:0;right:0;bottom:0;height:clamp(140px,26vh,320px);
   background:linear-gradient(to top,var(--sky-horizon),transparent);
@@ -1516,6 +1505,21 @@ body { background: transparent; }
 .sky-ridge{position:absolute;left:0;right:0;bottom:0}
 .sky-ridge-far{height:clamp(64px,13vh,150px);clip-path:polygon(0 100%, 0 62%, 6% 54%, 11% 60%, 17% 44%, 22% 52%, 28% 36%, 33% 47%, 39% 30%, 45% 42%, 52% 22%, 57% 35%, 63% 12%, 66.5% 0, 70% 16%, 76% 30%, 82% 20%, 88% 38%, 94% 28%, 100% 40%, 100% 100%);background:var(--ridge-far)}
 .sky-ridge-near{height:clamp(40px,8vh,96px);clip-path:polygon(0 100%, 0 78%, 7% 70%, 13% 77%, 20% 62%, 27% 72%, 34% 58%, 41% 70%, 48% 55%, 56% 68%, 64% 52%, 71% 64%, 79% 50%, 86% 63%, 93% 56%, 100% 66%, 100% 100%);background:var(--ridge-near)}
-@media (max-width:760px){.sky-moon{right:6vw;bottom:clamp(110px,18vh,200px);width:96px;height:96px}}
 @media (prefers-reduced-motion:reduce){.sky-stars::after{animation:none;opacity:.7}}
 @media print{.sky-backdrop{display:none}}
+
+/* -------- home hero: the 1-bit dithered moon (same picture as the homepage cover) --- */
+.page-home .article-head { min-height: 27rem; padding-right: clamp(9rem, 34%, 22rem); }
+.page-home .article-head::after {
+  content: ""; position: absolute; right: -2%; top: 50%; width: min(52%, 24rem); aspect-ratio: 1;
+  transform: translateY(-52%) rotate(0);
+  background: url("moon.png") center / contain no-repeat; image-rendering: pixelated;
+  opacity: .92; pointer-events: none; font: 0/0 a;
+}
+:root[data-theme="light"] .page-home .article-head::after { filter: invert(1); opacity: .8; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .page-home .article-head::after { filter: invert(1); opacity: .8; } }
+.page-home .article-head h1 { position: relative; z-index: 1; word-break: keep-all; overflow-wrap: normal; }
+@media (max-width: 620px) {
+  .page-home .article-head { padding-right: 1.1rem; }
+  .page-home .article-head::after { width: 62%; right: -16%; top: 34%; opacity: .55; }
+}
