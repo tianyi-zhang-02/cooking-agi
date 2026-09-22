@@ -30,6 +30,7 @@
 
 - [技术面：怎么用这一组笔记](../interview/README.md) —— 基础题、白板手写、ML 数学主线，以及可以动手玩的 Transformer 图解
 - [LeetCode 怎么刷](../interview/leetcode.md) —— 刷什么、怎么刷、刷到什么程度就够
+- [系统设计](../interview/system-design.md) —— 没有固定公式，关键是讲清 trade-off；附公开资源
 
 技术放在最后是故意的：技术往往是最次要的那一层，先想清楚自己要什么、开心最重要 :)
 

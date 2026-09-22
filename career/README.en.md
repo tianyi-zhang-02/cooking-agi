@@ -30,6 +30,7 @@ Ordered by what I think matters most.
 
 - [Tech interviews: how to use these notes](../interview/README.en.md) — interview basics, whiteboard coding, the ML maths line, and an interactive Transformer lab
 - [How I practise LeetCode](../interview/leetcode.en.md) — what to practise, how, and how far to take it
+- [System design](../interview/system-design.en.md) — no fixed formula; it is about explaining trade-offs, plus public resources
 
 The technical part comes last on purpose: technique is usually the least important layer. Work out what you want first, and be happy :)
 

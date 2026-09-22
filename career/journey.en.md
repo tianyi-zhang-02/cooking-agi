@@ -56,6 +56,10 @@ It does. Many small and mid-size companies do not sponsor, so I got almost no in
 
 On career development I don't have much standing: I don't know what any company's culture is really like, and I can't judge a company through its interview process. That said, some companies' interviewers really were something else 😂
 
+As for picking an industry, my own view is: **pick one you actually like, and don't chase whatever is hot.** What is hot is not right for everyone :)
+
+The upside of the industry itself does matter, of course. But there is genuinely no fixed answer here.
+
 ## Next
 
 - [A retrospective on one MLE interview](one-interview.en.md): an interview right after coming back from my internship, written while it was fresh

@@ -12,6 +12,10 @@ Technical interviews look like a grab bag, but most of them keep asking the same
 
 - [How I practise LeetCode](leetcode.en.md) — what to practise, my routine, the list of question types, and how far to take it
 
+## System design
+
+- [System design](system-design.en.md) — no fixed formula, it is about trade-offs; public resources, plus a recommendation example
+
 ## A quick run-through before the interview
 
 These pages cover the same knowledge as the “Learn” side, presented differently: there it is explained in full and you can play with it; here only the questions and answers are left, for the night before. The overlap is deliberate.
