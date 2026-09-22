@@ -77,9 +77,7 @@
   var root = document.documentElement;
   var themeBtn = $(".icon-btn.theme");
   if (themeBtn) themeBtn.addEventListener("click", function () {
-    var dark = root.dataset.theme
-      ? root.dataset.theme === "dark"
-      : matchMedia("(prefers-color-scheme: dark)").matches;
+    var dark = root.dataset.theme !== "light";   // the site is dark unless light is pinned
     root.dataset.theme = dark ? "light" : "dark";
     localStorage.setItem("theme", root.dataset.theme);
     window.dispatchEvent(new CustomEvent("themechange"));
