@@ -11,6 +11,8 @@
   if (!canvas || !canvas.getContext) return;
   var ctx = canvas.getContext('2d', { alpha: false });
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var crewPage = document.body.classList.contains('page-crew');
+  var crewPaused = false;
 
   function rng(seed) {                       // deterministic: every visit is the same sky
     var s = seed >>> 0;
@@ -220,17 +222,25 @@
     if (now - last < every) return;
     last = now; draw(now);
   }
-  function start() { if (handle == null && !reduced && !document.hidden) handle = requestAnimationFrame(frame); }
+  function start() { if (handle == null && !reduced && !crewPaused && !document.hidden) handle = requestAnimationFrame(frame); }
   function stop() { if (handle != null) { cancelAnimationFrame(handle); handle = null; } }
 
   resize();
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+  window.addEventListener('crew-motion', function (event) {
+    crewPaused = event.detail.paused;
+    crewPaused ? stop() : start();
+  });
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function (event) {
+    reduced = event.matches;
+    reduced ? stop() : start();
+  });
   start();
 
   // the sky is the whole hero; once the reader is into the content it steps back
   var hero = document.querySelector('.hero');
-  if (!hero) document.documentElement.classList.add('sky-back');    // a reading page: the sky stays back
+  if (!hero && !crewPage) document.documentElement.classList.add('sky-back');
   if (hero && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       document.documentElement.classList.toggle('sky-back', !entries[0].isIntersecting);

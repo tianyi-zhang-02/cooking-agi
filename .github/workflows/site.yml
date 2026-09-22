@@ -8,6 +8,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 1 * * *'
 
 permissions:
   contents: read
@@ -54,7 +56,7 @@ jobs:
   deploy:
     needs: build
     # only main deploys; a PR build is validation, not a release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
