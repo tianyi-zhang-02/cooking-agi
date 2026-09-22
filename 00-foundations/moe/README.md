@@ -13,21 +13,21 @@
 
 ## 一个 dense block 的参数大多在 FFN
 
-一个 Transformer block 里有两样东西：attention 和 FFN。FFN 大约占一个 block 三分之二的参数，而且**每个 token 都要把 FFN 的全部参数算一遍**。前向时每个参数大约贡献 2 次浮点运算，所以 dense 模型的参数量和每个 token 的计算量是绑死的：想要更多参数，就得付更多计算。
+一个 Transformer block 就两块：attention 和 FFN。FFN 占了其中大约三分之二的参数，而且**每个 token 都要把这些参数从头到尾算一遍**。前向一次，每个参数折合大约 2 次浮点运算——在 dense 模型里，参数量和每个 token 的计算量就这样绑在了一起：想多加参数，就得多付计算。
 
 ## MoE 把 FFN 换成 N 个 expert
 
-Mixture-of-Experts（MoE）层把这一个 FFN 换成 $N$ 个形状相同的 expert FFN，再加一个很小的 router。每个 token 只被送到 router 打分最高的 $k$ 个 expert，输出是它们的加权和：
+MoE 层把这一个 FFN 拆成 $N$ 个形状一样的 expert FFN，前面加一个很小的 router。每个 token 只去打分最高的 $k$ 个 expert，输出是它们的加权和：
 
 $$y = \sum_{i \in \mathrm{TopK}(x)} g_i(x)\, E_i(x)$$
 
-attention、embedding 和 norm 都不变，仍然是所有 token 共用。
+attention、embedding、norm 都不动，还是所有 token 共用一份。
 
 <!-- widget:tx-moe -->
 
 ## 总参数和激活参数
 
-总参数随 $N$ 增长，每个 token 的计算只随 $k$ 增长。几个公开模型的官方数字：
+总参数跟着 $N$ 涨，每个 token 的计算只跟着 $k$ 涨。几个公开模型的官方数字：
 
 | 模型 | 每层 expert | 每个 token 走几个 | 总参数 | 激活参数 |
 | --- | --- | --- | --- | --- |
@@ -36,16 +36,16 @@ attention、embedding 和 norm 都不变，仍然是所有 token 共用。
 | Qwen3-235B-A22B | 128 | 8 | 235B | 22B |
 | gpt-oss-120b | 128 | 4 | 116.8B | 5.1B |
 
-Mixtral 8x7B 不是 56B：被复制成 8 份的只有 FFN，attention 和 embedding 只有一份，所以总参数是 46.7B。
+Mixtral 8x7B 不是 56B：复制成 8 份的只有 FFN，attention 和 embedding 各只有一份，加起来 46.7B。
 
 ## 稀疏省的是计算，不是显存
 
-任何一个 token 都可能被分到任何一个 expert，所以**全部 expert 都得放在显存里**（或者分片放在多张卡上）。显存看的是总参数，每个 token 的计算看的是激活参数。这也是 MoE 在部署时的主要代价，后面单独讲。
+哪个 token 去哪个 expert，事先并不知道，所以**全部 expert 都得待在显存里**（或者分片摊在多张卡上）。显存按总参数算，计算按激活参数算。这是 MoE 部署时最主要的代价，后面单独有一篇讲。
 
 ## 这一组怎么读
 
-1. [Router 怎样选 expert](router.md)：打分、top-k、归一化，以及为什么早期要加噪声（可以动手点）
-2. [负载均衡](load-balancing.md)：不管它就会塌缩；辅助 loss、capacity 和只调 bias 的办法（可以动手跑）
+1. [Router 怎样选 expert](router.md)：打分、top-k、归一化，以及早期为什么要加噪声（图能点）
+2. [负载均衡](load-balancing.md)：放着不管就会塌缩；辅助 loss、capacity，以及只调 bias 的办法（图能自己跑）
 3. [细粒度专家与共享专家](fine-grained-and-shared.md)：DeepSeekMoE 的两个改动，以及各家怎么选
 4. [训练和推理的系统代价](systems.md)：expert parallelism、all-to-all、显存和解码
 5. [复习题](review.md)：面试题和自检
