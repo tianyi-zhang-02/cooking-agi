@@ -1409,7 +1409,7 @@ html.lang-zh .hero-title { font-weight: 600; letter-spacing: -.01em; }
 @media (prefers-reduced-motion: reduce) { .hero-kicker, .hero-title, .hero-scroll, .hero-scroll span { animation: none; } }
 @media print { .hero, .sky { display: none; } }
 
-/* the finish: one radius, hairlines instead of shadows, no warm tints */
+/* the finish: one radius, hairlines instead of shadows; colour is set in the dawn block below */
 .lesson-recipe, .lesson-recipe > div, .taste-check, .widget, .page-glossary details, .rail-inner, .article-body .table-wrap,
 .article-body details, .article-body pre, .roadmap, .cat-card, .kb-card, .viz-card, .thread-card, .stack-layer, .rm-mod,
 .qb-tools, .ro, .calc, .seg, .concept-card, .mobile-toc, .page-turn a { border-radius: 8px !important; box-shadow: none !important; }
@@ -1419,3 +1419,82 @@ html.lang-zh .hero-title { font-weight: 600; letter-spacing: -.01em; }
 .prose a:hover { text-decoration-color: var(--ink); }
 .article-head h1, .prose h2, .prose h3, .block-title, .rm-track-name, .cat-card strong, .kb-area-name strong { letter-spacing: -.02em; font-weight: 600; }
 .article-body blockquote::before { display: none; }
+
+/* ======================================================================
+   Dawn. Black on white was tiring to read for long: the whole palette is
+   warmed a step towards first light (a warm near-black, unbleached ink, an
+   amber accent), the leading and margins are opened up, and a low sunrise
+   glow sits under long pages. Colour lives here; the block above only sets
+   radii and hairlines.
+   ====================================================================== */
+:root {
+  --paper: #0C0A08; --panel: #14110E;
+  --ink: #EFE6DA; --ink-soft: #D6CCBF; --muted: #A59A8C; --faint: #6F665C;
+  --rule: #27221D; --rule-soft: #1B1714;
+  --link: #F2C39A; --link-hover: #FFD9B8;
+  --ember: #E8A672; --ember-bg: rgba(232, 166, 114, .10);
+  --code-bg: #17130F; --mark: rgba(242, 195, 154, .22);
+}
+:root[data-theme="light"] {
+  --paper: #FBF7F1; --panel: #FFFDFA;
+  --ink: #221C16; --ink-soft: #3F362D; --muted: #766B5F; --faint: #A3978B;
+  --rule: #E8DFD3; --rule-soft: #F1EAE0;
+  --link: #B4602A; --link-hover: #8F4A1E;
+  --ember: #C46A2B; --ember-bg: rgba(196, 106, 43, .10);
+  --code-bg: #F3EDE4; --mark: rgba(196, 106, 43, .16);
+}
+html.sky-back::after {
+  content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 42vh; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 62% 58% at 16% 108%, rgba(255, 168, 96, .17), rgba(255, 168, 96, 0) 70%),
+    linear-gradient(to top, rgba(236, 150, 88, .09), rgba(236, 150, 88, .03) 48%, rgba(236, 150, 88, 0));
+}
+:root[data-theme="light"].sky-back::after { display: none; }
+.hero-kicker { color: #D9CFC3; }
+.hero-title { color: #F7F1E8; }
+
+/* reading rhythm */
+body { line-height: 1.85; }
+html.lang-zh body { letter-spacing: .012em; }
+.shell { gap: 0 3.25rem; }
+main { padding: 2.6rem 0 6rem; }
+.prose { max-width: 42rem; }
+.prose p { margin: 0 0 1.35rem; }
+.prose > p:first-of-type { font-size: 1.1rem; line-height: 1.8; }
+.prose h2 { font-size: 1.45rem; line-height: 1.3; margin: 3.4rem 0 1.1rem; padding-top: 1.4rem; }
+.prose h3 { font-size: 1.12rem; margin: 2.4rem 0 .7rem; }
+.prose h4 { margin: 1.8rem 0 .5rem; }
+.prose ul, .prose ol { margin: 0 0 1.4rem; padding-left: 1.5rem; }
+.prose li { margin-bottom: .55rem; }
+.prose li > ul, .prose li > ol { margin: .5rem 0 .3rem; }
+.prose blockquote { margin: 1.7rem 0; padding: .25rem 0 .25rem 1.2rem; border-left: 2px solid color-mix(in srgb, var(--ember) 60%, transparent); }
+.prose hr { margin: 3.2rem 0; }
+.prose pre { padding: 1.1rem 1.2rem; margin: 1.7rem 0; font-size: .84rem; line-height: 1.7; }
+.prose table { font-size: .9rem; }
+.prose th { padding: .55rem .8rem; }
+.prose td { padding: .62rem .8rem; }
+.prose figure, .prose p > img { margin: 2rem 0; }
+.prose details { margin: 1.7rem 0; }
+.prose details > summary { padding: .8rem 1rem; line-height: 1.5; }
+.prose details > *:not(summary) { margin-left: 1rem; margin-right: 1rem; }
+.prose details > *:nth-child(2) { margin-top: 1rem; }
+.prose details > *:last-child { margin-bottom: 1rem; }
+.katex-display { margin: 1.5rem 0; padding: .7rem 0; }
+.lesson-recipe { margin: 2rem 0 2.6rem; }
+.lesson-recipe > div { padding: 1rem 1.1rem 1.05rem 1.25rem; min-height: 5.6rem; }
+.lesson-recipe > div::before { background: color-mix(in srgb, var(--ember) 70%, transparent); }
+.lesson-recipe span { margin-bottom: .4rem; }
+.lesson-recipe strong { font-size: .92rem; line-height: 1.55; font-weight: 500; }
+.taste-check { margin: 1.8rem 0 2.2rem; padding: 1.05rem 1.15rem 1rem 1.3rem; }
+.taste-check li { margin-bottom: .45rem; line-height: 1.65; }
+.article-head { margin-bottom: 2.4rem; }
+
+/* quieter chrome around the text */
+.side { padding: 2rem .75rem 3rem 0; }
+.nav .sec > ul > li > a { padding: .3rem .55rem .3rem .75rem; font-size: .84rem; line-height: 1.5; color: var(--muted); }
+.nav .sec > ul > li > a:hover { color: var(--ink); }
+.nav .sec { margin-bottom: 1rem; }
+.rail { padding: 2.6rem 0 3rem; }
+.toc li a { padding: .28rem 0 .28rem .75rem; font-size: .78rem; line-height: 1.45; }
+.toc li.l3 { display: none; }
+.topbar { border-bottom-color: var(--rule-soft); }
