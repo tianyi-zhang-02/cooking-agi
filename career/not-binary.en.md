@@ -24,18 +24,16 @@ There are countless businesses in the world and countless possibilities. Do what
 
 **Everybody is playing a different game.** Some people are happy grinding for a big package in a brightly lit office; others would rather drive a small car, have a drink with friends, go out to shoot photos and surf. Neither life is wrong; both are personal choices.
 
-## Work out what you actually want
-
-What is the job for? To work on harder problems at the frontier, or something else? What is the goal in the end?
-
-If that question never gets an answer, it is easy to stop one day, look back, and find yourself lost. And how thick your wallet is does not depend only on how hard you grind — tech built a system that makes it feel like more effort always buys a step up the ladder, and that mindset is hard to shake.
-
 ## What to do when you fail an interview
 
 Failing interviews is normal, I think. Learn from your mistakes, don't let them happen again, and that is enough.
 
 People have limits too; nobody can cover everything. I believe everyone gradually finds what they are good at and the direction that suits them :) Don't let it weigh on you. Life is meant to be enjoyed.
 
-## Work out what you want (continued)
+## Work out what you actually want
+
+What is the job for? To work on harder problems at the frontier, or something else? What is the goal in the end?
+
+If that question never gets an answer, it is easy to stop one day, look back, and find yourself lost. And how thick your wallet is does not depend only on how hard you grind — tech built a system that makes it feel like more effort always buys a step up the ladder, and that mindset is hard to shake.
 
 So: work out what you need, do what you enjoy, and be as happy as you can. **The job search is only one part of it.**
