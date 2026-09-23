@@ -4,10 +4,10 @@
 
 <h1>AGI 学习笔记</h1>
 
-**从基础开始，一起学懂 AI**
+**我的 AI 学习笔记，也欢迎你来补充。**
 
-这里记录我学习 AI 时整理的知识、读过的论文，以及准备面试时的思考。<br>
-有基础原理，也有可以动手试的交互图。欢迎一起看、一起讨论。
+学过的基础、读过的论文，还有准备找工作时的一些记录。<br>
+中英文都有，部分内容配了可以动手玩的交互图。
 
 [![在线阅读](https://img.shields.io/badge/在线阅读-cooking--agi-E8A672?style=flat-square)](https://tianyi-zhang-02.github.io/cooking-agi/)
 [![build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
@@ -22,43 +22,36 @@
 
 ---
 
-## 为什么写这些
+## 关于这份笔记
 
-学 AI 的时候，我经常遇到一种情况：单看一个概念好像懂了，换到论文或代码里，又说不清它到底在做什么。于是我开始边学边记，试着把这些零散的知识连起来。
+去年开始，我决定试试 industry。之前本科基本都在做科研，真正开始准备找工作，才发现有不少东西要补。准备了挺久，也走了一些弯路，所以想把学过的东西整理出来，方便自己回头看，也希望能帮到有类似需要的人。
 
-我比较关注 representation learning、LLM post-training 和 model / agent evaluation。读论文或做实验时，我常会问：模型从什么信号里学到了东西？一个分数变高了，实际表现是不是也更好了？
+内容主要围绕 ML 和 language models，包括基础原理、post-training、evaluation 和论文笔记，也有我的面试准备方法和找工过程中的一些想法。
 
-这里尽量先用例子把问题讲明白，再看公式和代码。既会介绍现在常用的方法，也会回头看看早期模型，理解一些设计是怎么来的。
+如果你在找 ML 相关的实习或 new-grad 岗位，或者想转到 ML / LLM 方向，可以按需看看。不找工作、只是对这些东西感兴趣，也欢迎。
 
-这些都只是我目前的理解，有些章节还没写完，也难免有讲错的地方。我会继续补充，也欢迎你来挑错。
+我的准备和面试经历主要集中在 MLE 和 Research Scientist 岗位，不太适合给 SDE 面试建议。AI infra 等我还不熟悉的方向，会整理一些自己觉得不错的资料，方便大家去看更有经验的人怎么讲。
 
-## 从哪里开始
+这里不是面经题库，不会放具体公司的面试题，主要分享我怎么学、怎么准备。很多章节还没写完，也不保证所有理解都对，大家按自己的情况参考就好。
 
-| 想看什么 | 可以从这里开始 |
-| --- | --- |
-| 系统地学一遍 | [大模型基础](00-foundations/)，按板块往下读；[Transformer 交互图解](00-foundations/transformer-lab.md)里的图能直接拖 |
-| 看懂不同模型为什么这样设计 | [模型家族精读](00-foundations/model-families/)：用同一组问题比较 Llama、Qwen、DeepSeek、Gemma |
-| 准备面试 | [技术面](interview/)用来复习基础；[求职笔记](career/)记录我的准备方法和心态变化 |
-| 读一篇论文 | [论文](papers/)：作者提出了什么结论、证据够不够、怎样检验 |
-| 知道谁写的 | [幕后](contributors.md) |
-
-## 里面有什么
+## 可以看些什么
 
 | 板块 | 讲什么 |
 | --- | --- |
-| [大模型基础](00-foundations/) | 从线性模型到 Transformer：注意力、归一化、残差、MoE、looped transformer |
+| [大模型基础](00-foundations/) | 从 Tokenization、RNN / LSTM 到 Transformer，也有 MoE 和不同模型家族的介绍 |
 | [Post-training](05-post-training/) | SFT、RLHF、PPO 等方法怎么做，又各自适合什么情况 |
 | [评估](07-evaluation/) | 怎么设计评估、理解指标，以及用 LLM-as-a-judge 辅助判断 |
 | [数据与检索](01-data-and-feedback/) | 数据从哪儿来、反馈怎么收、检索怎么建 |
 | [系统与多模态](06-systems/) | 一次请求经过哪些环节，怎么排查问题，什么时候需要人来确认 |
 | [Agents](10-agents/) | 这个词的来历、几种结构、不同场景，以及模型怎么选 |
 | [AI Infra](open-source/) | 在 NeMo RL 里做贡献：从具体改动出发，逐步看懂整套系统 |
-| [求职](career/) | 心态、要准备什么、我自己的时间线和复盘 |
+| [面试准备](interview/) | ML 基础复习、代码练习和系统设计资料 |
+| [求职](career/) | 我的准备过程、踩过的坑，以及心态上的一些变化 |
 | [论文](papers/) | 记录读论文时的理解、疑问和实验思路 |
 
-交互图（Transformer、KV cache、MoE 路由、PPO 裁剪、吃豆人迷宫、模型路由……）都在 [`site/static/tx-lab.js`](site/static/tx-lab.js) 里，手写 SVG，没用图表库。
+建议在[网站](https://tianyi-zhang-02.github.io/cooking-agi/)上阅读，可以切换中英文，也能直接操作交互图。如果想先随便看看，可以从 [Transformer 图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html)开始。
 
-## 站点怎么跑
+## 本地运行
 
 想在本地打开网站，可以运行下面的命令。网站是静态的，用 Python 脚本生成：
 
@@ -77,10 +70,10 @@ python3 site/leakcheck.py        # 不该公开的东西有没有混进来
 
 ## 加入我们！
 
-如果你也在学这些，欢迎来聊聊！哪段看不懂、哪里写错了，或者有想了解的话题，都可以提 issue。有更好的例子或自己的学习笔记，也欢迎分享。
+发现错误、哪段没看懂，或者有想看的内容，都欢迎提 issue。有自己的笔记或更好的例子，也欢迎提 PR，我也想跟着大家多学一点。
 
-想直接修改内容，可以提 PR；具体怎么操作，见[贡献指南](CONTRIBUTING.md)。
+怎么参与可以看[贡献指南](CONTRIBUTING.md)，参与过的朋友会出现在[幕后](contributors.md)。
 
-[幕后](https://tianyi-zhang-02.github.io/cooking-agi/contributors.html)记录了参与过的朋友。想在地图上也留下一个位置，可以[告诉我们你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不用提供具体地址。
+想在贡献者地图上留下一个位置，也可以[告诉我你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不用提供具体地址。
 
 这里分享公开的技术知识和学习心得，请不要上传公司内部资料、未公开的面试内容或其他敏感信息。
