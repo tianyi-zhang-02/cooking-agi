@@ -1453,6 +1453,10 @@ def footer_html(page, people, repo, built):
 
 
 def contributor_universe_html(people, page, site):
+    """The contributors page: everyone who has touched the notes, drifting as 1-bit tiles.
+
+    Avatars are dithered to two colours in the browser (static/app.js), so the page keeps
+    the same black-and-white language as the sky it floats in."""
     zh = page.lang == "zh"
     crew, manifest = [], []
     today = datetime.now(timezone.utc).date()
@@ -1465,71 +1469,25 @@ def contributor_universe_html(people, page, site):
         role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
                 else ("笔记与代码" if zh else "Notes & code"))
         title = html.escape(person["name"])
-        face = (f'<image href="{html.escape(person["avatar"], quote=True)}" x="43" y="22" '
-                f'width="35" height="34" opacity=".65" preserveAspectRatio="xMidYMid slice" clip-path="url(#face-{index})"/>'
-                if person.get("avatar") else
-                '<path d="M51 39h18m-9-9v18m-6-15 12 12m0-12L54 45" fill="none" stroke="#e2c39a" stroke-width="1.4"/>')
-        astronaut = f"""
-<svg class="astronaut" viewBox="0 0 120 160" aria-hidden="true">
-  <defs>
-    <linearGradient id="suit-{index}" x1="0" x2="1" y2=".8">
-      <stop stop-color="#fff9ed"/><stop offset=".45" stop-color="#d9d9d3"/><stop offset="1" stop-color="#8d979d"/>
-    </linearGradient>
-    <radialGradient id="glass-{index}" cx=".3" cy=".2" r=".85">
-      <stop stop-color="#627c89"/><stop offset=".45" stop-color="#253944"/><stop offset="1" stop-color="#080f18"/>
-    </radialGradient>
-    <clipPath id="face-{index}"><rect x="43" y="22" width="35" height="34" rx="16"/></clipPath>
-  </defs>
-  <g stroke="#53616b" stroke-width="1.2" stroke-linejoin="round">
-    <rect x="32" y="58" width="52" height="47" rx="9" fill="#7d8789"/>
-    <rect x="27" y="64" width="10" height="33" rx="4" fill="#b6bdbb"/>
-    <g class="astro-limb astro-arm-left" fill="url(#suit-{index})">
-      <path d="M40 65q-11-7-16 4L13 88q-5 8 2 13 7 4 12-4l17-19Z"/>
-      <path d="m17 86 12 7m-15-1 10 6" fill="none" stroke="#78858a"/>
-      <path d="m15 98-4 5q-4 8 3 10 6 2 9-6l3-7" fill="#e0dfd6"/>
-    </g>
-    <g class="astro-limb astro-arm-right" fill="url(#suit-{index})">
-      <path d="M77 65q11 4 16-6l8-18q3-8-4-10-8-2-11 7l-7 13-7 9Z"/>
-      <path d="m88 42 12 5m-10-10 11 4" fill="none" stroke="#78858a"/>
-      <path d="m90 33 1-10q0-7 5-6 4 1 4 7l4-1q5 2 1 11l-4 5" fill="#e0dfd6"/>
-    </g>
-    <g class="astro-limb astro-leg-left" fill="url(#suit-{index})">
-      <path d="m43 99-8 19-8 17q-2 7 5 9 7 1 10-6l16-29Z"/>
-      <path d="m30 128 14 6m-12-12 15 6" fill="none" stroke="#78858a"/>
-      <path d="m28 136-8 6q-6 7 1 9l15-1 6-11" fill="#919ea3"/>
-    </g>
-    <g class="astro-limb astro-leg-right" fill="url(#suit-{index})">
-      <path d="m60 103 7 24 15 10q6 4 11-1 4-6-3-11l-11-9-6-20Z"/>
-      <path d="m68 125 10-12m-6 16 10-12" fill="none" stroke="#78858a"/>
-      <path d="m84 125 13 2q10 5 5 11l-7 8-13-10" fill="#919ea3"/>
-    </g>
-    <path d="M42 57q15-6 32 0l5 34q2 14-13 18l-21-1q-12-2-10-16Z" fill="url(#suit-{index})"/>
-    <path d="M37 94q20 7 40-1" fill="none" stroke="#849296" stroke-width="3"/>
-    <rect x="44" y="70" width="24" height="18" rx="4" fill="#647580"/>
-    <rect x="48" y="74" width="10" height="5" rx="1" fill="#a8c0c3" stroke="none"/>
-    <circle cx="63" cy="76" r="2" fill="#e4b178" stroke="none"/>
-    <path d="M49 83h12" stroke="#cbd4d2"/>
-    <path d="M70 82q15 9 12 19t-16 8" fill="none" stroke="#c4b596" stroke-width="3"/>
-    <ellipse cx="59" cy="37" rx="30" ry="29" fill="url(#suit-{index})"/>
-    <rect x="39" y="18" width="42" height="41" rx="20" fill="url(#glass-{index})" stroke="#b9aa8d" stroke-width="2"/>
-    {face}
-    <path d="M45 28q7-8 20-5" stroke="#e2f1eb" stroke-width="2.6" stroke-opacity=".6" fill="none" stroke-linecap="round"/>
-    <path d="M75 39q1 11-8 15" stroke="#bdced4" stroke-opacity=".3" fill="none"/>
-    <rect x="27" y="33" width="7" height="12" rx="3" fill="#9aa7ab"/>
-    <path d="M29 32v-9" stroke="#bec9c7"/>
-  </g>
-</svg>"""
+        avatar = person.get("avatar") or ""
+        seed = html.escape(person["name"][:2].upper(), quote=True)
+        face = (f'<img class="crew-src" src="{html.escape(avatar, quote=True)}" alt="" '
+                f'crossorigin="anonymous" loading="lazy" decoding="async">' if avatar else "")
         link = (f'<a href="{html.escape(url, quote=True)}">{title} <span aria-hidden="true">↗</span></a>'
                 if url else f'<strong>{title}</strong>')
+        active = week_start.isoformat() <= person["last"] <= today.isoformat()
         crew.append(
-            f'<div class="crew-drifter" data-crew-id="{html.escape(login or person["name"], quote=True)}" '
-            f'data-last="{person["last"]}" style="--start-x:{28 + (index * 41) % 50}%;--start-y:{35 + (index * 23) % 36}%">'
+            f'<div class="crew-drifter{" is-recent" if active else ""}" '
+            f'data-crew-id="{html.escape(login or person["name"], quote=True)}" '
+            f'data-last="{person["last"]}" style="--start-x:{(17 + index * 37) % 74 + 13}%;'
+            f'--start-y:{(23 + index * 29) % 56 + 22}%">'
             f'<button class="crew-pilot" type="button" aria-label="{html.escape(handle, quote=True)}" '
-            f'aria-expanded="false" aria-controls="crew-label-{index}">{astronaut}</button>'
+            f'aria-expanded="false" aria-controls="crew-label-{index}">'
+            f'<span class="crew-face" data-initials="{seed}">{face}'
+            f'<canvas class="crew-bits" width="72" height="72" aria-hidden="true"></canvas></span></button>'
             f'<div class="crew-label" id="crew-label-{index}"><span class="crew-handle">{html.escape(handle)}</span>'
             f'{link}<small>{role}</small></div></div>')
-        active = week_start.isoformat() <= person["last"] <= today.isoformat()
-        status = ("本周船员" if zh else "This week") if active else ("在轨" if zh else "In orbit")
+        status = ("本周" if zh else "This week") if active else ("在轨" if zh else "In orbit")
         manifest.append(
             f'<tr data-last="{person["last"]}"><th scope="row">{link}'
             f'<small>{html.escape(handle)}</small></th><td>{role}</td>'
@@ -1537,11 +1495,13 @@ def contributor_universe_html(people, page, site):
             f'<span class="crew-weekly">{status}</span></td></tr>')
     home = page.rel("index.html" if zh else "index.en.html")
     language = page.rel("contributors.en.html" if zh else "contributors.html")
+    prefix = "../" * page.depth
     return f"""
-<section class="contributor-universe" aria-label="{'贡献者太空' if zh else 'Contributors in orbit'}">
+<section class="contributor-universe" aria-label="{'贡献者' if zh else 'Contributors'}"
+  style="background-image:url('{prefix}static/crew-sky-1bit.png')">
   <nav class="orbit-nav" aria-label="{'页面导航' if zh else 'Page navigation'}">
     <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
-    <div><button type="button" class="crew-roster-open" hidden>{'贡献者表' if zh else 'Crew list'}</button>
+    <div><button type="button" class="crew-roster-open" hidden>{'名单' if zh else 'List'}</button>
     <button class="crew-motion" type="button" aria-pressed="false" hidden
       data-pause="{'暂停' if zh else 'Pause'}" data-play="{'继续' if zh else 'Resume'}">{'暂停' if zh else 'Pause'}</button>
     <a href="{language}">{'EN' if zh else '中文'}</a></div>
@@ -1550,44 +1510,26 @@ def contributor_universe_html(people, page, site):
     <p>THE PEOPLE BEHIND THE NOTES</p>
     <h1>{'这一小片宇宙，谢谢你来过。' if zh else 'A little universe, made together.'}</h1>
   </header>
-  <div class="crew-shuttle" aria-hidden="true" hidden>
-    <svg viewBox="0 0 260 120">
-      <defs>
-        <linearGradient id="shuttle-hull" x2=".3" y2="1"><stop stop-color="#e2e7e3"/><stop offset="1" stop-color="#6c7d83"/></linearGradient>
-        <linearGradient id="shuttle-fire"><stop stop-color="#94d8ed" stop-opacity="0"/><stop offset="1" stop-color="#c5e7ef"/></linearGradient>
-      </defs>
-      <path class="shuttle-exhaust" d="m65 48-62 15 62 7" fill="url(#shuttle-fire)"/>
-      <path d="m79 53-20-35 38 4 34 26m-47 22-14 30 40-8 28-23" fill="#84959a" stroke="#c0cfcd"/>
-      <path d="M60 46h97q32 0 63 18-34 20-64 21H68l-12-12Z" fill="url(#shuttle-hull)" stroke="#d9dfd8"/>
-      <path d="m155 51 21 3 19 10h-39Z" fill="#182d3a" stroke="#acbfbc"/>
-      <path d="M82 55h44m-44 7h28" stroke="#8e9c9f" fill="none"/>
-      <path d="m119 82 27 1v7h-27Z" fill="#151d25" stroke="#c5c8bc"/>
-      <circle cx="75" cy="72" r="2" fill="#d6b187"/>
-    </svg>
-    <span class="shuttle-beam"></span>
-  </div>
   <div class="crew-field">{"".join(crew)}</div>
   <footer class="orbit-footer">
     <p class="orbit-status" role="status" aria-live="polite"></p>
-    <p><span class="orbit-desktop">{'鼠标靠近，打个招呼' if zh else 'Hover over a traveler to say hello'}</span>
-    <span class="orbit-touch">{'轻点宇航员，打个招呼' if zh else 'Tap a traveler to say hello'}</span></p>
-    <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'下一位船员，也许是你 ↗' if zh else 'Room for one more traveler ↗'}</a>
+    <p><span class="orbit-desktop">{'鼠标靠近，打个招呼' if zh else 'Hover over someone to say hello'}</span>
+    <span class="orbit-touch">{'轻点头像，打个招呼' if zh else 'Tap someone to say hello'}</span></p>
+    <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'下一个位置，也许是你 ↗' if zh else 'Room for one more ↗'}</a>
   </footer>
   <dialog class="crew-manifest" aria-labelledby="manifest-title">
-    <div class="manifest-head"><h2 id="manifest-title">{'贡献者表' if zh else 'Crew manifest'}</h2>
-      <button type="button" class="crew-roster-close" aria-label="{'关闭贡献者表' if zh else 'Close crew list'}">×</button></div>
-    <p>{'每一位船员都有位置。AI 协作者单独标注，不计作真人贡献者。' if zh else 'A place for everyone. AI collaborators are labeled separately from human contributors.'}</p>
+    <div class="manifest-head"><h2 id="manifest-title">{'贡献者名单' if zh else 'Contributors'}</h2>
+      <button type="button" class="crew-roster-close" aria-label="{'关闭名单' if zh else 'Close list'}">×</button></div>
+    <p>{'每一位都有位置。AI 协作者单独标注，不计作真人贡献者。' if zh else 'A place for everyone. AI collaborators are labeled separately from human contributors.'}</p>
     <div class="manifest-scroll"><table>
-      <thead><tr><th>{'船员' if zh else 'Traveler'}</th><th>{'参与方式' if zh else 'Role'}</th><th>{'最近提交' if zh else 'Latest commit'}</th></tr></thead>
+      <thead><tr><th>{'贡献者' if zh else 'Contributor'}</th><th>{'参与方式' if zh else 'Role'}</th><th>{'最近提交' if zh else 'Latest commit'}</th></tr></thead>
       <tbody>{"".join(manifest)}</tbody>
     </table></div>
-    <p class="manifest-note">{'名单来自 main 分支的提交与 Co-authored-by 署名；本周按 UTC 周一至周日计算。每天首次进入时，飞船送下本周船员。' if zh else 'Based on main-branch commits and Co-authored-by credits. Weeks run Monday–Sunday, UTC. On your first visit each day, the shuttle drops off this week’s crew.'}</p>
-    <div class="manifest-actions"><button class="crew-replay" type="button">{'重播今日抵达' if zh else 'Replay today’s arrivals'}</button>
-      <span>{'名单更新' if zh else 'Manifest updated'} · {today.isoformat()}</span></div>
+    <p class="manifest-note">{'名单来自 main 分支的提交与 Co-authored-by 署名；本周按 UTC 周一至周日计算。' if zh else 'Based on main-branch commits and Co-authored-by credits. Weeks run Monday to Sunday, UTC.'}</p>
+    <div class="manifest-actions"><span>{'名单更新' if zh else 'Updated'} · {today.isoformat()}</span></div>
   </dialog>
   <noscript><div class="crew-static"><h2>{'贡献者' if zh else 'Contributors'}</h2><table><tbody>{"".join(manifest)}</tbody></table></div></noscript>
 </section>"""
-
 
 def share_description(page) -> str:
     """The line a chat app or social card shows under the title: the note's own
@@ -1653,6 +1595,9 @@ def assemble(page, sections, people, nav, built, template):
     if 'data-contributors-universe' in content:
         content = contributor_universe_html(people, page, site)
         template = re.sub(r'<header class="topbar">.*?</header>', "", template, count=1, flags=re.S)
+        # this page has its own still sky, so the animated one is never loaded here
+        template = template.replace('<canvas class="sky" aria-hidden="true"></canvas>\n', "")
+        template = re.sub(r'<script defer src="\{\{prefix\}\}static/sky\.js[^>]*></script>\n?', "", template)
         template = re.sub(
             r'<div class="shell">.*?(?=<script>window.SITE)',
             '<main id="content" class="crew-space">{{content}}</main>\n',

@@ -114,244 +114,175 @@
   var active = $(".nav a.active");
   if (active) active.scrollIntoView({ block: "nearest" });
 
-  /* ------------------------------------------------ contributor universe */
+  /* ------------------------------------------------ contributors, in 1 bit
+     Avatars are dithered to two colours on a canvas (Floyd–Steinberg), then drift
+     slowly over the dithered sky. Hovering, focusing or tapping holds one still. */
   var universe = $(".contributor-universe");
   if (universe) {
-    var motionButton = $(".crew-motion", universe);
     var field = $(".crew-field", universe);
-    var motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
-    var userPaused = false;
-    var frameHandle = null;
-    var previousTime = 0;
-    var bounds = { width: 0, height: 0 };
+    var motionButton = $(".crew-motion", universe);
     var roster = $(".crew-manifest", universe);
-    var shuttle = $(".crew-shuttle", universe);
     var statusLine = $(".orbit-status", universe);
-    var delivery = null;
-    var dailyKey = "";
-    var delivered = [];
-    var travelers = $$(".crew-drifter", field).map(function (element, index) {
-      return {
-        element: element, pilot: $(".crew-pilot", element), figure: $(".astronaut", element),
-        phase: index * 2.5 - .6, time: 0, width: 0, height: 0,
-        hovered: false, focused: false, pinned: false, index: index, arrival: null
-      };
-    });
-    function isHeld(traveler) { return traveler.hovered || traveler.focused || traveler.pinned; }
-    function reveal(traveler) {
-      var held = isHeld(traveler);
-      traveler.element.classList.toggle("is-held", held);
-      traveler.pilot.setAttribute("aria-expanded", String(held));
-    }
-    function place(traveler) {
-      var phase = traveler.phase + traveler.time;
-      var margin = Math.min(120, bounds.width * .34);
-      var minX = Math.max(8, margin - traveler.width / 2);
-      var maxX = Math.max(minX, bounds.width - margin - traveler.width / 2);
-      var minY = Math.min(180, bounds.height * .3);
-      var maxY = Math.max(minY, bounds.height - traveler.height - 120);
-      var across = .5 + .48 * Math.sin(phase);
-      var down = .5 + .44 * Math.sin(phase * .8 + traveler.index * .7);
-      var horizontal = minX + (maxX - minX) * across;
-      var vertical = minY + (maxY - minY) * down;
-      if (traveler.arrival) {
-        var fraction = Math.min(1, traveler.arrival.elapsed / 2600);
-        var eased = 1 - Math.pow(1 - fraction, 3);
-        horizontal = traveler.arrival.x + (horizontal - traveler.arrival.x) * eased;
-        vertical = traveler.arrival.y + (vertical - traveler.arrival.y) * eased;
-        if (fraction === 1) traveler.arrival = null;
+    var reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    var userPaused = false, frame = null, previous = 0, bounds = { w: 0, h: 0 };
+
+    function ditherInto(canvas, source, initials) {
+      var size = canvas.width, ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.fillStyle = "#000"; ctx.fillRect(0, 0, size, size);
+      if (source) { try { ctx.drawImage(source, 0, 0, size, size); } catch (e) { source = null; } }
+      if (!source) {                                   // no avatar: a dithered disc with initials
+        var g = ctx.createRadialGradient(size * .42, size * .36, 1, size * .5, size * .5, size * .62);
+        g.addColorStop(0, "#fff"); g.addColorStop(1, "#111");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(size / 2, size / 2, size * .46, 0, 6.284); ctx.fill();
+        ctx.fillStyle = "#000"; ctx.font = "600 " + Math.round(size * .34) + "px ui-monospace, monospace";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(initials || "?", size / 2, size / 2 + 1);
       }
-      traveler.element.style.transform = "translate3d(" + horizontal.toFixed(2) + "px," + vertical.toFixed(2) + "px,0)";
-      traveler.figure.style.transform = "rotate(" + (Math.sin(phase * .75) * 24).toFixed(2) + "deg)";
+      var image;
+      try { image = ctx.getImageData(0, 0, size, size); } catch (e) { return false; }
+      var d = image.data, grey = new Float32Array(size * size), i, x, y;
+      var radius = size / 2 - 0.5, inside = new Uint8Array(size * size);
+      for (i = 0; i < grey.length; i++) {
+        var ix = i % size - size / 2 + .5, iy = Math.floor(i / size) - size / 2 + .5;
+        inside[i] = ix * ix + iy * iy <= radius * radius ? 1 : 0;
+        grey[i] = (0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]) / 255;
+      }
+      var bins = new Uint32Array(64), counted = 0;            // auto-levels, over the disc only
+      for (i = 0; i < grey.length; i++) {
+        if (!inside[i]) continue;
+        bins[Math.min(63, Math.floor(grey[i] * 64))]++; counted++;
+      }
+      var lo = 0, hi = 1, seen = 0;
+      for (x = 0; x < 64; x++) { seen += bins[x]; if (seen >= counted * 0.04) { lo = x / 64; break; } }
+      for (x = 63, seen = 0; x >= 0; x--) { seen += bins[x]; if (seen >= counted * 0.04) { hi = (x + 1) / 64; break; } }
+      if (hi - lo < 0.2) { lo = 0; hi = 1; }                  // a flat image: leave it alone
+      for (i = 0; i < grey.length; i++) {
+        grey[i] = Math.min(1, Math.max(0, (grey[i] - lo) / (hi - lo)));
+        grey[i] = Math.pow(grey[i], 0.8) * 1.04 - 0.02;       // lift the midtones a little
+      }
+      for (y = 0; y < size; y++) {
+        for (x = 0; x < size; x++) {
+          var k = y * size + x, old = grey[k], neu = old > 0.5 ? 1 : 0, err = old - neu;
+          grey[k] = neu;
+          if (x + 1 < size) grey[k + 1] += err * 7 / 16;
+          if (y + 1 < size) {
+            if (x > 0) grey[k + size - 1] += err * 3 / 16;
+            grey[k + size] += err * 5 / 16;
+            if (x + 1 < size) grey[k + size + 1] += err * 1 / 16;
+          }
+        }
+      }
+      var r = size / 2 - 0.5;
+      for (i = 0; i < grey.length; i++) {
+        var px = i % size - size / 2 + .5, py = Math.floor(i / size) - size / 2 + .5;
+        var on = grey[i] > 0.5 && px * px + py * py <= r * r;      // clip to a disc
+        d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = on ? 255 : 0;
+        d[i * 4 + 3] = px * px + py * py <= r * r ? 255 : 0;
+      }
+      ctx.putImageData(image, 0, 0);
+      return true;
     }
-    function resizeOrbit() {
-      bounds.width = field.clientWidth;
-      bounds.height = field.clientHeight;
-      travelers.forEach(function (traveler) {
-        traveler.width = traveler.element.offsetWidth;
-        traveler.height = traveler.element.offsetHeight;
-        place(traveler);
+
+    var travelers = $$(".crew-drifter", field).map(function (element, index) {
+      var face = $(".crew-face", element), canvas = $(".crew-bits", element), img = $(".crew-src", element);
+      var traveler = {
+        element: element, pilot: $(".crew-pilot", element), canvas: canvas, label: $(".crew-label", element),
+        x: 0, y: 0, vx: 0, vy: 0, held: false,
+        startX: parseFloat(getComputedStyle(element).getPropertyValue("--start-x")) || 20 + index * 7,
+        startY: parseFloat(getComputedStyle(element).getPropertyValue("--start-y")) || 30 + index * 5
+      };
+      function paint() {
+        if (ditherInto(canvas, img && img.complete && img.naturalWidth ? img : null, face.dataset.initials)) {
+          element.classList.add("is-dithered");
+        }
+      }
+      if (img) { img.complete ? paint() : (img.onload = paint, img.onerror = paint); } else paint();
+      return traveler;
+    });
+
+    function measure() {
+      bounds.w = field.clientWidth; bounds.h = field.clientHeight;
+      var many = travelers.length;                       // fewer people, bigger tokens
+      var wanted = many <= 3 ? 104 : many <= 6 ? 88 : many <= 12 ? 72 : 58;
+      field.style.setProperty("--crew-size",
+        Math.max(46, Math.min(wanted, Math.round(bounds.w / 6))) + "px");
+      travelers.forEach(function (t, i) {
+        var size = t.element.offsetWidth || 64;
+        t.x = Math.min(Math.max(bounds.w * t.startX / 100, 8), Math.max(bounds.w - size - 8, 8));
+        t.y = Math.min(Math.max(bounds.h * t.startY / 100, 8), Math.max(bounds.h - size - 8, 8));
+        var angle = (i * 2.399) % 6.283;
+        t.vx = Math.cos(angle) * 5.5; t.vy = Math.sin(angle) * 3.5;   // px per second: very slow
+        place(t);
       });
       field.classList.add("is-ready");
     }
-    function tickOrbit(now) {
-      var elapsed = previousTime ? Math.min(now - previousTime, 50) : 0;
-      previousTime = now;
-      if (delivery) advanceDelivery(elapsed);
-      travelers.forEach(function (traveler) {
-        if (!isHeld(traveler)) {
-          traveler.time += elapsed * (.00007 + traveler.index * .000008);
-          if (traveler.arrival) traveler.arrival.elapsed += elapsed;
-          place(traveler);
-        }
+    function place(t) { t.element.style.transform = "translate3d(" + t.x.toFixed(1) + "px," + t.y.toFixed(1) + "px,0)"; }
+    function step(now) {
+      frame = requestAnimationFrame(step);
+      var dt = Math.min(64, now - previous) / 1000; previous = now;
+      travelers.forEach(function (t) {
+        if (t.held) return;
+        var size = t.element.offsetWidth || 64;
+        t.x += t.vx * dt; t.y += t.vy * dt;
+        if (t.x < 6) { t.x = 6; t.vx = Math.abs(t.vx); }
+        if (t.x > bounds.w - size - 6) { t.x = bounds.w - size - 6; t.vx = -Math.abs(t.vx); }
+        if (t.y < 6) { t.y = 6; t.vy = Math.abs(t.vy); }
+        if (t.y > bounds.h - size - 6) { t.y = bounds.h - size - 6; t.vy = -Math.abs(t.vy); }
+        place(t);
       });
-      frameHandle = requestAnimationFrame(tickOrbit);
     }
-    function syncOrbit() {
-      var stopped = userPaused || motionPreference.matches || document.hidden || roster.open;
+    function sync() {
+      var stopped = userPaused || reduceMotion.matches || document.hidden;
       universe.classList.toggle("is-paused", stopped);
-      motionButton.setAttribute("aria-pressed", String(userPaused));
-      motionButton.textContent = userPaused ? motionButton.dataset.play : motionButton.dataset.pause;
-      if (frameHandle !== null) cancelAnimationFrame(frameHandle);
-      frameHandle = null;
-      previousTime = 0;
-      if (!stopped) frameHandle = requestAnimationFrame(tickOrbit);
-      window.dispatchEvent(new CustomEvent("crew-motion", { detail: { paused: stopped } }));
-    }
-    function weeklyCrew() {
-      var now = new Date();
-      var today = now.toISOString().slice(0, 10);
-      var monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-      monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
-      var firstDay = monday.toISOString().slice(0, 10);
-      return travelers.filter(function (traveler) {
-        var last = traveler.element.dataset.last;
-        return last >= firstDay && last <= today;
-      });
-    }
-    function rememberArrival(traveler) {
-      var id = traveler.element.dataset.crewId;
-      if (delivered.indexOf(id) === -1) delivered.push(id);
-      try { localStorage.setItem(dailyKey, JSON.stringify(delivered)); } catch (error) {}
-    }
-    function planDelivery(replay) {
-      dailyKey = "agi:crew-arrivals:" + new Date().toISOString().slice(0, 10);
-      try {
-        var stored = JSON.parse(localStorage.getItem(dailyKey) || "[]");
-        delivered = Array.isArray(stored) ? stored : [];
-      } catch (error) { delivered = []; }
-      var activeCrew = weeklyCrew();
-      $$(".crew-manifest tbody tr").forEach(function (row) {
-        var active = activeCrew.some(function (traveler) { return traveler.element.dataset.last === row.dataset.last; });
-        $(".crew-weekly", row).textContent = active ? (LANG === "zh" ? "本周船员" : "This week") : (LANG === "zh" ? "在轨" : "In orbit");
-      });
-      var waiting = activeCrew.filter(function (traveler) {
-        return replay || delivered.indexOf(traveler.element.dataset.crewId) === -1;
-      });
-      travelers.forEach(function (traveler) {
-        traveler.element.classList.remove("awaiting-arrival");
-        traveler.pilot.disabled = false;
-        traveler.arrival = null;
-      });
-      $(".crew-replay", roster).disabled = !activeCrew.length;
-      if (!waiting.length || motionPreference.matches) {
-        waiting.forEach(rememberArrival);
-        delivery = null;
-        shuttle.hidden = true;
-        statusLine.textContent = activeCrew.length ? "" : (LANG === "zh" ? "本周还没有新航班，船员们正在自由漂浮。" : "No arrivals this week. The crew is enjoying the quiet.");
-        return;
+      if (motionButton) {
+        motionButton.hidden = reduceMotion.matches;
+        motionButton.setAttribute("aria-pressed", userPaused ? "true" : "false");
+        motionButton.textContent = userPaused ? motionButton.dataset.play : motionButton.dataset.pause;
       }
-      waiting.forEach(function (traveler) {
-        traveler.element.classList.add("awaiting-arrival");
-        traveler.pilot.disabled = true;
-      });
-      delivery = { queue: waiting, elapsed: 0, released: 0 };
-      shuttle.hidden = false;
-      statusLine.textContent = LANG === "zh" ? "本周船员，正在抵达…" : "This week’s crew, arriving…";
-      advanceDelivery(0);
+      if (stopped) { if (frame) { cancelAnimationFrame(frame); frame = null; } }
+      else if (!frame) { previous = performance.now(); frame = requestAnimationFrame(step); }
     }
-    function advanceDelivery(elapsed) {
-      delivery.elapsed += elapsed;
-      var lastDrop = 1900 + (delivery.queue.length - 1) * 2400;
-      var departure = lastDrop + 1300;
-      var center = bounds.width / 2 - 100;
-      var horizontal = center;
-      if (delivery.elapsed < 1500) {
-        horizontal = -230 + (center + 230) * (1 - Math.pow(1 - delivery.elapsed / 1500, 3));
-      } else if (delivery.elapsed > departure) {
-        horizontal = center + (bounds.width - center + 230) * Math.pow(Math.min(1, (delivery.elapsed - departure) / 1900), 2);
-      }
-      var vertical = Math.min(115, bounds.height * .18);
-      shuttle.style.transform = "translate3d(" + horizontal.toFixed(2) + "px," + vertical.toFixed(2) + "px,0)";
-      var nextDrop = 1900 + delivery.released * 2400;
-      if (delivery.released < delivery.queue.length && delivery.elapsed >= nextDrop) {
-        var traveler = delivery.queue[delivery.released++];
-        traveler.arrival = { elapsed: 0, x: horizontal + 100 - traveler.width / 2, y: vertical + 62 };
-        traveler.element.classList.remove("awaiting-arrival");
-        traveler.pilot.disabled = false;
-        place(traveler);
-        rememberArrival(traveler);
-        statusLine.textContent = (LANG === "zh" ? "欢迎登场，" : "Welcome aboard, ") + traveler.element.dataset.crewId;
-      }
-      var sinceDrop = delivery.elapsed - (1900 + (delivery.released - 1) * 2400);
-      shuttle.classList.toggle("is-dropping", delivery.released > 0 && sinceDrop < 800);
-      if (delivery.elapsed > departure + 2000) {
-        delivery = null;
-        shuttle.hidden = true;
-        statusLine.textContent = LANG === "zh" ? "本周的船员都到齐了。自在漂浮吧。" : "This week’s crew is here. Enjoy the float.";
+    function placeLabel(t) {           // keep the card inside the field: nudge sideways, flip up
+      if (!t.label) return;
+      var size = t.element.offsetWidth || 64, half = t.label.offsetWidth / 2, centre = t.x + size / 2, shift = 0;
+      if (centre - half < 10) shift = 10 - (centre - half);
+      else if (centre + half > bounds.w - 10) shift = bounds.w - 10 - (centre + half);
+      t.label.style.setProperty("--label-shift", Math.round(shift) + "px");
+      t.element.classList.toggle("is-flipped", t.y + size + 22 + t.label.offsetHeight > bounds.h);
+    }
+    function hold(traveler, on) {
+      traveler.held = on;
+      if (on) placeLabel(traveler);
+      traveler.element.classList.toggle("is-held", on);
+      traveler.pilot.setAttribute("aria-expanded", on ? "true" : "false");
+    }
+
+    travelers.forEach(function (t) {
+      t.element.addEventListener("pointerenter", function () { hold(t, true); });
+      t.element.addEventListener("pointerleave", function () { hold(t, false); });
+      t.pilot.addEventListener("focus", function () { hold(t, true); });
+      t.pilot.addEventListener("blur", function () { hold(t, false); });
+      t.pilot.addEventListener("click", function () { hold(t, !t.held); });
+    });
+    if (roster) {
+      var open = $(".crew-roster-open", universe), close = $(".crew-roster-close", roster);
+      if (open && typeof roster.showModal === "function") {
+        open.hidden = false;
+        open.addEventListener("click", function () { roster.showModal(); });
+        close.addEventListener("click", function () { roster.close(); });
+        roster.addEventListener("click", function (event) { if (event.target === roster) roster.close(); });
       }
     }
-    travelers.forEach(function (traveler) {
-      traveler.element.addEventListener("pointerenter", function (event) {
-        if (event.pointerType === "touch") return;
-        traveler.hovered = true;
-        reveal(traveler);
-      });
-      traveler.element.addEventListener("pointerleave", function () {
-        traveler.hovered = false;
-        reveal(traveler);
-      });
-      traveler.element.addEventListener("focusin", function () { traveler.focused = true; reveal(traveler); });
-      traveler.element.addEventListener("focusout", function (event) {
-        if (!traveler.element.contains(event.relatedTarget)) {
-          traveler.focused = false;
-          traveler.pinned = false;
-          reveal(traveler);
-        }
-      });
-      traveler.pilot.addEventListener("click", function () {
-        traveler.pinned = !traveler.pinned;
-        reveal(traveler);
-      });
-    });
-    universe.addEventListener("pointerdown", function (event) {
-      travelers.forEach(function (traveler) {
-        if (!traveler.element.contains(event.target)) {
-          traveler.pinned = false;
-          if (traveler.element.contains(document.activeElement)) document.activeElement.blur();
-          reveal(traveler);
-        }
-      });
-    });
-    document.addEventListener("keydown", function (event) {
-      if (event.key !== "Escape") return;
-      travelers.forEach(function (traveler) {
-        traveler.pinned = false;
-        traveler.hovered = false;
-        if (traveler.element.contains(document.activeElement)) document.activeElement.blur();
-        reveal(traveler);
-      });
-    });
-    motionButton.hidden = false;
-    var rosterButton = $(".crew-roster-open", universe);
-    rosterButton.hidden = false;
-    rosterButton.addEventListener("click", function () { roster.showModal(); syncOrbit(); });
-    $(".crew-roster-close", roster).addEventListener("click", function () { roster.close(); });
-    roster.addEventListener("close", syncOrbit);
-    $(".crew-replay", roster).addEventListener("click", function () {
-      travelers.forEach(function (traveler) {
-        traveler.pinned = false;
-        traveler.focused = false;
-        traveler.hovered = false;
-        reveal(traveler);
-      });
-      userPaused = false;
-      planDelivery(true);
-      roster.close();
-    });
-    motionButton.addEventListener("click", function () { userPaused = !userPaused; syncOrbit(); });
-    motionPreference.addEventListener("change", function () {
-      if (motionPreference.matches && delivery) planDelivery(false);
-      syncOrbit();
-    });
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden && dailyKey !== "agi:crew-arrivals:" + new Date().toISOString().slice(0, 10)) planDelivery(false);
-      syncOrbit();
-    });
-    addEventListener("resize", resizeOrbit);
-    resizeOrbit();
-    planDelivery(false);
-    syncOrbit();
+    if (motionButton) motionButton.addEventListener("click", function () { userPaused = !userPaused; sync(); });
+    reduceMotion.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    addEventListener("resize", measure);
+    if (statusLine) {
+      var recent = $$(".crew-drifter.is-recent", field).length;
+      statusLine.textContent = recent
+        ? (LANG === "zh" ? "本周有 " + recent + " 位留下了提交" : recent + (recent === 1 ? " person" : " people") + " committed this week")
+        : "";
+    }
+    measure(); sync();
   }
 
   /* ---------------------------------------------------------- code copy */
