@@ -6,6 +6,27 @@
 
 AI infrastructure is the stack that makes modern LLMs trainable, deployable, scalable, observable, and continuously improvable. This section covers knowledge that still directly affects current LLM systems; it is not a historical tour of traditional AI models or an algorithm encyclopedia.
 
+## Being straight about this: infra is not my strength
+
+It is not my background and it is not where my interest sits. This page is a map for my own
+use — which layers exist and roughly what each one is solving, enough that I don't talk
+nonsense while working on models and evaluation.
+
+If you want to go in properly, the best thing I know is
+**[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)**, by
+[zhaochenyang20](https://github.com/zhaochenyang20). He started in August 2024 and it has
+grown into a full set of ML SYS / RL infra notes: RL infrastructure, online and offline
+inference systems, and SGLang — including the SGLang Omni series on multi-stage generative
+models, down to TTS serving, scheduling and CPU contention. Chinese and English both.
+
+What makes it worth reading is that he works on RL infra inside the SGLang community, so he
+is writing about what he is currently changing rather than relaying someone else's
+conclusions. His own README puts it more sharply: a lot of RL results rest on open-source
+infrastructure that may itself be flawed, and whether those conclusions still hold is a fair
+question to ask.
+
+For this layer, go there. It will take you further than this page.
+
 ## The stack in one view
 
 ```mermaid

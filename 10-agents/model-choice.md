@@ -69,6 +69,10 @@ prompt caching（把不变的前缀缓存下来）在这里省得最多；能不
   vLLM 的 PagedAttention 和 SGLang 的 RadixAttention 都是在解这个问题。
 - **人**：推理框架升级、扩缩容、监控、值班。这一项在小团队里往往比 GPU 还贵。
 
+这一层我只讲到这儿——想深入，看
+[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)，
+比我写得细得多，也更新得勤。
+
 ## 一个决策顺序
 
 1. 数据能不能离开自己的环境？不能，就只能自己部署。
