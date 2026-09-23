@@ -11,9 +11,19 @@
 在真实的 workload 和 review 底下，你会被逼着把事情想清楚。科研在我眼里是执着地解决一个问题，
 工程也一样，只是问题换了个样子。
 
-这一层整体不是我的强项。想系统地学，我推荐
-[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)；
-这里只写我自己手上发生过的事。
+## 想深入 AI Infra，可以先看这份
+
+**[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)** · [zhaochenyang20](https://github.com/zhaochenyang20)
+
+如果你想往 ML Systems / AI Infra 深入，我很推荐这份笔记。它围绕真实的系统开发展开，涵盖 **RL infra、在线与离线推理、SGLang** 等方向，也有中英文内容。
+
+- **想看 RL 怎么真正跑起来**：从 RLHF System Development Notes 入手，看训练和 rollout 怎么衔接。
+- **想理解推理系统**：看 SGLang 相关笔记，跟着具体问题理解调度、显存和性能取舍。
+- **对多模态推理感兴趣**：看 Omni Model Inference Notes，了解多阶段生成模型的执行与优化。
+
+不用从头刷完，挑一个正在困扰你的问题，配着代码读就好。这里的 NeMo RL 笔记则继续记录我们实际参与的开源工作，两边可以对照着看。
+
+## 这里记录什么
 
 我不太想把开源写成一张 PR 成绩单。改动被合并当然开心，但更有意思的是后面：别人会用它跑训练，维护者会继续改它，下一个贡献者可能会接着往下做。自己修过的一小块代码，就这样变成了大家共同维护的东西。
 
