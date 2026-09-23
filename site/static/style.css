@@ -86,6 +86,16 @@ a:hover { color: var(--link-hover); }
 }
 .topbar-brand { font-weight: 700; letter-spacing: -.01em; color: var(--ink); text-decoration: none; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: .3rem; }
+/* the people behind the notes, kept where they can actually be found */
+.crew-link {
+  display: inline-flex; align-items: center; gap: .4rem; margin-right: .3rem;
+  padding: .3rem .6rem; border-radius: 7px;
+  font: 600 .74rem/1 var(--sans), var(--cjk); color: var(--ink-soft); text-decoration: none;
+  white-space: nowrap;
+}
+.crew-link span { color: var(--ember); font-size: .9em; }
+.crew-link:hover { background: var(--rule-soft); color: var(--ink); }
+.page-crew .crew-link { display: none; }
 
 .icon-btn {
   display: grid; place-items: center; width: 34px; height: 34px;
@@ -1323,6 +1333,10 @@ main { padding-top: 2.8rem; }
 }
 .topbar-right { flex: 0 0 auto; }
 .topbar-right .lang-btn { white-space: nowrap; }
+@media (max-width: 720px) {          /* a phone topbar has no room for the words */
+  .crew-link { padding: .3rem .35rem; font-size: 0; gap: 0; }
+  .crew-link span { font-size: 1rem; }
+}
 @media (max-width: 620px) { .topbar-brand { display: none; } }
 
 /* -------- second row: the blocks inside the chosen direction ---------------- */
