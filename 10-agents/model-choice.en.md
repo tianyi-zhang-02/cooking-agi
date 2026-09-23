@@ -30,13 +30,34 @@ Agents multiply token usage: one task often takes several to dozens of model cal
 
 <!-- widget:tx-agent-cost -->
 
-## The usual compromise: mix them
+## Not a choice of one: mixing them
 
-- **Routing and cascades**: easy steps go to a small model, hard ones to a frontier model. FrugalGPT (2023) studies cascades that call models in order and stop once the answer is good enough; RouteLLM (2024) trains a router that splits requests between a strong and a weak model.
+Most systems end up serving the same traffic with both models rather than picking a side. Four ways to spend a request:
+
+<!-- widget:tx-model-router -->
+
+- **Cascade**: the small model answers first, and anything doubtful is escalated. This is what FrugalGPT (2023) studies. The escalated requests are paid for twice.
+- **Router**: decide up front who gets the request, so nothing is paid for twice. RouteLLM (2024) trains exactly that. It commits before seeing the answer, so a wrong guess is never caught.
 - **Distillation**: use a frontier model to produce traces on a narrow, high-volume task, then fine-tune a small model you can serve yourself.
-- **Fallback**: your own model handles the common cases, and uncertain ones go to a frontier model.
+- **Fallback**: your own model handles the common cases, and unusual ones go to a frontier model.
 
-For self-hosting, vLLM (PagedAttention) and SGLang are common inference stacks.
+What decides whether either middle plan is worth it is the accuracy of the difficulty judgement in that figure. Judge well and both are a bargain; judge barely better than chance and neither beats picking one model and keeping the system simple — the extra layer is then only more surface to fail on.
+
+## Three things cost does not cover
+
+**Latency adds up in series.** An agent makes several model calls per task, and the user feels their sum. Time to first token and time per token pull in different directions: short replies are dominated by the first, long ones by the second. Self-hosting lets you tune batching, hardware and location; with an API you wait.
+
+**Context is where the money goes.** Every step resends a longer history, so cost grows roughly with the square of the number of steps. Prompt caching — keeping the unchanged prefix warm — saves the most here, and what a provider caches, and for how long, is worth asking before you commit.
+
+**Models move.** The model behind an API is updated and retired, and the same prompt can answer differently months later. Self-hosted weights do not drift on their own — the price is that security updates are yours too. Either way you need regression tests that catch "this worked last week".
+
+## What self-hosting actually costs
+
+Not "how many cards" — utilisation:
+
+- **Concurrency and batching**: the more requests a card serves at once, the less each one costs. Traffic has peaks and troughs, and buying for the peak while running at the mean is the gap you pay for.
+- **KV cache eats memory**: with long-context agents, memory runs out before compute does, which caps how many requests fit at once. vLLM's PagedAttention and SGLang's RadixAttention both exist to fight this.
+- **People**: upgrades, autoscaling, monitoring, being on call. In a small team this line is often more expensive than the GPUs.
 
 ## An order of questions
 

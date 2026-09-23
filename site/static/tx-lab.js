@@ -2500,3 +2500,125 @@
   svg.setAttribute('aria-label', t('A maze where an agent eats dots while a ghost chases it; a control chooses whether written rules, a value function or a model decides each step.',
     '一个迷宫：agent 一边吃豆一边被鬼追；上面的开关决定每一步是写死的规则、价值函数，还是模型在做决定。'));
 })();
+
+/* --------------------------------------------- 19 who gets the request
+   Four ways to spend a request across a small model and a frontier one, on the
+   same traffic: everything small, everything frontier, a cascade that escalates
+   when it is unsure, and a router that decides up front. The judge's accuracy is
+   the slider that matters — it is what makes the middle two worth anything. */
+(function () {
+  var fig = TX.figure('tx-model-router', { title: ['Who gets the request · small, frontier, cascade, router', '这条请求交给谁 · 小模型、frontier、级联、路由'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+
+  var P = { hard: 35, small: 60, judge: 75, cost: 15 };
+  // accuracy of each model on easy and on hard traffic; the small model's ceiling
+  // moves with the "small model" slider, the frontier one stays where it is
+  function acc() {
+    var q = P.small / 100;
+    return {
+      sEasy: 0.72 + 0.26 * q, sHard: 0.18 + 0.52 * q,
+      fEasy: 0.98, fHard: 0.86
+    };
+  }
+  function plans() {
+    var a = acc(), hard = P.hard / 100, easy = 1 - hard, j = P.judge / 100, C = P.cost;
+    var out = {};
+    out.small = { q: easy * a.sEasy + hard * a.sHard, c: 1, lat: 1 };
+    out.frontier = { q: easy * a.fEasy + hard * a.fHard, c: C, lat: 2.2 };
+    // cascade: the small model answers first, a check escalates what looks wrong.
+    // Judging an answer you can see is easier than guessing from the question
+    // alone, so the cascade's check is better than the router's by construction.
+    var jc = j + (1 - j) * 0.45;
+    var upHard = jc, upEasy = 1 - jc;
+    var escalated = hard * upHard + easy * upEasy;
+    out.cascade = {
+      q: easy * ((1 - upEasy) * a.sEasy + upEasy * a.fEasy) + hard * ((1 - upHard) * a.sHard + upHard * a.fHard),
+      c: 1 + escalated * C,
+      lat: 1 + escalated * 2.2
+    };
+    // router: one classifier up front, so a request is paid for once
+    var sent = hard * j + easy * (1 - j);
+    out.router = {
+      q: easy * ((1 - (1 - j)) * a.sEasy + (1 - j) * a.fEasy) + hard * ((1 - j) * a.sHard + j * a.fHard),
+      c: 0.05 + sent * C + (1 - sent) * 1,
+      lat: 0.1 + sent * 2.2 + (1 - sent) * 1
+    };
+    return out;
+  }
+
+  var W = 560, H = 300, X0 = 60, X1 = W - 18, Y0 = H - 40, Y1 = 18;
+  var svg = s('svg', { class: 'tx-svg mr-svg', viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+  var gGrid = s('g'), gDots = s('g');
+  svg.appendChild(gGrid); svg.appendChild(gDots);
+  var PLANS = [
+    { id: 'small', en: 'all small', zh: '全用小模型' },
+    { id: 'cascade', en: 'cascade', zh: '级联' },
+    { id: 'router', en: 'router', zh: '路由' },
+    { id: 'frontier', en: 'all frontier', zh: '全用 frontier' }
+  ];
+
+  function render() {
+    var p = plans(), id;
+    TX.clear(gGrid); TX.clear(gDots);
+    var maxC = Math.max(p.frontier.c, p.cascade.c) * 1.08, minQ = 1;
+    for (id in p) minQ = Math.min(minQ, p[id].q);
+    var loQ = Math.max(0, minQ - 0.06), hiQ = 1;
+    var sx = function (c) { return X0 + (Math.log(c) / Math.log(maxC)) * (X1 - X0); };
+    var sy = function (q) { return Y0 - ((q - loQ) / (hiQ - loQ)) * (Y0 - Y1); };
+    [0.25, 0.5, 0.75, 1].forEach(function (frac) {
+      var q = loQ + (hiQ - loQ) * frac;
+      gGrid.appendChild(s('line', { class: 'pc-guide', x1: X0, y1: sy(q), x2: X1, y2: sy(q) }));
+      gGrid.appendChild(s('text', { class: 'pc-tick', x: X0 - 8, y: sy(q) + 4, 'text-anchor': 'end', text: Math.round(q * 100) + '%' }));
+    });
+    [1, 3, 10, 30].forEach(function (c) {
+      if (c > maxC) return;
+      gGrid.appendChild(s('text', { class: 'pc-tick', x: sx(c), y: Y0 + 16, 'text-anchor': 'middle', text: '×' + c }));
+    });
+    gGrid.appendChild(s('text', { class: 'pc-axis', x: (X0 + X1) / 2, y: H - 6, 'text-anchor': 'middle', bi: ['cost per request, relative to the small model', '每条请求的成本，以小模型为 1'] }));
+    gGrid.appendChild(s('text', { class: 'pc-axis', x: 14, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + (Y0 + Y1) / 2 + ')', bi: ['answers that hold up', '答对的比例'] }));
+    // the frontier line: nothing below and to the right of a cheaper, better plan
+    PLANS.forEach(function (plan) {
+      var d = p[plan.id];
+      var dominated = PLANS.some(function (o) {
+        return o.id !== plan.id && p[o.id].c <= d.c * 0.999 && p[o.id].q >= d.q * 1.001;
+      });
+      var g = s('g', { class: 'mr-plan' + (dominated ? ' is-out' : '') });
+      g.appendChild(s('circle', { class: 'mr-dot mr-' + plan.id, cx: sx(d.c), cy: sy(d.q), r: 7 }));
+      var right = sx(d.c) < (X0 + X1) / 2;
+      g.appendChild(s('text', {
+        class: 'mr-label', x: sx(d.c) + (right ? 13 : -13), y: sy(d.q) + 4,
+        'text-anchor': right ? 'start' : 'end', bi: [plan.en, plan.zh]
+      }));
+      gDots.appendChild(g);
+    });
+    roQ.set(Math.round(p.cascade.q * 100) + '% · ' + t('cascade', '级联'));
+    roC.set('×' + p.cascade.c.toFixed(1));
+    roR.set(Math.round(p.router.q * 100) + '% · ×' + p.router.c.toFixed(1));
+    roF.set(Math.round(p.frontier.q * 100) + '% · ×' + p.frontier.c.toFixed(1));
+    roL.set('×' + p.cascade.lat.toFixed(1) + ' · ×' + p.router.lat.toFixed(1));
+    var lead = p.cascade.q >= p.frontier.q - 0.015
+      ? ['With a judge this good, the cascade keeps frontier-level quality for a fraction of the spend: most requests are settled by the small model, and only the doubtful ones are paid for twice. What it cannot avoid is the wait — those requests run two models one after the other.',
+         '判断这么准的时候，级联能守住接近 frontier 的质量，只花一部分钱：多数请求小模型就结了，只有拿不准的付两遍。躲不掉的是等待——那些请求要串着跑两个模型。']
+      : p.judge < 55
+        ? ['The judge is close to guessing, and both middle plans fall apart: the cascade escalates the wrong things and pays twice for them, the router sends hard work to the small model. Below about this line, pick one model and keep the system simple.',
+           '判断准头接近瞎猜，中间两种就塌了：级联升级错了对象，还为它们付两遍钱；路由把难题派给小模型。低到这个程度，不如挑一个模型，把系统做简单。']
+        : ['The cascade trades some quality for a lot of cost; the router is cheaper still because nothing is paid for twice, but it commits before seeing the answer, so a wrong guess is never caught.',
+           '级联用一点质量换掉很多成本；路由更便宜，因为没有一条请求被付两次，但它在看到答案之前就下注，猜错了也没人接住。'];
+    TX.bi(note, lead[0], lead[1]);
+    svg.setAttribute('aria-label', t('Cost against quality for four ways to serve the same traffic.', '四种服务同一批流量的方式，在成本和质量上的位置。'));
+  }
+
+  var note = h('p', { class: 'fig-note' });
+  var sHard = TX.slider({ en: 'Hard requests', zh: '难题占比', min: 0, max: 100, step: 5, value: P.hard, format: function (v) { return v + '%'; }, onInput: function (v) { P.hard = v; render(); } });
+  var sSmall = TX.slider({ en: 'How good the small model is', zh: '小模型有多强', min: 0, max: 100, step: 5, value: P.small, format: function (v) { return v + '%'; }, onInput: function (v) { P.small = v; render(); } });
+  var sJudge = TX.slider({ en: 'How well difficulty is judged', zh: '难度判断的准头', min: 40, max: 98, step: 2, value: P.judge, format: function (v) { return v + '%'; }, onInput: function (v) { P.judge = v; render(); } });
+  var sCost = TX.slider({ en: 'Frontier price, ×small', zh: 'Frontier 的价格（小模型的几倍）', min: 2, max: 40, step: 1, value: P.cost, format: function (v) { return '×' + v; }, onInput: function (v) { P.cost = v; render(); } });
+  var roQ = TX.readout('Cascade', '级联'), roC = TX.readout('Cascade cost', '级联成本');
+  var roR = TX.readout('Router', '路由'), roF = TX.readout('All frontier', '全用 frontier');
+  var roL = TX.readout('Wait: cascade · router', '等待：级联 · 路由');
+  fig.controls.appendChild(h('div', { class: 'ctl-row' }, [sHard.el, sSmall.el, sJudge.el, sCost.el]));
+  fig.stage.appendChild(svg);
+  TX.append(fig.foot, [h('div', { class: 'readouts' }, [roQ.el, roC.el, roR.el, roF.el, roL.el]), note]);
+  render();
+})();

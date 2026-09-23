@@ -426,6 +426,7 @@ TX_LAB = [
     ("tx-agent-loop", "Agent 循环：修一个失败的测试", "The agent loop: fixing a failing test"),
     ("tx-agent-cost", "用 API 还是自己 serve：粗略的月成本模型", "Frontier API or self-hosted: a rough monthly cost model"),
     ("tx-agent-maze", "同一个迷宫，三种 agent", "One maze, three kinds of agent"),
+    ("tx-model-router", "这条请求交给谁：小模型、frontier、级联、路由", "Who gets the request: small, frontier, cascade, router"),
 ]
 for _name, _zh, _en in TX_LAB:
     WIDGETS[_name] = f"""
