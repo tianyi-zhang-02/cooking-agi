@@ -16,7 +16,7 @@
 <details class="interview" markdown="1">
 <summary>Temperature、top-k、top-p 的主线与组合顺序</summary>
 
-**快速记忆**：模型产生 logits；temperature 改变相对尖锐度，top-k/top-p 截断候选集合，sampling 才真正做随机选择。
+**快速记忆**：模型先输出 logits。Temperature 调整概率分布有多集中，top-k / top-p 决定哪些候选可以保留，最后才按这个分布随机采样。
 
 **面试回答**
 

@@ -7,16 +7,16 @@
 <details class="interview" markdown="1">
 <summary>Trace、state transition 与可复现失败</summary>
 
-**快速记忆**：Metrics 告诉你哪里异常，logs 给局部事件，traces 还原一次 run 中 model、retrieval、tool 与 state 的因果链。
+**快速记忆**：Metrics 用来看整体指标有没有异常，logs 记录具体事件，traces 把一次运行中的模型调用、检索、工具和状态变化串起来。
 
 **面试回答**
 
-> Agent observability 的单位不是单次 API call，而是一条有状态 trajectory。每个 span 应记录版本、输入证据、决策、tool arguments/results、状态变更、latency、token/cost 与最终 outcome，并用 trace ID 串起来支持 replay 和 root-cause analysis。
+> 排查 Agent，不能只看某一次 API 调用，要看它完成任务的全过程。每一步的记录（span）应包括版本、输入依据、所选动作、工具参数与返回、状态变化、延迟和成本，再用 trace ID 串起来。这样才能回放问题，找到最先出错的环节。
 
 <details markdown="1">
 <summary><b>深挖</b>：为什么“把所有 prompt 都存下来”仍不等于 observability？</summary>
 
-原始文本没有明确因果关系，也可能泄漏敏感数据。可观测系统需要结构化 span、parent-child 关系、版本和状态 diff，并对 PII 做 redaction。目标是能定位“检索错、模型错、工具错还是 evaluator 错”，不是制造更长日志。
+只存原始文本，很难看出调用之间的先后和依赖关系，还可能留下敏感信息。更有用的记录应包含结构化 span、父子调用关系、版本和状态变更，并对个人信息（PII）脱敏。目的是分清检索、模型、工具或评估哪一步出了问题，不是把日志越存越长。
 
 </details>
 </details>
@@ -40,7 +40,7 @@ Agent Observability 的目标，不只是知道服务有没有报错，而是能
 最终回答：预订成功
 ```
 
-工具没有失败，模型也没有 hallucinate 一个不存在的订单。真正问题是：旧记忆错误覆盖了当前明确指令。
+工具没有失败，模型也没有凭空编造一个订单。真正问题是：旧记忆错误覆盖了当前明确指令。
 
 ## Metrics、Logs 和 Traces 有什么区别
 
@@ -86,7 +86,7 @@ Agent 特别需要 trace，因为一次结果通常由多次模型、检索和�
 - `memory`：读取、写入、压缩、遗忘和置信度变化；
 - `policy`：路由、停止、fallback 和风险判断；
 - `evaluation`：标准、证据、结论和 evaluator 版本；
-- `human_review`：为什么升级、人怎样修改以及修改理由。
+- `human_review`：为什么转人工、人工改了什么，以及修改理由。
 
 ## 常见 Agent 失败
 
@@ -100,7 +100,7 @@ Agent 特别需要 trace，因为一次结果通常由多次模型、检索和�
 
 ## 记录之后要做什么
 
-Observability 的终点不是 dashboard，而是能产生三种东西：
+有了监控面板还不够。这些记录最好能进一步帮我们得到：
 
 1. 一个稳定可复现的失败案例；
 2. 一条可以加入离线 eval set 的完整轨迹；

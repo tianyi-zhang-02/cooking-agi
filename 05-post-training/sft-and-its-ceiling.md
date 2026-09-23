@@ -13,7 +13,7 @@
 
 **面试回答**
 
-> SFT 把结构化对话序列化后，用 system 与 user 作为条件，只监督 assistant answer 和结束 token。它适合学习格式、语气、工具协议和已有解法，但本质是 behavior cloning，受示范覆盖、质量和 teacher-forced token objective 限制。
+> 做对话 SFT 时，先把消息按模板拼起来，让模型根据 system 和 user 的内容学习生成 assistant 回答及结束 token。它适合教格式、语气、工具调用和已有解法。这仍然是模仿示范：数据覆盖得不全、质量不好，或者逐 token 的目标没体现任务成败，都会影响结果。
 
 <details markdown="1">
 <summary><b>深挖</b>：为什么低 token CE 不等于完整回答更好？</summary>
@@ -41,7 +41,7 @@ $$\mathcal{L}_{\text{SFT}} = -\sum_{t} \log \pi_\theta(y_t \mid x, y_{<t})$$
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
-  <p>下面三张卡默认中文；点 <strong>English ↻</strong> 可在当前位置查看等价英文。</p>
+  <p>下面 3 张卡默认显示中文；点 <strong>English ↻</strong> 就能在原位置切换到对应英文。</p>
 </div>
 
 <section class="concept-card" data-concept-card markdown="1">

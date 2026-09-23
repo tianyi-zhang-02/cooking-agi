@@ -16,13 +16,13 @@ Pretraining 让模型学会“世界里通常有什么”，Post-Training 则让
 - **Preference Learning**：通过回答之间的比较学习偏好。
 - **RL**：根据结果或可验证奖励调整完整的行动策略。
 
-它们不是互相替代的按钮，而是在解决不同学习问题。
+这些方法各有用途，不能简单地互相替代。选哪一种，要看手上的数据和希望模型学会什么。
 
 ## 从 Base Model 到 Aligned Model：先把地图画对
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
-  <p>下面四张卡默认中文；点 <strong>English ↻</strong> 可在当前位置查看等价英文。</p>
+  <p>下面 4 张卡默认显示中文；点 <strong>English ↻</strong> 就能切换到对应英文，不用离开当前阅读位置。</p>
 </div>
 
 <section class="concept-card" data-concept-card markdown="1">
@@ -48,7 +48,7 @@ $$
 | SFT | instruction–response demonstrations | 指定的理想回答 | Instruction Model |
 | Preference Alignment | chosen/rejected、reward 或 verifier | 哪种完整行为更好 | Aligned Model / Policy |
 
-这些名称描述的是功能阶段，不保证每家公司一定保存三个独立 checkpoint。最重要的区别是：
+这是按训练目的划分的阶段，不代表实际训练一定会分别留下 3 个 checkpoint。主要区别在于：
 预训练学习数据分布中的语言、知识与基础能力；SFT 教模型按示范调用这些能力；偏好对齐
 再告诉它多个可行回答中哪种更符合目标。
 

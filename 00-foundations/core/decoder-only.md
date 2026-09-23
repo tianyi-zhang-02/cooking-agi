@@ -28,7 +28,7 @@
 <details class="interview" markdown="1">
 <summary>从 messages 到 logits，再到 KV-cached decode</summary>
 
-**快速记忆**：Chat Template 把角色排成一条序列；causal Transformer 为每个位置预测下一个 token；prefill 并行处理 prompt，decode 每步新增一个 token 并复用 KV Cache。
+**快速记忆**：Chat Template 把不同角色的消息按格式拼成一条序列，模型根据前文预测下一个 token。推理时，prefill 先并行处理 prompt，随后逐个 token 生成；历史 K/V 存进 cache，留给后续步骤复用。
 
 **面试回答**
 
@@ -37,7 +37,7 @@
 <details markdown="1">
 <summary><b>深挖</b>：KV Cache 缓存什么，为什么不缓存 Q？</summary>
 
-历史 token 的 K/V 会被未来每个 query 重复读取，因此缓存后只需为新 token 计算一次。Query 只用于当前 token 发起读取，下一步会产生新的 query，没有跨步复用价值。Cache 优化计算但不改变 attention 语义，增量结果必须与 full causal forward 等价。
+历史 token 的 K/V 会被未来每个 query 重复读取，因此缓存后只需为新 token 计算一次。Query 只用于当前 token 发起读取，下一步会产生新的 query，没有跨步复用价值。KV cache 省的是重复计算，不应该改变 attention 的结果：逐步生成得到的结果，要和完整序列的 causal forward 一致。
 
 </details>
 </details>

@@ -783,7 +783,7 @@ def blocks_html(page) -> str:
         rows.append(f'<div class="kb-area"><div class="kb-area-name"><strong>{a_main}</strong>'
                     f'{f"<em>{a_alt}</em>" if a_alt else ""}</div><div class="kb-grid">{"".join(cards)}</div></div>')
     head = block_head(page, "blocks", "知识板块" if zh else "Knowledge blocks",
-                      "不按岗位、按主题看：大模型基础、fine-tuning 与 post-training、评估……每一块有多少知识点、写了多少、有没有能动手玩的图。虚线的板块还没有笔记。"
+                      "也可以按主题来读：大模型基础、fine-tuning、post-training、评估……每个板块都会标明已写好的笔记和交互图；虚线表示内容还没补上。"
                       if zh else
                       "By subject instead of by role: LLM foundations, fine-tuning and post-training, evaluation and so on. For each block: how many topics, how many are written, and whether there is something to play with. Dashed blocks have no notes yet.")
     return f'<section class="home-block" data-widget="blocks">{head}{"".join(rows)}</section>'
@@ -808,7 +808,7 @@ def gallery_html(page) -> str:
     if not cards:
         return ""
     head = block_head(page, "figures", "交互图解" if zh else "Live figures",
-                      "能拖、能点、能现场训练的图都在这里。数字在你的浏览器里实时计算，玩具例子都会如实标注。" if zh else
+                      "可以拖动参数、点击步骤，或者试着训练一个小模型。结果在浏览器里实时计算，简化的演示例子也会标明。" if zh else
                       "Everything you can drag, click or train live. Numbers are computed in your browser, and toy examples are labelled as such.")
     return f'<section class="home-block" data-widget="gallery">{head}<div class="viz-grid">{"".join(cards)}</div></section>'
 
@@ -834,7 +834,7 @@ def threads_html(page) -> str:
     if not cards:
         return ""
     head = block_head(page, "threads", "串联：把几条线穿起来" if zh else "Threads: tying the lines together",
-                      "这些文章不属于某一个板块，它们的工作是解释板块之间怎么连。每篇下面标着它串起了哪几块。" if zh else
+                      "想把前面学到的内容连起来，可以读这一组文章。每篇下方都标了它涉及的板块。" if zh else
                       "These pieces belong to no single block: their job is to explain how the blocks connect. Each one lists the blocks it ties together.")
     return f'<section class="home-block" data-widget="threads">{head}<div class="thread-grid">{"".join(cards)}</div></section>'
 
@@ -874,7 +874,7 @@ def about_head_html(page) -> str:
     zh = page.lang == "zh"
     return ('<section class="home-block about-block">' +
             block_head(page, "about", "关于这份笔记" if zh else "About these notes",
-                       "我想弄明白什么、怎么写、哪些公开哪些不公开。" if zh else
+                       "这些笔记为什么写、怎么读，以及哪些内容适合放在这里。" if zh else
                        "What I am trying to understand, how the notes are written, and what is and is not public.") +
             '</section>')
 

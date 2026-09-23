@@ -4,7 +4,7 @@
 
 ## 评估先定义“什么算好”
 
-Evaluation 不是给模型生成一个分数，而是收集足够证据，判断一个具体改动是否真的改善了目标行为，同时没有在别的地方造成更严重的问题。
+评估不是算出一个分数就结束了。我们想知道的是：这个改动有没有解决原来的问题，又有没有带来新的问题？不同结论，需要不同的证据。
 
 ## 一个平均分为什么不够
 
@@ -24,7 +24,7 @@ Evaluation 不是给模型生成一个分数，而是收集足够证据，判断
 
 ## 先写清“好”是什么意思
 
-开始评估之前，先定义 task contract：
+开始评估前，先约定这项任务怎么算完成（task contract）：
 
 ```text
 Goal        用户真正想完成什么？
@@ -47,7 +47,7 @@ Slice       哪些用户、任务和环境必须分别观察？
 - [Agent Observability](../06-systems/agent-observability.md) 提供过程证据，而不只看最终回答。
 - [Human-in-the-Loop](../06-systems/human-in-the-loop.md) 负责高风险判断和 evaluator 校准。
 - [数据与反馈](../01-data-and-feedback/) 决定 eval set 是否代表真实任务。
-- [Model Experience](../08-model-experience/) 把离线指标连接到长期感受。
+- [Model Experience](../08-model-experience/) 检查离线指标能否反映用户长期使用的体验。
 
 ## 工程实践阅读
 

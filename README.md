@@ -6,8 +6,8 @@
 
 **从一条直线，到会读世界的系统**
 
-一份公开的中英双语学习笔记：模型从什么数据里学、怎么记住和检索、如何使用工具，<br>
-以及我们凭什么相信一次指标上涨真的代表系统变好了。
+一份公开的中英双语学习笔记：模型怎么从数据里学习、怎样记住信息、如何检索和使用工具，<br>
+以及分数涨了以后，我们怎么判断它是不是真的变好了。
 
 [![在线阅读](https://img.shields.io/badge/在线阅读-cooking--agi-E8A672?style=flat-square)](https://tianyi-zhang-02.github.io/cooking-agi/)
 [![build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
@@ -28,7 +28,7 @@
 
 我关心的不只是"怎样训练一个更大的模型"，而是数据、表征、记忆、搜索、反馈、训练和评估怎样一起工作，最终让 AI **更准确地理解需求、找到证据，并在得到反馈后修正自己**。
 
-每篇尽量按同一个顺序写：先说问题从哪儿来，用最小的例子建立直觉，再进公式、实现和工程取舍，最后留下它的假设、边界，和还没想明白的地方。整体从今天的 LLM 系统往回看，历史只在它能解释当前设计的时候出现。
+每篇尽量从一个具体问题讲起，先用小例子说明白，再看公式、代码和设计上的取舍。哪些结论有前提、哪些地方我还没想明白，也会写出来。介绍旧方法，是为了看懂今天的模型为什么会这样设计，不是按年份罗列论文。
 
 这些是我现阶段的理解，会一直改。
 
@@ -39,7 +39,7 @@
 | 系统地学一遍 | [大模型基础](00-foundations/)，按板块往下读；[Transformer 交互图解](00-foundations/transformer-lab.md)里的图能直接拖 |
 | 看懂不同模型为什么这样设计 | [模型家族精读](00-foundations/model-families/)：用同一组问题比较 Llama、Qwen、DeepSeek、Gemma |
 | 准备面试 | [技术面](interview/)面试前快速复习；[求职笔记](career/)是我自己找 MLE / RE 的记录 |
-| 读一篇论文 | [精读](papers/)：它 claim 了什么、证据够不够、什么能推翻它 |
+| 读一篇论文 | [精读](papers/)：作者提出了什么结论、证据够不够、怎样检验 |
 | 知道谁写的 | [幕后船员](contributors.md) |
 
 ## 里面有什么
@@ -50,9 +50,9 @@
 | [Post-training](05-post-training/) | SFT、RLHF、PPO 和它的近亲，以及对齐到底在对齐什么 |
 | [评估](07-evaluation/) | 指标稳不稳、LLM-as-a-judge 怎么用才不骗自己 |
 | [数据与检索](01-data-and-feedback/) | 数据从哪儿来、反馈怎么收、检索怎么建 |
-| [系统与多模态](06-systems/) | 一次请求真正经过哪些环节，可观测性与人在回路 |
+| [系统与多模态](06-systems/) | 一次请求经过哪些环节，怎么排查问题，什么时候需要人来确认 |
 | [Agents](10-agents/) | 这个词的来历、几种结构、不同场景，以及模型怎么选 |
-| [AI Infra](open-source/) | 在 NeMo RL 里做贡献：零散 PR 怎样长成对系统的理解 |
+| [AI Infra](open-source/) | 在 NeMo RL 里做贡献：从具体改动出发，逐步看懂整套系统 |
 | [求职](career/) | 心态、要准备什么、我自己的时间线和复盘 |
 | [精读](papers/) | 一篇一篇拆论文 |
 

@@ -16,11 +16,11 @@
 <details class="interview" markdown="1">
 <summary>Encoder–Decoder 主线、teacher forcing 与 exposure bias</summary>
 
-**快速记忆**：Encoder 把 source 编成 states，Decoder 自回归生成 target；把整句压进单个向量形成瓶颈，attention 改成每一步按需读取全部 encoder states。
+**快速记忆**：Encoder 先编码输入，Decoder 再逐步生成输出。早期做法把整段输入压成一个向量，长句容易丢信息；attention 让 Decoder 每一步都能重新查看 Encoder 的各个状态，挑出当前需要的信息。
 
 **面试回答**
 
-> 经典 Seq2Seq 用 encoder final state 条件化 decoder，但长序列的信息被迫挤进固定长度向量。Attention 让每个 decode step 用当前 query 对所有 encoder states 寻址。训练时 teacher forcing 提供真实前缀，推理时只能消费自身输出，因此会产生 exposure bias。
+> 经典 Seq2Seq 把 Encoder 的最终状态交给 Decoder，作为生成输出的依据。但输入再长，也得挤进一个固定长度的向量。Attention 改成每一步都用当前 query 去匹配 Encoder 的全部状态，按权重读取信息。训练时，teacher forcing 给的是正确的前文；生成时，模型接着自己已经生成的内容往下写。这种差异就是 exposure bias 的来源。
 
 <details markdown="1">
 <summary><b>深挖</b>：Attention 解决了什么，又没解决什么？</summary>

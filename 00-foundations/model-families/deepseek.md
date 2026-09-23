@@ -13,7 +13,7 @@
 
 ## 一句话定位
 
-DeepSeek 最值得学的是 **co-design**：MLA 压 attention cache，MoE 扩大 FFN 容量，训练与通信系统让稀疏模型跑得起来，R1 再把 post-training 的重点转向可验证 reasoning。每一层都在处理不同的成本，不能只记“用了 MoE”。
+读 DeepSeek，值得留意的是架构、训练方法和系统实现怎样配合，也就是 **co-design**：MLA 减少 KV cache，MoE 增大 FFN 的总容量，训练与通信的优化让这套架构能高效运行；R1 则进一步研究推理能力的后训练。只记住“用了 MoE”，会漏掉很多关键设计。
 
 ## 先把两条线分开
 
@@ -27,7 +27,7 @@ flowchart LR
     F --> G["Distilled dense models"]
 ```
 
-V3 首先是一套基础模型与训练系统设计；R1 主要是在这个基础上研究 reasoning 如何通过 cold-start 数据、RL 和蒸馏形成。把两者分开，才能判断一个变化发生在 forward pass，还是发生在学习信号。
+V3 首先是一套基础模型与训练系统设计；R1 主要是在这个基础上研究 reasoning 如何通过 cold-start 数据、RL 和蒸馏形成。把两者分开，才容易判断：改的是模型前向计算，还是训练时使用的数据和信号。
 
 ## 真正值得抓住的三件事
 
@@ -46,7 +46,7 @@ V3 首先是一套基础模型与训练系统设计；R1 主要是在这个基�
 
 ## 我会怎样使用这个家族
 
-DeepSeek 很适合训练“不要把层次混在一起”的能力。分析任何结果时，我会先问：这是 cache / compute 的系统收益，expert capacity 的架构收益，预训练数据收益，还是 reasoning post-training 的行为收益？如果论文没有足够消融，就明确保留不确定性。
+读 DeepSeek 时，我会特别注意不要把不同来源的提升混为一谈。分析任何结果时，我会先问：这是 cache / compute 的系统收益，expert capacity 的架构收益，预训练数据收益，还是 reasoning post-training 的行为收益？如果消融实验还不足以区分，就先不急着下结论。
 
 ## 自检
 

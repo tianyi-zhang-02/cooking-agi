@@ -5,7 +5,7 @@
 > 阅读时间：约 9 分钟 · 类型：模型家族精读 · 最近审阅：2026-09
 
 <div class="lesson-recipe advanced">
-  <div><span>核心问题</span><strong>当架构相对克制时，能力究竟从哪里来？</strong></div>
+  <div><span>核心问题</span><strong>架构变化不大时，模型为什么还能变强？</strong></div>
   <div><span>重点组件</span><strong>Dense decoder · GQA · RoPE · RMSNorm · SwiGLU</strong></div>
   <div><span>训练主线</span><strong>大规模预训练 → SFT / 偏好优化 → 安全与工具使用</strong></div>
   <div><span>读完要会</span><strong>把架构、数据规模和 post-training 的贡献分开讲</strong></div>
@@ -13,9 +13,9 @@
 
 ## 一句话定位
 
-Llama 最适合当现代开源 LLM 的 **dense baseline**。它的重要性不在于某一个特别奇怪的 block，而在于把相对标准的 decoder-only 架构、足够大的训练规模和完整 post-training 组合成一个可研究、可部署、可继续训练的家族。
+读现代开源 LLM 时，可以先把 Llama 当作 **dense baseline**。它的看点不只是某个新组件，更在于较常见的 decoder-only 架构、大规模训练和 post-training 怎样配合。公开的模型也方便我们继续研究、部署和微调。
 
-这正好提醒我们：模型能力不等于架构新颖度。一个“看起来普通”的 block，配上更好的数据、训练稳定性和后训练，也能发生很大的行为变化。
+这正好提醒我们：模型能力不等于架构新颖度。即使 block 的结构看起来很熟悉，改善数据、训练稳定性和后训练，仍然可能让模型表现出明显不同的能力。
 
 ## 先看数据怎样流
 
@@ -33,9 +33,9 @@ Llama 3 的主体仍是 dense Transformer：每个 token 都经过同一套 FFN 
 
 ## 真正值得抓住的三件事
 
-1. **Dense 是清楚的对照组。** 没有 expert routing，参数路径更容易解释，也更方便做量化、微调和部署；代价是每个 token 都支付完整 FFN 计算。
+1. **Dense 是清楚的对照组。** 没有 expert routing，参数路径更容易解释，也更方便做量化、微调和部署；代价是每个 token 都要经过完整的 FFN 计算。
 2. **数据与规模是主角。** Llama 3 报告花了大量篇幅讨论数据混合、质量过滤、scaling 和训练稳定性。读报告时不要只停在架构表。
-3. **Base 与 instruct 是两种研究对象。** 工具使用、拒答风格和偏好行为主要来自 post-training。拿 instruct model 的行为反推 base architecture，通常会把因果链讲错。
+3. **Base 与 instruct 是两种研究对象。** 工具使用、拒答风格和偏好行为主要来自 post-training。不能看到 instruct model 更会用工具，就直接把提升归到 base model 的架构上。
 
 ## 取舍表
 

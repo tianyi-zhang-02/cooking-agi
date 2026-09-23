@@ -50,7 +50,7 @@ id = "reference"
 zh = "精读"
 en = "Close readings"
 home = "papers/README.md"
-blurb_zh = "一篇一篇地读论文：它到底说了什么，证据够不够，对我们手上的东西意味着什么。"
+blurb_zh = "一篇篇读论文：作者提出了什么结论，证据是否充分，对自己的研究和实践有什么帮助。"
 blurb_en = "Papers read one at a time: what a paper actually claims, whether the evidence holds, and what it changes for us."
 
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
