@@ -106,8 +106,8 @@ home = "10-agents/README.md"
 [[group]]
 id = "open-source"
 category = "learn"
-zh = "开源项目"
-en = "Open source"
+zh = "AI Infra"
+en = "AI infra"
 
 [[group]]
 id = "career"
