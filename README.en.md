@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center" markdown="1">
 
 <img src="site/static/og.png" alt="AGI Study Notes — from a straight line to a system that reads the world" width="760">
 
@@ -16,7 +16,7 @@ when it should use a tool, and why a metric going up should count as progress.
 [**Start reading**](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) ·
 [中文](README.md) ·
 [Behind the notes](contributors.en.md) ·
-[Contributing](CONTRIBUTING.md)
+[Join us!](CONTRIBUTING.md)
 
 </div>
 
@@ -75,10 +75,12 @@ python3 site/paritycheck.py      # do the Chinese and English versions still mat
 python3 site/leakcheck.py        # has anything that should stay private slipped in
 ```
 
-## Write it with me
+## Join us!
 
-If something is wrong, unclear, or missing a better example, please say so — fixing a typo counts. This repository is the source of the site; [CONTRIBUTING.md](CONTRIBUTING.md) explains how to take part, including the short list of rules: tech only and no politics, not an advertising slot, and AI drafts are fine as long as you read every line yourself.
+Learning about these topics too? Come join the conversation! If an explanation is unclear, you have a better example, or you want to share your own notes, we'd love to hear from you. You don't need to have everything figured out first—a question or a small correction can help someone else learn.
 
-To light up one more patch of the [world map](https://tianyi-zhang-02.github.io/cooking-agi/contributors.en.html), open an [issue](../../issues/new?template=add-me-to-the-crew.yml) telling me where you are.
+Open an issue on GitHub or submit an edit. The [contributing guide](CONTRIBUTING.md) explains how to get started.
 
-Only foundational principles, derivations, public papers, reproducible experiments and open-source project notes are published here; nothing from a specific company or a recruiting process goes in.
+Meet the people taking part on the [crew page](https://tianyi-zhang-02.github.io/cooking-agi/contributors.en.html). If you'd like a spot on the map, you can [share your country or region](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)—no precise address needed.
+
+This is a place for public technical knowledge and learning notes. Please don't upload internal company materials, non-public interview content, or other sensitive information.

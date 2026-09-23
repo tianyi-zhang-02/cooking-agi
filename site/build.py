@@ -348,7 +348,14 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
         frag = f"#{frag}" if frag else ""
         raw = path
 
-        if path.endswith(".en.md"):
+        source_path = os.path.normpath(str(here / path)).replace(os.sep, "/")
+        if attr == "src" and source_path.startswith("site/static/") and (ROOT / source_path).is_file():
+            asset_path = os.path.relpath(source_path[len("site/"):], str(here)).replace(os.sep, "/")
+            return f'{attr}="{asset_path}{frag}"'
+
+        if source_path == "README.md":
+            path = os.path.relpath("index.html", str(here)).replace(os.sep, "/")
+        elif path.endswith(".en.md"):
             path = path[:-6] + ".en.html"
         elif path.endswith(".md"):
             path = path[:-3] + suffix
@@ -358,8 +365,10 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
             return f'{attr}="{path}{frag}"'          # copied verbatim into _site
         else:
             return f'{attr}="{gh(raw, "blob")}"'     # a real file, no page
-        if path.endswith("README" + suffix):
-            path = path[: -len("README" + suffix)] + "index" + suffix
+        for readme_suffix in (".en.html", ".html"):
+            if path.endswith("README" + readme_suffix):
+                path = path[: -len("README" + readme_suffix)] + "index" + readme_suffix
+                break
 
         resolved = os.path.normpath(str(here / path)).replace(os.sep, "/")
         if resolved not in known and path.endswith(".en.html"):
@@ -912,8 +921,12 @@ def expand_widgets(md_text: str, page=None) -> str:
 # --------------------------------------------------------------------------- #
 def read_title(src: Path) -> str:
     """First h1 of a file. Needed for every page before any sidebar is built."""
-    m = re.search(r"^#\s+(.+)$", src.read_text(encoding="utf-8"), re.M)
-    return m.group(1).strip() if m else src.stem
+    text = src.read_text(encoding="utf-8")
+    heading = re.search(r"^#\s+(.+)$", text, re.M)
+    if heading:
+        return heading.group(1).strip()
+    heading = re.search(r"<h1\b[^>]*>(.*?)</h1>", text, re.S | re.I)
+    return html.unescape(strip_tags(heading.group(1))) if heading else src.stem
 
 
 class Page:
@@ -1166,7 +1179,7 @@ def build_page(page: Page, terms, repo: str, known: set):
     raw = protect_mermaid(raw)
 
     m = re.search(r"^#\s+(.+)$", raw, re.M)
-    page.title = m.group(1).strip() if m else page.src.stem
+    page.title = m.group(1).strip() if m else read_title(page.src)
     raw = re.sub(r"^#\s+.+$", "", raw, count=1, flags=re.M)
     if page.kind == "home":
         # Useful on GitHub, but redundant (and oddly circular) on the site itself.

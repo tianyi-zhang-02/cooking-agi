@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center" markdown="1">
 
 <img src="site/static/og.png" alt="AGI 学习笔记 · 从一条直线，到会读世界的系统" width="760">
 
@@ -16,7 +16,7 @@
 [**开始阅读**](https://tianyi-zhang-02.github.io/cooking-agi/) ·
 [English](README.en.md) ·
 [幕后船员](contributors.md) ·
-[一起写](CONTRIBUTING.md)
+[加入我们！](CONTRIBUTING.md)
 
 </div>
 
@@ -75,10 +75,12 @@ python3 site/paritycheck.py      # 中英两版结构是否一致
 python3 site/leakcheck.py        # 不该公开的东西有没有混进来
 ```
 
-## 一起写
+## 加入我们！
 
-哪里讲错了、没讲清楚，或者缺一个更好的例子，都欢迎指出——改一个错字也算贡献。这个仓库就是站点源码，怎么参与见 [CONTRIBUTING.md](CONTRIBUTING.md)，那儿也写了几条规矩：只聊技术不聊政治、别把这儿当广告位、AI 起草可以但你自己得先读一遍。
+如果你也在学这些，欢迎来交流！发现哪段没讲明白、有更直观的例子，或者想分享自己的学习笔记，都可以提出来。不用等到完全弄懂再参与，一个问题、一次纠错，都能让这里更好一点。
 
-想让[世界地图](https://tianyi-zhang-02.github.io/cooking-agi/contributors.html)上多亮一块，开个 [issue](../../issues/new?template=add-me-to-the-crew.yml) 告诉我你在哪儿。
+你可以在 GitHub 上提 issue，或者直接提交修改。具体方法见[贡献指南](CONTRIBUTING.md)。
 
-这里只放基础原理、推导、公开论文、可复现实验和开源项目笔记；来自具体公司或招聘过程的内容不会出现在这儿。
+也欢迎到[幕后船员](https://tianyi-zhang-02.github.io/cooking-agi/contributors.html)看看一起参与的朋友。如果愿意在地图上留个位置，可以[告诉我们你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不需要提供具体地址。
+
+这里分享公开的技术知识和学习心得，请不要上传公司内部资料、未公开的面试内容或其他敏感信息。
