@@ -1601,12 +1601,12 @@ def contributor_universe_html(people, page, site):
 <section class="crew-credits" id="crew-credits" aria-label="{'演职员表' if zh else 'Credits'}">
   <p class="credits-kicker">{'演职员表' if zh else 'Credits'}</p>
   <div class="credits-roll">{roll}</div>
-  <p class="credits-end">{'谢谢每一位路过、又留下点什么的人。' if zh else 'Thank you to everyone who passed through and left something behind.'}</p>
+  <p class="credits-end">{'谢谢每一个来过、又留下过点什么的人。' if zh else 'Thank you to everyone who came through and left something behind.'}</p>
 </section>
 <section class="crew-board" id="crew-board" aria-labelledby="board-title">
   <div class="board-head">
     <h2 id="board-title">{'贡献榜单' if zh else 'Contribution board'}</h2>
-    <p>{'按提交数排。名单来自 main 分支的提交与 Co-authored-by 署名；「本周」按 UTC 周一至周日算。' if zh else 'Ordered by commits. Based on main-branch commits and Co-authored-by credits; weeks run Monday to Sunday, UTC.'}</p>
+    <p>{'按提交数排，数字来自 main 分支的提交和 Co-authored-by 署名。' if zh else 'By commits, from main-branch commits and Co-authored-by credits.'}</p>
   </div>
   <div class="board-scroll"><table class="board-table">
     <thead><tr><th class="rank">#</th><th>{'贡献者' if zh else 'Contributor'}</th>
@@ -1619,13 +1619,12 @@ def contributor_universe_html(people, page, site):
 <section class="crew-map" id="crew-map" aria-labelledby="map-title"
   data-world="{prefix}static/world-dots.json" data-lit="{",".join(lit)}">
   <div class="board-head">
-    <h2 id="map-title">{'贡献者地图' if zh else 'Where the crew is'}</h2>
-    <p>{'填了国家或地区的人，会点亮自己那一块。填不填都随意。' if zh else 'Anyone who fills in a country or region lights up their patch of the map. Filling it in is entirely optional.'}</p>
+    <h2 id="map-title">{'大家在哪儿' if zh else 'Where the crew is'}</h2>
   </div>
   <canvas class="world-dots" width="800" height="400" role="img"
     aria-label="{'点亮了 ' + str(len(lit)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(lit)} country or region lit up'}"></canvas>
-  <ul class="map-list">{map_list or f'<li class="map-empty">{"还没有人填。第一个位置留给你。" if zh else "Nobody yet. The first one could be you."}</li>'}</ul>
-  <p class="map-how">{'想点亮自己那一块？在' if zh else 'Want to light up your own patch? Add a line to'} <a href="{crew_file}">crew.toml</a>{'里加一行。' if zh else '.'}</p>
+  <ul class="map-list">{map_list or f'<li class="map-empty">{"还没人填。" if zh else "Nobody yet."}</li>'}</ul>
+  <p class="map-how"><a href="{crew_file}">crew.toml</a> {'里加一行，就亮一块。' if zh else '— one line lights one more.'}</p>
 </section>
 <footer class="crew-end">
   <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'下一个位置，也许是你 ↗' if zh else 'Room for one more ↗'}</a>
