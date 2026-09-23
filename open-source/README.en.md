@@ -1,8 +1,14 @@
-# Open source
+# AI infra, entered through open source
 
 [中文](README.md) · **English**
 
-> Reading time: ~4 min · Type: Section index · Freshness: Evolving · Last reviewed: 2026-08
+> Reading time: ~4 min · Type: Section index · Freshness: Evolving · Last reviewed: 2026-09
+
+This block holds the infra I have actually touched: contributing to NeMo RL and, through one
+real problem after another, coming to understand a post-training system. The layer as a whole
+is not my strength — for a systematic treatment I would send you to
+[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial). What is
+here is only what happened on my own hands.
 
 I do not really want to write open source up as a PR scoreboard. Getting a patch merged is satisfying, of course, but what actually draws me is that afterwards it no longer belongs only to me: other people's training jobs will run through it, new tests will protect it, maintainers will keep modifying it, and it may become a piece of basic capability that the next contributor relies on by default.
 

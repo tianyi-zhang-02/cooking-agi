@@ -1,6 +1,6 @@
 # NVIDIA NeMo RL: from isolated PRs to understanding a post-training system
 
-[中文](README.md) · **English** · [Back to Open source](../README.en.md)
+[中文](README.md) · **English** · [Back to AI infra](../README.en.md)
 
 > Reading time: ~15 min · Type: Contribution notes · Freshness: Evolving · Last reviewed: 2026-08
 

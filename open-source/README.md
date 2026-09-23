@@ -1,8 +1,13 @@
-# 开源项目
+# AI Infra：从开源贡献进去
 
 **中文** · [English](README.en.md)
 
-> 阅读时间：约 4 分钟 · 类型：栏目索引 · 时效性：Evolving · 最近审阅：2026-08
+> 阅读时间：约 4 分钟 · 类型：栏目索引 · 时效性：Evolving · 最近审阅：2026-09
+
+这一块放的是我真正碰过的 infra：在 NeMo RL 里做贡献，顺着一个个真实问题，把 post-training
+系统慢慢看明白。这一层整体不是我的强项，想系统地学，我推荐
+[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)；
+这里只写我自己手上发生过的事。
 
 我不太想把开源写成一张 PR 成绩单。一个 patch 被合并当然开心，但真正吸引我的，是它之后不再只属于我：会被别人的训练任务跑到，被新的测试保护，被维护者继续修改，也可能成为下一个贡献者默认依赖的一块基础能力。
 

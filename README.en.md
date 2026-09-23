@@ -52,7 +52,7 @@ This is what I understand today. It keeps changing.
 | [Data & retrieval](01-data-and-feedback/README.en.md) | Where data comes from, how feedback is collected, how retrieval is built |
 | [Systems & multimodal](06-systems/README.en.md) | The path a request really takes, observability, and humans in the loop |
 | [Agents](10-agents/README.en.md) | Where the word comes from, the usual structures, the scenarios, and choosing a model |
-| [Open source](open-source/README.en.md) | Contributing to NeMo RL: how scattered PRs grew into understanding a system |
+| [AI infra](open-source/README.en.md) | Contributing to NeMo RL: how scattered PRs grew into understanding a system |
 | [Job search](career/README.en.md) | Mindset, what to prepare, and my own timeline and reviews |
 | [Close readings](papers/README.en.md) | One paper at a time |
 

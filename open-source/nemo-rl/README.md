@@ -1,6 +1,6 @@
 # NVIDIA NeMo RL：从零散 PR 到理解 Post-Training 系统
 
-**中文** · [English](README.en.md) · [返回开源项目](../README.md)
+**中文** · [English](README.en.md) · [返回 AI Infra](../README.md)
 
 > 阅读时间：约 15 分钟 · 类型：贡献笔记 · 时效性：Evolving · 最近审阅：2026-08
 
