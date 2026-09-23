@@ -95,6 +95,8 @@ a:hover { color: var(--link-hover); }
 }
 .crew-link span { color: var(--ember); font-size: .9em; }
 .crew-link:hover { background: var(--rule-soft); color: var(--ink); }
+.repo-btn { color: var(--ink-soft); text-decoration: none; }
+.repo-btn:hover { background: var(--rule-soft); color: var(--ink); }
 .page-crew .crew-link { display: none; }
 
 .icon-btn {
