@@ -33,6 +33,8 @@ My preparation and interview experience has mainly been with **MLE and Research 
 
 ## What you can read
 
+There are two main entry points: [Study notes](00-foundations/README.en.md) for concepts, formulas, and teaching examples, and [Industry Practice](practice/README.en.md) for concrete problems, implementations, and validation. Career and paper notes remain separate.
+
 The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has language switching and working interactive diagrams. If you'd like to browse first, try the [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html).
 
 | Section | Topics |
@@ -43,7 +45,7 @@ The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has l
 | [Data & retrieval](01-data-and-feedback/README.en.md) | Data, feedback signals, and retrieval |
 | [Systems & multimodal](06-systems/README.en.md) | Request handling, debugging, and human involvement |
 | [Agents](10-agents/README.en.md) | Common architectures, use cases, and model selection |
-| [AI infra](open-source/README.en.md) | What I'm learning through open-source contributions to NeMo RL |
+| [Industry Practice](practice/README.en.md) | Debugging, implementation, tests, and trade-offs through NeMo RL contributions |
 | [Interview preparation](interview/README.en.md) | ML review, coding practice, and system design resources |
 | [Job search](career/README.en.md) | Preparation, mistakes, and reflections on the process |
 | [Papers](papers/README.en.md) | Reading notes, questions, and experiment ideas |

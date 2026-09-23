@@ -853,7 +853,7 @@ def category_home(cat):
 
 
 def categories_html(page) -> str:
-    """The three big categories as cards: what is in each, how much, and where to start."""
+    """Category cards with descriptions, note counts, and entry points."""
     zh = page.lang == "zh"
     groups = NAV.get("group", [])
     cards = []
@@ -873,9 +873,9 @@ def categories_html(page) -> str:
                      f'<span class="cat-meta">{unit} · {names}</span></a>')
     if not cards:
         return ""
-    head = block_head(page, "library", "三个大类" if zh else "Three categories",
-                      "不想按路线走？所有笔记都归在这三类里，侧边栏和顶栏也是同一套分类。" if zh else
-                      "Rather browse? Every note lives in one of these three categories; the sidebar and the top bar use the same split.")
+    head = block_head(page, "library", "按主题浏览" if zh else "Browse by topic",
+                      "可以按兴趣选一个入口，侧边栏和顶栏使用相同的分类。" if zh else
+                      "Choose a topic to explore. The sidebar and top navigation use the same categories.")
     return f'<section class="home-block" data-widget="categories">{head}<div class="cat-cards">{"".join(cards)}</div></section>'
 
 

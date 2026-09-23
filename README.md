@@ -33,6 +33,8 @@
 
 ## 可以看些什么
 
+内容分成两个主要入口：[学习笔记](00-foundations/)讲原理、公式和教学演示；[工程实践](practice/)记录具体问题是怎么发现、实现和验证的。求职和论文笔记继续单独整理。
+
 建议在[网站](https://tianyi-zhang-02.github.io/cooking-agi/)上阅读，可以切换中英文，也能直接操作交互图。想先随便看看，可以从 [Transformer 图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html)开始。
 
 | 板块 | 内容 |
@@ -43,7 +45,7 @@
 | [数据与检索](01-data-and-feedback/) | 数据、反馈信号与检索 |
 | [系统与多模态](06-systems/) | 请求处理、问题排查与人工介入 |
 | [Agents](10-agents/) | 常见结构、使用场景与模型选择 |
-| [AI Infra](open-source/) | 参与 NeMo RL 开源贡献时的学习记录 |
+| [工程实践](practice/) | 从 NeMo RL 开源贡献看问题定位、实现、测试与取舍 |
 | [面试准备](interview/) | ML 基础复习、代码练习和系统设计资料 |
 | [求职](career/) | 准备过程、踩过的坑和心态变化 |
 | [论文](papers/) | 读论文时的理解、疑问和实验思路 |

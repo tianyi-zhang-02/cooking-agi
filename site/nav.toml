@@ -27,15 +27,22 @@ owner_url   = "https://tianyi-zhang-02.github.io/"
 "open-source/nemo-rl.html" = "open-source/nemo-rl/index.html"
 "open-source/nemo-rl.en.html" = "open-source/nemo-rl/index.en.html"
 
-# 三个大类。顶栏的 tab、侧边栏的分组标题和首页的三张入口卡片都来自这里。
 # home 是这个大类的落地页；每个 [[group]] 用 category 指到这里的 id。
 [[category]]
 id = "learn"
 zh = "学习笔记"
 en = "Study notes"
 home = "00-foundations/README.md"
-blurb_zh = "从大模型基础一路读到训练、评估、Agent 和开源实践。"
-blurb_en = "From LLM foundations to training, evaluation, agents, and open-source practice."
+blurb_zh = "从大模型基础开始，理解训练、评估和 Agent 的原理。"
+blurb_en = "Model fundamentals and the ideas behind training, evaluation, and agents."
+
+[[category]]
+id = "practice"
+zh = "工程实践"
+en = "Industry Practice"
+home = "practice/README.md"
+blurb_zh = "具体问题怎么发现、怎么实现、怎么验证，以及过程中的取舍。"
+blurb_en = "Concrete problems, implementations, validation, and the trade-offs along the way."
 
 [[category]]
 id = "career"
@@ -104,8 +111,15 @@ en = "Agents"
 home = "10-agents/README.md"
 
 [[group]]
+id = "practice"
+category = "practice"
+zh = "实践导读"
+en = "Start here"
+home = "practice/README.md"
+
+[[group]]
 id = "open-source"
-category = "learn"
+category = "practice"
 zh = "AI Infra"
 en = "AI infra"
 
@@ -266,6 +280,13 @@ en    = "Agents"
 order = ["README.md", "patterns.md", "scenarios.md", "model-choice.md", "review.md"]
 
 [[section]]
+dir   = "practice"
+group = "practice"
+zh    = "工程实践"
+en    = "Industry Practice"
+order = ["README.md"]
+
+[[section]]
 dir   = "open-source"
 group = "open-source"
 zh    = "总览"
@@ -333,6 +354,7 @@ en  = "Templates"
 # ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
 # without a label falls back to its title up to the first colon.
 [label]
+"practice/README.md"                                   = ["从这里开始", "Overview"]
 "README.md"                                             = ["首页", "Home"]
 "00-foundations/README.md"                              = ["学习地图", "Learning map"]
 "00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
