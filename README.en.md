@@ -4,10 +4,10 @@
 
 <h1>AGI Study Notes</h1>
 
-**From a straight line to a system that reads the world**
+**Learning AI together, starting with the basics**
 
-Open, bilingual notes on what a model learns from, how it remembers and retrieves,<br>
-when it should use a tool, and why a metric going up should count as progress.
+Notes from learning AI, reading papers, and preparing for interviews.<br>
+There are fundamentals to work through and interactive diagrams to try. Questions and discussions are welcome.
 
 [![read online](https://img.shields.io/badge/read-cooking--agi-E8A672?style=flat-square)](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html)
 [![build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
@@ -24,13 +24,13 @@ when it should use a tool, and why a metric going up should count as progress.
 
 ## Why I write these
 
-Understanding one idea at a time is usually manageable. The harder part is connecting them: what a model learns from, how it remembers and retrieves information, when it should reach for a tool, and why a better metric should count as real progress.
+I often think I understand a concept until I meet it in a paper or in code and struggle to explain what it is doing. I started taking these notes to connect the pieces as I learn.
 
-I care about more than "how to train a bigger model". I want to understand how data, representation, memory, search, feedback, training and evaluation work together, so that a system can **understand a need more accurately, find evidence, and revise itself when the feedback says it was wrong**.
+My interests are mainly in representation learning, LLM post-training, and model / agent evaluation. When reading a paper or running an experiment, I often ask: what signal did the model learn from? If a score went up, did its actual behavior improve too?
 
-Every note tries to run in the same order: where the problem comes from, the smallest example that builds intuition, then the mathematics, the implementation and the engineering trade-offs, and finally the assumptions, the edges, and what I have not worked out. The perspective is modern-first — today's LLM systems, with history brought in only where it explains a current design.
+I try to explain the problem with examples before getting into formulas and code. Alongside current methods, I also revisit earlier models to understand how these designs came about.
 
-This is what I understand today. It keeps changing.
+These notes reflect my understanding so far. Some sections are unfinished, and I will get things wrong. I'll keep updating them, and corrections are welcome.
 
 ## Where to start
 

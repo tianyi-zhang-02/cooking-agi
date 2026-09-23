@@ -9,7 +9,7 @@
 repo        = "tianyi-zhang-02/cooking-agi"
 title_zh    = "AGI 学习笔记"
 title_en    = "AGI Study Notes"
-tagline_zh  = "从基础概念，到真正能工作的 AI 系统"
+tagline_zh  = "从基础开始，理解模型怎么工作"
 tagline_en  = "From first principles to AI systems that work"
 base_url    = "/cooking-agi"
 origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
@@ -42,7 +42,7 @@ id = "career"
 zh = "求职"
 en = "Career"
 home = "career/README.md"
-blurb_zh = "面试怎么准备，以及我找工作时踩过的坑、做过的选择和留下的复盘。"
+blurb_zh = "我的面试准备方法，以及找工作时的经历和想法。"
 blurb_en = "Interview preparation, plus the mistakes, decisions, and lessons from my own job search."
 
 [[category]]
@@ -50,7 +50,7 @@ id = "reference"
 zh = "论文"
 en = "Papers"
 home = "papers/README.md"
-blurb_zh = "一篇篇读论文：作者提出了什么结论，证据是否充分，对自己的研究和实践有什么帮助。"
+blurb_zh = "一起读论文：看方法和实验，也聊聊疑问和自己的理解。"
 blurb_en = "Papers read one at a time: what a paper actually claims, whether the evidence holds, and what it changes for us."
 
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。

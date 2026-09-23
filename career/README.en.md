@@ -14,7 +14,7 @@ Two kinds of things live here: **how to prepare for technical interviews**, and 
 
 ## What is here
 
-Ordered by what I think matters most.
+Start with whichever part you need right now.
 
 ### 1. Mindset
 
@@ -36,12 +36,12 @@ Ordered by what I think matters most.
 - [How I practise LeetCode](../interview/leetcode.en.md) — what to practise, how, and how far to take it
 - [System design](../interview/system-design.en.md) — no fixed formula; it is about explaining trade-offs, plus public resources
 
-The technical part comes last on purpose: technique is usually the least important layer. Work out what you want first, and be happy :)
+I put technical preparation after goals and mindset. Technical skills matter, of course, but it is also worth asking what you enjoy and what kind of life you want :)
 
 ## One more thing I believe
 
-I think learning to be a decent person comes first. Skill is maybe 30% of it; the other 70% is how you get on with people, and whether they come to trust you.
+For me, looking for a job is not just about showing technical ability. It is also about whether people can work well together: how we communicate, handle disagreements, and follow through on commitments.
 
-That is a broad thing to say, and I am still working it out myself, but the core of it is probably this: **be a good person.**
+I am still learning this too. I hope to find work that fits me and to be someone others can trust and enjoy working with.
 
-If you do not know where to start, go back to [the roadmap on the home page](../README.en.md) and pick a track.
+If you are not sure where to start, go back to [the home page](../README.en.md) and choose a section that interests you.

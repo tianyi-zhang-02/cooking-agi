@@ -2,13 +2,13 @@
 
 [中文](README.md) · **English**
 
-One paper at a time. Not "here is what the paper says" — the abstract already does that. Every close reading answers the same four questions:
+These are notes from reading papers. Alongside methods and results, I keep track of what I have not understood and which conclusions need further checking. I usually start with these questions:
 
-1. **What does it actually claim?** In one sentence. Not being able to write that sentence usually means I have not understood it yet.
-2. **Does the evidence hold?** Do the experiments test that claim, or an easier one?
-3. **What would overturn it?** If nothing would, something is wrong with the claim.
-4. **What does it change for me?** Do I work differently after reading it?
+1. **What problem is the author trying to solve, and what do they conclude?** Try to explain it in your own words.
+2. **Do the experiments support that conclusion?** Look at baselines, conditions, and ablations, not just the final score.
+3. **What are its limits?** Would the conclusion hold with different data or in another setting? How could we test that?
+4. **What can I learn from it?** Which methods are worth trying, and which questions deserve more work?
 
-The details — mechanism, assumptions, where it sits in a whole system — come after that.
+With those questions in mind, I look at the formulas, implementation, and assumptions.
 
 The first one is not finished yet. To write one, copy [`../templates/paper-note.en.md`](../templates/paper-note.en.md) and add a line here when it is done.

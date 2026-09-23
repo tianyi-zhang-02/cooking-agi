@@ -6,18 +6,18 @@
 
 新模型发布时，大家通常先看参数量、上下文长度和 benchmark 分数。我更想弄明白：**它要解决什么问题，为什么选择这套架构，又是怎么训练出来的？**
 
-这里不只整理参数。每篇都会带着同一组问题读技术报告，对照公开 config 和实验看具体实现。希望读完后，你不仅记得模型名，也能看懂下一个新模型改了什么。
+这里不只整理参数。每篇都会带着同一组问题读技术报告，对照公开 config 和实验看具体实现。读完后，再遇到新模型，可以试着判断它改了什么、为什么改。
 
 <div class="lesson-recipe advanced">
   <div><span>先看什么</span><strong>目标与约束，而不是参数量</strong></div>
   <div><span>再拆什么</span><strong>架构 · 数据与训练 · post-training · 推理系统 · 评估</strong></div>
-  <div><span>最后比较什么</span><strong>能力从哪里来，成本被转移到了哪里</strong></div>
+  <div><span>最后比较什么</span><strong>效果为什么提高，计算开销又有什么变化</strong></div>
   <div><span>证据标准</span><strong>论文、公开 config、消融和可复现实验</strong></div>
 </div>
 
-## 先看地图，再进家族
+## 先看架构图，再读具体模型
 
-先打开 [Transformer 交互图解](../transformer-lab.md#tx-arch)，在不同家族之间切换。那张图回答“block 里哪里变了”；这一组精读继续回答“为什么变、怎么训、部署时付出什么”。
+先打开 [Transformer 交互图解](../transformer-lab.md#tx-arch)，在不同家族之间切换。那张图回答“block 里哪里变了”；这一组精读继续回答“为什么变、怎么训、部署时需要多少资源”。
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ flowchart LR
 <div class="curriculum-grid">
   <a class="curriculum-card" href="llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>从较常见的 dense decoder 出发，分清架构、训练规模和 post-training 各自带来的提升。</p><b>开始精读 →</b></a>
   <a class="curriculum-card" href="qwen.md"><span class="card-step">Family design</span><h3>Qwen</h3><p>同一家族有 dense 和 MoE、大小不同的模型，也有 thinking 和 non-thinking 模式。可以对比不同预算下该怎么选。</p><b>开始精读 →</b></a>
-  <a class="curriculum-card" href="deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>MLA、细粒度 MoE、训练系统和 reasoning post-training 不是四个孤立亮点，而是一套协同设计。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>MLA、细粒度 MoE、训练系统和 reasoning post-training 需要放在一起看，才能理解它们如何配合。</p><b>开始精读 →</b></a>
   <a class="curriculum-card" href="gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>看模型在支持长上下文和图像输入时，怎样通过 attention 和蒸馏控制部署开销。</p><b>开始精读 →</b></a>
 </div>
 
@@ -53,7 +53,7 @@ flowchart LR
 
 - **想补架构主线**：Llama → DeepSeek。先建立 dense baseline，再看 MLA 与 MoE 怎样改成本结构。
 - **想补 post-training**：Llama → Qwen → DeepSeek。比较通用对齐、模式切换与 reasoning RL 各自解决什么。
-- **想补部署与多模态**：Gemma → Qwen。重点看模型尺寸、上下文、模态接口和推理预算怎样共同决定产品形态。
+- **想补部署与多模态**：Gemma → Qwen。重点看模型大小、上下文长度和图像输入对显存、延迟及部署方式有什么影响。
 
 ## 读完后的自检
 

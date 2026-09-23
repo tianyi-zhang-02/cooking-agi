@@ -6,7 +6,7 @@
 
 > **先读这个**：面试的形式和重点变得很快，这里的内容有时效性；这里只整理**公开的基础知识**，不写任何一家公司的面试题或流程。
 
-技术面问的东西看起来五花八门，但大半在反复问同一件事：你是不是真的理解了机制，能不能从公式写到代码，再讲清楚为什么。这一组笔记就是按这个顺序排的。
+我准备技术面时，会用几个问题检查自己：能不能把原理讲明白？能不能写成代码？换一个条件，还知不知道该怎么做？这一组笔记也是按这个思路整理的。
 
 ## 算法题
 
@@ -18,16 +18,16 @@
 
 ## 考前快速过一遍
 
-这一组和“学习”那边讲的是同一批知识，呈现方式不一样：那边讲透、能动手玩；这边只留题和答案，给考前用。重复是故意的。
+这里和“学习笔记”会有一些重复：那边侧重解释和交互演示，这边整理成问答，方便面试前复习。
 
 - [考前速查：按知识板块过一遍考题](questions.md) —— 自动从站内笔记里抽出来的面试题和自检题，点开就是答案，可以随机抽题
 - [Transformer 进阶速查](transformer-followups.md) —— KV cache、MQA / GQA / MLA、RoPE、MoE、FlashAttention 的追问，一问一答
 
 ## 建议的顺序
 
-1. [面试基础题：大半在问同一件事](../00-foundations/interview-basics.md) —— 先把主线立起来
+1. [面试基础题：大半在问同一件事](../00-foundations/interview-basics.md) —— 先检查基础概念
 2. [白板上会让你手写的那七个](../00-foundations/hand-write-kit.md) —— 检查自己能不能不看资料写出来
-3. [ML 数学面试主线：从概率到估计量](../00-foundations/ml-math-interview.md) —— 补上概率与统计这条线
+3. [ML 数学面试主线：从概率到估计量](../00-foundations/ml-math-interview.md) —— 复习概率与统计
 4. [Transformer 交互图解](../00-foundations/transformer-lab.md) —— KV cache、GQA / MLA、RoPE、MoE、FlashAttention 这类追问，用能拖能点的图自测
 
 ## 被追问到细节时
@@ -38,4 +38,4 @@
 - [解码策略：temperature、top-k、top-p](../00-foundations/core/decoding.md)
 - [Post-Training 总览](../05-post-training/README.md) —— SFT、偏好学习、RLHF 与之后的算法
 
-想按岗位来安排顺序，见[首页的路线图](../README.md)。
+还没想好从哪里开始，可以先看[首页的阅读建议](../README.md)。

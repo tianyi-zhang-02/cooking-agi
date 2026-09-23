@@ -1461,7 +1461,7 @@ def mobile_toc_html(page):
     toc = toc_html(page)
     if not toc:
         return ""
-    label = "展开本页路线" if page.lang == "zh" else "Open this page's route"
+    label = "查看本页目录" if page.lang == "zh" else "Open this page's route"
     return (f'<details class="mobile-toc"><summary>{label}'
             f'<span>{len(page.toc)}</span></summary><nav>{toc}</nav></details>')
 
@@ -1628,7 +1628,7 @@ def contributor_universe_html(people, page, site):
   </nav>
   <header class="orbit-title">
     <p>THE PEOPLE BEHIND THE NOTES</p>
-    <h1>{'这一小片宇宙，谢谢你来过。' if zh else 'A little universe, made together.'}</h1>
+    <h1>{'谢谢一起参与的你们。' if zh else 'A little universe, made together.'}</h1>
   </header>
   <div class="crew-field">{"".join(crew)}</div>
   <footer class="orbit-footer">
@@ -1641,12 +1641,12 @@ def contributor_universe_html(people, page, site):
 <section class="crew-credits" id="crew-credits" aria-label="{'演职员表' if zh else 'Credits'}">
   <p class="credits-kicker">{'演职员表' if zh else 'Credits'}</p>
   <div class="credits-roll">{roll}</div>
-  <p class="credits-end">{'谢谢每一个来过、又留下过点什么的人。' if zh else 'Thank you to everyone who came through and left something behind.'}</p>
+  <p class="credits-end">{'谢谢大家的分享、纠错和帮助。' if zh else 'Thank you to everyone who came through and left something behind.'}</p>
 </section>
 <section class="crew-board" id="crew-board" aria-labelledby="board-title">
   <div class="board-head">
     <h2 id="board-title">{'贡献榜单' if zh else 'Contribution board'}</h2>
-    <p>{'按提交数排，数字来自 main 分支的提交和 Co-authored-by 署名。' if zh else 'By commits, from main-branch commits and Co-authored-by credits.'}</p>
+    <p>{'按 main 分支的提交次数排序，包括 Co-authored-by 共同署名。' if zh else 'By commits, from main-branch commits and Co-authored-by credits.'}</p>
   </div>
   <div class="board-scroll"><table class="board-table">
     <thead><tr><th class="crew-id">{'编号' if zh else 'No.'}</th><th>{'贡献者' if zh else 'Contributor'}</th>
@@ -1664,10 +1664,10 @@ def contributor_universe_html(people, page, site):
   <canvas class="world-dots" width="800" height="400" role="img"
     aria-label="{'点亮了 ' + str(len(order)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(order)} countries or regions lit up'}"></canvas>
   <ul class="map-list">{map_list or f'<li class="map-empty">{"还没人填。" if zh else "Nobody yet."}</li>'}</ul>
-  <p class="map-how"><a href="{crew_issue}">{'开个 issue 告诉我' if zh else 'Open an issue'}</a>{'，我给你点上。' if zh else " and I'll light one up."}</p>
+  <p class="map-how"><a href="{crew_issue}">{'提交所在地区' if zh else 'Open an issue'}</a>{'，我会定期更新地图。' if zh else " and I'll light one up."}</p>
 </section>
 <footer class="crew-end">
-  <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'下一个位置，也许是你 ↗' if zh else 'Room for one more ↗'}</a>
+  <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'欢迎加入我们 ↗' if zh else 'Room for one more ↗'}</a>
   <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
 </footer>"""
 

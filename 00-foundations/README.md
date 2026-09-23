@@ -4,15 +4,15 @@
 
 > 阅读时间：约 7 分钟 · 类型：学习地图 · 最近审阅：2026-09
 
-我一直不太喜欢那种一上来就画 Transformer 大框图的教程：每个方块似乎都认识，真让你从一段文字走到下一个 token，却很容易在中间迷路。
+刚学 Transformer 时，我看过不少架构图。每个模块的名字都认识，但真要解释一句话怎么变成下一个 token，还是会卡住。
 
-所以这里不按论文年份排，也不急着堆今天最流行的组件。我想沿着一条**真的能走通的路**慢慢拆：文本先怎样变成数字，序列怎样记住过去，输入和输出怎样对齐，attention 为什么取代递归，最后才到今天的 decoder-only 大模型。先有直觉，再补数学，最后用代码验一遍。
+所以这部分按学习顺序来写：先看文本怎么变成数字，再看 RNN 和 LSTM 如何处理序列、Seq2Seq 如何连接输入和输出，然后学 attention 和 Transformer，最后到 decoder-only 大模型。先看例子，再看公式，最后动手写代码。
 
 <div class="curriculum-hero">
-  <div><span class="level-chip core">必修</span><strong>先知道它为什么会出现</strong><p>每页只抓住核心计算、张量形状，以及上一代到底卡在哪里。</p></div>
-  <div><span class="level-chip deep">进阶</span><strong>觉得“不对劲”时再往下挖</strong><p>推梯度、拆 mask，看训练目标和推理路径是怎么接上的。</p></div>
+  <div><span class="level-chip core">必修</span><strong>先弄懂基本原理</strong><p>先看主要计算和张量形状，再了解这个方法解决了什么问题。</p></div>
+  <div><span class="level-chip deep">进阶</span><strong>想深入一点，就看推导</strong><p>推梯度、拆 mask，看训练目标和推理路径是怎么接上的。</p></div>
   <div><span class="level-chip deep">进阶</span><strong>横向读模型家族</strong><p>不背型号；用同一组标准比较架构、训练方法、推理成本和实际表现。</p></div>
-  <div><span class="level-chip lab">实验</span><strong>别只相信图，自己跑一次</strong><p>同一个机制分别用纯 Python / NumPy 与 PyTorch 写出来。</p></div>
+  <div><span class="level-chip lab">实验</span><strong>看完之后，动手试试</strong><p>同一个机制分别用纯 Python / NumPy 与 PyTorch 写出来。</p></div>
 </div>
 
 ## 一条主线走到底
@@ -22,7 +22,7 @@
   <a href="core/recurrent-models.md"><span>02</span><strong>RNN → LSTM</strong><small>用隐藏状态保存前面读到的信息</small></a>
   <a href="core/seq2seq.md"><span>03</span><strong>Seq2Seq</strong><small>encoder 理解输入，decoder 逐步生成输出</small></a>
   <a href="core/vanilla-transformer.md"><span>04</span><strong>Vanilla Transformer</strong><small>用 self-attention 与 cross-attention 取代递归</small></a>
-  <a href="core/decoder-only.md"><span>05</span><strong>Decoder-only LM</strong><small>把所有任务统一成 next-token prediction</small></a>
+  <a href="core/decoder-only.md"><span>05</span><strong>Decoder-only LM</strong><small>用 next-token prediction 组织输入和输出</small></a>
 </div>
 
 ```mermaid
@@ -42,10 +42,10 @@ flowchart LR
   <a class="curriculum-card" href="core/recurrent-models.md"><span class="card-step">02 · State</span><h3>RNN 与 LSTM</h3><p>如果只能从左往右读，过去该保存在什么状态里？普通 RNN 又为什么容易遗忘？</p><b>阅读 →</b></a>
   <a class="curriculum-card" href="core/seq2seq.md"><span class="card-step">03 · Mapping</span><h3>Seq2Seq</h3><p>一段输入怎样变成另一段不同长度的输出，以及 attention 为什么会成为必要机制。</p><b>阅读 →</b></a>
   <a class="curriculum-card" href="core/vanilla-transformer.md"><span class="card-step">04 · Attention</span><h3>Vanilla Transformer</h3><p>先从 2017 原版看清三处 attention 的输入来源和作用，再理解现代变体。</p><b>阅读 →</b></a>
-  <a class="curriculum-card" href="core/decoder-only.md"><span class="card-step">05 · Generation</span><h3>Decoder-only</h3><p>把 prompt 和答案放进同一条序列后，为什么一个 next-token loss 就足够。</p><b>阅读 →</b></a>
+  <a class="curriculum-card" href="core/decoder-only.md"><span class="card-step">05 · Generation</span><h3>Decoder-only</h3><p>把 prompt 和答案放进同一条序列后，模型怎么用 next-token loss 学习生成。</p><b>阅读 →</b></a>
 </div>
 
-读完这一层，最理想的状态不是会背名词，而是能拿一张白纸，把文字一路画到 logits，中间每一步都知道为什么在那里。
+读完后，可以试着不看资料，画出文本到 logits 的计算过程，解释每一步的输入和输出。哪里画不出来，就回头补哪里。
 
 ## 主线之外：两种进阶读法
 
@@ -87,7 +87,7 @@ flowchart LR
 
 <div class="lab-matrix">
   <div><span>不调用 PyTorch</span><strong>看清每个数字从哪来</strong><p>纯 Python 写 BPE；NumPy 写 RNN、LSTM 与 scaled dot-product attention。</p><a href="code/README.md#python-numpy">查看实验 →</a></div>
-  <div><span>调用 PyTorch</span><strong>让同一机制真的学起来</strong><p>自行实现 module、使用自动求导、训练 seq2seq，并验证 Transformer 的因果性与 KV cache。</p><a href="code/README.md#pytorch">查看实验 →</a></div>
+  <div><span>调用 PyTorch</span><strong>用 PyTorch 训练小模型</strong><p>自行实现 module、使用自动求导、训练 seq2seq，并验证 Transformer 的因果性与 KV cache。</p><a href="code/README.md#pytorch">查看实验 →</a></div>
 </div>
 
 ```bash
@@ -104,7 +104,7 @@ python test_learning_path.py
 
 ### 我只想先把主线看懂
 
-按 01 → 05 读“必修”，忽略所有 **进阶** 折叠块和代码。大约一小时可以建立完整主线。
+按 01 → 05 阅读“必修”内容，**进阶**折叠块和代码可以先跳过。先把各个方法的关系看懂，再回头补细节。
 
 ### 我想把它讲清楚，而不只是“听说过”
 
