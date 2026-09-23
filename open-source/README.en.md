@@ -13,9 +13,19 @@ review you are forced to think things through. Research, to me, is being stubbor
 problem until it gives; engineering is the same stubbornness, with the problem in different
 clothes.
 
-The layer as a whole is not my strength. For a systematic treatment I would send you to
-[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial); what is
-here is only what happened on my own hands.
+## A recommended starting point for AI infra
+
+**[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)** · [zhaochenyang20](https://github.com/zhaochenyang20)
+
+If you want to go deeper into ML systems and AI infrastructure, I recommend these notes. They follow real systems development, covering **RL infrastructure, online and offline inference, and SGLang**, with content in Chinese and English.
+
+- **How RL runs in practice:** start with RLHF System Development Notes to follow the connections between training and rollout.
+- **How inference systems work:** explore the SGLang notes for concrete problems involving scheduling, memory, and performance trade-offs.
+- **Multimodal inference:** try Omni Model Inference Notes for the execution and optimization of multi-stage generative models.
+
+You don't need to read everything in order. Pick a question you're working through and follow the code alongside the explanation. Our NeMo RL notes will continue to document open-source work we've participated in; the two resources can complement each other.
+
+## What we record here
 
 I do not really want to write open source up as a PR scoreboard. Getting a patch merged is satisfying, of course, but what actually draws me is that afterwards it no longer belongs only to me: other people's training jobs will run through it, new tests will protect it, maintainers will keep modifying it, and it may become a piece of basic capability that the next contributor relies on by default.
 
