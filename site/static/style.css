@@ -1763,3 +1763,22 @@ main { padding: 2.6rem 0 6rem; }
 .page-home .prose, .page-home .page-foot { max-width: 42rem; }
 /* a note without section headings has nothing to list: no empty "on this page" box */
 .rail-inner:not(:has(.toc a)) { display: none; }
+
+/* -------- a contributor's own site: the small second link ---------------------------
+   The name goes to GitHub, which the build knows from git history. A personal site is
+   self-declared in crew.toml, so it sits next to the name as a separate, quieter mark
+   (an outlined globe, currentColor, no fill) instead of replacing the name's link. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.crew-links { display: flex; align-items: baseline; justify-content: center; gap: .3rem; }
+.crew-links > a, .crew-links > strong { display: inline-block; }
+.crew-site { color: #9a9a9a; line-height: 1; text-decoration: none; }
+.crew-site:hover, .crew-site:focus-visible { color: var(--ember); }
+.crew-site-mark { display: block; }
+.credit-name .crew-site, .board-table .crew-site { display: inline-block; margin-left: .38rem; vertical-align: baseline; }
+.board-table .crew-site { color: #8f8f8f; }
+.board-table .crew-site:hover { color: var(--ember); }
+/* the credits roll sets names at 1.35rem: let the mark grow with them */
+.credit-name .crew-site-mark { width: 13px; height: 13px; }

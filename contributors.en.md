@@ -8,7 +8,7 @@ A note, a diagram, a typo caught. Thanks to everyone making this pot of AGI a li
 
 There’s room for one more cook.
 
-On the site, the crew drifts slowly across the night sky. Hover or tap someone to see a name; “List” in the top-right corner opens the full roster.
+On the site, the crew drifts slowly across the night sky. Hover or tap someone to see a name; “List” in the top-right corner opens the full roster. A name links to that person’s GitHub profile; a small globe beside it, when there is one, is a personal site they added themselves.
 
 Avatars are dithered to black and white (Floyd–Steinberg) in your browser, which is where the grain comes from — the whole page is black, white, and one amber accent. Anyone with a main-branch commit or co-author credit this week (Monday–Sunday, UTC) wears a dashed amber ring. “Pause” stops the drift, and with reduced motion enabled the crew stays still to begin with.
 

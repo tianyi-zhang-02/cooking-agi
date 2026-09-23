@@ -101,8 +101,13 @@ def last_updated(rel_path: str) -> str:
 
 
 @functools.lru_cache(maxsize=1)
-def crew_countries():
-    """Self-declared country per GitHub login, read from crew.toml. Entirely optional."""
+def crew_extra():
+    """Self-declared country and personal site per GitHub login, read from crew.toml.
+
+    Both fields are entirely optional and only apply once the PR that adds them has
+    been reviewed and merged like any other change (see .github/CODEOWNERS) — this
+    function only reads what already landed on main, it never links anything on its
+    own. `site` must be an absolute http(s) URL or it is dropped with a note."""
     path = ROOT / "crew.toml"
     if not path.exists():
         return {}
@@ -113,9 +118,22 @@ def crew_countries():
         return {}
     out = {}
     for person in data.get("crew", []):
-        login, country = person.get("login"), str(person.get("country") or "").strip().upper()
-        if login and country:
-            out[str(login).strip().lower()] = country
+        login = person.get("login")
+        if not login:
+            continue
+        key = str(login).strip().lower()
+        country = str(person.get("country") or "").strip().upper()
+        site_url = str(person.get("site") or "").strip()
+        if site_url and not re.match(r"^https?://", site_url, re.IGNORECASE):
+            print(f"  note: crew.toml site for {login!r} is not an http(s) URL; ignoring it")
+            site_url = ""
+        entry = {}
+        if country:
+            entry["country"] = country
+        if site_url:
+            entry["site"] = site_url
+        if entry:
+            out[key] = entry
     return out
 
 
@@ -200,9 +218,12 @@ def contributors(repo: str):
         login = logins.get(name)
         info = api.get((login or name).lower(), {})
         login = info.get("login") or login
+        extra = crew_extra().get((login or name).lower(), {})
         out.append({
             "name": name,
             "login": login,
+            # The name always links to GitHub — that identity comes from git history
+            # or the GitHub API, not from anything a contributor wrote themselves.
             "url": f"https://github.com/{login}" if login else None,
             "avatar": info.get("avatar") or (f"https://github.com/{login}.png?size=80"
                                              if login else None),
@@ -210,7 +231,11 @@ def contributors(repo: str):
             "last": datetime.fromisoformat(when).astimezone(timezone.utc).date().isoformat(),
             "first": datetime.fromisoformat(earliest.get(name, when)).astimezone(
                 timezone.utc).date().isoformat(),
-            "country": crew_countries().get((login or name).lower()),
+            "country": extra.get("country"),
+            # A personal site is self-declared in crew.toml and only ever a *second*,
+            # separate link next to the name — reviewed like any other PR before it
+            # can appear (see .github/CODEOWNERS).
+            "site": extra.get("site"),
             "initial": name[:1].upper(),
             "kind": "ai" if name == "Claude Code" else "human",
             "models": sorted(ai_models) if name == "Claude Code" else [],
@@ -1491,6 +1516,28 @@ def footer_html(page, people, repo, built):
 </footer>"""
 
 
+def crew_site_link(person, zh, is_owner):
+    """The small second link beside a contributor's name: their own site, if they declared one.
+
+    The name itself always points at GitHub, which we know from git history or the API.
+    A personal site is self-declared in crew.toml, so it only ever appears here, as a
+    separate marked-up link, and only after the PR adding it was reviewed and merged.
+    The owner is excluded: their name already points at their own site (site.owner_url)."""
+    url = None if is_owner else person.get("site")
+    if not url:
+        return ""
+    label = "个人主页" if zh else "Personal site"
+    whose = person["name"] + ("的个人主页" if zh else "’s personal site")
+    glyph = ('<svg class="crew-site-mark" viewBox="0 0 16 16" width="11" height="11" '
+             'aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.4" fill="none" '
+             'stroke="currentColor" stroke-width="1.3"></circle><path d="M1.6 8h12.8M8 1.6'
+             'c1.9 2 2.9 4.1 2.9 6.4S9.9 12.4 8 14.4C6.1 12.4 5.1 10.3 5.1 8S6.1 3.6 8 1.6z" '
+             'fill="none" stroke="currentColor" stroke-width="1.3"></path></svg>')
+    return (f'<a class="crew-site" href="{html.escape(url, quote=True)}" rel="nofollow noopener"'
+            f' title="{html.escape(whose, quote=True)}">{glyph}'
+            f'<span class="sr-only">{label}</span></a>')
+
+
 def contributor_universe_html(people, page, site):
     """The contributors page: the 1-bit sky, then the credits, the board and the map.
 
@@ -1518,6 +1565,7 @@ def contributor_universe_html(people, page, site):
                 f'crossorigin="anonymous" loading="lazy" decoding="async">' if avatar else "")
         link = (f'<a href="{html.escape(url, quote=True)}">{title} <span aria-hidden="true">↗</span></a>'
                 if url else f'<strong>{title}</strong>')
+        site_link = crew_site_link(person, zh, is_owner)
         active = week_start.isoformat() <= person["last"] <= today.isoformat()
         crew.append(
             f'<div class="crew-drifter{" is-recent" if active else ""}" '
@@ -1529,10 +1577,10 @@ def contributor_universe_html(people, page, site):
             f'<span class="crew-face" data-initials="{seed}">{face}'
             f'<canvas class="crew-bits" width="72" height="72" aria-hidden="true"></canvas></span></button>'
             f'<div class="crew-label" id="crew-label-{index}"><span class="crew-handle">{html.escape(handle)}</span>'
-            f'{link}<small>{role}</small></div></div>')
+            f'<span class="crew-links">{link}{site_link}</span><small>{role}</small></div></div>')
         # the credits roll, grouped by what someone did, in the order the roles are listed
         credits.setdefault(role, []).append(
-            f'<li><span class="credit-name">{link}</span>'
+            f'<li><span class="credit-name">{link}{site_link}</span>'
             f'<span class="credit-note">{html.escape(handle)} · '
             f'{person["first"][:7]} {"起" if zh else "onwards"}</span></li>')
         code = (person.get("country") or "").upper()
@@ -1548,6 +1596,7 @@ def contributor_universe_html(people, page, site):
         title = html.escape(person["name"])
         link = (f'<a href="{html.escape(url, quote=True)}">{title}</a>' if url
                 else f'<strong>{title}</strong>')
+        site_link = crew_site_link(person, zh, is_owner)
         role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
                 else ("笔记与代码" if zh else "Notes & code"))
         active = week_start.isoformat() <= person["last"] <= today.isoformat()
@@ -1556,7 +1605,7 @@ def contributor_universe_html(people, page, site):
                 if active else "")
         board.append(
             f'<tr class="{"is-recent" if active else ""}"><td class="rank">{rank:02d}</td>'
-            f'<th scope="row">{link}<small>{html.escape(handle)}</small></th>'
+            f'<th scope="row">{link}{site_link}<small>{html.escape(handle)}</small></th>'
             f'<td class="role">{role}</td>'
             f'<td class="count"><span class="bar" style="--fill:{commits / top:.3f}" '
             f'aria-hidden="true"></span><b>{commits}</b></td>'

@@ -8,16 +8,31 @@
 名单是自动生成的，不用登记：[幕后船员](contributors.md)往下拉，
 有演职员表、贡献榜单和一张世界地图。
 
-想让地图上多亮一块，就往 [`crew.toml`](crew.toml) 里加一段，写上自己的 GitHub 用户名
-和国家/地区代码（ISO 3166-1 两位字母，`CN`、`US`、`SG` 这种）：
+## 你的名字会链到哪里
+
+**点名字跳你的 GitHub 主页。** 这是默认行为，不用填任何东西——身份来自 git 提交记录，
+不来自你自己写的内容。
+
+**另外可以放一个你自己的主页链接，也可以完全不放。** 想放的话，它不会替换名字上的
+GitHub 链接，而是在名字旁边多一个小地球图标，点它才跳个人主页。两个链接分开，
+一眼能看出哪个是哪个。
+
+放法是往 [`crew.toml`](crew.toml) 里加一段，`site` 和 `country` 都可填可不填：
 
 ```toml
 [[crew]]
 login = "your-github-login"
-country = "SG"
+country = "SG"                        # 只用来点亮那张世界地图
+site = "https://your-site.example"    # 可选：名字旁边的小地球
 ```
 
-国家/地区可填可不填，只是为了那张地图。不填名字照样在榜单上，填了想删也随时能删。
+两条规矩：
+
+1. `site` 必须是 `http://` 或 `https://` 开头的完整网址，否则构建时会被忽略。
+2. **和其他改动一样要走 PR，经我 review 合进 `main` 之后才会生效**
+   （见 [`.github/CODEOWNERS`](.github/CODEOWNERS)）。所以没有任何链接会自动上线。
+
+不填名字照样在榜单上，填了想删也随时能删。
 
 ## 最容易上手的几件事
 
@@ -111,17 +126,32 @@ including typos.
 The contributor list regenerates on each build — nothing to sign up for. Scroll down
 [Behind the notes](contributors.en.md) for the credits, the board and a world map.
 
-To light up one more patch of that map, add yourself to [`crew.toml`](crew.toml) with
-your GitHub login and an ISO 3166-1 alpha-2 country code (`CN`, `US`, `SG` …):
+## Where your name links
+
+**Your name links to your GitHub profile.** That is the default and needs no setup: the
+identity comes from the git history, not from anything you wrote yourself.
+
+**You can add a link to your own site too, or skip it entirely.** If you add one, it does
+not replace the GitHub link on your name — it appears as a small globe next to it, and
+only that globe goes to your site. Two separate links, so it is obvious which is which.
+
+Add it in [`crew.toml`](crew.toml); both `site` and `country` are optional:
 
 ```toml
 [[crew]]
 login = "your-github-login"
-country = "SG"
+country = "SG"                        # only lights up the world map
+site = "https://your-site.example"    # optional: the small globe next to your name
 ```
 
-The country is entirely optional: it is only used for the map, your name is on the list
-either way, and you can take it back out whenever you like.
+Two rules:
+
+1. `site` must be a full `http://` or `https://` URL, or the build ignores it.
+2. **Like any other change it goes through a pull request and is reviewed by me before it
+   lands on `main`** (see [`.github/CODEOWNERS`](.github/CODEOWNERS)). No link ever goes
+   live on its own.
+
+Your name is on the list either way, and you can take any of this back out whenever you like.
 
 ## Easiest ways in
 
