@@ -1,6 +1,4 @@
-> **Take your time. You don't have to know everything at once.**
->
-> I hope these notes save you some time searching for resources and make preparation a little less stressful. Leave room for rest and the things you enjoy, too. Wishing you good luck—and plenty of happy moments along the way :)
+> Hopefully these notes save you some time searching for resources, and leave you more time for things you enjoy.
 
 <div align="center" markdown="1">
 
