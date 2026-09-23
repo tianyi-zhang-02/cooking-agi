@@ -1,28 +1,84 @@
-# AGI Study Notes
+<div align="center">
 
-[中文](README.md) · **English**
+<img src="site/static/og.png" alt="AGI Study Notes — from a straight line to a system that reads the world" width="760">
 
-### 📖 Read it at **<https://tianyi-zhang-02.github.io/cooking-agi/>**
+<h1>AGI Study Notes</h1>
 
-## Why I write these notes
+**From a straight line to a system that reads the world**
 
-This is the learning path I am building for myself. Understanding one idea at a time is usually manageable; the harder part is connecting the pieces: what the model learns from, how it remembers and retrieves information, when it should use a tool, and why a better metric should count as real progress.
+Open, bilingual notes on what a model learns from, how it remembers and retrieves,<br>
+when it should use a tool, and why a metric going up should count as progress.
 
-I care about more than “how to train a bigger model.” I want to understand how data, representation, memory, search, feedback, training, and evaluation work together so that an AI system can **understand a need more accurately, find evidence, and revise itself when the feedback says it was wrong**.
+[![read online](https://img.shields.io/badge/read-cooking--agi-E8A672?style=flat-square)](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html)
+[![build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
+[![bilingual](https://img.shields.io/badge/English-中文-8a8a8a?style=flat-square)](README.md)
 
-I try to write every note in the same order: where the problem comes from, the smallest example that builds intuition, the mathematics and implementation, the engineering trade-offs, and finally the assumptions and open questions. The perspective is modern-first: I start with today's LLM systems and bring in history only when it helps explain a current design.
+[**Start reading**](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) ·
+[中文](README.md) ·
+[Behind the notes](contributors.en.md) ·
+[Contributing](CONTRIBUTING.md)
 
-These notes reflect what I understand today, and I expect them to keep changing as I learn and build more.
+</div>
+
+---
+
+## Why I write these
+
+Understanding one idea at a time is usually manageable. The harder part is connecting them: what a model learns from, how it remembers and retrieves information, when it should reach for a tool, and why a better metric should count as real progress.
+
+I care about more than "how to train a bigger model". I want to understand how data, representation, memory, search, feedback, training and evaluation work together, so that a system can **understand a need more accurately, find evidence, and revise itself when the feedback says it was wrong**.
+
+Every note tries to run in the same order: where the problem comes from, the smallest example that builds intuition, then the mathematics, the implementation and the engineering trade-offs, and finally the assumptions, the edges, and what I have not worked out. The perspective is modern-first — today's LLM systems, with history brought in only where it explains a current design.
+
+This is what I understand today. It keeps changing.
 
 ## Where to start
 
-- **To learn systematically**: start with [Foundations](00-foundations/README.en.md) and move through the sections; the figures in [the Transformer lab](00-foundations/transformer-lab.en.md) are interactive.
-- **To understand why model families make different choices**: use the [model family deep dives](00-foundations/model-families/README.en.md) to compare Llama, Qwen, DeepSeek, and Gemma through the same questions instead of memorising parameter tables.
-- **To prepare for interviews**: use [Interviews](interview/README.en.md) for a quick review; [Job search](career/README.en.md) records what I learned while looking for MLE / RE roles.
-- **To read a paper properly**: the [close readings](papers/README.en.md) take one paper at a time — what it claims, whether the evidence holds, what it changes for us; the [editorial policy](EDITORIAL.en.md) says how they are written.
+| I want to… | Go to |
+| --- | --- |
+| Learn it properly, in order | [Foundations](00-foundations/README.en.md), section by section; the figures in [the Transformer lab](00-foundations/transformer-lab.en.md) are draggable |
+| See why model families differ | [Model family deep dives](00-foundations/model-families/README.en.md): Llama, Qwen, DeepSeek and Gemma through one set of questions |
+| Prepare for interviews | [Interviews](interview/README.en.md) for a quick review; [Job search](career/README.en.md) is my own record of looking for MLE / RE roles |
+| Read a paper properly | [Close readings](papers/README.en.md): what it claims, whether the evidence holds, what would overturn it |
+| See who wrote this | [Behind the notes](contributors.en.md) |
 
-## Write it with us
+## What is inside
 
-If something is wrong, unclear, or missing a better example, please point it out; fixing a typo counts too. This repository is the source for the site, and [CONTRIBUTING.md](CONTRIBUTING.md) explains how to take part.
+| Section | About |
+| --- | --- |
+| [Foundations](00-foundations/README.en.md) | Linear models to Transformers: attention, normalisation, residuals, MoE, looped transformers |
+| [Post-training](05-post-training/README.en.md) | SFT, RLHF, PPO and its relatives, and what alignment is actually aligning |
+| [Evaluation](07-evaluation/README.en.md) | Whether a metric holds, and how to use an LLM judge without fooling yourself |
+| [Data & retrieval](01-data-and-feedback/README.en.md) | Where data comes from, how feedback is collected, how retrieval is built |
+| [Systems & multimodal](06-systems/README.en.md) | The path a request really takes, observability, and humans in the loop |
+| [Agents](10-agents/README.en.md) | Where the word comes from, the usual structures, the scenarios, and choosing a model |
+| [Open source](open-source/README.en.md) | Contributing to NeMo RL: how scattered PRs grew into understanding a system |
+| [Job search](career/README.en.md) | Mindset, what to prepare, and my own timeline and reviews |
+| [Close readings](papers/README.en.md) | One paper at a time |
 
-Only foundational principles, derivations, public papers, reproducible experiments, and open-source project notes are published here; nothing from a specific company or a recruiting process goes in.
+The interactive figures — Transformer internals, KV cache, MoE routing, PPO clipping, a Pac-Man maze, model routing — all live in [`site/static/tx-lab.js`](site/static/tx-lab.js), hand-written SVG with no charting library.
+
+## Running the site
+
+Static, with one Python file as the build:
+
+```bash
+pip install markdown pygments
+python3 site/build.py            # builds to _site/
+python3 site/build.py --serve    # local preview
+```
+
+Two checks before sending anything:
+
+```bash
+python3 site/paritycheck.py      # do the Chinese and English versions still match in structure
+python3 site/leakcheck.py        # has anything that should stay private slipped in
+```
+
+## Write it with me
+
+If something is wrong, unclear, or missing a better example, please say so — fixing a typo counts. This repository is the source of the site; [CONTRIBUTING.md](CONTRIBUTING.md) explains how to take part, including the short list of rules: tech only and no politics, not an advertising slot, and AI drafts are fine as long as you read every line yourself.
+
+To light up one more patch of the [world map](https://tianyi-zhang-02.github.io/cooking-agi/contributors.en.html), open an [issue](../../issues/new?template=add-me-to-the-crew.yml) telling me where you are.
+
+Only foundational principles, derivations, public papers, reproducible experiments and open-source project notes are published here; nothing from a specific company or a recruiting process goes in.
