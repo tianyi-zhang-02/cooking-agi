@@ -1,20 +1,33 @@
 # 谁在这口锅边上 · Who's at the pot
 #
 # 做过贡献之后（提交被合进 main，或者在某个提交里被 Co-authored-by 署名），
-# 可以在这里给自己加一段：GitHub 用户名，外加一个可选的国家/地区代码。
-# 代码是 ISO 3166-1 两位字母：CN、US、SG、GB、JP……
+# 名字会自动出现在「幕后船员」页面上，点名字跳转到你的 GitHub 主页——这一步
+# 不用登记，这个文件只是用来补两件可填可不填的小事：
 #
-# 国家/地区只用来点亮「幕后船员」页面上的那张世界地图。不想填就别填，
-# 名字照样在名单和榜单里；填了以后想删掉，改回来就行。
+#   country  国家/地区，ISO 3166-1 两位字母（CN、US、SG、GB、JP……）
+#            只用来点亮那张世界地图。
+#   site     你自己的主页，必须是 http:// 或 https:// 开头的完整网址。
+#            它不会替换名字上的链接，而是在名字旁边多一个小地球图标。
 #
-# After a change of yours lands on main (or you are credited with a
-# Co-authored-by trailer), you can add yourself here: your GitHub login, plus an
-# optional ISO 3166-1 alpha-2 country code — CN, US, SG, GB, JP and so on.
+# 两个都可以完全不填，名字照样在名单和榜单里；填了以后想删掉，改回来就行。
+# 和仓库里其他改动一样，这个文件的改动要走 PR、经仓库维护者 review 之后才会生效
+# （见 .github/CODEOWNERS），所以链接不会自动上线。
 #
-# The country is only used to light up the world map on the contributors page.
-# Leaving it out is fine: your name is on the list either way, and you can take
-# it back out whenever you like.
+# After a change of yours lands on main (or you are credited with a Co-authored-by
+# trailer), your name shows up on the contributors page on its own, linking to your
+# GitHub profile. Nothing to sign up for. This file is only for two optional extras:
+#
+#   country  ISO 3166-1 alpha-2 code (CN, US, SG, GB, JP …), used only to light up
+#            the world map.
+#   site     your own homepage, as a full http:// or https:// URL. It does not replace
+#            the link on your name; it adds a small globe next to it.
+#
+# Both are entirely optional — your name is on the list either way, and you can take
+# them back out whenever you like. Like every other change here, an edit to this file
+# goes through a pull request and is reviewed by the maintainer before it takes effect
+# (see .github/CODEOWNERS), so no link goes live on its own.
 
 # [[crew]]
 # login = "your-github-login"
 # country = "SG"
+# site = "https://your-site.example"
