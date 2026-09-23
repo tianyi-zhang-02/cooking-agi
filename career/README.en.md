@@ -26,7 +26,11 @@ Ordered by what I think matters most.
 - [Looking for a job: notes from the road](journey.en.md) — the timeline, the mistakes, and three things I learned
 - [A retrospective on one MLE interview](one-interview.en.md) — written right after the interview
 
-### 3. Technical preparation
+### 3. What to prepare
+
+- [What to actually prepare](prepare.en.md) — not everything, not nothing: your story, the fundamentals, people, and the vocabulary
+
+### 4. Technical preparation
 
 - [Tech interviews: how to use these notes](../interview/README.en.md) — interview basics, whiteboard coding, the ML maths line, and an interactive Transformer lab
 - [How I practise LeetCode](../interview/leetcode.en.md) — what to practise, how, and how far to take it
