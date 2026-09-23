@@ -321,3 +321,11 @@ svg text{font-family:var(--sans),var(--cjk)}
 .tx-lab .ac-lself{font-size:11px;font-weight:650;fill:var(--c-k)}
 .tx-lab .ac-dot{fill:var(--c-k);stroke:var(--panel);stroke-width:2}
 .tx-lab .ac-dot-api{fill:var(--c-q);stroke:var(--panel);stroke-width:2}
+/* 18 one maze, three agents */
+.tx-lab .am-svg{max-width:640px}
+.tx-lab .am-wall{fill:none;stroke:var(--rule);stroke-width:1.6}
+.tx-lab .am-dot{fill:var(--muted)}
+.tx-lab .am-bit{fill:var(--c-q);opacity:.75}
+.tx-lab .am-pac{fill:var(--ink)}
+.tx-lab .am-ghost{fill:var(--c-k)}
+.tx-lab .am-eye{fill:var(--paper)}

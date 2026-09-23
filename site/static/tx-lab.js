@@ -2235,3 +2235,268 @@
   }
   render();
 })();
+
+/* --------------------------------------------- 18 three agents, one maze
+   The oldest thing the word "agent" pointed at: something that senses a little
+   world and moves in it. Three drivers take turns on the same maze — written
+   rules, a value function, and a model asked every few steps — so the eras of
+   the word sit side by side instead of in a paragraph. */
+(function () {
+  var fig = TX.figure('tx-agent-maze', { title: ['One maze, three kinds of agent', '同一个迷宫，三种 agent'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+
+  var MAZE = [
+    '###################',
+    '#........#........#',
+    '#.##.###.#.###.##.#',
+    '#.................#',
+    '#.##.#.#####.#.##.#',
+    '#....#...#...#....#',
+    '##.#####.#.#####.##',
+    '#........#........#',
+    '#.##.###...###.##.#',
+    '#.................#',
+    '###################'
+  ];
+  var COLS = 19, ROWS = 11, CELL = 26, PAD = 10, TICK = 165;
+  var W = COLS * CELL + PAD * 2, H = ROWS * CELL + PAD * 2;
+  var START = { x: 1, y: 1 }, LAIR = { x: 9, y: 5 };
+  var DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+  function open(x, y) { return x >= 0 && y >= 0 && x < COLS && y < ROWS && MAZE[y][x] === '.'; }
+  function idx(x, y) { return y * COLS + x; }
+  function px(v) { return PAD + v * CELL + CELL / 2; }
+
+  var driver = 'rules', showValues = false, running = true;
+  var dots, agent, ghost, eaten, steps, caught, calls, lastChoice;
+  var value = new Float32Array(COLS * ROWS);
+  var reward = new Float32Array(COLS * ROWS);
+  var rand = TX.rng(7);
+
+  function reset(hard) {
+    if (hard) { eaten = 0; steps = 0; caught = 0; calls = 0; }
+    dots = {};
+    for (var y = 0; y < ROWS; y++) for (var x = 0; x < COLS; x++) if (open(x, y)) dots[idx(x, y)] = true;
+    delete dots[idx(START.x, START.y)];
+    agent = { x: START.x, y: START.y, px: START.x, py: START.y, dir: [1, 0] };
+    ghost = { x: LAIR.x, y: LAIR.y, px: LAIR.x, py: LAIR.y };
+    lastChoice = [1, 0];
+  }
+
+  // ---- the three drivers ----------------------------------------------------
+  // Written rules: walk towards the nearest dot as the crow flies. No memory, no
+  // lookahead, so a wall between here and there is not its problem.
+  function byRules() {
+    var best = null, bestD = Infinity, key;
+    for (key in dots) {
+      var dx = (key % COLS) - agent.x, dy = Math.floor(key / COLS) - agent.y;
+      var d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = [dx, dy]; }
+    }
+    if (!best) return [0, 0];
+    var wish = Math.abs(best[0]) > Math.abs(best[1])
+      ? [[Math.sign(best[0]), 0], [0, Math.sign(best[1])]]
+      : [[0, Math.sign(best[1])], [Math.sign(best[0]), 0]];
+    for (var i = 0; i < wish.length; i++) {
+      var w = wish[i];
+      if ((w[0] || w[1]) && open(agent.x + w[0], agent.y + w[1])) return w;
+    }
+    var legal = DIRS.filter(function (d) { return open(agent.x + d[0], agent.y + d[1]); });
+    return legal.length ? legal[Math.floor(rand() * legal.length)] : [0, 0];
+  }
+
+  // A value function: how much is still to be had from each square, if you keep
+  // playing well. Dots pay 1, the ghost costs a lot, and γ discounts the future,
+  // so the field routes around walls on its own.
+  function sweepValues() {
+    var i, x, y;
+    for (i = 0; i < reward.length; i++) reward[i] = 0;
+    for (var key in dots) reward[key] = 1;
+    reward[idx(ghost.x, ghost.y)] = -14;
+    DIRS.forEach(function (d) {
+      if (open(ghost.x + d[0], ghost.y + d[1])) reward[idx(ghost.x + d[0], ghost.y + d[1])] -= 6;
+      var far = [ghost.x + d[0] * 2, ghost.y + d[1] * 2];
+      if (open(far[0], far[1])) reward[idx(far[0], far[1])] -= 2;
+    });
+    for (var pass = 0; pass < 70; pass++) {
+      for (y = 1; y < ROWS - 1; y++) for (x = 1; x < COLS - 1; x++) {
+        if (!open(x, y)) continue;
+        var best = -1e9;
+        for (var k = 0; k < 4; k++) {
+          var nx = x + DIRS[k][0], ny = y + DIRS[k][1];
+          if (open(nx, ny) && value[idx(nx, ny)] > best) best = value[idx(nx, ny)];
+        }
+        value[idx(x, y)] = reward[idx(x, y)] + 0.9 * (best === -1e9 ? 0 : best);
+      }
+    }
+  }
+  function byValue() {
+    var best = null, bestV = -1e9;
+    DIRS.forEach(function (d) {
+      var nx = agent.x + d[0], ny = agent.y + d[1];
+      if (!open(nx, ny)) return;
+      var v = value[idx(nx, ny)] + rand() * 1e-3;     // break ties, never a straight line forever
+      if (v > bestV) { bestV = v; best = d; }
+    });
+    return best || [0, 0];
+  }
+
+  // Asking a model: the same judgement, but only every fifth step, because each
+  // decision is a network call you wait for and pay for. In between it coasts.
+  function byModel() {
+    if (steps % 5 === 0) { calls++; lastChoice = byValue(); }
+    var straight = [lastChoice[0], lastChoice[1]];
+    if (!open(agent.x + straight[0], agent.y + straight[1])) { calls++; lastChoice = byValue(); }
+    return lastChoice;
+  }
+
+  function chaseStep() {
+    var options = DIRS.filter(function (d) { return open(ghost.x + d[0], ghost.y + d[1]); });
+    if (!options.length) return [0, 0];
+    if (rand() < 0.3) return options[Math.floor(rand() * options.length)];
+    var best = options[0], bestD = Infinity;
+    options.forEach(function (d) {
+      var dx = ghost.x + d[0] - agent.x, dy = ghost.y + d[1] - agent.y;
+      var dist = dx * dx + dy * dy;
+      if (dist < bestD) { bestD = dist; best = d; }
+    });
+    return best;
+  }
+
+  function tick() {
+    sweepValues();
+    var move = driver === 'rules' ? byRules() : driver === 'rl' ? byValue() : byModel();
+    var wasAgent = { x: agent.x, y: agent.y }, wasGhost = { x: ghost.x, y: ghost.y };
+    if (open(agent.x + move[0], agent.y + move[1])) {
+      agent.x += move[0]; agent.y += move[1];
+      if (move[0] || move[1]) agent.dir = move;
+    }
+    steps++;
+    if (dots[idx(agent.x, agent.y)]) { delete dots[idx(agent.x, agent.y)]; eaten++; }
+    var g = chaseStep();
+    ghost.x += g[0]; ghost.y += g[1];
+    var swapped = agent.x === wasGhost.x && agent.y === wasGhost.y && ghost.x === wasAgent.x && ghost.y === wasAgent.y;
+    if (swapped || (agent.x === ghost.x && agent.y === ghost.y)) {
+      caught++;
+      agent.x = START.x; agent.y = START.y;
+      ghost.x = LAIR.x; ghost.y = LAIR.y;
+    }
+    var left = 0;
+    for (var _ in dots) { left++; break; }
+    if (!left) reset(false);
+  }
+
+  // ---- drawing --------------------------------------------------------------
+  var svg = s('svg', { class: 'tx-svg am-svg', viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+  var gValue = s('g', { class: 'am-values' }), gWall = s('g'), gDots = s('g'), gCast = s('g');
+  [gValue, gWall, gDots, gCast].forEach(function (g) { svg.appendChild(g); });
+  for (var wy = 0; wy < ROWS; wy++) for (var wx = 0; wx < COLS; wx++) {
+    if (open(wx, wy)) continue;
+    gWall.appendChild(s('rect', { class: 'am-wall', x: PAD + wx * CELL + 3, y: PAD + wy * CELL + 3, width: CELL - 6, height: CELL - 6, rx: 3 }));
+  }
+  var dotNodes = {}, valueNodes = {};
+  for (var dy2 = 0; dy2 < ROWS; dy2++) for (var dx2 = 0; dx2 < COLS; dx2++) {
+    if (!open(dx2, dy2)) continue;
+    var key2 = idx(dx2, dy2);
+    dotNodes[key2] = gDots.appendChild(s('rect', { class: 'am-dot', x: px(dx2) - 2, y: px(dy2) - 2, width: 4, height: 4 }));
+    valueNodes[key2] = [0, 1, 2, 3].map(function (n) {
+      return gValue.appendChild(s('rect', {
+        class: 'am-bit', width: 3, height: 3,
+        x: PAD + dx2 * CELL + 5 + (n % 2) * 10, y: PAD + dy2 * CELL + 5 + Math.floor(n / 2) * 10
+      }));
+    });
+  }
+  var pac = gCast.appendChild(s('path', { class: 'am-pac' }));
+  var spook = gCast.appendChild(s('path', { class: 'am-ghost' }));
+  var eyeL = gCast.appendChild(s('circle', { class: 'am-eye', r: 2.2 }));
+  var eyeR = gCast.appendChild(s('circle', { class: 'am-eye', r: 2.2 }));
+
+  function drawPac(cx, cy, dir, mouth) {
+    var a = Math.atan2(dir[1], dir[0]), r = CELL * 0.42, gap = mouth * 0.9;
+    var x1 = cx + r * Math.cos(a + gap), y1 = cy + r * Math.sin(a + gap);
+    var x2 = cx + r * Math.cos(a - gap), y2 = cy + r * Math.sin(a - gap);
+    pac.setAttribute('d', 'M' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' L' + x1.toFixed(1) + ',' + y1.toFixed(1) +
+      ' A' + r + ',' + r + ' 0 1 0 ' + x2.toFixed(1) + ',' + y2.toFixed(1) + ' Z');
+  }
+  function drawGhost(cx, cy) {
+    var r = CELL * 0.38, top = cy - r * 0.9, bot = cy + r * 0.85;
+    var d = 'M' + (cx - r) + ',' + bot + ' L' + (cx - r) + ',' + cy + ' A' + r + ',' + r + ' 0 0 1 ' + (cx + r) + ',' + cy + ' L' + (cx + r) + ',' + bot;
+    for (var i = 0; i < 3; i++) d += ' l' + (-r * 2 / 3 / 2) + ',' + (-r * 0.28) + ' l' + (-r * 2 / 3 / 2) + ',' + (r * 0.28);
+    spook.setAttribute('d', d + ' Z');
+    spook.setAttribute('data-top', top);
+    eyeL.setAttribute('cx', cx - r * 0.38); eyeL.setAttribute('cy', cy - r * 0.18);
+    eyeR.setAttribute('cx', cx + r * 0.38); eyeR.setAttribute('cy', cy - r * 0.18);
+  }
+
+  function paint(phase) {
+    var key;
+    for (key in dotNodes) dotNodes[key].style.display = dots[key] ? '' : 'none';
+    if (showValues) {
+      var lo = Infinity, hi = -Infinity;
+      for (key in valueNodes) { var v = value[key]; if (v < lo) lo = v; if (v > hi) hi = v; }
+      var span = hi - lo || 1;
+      for (key in valueNodes) {
+        var lit = Math.round(((value[key] - lo) / span) * 4);
+        valueNodes[key].forEach(function (node, n) { node.style.display = n < lit ? '' : 'none'; });
+      }
+    } else {
+      for (key in valueNodes) valueNodes[key].forEach(function (node) { node.style.display = 'none'; });
+    }
+    var mouth = 0.18 + 0.32 * Math.abs(Math.sin(phase * Math.PI * 2));
+    drawPac(px(agent.px), px(agent.py), agent.dir, mouth);
+    drawGhost(px(ghost.px), px(ghost.py));
+    roEat.set(String(eaten));
+    roStep.set(String(steps));
+    roCaught.set(String(caught));
+    roCalls.set(driver === 'llm' ? String(calls) : '—');
+  }
+
+  // ---- controls -------------------------------------------------------------
+  var CAPTIONS = {
+    rules: ['Written rules: head for the nearest dot as the crow flies. Fast, free, the same every time — and blind to walls, so it presses against one while the dot sits on the other side. Every maze game before the 1990s was some version of this, and it is what most people still picture when they hear "agent".',
+      '写死的规则：哪颗豆直线距离最近就往哪边走。快、不要钱、每次都一样——但它看不见墙，于是会贴着墙一直顶，而豆就在墙那边。九十年代以前的迷宫游戏基本都是这么写的，多数人一听 agent 想到的也还是这个。'],
+    rl: ['A value function: how much is still to be had from each square if you keep playing well. Dots pay 1, the ghost costs a lot, and γ = 0.9 discounts what is further away. Nobody told it about walls — the field flows around them because a square behind a wall is simply far in steps. Turn on the value map and watch where it glows.',
+      '价值函数：站在每一格，往后还能拿多少分。豆 +1，鬼扣一大笔，γ = 0.9 表示越远的收益越不值钱。没人告诉它墙在哪儿——墙后面的格子「要走很多步才到」，价值自然就低，路线是算出来的。打开价值图，看哪片亮着。'],
+    llm: ['Asking a model each step: same judgement, but you wait for a network call and pay for it, so here it only re-decides every fifth step and coasts in between — watch it overshoot corners. What you buy is the thing the other two cannot do: change the goal by saying so, in a sentence, without retraining anything.',
+      '每一步问一次模型：判断力差不多，但每次决策都要等一趟网络、花一次钱，所以这里让它每 5 步才重新决定，中间沿着上次的方向滑——会看到它冲过路口。换来的是另外两个做不到的事：想改目标，说一句话就行，不用重训。']
+  };
+  var caption = h('p', { class: 'fig-note' });
+  var seg = TX.seg([
+    { id: 'rules', en: 'Written rules', zh: '写死的规则' },
+    { id: 'rl', en: 'A value function', zh: '价值函数' },
+    { id: 'llm', en: 'Ask a model', zh: '每步问模型' }
+  ], driver, function (id) { driver = id; TX.bi(caption, CAPTIONS[id][0], CAPTIONS[id][1]); }, t('Driver', '谁在做决定'));
+  var valueSeg = TX.seg([
+    { id: 'off', en: 'Maze', zh: '迷宫' },
+    { id: 'on', en: 'Value map', zh: '价值图' }
+  ], 'off', function (id) { showValues = id === 'on'; }, t('Overlay', '叠加层'));
+  var pauseBtn = TX.button('Pause', '暂停', function () {
+    running = !running;
+    TX.bi(pauseBtn, running ? 'Pause' : 'Resume', running ? '暂停' : '继续');
+  });
+  var resetBtn = TX.button('Start over', '重来', function () { reset(true); });
+  var roEat = TX.readout('Dots', '吃到的豆'), roStep = TX.readout('Steps', '步数');
+  var roCaught = TX.readout('Caught', '被抓'), roCalls = TX.readout('Model calls', '模型调用');
+  TX.append(fig.controls, [seg.el, valueSeg.el, pauseBtn, resetBtn]);
+  fig.stage.appendChild(svg);
+  TX.append(fig.foot, [h('div', { class: 'readouts' }, [roEat.el, roStep.el, roCaught.el, roCalls.el]), caption]);
+  TX.bi(caption, CAPTIONS.rules[0], CAPTIONS.rules[1]);
+
+  reset(true);
+  sweepValues();
+  var carry = 0;
+  var loop = TX.loop(function (now, dt) {
+    if (running) carry += dt;
+    while (carry >= TICK) { carry -= TICK; tick(); }
+    var phase = carry / TICK;
+    agent.px += (agent.x - agent.px) * 0.35;      // ease towards the new square
+    agent.py += (agent.y - agent.py) * 0.35;
+    ghost.px += (ghost.x - ghost.px) * 0.3;
+    ghost.py += (ghost.y - ghost.py) * 0.3;
+    paint(phase);
+  });
+  TX.whenVisible(fig.root, function () { loop.start(); }, function () { loop.stop(); });
+  svg.setAttribute('aria-label', t('A maze where an agent eats dots while a ghost chases it; a control chooses whether written rules, a value function or a model decides each step.',
+    '一个迷宫：agent 一边吃豆一边被鬼追；上面的开关决定每一步是写死的规则、价值函数，还是模型在做决定。'));
+})();

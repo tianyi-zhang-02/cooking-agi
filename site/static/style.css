@@ -1763,3 +1763,22 @@ main { padding: 2.6rem 0 6rem; }
 .page-home .prose, .page-home .page-foot { max-width: 42rem; }
 /* a note without section headings has nothing to list: no empty "on this page" box */
 .rail-inner:not(:has(.toc a)) { display: none; }
+
+/* ======================================================================
+   Tables, read at a glance
+   The notes compare things constantly, so a table is usually the argument
+   itself. Give the rows room, let the first column read as the label it is,
+   and let a wide table scroll on a phone instead of squeezing six columns
+   into 320 pixels.
+   ====================================================================== */
+.prose table { line-height: 1.6; }
+.prose th { padding-top: .5rem; padding-bottom: .5rem; }
+.prose td { padding: .72rem .85rem; }
+.prose td:first-child { color: var(--ink); font-weight: 550; }
+.prose tbody tr:nth-child(even) { background: color-mix(in srgb, var(--rule-soft) 45%, transparent); }
+.prose tbody tr:hover { background: color-mix(in srgb, var(--ember) 9%, transparent); }
+.prose table code { white-space: nowrap; }
+@media (max-width: 720px) {
+  .prose table { min-width: 32rem; }          /* the wrapper scrolls; cells stay readable */
+  .prose td { padding: .62rem .7rem; }
+}

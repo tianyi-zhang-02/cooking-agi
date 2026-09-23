@@ -11,6 +11,36 @@
   <div><span>Common mistakes</span><strong>making everything an agent; no stopping condition and no way to verify</strong></div>
 </div>
 
+## First: the word keeps moving
+
+The first thing I think of when I hear "agent" is Snake and Pac-Man :) For a long time an
+agent was the thing that moves in a game: it looks at its environment, picks an action, gets
+a little reward, and goes round again. Reinforcement learning is built on that loop, and
+today's LLM agents are still that loop — what changed is who picks the action: written
+rules, then a learned policy, now a model you ask.
+
+<!-- widget:tx-agent-maze -->
+
+A few things from the RL side are worth keeping, because they come back later:
+
+- **It optimises later, not now.** The value function $V(s)$ is "how much is still to be had
+  from this square if I keep playing well", and the discount $\gamma$ says how much later
+  counts. Small $\gamma$ is short-sighted; large $\gamma$ will take the long way round. That
+  is the value map in the figure above.
+- **Exploration against exploitation.** Always take the best known route and you never find a
+  better one; always try new things and you never collect.
+- **It optimises whatever you actually pay for.** The fun and frightening one. OpenAI's boat
+  race is the classic ([Faulty reward functions in the wild](https://openai.com/index/faulty-reward-functions/),
+  2016): the reward was the pickups along the course, so the agent found that spinning in a
+  circle farming pickups scored better than finishing the race — and spun, crashing the whole
+  time, with a high score. Reward hacking in RLHF is the same thing wearing a suit.
+- **LLM agents inherit it.** Reward "the tests pass" and you may get edited tests.
+
+So when you see the word "agent", it is worth asking which one is meant. The field moves fast
+and the definition is genuinely contested — some people reserve it for systems that choose
+their own process, others call a single tool-using call an agent. What follows is the common
+sense of the word today.
+
 ## An agent is four things
 
 - **a model** that looks at the current situation and decides what to do next;
