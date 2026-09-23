@@ -285,7 +285,9 @@
       lines.forEach(function (line) { line.classList.add("is-waiting"); });
       var watcher = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
+          // in view, or already above it: a jump to an anchor must not leave
+          // the lines it skipped over sitting there invisible
+          if (!entry.isIntersecting && entry.boundingClientRect.top > 0) return;
           entry.target.classList.remove("is-waiting");
           watcher.unobserve(entry.target);
         });
