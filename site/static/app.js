@@ -302,7 +302,13 @@
   var mapSection = $(".crew-map");
   var mapCanvas = mapSection && $(".world-dots", mapSection);
   if (mapCanvas && mapSection.dataset.world) {
-    var litCodes = (mapSection.dataset.lit || "").split(",").filter(Boolean);
+    // "US:5,CN:4" — five steps of brightness, drawn as how many of a country's
+    // cells burn and how hard, so one commit shows and a hundred cannot show more
+    var STEPS = { 1: [0.40, 0.70], 2: [0.55, 0.80], 3: [0.70, 0.88], 4: [0.86, 0.95], 5: [1, 1] };
+    var litSteps = (mapSection.dataset.lit || "").split(",").filter(Boolean).map(function (pair) {
+      var bits = pair.split(":");
+      return { code: bits[0], step: STEPS[bits[1]] ? bits[1] : 3 };
+    });
     var drawMap = function (world) {
       var cols = world.w, rows = world.h;
       var size = Math.floor(mapCanvas.width / cols);          // one land cell, in pixels
@@ -310,17 +316,24 @@
       var ctx = mapCanvas.getContext("2d");
       mapCanvas.height = rows * size;
       ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      var paint = function (code, colour, grow) {
+      var paint = function (code, colour, grow, density) {
         var cells = (world.countries[code] || {}).cells || "";
         ctx.fillStyle = colour;
         for (var i = 0; i < cells.length; i += 3) {
           var index = parseInt(cells.substr(i, 3), 36);
+          // a fixed pseudo-random order, so the same country always burns the same cells
+          if (density < 1 && i > 0 && ((index * 2654435761) % 997) / 997 >= density) continue;
           var x = pad + (index % cols) * size, y = Math.floor(index / cols) * size;
           ctx.fillRect(x, y, Math.max(1, size - 1 + grow), Math.max(1, size - 1 + grow));
         }
       };
-      Object.keys(world.countries).forEach(function (code) { paint(code, "#4a4a4a", 0); });
-      litCodes.forEach(function (code) { paint(code, "#E8A672", 1); });
+      Object.keys(world.countries).forEach(function (code) { paint(code, "#3f3f3f", 0, 1); });
+      litSteps.forEach(function (lit) {
+        var step = STEPS[lit.step];
+        ctx.globalAlpha = step[1];
+        paint(lit.code, "#E8A672", lit.step >= 4 ? 1 : 0, step[0]);
+        ctx.globalAlpha = 1;
+      });
     };
     var loadMap = function () {
       fetch(mapSection.dataset.world)

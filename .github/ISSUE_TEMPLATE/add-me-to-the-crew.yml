@@ -9,9 +9,10 @@ body:
         名字本来就会自动出现在[幕后船员](../../blob/main/contributors.md)页面上，点名字跳你的 GitHub 主页，
         还会拿到一个编号（`CG 001` 这种，按第一次出现的先后排）——这些都不用登记。
 
-        这个 issue 只为一件事：**国家或地区**，用来点亮那张世界地图。
+        这个 issue 只为一件事：**国家或地区**，用来点亮那张世界地图。亮度分五档，有一点贡献就会亮，
+        越多越亮，到顶为止。
 
-        **不要直接改 `crew.toml`。** 那个文件我自己维护，直接改它的 PR 不会合；开这个 issue 就行。
+        **别直接改 `crew.toml`。** 那个文件我自己管，直接改它的 PR 我不合；开这个 issue 就行。
 
         ---
 
@@ -20,6 +21,7 @@ body:
         appearance) — none of that needs signing up for.
 
         This issue is for one thing: a **country or region**, which lights one patch of the world map.
+        Brightness comes in five steps: one commit already lights a place, more burns brighter, up to a cap.
 
         **Please don't edit `crew.toml` directly.** I maintain that file and PRs touching it are not
         merged. This issue is the way.
@@ -34,21 +36,23 @@ body:
     id: country
     attributes:
       label: 国家/地区 · Country or region
-      description: ISO 3166-1 两位字母，只用来点亮地图。 / ISO 3166-1 alpha-2, only used for the map.
+      description: |
+        ISO 3166-1 两位字母，只用来点亮地图。两头跑的可以写两个（`CN, SG`），各算一半。
+        / ISO 3166-1 alpha-2, only used for the map. Two of them (`CN, SG`) if you split your time — half each.
       placeholder: SG
     validations:
       required: true
   - type: checkboxes
     id: ground-rules
     attributes:
-      label: 守则 · Ground rules
+      label: 规矩 · The rules
       description: 见 [CONTRIBUTING](../../blob/main/CONTRIBUTING.md)。 / See [CONTRIBUTING](../../blob/main/CONTRIBUTING.md).
       options:
-        - label: 只谈技术，不谈政治，也不拿这儿当广告位。 / Technical subjects only — no politics, and not an advertising slot.
+        - label: 只聊技术，不聊政治，也不拿这儿当广告位。 / Tech only — no politics, and not an ad slot.
           required: true
-        - label: 用 AI 起草可以，但我会自己把每一行读过再发。 / Drafting with AI is fine, but I read every line myself before sending it.
+        - label: AI 起草可以，但我会自己把每行读一遍再发。 / Drafting with AI is fine, but I read every line myself before sending it.
           required: true
-        - label: 我知道破了守则的后果是名字永久移出名单。 / I understand that breaking these rules takes my name off the list permanently.
+        - label: 我知道破了规矩，名字就永久下榜。 / I understand that breaking these rules takes my name off the list for good.
           required: true
   - type: textarea
     id: anything
