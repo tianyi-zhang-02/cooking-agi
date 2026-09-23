@@ -2,7 +2,7 @@
 
 **中文** · [English](criteria.en.md)
 
-一个好 criterion 通常有五个特点。
+Criterion 就是这次评分要判断的具体标准。写清楚它，我通常会检查下面 5 件事。
 
 ## 1. 一次只判断一件事
 
@@ -12,7 +12,7 @@
 
 ## 2. 能指向可观察证据
 
-不要只写“helpful”。应说明 helpful 在当前任务中表现为什么，例如：是否给出可执行步骤、是否覆盖用户明确约束、是否避免无关内容。
+不要只写“helpful”。要说明在这项任务里，怎样才算帮上了忙，例如：是否给出可执行步骤、是否覆盖用户明确约束、是否避免无关内容。
 
 ## 3. 写清作用范围
 
@@ -53,7 +53,7 @@ Faithfulness 可以指“只依据给定 context”，也可以指“与现实�
 - **State integrity**：执行后的外部状态是否符合预期？
 - **Policy compliance**：是否遵守权限和不可违反的约束？
 - **Efficiency**：是否存在无进展的循环、重复搜索或成本失控？
-- **Recovery quality**：工具失败后是否正确解释、重试或升级给人？
+- **Recovery quality**：工具失败后是否能说明情况、合理重试，或交给人来处理？
 
 ### Personalization / Model Experience
 

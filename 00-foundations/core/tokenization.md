@@ -28,7 +28,7 @@
 <details class="interview" markdown="1">
 <summary>从 text 到 IDs 的标准回答与一个关键误区</summary>
 
-**快速记忆**：Tokenizer 把文本切成词表片段并映射成整数；Chat Template 先把 role 结构序列化，special tokens 只是词表中承担边界语义的特殊 ID。
+**快速记忆**：Chat Template 先按约定格式排列不同角色的消息，Tokenizer 再把文本切成 token，转成整数 ID。Special tokens 也是词表中的 token，只是用来标记角色、消息边界等特殊位置。
 
 **面试回答**
 
@@ -37,7 +37,7 @@
 <details markdown="1">
 <summary><b>深挖</b>：为什么 tokenizer 与 chat template 不能跨模型乱换？</summary>
 
-特殊字符串是否是单独 token、对应哪个 ID、assistant 起止边界怎样写，都是模型训练分布的一部分。模板与词表不匹配会把结构标记拆碎或映射到错误 ID；即使 tensor shape 正常，模型看到的协议已经变了。
+特殊字符串是否是单独 token、对应哪个 ID、assistant 起止边界怎样写，都是模型训练分布的一部分。模板与词表不匹配会把结构标记拆碎或映射到错误 ID；即使张量形状没报错，输入的格式也可能已经和训练时不同了。
 
 </details>
 </details>

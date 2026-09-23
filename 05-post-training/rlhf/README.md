@@ -16,7 +16,7 @@
 <details class="interview" markdown="1">
 <summary>两分钟讲清 Base → SFT → Preference → RL → Evaluation</summary>
 
-**快速记忆**：Actor 生成，RM 给完整回答打分，Critic 估计 prefix expected return，Reference 约束策略漂移；Evaluation 检查 reward 是否真的对应产品目标。
+**快速记忆**：Actor 负责生成，Reward Model 给完整回答打分；Critic 估计从当前前文继续生成，预期能拿到多少回报；Reference 用来限制策略偏离原模型太远。最后还要独立评估：奖励涨了，实际表现是否也变好了？
 
 **面试回答**
 
@@ -40,7 +40,7 @@ Clipping 限制一次 optimizer update 相对 rollout policy 的 ratio；referen
 人能比较 → 学一个模型来预测「人会更喜欢哪个」→ 拿这个模型当奖励函数做 RL
 ```
 
-代价是引入了一层间接：你优化的不再是「人的偏好」，而是「一个模型对人偏好的拟合」。后面所有的麻烦都从这里来。
+这里多绕了一步：训练时优化的，并不是人的偏好本身，而是奖励模型学到的评分。奖励模型要是理解错了，后续训练也可能沿着错误的方向走。
 
 ## 这一组怎么读
 

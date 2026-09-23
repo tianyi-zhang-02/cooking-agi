@@ -4,9 +4,9 @@
 
 > 阅读时间：约 8 分钟 · 类型：阅读地图 · 最近审阅：2026-09
 
-模型发布时，最显眼的通常是参数量、上下文长度和 benchmark。但真正值得追的是另一条线：**这个家族把能力瓶颈放在哪里，又用什么架构、训练和系统选择去解它。**
+新模型发布时，大家通常先看参数量、上下文长度和 benchmark 分数。我更想弄明白：**它要解决什么问题，为什么选择这套架构，又是怎么训练出来的？**
 
-这里不会把技术报告缩写成一张参数表。每篇都用同一组问题拆一个模型家族，再回到公开论文、config 和可复现实验验证。这样读完以后，留下的不是“我见过这个名字”，而是一套遇到新模型也能继续用的判断方法。
+这里不只整理参数。每篇都会带着同一组问题读技术报告，对照公开 config 和实验看具体实现。希望读完后，你不仅记得模型名，也能看懂下一个新模型改了什么。
 
 <div class="lesson-recipe advanced">
   <div><span>先看什么</span><strong>目标与约束，而不是参数量</strong></div>
@@ -43,10 +43,10 @@ flowchart LR
 ## 四个入口
 
 <div class="curriculum-grid">
-  <a class="curriculum-card" href="llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>一个相对克制的 dense decoder，适合拿来分清架构收益、规模收益和 post-training 收益。</p><b>开始精读 →</b></a>
-  <a class="curriculum-card" href="qwen.md"><span class="card-step">Family design</span><h3>Qwen</h3><p>同一家族覆盖 dense / MoE、不同尺寸与 thinking / non-thinking，适合研究“模型家族”本身怎样设计。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>从较常见的 dense decoder 出发，分清架构、训练规模和 post-training 各自带来的提升。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="qwen.md"><span class="card-step">Family design</span><h3>Qwen</h3><p>同一家族有 dense 和 MoE、大小不同的模型，也有 thinking 和 non-thinking 模式。可以对比不同预算下该怎么选。</p><b>开始精读 →</b></a>
   <a class="curriculum-card" href="deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>MLA、细粒度 MoE、训练系统和 reasoning post-training 不是四个孤立亮点，而是一套协同设计。</p><b>开始精读 →</b></a>
-  <a class="curriculum-card" href="gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>从较小模型、长上下文与视觉输入出发，看部署约束怎样反过来塑造 attention 和蒸馏方案。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>看模型在支持长上下文和图像输入时，怎样通过 attention 和蒸馏控制部署开销。</p><b>开始精读 →</b></a>
 </div>
 
 ## 按你的问题选择读法
@@ -62,7 +62,7 @@ flowchart LR
   <ol>
     <li>如果把模型名遮住，你能从 attention、FFN 和 post-training 看出它在优化什么吗？</li>
     <li>某个能力提升来自结构、数据、训练规模，还是 post-training？证据够不够把它们分开？</li>
-    <li>一个设计省下的 FLOPs、显存或延迟，是否在通信、路由或数据上重新付了出去？</li>
+    <li>省下计算、显存或延迟之后，通信、路由或数据处理的开销有没有增加？</li>
     <li>这套设计在什么 workload 下成立，换一个 workload 最可能先坏哪里？</li>
   </ol>
 </div>

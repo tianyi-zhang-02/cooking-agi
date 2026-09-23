@@ -346,7 +346,7 @@ layer = "ml"
 # 没有 note 的是打算写的串联文章，显示成“待补”。
 
 [[thread]]
-zh = "学习地图：沿着一条真的能走通的路，从 Token 走到生成"
+zh = "学习路线：从 Token 到生成，一步步看明白"
 en = "The learning map: one path that actually works, from token to generation"
 desc_zh = "不按论文年份排：文本怎样变成数字，序列怎样记住过去，attention 为什么取代递归，最后怎样生成。"
 desc_en = "Not ordered by paper year: how text becomes numbers, how sequences remember, why attention replaced recurrence, how generation works."
@@ -356,7 +356,7 @@ connects = ["coding", "ml", "llm"]
 [[thread]]
 zh = "面试基础题：大半在问同一件事"
 en = "Interview basics: most of them ask the same thing"
-desc_zh = "看着散的题其实只分几类：shape 是否闭合、信息是否因果、梯度能不能传、训练和推理是不是同一件事。"
+desc_zh = "题目看起来很散，常问的却是几件事：张量形状能否对上、有没有用到未来信息、梯度能否传回去，以及训练和推理有什么不同。"
 desc_en = "Questions that look scattered fall into a few kinds: do shapes close, is information causal, can gradients flow, are training and inference the same thing."
 note = "00-foundations/interview-basics.md"
 connects = ["math", "ml", "llm"]
@@ -372,7 +372,7 @@ connects = ["pretrain", "posttrain", "eval"]
 [[thread]]
 zh = "同一个基座能走多远"
 en = "How far the same base model can go"
-desc_zh = "基座不变、只改后训练的一次对照：后训练的收益到底怎么单独估价。"
+desc_zh = "固定基座模型，只改后训练方法，看看后训练本身带来了哪些提升。"
 desc_en = "A rare controlled case: same base weights, different post-training. How to price post-training on its own."
 note = "05-post-training/same-base-different-posttraining.md"
 connects = ["posttrain", "eval", "systems"]
@@ -380,7 +380,7 @@ connects = ["posttrain", "eval", "systems"]
 [[thread]]
 zh = "现代 AI 系统：模型只是其中一部分"
 en = "Modern AI systems: the model is only one part"
-desc_zh = "一次失败可能来自数据、记忆、检索、工具或评估中的任何一环——把“应用与系统”那一排板块连成一个闭环。"
+desc_zh = "从一次请求出发，看数据、记忆、检索、工具和评估怎样配合，以及出错后该从哪里查起。"
 desc_en = "A failure can come from data, memory, retrieval, tools or evaluation: the applied-and-systems blocks joined into one loop."
 note = "06-systems/README.md"
 connects = ["data", "retrieval", "systems", "eval", "posttrain"]

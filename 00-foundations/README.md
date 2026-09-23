@@ -11,7 +11,7 @@
 <div class="curriculum-hero">
   <div><span class="level-chip core">必修</span><strong>先知道它为什么会出现</strong><p>每页只抓住核心计算、张量形状，以及上一代到底卡在哪里。</p></div>
   <div><span class="level-chip deep">进阶</span><strong>觉得“不对劲”时再往下挖</strong><p>推梯度、拆 mask，看训练目标和推理路径是怎么接上的。</p></div>
-  <div><span class="level-chip deep">进阶</span><strong>横向读模型家族</strong><p>不背型号；用同一把尺子比较架构、训练、推理成本和行为差异。</p></div>
+  <div><span class="level-chip deep">进阶</span><strong>横向读模型家族</strong><p>不背型号；用同一组标准比较架构、训练方法、推理成本和实际表现。</p></div>
   <div><span class="level-chip lab">实验</span><strong>别只相信图，自己跑一次</strong><p>同一个机制分别用纯 Python / NumPy 与 PyTorch 写出来。</p></div>
 </div>
 
@@ -19,7 +19,7 @@
 
 <div class="learning-path">
   <a href="core/tokenization.md"><span>01</span><strong>Tokenization</strong><small>字符串怎样变成模型能处理的离散 ID</small></a>
-  <a href="core/recurrent-models.md"><span>02</span><strong>RNN → LSTM</strong><small>用隐藏状态把过去压进一个递归计算</small></a>
+  <a href="core/recurrent-models.md"><span>02</span><strong>RNN → LSTM</strong><small>用隐藏状态保存前面读到的信息</small></a>
   <a href="core/seq2seq.md"><span>03</span><strong>Seq2Seq</strong><small>encoder 理解输入，decoder 逐步生成输出</small></a>
   <a href="core/vanilla-transformer.md"><span>04</span><strong>Vanilla Transformer</strong><small>用 self-attention 与 cross-attention 取代递归</small></a>
   <a href="core/decoder-only.md"><span>05</span><strong>Decoder-only LM</strong><small>把所有任务统一成 next-token prediction</small></a>
@@ -49,7 +49,7 @@ flowchart LR
 
 ## 主线之外：两种进阶读法
 
-主线读通以后，可以沿两个方向继续：一种是往机制内部钻，弄清公式、梯度和执行路径；另一种是横向比较模型家族，看同一个问题有哪些不同解法。两条路会在系统成本和评估上重新汇合。
+读完主线，可以继续推公式、看梯度和代码，也可以拿不同模型来比较：面对同一个问题，它们为什么选了不同的做法？最后都要回到两个问题——效果怎么样，代价有多大。
 
 ### 1. 深挖机制
 
@@ -62,12 +62,12 @@ flowchart LR
 
 ### 2. 横向读模型家族
 
-知道 Transformer 的零件以后，下一步不是继续背模型名，而是学会判断：**一个家族为什么改这个部件，它把成本转移到了哪里，又靠什么训练和评估把能力做出来。**
+知道 Transformer 的零件以后，下一步不是继续背模型名，而是学会判断：**这个模型为什么要改这个部件，省下了什么、又增加了什么开销，实验是否支持这样的选择。**
 
 <div class="curriculum-grid">
-  <a class="curriculum-card" href="model-families/llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>把现代 dense decoder 当作基线：架构相对克制，重点落在数据、训练规模和完整 post-training pipeline。</p><b>精读 →</b></a>
+  <a class="curriculum-card" href="model-families/llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>从常见的 dense decoder 看起，分清架构、数据、训练规模和 post-training 各自带来的影响。</p><b>精读 →</b></a>
   <a class="curriculum-card" href="model-families/qwen.md"><span class="card-step">One family, many modes</span><h3>Qwen</h3><p>看一个家族怎样覆盖 dense / MoE、不同尺寸，以及 thinking / non-thinking 两种推理方式。</p><b>精读 →</b></a>
-  <a class="curriculum-card" href="model-families/deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>把 MLA、MoE、训练系统与 reasoning post-training 放在同一条成本—能力链上理解。</p><b>精读 →</b></a>
+  <a class="curriculum-card" href="model-families/deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>分别看 MLA、MoE 和推理训练解决了什么，再看它们怎样配合、需要多少计算。</p><b>精读 →</b></a>
   <a class="curriculum-card" href="model-families/gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>从较小模型和部署约束出发，看 local/global attention、distillation 与视觉能力怎样组合。</p><b>精读 →</b></a>
 </div>
 

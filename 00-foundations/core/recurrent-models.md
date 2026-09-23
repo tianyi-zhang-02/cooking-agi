@@ -16,7 +16,7 @@
 <details class="interview" markdown="1">
 <summary>先记 state recurrence，再看梯度为什么消失</summary>
 
-**快速记忆**：RNN 用同一状态递推压缩历史；LSTM 用加法 cell-state path 和 sigmoid gates 控制保留、写入与读取。
+**快速记忆**：RNN 每读一步，就用同一套规则更新隐藏状态。LSTM 额外保留 cell state，通过加法更新和 sigmoid 门控，决定哪些信息留下、哪些写入、哪些读出。
 
 **面试回答**
 

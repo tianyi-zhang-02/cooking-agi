@@ -7,16 +7,16 @@
 <details class="interview" markdown="1">
 <summary>Criterion、scoring、calibration 与 validation</summary>
 
-**快速记忆**：先定义可观察 criterion，再选 pairwise/ordinal/binary scoring；最后用专家标签、扰动测试与分布切片校准 judge。
+**快速记忆**：先说清楚评什么（criterion），再决定用成对比较、等级评分还是通过/不通过。最后对照专家标注、输入扰动和不同类别的样本，检查 judge 的判断是否可靠。
 
 **面试回答**
 
-> LLM-as-a-Judge 需要明确输入证据、单一 criterion、行为锚点、输出 schema 和 aggregation。Pairwise 通常比绝对分更稳定，但仍有 position、verbosity、self-preference 和 reference leakage。上线前必须与专家审计交叉验证，并报告 disagreement 与置信度而不只给均值。
+> 让 LLM 当裁判，要先告诉它依据什么、评哪一项、每个分数代表什么，以及结果按什么格式输出、怎样汇总。成对比较（pairwise）往往比直接打绝对分更稳，但仍可能偏爱某个位置、更长的回答或与自身风格相近的输出，也要防止参考答案泄漏。使用前要和专家判断对照，除了平均分，还要看分歧和不确定性。
 
 <details markdown="1">
 <summary><b>深挖</b>：为什么 weighted mean 会隐藏失败？</summary>
 
-相同均值可能来自“大家都给 3 分”或“半数 1 分、半数 5 分”，两者决策风险完全不同。应保留 score distribution、entropy/disagreement、criterion slices 与 judge version；对 high-stakes case 还要升级给人，而不是把不确定性压成一个标量。
+“每次都给 3 分”和“一半给 1 分、一半给 5 分”的均值相同，含义却很不一样。所以要保留分数分布、分歧程度、各评估维度的结果，以及 judge 的版本。涉及重要决策时，还需要人工复核，不能拿一个平均分就把分歧略过去。
 
 </details>
 </details>
@@ -29,12 +29,12 @@ LLM-as-a-Judge 不是一种固定 prompt，而是一组可以自由组合的设�
 
 ## Few-shot 和 Reference-based 为什么容易混淆
 
-它们是两个正交维度：
+它们回答的是两个不同的问题，可以分别选择：
 
 | 维度 | Few-shot | Reference-based |
 | --- | --- | --- |
 | 它在问什么 | 要不要先给模型看几个评分示范？ | 当前答案有没有一个参考答案可以对照？ |
-| 主要作用 | 教任务格式、rubric 用法和输出风格 | 给 judge 一个任务级锚点 |
+| 主要作用 | 示范怎样使用评分规则（rubric），以及按什么格式回答 | 让 judge 对照参考答案判断当前回答 |
 | 核心内容 | 多个输入 → 评分示例 | 当前样本的 `Expected Answer` |
 | 对立面 | Zero-shot | Reference-free |
 
@@ -63,7 +63,7 @@ Verdict            分数、类别、偏好或通过/失败
 Rationale          支持 verdict 的具体证据
 ```
 
-Reference 和 demonstration 的区别尤其重要：reference 是**当前任务的答案锚点**，demonstration 是**怎样执行评估任务的教学样本**。
+最容易混的是 reference 和 demonstration：前者告诉 judge，**这道题的参考答案是什么**；后者演示，**遇到这样的回答应该怎么评分**。
 
 ## 这一组怎么读
 

@@ -8,9 +8,9 @@
 - **Verbosity bias**：把更长、更详细误判为更好。
 - **Self-enhancement bias**：judge 偏爱与自己模型家族相似的输出。
 - **Style bias**：被标题、Markdown、语气和自信程度影响。
-- **Reference anchoring**：参考答案不完整时，judge 可能错误惩罚其他有效解法。
-- **Scale bias**：长期偏爱某几个分数，导致评分范围实际没有被使用。
-- **Evidence leakage**：candidate 中的提示注入或自我评价影响 judge。
+- **Reference anchoring**：参考答案不完整时，judge 可能把其他同样有效的解法判错。
+- **Scale bias**：总是集中给某几个分数，其他档位几乎用不上。
+- **Evidence leakage**：被评回答里的提示注入或自我吹捧干扰了 judge。
 
 ## 一个更稳健的最小流程
 
