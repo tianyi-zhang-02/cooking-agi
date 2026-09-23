@@ -1,33 +1,21 @@
-# 谁在这口锅边上 · Who's at the pot
+# 船员名册 · The crew roster
 #
-# 做过贡献之后（提交被合进 main，或者在某个提交里被 Co-authored-by 署名），
-# 名字会自动出现在「幕后船员」页面上，点名字跳转到你的 GitHub 主页——这一步
-# 不用登记，这个文件只是用来补两件可填可不填的小事：
+# 这个文件我自己维护。名字本来就会自动出现在「幕后船员」页面上，不用登记；
+# 这里只多记一件可填可不填的事：国家或地区，用来点亮那张世界地图。
 #
-#   country  国家/地区，ISO 3166-1 两位字母（CN、US、SG、GB、JP……）
-#            只用来点亮那张世界地图。
-#   site     你自己的主页，必须是 http:// 或 https:// 开头的完整网址。
-#            它不会替换名字上的链接，而是在名字旁边多一个小地球图标。
+# 想被记上，就开一个 issue（「加我进船员名单」），我会不定期读，然后手动加进来。
+# 直接改这个文件的 PR 不会合——这一栏总得有人看着。
 #
-# 两个都可以完全不填，名字照样在名单和榜单里；填了以后想删掉，改回来就行。
-# 和仓库里其他改动一样，这个文件的改动要走 PR、经仓库维护者 review 之后才会生效
-# （见 .github/CODEOWNERS），所以链接不会自动上线。
+# I maintain this file myself. Your name shows up on the contributors page on its
+# own, so there is nothing to sign up for; the only extra kept here is an optional
+# country or region, which lights one patch of the world map.
 #
-# After a change of yours lands on main (or you are credited with a Co-authored-by
-# trailer), your name shows up on the contributors page on its own, linking to your
-# GitHub profile. Nothing to sign up for. This file is only for two optional extras:
+# To be on it, open an issue ("Add me to the crew"). I read them from time to time
+# and add people by hand. PRs that edit this file are not merged — this is a column
+# someone has to keep an eye on.
 #
-#   country  ISO 3166-1 alpha-2 code (CN, US, SG, GB, JP …), used only to light up
-#            the world map.
-#   site     your own homepage, as a full http:// or https:// URL. It does not replace
-#            the link on your name; it adds a small globe next to it.
-#
-# Both are entirely optional — your name is on the list either way, and you can take
-# them back out whenever you like. Like every other change here, an edit to this file
-# goes through a pull request and is reviewed by the maintainer before it takes effect
-# (see .github/CODEOWNERS), so no link goes live on its own.
+# country: ISO 3166-1 alpha-2 — CN, US, SG, GB, JP …
 
 # [[crew]]
-# login = "your-github-login"
+# login = "a-github-login"
 # country = "SG"
-# site = "https://your-site.example"

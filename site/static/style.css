@@ -757,7 +757,7 @@ body.page-crew {
 .board-table tbody th small { display: block; font: .62rem/1.6 var(--mono); color: #8f8f8f; }
 .board-table a { color: #fff; text-decoration: none; }
 .board-table a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.board-table .rank { width: 2.4rem; font: .72rem/1.6 var(--mono); color: #6f6f6f; }
+.board-table .crew-id { width: 4.6rem; font: .72rem/1.6 var(--mono); letter-spacing: .04em; color: #7d7d7d; white-space: nowrap; }
 .board-table .role { color: #9a9a9a; }
 .board-table time { font: .72rem/1.6 var(--mono); color: #9a9a9a; white-space: nowrap; }
 .board-table .count { min-width: 6.5rem; }
@@ -1763,22 +1763,3 @@ main { padding: 2.6rem 0 6rem; }
 .page-home .prose, .page-home .page-foot { max-width: 42rem; }
 /* a note without section headings has nothing to list: no empty "on this page" box */
 .rail-inner:not(:has(.toc a)) { display: none; }
-
-/* -------- a contributor's own site: the small second link ---------------------------
-   The name goes to GitHub, which the build knows from git history. A personal site is
-   self-declared in crew.toml, so it sits next to the name as a separate, quieter mark
-   (an outlined globe, currentColor, no fill) instead of replacing the name's link. */
-.sr-only {
-  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
-  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
-}
-.crew-links { display: flex; align-items: baseline; justify-content: center; gap: .3rem; }
-.crew-links > a, .crew-links > strong { display: inline-block; }
-.crew-site { color: #9a9a9a; line-height: 1; text-decoration: none; }
-.crew-site:hover, .crew-site:focus-visible { color: var(--ember); }
-.crew-site-mark { display: block; }
-.credit-name .crew-site, .board-table .crew-site { display: inline-block; margin-left: .38rem; vertical-align: baseline; }
-.board-table .crew-site { color: #8f8f8f; }
-.board-table .crew-site:hover { color: var(--ember); }
-/* the credits roll sets names at 1.35rem: let the mark grow with them */
-.credit-name .crew-site-mark { width: 13px; height: 13px; }

@@ -6,33 +6,25 @@
 和还没写的地方——**指出任何一处都算贡献**，改一个错字也算。
 
 名单是自动生成的，不用登记：[幕后船员](contributors.md)往下拉，
-有演职员表、贡献榜单和一张世界地图。
+有演职员表、贡献榜单和一张世界地图。每个人有一个编号（`CG 001` 这种），
+按第一次出现的先后排，跟着人走。
 
-## 你的名字会链到哪里
+想在地图上点亮一块，就开一个
+[issue](../../issues/new?template=add-me-to-the-crew.yml)，写上 GitHub 用户名和
+国家/地区（ISO 3166-1 两位字母）。我会不定期读，然后手动加进
+[`crew.toml`](crew.toml)——那个文件我自己维护，直接改它的 PR 不会合。
 
-**点名字跳你的 GitHub 主页。** 这是默认行为，不用填任何东西——身份来自 git 提交记录，
-不来自你自己写的内容。
+填不填都行。不填，名字照样在榜单上。
 
-**另外可以放一个你自己的主页链接，也可以完全不放。** 想放的话，它不会替换名字上的
-GitHub 链接，而是在名字旁边多一个小地球图标，点它才跳个人主页。两个链接分开，
-一眼能看出哪个是哪个。
+## 守则
 
-放法是往 [`crew.toml`](crew.toml) 里加一段，`site` 和 `country` 都可填可不填：
+就几条，不难：
 
-```toml
-[[crew]]
-login = "your-github-login"
-country = "SG"                        # 只用来点亮那张世界地图
-site = "https://your-site.example"    # 可选：名字旁边的小地球
-```
-
-两条规矩：
-
-1. `site` 必须是 `http://` 或 `https://` 开头的完整网址，否则构建时会被忽略。
-2. **和其他改动一样要走 PR，经我 review 合进 `main` 之后才会生效**
-   （见 [`.github/CODEOWNERS`](.github/CODEOWNERS)）。所以没有任何链接会自动上线。
-
-不填名字照样在榜单上，填了想删也随时能删。
+- **只谈技术，不谈政治。** 这是一份学习笔记，别把政治带进来；这点要求不过分。
+- **别拿这儿当广告位。** 推广、拉人、引流，都不要。
+- **用 AI 写可以，但你得自己读一遍。** 我不反对拿 AI 起草，反对的是没校对就发过来——
+  事实、公式、链接、语气，你自己过一遍。最后署的是你的名字。
+- 以上任何一条破了，名字永久移出名单，后面的 PR 也不再合。
 
 ## 最容易上手的几件事
 
@@ -124,34 +116,29 @@ explained badly, and a lot of it is missing. **Pointing at any of those counts**
 including typos.
 
 The contributor list regenerates on each build — nothing to sign up for. Scroll down
-[Behind the notes](contributors.en.md) for the credits, the board and a world map.
+[Behind the notes](contributors.en.md) for the credits, the board and a world map. Each
+person carries a catalogue number (`CG 001` and so on), given in order of first
+appearance and kept for good.
 
-## Where your name links
+To light up a patch of that map, open an
+[issue](../../issues/new?template=add-me-to-the-crew.yml) with your GitHub login and a
+country or region (ISO 3166-1 alpha-2). I read them from time to time and add people by
+hand to [`crew.toml`](crew.toml) — I maintain that file, and PRs that edit it are not
+merged.
 
-**Your name links to your GitHub profile.** That is the default and needs no setup: the
-identity comes from the git history, not from anything you wrote yourself.
+It is entirely optional. Without it, your name is on the board either way.
 
-**You can add a link to your own site too, or skip it entirely.** If you add one, it does
-not replace the GitHub link on your name — it appears as a small globe next to it, and
-only that globe goes to your site. Two separate links, so it is obvious which is which.
+## Ground rules
 
-Add it in [`crew.toml`](crew.toml); both `site` and `country` are optional:
+A short list:
 
-```toml
-[[crew]]
-login = "your-github-login"
-country = "SG"                        # only lights up the world map
-site = "https://your-site.example"    # optional: the small globe next to your name
-```
-
-Two rules:
-
-1. `site` must be a full `http://` or `https://` URL, or the build ignores it.
-2. **Like any other change it goes through a pull request and is reviewed by me before it
-   lands on `main`** (see [`.github/CODEOWNERS`](.github/CODEOWNERS)). No link ever goes
-   live on its own.
-
-Your name is on the list either way, and you can take any of this back out whenever you like.
+- **Technical subjects only — no politics.** These are study notes; keep politics out of
+  them. That is the least anyone can do.
+- **Not an advertising slot.** No promotion, no recruiting, no traffic funnelling.
+- **AI-written is fine; unread is not.** Draft with AI if you like, but read every line
+  yourself before you send it — facts, formulas, links, tone. Your name goes on it.
+- Break any of these and your name comes off the list permanently, and later PRs are not
+  merged.
 
 ## Easiest ways in
 

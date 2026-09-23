@@ -8,13 +8,16 @@ A note, a diagram, a typo caught. Thanks to everyone making this pot of AGI a li
 
 There’s room for one more cook.
 
-On the site, the crew drifts slowly across the night sky. Hover or tap someone to see a name; “List” in the top-right corner opens the full roster. A name links to that person’s GitHub profile; a small globe beside it, when there is one, is a personal site they added themselves.
+On the site, the crew drifts slowly across the night sky. Hover or tap someone to see a name; “List” in the top-right corner opens the full roster.
 
 Avatars are dithered to black and white (Floyd–Steinberg) in your browser, which is where the grain comes from — the whole page is black, white, and one amber accent. Anyone with a main-branch commit or co-author credit this week (Monday–Sunday, UTC) wears a dashed amber ring. “Pause” stops the drift, and with reduced motion enabled the crew stays still to begin with.
 
 Keep scrolling for three more things: the **credits**, rolling past the way they do at the
-end of a film; the **board**, ordered by commits; and a **world map**. The lit patches are
-the people who filled in a country or region in [`crew.toml`](crew.toml) — entirely
-optional, and your name is on the list either way.
+end of a film; the **board**, ordered by commits; and a **world map**. Everyone also carries
+a catalogue number (`CG 001` and so on), in order of first appearance.
+
+The lit patches are the people who told me where they are. To light one up, open an
+[issue](../../issues/new?template=add-me-to-the-crew.yml); I read them from time to time
+and add people by hand. Saying nothing is fine — your name is on the board either way.
 
 [Lend a hand →](CONTRIBUTING.md) · [GitHub](https://github.com/tianyi-zhang-02/cooking-agi)
