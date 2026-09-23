@@ -1,21 +1,31 @@
 # 船员名册 · The crew roster
 #
-# 这个文件我自己维护。名字本来就会自动出现在「幕后船员」页面上，不用登记；
-# 这里只多记一件可填可不填的事：国家或地区，用来点亮那张世界地图。
+# 这个文件我自己管。名字会自动出现在「幕后船员」那页，不用登记；这里只多记一件事：
+# 国家或地区，用来点亮那张世界地图。
 #
-# 想被记上，就开一个 issue（「加我进船员名单」），我会不定期读，然后手动加进来。
-# 直接改这个文件的 PR 不会合——这一栏总得有人看着。
+# 想被记上就开个 issue（「加我进船员名单」），我不定期读，然后手动加。
+# 直接改这个文件的 PR 我不合——这一栏总得有人看着。
 #
-# I maintain this file myself. Your name shows up on the contributors page on its
-# own, so there is nothing to sign up for; the only extra kept here is an optional
-# country or region, which lights one patch of the world map.
+# 一个地方写 country，两个地方写 countries，两边各算一半。
+# 地图上的亮度分五档：有一点贡献就会亮，越多越亮，但有上限。
 #
-# To be on it, open an issue ("Add me to the crew"). I read them from time to time
-# and add people by hand. PRs that edit this file are not merged — this is a column
-# someone has to keep an eye on.
+# I keep this file myself. Your name shows up on the contributors page on its own,
+# so there is nothing to sign up for; the only extra kept here is a country or
+# region, which lights one patch of the world map.
 #
-# country: ISO 3166-1 alpha-2 — CN, US, SG, GB, JP …
+# To get on it, open an issue ("Add me to the crew"). I read them now and then and
+# add people by hand. PRs that edit this file don't get merged — someone has to keep
+# an eye on this column.
+#
+# One place goes in `country`, two go in `countries` and count half each. Brightness
+# has five steps: any contribution lights a place, more burns brighter, up to a cap.
+#
+# ISO 3166-1 alpha-2 — CN, US, SG, GB, JP …
+
+[[crew]]
+login = "tianyi-zhang-02"
+country = "US"
 
 # [[crew]]
 # login = "a-github-login"
-# country = "SG"
+# countries = ["CN", "SG"]

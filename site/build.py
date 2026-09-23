@@ -102,7 +102,7 @@ def last_updated(rel_path: str) -> str:
 
 @functools.lru_cache(maxsize=1)
 def crew_countries():
-    """Self-declared country per GitHub login, read from crew.toml. Entirely optional."""
+    """Where each login says they are, from crew.toml. One place, or two split evenly."""
     path = ROOT / "crew.toml"
     if not path.exists():
         return {}
@@ -113,9 +113,13 @@ def crew_countries():
         return {}
     out = {}
     for person in data.get("crew", []):
-        login, country = person.get("login"), str(person.get("country") or "").strip().upper()
-        if login and country:
-            out[str(login).strip().lower()] = country
+        login = person.get("login")
+        said = person.get("countries") or person.get("country") or []
+        if isinstance(said, str):
+            said = [said]
+        codes = [c for c in (str(x).strip().upper() for x in said) if c]
+        if login and codes:
+            out[str(login).strip().lower()] = tuple(dict.fromkeys(codes))
     return out
 
 
@@ -210,7 +214,7 @@ def contributors(repo: str):
             "last": datetime.fromisoformat(when).astimezone(timezone.utc).date().isoformat(),
             "first": datetime.fromisoformat(earliest.get(name, when)).astimezone(
                 timezone.utc).date().isoformat(),
-            "country": crew_countries().get((login or name).lower()),
+            "countries": crew_countries().get((login or name).lower(), ()),
             "initial": name[:1].upper(),
             "kind": "ai" if name == "Claude Code" else "human",
             "models": sorted(ai_models) if name == "Claude Code" else [],
@@ -1506,7 +1510,7 @@ def contributor_universe_html(people, page, site):
     week_start = today - timedelta(days=today.weekday())
     countries = world_dots().get("countries", {})
 
-    crew, board, credits, tally = [], [], {}, {}
+    crew, board, credits, tally, weight = [], [], {}, {}, {}
     ranked = sorted(people, key=lambda p: (-p.get("commits", 0), p["name"]))
     for index, person in enumerate(people):
         login = person.get("login")
@@ -1540,9 +1544,10 @@ def contributor_universe_html(people, page, site):
             f'<li><span class="credit-name">{link}</span>'
             f'<span class="credit-note">{person["crew_id"]} · {html.escape(handle)} · '
             f'{person["first"][:7]} {"起" if zh else "onwards"}</span></li>')
-        code = (person.get("country") or "").upper()
-        if code in countries:
+        mine = [c for c in person.get("countries", ()) if c in countries]
+        for code in mine:                      # two places: half the weight to each
             tally.setdefault(code, []).append(person["name"])
+            weight[code] = weight.get(code, 0.0) + max(person.get("commits", 0), 1) / len(mine)
 
     top = max([p.get("commits", 0) for p in people] + [1])
     for person in ranked:
@@ -1569,11 +1574,24 @@ def contributor_universe_html(people, page, site):
             f'<td><time datetime="{person["first"]}">{person["first"]}</time></td>'
             f'<td><time datetime="{person["last"]}">{person["last"]}</time>{week}</td></tr>')
 
-    lit = sorted(tally, key=lambda c: (-len(tally[c]), countries[c]["en"]))
+    # five steps of brightness: a single commit already lights a country, more burns
+    # brighter up to a ceiling, and the first few stay clearly ahead of the rest
+    order = sorted(weight, key=lambda c: (-weight[c], countries[c]["en"]))
+    peak = weight[order[0]] if order else 1.0
+
+    def step(rank, w):
+        if rank == 0:
+            return 5
+        if rank <= 2:
+            return 4
+        share = w / peak
+        return 3 if share >= 0.5 else (2 if share >= 0.2 else 1)
+
+    lit = [f"{c}:{step(i, weight[c])}" for i, c in enumerate(order)]
     map_list = "".join(
         f'<li><b>{html.escape(countries[c]["zh" if zh else "en"])}</b>'
         f'<span>{len(tally[c])} {"位" if zh else ("person" if len(tally[c]) == 1 else "people")}</span></li>'
-        for c in lit)
+        for c in order)
     crew_issue = (f'https://github.com/{html.escape(site["repo"], quote=True)}'
                   f'/issues/new?template=add-me-to-the-crew.yml')
     home = page.rel("index.html" if zh else "index.en.html")
@@ -1629,7 +1647,7 @@ def contributor_universe_html(people, page, site):
     <h2 id="map-title">{'大家在哪儿' if zh else 'Where the crew is'}</h2>
   </div>
   <canvas class="world-dots" width="800" height="400" role="img"
-    aria-label="{'点亮了 ' + str(len(lit)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(lit)} country or region lit up'}"></canvas>
+    aria-label="{'点亮了 ' + str(len(order)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(order)} countries or regions lit up'}"></canvas>
   <ul class="map-list">{map_list or f'<li class="map-empty">{"还没人填。" if zh else "Nobody yet."}</li>'}</ul>
   <p class="map-how"><a href="{crew_issue}">{'开个 issue 告诉我' if zh else 'Open an issue'}</a>{'，我给你点上。' if zh else " and I'll light one up."}</p>
 </section>

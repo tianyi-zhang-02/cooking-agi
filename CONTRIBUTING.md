@@ -5,26 +5,26 @@
 这是一份公开的学习笔记，不是教科书。它一定有讲错的地方、讲得太绕的地方，
 和还没写的地方——**指出任何一处都算贡献**，改一个错字也算。
 
-名单是自动生成的，不用登记：[幕后船员](contributors.md)往下拉，
-有演职员表、贡献榜单和一张世界地图。每个人有一个编号（`CG 001` 这种），
-按第一次出现的先后排，跟着人走。
+名单是自动生成的，不用登记。[幕后船员](contributors.md)那页往下拉，有演职员表、
+贡献榜单，还有一张世界地图。每个人还有个编号，`CG 001` 这种，谁先来谁靠前，给了就不变。
 
-想在地图上点亮一块，就开一个
-[issue](../../issues/new?template=add-me-to-the-crew.yml)，写上 GitHub 用户名和
-国家/地区（ISO 3166-1 两位字母）。我会不定期读，然后手动加进
-[`crew.toml`](crew.toml)——那个文件我自己维护，直接改它的 PR 不会合。
+想在地图上亮一块，开个 [issue](../../issues/new?template=add-me-to-the-crew.yml)
+告诉我：GitHub 用户名，加一个国家或地区（ISO 3166-1 两位字母）。两头跑的可以写两个，
+各算一半。我不定期去读，然后手动加进 [`crew.toml`](crew.toml)。那个文件我自己管，
+直接去改它的 PR 我不合。
 
-填不填都行。不填，名字照样在榜单上。
+亮度分五档：有一点贡献就会亮，越多越亮，到顶为止，前几名会明显亮一截。
+不说也没事，名字照样在榜单上。
 
-## 守则
+## 几条规矩
 
-就几条，不难：
+真的不多：
 
-- **只谈技术，不谈政治。** 这是一份学习笔记，别把政治带进来；这点要求不过分。
-- **别拿这儿当广告位。** 推广、拉人、引流，都不要。
-- **用 AI 写可以，但你得自己读一遍。** 我不反对拿 AI 起草，反对的是没校对就发过来——
-  事实、公式、链接、语气，你自己过一遍。最后署的是你的名字。
-- 以上任何一条破了，名字永久移出名单，后面的 PR 也不再合。
+- **只聊技术，别聊政治。** 这就是一份学习笔记，政治别往里带，这点不难做到吧。
+- **别把这儿当广告位。** 推广、拉人、引流，都别来。
+- **AI 写的可以，但你自己得先读一遍。** 拿 AI 起草我完全不反对，受不了的是没校对就发过来——
+  事实、公式、链接、语气，你自己过一遍。署名的是你。
+- 上面哪条破了，名字永久下榜，之后的 PR 也不合了。
 
 ## 最容易上手的几件事
 
@@ -115,30 +115,31 @@ These are public learning notes, not a textbook. Some of it is wrong, some of it
 explained badly, and a lot of it is missing. **Pointing at any of those counts** —
 including typos.
 
-The contributor list regenerates on each build — nothing to sign up for. Scroll down
-[Behind the notes](contributors.en.md) for the credits, the board and a world map. Each
-person carries a catalogue number (`CG 001` and so on), given in order of first
-appearance and kept for good.
+The contributor list builds itself — nothing to sign up for. Scroll down
+[Behind the notes](contributors.en.md) for the credits, the board and a world map. Everyone
+gets a number too, `CG 001` and so on: first come, first numbered, and it stays yours.
 
-To light up a patch of that map, open an
+Want a patch of the map lit? Open an
 [issue](../../issues/new?template=add-me-to-the-crew.yml) with your GitHub login and a
-country or region (ISO 3166-1 alpha-2). I read them from time to time and add people by
-hand to [`crew.toml`](crew.toml) — I maintain that file, and PRs that edit it are not
-merged.
+country or region (ISO 3166-1 alpha-2). Two, if you split your time — they count half
+each. I read them now and then and add people to [`crew.toml`](crew.toml) by hand. I keep
+that file myself, so PRs that edit it don't get merged.
 
-It is entirely optional. Without it, your name is on the board either way.
+Brightness comes in five steps: one commit already lights a place, more burns brighter up
+to a ceiling, and the first few stay clearly ahead. Skipping all of it is fine — your name
+is on the board either way.
 
-## Ground rules
+## A few rules
 
-A short list:
+Not many:
 
-- **Technical subjects only — no politics.** These are study notes; keep politics out of
-  them. That is the least anyone can do.
-- **Not an advertising slot.** No promotion, no recruiting, no traffic funnelling.
-- **AI-written is fine; unread is not.** Draft with AI if you like, but read every line
-  yourself before you send it — facts, formulas, links, tone. Your name goes on it.
-- Break any of these and your name comes off the list permanently, and later PRs are not
-  merged.
+- **Tech only, no politics.** These are study notes. Keep politics out of them — that much
+  is easy.
+- **Not an ad slot.** No promotion, no recruiting, no traffic funnelling.
+- **AI drafts are fine; unread ones are not.** Draft with AI all you like. What I can't use
+  is a page nobody read before sending — check the facts, the formulas, the links, the
+  tone. Your name is the one on it.
+- Break any of those and your name comes off for good, and I stop merging your PRs.
 
 ## Easiest ways in
 
