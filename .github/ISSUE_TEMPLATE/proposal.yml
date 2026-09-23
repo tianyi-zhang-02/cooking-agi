@@ -1,0 +1,38 @@
+name: 内容与结构提案 · Proposal
+description: 新内容、板块认领、结构或规则调整。 / New content, area ownership, structure, or rules.
+title: "[Proposal] "
+body:
+  - type: input
+    id: area
+    attributes:
+      label: 板块 · Area
+      placeholder: "Area: foundations"
+      description: "使用 Area: 加板块 ID；跨板块可列多个。 / Use Area: followed by the area ID; list multiple if needed."
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 想解决什么 · Problem and scope
+      description: 给谁看、现有内容缺什么、准备放在哪里；认领板块请说明时间和范围。 / Audience, gap, location; for reviewers, scope and availability.
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: 打算怎么做 · Approach
+      description: 提纲、公开来源、最小版本。普通内容到这里就够了。 / Outline, public sources, smallest useful version.
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: 需要拍板时再填 · Only for a consequential decision
+      description: 替代方案、影响、回退办法；结论由维护者在讨论后记录，保留不同意见。 / Alternatives, impact, rollback; maintainers record the decision and dissent after discussion.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 公开内容 · Public content
+      options:
+        - label: 不包含内部资料、凭据或他人隐私。 / No internal materials, credentials, or other people's private data.
+          required: true

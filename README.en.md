@@ -52,6 +52,8 @@ The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has l
 
 ## Join us!
 
+These notes are growing from a personal collection into a shared project. Fix one small thing or help look after a topic—there's no big time commitment required to get started. [How to contribute, area contacts, and review rules →](community/README.en.md)
+
 Found a mistake, an unclear explanation, or a topic you'd like to see? [Open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues). Your own notes and better examples are welcome as PRs too. I'd love to learn from you.
 
 The [contributing guide](CONTRIBUTING.md#english) explains how to get involved, and contributors appear on the [Behind the notes](contributors.en.md) page. If you'd like a spot on the map, you can [share your country or region](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)—no precise address needed.

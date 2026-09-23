@@ -1,0 +1,65 @@
+maintainers = ["tianyi-zhang-02"]
+acknowledgements = []
+
+[[area]]
+id = "foundations"
+zh = "大模型基础"
+en = "Foundations"
+groups = ["foundations"]
+reviewers = []
+
+[[area]]
+id = "posttrain"
+zh = "Post-training"
+en = "Post-training"
+groups = ["posttrain"]
+reviewers = []
+
+[[area]]
+id = "evaluation"
+zh = "评估"
+en = "Evaluation"
+groups = ["eval"]
+reviewers = []
+
+[[area]]
+id = "data-retrieval"
+zh = "数据与检索"
+en = "Data & retrieval"
+groups = ["data-retrieval"]
+reviewers = []
+
+[[area]]
+id = "systems-agents"
+zh = "系统、多模态与 Agents"
+en = "Systems, multimodal & agents"
+groups = ["systems", "agents"]
+reviewers = []
+
+[[area]]
+id = "practice"
+zh = "工程实践与开源"
+en = "Practice & open source"
+groups = ["practice", "open-source"]
+reviewers = []
+
+[[area]]
+id = "career"
+zh = "求职与面试准备"
+en = "Career & interview preparation"
+groups = ["career", "interview"]
+reviewers = []
+
+[[area]]
+id = "papers"
+zh = "论文"
+en = "Papers"
+groups = ["reference"]
+reviewers = []
+
+[[area]]
+id = "site"
+zh = "站点与协作"
+en = "Site & collaboration"
+groups = ["start"]
+reviewers = ["tianyi-zhang-02"]

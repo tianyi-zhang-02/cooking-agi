@@ -16,10 +16,11 @@ Keep scrolling for three more things: the **credits**, rolling past the way they
 end of a film; the **board**, ordered by commits; and a **world map**. Everyone also carries
 a catalogue number (`CG 001` and so on), in order of first appearance.
 
+Commit counts are not a quality ranking or review authority. Questions, reviews, translations, and corrections deserve credit too; link the relevant issue or PR to request an acknowledgement. See [contributing together](community/README.en.md) for area contacts and the review process.
+
 The lit patches are the people who told me where they are — two places if you split your
 time, counting half each. Brightness comes in five steps: one commit already lights a place,
 more burns brighter up to a ceiling. To light one up, open an
-[issue](../../issues/new?template=add-me-to-the-crew.yml); I read them now and then and add
-people by hand. Saying nothing is fine — your name is on the board either way.
+[issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml); maintainers verify requests, including removal requests. Saying nothing is fine — your name is on the board either way.
 
 [Lend a hand →](CONTRIBUTING.md) · [GitHub](https://github.com/tianyi-zhang-02/cooking-agi)

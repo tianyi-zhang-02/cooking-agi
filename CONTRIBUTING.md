@@ -1,201 +1,101 @@
-# 参与这个仓库 · Contributing
+# 加入我们！ · Contributing
 
-**中文** · [English below](#english)
+**中文** · [English](#english)
 
-欢迎一起完善这份笔记！发现错误、遇到看不懂的解释，或者想补充一个例子，都可以提出来。
-**不必写一整篇文章才算参与**，提问和纠错也很有帮助。
+不用先写出一整篇。改一句不顺的话、指出公式哪里不对，或者问一个好问题，都很欢迎。
 
-贡献者名单会自动生成，不用单独登记。[幕后](contributors.md)页面有演职员表、贡献榜单和世界地图。
-每位贡献者都有一个固定编号，比如 `CG 001`，按首次参与的顺序分配。
+## 先选一件小事
 
-想出现在地图上，可以提一个 [issue](../../issues/new?template=add-me-to-the-crew.yml)，
-填写 GitHub 用户名和国家或地区代码（ISO 3166-1 两位字母）。也可以填两个地方，贡献各计一半。
-我会定期整理并更新 [`crew.toml`](crew.toml)；这个文件由我统一维护，请通过 issue 提交位置，不要直接修改。
+- **错字、引用、翻译**：直接 fork → 修改 → PR。
+- **解释看不懂或发现问题**：用[提问与纠错](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，贴页面链接和具体段落。
+- **新文章、交互图或目录调整**：先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，避免重复劳动，再开 draft PR。
+- **想长期参与**：先看[板块分工与审核约定](community/README.md)。没有认领的板块由维护者接审，不要求你随时在线。
 
-地图亮度按贡献分为 5 档。位置是自愿填写的，不填写也会出现在贡献者名单里。
+每个 PR 尽量只做一件事。写清改了什么、依据是什么、怎么检查的。常规合并需要一位非作者的相关 CODEOWNER 批准、检查通过、讨论处理完；大范围调整才走提案，具体例外和分歧处理见上面的协作约定。
 
-## 几条规矩
+## 内容怎么写
 
-为了让这里保持一个适合学习和交流的环境，请注意：
+1. 从具体问题和小例子讲起，再讲原理、假设与局限。长推导可以放折叠块；不要把主线藏起来。
+2. `.md` 对应中文，`.en.md` 对应英文。尽量同 PR 更新；只写一种也欢迎，但标明缺哪部分、怎么补。结构检查只是提醒。
+3. 术语统一放在 `site/glossary.tsv`，不反复手写括号解释。公式用 `$...$` 或 `$$...$$`。
+4. 代码放在相应章节的 `code/`，写清运行方法；图尽量提供 SVG 或生成脚本，外部素材说明来源和使用许可。
+5. 给事实和关键结论附公开来源。实验写明条件，区分已验证、假设和计划；没有结果也可以记录。
+6. AI 可以协助，但你要读过、验证过，并在 PR 里说明重要使用方式。不能拿模型输出充当独立审核。
+7. 不上传公司内部资料、未公开的面试内容、凭据或他人隐私；即使脱敏，也不把具体公司的内部案例搬过来。
 
-- **讨论围绕技术和学习展开，不涉及政治话题。**
-- **请勿发布广告或推广信息。**
-- **可以用 AI 帮忙，但提交前请自己检查。** 确认事实、公式和链接没有问题，也读一遍文字是否通顺；
-  对自己提交的内容负责。
-- 违反以上约定的贡献者会被移出名单，后续 PR 也不再接受。
+## 目录和本地检查
 
-## 最容易上手的几件事
-
-| 我想… | 怎么做 |
-| --- | --- |
-| 改一个错字或病句 | 在站点页面底部点「提交修改」，直接在 GitHub 上改，提 PR |
-| 觉得某段没讲明白 | 开一个 issue，贴上那句话，说说你卡在哪一步，方便我们改进解释 |
-| 补一个例子或反例 | 直接加到对应的 `.md` 里 |
-| 加一篇论文笔记 | 复制 [`templates/paper-note.md`](templates/paper-note.md) 到 [`papers/`](papers/) |
-| 加一个术语的中英对照 | 往 [`site/glossary.tsv`](site/glossary.tsv) 加一行，全站自动生效 |
-| 给某个知识板块加考题 | 在对应笔记里加一节 `## 面试常见问题`，每道题写成 `<details><summary>问题</summary>答案</details>`；[考前速查](interview/questions.md)会自动收录，不用另外登记 |
-| 改了一篇中文笔记 | 同一个 PR 里把对应的 `.en.md` 一起改掉，然后跑 `python3 site/paritycheck.py` 确认两版结构一致 |
-| 写一整节新内容 | 先开 issue 聊聊放在哪一章，避免和正在写的内容重复 |
-
-## 写作约定
-
-每篇笔记尽量按同一个顺序展开：**先讲它是什么 → 为什么需要它 → 一个最简单的例子
-→ 技术上的主要做法 → 它依赖什么假设 → 什么情况下会失效。**
-
-写的时候可以参考下面几点：
-
-1. **中英双语成对**。`foo.md` 是中文，`foo.en.md` 是英文。只写一种也可以合并，
-   另一种可以由别人补——但请在 PR 里说明。
-2. **术语不要在正文里手写括号注释**。加到 [`site/glossary.tsv`](site/glossary.tsv)，
-   构建时会自动在中文页面里标注英文原文，并生成悬浮解释。
-3. **公式用 LaTeX**：行内 `$...$`，独立 `$$...$$`。GitHub 和站点都能渲染。
-4. **代码要能跑**。放进对应章节的 `code/` 目录，在 README 表格里加一行说明。
-5. **图要能重现**。不要提交手画的示意图；写一个生成脚本放进 `code/`，
-   把 `.svg` 输出到该章节的 `assets/`。参考
-   [`00-foundations/code/make_figures.py`](00-foundations/code/make_figures.py)。
-   这样改了模型图会跟着变，图和正文不会说两套话。
-6. **入门和进阶分层，不要拆成两篇。** 主线保持五分钟能读完；推导、边角情况、
-   踩过的坑放进折叠块。GitHub 和站点都能渲染它：
-
-   ```markdown
-   <details markdown="1">
-   <summary><b>进阶</b>：为什么「接近 one-hot」就等于没有梯度</summary>
-
-   （这里照常写 markdown，公式、代码、链接都行）
-
-   </details>
-   ```
-
-   `markdown="1"` 让站点解析内部内容，GitHub 会忽略这个属性但同样能渲染。
-   判断标准：**去掉这个块，主线还成立吗？** 不成立就说明它不该被折叠。
-7. **不确定就写不确定**。「我不知道为什么」比编一个解释好。
-8. **不提交公司实操。** 雇佣、招聘或具体公司场景里的实现、证据、复盘和案例，
-   即使已经脱敏也留在私有笔记。这里只接受能由公开来源或可复现实验独立支撑的内容。
-
-## 目录约定
-
-数字前缀就是阅读顺序，GitHub 按字母排序，所以文件列表本身就是课程大纲。
-
-```
-00-foundations/     基础：模型在算什么
-01…03               输入：数据、记忆、多模态
-04…06               模型怎样做事：检索、post-training、系统
-07…08               怎样判断做得好不好：评估、体验
-09-personal-agi/    终点
-papers/ templates/  论文笔记与模板
-site/               站点构建（见下）
-```
-
-新开一章：建目录、放 `README.md`，然后在 [`site/nav.toml`](site/nav.toml) 加一个
-`[[section]]` 块。章节里的文件会被自动发现，不需要逐个登记。
-
-## 本地预览站点
+原理与教学演示放在现有学习章节；实践入口在 `practice/`，开源笔记在 `open-source/`；求职在 `career/` / `interview/`，论文在 `papers/`。只调整导航时不要搬文件，避免已有链接失效。
 
 ```bash
 pip install markdown pygments
+python site/collaboration.py
+python -m unittest discover -s site/tests
+python site/leakcheck.py
+python site/paritycheck.py
 python site/build.py --serve
 ```
 
-打开 <http://localhost:8000>。笔记本身是纯 markdown，没有 front matter——
-在 GitHub 上直接看和在站点上看是同一份内容。
+打开 <http://localhost:8000>。改动布局或交互时，同时看看手机宽度、键盘操作和另一种语言。只有 main 会部署，PR 检查不会发布站点。
 
-推到 `main` 之后 GitHub Actions 会自动重新构建并部署。
+新增导航 group 或调整 reviewer 时，修改 `site/collaboration.toml`，然后运行 `python site/collaboration.py --write`，把生成的 `.github/CODEOWNERS` 一起提交。**配置文件不授予 GitHub 权限**；新 reviewer 须本人同意，并由仓库所有者确认相应权限后再加入。审核配置、构建和协作规则由维护者审核。
+
+## 署名与参与
+
+代码与笔记署名来自 main 的提交和 `Co-authored-by`；合并时请保留。审阅、提问、翻译和纠错也可以在[贡献记录](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)里附链接，经本人同意后补到[幕后](contributors.md)。提交数不是质量排名，也不决定权限。
+
+地图只收自愿提供的国家或地区，不要填地址。自己可以提 PR 更新或移除 `crew.toml` 的条目，维护者核实后合并。感谢记录在 `site/collaboration.toml` 的 `acknowledgements`：每人一项，包含 `login`、`zh`、`en` 和 `evidence`（本仓库 issue / PR 链接数组）。没有记录时保持空数组，不编造贡献或提前列朋友的名字。
+
+尊重不同意见，不做人身攻击，不发广告。一般问题先沟通；严重或反复滥用才限制参与。详细规则和需要拍板时的做法，都在[协作约定](community/README.md)。
 
 ---
 
-<a name="english"></a>
+<a id="english"></a>
 
 # Contributing
 
-[中文](#参与这个仓库--contributing) · **English**
+Fix a sentence, question a formula, or ask about something unclear. You don't need a complete article to contribute.
 
-These are public learning notes, not a textbook. Some of it is wrong, some of it is
-explained badly, and a lot of it is missing. **Pointing at any of those counts** —
-including typos.
+## Start small
 
-The contributor list builds itself — nothing to sign up for. Scroll down
-[Behind the notes](contributors.en.md) for the credits, the board and a world map. Everyone
-gets a number too, `CG 001` and so on: first come, first numbered, and it stays yours.
+- **Typos, references, translations:** fork → edit → PR.
+- **Questions or corrections:** use [note feedback](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) with a page and passage.
+- **New notes, visualizations, or navigation changes:** open a [proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) before a draft PR to avoid duplicate work.
+- **Ongoing involvement:** see [area contacts and review rules](community/README.en.md). Maintainers cover unassigned areas; constant availability isn't expected.
 
-Want a patch of the map lit? Open an
-[issue](../../issues/new?template=add-me-to-the-crew.yml) with your GitHub login and a
-country or region (ISO 3166-1 alpha-2). Two, if you split your time — they count half
-each. I read them now and then and add people to [`crew.toml`](crew.toml) by hand. I keep
-that file myself, so PRs that edit it don't get merged.
+Keep each PR focused and explain the change, evidence, and checks. Routine merges require one relevant CODEOWNER approval from a non-author, passing checks, and resolved discussions. Proposals are for broader changes; the collaboration guide explains exceptions and disagreements.
 
-Brightness comes in five steps: one commit already lights a place, more burns brighter up
-to a ceiling, and the first few stay clearly ahead. Skipping all of it is fine — your name
-is on the board either way.
+## Writing notes
 
-## A few rules
+1. Start with a concrete question and example, then explain the mechanism, assumptions, and limits. Fold long derivations, not the main argument.
+2. Pair Chinese `.md` with English `.en.md` where possible. One-language work is welcome with an explicit follow-up plan. Structure checks are advisory.
+3. Put recurring terminology in `site/glossary.tsv`. Use `$...$` or `$$...$$` for math.
+4. Put runnable examples in the section's `code/` directory with instructions. Prefer SVG or reproducible figures; credit external assets and check reuse permission.
+5. Cite public evidence, state experimental conditions, and distinguish verified findings, hypotheses, and plans. Negative results are useful too.
+6. Verify AI-assisted work yourself and disclose material assistance in the PR. Model output is not independent review.
+7. Do not submit internal company materials, non-public interview details, credentials, or personal data, including redacted company-specific cases.
 
-Not many:
+## Structure and local checks
 
-- **Tech only, no politics.** These are study notes. Keep politics out of them — that much
-  is easy.
-- **Not an ad slot.** No promotion, no recruiting, no traffic funnelling.
-- **AI drafts are fine; unread ones are not.** Draft with AI all you like. What I can't use
-  is a page nobody read before sending — check the facts, the formulas, the links, the
-  tone. Your name is the one on it.
-- Break any of those and your name comes off for good, and I stop merging your PRs.
-
-## Easiest ways in
-
-| I want to… | How |
-| --- | --- |
-| Fix a typo or an awkward sentence | Hit "Suggest an edit" at the bottom of any page |
-| Say a section didn't land | Open an issue, quote the sentence, say where you got stuck — more useful than fixing it |
-| Add an example or a counterexample | Edit the `.md` directly |
-| Add a paper note | Copy [`templates/paper-note.en.md`](templates/paper-note.en.md) into [`papers/`](papers/) |
-| Add a term to the glossary | One line in [`site/glossary.tsv`](site/glossary.tsv); it applies site-wide |
-| Add interview questions to a knowledge block | Add an `## Interview questions` section to the relevant note (`## 面试常见问题` in the Chinese file), one `<details><summary>question</summary>answer</details>` per question; the [quick review](interview/questions.en.md) picks them up automatically |
-| Change a Chinese note | Update the matching `.en.md` in the same PR, then run `python3 site/paritycheck.py` to confirm the two versions still match in structure |
-| Write a whole new section | Open an issue first so we don't collide |
-
-## Conventions
-
-Each note tries to follow the same arc: **what it is → why it's needed → the simplest
-example → the main technical approaches → what it assumes → how it fails.**
-
-1. **Bilingual pairs.** `foo.md` is Chinese, `foo.en.md` is English. One-language PRs are
-   fine — just say so.
-2. **Don't hand-annotate terms inline.** Add them to [`site/glossary.tsv`](site/glossary.tsv);
-   the build annotates Chinese pages automatically and generates the hover glosses.
-3. **LaTeX for math**: `$...$` inline, `$$...$$` display. Renders on GitHub and on the site.
-4. **Code must run.** Put it in that chapter's `code/`, add a row to its README table.
-5. **Figures must be reproducible.** No hand-drawn diagrams — write a generator in `code/`
-   that emits `.svg` into the chapter's `assets/`. See
-   [`00-foundations/code/make_figures.py`](00-foundations/code/make_figures.py). Change the
-   model, rerun, and the figure follows — so the picture and the prose can't disagree.
-6. **Layer depth in place; don't split into two notes.** Keep the main line to five
-   minutes and put derivations, edge cases and hard-won traps in a collapsible block.
-   Both GitHub and the site render it:
-
-   ```markdown
-   <details markdown="1">
-   <summary><b>deeper</b>: why "close to one-hot" means "no gradient"</summary>
-
-   Ordinary markdown in here — math, code and links all work.
-
-   </details>
-   ```
-
-   `markdown="1"` tells the site to parse the contents; GitHub ignores the attribute
-   and renders it anyway. The test: **does the main line still stand without this
-   block?** If not, it shouldn't have been collapsed.
-7. **Say when you're unsure.** "I don't know why this works" beats an invented explanation.
-8. **No company practice notes.** Implementations, evidence, retrospectives, and cases from
-   employment, recruiting, or a specific company stay private even after redaction. Public
-   contributions must stand independently on public sources or reproducible experiments.
-
-## Local preview
+Concepts and teaching demos stay in the learning chapters. `practice/` is the practice entry, `open-source/` holds open-source notes, `career/` and `interview/` cover preparation, and `papers/` holds paper notes. Don't move files just to reorganize navigation; preserve existing URLs.
 
 ```bash
 pip install markdown pygments
+python site/collaboration.py
+python -m unittest discover -s site/tests
+python site/leakcheck.py
+python site/paritycheck.py
 python site/build.py --serve
 ```
 
-Then open <http://localhost:8000>. The notes stay pure markdown with no front matter, so
-what you read on GitHub and what you read on the site are the same file.
+Visit <http://localhost:8000>. For UI changes, check narrow screens, keyboard navigation, and both languages. Only main deploys; PR checks do not publish the site.
 
-Pushing to `main` rebuilds and redeploys via GitHub Actions.
+For new navigation groups or reviewers, update `site/collaboration.toml`, run `python site/collaboration.py --write`, and include the generated `.github/CODEOWNERS` in the PR. **Configuration does not grant GitHub access.** Reviewers must consent and the owner must verify their permissions first. Maintainers review changes to collaboration rules, reviewer configuration, and builds.
+
+## Credit and participation
+
+Preserve main-branch authors and `Co-authored-by` trailers when merging. Reviews, questions, translations, and corrections can also receive credit on [Behind the notes](contributors.en.md): submit a [contribution record](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) with evidence and the person's consent. Commit counts do not determine quality or access.
+
+Map locations are optional countries or regions, not addresses. You may propose updates or removal of your own entry in `crew.toml`; maintainers verify requests. Non-commit credits live in the `acknowledgements` array in `site/collaboration.toml`, one record per person with `login`, `zh`, `en`, and `evidence` (issue/PR URLs in this repository). Leave the array empty until there are verified, consented credits.
+
+Be respectful; no personal attacks or advertising. Normally discuss problems first, restricting participation only for serious or repeated abuse. See the [collaboration guide](community/README.en.md) for the full rules and decision process.

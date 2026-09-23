@@ -605,6 +605,14 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 .foot-meta a { color: var(--muted); text-decoration: none; }
 .foot-meta a:hover { color: var(--ember); }
 .foot-meta .sep { color: var(--rule); }
+.collab-panel { margin-top: 1rem; font-family: var(--sans); font-size: .85rem; color: var(--muted); }
+.collab-panel summary { cursor: pointer; padding: .5rem 0; }
+.collab-panel p { line-height: 1.8; overflow-wrap: anywhere; }
+.collab-panel nav { display: flex; flex-wrap: wrap; gap: .65rem 1.2rem; }
+.collab-panel a { color: var(--ember); }
+.collab-panel a:focus-visible, .collab-panel summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
+.collab-table { overflow-x: auto; }
+.collab-table td { overflow-wrap: anywhere; }
 
 .contrib { margin-top: 1.9rem; }
 .contrib h3 {

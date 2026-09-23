@@ -150,6 +150,13 @@ en    = "Start here"
 order = ["README.md", "contributors.md"]
 
 [[section]]
+dir = "community"
+group = "start"
+zh = "一起参与"
+en = "Contributing together"
+order = ["README.md"]
+
+[[section]]
 dir   = "00-foundations"
 group = "foundations"
 zh    = "学习路线"

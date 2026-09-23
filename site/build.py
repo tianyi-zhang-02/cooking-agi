@@ -34,6 +34,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import markdown
+import collaboration
 from markdown.extensions.toc import TocExtension, slugify
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1510,6 +1511,7 @@ def footer_html(page, people, repo, built):
     <span class="sep">·</span>
     <a href="{edit}">{'提交修改' if zh else 'Suggest an edit'}</a>
   </div>
+  {collaboration.page_panel(page, collaboration.load_config(), repo)}
   {contributor_portal}
 </footer>"""
 
@@ -1654,7 +1656,12 @@ def contributor_universe_html(people, page, site):
       <th>{'第一次' if zh else 'First'}</th><th>{'最近' if zh else 'Latest'}</th></tr></thead>
     <tbody>{"".join(board)}</tbody>
   </table></div>
-  <p class="board-note">{'更新于' if zh else 'Updated'} {today.isoformat()}</p>
+  <p class="board-note">{'更新于' if zh else 'Updated'} {today.isoformat()} · {'提交数不是质量排名，也不决定审核权限。' if zh else 'Commit counts are not a quality ranking or review authority.'}</p>
+</section>
+<section class="crew-board" id="community-credits">
+  <div class="board-head"><h2>{'也谢谢这些帮助' if zh else 'Thanks beyond commits'}</h2></div>
+  {collaboration.acknowledgements_html(collaboration.load_config(), zh)}
+  <p><a href="{page.rel('community/index.html' if zh else 'community/index.en.html')}">{'参与方式与板块分工 →' if zh else 'How to contribute & review contacts →'}</a></p>
 </section>
 <section class="crew-map" id="crew-map" aria-labelledby="map-title"
   data-world="{prefix}static/world-dots.json" data-lit="{",".join(lit)}">
@@ -1664,7 +1671,7 @@ def contributor_universe_html(people, page, site):
   <canvas class="world-dots" width="800" height="400" role="img"
     aria-label="{'点亮了 ' + str(len(order)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(order)} countries or regions lit up'}"></canvas>
   <ul class="map-list">{map_list or f'<li class="map-empty">{"还没人填。" if zh else "Nobody yet."}</li>'}</ul>
-  <p class="map-how"><a href="{crew_issue}">{'提交所在地区' if zh else 'Open an issue'}</a>{'，我会定期更新地图。' if zh else " and I'll light one up."}</p>
+  <p class="map-how"><a href="{crew_issue}">{'提交或移除所在地区' if zh else 'Add or remove a location'}</a>{'，维护者核实后更新。' if zh else ' — maintainers will review the request.'}</p>
 </section>
 <footer class="crew-end">
   <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'欢迎加入我们 ↗' if zh else 'Room for one more ↗'}</a>
@@ -1732,6 +1739,11 @@ def assemble(page, sections, people, nav, built, template):
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     content = page.body
+    config = collaboration.load_config()
+    content = content.replace('<div data-collaboration-areas></div>',
+                              collaboration.areas_html(config, site['repo'], zh))
+    content = content.replace('<div data-community-credits></div>',
+                              collaboration.acknowledgements_html(config, zh))
     if 'data-contributors-universe' in content:
         content = contributor_universe_html(people, page, site)
         template = re.sub(r'<header class="topbar">.*?</header>', "", template, count=1, flags=re.S)
@@ -1789,6 +1801,7 @@ def main():
     args = ap.parse_args()
 
     nav = load_nav()
+    collaboration.validate(collaboration.load_config(), nav)
     terms = load_glossary()
     built = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 

@@ -52,6 +52,8 @@
 
 ## 加入我们！
 
+这份笔记正在从个人记录变成大家一起维护的知识库。你可以只改一小处，也可以认领一个喜欢的板块；不用一上来就承诺很多时间。[参与方式、板块分工和审核约定 →](community/README.md)
+
 发现错误、哪段没看懂，或者有想看的内容，都欢迎[提 issue](https://github.com/tianyi-zhang-02/cooking-agi/issues)。有自己的笔记或更好的例子，也欢迎提 PR，我也想跟着大家多学一点。
 
 怎么参与可以看[贡献指南](CONTRIBUTING.md)，参与过的朋友会出现在[幕后](contributors.md)。想在地图上留下一个位置，也可以[告诉我你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不用提供具体地址。
