@@ -168,3 +168,14 @@ flowchart TB
     H --> I["审计 · 回归测试 · 数据与策略更新"]
     I -.-> A
 ```
+
+## 再往下一层：infra
+
+这一章讲的是「一次请求经过哪些环节」，再往下——推理引擎怎么调度、显存怎么排、
+RL 的训练和 rollout 怎么拼——就不是我的强项了，也不是我最感兴趣的方向。
+
+那一层我见过最扎实的是
+[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)：
+[zhaochenyang20](https://github.com/zhaochenyang20) 从 2024 年 8 月写到现在的 ML SYS 学习笔记，
+RL infra、在线离线推理、SGLang（包括 SGLang Omni 那一串多阶段生成模型的推理优化）都有，中英文都写。
+他人就在 SGLang 社区里做 RL infra，写的是自己手上正在改的东西。想往这一层走，从那儿开始。
