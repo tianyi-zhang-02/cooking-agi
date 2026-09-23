@@ -49,20 +49,26 @@ def main():
         rules.append((label, re.compile(scope) if scope else None,
                       re.compile(rx, re.IGNORECASE)))
 
+    # the note folders, the pages that sit at the root, and the one file
+    # contributors are invited to edit themselves
+    targets = [f for d in SCAN for f in (ROOT / d).rglob("*.md")]
+    targets += sorted(ROOT.glob("*.md"))
+    if (ROOT / "crew.toml").exists():
+        targets.append(ROOT / "crew.toml")
+
     hits = []
-    for d in SCAN:
-        for f in (ROOT / d).rglob("*.md"):
-            rel = f.relative_to(ROOT).as_posix()
-            for i, line in enumerate(f.read_text(encoding="utf-8",
-                                                 errors="replace").splitlines(), 1):
-                if any(e.search(line) for e in exempt):
+    for f in targets:
+        rel = f.relative_to(ROOT).as_posix()
+        for i, line in enumerate(f.read_text(encoding="utf-8",
+                                             errors="replace").splitlines(), 1):
+            if any(e.search(line) for e in exempt):
+                continue
+            for label, scope, rx in rules:
+                if scope and not scope.search(rel):
                     continue
-                for label, scope, rx in rules:
-                    if scope and not scope.search(rel):
-                        continue
-                    m = rx.search(line)
-                    if m:
-                        hits.append((rel, i, label, m.group(0), line.strip()[:88]))
+                m = rx.search(line)
+                if m:
+                    hits.append((rel, i, label, m.group(0), line.strip()[:88]))
 
     if hits:
         print(f"\n✗ 泄漏检查未通过：{len(hits)} 处\n", file=sys.stderr)

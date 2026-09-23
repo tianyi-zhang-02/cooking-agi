@@ -1,0 +1,20 @@
+# 谁在这口锅边上 · Who's at the pot
+#
+# 做过贡献之后（提交被合进 main，或者在某个提交里被 Co-authored-by 署名），
+# 可以在这里给自己加一段：GitHub 用户名，外加一个可选的国家/地区代码。
+# 代码是 ISO 3166-1 两位字母：CN、US、SG、GB、JP……
+#
+# 国家/地区只用来点亮「幕后船员」页面上的那张世界地图。不想填就别填，
+# 名字照样在名单和榜单里；填了以后想删掉，改回来就行。
+#
+# After a change of yours lands on main (or you are credited with a
+# Co-authored-by trailer), you can add yourself here: your GitHub login, plus an
+# optional ISO 3166-1 alpha-2 country code — CN, US, SG, GB, JP and so on.
+#
+# The country is only used to light up the world map on the contributors page.
+# Leaving it out is fine: your name is on the list either way, and you can take
+# it back out whenever you like.
+
+# [[crew]]
+# login = "your-github-login"
+# country = "SG"

@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import functools
 import math
 import html
 import json
@@ -99,13 +100,39 @@ def last_updated(rel_path: str) -> str:
     return git("log", "-1", "--format=%cI", "--", rel_path)
 
 
+@functools.lru_cache(maxsize=1)
+def crew_countries():
+    """Self-declared country per GitHub login, read from crew.toml. Entirely optional."""
+    path = ROOT / "crew.toml"
+    if not path.exists():
+        return {}
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as e:
+        print(f"  note: crew.toml is not valid TOML ({e}); ignoring it")
+        return {}
+    out = {}
+    for person in data.get("crew", []):
+        login, country = person.get("login"), str(person.get("country") or "").strip().upper()
+        if login and country:
+            out[str(login).strip().lower()] = country
+    return out
+
+
+@functools.lru_cache(maxsize=1)
+def world_dots():
+    """The baked country grid (site/tools/bake_world.py), or {} when it is missing."""
+    path = SITE / "static" / "world-dots.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
 def contributors(repo: str):
     """Everyone who has committed or is credited as a co-author, most recent first.
 
     Tries the GitHub API for avatars (CI has a token and it is the accurate
     source), falls back to `git log` so a local build still works offline.
     """
-    recency, counts = {}, {}
+    recency, earliest, counts = {}, {}, {}
     log = git("log", "--format=%an\t%ae\t%cI")
     for line in log.splitlines():
         parts = line.split("\t")
@@ -116,6 +143,8 @@ def contributors(repo: str):
         counts[key] = counts.get(key, 0) + 1
         if key not in recency or when > recency[key][0]:
             recency[key] = (when, email.strip())
+        if key not in earliest or when < earliest[key]:
+            earliest[key] = when
 
     # AI-assisted and pair-authored commits keep their credit in trailers even
     # when the primary Git author is the repository owner. Aggregate Claude
@@ -141,6 +170,8 @@ def contributors(repo: str):
             counts[key] = counts.get(key, 0) + 1
             if key not in recency or when > recency[key][0]:
                 recency[key] = (when, email.strip())
+            if key not in earliest or when < earliest[key]:
+                earliest[key] = when
 
     logins = {}
     for name, (_, email) in recency.items():  # 12345+login@users.noreply.github.com
@@ -177,6 +208,9 @@ def contributors(repo: str):
                                              if login else None),
             "commits": info.get("commits", counts.get(name, 0)),
             "last": datetime.fromisoformat(when).astimezone(timezone.utc).date().isoformat(),
+            "first": datetime.fromisoformat(earliest.get(name, when)).astimezone(
+                timezone.utc).date().isoformat(),
+            "country": crew_countries().get((login or name).lower()),
             "initial": name[:1].upper(),
             "kind": "ai" if name == "Claude Code" else "human",
             "models": sorted(ai_models) if name == "Claude Code" else [],
@@ -1249,6 +1283,11 @@ def sidebar_html(page, sections, groups):
             f'<span class="grp-name">{label}</span>'
             f'<span class="grp-count">{n_pages}</span></summary>'
             f'<ul class="grp-body">{body}</ul></details></li>')
+    # the way into the contributors page from any note, not just the page foot
+    crew = page.rel("contributors.html" if page.lang == "zh" else "contributors.en.html")
+    out.append(f'<li class="nav-crew"><a href="{crew}">'
+               f'<span aria-hidden="true">✧</span>'
+               f'{"幕后船员" if page.lang == "zh" else "Behind the notes"}</a></li>')
     return f'<ul class="nav">{"".join(out)}</ul>'
 
 
@@ -1453,14 +1492,18 @@ def footer_html(page, people, repo, built):
 
 
 def contributor_universe_html(people, page, site):
-    """The contributors page: everyone who has touched the notes, drifting as 1-bit tiles.
+    """The contributors page: the 1-bit sky, then the credits, the board and the map.
 
     Avatars are dithered to two colours in the browser (static/app.js), so the page keeps
-    the same black-and-white language as the sky it floats in."""
+    the same black-and-white language as the sky it floats in. Everything below the first
+    screen is plain HTML: it reads fine with no JavaScript at all."""
     zh = page.lang == "zh"
-    crew, manifest = [], []
     today = datetime.now(timezone.utc).date()
     week_start = today - timedelta(days=today.weekday())
+    countries = world_dots().get("countries", {})
+
+    crew, board, credits, tally = [], [], {}, {}
+    ranked = sorted(people, key=lambda p: (-p.get("commits", 0), p["name"]))
     for index, person in enumerate(people):
         login = person.get("login")
         is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
@@ -1487,21 +1530,58 @@ def contributor_universe_html(people, page, site):
             f'<canvas class="crew-bits" width="72" height="72" aria-hidden="true"></canvas></span></button>'
             f'<div class="crew-label" id="crew-label-{index}"><span class="crew-handle">{html.escape(handle)}</span>'
             f'{link}<small>{role}</small></div></div>')
-        status = ("本周" if zh else "This week") if active else ("在轨" if zh else "In orbit")
-        manifest.append(
-            f'<tr data-last="{person["last"]}"><th scope="row">{link}'
-            f'<small>{html.escape(handle)}</small></th><td>{role}</td>'
-            f'<td><time datetime="{person["last"]}">{person["last"]}</time>'
-            f'<span class="crew-weekly">{status}</span></td></tr>')
+        # the credits roll, grouped by what someone did, in the order the roles are listed
+        credits.setdefault(role, []).append(
+            f'<li><span class="credit-name">{link}</span>'
+            f'<span class="credit-note">{html.escape(handle)} · '
+            f'{person["first"][:7]} {"起" if zh else "onwards"}</span></li>')
+        code = (person.get("country") or "").upper()
+        if code in countries:
+            tally.setdefault(code, []).append(person["name"])
+
+    top = max([p.get("commits", 0) for p in people] + [1])
+    for rank, person in enumerate(ranked, start=1):
+        login = person.get("login")
+        is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
+        url = site.get("owner_url") if is_owner else person.get("url")
+        handle = f"@{login}" if login else person["name"]
+        title = html.escape(person["name"])
+        link = (f'<a href="{html.escape(url, quote=True)}">{title}</a>' if url
+                else f'<strong>{title}</strong>')
+        role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
+                else ("笔记与代码" if zh else "Notes & code"))
+        active = week_start.isoformat() <= person["last"] <= today.isoformat()
+        commits = person.get("commits", 0)
+        week = (f'<span class="crew-weekly">{"本周" if zh else "This week"}</span>'
+                if active else "")
+        board.append(
+            f'<tr class="{"is-recent" if active else ""}"><td class="rank">{rank:02d}</td>'
+            f'<th scope="row">{link}<small>{html.escape(handle)}</small></th>'
+            f'<td class="role">{role}</td>'
+            f'<td class="count"><span class="bar" style="--fill:{commits / top:.3f}" '
+            f'aria-hidden="true"></span><b>{commits}</b></td>'
+            f'<td><time datetime="{person["first"]}">{person["first"]}</time></td>'
+            f'<td><time datetime="{person["last"]}">{person["last"]}</time>{week}</td></tr>')
+
+    lit = sorted(tally, key=lambda c: (-len(tally[c]), countries[c]["en"]))
+    map_list = "".join(
+        f'<li><b>{html.escape(countries[c]["zh" if zh else "en"])}</b>'
+        f'<span>{len(tally[c])} {"位" if zh else ("person" if len(tally[c]) == 1 else "people")}</span></li>'
+        for c in lit)
+    crew_file = f'https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/crew.toml'
     home = page.rel("index.html" if zh else "index.en.html")
     language = page.rel("contributors.en.html" if zh else "contributors.html")
     prefix = "../" * page.depth
+    roles = [r for r in (("笔记与代码" if zh else "Notes & code"),
+                         ("AI 协作者" if zh else "AI collaborator")) if r in credits]
+    roll = "".join(f'<div class="credit-group"><p class="credit-role">{role}</p>'
+                   f'<ul>{"".join(credits[role])}</ul></div>' for role in roles)
     return f"""
 <section class="contributor-universe" aria-label="{'贡献者' if zh else 'Contributors'}"
   style="background-image:url('{prefix}static/crew-sky-1bit.png')">
   <nav class="orbit-nav" aria-label="{'页面导航' if zh else 'Page navigation'}">
     <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
-    <div><button type="button" class="crew-roster-open" hidden>{'名单' if zh else 'List'}</button>
+    <div><a href="#crew-board">{'榜单' if zh else 'Board'}</a>
     <button class="crew-motion" type="button" aria-pressed="false" hidden
       data-pause="{'暂停' if zh else 'Pause'}" data-play="{'继续' if zh else 'Resume'}">{'暂停' if zh else 'Pause'}</button>
     <a href="{language}">{'EN' if zh else '中文'}</a></div>
@@ -1515,21 +1595,42 @@ def contributor_universe_html(people, page, site):
     <p class="orbit-status" role="status" aria-live="polite"></p>
     <p><span class="orbit-desktop">{'鼠标靠近，打个招呼' if zh else 'Hover over someone to say hello'}</span>
     <span class="orbit-touch">{'轻点头像，打个招呼' if zh else 'Tap someone to say hello'}</span></p>
-    <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'下一个位置，也许是你 ↗' if zh else 'Room for one more ↗'}</a>
+    <a class="orbit-more" href="#crew-credits">{'往下看 ↓' if zh else 'Scroll down ↓'}</a>
   </footer>
-  <dialog class="crew-manifest" aria-labelledby="manifest-title">
-    <div class="manifest-head"><h2 id="manifest-title">{'贡献者名单' if zh else 'Contributors'}</h2>
-      <button type="button" class="crew-roster-close" aria-label="{'关闭名单' if zh else 'Close list'}">×</button></div>
-    <p>{'每一位都有位置。AI 协作者单独标注，不计作真人贡献者。' if zh else 'A place for everyone. AI collaborators are labeled separately from human contributors.'}</p>
-    <div class="manifest-scroll"><table>
-      <thead><tr><th>{'贡献者' if zh else 'Contributor'}</th><th>{'参与方式' if zh else 'Role'}</th><th>{'最近提交' if zh else 'Latest commit'}</th></tr></thead>
-      <tbody>{"".join(manifest)}</tbody>
-    </table></div>
-    <p class="manifest-note">{'名单来自 main 分支的提交与 Co-authored-by 署名；本周按 UTC 周一至周日计算。' if zh else 'Based on main-branch commits and Co-authored-by credits. Weeks run Monday to Sunday, UTC.'}</p>
-    <div class="manifest-actions"><span>{'名单更新' if zh else 'Updated'} · {today.isoformat()}</span></div>
-  </dialog>
-  <noscript><div class="crew-static"><h2>{'贡献者' if zh else 'Contributors'}</h2><table><tbody>{"".join(manifest)}</tbody></table></div></noscript>
-</section>"""
+</section>
+<section class="crew-credits" id="crew-credits" aria-label="{'演职员表' if zh else 'Credits'}">
+  <p class="credits-kicker">{'演职员表' if zh else 'Credits'}</p>
+  <div class="credits-roll">{roll}</div>
+  <p class="credits-end">{'谢谢每一位路过、又留下点什么的人。' if zh else 'Thank you to everyone who passed through and left something behind.'}</p>
+</section>
+<section class="crew-board" id="crew-board" aria-labelledby="board-title">
+  <div class="board-head">
+    <h2 id="board-title">{'贡献榜单' if zh else 'Contribution board'}</h2>
+    <p>{'按提交数排。名单来自 main 分支的提交与 Co-authored-by 署名；「本周」按 UTC 周一至周日算。' if zh else 'Ordered by commits. Based on main-branch commits and Co-authored-by credits; weeks run Monday to Sunday, UTC.'}</p>
+  </div>
+  <div class="board-scroll"><table class="board-table">
+    <thead><tr><th class="rank">#</th><th>{'贡献者' if zh else 'Contributor'}</th>
+      <th>{'参与方式' if zh else 'Role'}</th><th class="count">{'提交' if zh else 'Commits'}</th>
+      <th>{'第一次' if zh else 'First'}</th><th>{'最近' if zh else 'Latest'}</th></tr></thead>
+    <tbody>{"".join(board)}</tbody>
+  </table></div>
+  <p class="board-note">{'更新于' if zh else 'Updated'} {today.isoformat()}</p>
+</section>
+<section class="crew-map" id="crew-map" aria-labelledby="map-title"
+  data-world="{prefix}static/world-dots.json" data-lit="{",".join(lit)}">
+  <div class="board-head">
+    <h2 id="map-title">{'贡献者地图' if zh else 'Where the crew is'}</h2>
+    <p>{'填了国家或地区的人，会点亮自己那一块。填不填都随意。' if zh else 'Anyone who fills in a country or region lights up their patch of the map. Filling it in is entirely optional.'}</p>
+  </div>
+  <canvas class="world-dots" width="800" height="400" role="img"
+    aria-label="{'点亮了 ' + str(len(lit)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(lit)} country or region lit up'}"></canvas>
+  <ul class="map-list">{map_list or f'<li class="map-empty">{"还没有人填。第一个位置留给你。" if zh else "Nobody yet. The first one could be you."}</li>'}</ul>
+  <p class="map-how">{'想点亮自己那一块？在' if zh else 'Want to light up your own patch? Add a line to'} <a href="{crew_file}">crew.toml</a>{'里加一行。' if zh else '.'}</p>
+</section>
+<footer class="crew-end">
+  <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'下一个位置，也许是你 ↗' if zh else 'Room for one more ↗'}</a>
+  <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
+</footer>"""
 
 def share_description(page) -> str:
     """The line a chat app or social card shows under the title: the note's own
