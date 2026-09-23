@@ -1,4 +1,4 @@
-# 精读
+# 论文
 
 **中文** · [English](README.en.md)
 

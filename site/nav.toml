@@ -47,8 +47,8 @@ blurb_en = "Interview preparation, plus the mistakes, decisions, and lessons fro
 
 [[category]]
 id = "reference"
-zh = "精读"
-en = "Close readings"
+zh = "论文"
+en = "Papers"
 home = "papers/README.md"
 blurb_zh = "一篇篇读论文：作者提出了什么结论，证据是否充分，对自己的研究和实践有什么帮助。"
 blurb_en = "Papers read one at a time: what a paper actually claims, whether the evidence holds, and what it changes for us."
@@ -124,8 +124,8 @@ en = "Interviews"
 [[group]]
 id = "reference"
 category = "reference"
-zh = "精读"
-en = "Close readings"
+zh = "论文"
+en = "Papers"
 
 
 [[section]]
@@ -312,8 +312,8 @@ order = ["README.md", "not-binary.md", "metrics.md", "prepare.md", "journey.md",
 [[section]]
 dir = "papers"
 group = "reference"
-zh  = "精读"
-en  = "Close readings"
+zh  = "论文"
+en  = "Papers"
 
 [[section]]
 dir   = "."

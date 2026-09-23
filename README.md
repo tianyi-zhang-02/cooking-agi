@@ -39,7 +39,7 @@
 | 系统地学一遍 | [大模型基础](00-foundations/)，按板块往下读；[Transformer 交互图解](00-foundations/transformer-lab.md)里的图能直接拖 |
 | 看懂不同模型为什么这样设计 | [模型家族精读](00-foundations/model-families/)：用同一组问题比较 Llama、Qwen、DeepSeek、Gemma |
 | 准备面试 | [技术面](interview/)面试前快速复习；[求职笔记](career/)是我自己找 MLE / RE 的记录 |
-| 读一篇论文 | [精读](papers/)：作者提出了什么结论、证据够不够、怎样检验 |
+| 读一篇论文 | [论文](papers/)：作者提出了什么结论、证据够不够、怎样检验 |
 | 知道谁写的 | [幕后船员](contributors.md) |
 
 ## 里面有什么
@@ -54,7 +54,7 @@
 | [Agents](10-agents/) | 这个词的来历、几种结构、不同场景，以及模型怎么选 |
 | [AI Infra](open-source/) | 在 NeMo RL 里做贡献：从具体改动出发，逐步看懂整套系统 |
 | [求职](career/) | 心态、要准备什么、我自己的时间线和复盘 |
-| [精读](papers/) | 一篇一篇拆论文 |
+| [论文](papers/) | 一篇一篇拆论文 |
 
 交互图（Transformer、KV cache、MoE 路由、PPO 裁剪、吃豆人迷宫、模型路由……）都在 [`site/static/tx-lab.js`](site/static/tx-lab.js) 里，手写 SVG，没用图表库。
 

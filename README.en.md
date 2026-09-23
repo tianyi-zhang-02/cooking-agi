@@ -39,7 +39,7 @@ This is what I understand today. It keeps changing.
 | Learn it properly, in order | [Foundations](00-foundations/README.en.md), section by section; the figures in [the Transformer lab](00-foundations/transformer-lab.en.md) are draggable |
 | See why model families differ | [Model family deep dives](00-foundations/model-families/README.en.md): Llama, Qwen, DeepSeek and Gemma through one set of questions |
 | Prepare for interviews | [Interviews](interview/README.en.md) for a quick review; [Job search](career/README.en.md) is my own record of looking for MLE / RE roles |
-| Read a paper properly | [Close readings](papers/README.en.md): what it claims, whether the evidence holds, what would overturn it |
+| Read a paper properly | [Papers](papers/README.en.md): what it claims, whether the evidence holds, what would overturn it |
 | See who wrote this | [Behind the notes](contributors.en.md) |
 
 ## What is inside
@@ -54,7 +54,7 @@ This is what I understand today. It keeps changing.
 | [Agents](10-agents/README.en.md) | Where the word comes from, the usual structures, the scenarios, and choosing a model |
 | [AI infra](open-source/README.en.md) | Contributing to NeMo RL: how scattered PRs grew into understanding a system |
 | [Job search](career/README.en.md) | Mindset, what to prepare, and my own timeline and reviews |
-| [Close readings](papers/README.en.md) | One paper at a time |
+| [Papers](papers/README.en.md) | One paper at a time |
 
 The interactive figures — Transformer internals, KV cache, MoE routing, PPO clipping, a Pac-Man maze, model routing — all live in [`site/static/tx-lab.js`](site/static/tx-lab.js), hand-written SVG with no charting library.
 
