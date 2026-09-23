@@ -8,8 +8,8 @@ A note, a diagram, a typo caught. Thanks to everyone making this pot of AGI a li
 
 There’s room for one more cook.
 
-On the site, the crew drifts through space. Hover or tap to see a name, or open the crew list in the top-right corner.
+On the site, the crew drifts slowly across the night sky. Hover or tap someone to see a name; “List” in the top-right corner opens the full roster.
 
-On your first visit each day, the shuttle brings in contributors with main-branch commits or co-author credits that week (Monday–Sunday, UTC). The manifest refreshes daily. Playback history stays in your browser and is not visitor analytics. Use “Replay today’s arrivals” to watch again; with reduced motion enabled, the crew appears without an entrance animation.
+Avatars are dithered to black and white (Floyd–Steinberg) in your browser, which is where the grain comes from — the whole page is black, white, and one amber accent. Anyone with a main-branch commit or co-author credit this week (Monday–Sunday, UTC) wears a dashed amber ring. The list refreshes daily. “Pause” stops the drift, and with reduced motion enabled the crew stays still to begin with.
 
 [Lend a hand →](CONTRIBUTING.md) · [GitHub](https://github.com/tianyi-zhang-02/cooking-agi)
