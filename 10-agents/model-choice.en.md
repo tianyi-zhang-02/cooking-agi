@@ -59,6 +59,8 @@ Not "how many cards" — utilisation:
 - **KV cache eats memory**: with long-context agents, memory runs out before compute does, which caps how many requests fit at once. vLLM's PagedAttention and SGLang's RadixAttention both exist to fight this.
 - **People**: upgrades, autoscaling, monitoring, being on call. In a small team this line is often more expensive than the GPUs.
 
+This is as far as I take that layer — for the real thing, read [Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial), which goes far deeper and is kept current.
+
 ## An order of questions
 
 1. Can the data leave your environment? If not, you must deploy it yourself.

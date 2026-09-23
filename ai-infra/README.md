@@ -6,6 +6,23 @@
 
 AI Infra 是让现代 LLM 能够被训练、部署、扩展、观测和持续改进的技术栈。这里关注当前仍直接影响 LLM 系统设计的知识，不做传统 AI model 的历史巡礼或算法百科。
 
+## 先说清楚：这不是我的强项
+
+Infra 不是我的背景，也不是我最感兴趣的方向。这一页对我来说是张地图——知道有哪些层、
+每层大概在解决什么问题，够我在做模型和评估的时候不至于说外行话，仅此而已。
+
+真想往里走，我见过最扎实的是
+**[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial)**。
+作者 [zhaochenyang20](https://github.com/zhaochenyang20) 从 2024 年 8 月开始写，一路写成了一套
+ML SYS / RL infra 的学习笔记：RL infra、在线和离线推理系统、SGLang（包括 SGLang Omni
+那一串多阶段生成模型的推理优化，TTS、调度、CPU 争用这些都拆得很细），中英文都有。
+
+值得读的地方在于：他人就在 SGLang 社区里做 RL infra，写的是自己手上正在改的东西，
+不是转述别人的结论。他自己在 README 里说得更直白——很多 RL 的论文结论建立在可能有问题的
+开源基建上，那结论还成不成立，是值得问一句的。
+
+想深入这一块，去那边，比这一页能带你走得远。
+
 ## 一张图看完整栈
 
 ```mermaid
