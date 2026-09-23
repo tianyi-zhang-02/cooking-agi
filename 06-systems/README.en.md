@@ -212,3 +212,16 @@ flowchart TB
     H --> I["Audit · regression tests · data and policy updates"]
     I -.-> A
 ```
+
+## One layer further down: infra
+
+This chapter is about the path a request takes. Below it — how an inference engine schedules,
+how memory is laid out, how RL training and rollout are stitched together — is not my
+strength, and not where my interest sits.
+
+For that layer the best thing I know is
+[Awesome-ML-SYS-Tutorial](https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial):
+[zhaochenyang20](https://github.com/zhaochenyang20) has been writing these ML SYS notes since
+August 2024 — RL infra, online and offline inference, SGLang including the SGLang Omni series
+on multi-stage generative models — in both Chinese and English. He works on RL infra inside
+the SGLang community, so he is writing about what he is changing. Start there.
