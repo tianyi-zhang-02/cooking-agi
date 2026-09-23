@@ -1310,7 +1310,7 @@ def sidebar_html(page, sections, groups):
     crew = page.rel("contributors.html" if page.lang == "zh" else "contributors.en.html")
     out.append(f'<li class="nav-crew"><a href="{crew}">'
                f'<span aria-hidden="true">✧</span>'
-               f'{"幕后船员" if page.lang == "zh" else "Behind the notes"}</a></li>')
+               f'{"幕后" if page.lang == "zh" else "Behind the notes"}</a></li>')
     return f'<ul class="nav">{"".join(out)}</ul>'
 
 
@@ -1496,7 +1496,7 @@ def footer_html(page, people, repo, built):
   <div class="crew-footer">
     <a class="contributor-portal" href="{portal}">
       <span aria-hidden="true">✧</span>
-      <span>{'幕后船员' if zh else 'Behind the notes'}</span>
+      <span>{'幕后' if zh else 'Behind the notes'}</span>
       <span aria-hidden="true">↗</span>
     </a>
   </div>"""
@@ -1770,8 +1770,8 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{lang_cls}}", lang_cls)
             .replace("{{lang_label}}", "EN" if zh else "中文")
             .replace("{{crew_href}}", page.rel("contributors.html" if zh else "contributors.en.html"))
-            .replace("{{crew_label}}", "幕后船员" if zh else "Behind the notes")
-            .replace("{{crew_aria}}", "幕后船员" if zh else "Behind the notes")
+            .replace("{{crew_label}}", "幕后" if zh else "Behind the notes")
+            .replace("{{crew_aria}}", "幕后" if zh else "Behind the notes")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", content)
             .replace("{{page_header}}", page_header_html(page))

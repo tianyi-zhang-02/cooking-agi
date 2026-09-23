@@ -15,7 +15,7 @@
 
 [**开始阅读**](https://tianyi-zhang-02.github.io/cooking-agi/) ·
 [English](README.en.md) ·
-[幕后船员](contributors.md) ·
+[幕后](contributors.md) ·
 [加入我们！](CONTRIBUTING.md)
 
 </div>
@@ -40,7 +40,7 @@
 | 看懂不同模型为什么这样设计 | [模型家族精读](00-foundations/model-families/)：用同一组问题比较 Llama、Qwen、DeepSeek、Gemma |
 | 准备面试 | [技术面](interview/)面试前快速复习；[求职笔记](career/)是我自己找 MLE / RE 的记录 |
 | 读一篇论文 | [论文](papers/)：作者提出了什么结论、证据够不够、怎样检验 |
-| 知道谁写的 | [幕后船员](contributors.md) |
+| 知道谁写的 | [幕后](contributors.md) |
 
 ## 里面有什么
 
@@ -81,6 +81,6 @@ python3 site/leakcheck.py        # 不该公开的东西有没有混进来
 
 你可以在 GitHub 上提 issue，或者直接提交修改。具体方法见[贡献指南](CONTRIBUTING.md)。
 
-也欢迎到[幕后船员](https://tianyi-zhang-02.github.io/cooking-agi/contributors.html)看看一起参与的朋友。如果愿意在地图上留个位置，可以[告诉我们你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不需要提供具体地址。
+也欢迎到[幕后](https://tianyi-zhang-02.github.io/cooking-agi/contributors.html)看看一起参与的朋友。如果愿意在地图上留个位置，可以[告诉我们你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不需要提供具体地址。
 
 这里分享公开的技术知识和学习心得，请不要上传公司内部资料、未公开的面试内容或其他敏感信息。
