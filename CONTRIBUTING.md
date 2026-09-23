@@ -5,7 +5,19 @@
 这是一份公开的学习笔记，不是教科书。它一定有讲错的地方、讲得太绕的地方，
 和还没写的地方——**指出任何一处都算贡献**，改一个错字也算。
 
-每次合并之后，站点底部的贡献者列表会自动更新，按最近提交排序。不需要额外登记。
+每次合并之后，站点上的贡献者名单会自动更新，不需要额外登记：
+[幕后船员](contributors.md)那一页往下拉，有演职员表、贡献榜单和一张世界地图。
+
+想让地图上多亮一块，就在 [`crew.toml`](crew.toml) 里加一段，写上自己的 GitHub 用户名
+和国家/地区代码（ISO 3166-1 两位字母，比如 `CN`、`US`、`SG`）：
+
+```toml
+[[crew]]
+login = "your-github-login"
+country = "SG"
+```
+
+国家/地区完全可选，只用来点亮那张地图；不填的话名字一样在名单里，填了以后想删掉也随时可以。
 
 ## 最容易上手的几件事
 
@@ -96,8 +108,20 @@ These are public learning notes, not a textbook. Some of it is wrong, some of it
 explained badly, and a lot of it is missing. **Pointing at any of those counts** —
 including typos.
 
-The contributor list at the bottom of every page regenerates on each build, ordered
-by most recent commit. Nothing to sign up for.
+The contributor list regenerates on each build — nothing to sign up for. Scroll down
+[Behind the notes](contributors.en.md) for the credits, the board and a world map.
+
+To light up one more patch of that map, add yourself to [`crew.toml`](crew.toml) with
+your GitHub login and an ISO 3166-1 alpha-2 country code (`CN`, `US`, `SG` …):
+
+```toml
+[[crew]]
+login = "your-github-login"
+country = "SG"
+```
+
+The country is entirely optional: it is only used for the map, your name is on the list
+either way, and you can take it back out whenever you like.
 
 ## Easiest ways in
 

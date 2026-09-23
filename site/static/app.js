@@ -121,7 +121,6 @@
   if (universe) {
     var field = $(".crew-field", universe);
     var motionButton = $(".crew-motion", universe);
-    var roster = $(".crew-manifest", universe);
     var statusLine = $(".orbit-status", universe);
     var reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
     var userPaused = false, frame = null, previous = 0, bounds = { w: 0, h: 0 };
@@ -263,15 +262,6 @@
       t.pilot.addEventListener("blur", function () { hold(t, false); });
       t.pilot.addEventListener("click", function () { hold(t, !t.held); });
     });
-    if (roster) {
-      var open = $(".crew-roster-open", universe), close = $(".crew-roster-close", roster);
-      if (open && typeof roster.showModal === "function") {
-        open.hidden = false;
-        open.addEventListener("click", function () { roster.showModal(); });
-        close.addEventListener("click", function () { roster.close(); });
-        roster.addEventListener("click", function (event) { if (event.target === roster) roster.close(); });
-      }
-    }
     if (motionButton) motionButton.addEventListener("click", function () { userPaused = !userPaused; sync(); });
     reduceMotion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
@@ -283,6 +273,66 @@
         : "";
     }
     measure(); sync();
+  }
+
+  /* ------------------------------------------------ the credits, rolling in
+     Each name rises into place as it reaches the middle of the screen, the way
+     end credits arrive. Without JavaScript they are simply already there. */
+  var roll = $(".credits-roll");
+  if (roll && "IntersectionObserver" in window) {
+    var lines = $$(".credit-group, .credit-role, .credits-roll li", roll.parentNode);
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      lines.forEach(function (line) { line.classList.add("is-waiting"); });
+      var watcher = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.remove("is-waiting");
+          watcher.unobserve(entry.target);
+        });
+      }, { rootMargin: "0px 0px -18% 0px" });
+      lines.forEach(function (line) { watcher.observe(line); });
+    }
+  }
+
+  /* ------------------------------------------------- the crew map, in 1 bit
+     A dot per land cell of an equirectangular grid baked by site/tools/bake_world.py.
+     Countries someone has declared in crew.toml burn amber; the rest stay dim. */
+  var mapSection = $(".crew-map");
+  var mapCanvas = mapSection && $(".world-dots", mapSection);
+  if (mapCanvas && mapSection.dataset.world) {
+    var litCodes = (mapSection.dataset.lit || "").split(",").filter(Boolean);
+    var drawMap = function (world) {
+      var cols = world.w, rows = world.h;
+      var size = Math.floor(mapCanvas.width / cols);          // one land cell, in pixels
+      var pad = Math.floor((mapCanvas.width - cols * size) / 2);
+      var ctx = mapCanvas.getContext("2d");
+      mapCanvas.height = rows * size;
+      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+      var paint = function (code, colour, grow) {
+        var cells = (world.countries[code] || {}).cells || "";
+        ctx.fillStyle = colour;
+        for (var i = 0; i < cells.length; i += 3) {
+          var index = parseInt(cells.substr(i, 3), 36);
+          var x = pad + (index % cols) * size, y = Math.floor(index / cols) * size;
+          ctx.fillRect(x, y, Math.max(1, size - 1 + grow), Math.max(1, size - 1 + grow));
+        }
+      };
+      Object.keys(world.countries).forEach(function (code) { paint(code, "#4a4a4a", 0); });
+      litCodes.forEach(function (code) { paint(code, "#E8A672", 1); });
+    };
+    var loadMap = function () {
+      fetch(mapSection.dataset.world)
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(drawMap)
+        .catch(function () { mapCanvas.hidden = true; });   // the list below still says it
+    };
+    if ("IntersectionObserver" in window) {
+      var mapWatcher = new IntersectionObserver(function (entries) {
+        if (!entries.some(function (e) { return e.isIntersecting; })) return;
+        mapWatcher.disconnect(); loadMap();
+      }, { rootMargin: "300px" });
+      mapWatcher.observe(mapSection);
+    } else loadMap();
   }
 
   /* ---------------------------------------------------------- code copy */
