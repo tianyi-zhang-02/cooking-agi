@@ -329,3 +329,13 @@ svg text{font-family:var(--sans),var(--cjk)}
 .tx-lab .am-pac{fill:var(--ink)}
 .tx-lab .am-ghost{fill:var(--c-k)}
 .tx-lab .am-eye{fill:var(--paper)}
+/* 19 who gets the request */
+.tx-lab .mr-svg{max-width:600px}
+.tx-lab .mr-dot{stroke:var(--panel);stroke-width:2}
+.tx-lab .mr-small{fill:var(--muted)}
+.tx-lab .mr-cascade{fill:var(--c-q)}
+.tx-lab .mr-router{fill:var(--c-k)}
+.tx-lab .mr-frontier{fill:var(--link)}
+.tx-lab .mr-label{font-size:11.5px;font-weight:650;fill:var(--ink)}
+.tx-lab .mr-plan.is-out{opacity:.45}
+.tx-lab .pc-axis{font-size:11px;fill:var(--muted)}
