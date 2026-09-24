@@ -2,12 +2,12 @@
 
 [中文](conditional.md) · **English**
 
-> Reading time: ~6 min · Level: beginner · Last reviewed: 2026-09
+> Reading time: ~8 min · Level: beginner · Last reviewed: 2026-09
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>how learning that one event happened changes the probability of another</strong></div>
   <div><span>Prerequisites</span><strong>the three axioms · intersection, union, complement</strong></div>
-  <div><span>Core mechanism</span><strong>conditioning = shrinking the sample space to A and renormalising</strong></div>
+  <div><span>Core mechanism</span><strong>conditioning = shrinking the sample space to A and renormalising; Bayes turns it around</strong></div>
   <div><span>Common mistakes</span><strong>treating disjoint as independent; thinking "can happen together" means independent</strong></div>
 </div>
 
@@ -70,6 +70,20 @@ $$P(B) = P(B \mid A)\,P(A) + P(B \mid A^c)\,P(A^c)$$
 
 Reach for it whenever you need B without knowing how A turned out.
 
+## Bayes: turning the condition around
+
+When you know $P(B \mid A)$ and want $P(A \mid B)$, use Bayes' rule. It is the chain rule written in both directions, with total probability in the denominator:
+
+$$P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B \mid A)\,P(A) + P(B \mid A^c)\,P(A^c)}$$
+
+The classic example is a medical test. A disease affects 1% of people; the test comes back positive for 99% of those who have it, and for 5% of those who do not. Someone tests positive. How likely is it that they have the disease?
+
+Counting people makes it obvious. Take 10,000: 100 have the disease, and 99 of them test positive; 9,900 are healthy, and 495 of them test positive anyway. That is 594 positives, of whom only 99 are ill:
+
+$$P(\text{ill} \mid \text{positive}) = \frac{99}{99 + 495} = \frac{1}{6} \approx 17\%$$
+
+The test is accurate, yet the answer is one in six, because the disease is rare: the healthy group is so large that 5% of it outnumbers the true positives. That is the base rate at work, and it is why so many people answer 99%.
+
 ## Pairwise independent is not mutually independent
 
 Flip two fair coins. A = the first is heads, B = the second is heads, C = the two match.
@@ -97,6 +111,13 @@ Without replacement: by the chain rule, $P(A \cap B) = \frac{4}{52} \cdot \frac{
 The surprise is $P(B) = 1/13$, exactly the same as the first card: when you do not know what the first card was, the second is symmetric with it.
 
 With replacement: $P(A \cap B) = \frac{1}{169}$ and $P(B) = \frac{1}{13}$, so they are independent.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>A family has two children and at least one is a boy. What is the probability that both are boys? And if you know the older one is a boy?</summary>
+
+Assuming boys and girls are equally likely and the two children independent, $\Omega = \{BB, BG, GB, GG\}$ with four equally likely outcomes. "At least one boy" is $\{BB, BG, GB\}$, so $P(BB \mid \text{at least one boy}) = 1/3$. "The older one is a boy" is $\{BB, BG\}$, and the answer becomes $1/2$. The two questions differ in the sample space each condition leaves you with.
 
 </details>
 

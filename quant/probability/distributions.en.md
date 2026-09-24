@@ -2,7 +2,7 @@
 
 [中文](distributions.md) · **English**
 
-> Reading time: ~5 min · Level: beginner · Last reviewed: 2026-09
+> Reading time: ~6 min · Level: beginner · Last reviewed: 2026-09
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>what a random variable looks like, and how to describe and draw it</strong></div>
@@ -42,7 +42,7 @@ Discrete, continuous or otherwise, the **cumulative distribution function** is a
 
 $$F(x) = P(X \le x)$$
 
-It collects probability from left to right, so it never decreases, tends to 0 on the left and 1 on the right, and is right-continuous.
+It collects probability from left to right, so it never decreases, tends to 0 on the left and 1 on the right, and is right-continuous: at a jump it takes the value after the jump.
 
 - The CDF of a discrete variable is a **staircase**: each step is exactly as tall as the PMF at that point;
 - the CDF of a continuous variable is a **smooth ramp** whose slope is the density, $F' = f$;
@@ -88,6 +88,13 @@ It is 0: a single point has zero area. f(3) is probability per unit length near 
 <summary>Z is standard normal. What is the distribution of ReLU(Z), and its expectation?</summary>
 
 Mixed: $P(\mathrm{ReLU}(Z) = 0) = P(Z \le 0) = 1/2$, a spike at 0; for x > 0 the density is just $\varphi(x)$. The expectation is $\mathbb{E}[\mathrm{ReLU}(Z)] = \int_0^\infty x\,\varphi(x)\,dx = \varphi(0) = 1/\sqrt{2\pi} \approx 0.399$.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>X is nonnegative. How do you get E[X] from the CDF alone? Why is the mean of a geometric distribution 1/p?</summary>
+
+For nonnegative X there is a handy formula: $\mathbb{E}[X] = \int_0^\infty P(X > x)\,dx = \int_0^\infty \bigl(1 - F(x)\bigr)\,dx$, or $\mathbb{E}[X] = \sum_{k \ge 1} P(X \ge k)$ for integer values. A geometric variable counts the trial of the first success; the first $k-1$ trials all fail with probability $(1-p)^{k-1}$, so $\mathbb{E}[X] = \sum_{k \ge 1} (1-p)^{k-1} = 1/p$.
 
 </details>
 
