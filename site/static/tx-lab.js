@@ -2622,3 +2622,306 @@
   TX.append(fig.foot, [h('div', { class: 'readouts' }, [roQ.el, roC.el, roR.el, roF.el, roL.el]), note]);
   render();
 })();
+
+/* --------------------------------------------- probability as area
+   Ω is the unit square, so the probability of an event is its area. A is a
+   vertical strip, B a rectangle you can move and resize. The second view keeps
+   only A and stretches it to fill the frame: that is conditioning, literally —
+   the share of the new frame that B still covers is P(B | A). */
+(function () {
+  var fig = TX.figure('tx-prob-events', { title: ['Probability as area · disjoint, independent, or neither', '把概率画成面积 · 互斥、独立，还是都不是'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+
+  var P = { a: 0.4, bx: 0, bw: 1, bh: 0.5 }, view = 'all';
+  var PRESETS = {
+    disjoint: { a: 0.4, bx: 0.5, bw: 0.4, bh: 0.5 },
+    independent: { a: 0.4, bx: 0, bw: 1, bh: 0.5 },
+    positive: { a: 0.4, bx: 0.1, bw: 0.4, bh: 0.6 },
+    negative: { a: 0.4, bx: 0.3, bw: 0.6, bh: 0.5 }
+  };
+  function r4(x) { return Math.round(x * 10000) / 10000; }
+  function numbers() {
+    var bx = Math.min(P.bx, 1 - P.bw);
+    var overlap = Math.max(0, Math.min(P.a, bx + P.bw) - Math.max(0, bx));
+    var pA = P.a, pB = P.bw * P.bh, pAB = overlap * P.bh;
+    return { bx: bx, pA: r4(pA), pB: r4(pB), pAB: r4(pAB), prod: r4(pA * pB), cond: r4(pAB / pA) };
+  }
+  function verdict(n) {
+    if (n.pAB === 0) return 'disjoint';
+    if (Math.abs(n.pAB - n.prod) < 1e-4) return 'independent';
+    return n.pAB > n.prod ? 'positive' : 'negative';
+  }
+
+  var S = 260, X0 = 30, Y0 = 18;
+  var svg = s('svg', { class: 'tx-svg pe-svg', viewBox: '0 0 ' + (S + 60) + ' ' + (S + 48), role: 'img' });
+  function render() {
+    var n = numbers(), v = verdict(n);
+    TX.clear(svg);
+    var zoom = view === 'cond' ? 1 / P.a : 1;
+    var sx = function (x) { return X0 + x * zoom * S; };
+    var sy = function (y) { return Y0 + (1 - y) * S; };
+    svg.appendChild(s('rect', { class: 'pe-omega', x: X0, y: Y0, width: S, height: S }));
+    var clip = s('clipPath', { id: 'pe-clip' }, [s('rect', { x: X0, y: Y0, width: S, height: S })]);
+    svg.appendChild(clip);
+    var g = s('g', { 'clip-path': 'url(#pe-clip)' });
+    svg.appendChild(g);
+    if (view === 'all') {
+      g.appendChild(s('rect', { class: 'pe-a', x: sx(0), y: sy(1), width: P.a * S, height: S }));
+    }
+    g.appendChild(s('rect', { class: 'pe-b', x: sx(n.bx), y: sy(P.bh), width: P.bw * zoom * S, height: P.bh * S }));
+    if (view === 'cond') {
+      svg.appendChild(s('text', { class: 'pe-tag', x: X0 + S / 2, y: Y0 + S + 30, 'text-anchor': 'middle', bi: ['the new Ω is A, stretched to fill the frame', '新的 Ω 就是 A，拉伸到铺满整个框'] }));
+    } else {
+      svg.appendChild(s('text', { class: 'pe-label', x: sx(P.a / 2), y: Y0 + 16, 'text-anchor': 'middle', text: 'A' }));
+      svg.appendChild(s('text', { class: 'pe-tag', x: X0 + S / 2, y: Y0 + S + 30, 'text-anchor': 'middle', bi: ['area = probability; the whole square is Ω', '面积就是概率；整个方块是 Ω'] }));
+    }
+    var bMid = view === 'cond'
+      ? (Math.max(0, n.bx) + Math.min(P.a, n.bx + P.bw)) / 2
+      : n.bx + P.bw / 2;
+    var bVisible = view === 'all' || n.pAB > 0;
+    if (bVisible) svg.appendChild(s('text', { class: 'pe-label pe-label-b', x: sx(bMid), y: sy(P.bh / 2) + 5, 'text-anchor': 'middle', text: 'B' }));
+    svg.appendChild(s('text', { class: 'pe-omega-label', x: X0 + S + 8, y: Y0 + 14, text: 'Ω' }));
+
+    roA.set(n.pA.toFixed(2));
+    roB.set(n.pB.toFixed(2));
+    roAB.set(n.pAB.toFixed(3));
+    roProd.set(n.prod.toFixed(3));
+    roCond.set(n.cond.toFixed(2) + (n.cond > n.pB + 1e-4 ? ' ↑' : n.cond < n.pB - 1e-4 ? ' ↓' : ' ='));
+    var WORDS = {
+      disjoint: ['Disjoint, so not independent. Once A happens B is impossible: P(B | A) = 0 while P(B) > 0. Disjointness is the strongest dependence there is.',
+        '互斥，所以不独立。A 一发生，B 就不可能：P(B | A) = 0，可 P(B) > 0。互斥其实是最强的一种相关。'],
+      independent: ['Independent. B covers the same share of A as it covers of Ω, so learning that A happened tells you nothing about B: P(B | A) = P(B), and P(A ∩ B) = P(A)·P(B).',
+        '独立。B 在 A 里占的比例，和它在整个 Ω 里占的一样多，所以知道 A 发生了，对 B 没有任何信息：P(B | A) = P(B)，也就是 P(A ∩ B) = P(A)·P(B)。'],
+      positive: ['They overlap and they are dependent: B is denser inside A than overall, so learning A raises the chance of B. Overlapping is necessary for independence, not sufficient.',
+        '有交集，但不独立：B 在 A 里更密，知道 A 发生之后 B 的概率变大了。有交集是独立的必要条件，不是充分条件。'],
+      negative: ['They overlap and they are dependent the other way: B is thinner inside A than overall, so learning A lowers the chance of B.',
+        '有交集，但不独立，而且是反方向的：B 在 A 里更稀，知道 A 发生之后 B 的概率反而变小了。']
+    };
+    TX.bi(note, WORDS[v][0], WORDS[v][1]);
+    TX.bi(badge, { disjoint: 'disjoint', independent: 'independent', positive: 'dependent (+)', negative: 'dependent (−)' }[v],
+      { disjoint: '互斥', independent: '独立', positive: '相关（正）', negative: '相关（负）' }[v]);
+    badge.setAttribute('data-kind', v);
+    svg.setAttribute('aria-label', t('P(A) ' + n.pA + ', P(B) ' + n.pB + ', P(A and B) ' + n.pAB + ', P(B given A) ' + n.cond, 'P(A) ' + n.pA + '，P(B) ' + n.pB + '，P(A∩B) ' + n.pAB + '，P(B|A) ' + n.cond));
+  }
+
+  var note = h('p', { class: 'fig-note' });
+  var badge = h('span', { class: 'pe-badge' });
+  var sliders = {
+    a: TX.slider({ en: 'P(A): width of the strip', zh: 'P(A)：竖条的宽度', min: 0.1, max: 0.9, step: 0.05, value: P.a, format: function (v) { return v.toFixed(2); }, onInput: function (v) { P.a = v; render(); } }),
+    bw: TX.slider({ en: 'B: width', zh: 'B 的宽度', min: 0.05, max: 1, step: 0.05, value: P.bw, format: function (v) { return v.toFixed(2); }, onInput: function (v) { P.bw = v; render(); } }),
+    bx: TX.slider({ en: 'B: slide left–right', zh: 'B 左右挪', min: 0, max: 0.95, step: 0.05, value: P.bx, format: function (v) { return v.toFixed(2); }, onInput: function (v) { P.bx = v; render(); } }),
+    bh: TX.slider({ en: 'B: height', zh: 'B 的高度', min: 0.05, max: 1, step: 0.05, value: P.bh, format: function (v) { return v.toFixed(2); }, onInput: function (v) { P.bh = v; render(); } })
+  };
+  var presets = TX.seg([
+    { id: 'disjoint', en: 'Disjoint', zh: '互斥' },
+    { id: 'independent', en: 'Independent', zh: '独立' },
+    { id: 'positive', en: 'Dependent (+)', zh: '正相关' },
+    { id: 'negative', en: 'Dependent (−)', zh: '负相关' }
+  ], 'independent', function (id) {
+    var p = PRESETS[id];
+    Object.keys(p).forEach(function (k) { P[k] = p[k]; sliders[k].set(p[k]); });
+    render();
+  }, t('Examples', '例子'));
+  var views = TX.seg([
+    { id: 'all', en: 'All of Ω', zh: '整个 Ω' },
+    { id: 'cond', en: 'Given A', zh: '已知 A 发生' }
+  ], view, function (id) { view = id; render(); }, t('View', '视角'));
+  var roA = TX.readout('P(A)', 'P(A)'), roB = TX.readout('P(B)', 'P(B)');
+  var roAB = TX.readout('P(A ∩ B)', 'P(A ∩ B)'), roProd = TX.readout('P(A)·P(B)', 'P(A)·P(B)');
+  var roCond = TX.readout('P(B | A), against P(B)', 'P(B | A)，和 P(B) 比');
+  TX.append(fig.controls, [presets.el, views.el, badge]);
+  fig.stage.appendChild(svg);
+  TX.append(fig.foot, [
+    h('div', { class: 'ctl-row' }, [sliders.a.el, sliders.bw.el, sliders.bx.el, sliders.bh.el]),
+    h('div', { class: 'readouts' }, [roA.el, roB.el, roAB.el, roProd.el, roCond.el]),
+    note
+  ]);
+  render();
+})();
+
+/* --------------------------------------------- drawing a distribution
+   One random variable, three shapes. Top: bars for a discrete variable, a curve
+   for a continuous one, and both for a mixed one (a curve plus spikes where a
+   single value carries real probability). Bottom: the CDF, the one picture that
+   works for all three — a staircase, a smooth ramp, or a ramp with jumps. Move
+   x and watch F(x) collect everything to its left. */
+(function () {
+  var fig = TX.figure('tx-prob-dist', { title: ['Drawing a distribution · bars, curves, and jumps', '把分布画出来 · 柱子、曲线和跳跃'] });
+  if (!fig) return;
+  var s = TX.s, h = TX.h, t = TX.t;
+
+  var mode = 'discrete', x = 3.5;
+  var P = { p: 0.45, sigma: 1.4, pi: 0.3 };
+  var MU = 4, SIG_MIX = 1.5, CAP = 5.5, N = 8;
+  var XMIN = -1, XMAX = 9;
+
+  function erf(z) {                                   // Abramowitz–Stegun 7.1.26
+    var sign = z < 0 ? -1 : 1; z = Math.abs(z);
+    var tt = 1 / (1 + 0.3275911 * z);
+    var y = 1 - (((((1.061405429 * tt - 1.453152027) * tt) + 1.421413741) * tt - 0.284496736) * tt + 0.254829592) * tt * Math.exp(-z * z);
+    return sign * y;
+  }
+  function Phi(v, mu, sd) { return 0.5 * (1 + erf((v - mu) / (sd * Math.SQRT2))); }
+  function phi(v, mu, sd) { var z = (v - mu) / sd; return Math.exp(-0.5 * z * z) / (sd * Math.sqrt(2 * Math.PI)); }
+  function choose(n, k) { var c = 1; for (var i = 1; i <= k; i++) c = c * (n - k + i) / i; return c; }
+  function onInt(v) { return Math.abs(v - Math.round(v)) < 1e-9; }
+
+  // each mode: atoms [{at, mass}], density(v), cdf(v), mean
+  function model() {
+    if (mode === 'discrete') {
+      var atoms = [];
+      for (var k = 0; k <= N; k++) atoms.push({ at: k, mass: choose(N, k) * Math.pow(P.p, k) * Math.pow(1 - P.p, N - k) });
+      return {
+        atoms: atoms, density: null,
+        cdf: function (v) { var c = 0; atoms.forEach(function (a) { if (a.at <= v + 1e-9) c += a.mass; }); return c; },
+        mean: N * P.p
+      };
+    }
+    if (mode === 'continuous') {
+      return {
+        atoms: [], density: function (v) { return phi(v, MU, P.sigma); },
+        cdf: function (v) { return Phi(v, MU, P.sigma); }, mean: MU
+      };
+    }
+    // mixed: no claim with probability π (pays 0); otherwise a normal amount,
+    // floored at 0 and capped at CAP — so 0 and CAP each carry real probability
+    var pi = P.pi, rest = 1 - pi;
+    var at0 = pi + rest * Phi(0, MU, SIG_MIX), atCap = rest * (1 - Phi(CAP, MU, SIG_MIX));
+    var mean = atCap * CAP, steps = 400, dv = CAP / steps;
+    for (var i = 0; i < steps; i++) { var v = (i + 0.5) * dv; mean += v * rest * phi(v, MU, SIG_MIX) * dv; }
+    return {
+      atoms: [{ at: 0, mass: at0 }, { at: CAP, mass: atCap }],
+      density: function (v) { return v > 0 && v < CAP ? rest * phi(v, MU, SIG_MIX) : 0; },
+      cdf: function (v) {
+        if (v < 0) return 0;
+        if (v >= CAP) return 1;
+        return at0 + rest * (Phi(v, MU, SIG_MIX) - Phi(0, MU, SIG_MIX));
+      },
+      mean: mean
+    };
+  }
+
+  var W = 560, L = 44, R = W - 16, TOP0 = 16, TOP1 = 150, BOT0 = 190, BOT1 = 320, H = 350;
+  var svg = s('svg', { class: 'tx-svg pd-svg', viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+  function sx(v) { return L + (v - XMIN) / (XMAX - XMIN) * (R - L); }
+  function sb(F) { return BOT1 - F * (BOT1 - BOT0); }
+
+  function render() {
+    var m = model();
+    TX.clear(svg);
+    // axes and gridlines
+    [0, 2, 4, 6, 8].forEach(function (v) {
+      svg.appendChild(s('text', { class: 'pc-tick', x: sx(v), y: BOT1 + 16, 'text-anchor': 'middle', text: String(v) }));
+    });
+    svg.appendChild(s('line', { class: 'pd-axis', x1: L, y1: TOP1, x2: R, y2: TOP1 }));
+    svg.appendChild(s('line', { class: 'pd-axis', x1: L, y1: BOT1, x2: R, y2: BOT1 }));
+    [0, 0.5, 1].forEach(function (F) {
+      svg.appendChild(s('line', { class: 'pc-guide', x1: L, y1: sb(F), x2: R, y2: sb(F) }));
+      svg.appendChild(s('text', { class: 'pc-tick', x: L - 6, y: sb(F) + 4, 'text-anchor': 'end', text: String(F) }));
+    });
+    svg.appendChild(s('text', { class: 'pd-panel', x: L, y: TOP0 - 2, bi: [mode === 'discrete' ? 'PMF · P(X = k)' : mode === 'continuous' ? 'PDF · f(x): area is probability' : 'curve = density, spike = probability at one point', mode === 'discrete' ? 'PMF · P(X = k)' : mode === 'continuous' ? 'PDF · f(x)：面积才是概率' : '曲线是密度，竖线是某一点上的概率'] }));
+    svg.appendChild(s('text', { class: 'pd-panel', x: L, y: BOT0 - 8, bi: ['CDF · F(x) = P(X ≤ x)', 'CDF · F(x) = P(X ≤ x)'] }));
+
+    // top panel
+    var maxD = 0, v;
+    if (m.density) for (v = XMIN; v <= XMAX; v += 0.02) maxD = Math.max(maxD, m.density(v));
+    var maxA = 0;
+    m.atoms.forEach(function (a) { maxA = Math.max(maxA, a.mass); });
+    var topH = TOP1 - TOP0 - 10;
+    if (m.density) {
+      var sy = function (d) { return TOP1 - (d / (maxD * 1.15)) * topH; };
+      var fill = 'M' + sx(XMIN) + ',' + TOP1, line = '';
+      var cut = Math.min(x, XMAX);
+      for (v = XMIN; v <= XMAX + 1e-9; v += 0.02) {
+        var yy = sy(m.density(v));
+        line += (line ? ' L' : 'M') + sx(v).toFixed(1) + ',' + yy.toFixed(1);
+        if (v <= cut) fill += ' L' + sx(v).toFixed(1) + ',' + yy.toFixed(1);
+      }
+      fill += ' L' + sx(cut).toFixed(1) + ',' + TOP1 + ' Z';
+      svg.appendChild(s('path', { class: 'pd-area', d: fill }));
+      svg.appendChild(s('path', { class: 'pd-curve', d: line }));
+    }
+    var barW = (sx(1) - sx(0)) * 0.62;
+    m.atoms.forEach(function (a) {
+      var on = a.at <= x + 1e-9;
+      var hgt = mode === 'discrete' ? (a.mass / (maxA * 1.15)) * topH : Math.min(topH, a.mass * topH * 1.6);
+      if (mode === 'discrete') {
+        svg.appendChild(s('rect', { class: 'pd-bar' + (on ? ' is-on' : ''), x: sx(a.at) - barW / 2, y: TOP1 - hgt, width: barW, height: hgt, rx: 2 }));
+      } else {
+        svg.appendChild(s('line', { class: 'pd-spike' + (on ? ' is-on' : ''), x1: sx(a.at), y1: TOP1, x2: sx(a.at), y2: TOP1 - hgt }));
+        svg.appendChild(s('circle', { class: 'pd-tip' + (on ? ' is-on' : ''), cx: sx(a.at), cy: TOP1 - hgt, r: 4.5 }));
+        svg.appendChild(s('text', { class: 'pd-mass', x: sx(a.at) + (a.at === 0 ? 8 : -8), y: TOP1 - hgt - 6, 'text-anchor': a.at === 0 ? 'start' : 'end', text: 'P = ' + a.mass.toFixed(2) }));
+      }
+    });
+
+    // CDF: continuous pieces between atoms, a jump at each atom
+    var pts = '', prev = null, jumps = [];
+    var atoms = m.atoms.slice().sort(function (a, b) { return a.at - b.at; });
+    for (v = XMIN; v <= XMAX + 1e-9; v += 0.01) {
+      var crossed = atoms.filter(function (a) { return prev !== null && a.at > prev && a.at <= v; });
+      if (crossed.length) {
+        crossed.forEach(function (a) {
+          var below = m.cdf(a.at - 1e-7), above = m.cdf(a.at);
+          pts += ' L' + sx(a.at).toFixed(1) + ',' + sb(below).toFixed(1);
+          svg.appendChild(s('path', { class: 'pd-cdf', d: pts }));
+          jumps.push({ at: a.at, below: below, above: above });
+          pts = 'M' + sx(a.at).toFixed(1) + ',' + sb(above).toFixed(1);
+        });
+      }
+      pts += (pts ? ' L' : 'M') + sx(v).toFixed(1) + ',' + sb(m.cdf(v)).toFixed(1);
+      prev = v;
+    }
+    svg.appendChild(s('path', { class: 'pd-cdf', d: pts }));
+    jumps.forEach(function (j) {                     // right-continuous: open below, filled above
+      svg.appendChild(s('line', { class: 'pd-jump', x1: sx(j.at), y1: sb(j.below), x2: sx(j.at), y2: sb(j.above) }));
+      svg.appendChild(s('circle', { class: 'pd-open', cx: sx(j.at), cy: sb(j.below), r: 3.5 }));
+      svg.appendChild(s('circle', { class: 'pd-shut', cx: sx(j.at), cy: sb(j.above), r: 3.5 }));
+    });
+
+    // the cursor
+    var F = m.cdf(x);
+    svg.appendChild(s('line', { class: 'pd-cursor', x1: sx(x), y1: TOP0, x2: sx(x), y2: BOT1 }));
+    svg.appendChild(s('line', { class: 'pd-level', x1: L, y1: sb(F), x2: sx(x), y2: sb(F) }));
+    svg.appendChild(s('circle', { class: 'pd-dot', cx: sx(x), cy: sb(F), r: 5 }));
+
+    var atom = m.atoms.filter(function (a) { return Math.abs(a.at - x) < 1e-9; })[0];
+    roF.set(F.toFixed(3));
+    roPoint.set(atom ? atom.mass.toFixed(3) : '0');
+    roMean.set(m.mean.toFixed(2));
+    var WORDS = {
+      discrete: ['Discrete (here Binomial(8, p)): all probability sits on the integers, so the PMF is a set of bars and the CDF is a staircase. Each step is exactly as tall as the bar under it — P(X = k) = F(k) − F(k⁻). Between integers F is flat, because nothing lives there.',
+        '离散（这里是 Binomial(8, p)）：概率全压在整数上，PMF 是一根根柱子，CDF 是台阶。每一级台阶的高度，正好等于它下面那根柱子——P(X = k) = F(k) − F(k⁻)。整数之间 F 是平的，因为那里什么都没有。'],
+      continuous: ['Continuous (here Normal(4, σ)): the curve f(x) is a density, not a probability — only area under it is. So every single point has probability 0, and the CDF has no jumps: it is the running area, and its slope is f.',
+        '连续（这里是 Normal(4, σ)）：曲线 f(x) 是密度，不是概率——它下面的面积才是。所以任何一个点的概率都是 0，CDF 也没有跳跃：它就是一路累积的面积，斜率正好是 f。'],
+      mixed: ['Mixed: an insurance payout. With probability π the year has no claim and pays exactly 0; otherwise the amount is roughly normal but capped at 5.5. So 0 and 5.5 each carry real probability — spikes — while everything in between is a density. Neither a PMF nor a PDF can describe this alone. The CDF can: a ramp with a jump at each spike.',
+        '混合：保险赔付。有 π 的概率这一年没出险，正好赔 0；出险了，赔付大致是正态的，但封顶 5.5。于是 0 和 5.5 这两个点各自真有概率——竖线；中间的部分是密度。单靠 PMF 或者 PDF 都描述不了它，CDF 可以：一段斜坡，在每根竖线的位置跳一下。']
+    };
+    TX.bi(note, WORDS[mode][0], WORDS[mode][1]);
+    svg.setAttribute('aria-label', t('F(' + x.toFixed(2) + ') = ' + F.toFixed(3), 'F(' + x.toFixed(2) + ') = ' + F.toFixed(3)));
+  }
+
+  var note = h('p', { class: 'fig-note' });
+  var sX = TX.slider({ en: 'x', zh: 'x', min: XMIN, max: XMAX, step: 0.05, value: x, format: function (v) { return v.toFixed(2); }, onInput: function (v) { x = v; render(); } });
+  var sP = TX.slider({ en: 'p (discrete)', zh: 'p（离散）', min: 0.05, max: 0.95, step: 0.05, value: P.p, format: function (v) { return v.toFixed(2); }, onInput: function (v) { P.p = v; render(); } });
+  var sS = TX.slider({ en: 'σ (continuous)', zh: 'σ（连续）', min: 0.6, max: 2.4, step: 0.1, value: P.sigma, format: function (v) { return v.toFixed(1); }, onInput: function (v) { P.sigma = v; render(); } });
+  var sPi = TX.slider({ en: 'π: share with no claim (mixed)', zh: 'π：没出险的比例（混合）', min: 0, max: 0.8, step: 0.05, value: P.pi, format: function (v) { return v.toFixed(2); }, onInput: function (v) { P.pi = v; render(); } });
+  var paramWrap = h('div', { class: 'pd-param' });
+  function showParam() {
+    TX.clear(paramWrap);
+    paramWrap.appendChild(mode === 'discrete' ? sP.el : mode === 'continuous' ? sS.el : sPi.el);
+  }
+  var modes = TX.seg([
+    { id: 'discrete', en: 'Discrete', zh: '离散' },
+    { id: 'continuous', en: 'Continuous', zh: '连续' },
+    { id: 'mixed', en: 'Mixed', zh: '混合' }
+  ], mode, function (id) { mode = id; showParam(); render(); }, t('Kind', '类型'));
+  var roF = TX.readout('F(x) = P(X ≤ x)', 'F(x) = P(X ≤ x)');
+  var roPoint = TX.readout('P(X = x)', 'P(X = x)');
+  var roMean = TX.readout('E[X]', 'E[X]');
+  TX.append(fig.controls, [modes.el]);
+  fig.stage.appendChild(svg);
+  TX.append(fig.foot, [h('div', { class: 'ctl-row' }, [sX.el, paramWrap]), h('div', { class: 'readouts' }, [roF.el, roPoint.el, roMean.el]), note]);
+  showParam();
+  render();
+})();
