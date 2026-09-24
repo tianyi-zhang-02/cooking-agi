@@ -33,12 +33,13 @@
 
 ## 可以看些什么
 
-内容分成两个主要入口：[学习笔记](00-foundations/)讲原理、公式和教学演示；[工程实践](practice/)记录具体问题是怎么发现、实现和验证的。求职和论文笔记继续单独整理。
+内容分成两个主要入口：[学习笔记](00-foundations/)讲原理、公式和教学演示，按考察方向分成 Quant Researcher 和 AI / ML Engineer 两区；[工程实践](practice/)记录具体问题是怎么发现、实现和验证的。求职和论文笔记继续单独整理。
 
 建议在[网站](https://tianyi-zhang-02.github.io/cooking-agi/)上阅读，可以切换中英文，也能直接操作交互图。想先随便看看，可以从 [Transformer 图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html)开始。
 
 | 板块 | 内容 |
 | --- | --- |
+| [概率与统计](quant/probability/) | Quant Researcher：概率公理、分布怎么画、条件概率与独立 |
 | [大模型基础](00-foundations/) | Tokenization、RNN / LSTM、Transformer、MoE 与模型家族 |
 | [Post-training](05-post-training/) | SFT、RLHF、PPO 等方法的原理和适用场景 |
 | [评估](07-evaluation/) | 评估设计、指标与 LLM-as-a-judge |

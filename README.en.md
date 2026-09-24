@@ -33,12 +33,13 @@ My preparation and interview experience has mainly been with **MLE and Research 
 
 ## What you can read
 
-There are two main entry points: [Study notes](00-foundations/README.en.md) for concepts, formulas, and teaching examples, and [Industry Practice](practice/README.en.md) for concrete problems, implementations, and validation. Career and paper notes remain separate.
+There are two main entry points: [Study notes](00-foundations/README.en.md) for concepts, formulas, and teaching examples — split into Quant Researcher and AI / ML Engineer, because the two are tested on different things — and [Industry Practice](practice/README.en.md) for concrete problems, implementations, and validation. Career and paper notes remain separate.
 
 The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has language switching and working interactive diagrams. If you'd like to browse first, try the [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html).
 
 | Section | Topics |
 | --- | --- |
+| [Probability & statistics](quant/probability/README.en.md) | Quant Researcher: the axioms, drawing distributions, conditioning and independence |
 | [Model fundamentals](00-foundations/README.en.md) | Tokenization, RNNs / LSTMs, Transformers, MoE, and model families |
 | [Post-training](05-post-training/README.en.md) | How SFT, RLHF, PPO, and related methods work and when to use them |
 | [Evaluation](07-evaluation/README.en.md) | Evaluation design, metrics, and LLM-as-a-judge |

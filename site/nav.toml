@@ -68,9 +68,30 @@ id = "start"
 zh = "开始"
 en = "Start here"
 
+# 学习笔记分两区：Quant Researcher 和 AI / ML Engineer 考察的方向很不一样，分开放。
+# 每个学习笔记的分组都带 zone；分区的名字和顺序在下面的 [[zone]] 里。
+[[zone]]
+id = "quant"
+zh = "Quant Researcher"
+en = "Quant Researcher"
+
+[[zone]]
+id = "ml"
+zh = "AI / ML Engineer"
+en = "AI / ML Engineer"
+
+[[group]]
+id = "quant"
+category = "learn"
+zone = "quant"
+zh = "概率与统计"
+en = "Probability & statistics"
+home = "quant/probability/README.md"
+
 [[group]]
 id = "foundations"
 category = "learn"
+zone = "ml"
 zh = "大模型基础"
 en = "Foundations"
 home = "00-foundations/README.md"
@@ -78,6 +99,7 @@ home = "00-foundations/README.md"
 [[group]]
 id = "posttrain"
 category = "learn"
+zone = "ml"
 zh = "Post-training"
 en = "Post-training"
 home = "05-post-training/README.md"
@@ -85,6 +107,7 @@ home = "05-post-training/README.md"
 [[group]]
 id = "eval"
 category = "learn"
+zone = "ml"
 zh = "评估"
 en = "Evaluation"
 home = "07-evaluation/README.md"
@@ -92,6 +115,7 @@ home = "07-evaluation/README.md"
 [[group]]
 id = "data-retrieval"
 category = "learn"
+zone = "ml"
 zh = "数据与检索"
 en = "Data & retrieval"
 home = "01-data-and-feedback/README.md"
@@ -99,6 +123,7 @@ home = "01-data-and-feedback/README.md"
 [[group]]
 id = "systems"
 category = "learn"
+zone = "ml"
 zh = "系统与多模态"
 en = "Systems & multimodal"
 home = "06-systems/README.md"
@@ -106,6 +131,7 @@ home = "06-systems/README.md"
 [[group]]
 id = "agents"
 category = "learn"
+zone = "ml"
 zh = "Agents"
 en = "Agents"
 home = "10-agents/README.md"
@@ -164,8 +190,8 @@ en    = "Learning path"
 order = ["README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
-dir   = "00-foundations/probability"
-group = "foundations"
+dir   = "quant/probability"
+group = "quant"
 zh    = "概率"
 en    = "Probability"
 order = ["README.md", "distributions.md", "conditional.md"]
@@ -374,9 +400,9 @@ en  = "Templates"
 "00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
 "00-foundations/transformer.md"                         = ["Transformer 架构", "Transformer"]
 "00-foundations/transformer-lab.md"                     = ["Transformer 交互图解", "Transformer lab"]
-"00-foundations/probability/README.md"      = ["公理与随机变量", "Axioms"]
-"00-foundations/probability/distributions.md" = ["把分布画出来", "Drawing distributions"]
-"00-foundations/probability/conditional.md" = ["条件概率与独立", "Conditioning & independence"]
+"quant/probability/README.md"      = ["公理与随机变量", "Axioms"]
+"quant/probability/distributions.md" = ["把分布画出来", "Drawing distributions"]
+"quant/probability/conditional.md" = ["条件概率与独立", "Conditioning & independence"]
 "00-foundations/core/README.md"                         = ["总览", "Overview"]
 "00-foundations/core/tokenization.md"                   = ["Tokenization", "Tokenization"]
 "00-foundations/core/recurrent-models.md"               = ["RNN 与 LSTM", "RNN & LSTM"]

@@ -1272,8 +1272,9 @@ def sidebar_html(page, sections, groups):
     for sec in sections:
         by_group.setdefault(sec.get("group", "reference"), []).append(sec)
 
-    out, seen_cat = [], None
+    out, seen_cat, seen_zone = [], None, None
     cats = {c["id"]: c for c in NAV.get("category", [])}
+    zones = {z["id"]: z for z in NAV.get("zone", [])}
     scope = page_category(page)
     if scope in cats:
         groups = [g for g in groups if g.get("category") == scope]
@@ -1292,6 +1293,10 @@ def sidebar_html(page, sections, groups):
             label_cat = html.escape(cat["zh" if page.lang == "zh" else "en"])
             out.append(f'<li class="cat"><a href="{page.rel(target.url)}">{label_cat}</a></li>' if target
                        else f'<li class="cat"><span>{label_cat}</span></li>')
+        zone = g.get("zone")                # study notes split by what each role is tested on
+        if zone in zones and zone != seen_zone:
+            seen_zone = zone
+            out.append(f'<li class="zone"><span>{both(zones[zone], page.lang == "zh")[0]}</span></li>')
         # a heading only where it adds something: several sections in the block, and
         # more than one note in this one (a lone note's label already names it)
         rendered = [section_html(page, s, len(secs) > 1 and len(s["pages"]) > 1) for s in secs]
@@ -1367,18 +1372,28 @@ def subtabs_html(page):
     if not cat:
         return ""
     here = page.section.get("group")
-    links = ""
+    zones = {z["id"]: z for z in NAV.get("zone", [])}
+    label = both(cat, zh)[0]
+    rows = []                             # [label, links]; one row per zone, or one row in all
     for group in (g for g in NAV.get("group", []) if g.get("category") == current):
         target = group_target(page, group)
         if not target:
             continue
+        zone = group.get("zone")
+        head = both(zones[zone], zh)[0] if zone in zones else label
+        if not rows or rows[-1][0] != head:
+            rows.append([head, ""])
         cls = ' class="active" aria-current="true"' if group["id"] == here else ""
-        links += f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span></a>'
-    label = both(cat, zh)[0]
-    if not links:
+        rows[-1][1] += f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span></a>'
+    if not rows:
         return ""
-    return (f'<nav class="subtabs" aria-label="{"板块" if zh else "Blocks"}">'
-            f'<span class="subtabs-label">{label}</span>{links}</nav>')
+    aria = "板块" if zh else "Blocks"
+    if len(rows) == 1:
+        return f'<nav class="subtabs" aria-label="{aria}"><span class="subtabs-label">{rows[0][0]}</span>{rows[0][1]}</nav>'
+    body = "".join(f'<div class="subtabs-zone"><span class="subtabs-label">{head}</span>'
+                   f'<span class="subtabs-pills">{links}</span></div>'
+                   for head, links in rows)
+    return f'<nav class="subtabs has-zones" aria-label="{aria}">{body}</nav>'
 
 
 def hero_html(page) -> str:
