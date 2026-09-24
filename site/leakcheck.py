@@ -35,7 +35,7 @@ EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--",
           # already public on their homepage. Scoped to that one line, not to the name.
           r"HRT Algo Dev"]
 
-SCAN = ["00-foundations", "01-data-and-feedback", "02-memory",
+SCAN = ["00-foundations", "quant", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
         "07-evaluation", "08-model-experience", "09-personal-agi", "ai-infra",
         "10-agents", "papers", "career", "interview", "practice", "open-source", "community"]
