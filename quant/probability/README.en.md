@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~5 min · Level: beginner · Last reviewed: 2026-09
+> Reading time: ~6 min · Level: beginner · Last reviewed: 2026-09
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>what a probability actually is, and which facts are definitions and which are derived</strong></div>
@@ -13,7 +13,7 @@
 
 ## Three pieces
 
-Take "does it rain tomorrow" as the example:
+Probability starts from three pieces. Take "does it rain tomorrow" as the example:
 
 - **Sample space Ω**: the set of all possible outcomes. Here $\Omega = \{\text{rain}, \text{no rain}\}$.
 - **Event**: a subset of Ω. $A = \{\text{rain}\}$, and its complement is $A^c = \{\text{no rain}\}$.
@@ -33,7 +33,9 @@ Kolmogorov, in 1933, defined a probability as a function P satisfying:
 
 The full object is a probability space $(\Omega, \mathcal{F}, P)$. $\mathcal{F}$ is the collection of events you are allowed to assign probability to: every subset in the discrete case; in the continuous case, intervals and everything built from them by countable unions and complements. You will almost never need to think about it in an interview.
 
-## How you compute it is not how it is defined
+## Definition and computation are different things
+
+Three common ways of computing a probability, none of which is the definition:
 
 - **Equally likely outcomes**: when Ω is finite and every outcome is equally likely, $P(A) = |A| / |\Omega|$. This is a consequence of axiom 3, not an axiom. Dice, cards and coins all live here.
 - **The continuous case**: $P(a \le X \le b) = \int_a^b f(x)\,dx$. The density f is a device that makes P satisfy the axioms; it is not itself a probability.
@@ -60,7 +62,11 @@ Then $P(X = 1) = P(A) = 0.8$ and $P(X = 0) = 0.2$: X is Bernoulli(0.8). And here
 
 $$\mathbb{E}[\mathbf{1}_A] = 1 \cdot P(A) + 0 \cdot P(A^c) = P(A)$$
 
-**The expectation of an indicator is the probability of the event.** It is the bridge from "events and chance" to "expected counts": a question of the form "on average, how many…" almost always splits the count into a sum of indicators and uses linearity of expectation. The variance comes for free:
+**The expectation of an indicator is the probability of the event.** A question of the form "on average, how many…" can usually be split into a sum of indicators and summed term by term with linearity of expectation.
+
+An example: $n$ people drop their hats in a pile and each takes one back at random. On average, how many get their own? Let $A_i$ be "person $i$ gets their own hat"; the count is $X = \sum_i \mathbf{1}_{A_i}$. Each person is right with probability $1/n$, so $\mathbb{E}[X] = n \cdot \frac{1}{n} = 1$, whatever $n$ is. The indicators are not independent, and linearity of expectation does not need them to be.
+
+The variance of an indicator can be written down directly:
 
 $$\mathrm{Var}(\mathbf{1}_A) = P(A)\,\bigl(1 - P(A)\bigr) = 0.8 \times 0.2 = 0.16$$
 
@@ -95,6 +101,13 @@ $\mathbb{E}[\mathbf{1}_A] = P(A) = 3/4$ and $\mathrm{Var}(\mathbf{1}_A) = 3/4 \t
 <summary>Using only the three axioms, derive P(A ∪ B) = P(A) + P(B) − P(A ∩ B).</summary>
 
 Split $A \cup B$ into three disjoint pieces: $A \setminus B$, $A \cap B$ and $B \setminus A$. By axiom 3, $P(A \cup B)$ is the sum of the three; likewise $P(A) = P(A \setminus B) + P(A \cap B)$ and $P(B) = P(B \setminus A) + P(A \cap B)$. Substitute: $A \cap B$ is counted once too often, so subtract it.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Does linearity of expectation require the variables to be independent?</summary>
+
+No. $\mathbb{E}[X + Y] = \mathbb{E}[X] + \mathbb{E}[Y]$ holds for any X and Y. So when you count with indicators, you can add their expectations even when they influence each other, as in the hat example. Variance is where independence matters: $\mathrm{Var}(X + Y) = \mathrm{Var}(X) + \mathrm{Var}(Y)$ only when the covariance is 0.
 
 </details>
 

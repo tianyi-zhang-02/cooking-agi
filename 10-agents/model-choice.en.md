@@ -2,7 +2,7 @@
 
 [中文](model-choice.md) · **English**
 
-> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-09
+> Reading time: ~6 min · Level: advanced · Last reviewed: 2026-09
 
 ## First check the capability
 
@@ -47,7 +47,7 @@ What decides whether either middle plan is worth it is the accuracy of the diffi
 
 **Latency adds up in series.** An agent makes several model calls per task, and the user feels their sum. Time to first token and time per token pull in different directions: short replies are dominated by the first, long ones by the second. Self-hosting lets you tune batching, hardware and location; with an API you wait.
 
-**Context is where the money goes.** Every step resends a longer history, so cost grows roughly with the square of the number of steps. Prompt caching — keeping the unchanged prefix warm — saves the most here, and what a provider caches, and for how long, is worth asking before you commit.
+**Context is where the money goes.** Every step resends a longer history; if each step adds about the same amount, total tokens grow roughly with the square of the number of steps. Prompt caching — keeping the unchanged prefix warm — saves the most here, and what a provider caches, and for how long, is worth asking before you commit.
 
 **Models move.** The model behind an API is updated and retired, and the same prompt can answer differently months later. Self-hosted weights do not drift on their own — the price is that security updates are yours too. Either way you need regression tests that catch "this worked last week".
 

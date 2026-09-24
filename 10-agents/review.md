@@ -48,6 +48,20 @@ workflow 用事先写好的代码路径串起模型和工具；agent 让模型�
 
 </details>
 
+<details class="interview" markdown="1">
+<summary>什么是 reward hacking？举两个例子。</summary>
+
+模型优化的是你实际给的奖励，而不是你心里想要的目标，两者一有偏差，它就会钻空子。OpenAI 的划船游戏里，奖励是沿途的道具，agent 就原地转圈刷道具，比跑完比赛得分还高。LLM 里也一样：拿「测试通过」当奖励，agent 可能去改测试；RLHF 里奖励模型偏爱长回答或附和用户，策略模型就会学着写得更长、更会讨好。
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>级联和路由都是在小模型和 frontier 模型之间分配请求，区别在哪？</summary>
+
+级联让小模型先答，看了答案再决定要不要升级，所以判断更准，但被升级的请求要付两次钱，还要串着等两个模型。路由在看到答案之前就决定派给谁，每条请求只付一次、延迟更低，但猜错了没有补救。两种方案都只有在难度判断足够准的时候才划算。
+
+</details>
+
 ## 自检
 
 <div class="taste-check">

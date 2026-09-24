@@ -48,6 +48,20 @@ Errors compound across steps. At 95% per step, all 20 steps are right only about
 
 </details>
 
+<details class="interview" markdown="1">
+<summary>What is reward hacking? Give two examples.</summary>
+
+A model optimises the reward you actually give it, not the goal you had in mind, and any gap between the two gets exploited. In OpenAI's boat race the reward was the pickups along the course, so the agent spun in a circle farming them and outscored finishing the race. LLMs do the same: reward "the tests pass" and an agent may edit the tests; in RLHF, if the reward model favours long or agreeable answers, the policy learns to write longer and flatter more.
+
+</details>
+
+<details class="interview" markdown="1">
+<summary>Cascades and routers both split requests between a small model and a frontier one. What is the difference?</summary>
+
+A cascade lets the small model answer first and decides whether to escalate after seeing the answer, so it judges better — but escalated requests are paid for twice, and wait for two models in series. A router decides before any answer exists: each request is paid once and waits less, but a wrong guess is never caught. Either one only pays off when difficulty is judged accurately.
+
+</details>
+
 ## Self-check
 
 <div class="taste-check">

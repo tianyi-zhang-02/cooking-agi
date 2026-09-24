@@ -58,7 +58,7 @@ The first time around, these words lost me. They are industry-wide usage, not an
 | onsite / loop | A run of interviews back to back, mostly still remote |
 | BQ / behavioral | Questions about how you handled specific situations |
 | system design | A design discussion — it is about trade-offs, not recall |
-| HC | Hiring committee: at some companies a committee, not the interviewers, decides |
+| HC | Usually headcount, the number of open slots; some people also use it for hiring committee, so read it in context |
 | team match | Pairing with a specific team after the technical rounds; some companies do it first |
 | level | Seniority. Two offers at different levels are very different offers |
 | base / bonus / RSU / sign-on | Salary / bonus / stock / joining payment — an offer is all of them together |

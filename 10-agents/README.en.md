@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-09
+> Reading time: ~5 min · Level: advanced · Last reviewed: 2026-09
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>when to let the model choose its next step, and when not to</strong></div>
@@ -32,8 +32,8 @@ A few things from the RL side are worth keeping, because they come back later:
 - **It optimises whatever you actually pay for.** The fun and frightening one. OpenAI's boat
   race is the classic ([Faulty reward functions in the wild](https://openai.com/index/faulty-reward-functions/),
   2016): the reward was the pickups along the course, so the agent found that spinning in a
-  circle farming pickups scored better than finishing the race — and spun, crashing the whole
-  time, with a high score. Reward hacking in RLHF is the same thing wearing a suit.
+  circle farming pickups scored better than finishing the race — and spun, catching fire, ramming
+  other boats and driving the wrong way, with a higher score than finishing normally. Reward hacking in RLHF is the same thing wearing a suit.
 - **LLM agents inherit it.** Reward "the tests pass" and you may get edited tests.
 
 So when you see the word "agent", it is worth asking which one is meant. The field moves fast
