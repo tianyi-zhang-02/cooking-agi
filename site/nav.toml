@@ -164,6 +164,13 @@ en    = "Learning path"
 order = ["README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
+dir   = "00-foundations/probability"
+group = "foundations"
+zh    = "概率"
+en    = "Probability"
+order = ["README.md", "distributions.md", "conditional.md"]
+
+[[section]]
 dir = "00-foundations/core"
 group = "foundations"
 zh  = "核心机制"
@@ -367,6 +374,9 @@ en  = "Templates"
 "00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
 "00-foundations/transformer.md"                         = ["Transformer 架构", "Transformer"]
 "00-foundations/transformer-lab.md"                     = ["Transformer 交互图解", "Transformer lab"]
+"00-foundations/probability/README.md"      = ["公理与随机变量", "Axioms"]
+"00-foundations/probability/distributions.md" = ["把分布画出来", "Drawing distributions"]
+"00-foundations/probability/conditional.md" = ["条件概率与独立", "Conditioning & independence"]
 "00-foundations/core/README.md"                         = ["总览", "Overview"]
 "00-foundations/core/tokenization.md"                   = ["Tokenization", "Tokenization"]
 "00-foundations/core/recurrent-models.md"               = ["RNN 与 LSTM", "RNN & LSTM"]
