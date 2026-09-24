@@ -100,6 +100,7 @@ Did the optimization preserve correctness?
 
 | Note | Central question | Freshness |
 | --- | --- | --- |
+| [Data parallelism vs. tensor parallelism: what actually gets split?](notes/distributed-training/01-data-vs-tensor-parallelism.en.md) | What do DP and TP each split in training? | stable foundation |
 | [04 · Distributed training](modules/04-distributed-training.en.md) | How do DDP, FSDP, TP, PP, CP, and EP compose? | fast-moving |
 | [06 · GPU platforms](modules/06-gpu-platforms.en.md) | How are GPU workloads scheduled, isolated, and recovered? | evolving |
 

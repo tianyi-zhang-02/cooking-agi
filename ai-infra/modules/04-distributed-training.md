@@ -8,6 +8,8 @@
 
 当模型、activation 或优化器状态超出单卡容量，训练必须被拆分。本模块关注拆什么、怎样同步，以及新增的通信、调度和故障复杂度是否值得。
 
+还不清楚 DP 和 TP 分别切分了什么，先读 [数据并行与张量并行，到底切的是什么？](../notes/distributed-training/01-data-vs-tensor-parallelism.md)。
+
 ## 学习目标
 
 - 能分解训练显存的主要组成；

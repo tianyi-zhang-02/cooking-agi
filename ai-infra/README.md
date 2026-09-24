@@ -96,6 +96,7 @@ flowchart TB
 
 | 笔记 | 核心问题 | 时效性 |
 | --- | --- | --- |
+| [数据并行与张量并行，到底切的是什么？](notes/distributed-training/01-data-vs-tensor-parallelism.md) | DP 和 TP 分别切分了训练里的什么？ | 稳定基础 |
 | [04 · 分布式训练](modules/04-distributed-training.md) | DDP、FSDP、TP、PP、CP、EP 怎样组合？ | 快速变化 |
 | [06 · GPU 平台](modules/06-gpu-platforms.md) | 怎样调度、隔离和恢复 GPU workload？ | 持续变化 |
 

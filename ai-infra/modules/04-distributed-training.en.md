@@ -8,6 +8,8 @@
 
 When model state, activations, or optimizer state exceed one GPU's capacity, training must be partitioned. This module asks what to partition, how to synchronize it, and whether the added communication, scheduling, and failure complexity is justified.
 
+New to what DP and TP each split? Start with [Data Parallelism vs. Tensor Parallelism: What Actually Gets Split?](../notes/distributed-training/01-data-vs-tensor-parallelism.en.md)
+
 ## Learning goals
 
 - Break training memory into its major components.
