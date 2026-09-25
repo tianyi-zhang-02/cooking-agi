@@ -343,7 +343,7 @@ dir     = "interview"
 group   = "interview"
 zh      = "面试准备"
 en      = "Interview prep"
-order   = ["README.md", "leetcode.md", "system-design.md", "questions.md", "transformer-followups.md", "interview-basics.md",
+order   = ["README.md", "leetcode.md", "python.md", "system-design.md", "questions.md", "transformer-followups.md", "interview-basics.md",
            "hand-write-kit.md", "ml-math-interview.md"]
 include = ["00-foundations/interview-basics.md", "00-foundations/hand-write-kit.md",
            "00-foundations/ml-math-interview.md"]
@@ -440,6 +440,7 @@ en  = "Templates"
 "contributors.md"                                      = ["幕后", "Behind the notes"]
 "interview/README.md"                                   = ["使用说明", "How to use"]
 "interview/leetcode.md"  = ["LeetCode", "LeetCode"]
+"interview/python.md"    = ["Python 语法", "Python idioms"]
 "interview/system-design.md" = ["系统设计", "System design"]
 "interview/questions.md"                                = ["考前速查", "Question bank"]
 "interview/transformer-followups.md"                    = ["Transformer 追问", "Transformer follow-ups"]
