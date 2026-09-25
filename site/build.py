@@ -610,10 +610,10 @@ def roadmap_html(page) -> str:
     note = ("圆点可以标记已读，进度只存在你自己的浏览器里。“待补”的知识点还没有笔记，不假装有。岗位要求变得很快，这张图有时效性。"
             if zh else
             "Tick a dot to mark a topic as read: progress is stored only in your browser. “Planned” topics have no note yet and do not pretend to. Role requirements change quickly, so this map is time-sensitive.")
-    extend = (f'这里只有我自己在做或打算聊的方向。Data Scientist、Data Engineer、Quant、AI Infra 等路线不是我的 focus——'
+    extend = (f'这里只有我自己在做或打算聊的方向。Data Scientist、Data Engineer、AI Infra 等路线不是我的 focus——'
               f'欢迎你来补：在 <a href="{source}">site/roadmap.toml</a> 里加一个 <code>[[track]]</code> 就行，文件开头写了怎么加。'
               if zh else
-              f'Only directions I work on, or plan to write about, are here. Data Scientist, Data Engineer, Quant, AI Infra and others are not my focus. '
+              f'Only directions I work on, or plan to write about, are here. Data Scientist, Data Engineer, AI Infra and others are not my focus. '
               f'You are welcome to add them: one <code>[[track]]</code> in <a href="{source}">site/roadmap.toml</a>, with instructions at the top of the file.')
     return (f'<section class="roadmap home-block" data-widget="roadmap" aria-labelledby="routes">{head}'
             f'<div class="rm-tabs" role="tablist">{"".join(tabs)}</div>'

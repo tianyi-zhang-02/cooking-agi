@@ -312,7 +312,6 @@ only LoRA. The Teacher is normally frozen; the Student is optimized and deployed
 
 - [SFT: how far imitation goes](sft-and-its-ceiling.en.md)
 - [Post-training infrastructure](post-training-infrastructure.en.md)
-- [NeMo RL open-source notes](../open-source/nemo-rl/index.en.html): how on-policy distillation moves through a real system
 
 ## Papers
 

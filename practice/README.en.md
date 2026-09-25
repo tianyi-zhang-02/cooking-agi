@@ -4,14 +4,7 @@
 
 Study notes explain how a method works. This section follows what happens when we put it to use: how a problem was noticed, why a particular change was chosen, and how we checked whether it helped.
 
-I'm starting with open-source projects I've contributed to. There isn't much here yet, and I'll add to it over time. Everything here needs public code, references, or reproducible experiments behind it—not internal company projects.
-
-## Start here
-
-| Notes | What they cover |
-| --- | --- |
-| [Open-source practice and AI infra](../open-source/README.en.md) | Reading unfamiliar codebases, investigating problems, and discussing changes with maintainers |
-| [NVIDIA NeMo RL](../open-source/nemo-rl/README.en.md) | The post-training loop, performance and correctness issues, and SingleController design trade-offs |
+There isn't much here yet, and I'll add to it over time. Everything here needs public code, references, or reproducible experiments behind it—not internal company projects.
 
 ## What a practice note covers
 

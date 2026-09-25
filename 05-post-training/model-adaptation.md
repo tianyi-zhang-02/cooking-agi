@@ -293,7 +293,6 @@ LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。
 
 - [SFT：模仿能到哪儿，到哪儿为止](sft-and-its-ceiling.md)
 - [后训练基础设施](post-training-infrastructure.md)
-- [NeMo RL 开源手记](../open-source/nemo-rl/)：on-policy distillation 在真实系统里怎样流动
 
 ## 参考论文
 

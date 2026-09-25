@@ -12,7 +12,7 @@
 #   - 只链接真的存在的笔记；没写的就让它“待补”，不要包装。
 #   - 只有一条路线：MLE / Research Engineer。其它方向不是我的 focus，欢迎别人来扩展（见下）。
 #     kind = "main" 会标出“我的主线”。
-#   - Data Scientist、Data Engineer、Quant Researcher、AI Infra 等方向不是我的 focus，
+#   - Data Scientist、Data Engineer、AI Infra 等方向不是我的 focus，
 #     所以这里没有。欢迎别人来扩展（见下）。
 #
 # 怎么扩展一条新路线（欢迎 PR）：
@@ -60,7 +60,6 @@ topics = [
   { zh = "可验证奖励（RLVR）", en = "Verifiable rewards (RLVR)", note = "05-post-training/verifiable-rewards.md" },
   { zh = "后训练的基础设施：采样、数值、上下文", en = "Post-training infrastructure: sampling, numerics, context", note = "05-post-training/post-training-infrastructure.md" },
   { zh = "对齐税与能力保持", en = "The alignment tax", note = "05-post-training/alignment-tax.md" },
-  { zh = "开源实践：NeMo RL", en = "Open-source practice: NeMo RL", note = "open-source/nemo-rl/README.md" },
   { zh = "强化学习基础：MDP、policy gradient、baseline", en = "RL basics: MDPs, policy gradient, baselines" },
 ]
 
@@ -242,7 +241,7 @@ topics = [
 
 # ───────────────────────────── tracks ─────────────────────────────
 # 一条路线：我自己在走的 MLE / Research Engineer。layers 从上到下，上面是岗位专属，下面是通用基础。
-# 别的方向（搜广推、SDE、DS、Quant、Robotics、AI Infra……）不是我的 focus，不写；欢迎别人按文件开头的说明加 [[track]]。
+# 别的方向（搜广推、SDE、DS、Robotics、AI Infra……）不是我的 focus，不写；欢迎别人按文件开头的说明加 [[track]]。
 
 [[track]]
 id = "mle"
