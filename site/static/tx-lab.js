@@ -2925,3 +2925,91 @@
   showParam();
   render();
 })();
+
+/* --------------------------------------------- sorting with a key
+   One small list, six ways to sort it. Each row shows the value the key
+   computed for it, so it is visible that sorted() orders by that value alone;
+   rows with equal keys are banded to show that the sort is stable. */
+(function () {
+  var fig = TX.figure('tx-py-sort', { title: ['sorted() with a key · what the lambda actually sorts by', 'sorted() 加上 key · lambda 到底按什么排'] });
+  if (!fig) return;
+  var h = TX.h, t = TX.t;
+
+  var PEOPLE = [['cat', 90, 19], ['amy', 90, 21], ['eve', 85, 20], ['bob', 85, 23], ['dan', 70, 23]];
+  var OPTIONS = [
+    { id: 'plain', code: 'sorted(people)', key: function (p) { return p; }, reverse: false,
+      en: 'No key: elements are compared as they are. Tuples compare their first item first, so this sorts by name.',
+      zh: '不传 key，就直接比较元素本身。tuple 先比第一个元素，所以这里是按名字排。' },
+    { id: 'score', code: 'sorted(people, key=lambda p: p[1])', key: function (p) { return p[1]; }, reverse: false,
+      en: 'By score, ascending. eve and bob tie, and so do cat and amy, and each pair keeps its original order: that is what stable means.',
+      zh: '按分数升序。eve 和 bob 同分，cat 和 amy 同分，每一对都保持原来的先后，这就是「稳定」。' },
+    { id: 'neg', code: 'sorted(people, key=lambda p: -p[1])', key: function (p) { return -p[1]; }, reverse: false,
+      en: 'Negating a number turns ascending into descending. People with equal scores still keep their original order.',
+      zh: '数字取负号，升序就变成了降序。同分的人仍然保持原来的顺序。' },
+    { id: 'rev', code: 'sorted(people, key=lambda p: p[1], reverse=True)', key: function (p) { return p[1]; }, reverse: true,
+      en: 'reverse=True is also descending, and ties are not flipped: Python keeps the sort stable after reversing, so the result matches the negated key.',
+      zh: 'reverse=True 同样是降序，而且同分的人不会被倒过来：Python 保证加了 reverse 以后排序依然稳定，所以结果和取负号一样。' },
+    { id: 'tuple', code: 'sorted(people, key=lambda p: (-p[1], p[0]))', key: function (p) { return [-p[1], p[0]]; }, reverse: false,
+      en: 'The key returns a tuple: first by negated score (descending), then, on a tie, by name (ascending). amy now comes before cat.',
+      zh: 'key 返回一个 tuple：先按取负的分数（降序），同分再按名字（升序）。这下 amy 排到了 cat 前面。' },
+    { id: 'age', code: 'sorted(people, key=lambda p: (p[2], p[0]))', key: function (p) { return [p[2], p[0]]; }, reverse: false,
+      en: 'By age, then by name. bob and dan are both 23, so the second item decides: b comes before d.',
+      zh: '先按年龄，再按名字。bob 和 dan 都是 23 岁，于是由第二项决定：b 排在 d 前面。' }
+  ];
+
+  function cmp(a, b) {
+    if (Array.isArray(a)) {
+      for (var i = 0; i < Math.min(a.length, b.length); i++) {
+        var c = cmp(a[i], b[i]);
+        if (c) return c;
+      }
+      return a.length - b.length;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+  function show(v) {
+    if (Array.isArray(v)) return '(' + v.map(show).join(', ') + ')';
+    return typeof v === 'string' ? "'" + v + "'" : String(v);
+  }
+
+  var codeBox = h('pre', { class: 'ps-code' });
+  var table = h('div', { class: 'ps-table', role: 'table' });
+  var note = h('p', { class: 'fig-note' });
+  var current = 'score';
+
+  function render() {
+    var opt = OPTIONS.filter(function (o) { return o.id === current; })[0];
+    codeBox.textContent = 'people = [("cat", 90, 19), ("amy", 90, 21), ("eve", 85, 20),\n          ("bob", 85, 23), ("dan", 70, 23)]\n' + opt.code;
+    var rows = PEOPLE.map(function (p, i) { return { p: p, i: i, k: opt.key(p) }; });
+    rows.sort(function (a, b) { var c = cmp(a.k, b.k); return opt.reverse ? -c : c; });   // Array#sort is stable
+    TX.clear(table);
+    table.appendChild(h('div', { class: 'ps-row ps-head', role: 'row' }, [
+      h('span', { bi: ['was', '原位置'] }), h('span', { bi: ['name', '名字'] }), h('span', { bi: ['score', '分数'] }),
+      h('span', { bi: ['age', '年龄'] }), h('span', { bi: ['key value', 'key 算出的值'] })
+    ]));
+    var band = 0;
+    rows.forEach(function (r, n) {
+      var prevTie = n > 0 && cmp(rows[n - 1].k, r.k) === 0;
+      var nextTie = n < rows.length - 1 && cmp(rows[n + 1].k, r.k) === 0;
+      if (!prevTie && nextTie) band++;
+      var tie = prevTie || nextTie;
+      table.appendChild(h('div', { class: 'ps-row' + (tie ? ' is-tie ps-band-' + (band % 2) : ''), role: 'row' }, [
+        h('span', { class: 'ps-was', text: '#' + (r.i + 1) }),
+        h('span', { class: 'ps-name', text: r.p[0] }),
+        h('span', { text: String(r.p[1]) }),
+        h('span', { text: String(r.p[2]) }),
+        h('span', { class: 'ps-key', text: show(r.k) + (tie ? t('  · tie', '  · 相同') : '') })
+      ]));
+    });
+    TX.bi(note, opt.en, opt.zh);
+  }
+
+  var seg = TX.seg(OPTIONS.map(function (o, i) {
+    var labels = [['no key', '不传 key'], ['p[1]', 'p[1]'], ['-p[1]', '-p[1]'], ['reverse=True', 'reverse=True'], ['(-p[1], p[0])', '(-p[1], p[0])'], ['(p[2], p[0])', '(p[2], p[0])']][i];
+    return { id: o.id, en: labels[0], zh: labels[1] };
+  }), current, function (id) { current = id; render(); }, t('Sort key', '排序的 key'));
+  fig.controls.appendChild(seg.el);
+  TX.append(fig.stage, [codeBox, table]);
+  fig.foot.appendChild(note);
+  render();
+})();

@@ -11,6 +11,7 @@ Technical interviews look like a grab bag, but most of them keep asking the same
 ## Algorithm questions
 
 - [How I practise LeetCode](leetcode.en.md) — what to practise, my routine, the list of question types, and how far to take it
+- [The Python you actually use in coding problems](python.en.md) — lambda and sorting, comprehensions, the standard library tools, and the language details interviewers probe
 
 ## System design
 
