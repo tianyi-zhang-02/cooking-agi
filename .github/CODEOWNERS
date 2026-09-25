@@ -1,37 +1,37 @@
 * @tianyi-zhang-02
 /community/ @tianyi-zhang-02
-/00-foundations/ @tianyi-zhang-02
-/01-data-and-feedback/ @tianyi-zhang-02
-/02-memory/ @tianyi-zhang-02
-/03-multimodal-learning/ @tianyi-zhang-02
-/04-search/ @tianyi-zhang-02
-/05-post-training/ @tianyi-zhang-02
-/06-systems/ @tianyi-zhang-02
-/07-evaluation/ @tianyi-zhang-02
-/08-model-experience/ @tianyi-zhang-02
-/09-personal-agi/ @tianyi-zhang-02
-/10-agents/ @tianyi-zhang-02
-/practice/ @tianyi-zhang-02
-/rl/ @tianyi-zhang-02
-/interview/ @tianyi-zhang-02
-/career/ @tianyi-zhang-02
-/papers/ @tianyi-zhang-02
-/templates/ @tianyi-zhang-02
-/quant/probability/ @tianyi-zhang-02
-/00-foundations/core/ @tianyi-zhang-02
-/00-foundations/code/ @tianyi-zhang-02
-/00-foundations/deep-dives/ @tianyi-zhang-02
-/00-foundations/model-families/ @tianyi-zhang-02
-/00-foundations/moe/ @tianyi-zhang-02
-/00-foundations/looped/ @tianyi-zhang-02
-/05-post-training/rlhf/ @tianyi-zhang-02
-/07-evaluation/llm-as-a-judge/ @tianyi-zhang-02
-/00-foundations/interview-basics.md @tianyi-zhang-02
-/00-foundations/interview-basics.en.md @tianyi-zhang-02
-/00-foundations/hand-write-kit.md @tianyi-zhang-02
-/00-foundations/hand-write-kit.en.md @tianyi-zhang-02
-/00-foundations/ml-math-interview.md @tianyi-zhang-02
-/00-foundations/ml-math-interview.en.md @tianyi-zhang-02
+/00-foundations/ @tianyi-zhang-02 @2pir2
+/01-data-and-feedback/ @tianyi-zhang-02 @2pir2
+/02-memory/ @tianyi-zhang-02 @2pir2
+/03-multimodal-learning/ @tianyi-zhang-02 @2pir2
+/04-search/ @tianyi-zhang-02 @2pir2
+/05-post-training/ @tianyi-zhang-02 @2pir2
+/06-systems/ @tianyi-zhang-02 @2pir2
+/07-evaluation/ @tianyi-zhang-02 @2pir2
+/08-model-experience/ @tianyi-zhang-02 @2pir2
+/09-personal-agi/ @tianyi-zhang-02 @2pir2
+/10-agents/ @tianyi-zhang-02 @2pir2
+/practice/ @tianyi-zhang-02 @2pir2
+/rl/ @tianyi-zhang-02 @2pir2
+/interview/ @tianyi-zhang-02 @2pir2
+/career/ @tianyi-zhang-02 @2pir2
+/papers/ @tianyi-zhang-02 @2pir2
+/templates/ @tianyi-zhang-02 @2pir2
+/quant/probability/ @tianyi-zhang-02 @2pir2
+/00-foundations/core/ @tianyi-zhang-02 @2pir2
+/00-foundations/code/ @tianyi-zhang-02 @2pir2
+/00-foundations/deep-dives/ @tianyi-zhang-02 @2pir2
+/00-foundations/model-families/ @tianyi-zhang-02 @2pir2
+/00-foundations/moe/ @tianyi-zhang-02 @2pir2
+/00-foundations/looped/ @tianyi-zhang-02 @2pir2
+/05-post-training/rlhf/ @tianyi-zhang-02 @2pir2
+/07-evaluation/llm-as-a-judge/ @tianyi-zhang-02 @2pir2
+/00-foundations/interview-basics.md @tianyi-zhang-02 @2pir2
+/00-foundations/interview-basics.en.md @tianyi-zhang-02 @2pir2
+/00-foundations/hand-write-kit.md @tianyi-zhang-02 @2pir2
+/00-foundations/hand-write-kit.en.md @tianyi-zhang-02 @2pir2
+/00-foundations/ml-math-interview.md @tianyi-zhang-02 @2pir2
+/00-foundations/ml-math-interview.en.md @tianyi-zhang-02 @2pir2
 /.github/ @tianyi-zhang-02
 /site/ @tianyi-zhang-02
 /community/ @tianyi-zhang-02

@@ -6,63 +6,63 @@ id = "quant"
 zh = "Quant：概率与统计"
 en = "Quant: probability & statistics"
 groups = ["quant"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "foundations"
 zh = "大模型基础"
 en = "Foundations"
 groups = ["foundations"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "posttrain"
 zh = "Post-training"
 en = "Post-training"
 groups = ["posttrain"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "evaluation"
 zh = "评估"
 en = "Evaluation"
 groups = ["eval"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "data-retrieval"
 zh = "数据与检索"
 en = "Data & retrieval"
 groups = ["data-retrieval"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "systems-agents"
 zh = "系统、多模态与 Agents"
 en = "Systems, multimodal & agents"
 groups = ["systems", "agents"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "practice"
 zh = "工程实践与开源"
 en = "Practice & open source"
 groups = ["practice"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "career"
 zh = "求职与面试准备"
 en = "Career & interview preparation"
 groups = ["career", "interview"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "papers"
 zh = "论文"
 en = "Papers"
 groups = ["reference"]
-reviewers = []
+reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "site"
