@@ -46,7 +46,7 @@ The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has l
 | [Data & retrieval](01-data-and-feedback/README.en.md) | Data, feedback signals, and retrieval |
 | [Systems & multimodal](06-systems/README.en.md) | Request handling, debugging, and human involvement |
 | [Agents](10-agents/README.en.md) | Common architectures, use cases, and model selection |
-| [Industry Practice](practice/README.en.md) | Debugging, implementation, tests, and trade-offs through NeMo RL contributions |
+| [Industry Practice](practice/README.en.md) | Debugging, implementation, tests, and trade-offs when putting a method to use (in progress) |
 | [Interview preparation](interview/README.en.md) | ML review, coding practice, and system design resources |
 | [Job search](career/README.en.md) | Preparation, mistakes, and reflections on the process |
 | [Papers](papers/README.en.md) | Reading notes, questions, and experiment ideas |

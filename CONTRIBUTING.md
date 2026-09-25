@@ -25,7 +25,7 @@
 
 ## 目录和本地检查
 
-原理与教学演示放在现有学习章节；实践入口在 `practice/`，开源笔记在 `open-source/`；求职在 `career/` / `interview/`，论文在 `papers/`。只调整导航时不要搬文件，避免已有链接失效。
+原理与教学演示放在现有学习章节；实践入口在 `practice/`；求职在 `career/` / `interview/`，论文在 `papers/`。只调整导航时不要搬文件，避免已有链接失效。
 
 ```bash
 pip install markdown pygments
@@ -77,7 +77,7 @@ Keep each PR focused and explain the change, evidence, and checks. Routine merge
 
 ## Structure and local checks
 
-Concepts and teaching demos stay in the learning chapters. `practice/` is the practice entry, `open-source/` holds open-source notes, `career/` and `interview/` cover preparation, and `papers/` holds paper notes. Don't move files just to reorganize navigation; preserve existing URLs.
+Concepts and teaching demos stay in the learning chapters. `practice/` is the practice entry, `career/` and `interview/` cover preparation, and `papers/` holds paper notes. Don't move files just to reorganize navigation; preserve existing URLs.
 
 ```bash
 pip install markdown pygments

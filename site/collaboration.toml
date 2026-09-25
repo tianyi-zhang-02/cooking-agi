@@ -47,7 +47,7 @@ reviewers = []
 id = "practice"
 zh = "工程实践与开源"
 en = "Practice & open source"
-groups = ["practice", "open-source"]
+groups = ["practice"]
 reviewers = []
 
 [[area]]
