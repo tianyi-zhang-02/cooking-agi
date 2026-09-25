@@ -371,3 +371,15 @@ svg text{font-family:var(--sans),var(--cjk)}
 .tx-lab .pd-cursor{stroke:var(--link);stroke-width:1.2;stroke-dasharray:4 3}
 .tx-lab .pd-level{stroke:var(--link);stroke-width:1;opacity:.6}
 .tx-lab .pd-dot{fill:var(--link);stroke:var(--panel);stroke-width:2}
+/* sorting with a key */
+.tx-lab .ps-code{margin:0 0 .8rem;padding:.8rem 1rem;border:1px solid var(--rule);border-radius:8px;background:var(--code-bg);font:500 12.5px/1.6 var(--mono);color:var(--ink);white-space:pre-wrap;overflow-x:auto}
+.tx-lab .ps-table{display:grid;gap:3px;font-size:13.5px}
+.tx-lab .ps-row{display:grid;grid-template-columns:4.5em 5em 4.5em 4em 1fr;gap:10px;align-items:center;padding:6px 10px;border-radius:6px}
+.tx-lab .ps-head{font:650 11px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tx-lab .ps-row:not(.ps-head){border:1px solid var(--rule);background:var(--paper)}
+.tx-lab .ps-row.is-tie.ps-band-1{border-color:var(--c-q);background:color-mix(in srgb,var(--c-q) 10%,var(--paper))}
+.tx-lab .ps-row.is-tie.ps-band-0{border-color:var(--c-k);background:color-mix(in srgb,var(--c-k) 10%,var(--paper))}
+.tx-lab .ps-was{font:500 12px/1.4 var(--mono);color:var(--muted)}
+.tx-lab .ps-name{font-weight:650;color:var(--ink)}
+.tx-lab .ps-key{font:600 12.5px/1.4 var(--mono);color:var(--ink)}
+@media (max-width:620px){.tx-lab .ps-row{grid-template-columns:3.2em 3.6em 3em 2.6em 1fr;gap:6px;font-size:12.5px}}

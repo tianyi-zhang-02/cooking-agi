@@ -437,6 +437,7 @@ TX_LAB = [
     ("tx-agent-cost", "用 API 还是自己 serve：粗略的月成本模型", "Frontier API or self-hosted: a rough monthly cost model"),
     ("tx-agent-maze", "同一个迷宫，三种 agent", "One maze, three kinds of agent"),
     ("tx-model-router", "这条请求交给谁：小模型、frontier、级联、路由", "Who gets the request: small, frontier, cascade, router"),
+    ("tx-py-sort", "sorted() 加上 key：lambda 到底按什么排", "sorted() with a key: what the lambda actually sorts by"),
     ("tx-prob-events", "把概率画成面积：互斥、独立，还是都不是", "Probability as area: disjoint, independent, or neither"),
     ("tx-prob-dist", "把分布画出来：柱子、曲线和跳跃", "Drawing a distribution: bars, curves, and jumps"),
 ]
