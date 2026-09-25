@@ -103,5 +103,3 @@ Modern-first does not mean following every new term. Ask:
 - Is it likely to help a decision six months from now?
 
 If the only argument is that a topic is currently popular, it belongs in an experiment log before the main learning path.
-
-AI Infrastructure follows a more specific [five-minute note and freshness policy](ai-infra/EDITORIAL.en.md).
