@@ -89,7 +89,7 @@ RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维
 
 <!-- widget:tx-flash -->
 
-切到“标准 attention”，看 S 和 P 两个 $n\times n$ 矩阵怎样被完整写进 HBM；再切回来，注意右上角整块被 causal mask 直接跳过的 block。online softmax 的推导见 [AI Infra · online softmax](../ai-infra/notes/attention/03-online-softmax.md)。
+切到“标准 attention”，看 S 和 P 两个 $n\times n$ 矩阵怎样被完整写进 HBM；再切回来，注意右上角整块被 causal mask 直接跳过的 block。
 
 ## 模型家族速览
 
@@ -125,7 +125,6 @@ RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维
 
 - [Transformer 架构](transformer.md) —— 这一页所有机制的公式、推导和从零实现
 - [Multi-head attention](core/multi-head-attention.md) 与 [Decoder-only](core/decoder-only.md) —— 必修章节里的逐步拆解
-- [AI Infra · online softmax](../ai-infra/notes/attention/03-online-softmax.md) —— FlashAttention 背后的那一步
 
 ## 参考论文
 

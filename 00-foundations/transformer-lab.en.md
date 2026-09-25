@@ -89,7 +89,7 @@ On a GPU, attention is limited by memory traffic rather than arithmetic: the sta
 
 <!-- widget:tx-flash -->
 
-Switch to “Standard attention” and watch the two $n\times n$ matrices S and P being written out in full; switch back and notice the upper-right blocks that the causal mask lets it skip entirely. The online-softmax derivation is in [AI Infra · online softmax](../ai-infra/notes/attention/03-online-softmax.en.md).
+Switch to “Standard attention” and watch the two $n\times n$ matrices S and P being written out in full; switch back and notice the upper-right blocks that the causal mask lets it skip entirely.
 
 ## Families at a glance
 
@@ -125,7 +125,6 @@ The same checklist, side by side. Numbers come from each family's paper, tech re
 
 - [The Transformer architecture](transformer.en.md): formulas, derivations and a from-scratch implementation of everything on this page
 - [Multi-head attention](core/multi-head-attention.en.md) and [Decoder-only](core/decoder-only.en.md): the step-by-step core chapters
-- [AI Infra · online softmax](../ai-infra/notes/attention/03-online-softmax.en.md): the one step behind FlashAttention
 
 ## References
 
