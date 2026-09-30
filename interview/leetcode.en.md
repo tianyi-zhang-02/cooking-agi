@@ -38,6 +38,8 @@ Simple, one question type at a time:
 
 Step 3 is the one that matters. Following a solution is not the same as knowing it; writing it yourself days later is.
 
+If you practise in Python, go through [the Python you actually use in coding problems](python.en.md) first; it saves a lot of time.
+
 ## The list of types
 
 Go through these one at a time and you have covered most of it:

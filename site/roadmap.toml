@@ -220,6 +220,9 @@ tools = ["概率", "线性代数", "统计推断", "优化"]
 tools_en = ["Probability", "Linear algebra", "Statistical inference", "Optimization"]
 topics = [
   { zh = "从概率到估计量", en = "From probability to estimators", note = "00-foundations/ml-math-interview.md" },
+  { zh = "概率：从三条公理出发", en = "Probability: the three axioms", note = "quant/probability/README.md" },
+  { zh = "概率：把分布画出来", en = "Probability: drawing a distribution", note = "quant/probability/distributions.md" },
+  { zh = "概率：条件概率、独立与贝叶斯", en = "Probability: conditioning, independence and Bayes", note = "quant/probability/conditional.md" },
   { zh = "梯度与优化的直觉", en = "Intuition for gradients and optimization", note = "00-foundations/from-linear-to-neural.md" },
   { zh = "线性代数", en = "Linear algebra" },
   { zh = "假设检验与置信区间", en = "Hypothesis tests and confidence intervals" },
@@ -236,6 +239,7 @@ tools_en = ["Python", "Git", "Data structures & algorithms"]
 topics = [
   { zh = "白板手写 ML 组件：attention、softmax、采样…", en = "Whiteboard ML components: attention, softmax, sampling…", note = "00-foundations/hand-write-kit.md" },
   { zh = "从零实现：纯 Python / PyTorch 实验", en = "From scratch: pure Python / PyTorch labs", note = "00-foundations/code/README.md" },
+  { zh = "刷题用得上的 Python 语法", en = "The Python you use in coding problems", note = "interview/python.md" },
   { zh = "数据结构与算法", en = "Data structures and algorithms" },
 ]
 
