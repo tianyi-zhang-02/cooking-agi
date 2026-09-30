@@ -21,3 +21,9 @@ flowchart LR
 ```
 
 理解主线以后，可以去 [进阶拆解](../deep-dives/) 补数学；如果更喜欢先运行代码，也可以直接进入 [从零实现实验](../code/)。
+
+## 不太熟的基础，先在这里补
+
+- [向量与相似度](embeddings-and-similarity.md)：输入 embedding、hidden state 和检索向量有什么区别，点积为什么不等于余弦。
+- [一次训练怎么走](../deep-dives/training-step.md)：把 token、mask、loss 和参数更新连成一次完整计算。
+- [CLIP 图文对齐](../../03-multimodal-learning/clip.md)：用一个 3 × 3 的例子，看看这些基础怎样用到图片和文字上。

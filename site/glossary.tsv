@@ -73,7 +73,7 @@
 后训练	post-training	预训练之后为特定任务和行为做的所有训练
 对比学习	contrastive learning	拉近正样本对、推开负样本对来学习表示
 微调	fine-tuning	在预训练权重上继续训练以适配具体任务
-向量	embedding	把离散对象映射成的稠密实数向量
+嵌入向量	embedding	模型将输入对象或特征编码成的向量表示；不是所有数学向量都叫 embedding
 点积	inner product	两个向量对应分量相乘再求和，双塔的打分方式
 预计算	precomputation	把与请求无关的部分提前算好，换取在线延迟
 支撑集	support	一个分布里概率非零的那部分区域

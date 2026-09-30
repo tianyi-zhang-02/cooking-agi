@@ -1,86 +1,83 @@
-> 希望这些笔记能帮你少花点时间找资料，多留点时间做自己喜欢的事。
+# AGI 学习笔记
+**AGI Study Notes · ML 基础、语言模型与工程实践**
 
-<div align="center" markdown="1">
+[**在线阅读 →**](https://tianyi-zhang-02.github.io/cooking-agi/) · **中文** / [English](README.en.md) · [学习路线](00-foundations/study-guide.md) · [加入我们](CONTRIBUTING.md)
 
-<img src="site/static/og.png" alt="AGI 学习笔记" width="760">
+[![Build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
 
-<h1>AGI 学习笔记</h1>
+把分散的资料串起来：从一个问题出发，配上图解、小实验和复习卡，尽量讲清模型为什么这样设计、哪里有用、又有什么限制。
 
-学过的基础、读过的论文，还有准备找工作时的一些记录。<br>
-中英文都有，部分内容配了可以动手玩的交互图。
+这份中英双语笔记由社区一起维护，仍在持续补充。希望你能少花些时间找资料，把精力留给真正想学的东西，也给生活留一点余地。
 
-[![在线阅读](https://img.shields.io/badge/在线阅读-cooking--agi-E8A672?style=flat-square)](https://tianyi-zhang-02.github.io/cooking-agi/)
-[![build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
-[![bilingual](https://img.shields.io/badge/中文-English-8a8a8a?style=flat-square)](README.en.md)
+## 从哪里开始
 
-[**在线阅读**](https://tianyi-zhang-02.github.io/cooking-agi/) · [English](README.en.md) · [幕后](contributors.md) · [参与贡献](CONTRIBUTING.md)
-
-</div>
-
-## 关于这份笔记
-
-去年开始，我决定试试 industry。之前本科基本都在做科研，真正开始准备找工作，才发现有不少东西要补。准备了挺久，也走了一些弯路，所以想把学过的东西整理出来，方便自己回头看，也希望能帮到有类似需要的人。
-
-这里主要记录 ML 和 language models 的基础、post-training、evaluation、论文阅读，以及我的面试准备方法和找工过程中的一些想法。**不是面经题库，不会放具体公司的面试题。** 很多章节还没写完，也难免有理解不到位的地方，我会继续补充。
-
-## 适合谁看
-
-- 在找 **ML 相关实习或 new-grad 岗位**，想整理一下基础和准备思路；
-- 想转到 **ML / LLM 方向**，不知道先从哪些内容开始；
-- 不一定在找工作，只是想了解模型怎么工作。
-
-我的准备和面试经历主要集中在 **MLE 和 Research Scientist** 岗位，不太适合给 SDE 面试建议。AI infra 等我还不熟悉的方向，会整理一些自己觉得不错的资料，方便大家去看更有经验的人怎么讲。这里不是一份适合所有人的路线，按自己的需要参考就好。
-
-## 可以看些什么
-
-不知道从哪篇开始，可以先看[怎么读与怎么复习](00-foundations/study-guide.md)：按你现在的问题选路线。各章末尾也有复习卡，先自己回答，再展开思路；没讲顺的可以留到下次再练。
-
-内容分成两个主要入口：[学习笔记](00-foundations/)讲原理、公式和教学演示，按考察方向分成 Quant Researcher 和 AI / ML Engineer 两区；[工程实践](practice/)记录具体问题是怎么发现、实现和验证的。求职和论文笔记继续单独整理。
-
-建议在[网站](https://tianyi-zhang-02.github.io/cooking-agi/)上阅读，可以切换中英文，也能直接操作交互图。想先随便看看，可以从 [Transformer 图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html)开始。
-
-| 板块 | 内容 |
+| 你想做什么 | 阅读入口 |
 | --- | --- |
-| [概率与统计](quant/probability/) | Quant Researcher：概率公理、分布怎么画、条件概率与独立 |
-| [大模型基础](00-foundations/) | Tokenization、RNN / LSTM、Transformer、MoE 与模型家族 |
-| [Post-training](05-post-training/) | SFT、RLHF、PPO 等方法的原理和适用场景 |
-| [评估](07-evaluation/) | 评估设计、指标与 LLM-as-a-judge |
-| [数据与检索](01-data-and-feedback/) | 数据、反馈信号与检索 |
-| [系统与多模态](06-systems/) | 请求处理、问题排查与人工介入 |
-| [Agents](10-agents/) | 常见结构、使用场景与模型选择 |
-| [工程实践](practice/) | 把方法用起来时怎么定位问题、实现、测试与取舍（还在整理） |
-| [面试准备](interview/) | ML 基础复习、代码练习和系统设计资料 |
-| [求职](career/) | 准备过程、踩过的坑和心态变化 |
-| [论文](papers/) | 读论文时的理解、疑问和实验思路 |
+| 系统补基础 | [学习与复习导读](00-foundations/study-guide.md) → [大模型学习地图](00-foundations/README.md) |
+| 先动手看看 | [Transformer 交互图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html) · [CLIP 图文对齐](03-multimodal-learning/clip.md) |
+| 准备 ML 实习或 new-grad | [技术面准备](interview/README.md) · [求职记录](career/README.md) |
+| 读论文或补一篇笔记 | [论文](papers/README.md) · [写作规范](EDITORIAL.md) · [内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
+
+**建议在网站阅读。** 中英文切换、交互图和复习卡在那里可直接使用；这个仓库保存正文、实验代码与站点源码。
+
+## 内容地图
+
+学习笔记分为 **Quant Researcher** 和 **AI / ML Engineer** 两区。工程实践、求职和论文各有入口，不把所有内容塞进一条路线。
+
+| 板块 | 内容与入口 |
+| --- | --- |
+| 概率与基础 | [概率、分布与条件概率](quant/probability/README.md) · [Token、向量与 Transformer](00-foundations/README.md) |
+| 大模型与多模态 | [模型家族](00-foundations/model-families/README.md) · [MoE](00-foundations/moe/README.md) · [CLIP 与视觉语言模型](03-multimodal-learning/README.md) |
+| 训练与评估 | [Post-training](05-post-training/README.md) · [评估与 LLM-as-a-judge](07-evaluation/README.md) |
+| 数据、记忆与检索 | [反馈与目标](01-data-and-feedback/README.md) · [记忆](02-memory/README.md) · [检索](04-search/README.md) |
+| Agents 与系统 | [Agent 结构](10-agents/README.md) · [可观测性与人工介入](06-systems/README.md) · [模型体验](08-model-experience/README.md) · [Personal AGI](09-personal-agi/README.md) |
+| 从理解到实践 | [工程实践](practice/README.md)（整理中）· [面试准备](interview/README.md) · [求职](career/README.md) · [论文](papers/README.md) |
+
+每篇尽量沿着 **问题 → 例子与图解 → 原理 → 验证 → 取舍 → 复习** 来讲。公式不是终点：能讲出前提、用小实验检查一次，才算往前走了一步。
 
 ## 加入我们！
 
-这份笔记正在从个人记录变成大家一起维护的知识库。你可以只改一小处，也可以认领一个喜欢的板块；不用一上来就承诺很多时间。[参与方式、板块分工和审核约定 →](community/README.md)
+不用先写一整章。一个纠错、一张更清楚的图，或者一句“这里没看懂”，都能帮到下一位读者。
 
-发现错误、哪段没看懂，或者有想看的内容，都欢迎[提 issue](https://github.com/tianyi-zhang-02/cooking-agi/issues)。有自己的笔记或更好的例子，也欢迎提 PR，我也想跟着大家多学一点。
+- **提问或纠错**：[开 issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，附上页面和具体段落。
+- **补充内容**：小改动直接提 PR；新文章或目录调整先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，避免重复劳动。
+- **参与审核**：看[板块分工与审核约定](community/README.md)；常规合并需要非作者的相关 CODEOWNER 审核和自动检查。
+- **认识贡献者**：[幕后](contributors.md)记录一起参与的朋友；地图位置只收自愿提供的国家或地区。
 
-怎么参与可以看[贡献指南](CONTRIBUTING.md)，参与过的朋友会出现在[幕后](contributors.md)。想在地图上留下一个位置，也可以[告诉我你所在的国家或地区](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)，不用提供具体地址。
+[贡献指南](CONTRIBUTING.md) · [写作规范](EDITORIAL.md)
 
-这里只分享公开的技术知识和学习心得，请不要上传公司内部资料、未公开的面试内容或其他敏感信息。
+只分享公开知识、可复现实验和公开项目笔记。不上传公司内部资料、未公开的面试题、凭据或他人隐私。AI 可以协助写作，但需要核对来源、验证内容，并在 PR 中说明使用方式。
 
-## 本地运行
+## 本地阅读与检查
+
+静态站点使用 Python 构建，无需数据库。以下命令在仓库根目录运行，建议 Python 3.12：
+
+```bash
+python3 -m pip install markdown pygments
+python3 site/build.py --serve
+```
+
+打开 <http://localhost:8000>。仅构建时运行 `python3 site/build.py`，输出在 `_site/`。
 
 <details markdown="1">
-<summary>展开查看安装、预览和检查命令</summary>
-
-在仓库根目录运行：
+<summary>提交前的检查</summary>
 
 ```bash
-pip install markdown pygments
-python3 site/build.py          # 构建到 _site/
-python3 site/build.py --serve  # 本地预览
+python3 site/collaboration.py
+python3 -m unittest discover -s site/tests
+python3 site/leakcheck.py
+python3 site/paritycheck.py
+python3 site/build.py
 ```
 
-提交前运行：
-
-```bash
-python3 site/paritycheck.py  # 检查中英两版结构
-python3 site/leakcheck.py    # 检查敏感内容
-```
+部分教学实验另外需要 NumPy 或 PyTorch，依赖写在对应章节。复习进度只保存在当前浏览器，不上传到服务器。
 
 </details>
+
+## 为什么整理这些
+
+这份笔记最初来自从学术研究转向 industry 的准备过程：学过不少东西，但把它们串起来、在面试或项目里讲清楚，仍然走过弯路。
+
+目前更适合关注 ML、language models，以及 MLE / Research Scientist 方向的读者，也欢迎只是好奇 AI 的朋友。它不是万能求职路线，更不是具体面试题库；SDE、前后端和不熟悉的 infra 方向会优先引用更有经验的作者。
+
+内容还不完整，解释也会继续改。哪里不对、还想看什么，欢迎直接告诉我们。

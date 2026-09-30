@@ -21,3 +21,9 @@ flowchart LR
 ```
 
 Once the main line makes sense, go to the [deep dives](../deep-dives/README.en.md) to fill in the math; if you prefer to run code first, go straight to the [build-it-yourself labs](../code/README.en.md).
+
+## Fill in unfamiliar foundations
+
+- [Embeddings and similarity](embeddings-and-similarity.en.md): distinguish input embeddings, hidden states, and retrieval vectors; compare dot product with cosine.
+- [One training step](../deep-dives/training-step.en.md): connect tokens, masks, loss, and parameter updates in one computation.
+- [CLIP alignment](../../03-multimodal-learning/clip.en.md): apply these ideas to images and text with a 3 × 3 example.

@@ -12,6 +12,7 @@ The two study areas remain **Quant Researcher** and **AI / ML Engineer**. They s
 | --- | --- | --- |
 | Review probability | [Probability](../quant/probability/README.en.md) → distributions → conditioning | Explain conditional and joint probability with a small example, not just a formula |
 | Learn language models systematically | [Learning map](README.en.md) → core mechanisms → implementations | Trace tokens to logits, identifying the input and output of each step |
+| Understand learning from images and text | [Embeddings and similarity](core/embeddings-and-similarity.en.md) → [CLIP](../03-multimodal-learning/clip.en.md) → [Visual language models](../03-multimodal-learning/vision-to-language.en.md) | Distinguish pair scoring from answer generation, and trace both data and gradients |
 | Read a new model report | [Model-reading exercise](model-families/how-to-read.en.md) → family notes | Identify the exact version, its changes, and the experiments supporting an explanation |
 | Train or post-train models | [Feedback to objectives](../01-data-and-feedback/feedback-to-objectives.en.md) → [methods](../05-post-training/README.en.md) → [evaluation](../07-evaluation/README.en.md) | Explain what a label means, what the loss rewards, and how to catch side effects |
 | Build memory, retrieval, or agents | [Memory lifecycle](../02-memory/memory-lifecycle.en.md) → [retrieval](../04-search/README.en.md) → [agents](../10-agents/README.en.md) | Trace the evidence used for a request and locate the stage responsible for a failure |

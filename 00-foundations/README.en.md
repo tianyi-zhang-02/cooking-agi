@@ -17,6 +17,8 @@ So this is not ordered by paper year, and it is in no hurry to pile up today's m
 
 For routes across the whole collection, start with the [study and review guide](study-guide.en.md). This page focuses on language-model foundations; you don't need to finish the other areas first.
 
+If similarity or a training step still feels abstract, try [embeddings and similarity](core/embeddings-and-similarity.en.md) and [one training step](deep-dives/training-step.en.md). Then follow [CLIP → visual language models](../03-multimodal-learning/README.en.md) to see how images enter the computation.
+
 ## One path, end to end
 
 <div class="learning-path">
