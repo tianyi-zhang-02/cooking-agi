@@ -35,6 +35,7 @@ from pathlib import Path
 
 import markdown
 import collaboration
+import review
 from markdown.extensions.toc import TocExtension, slugify
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1806,6 +1807,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{page_header}}", page_header_html(page))
             .replace("{{page_nav}}", "" if 'data-contributors-universe' in page.body else page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))
+            .replace("{{review}}", review.render(page, nav["_review"], BY_SRC))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))
 
@@ -1819,6 +1821,8 @@ def main():
 
     nav = load_nav()
     collaboration.validate(collaboration.load_config(), nav)
+    nav["_review"] = review.load_config()
+    review.validate(nav["_review"], nav)
     terms = load_glossary()
     built = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -1842,6 +1846,9 @@ def main():
     index = []
     for page in pages:
         build_page(page, terms, nav['site']['repo'], known)
+        if any(deck["section"] == page.section["dir"] for deck in nav["_review"]["decks"]):
+            page.toc.append({"id": "chapter-review", "name": "本章复习" if page.lang == "zh"
+                             else "Chapter review", "children": []})
         dest = OUT / page.out_rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(assemble(page, sections, people, nav, built, template),

@@ -15,6 +15,8 @@ So this is not ordered by paper year, and it is in no hurry to pile up today's m
   <div><span class="level-chip lab">Lab</span><strong>Don't just trust the diagram; run it once yourself</strong><p>The same mechanism written once in pure Python / NumPy and once in PyTorch.</p></div>
 </div>
 
+For routes across the whole collection, start with the [study and review guide](study-guide.en.md). This page focuses on language-model foundations; you don't need to finish the other areas first.
+
 ## One path, end to end
 
 <div class="learning-path">

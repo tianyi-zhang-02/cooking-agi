@@ -2,9 +2,11 @@
 
 [中文](README.md) · **English**
 
-## Start here: memory is not storing all of history
+This page distinguishes types of memory. [Writing, updating, and forgetting](memory-lifecycle.en.md) follows a timeline through expiration, conflicts, and deletion.
 
-Memory is not storing every historical event. It is letting the model find, when it needs it, **information that is still relevant, has clear provenance, and can be revised by new evidence**.
+## Storing more is not always remembering better
+
+Storing a conversation is easy. The harder part is finding **applicable information with clear provenance**, and updating it when a user changes their mind rather than treating old statements as permanent facts.
 
 ## Why one user needs several kinds of memory
 
