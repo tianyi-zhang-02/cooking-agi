@@ -9,6 +9,7 @@ Start with mechanisms:
 - [Sequence gradients, BPTT, and gates](recurrent-dynamics.en.md): why information disappears and what the LSTM additive path changes.
 - [Transformer architecture](../transformer.en.md): $Q/K/V$, masks, normalization, RoPE, GQA, SwiGLU, and KV cache.
 - [Language-model objectives, training, and generation](language-model-objective.en.md): why one model has a parallel training path and a sequential decode path.
+- [One language-model training step](training-step.en.md): trace label shifting, three masks, valid-token normalization, and gradient accumulation through one batch.
 
 Read each note with a falsifiable question: **if this component is removed, which invariant should fail first?**
 

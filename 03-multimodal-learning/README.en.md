@@ -2,6 +2,21 @@
 
 [中文](README.md) · **English**
 
+> Last reviewed: 2026-09
+
+## Start with a short route
+
+Separate matching from answering before asking what multimodal input adds. The two new notes follow one computation chain; you do not need to read every paper first.
+
+| Order | Note | What you should be able to explain |
+| --- | --- | --- |
+| 1 · Foundations | [Embeddings and similarity](../00-foundations/core/embeddings-and-similarity.en.md) | Why cosine is not probability and what temperature changes |
+| 2 · Matching | [CLIP](clip.en.md) | Two encoders, symmetric loss, and negative-pair assumptions |
+| 3 · Answering | [How images enter an LLM](vision-to-language.en.md) | Patches, projectors, instruction tuning, and visual-evidence tests |
+| 4 · Training code | [One training step](../00-foundations/deep-dives/training-step.en.md) | Target alignment, masks, and loss normalization |
+
+The CLIP page lets you change temperature and mismatched pairs. Each chapter ends with review cards. The overview below helps you choose what to explore next.
+
 ## Start here: multimodality adds evidence
 
 Multimodal learning lets a model understand text, images, video, audio, and behavior together, because a great deal of meaning is never fully written down in text.

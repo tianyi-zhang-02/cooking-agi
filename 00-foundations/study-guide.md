@@ -12,6 +12,7 @@
 | --- | --- | --- |
 | 补概率基础 | [概率](../quant/probability/README.md) → 分布 → 条件概率 | 能用一个小例子分清条件概率和联合概率，而不只是会套公式 |
 | 第一次系统学语言模型 | [学习地图](README.md) → 核心机制 → 从零实现 | 能画出 token 到 logits 的过程，知道每一步的输入和输出 |
+| 看懂图片和文字怎么一起学 | [向量与相似度](core/embeddings-and-similarity.md) → [CLIP](../03-multimodal-learning/clip.md) → [视觉语言模型](../03-multimodal-learning/vision-to-language.md) | 能区分配对打分和生成回答，画出两者的数据与梯度路径 |
 | 看懂新模型 | [模型家族阅读练习](model-families/how-to-read.md) → 各家族精读 | 能说清具体版本改了什么，以及哪项实验支持这个解释 |
 | 做训练或 Post-training | [反馈怎么变成目标](../01-data-and-feedback/feedback-to-objectives.md) → [训练方法](../05-post-training/README.md) → [评估](../07-evaluation/README.md) | 能解释标签意味着什么、loss 在奖励什么、怎样发现副作用 |
 | 做记忆、检索或 Agent | [记忆的写入与更新](../02-memory/memory-lifecycle.md) → [检索](../04-search/README.md) → [Agents](../10-agents/README.md) | 能追踪一次请求用了哪些证据，出错后能找到责任环节 |

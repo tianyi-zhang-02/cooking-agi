@@ -1,0 +1,31 @@
+.clip-lab { margin: 1.8rem 0; padding: 1.25rem; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; }
+.clip-heading { display: flex; align-items: center; justify-content: space-between; gap: .8rem; }
+.clip-heading strong { font-size: 1rem; }
+.clip-lab button, .clip-lab select { color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: .45rem .6rem; min-height: 40px; font: inherit; font-size: .8rem; }
+.clip-lab button { cursor: pointer; }
+.prose .clip-subtitle, .prose .clip-hint { font-size: .82rem; line-height: 1.8; color: var(--muted); }
+.clip-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.clip-controls label { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .78rem; color: var(--ink-soft); min-width: 0; }
+.clip-controls select, .clip-controls input { width: 100%; min-width: 0; }
+.clip-controls output { margin-left: auto; font-family: var(--mono); }
+.clip-controls input { accent-color: var(--ink); }
+.clip-matrix-wrap { overflow-x: auto; }
+.prose .clip-matrix { display: table; width: 100%; table-layout: fixed; margin: 0; font-size: .76rem; border-collapse: separate; border-spacing: 4px; }
+.clip-matrix caption { text-align: left; color: var(--muted); font-size: .75rem; line-height: 1.7; padding: .5rem 0; }
+.prose .clip-matrix th, .prose .clip-matrix td { padding: .6rem .2rem; text-align: center; white-space: normal; overflow-wrap: anywhere; border: 1px solid transparent; }
+.prose .clip-matrix th { font-weight: 500; }
+.prose .clip-matrix td { background: var(--paper); color: var(--muted); border-radius: 4px; }
+.prose .clip-matrix .is-selected { background: var(--ember-bg); color: var(--ink); }
+.prose .clip-matrix .is-pair { border-color: var(--muted); }
+.clip-matrix b, .clip-matrix small { display: block; font-family: var(--mono); }
+.clip-matrix b { font-size: .92rem; }
+.clip-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; margin-top: 1rem; }
+.clip-metrics div { padding-top: .65rem; border-top: 1px solid var(--rule); }
+.clip-metrics span { display: block; color: var(--muted); font-size: .7rem; line-height: 1.6; }
+.clip-metrics strong { display: block; margin-top: .35rem; font-family: var(--mono); font-size: 1.15rem; }
+@media (max-width: 540px) {
+  .clip-lab { padding: .8rem; }
+  .clip-controls { grid-template-columns: 1fr; gap: .7rem; }
+  .clip-metrics { gap: .5rem; }
+}
+@media print { .clip-controls, .clip-heading button { display: none; } }

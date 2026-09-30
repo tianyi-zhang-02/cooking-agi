@@ -124,6 +124,38 @@
             "zh": "语气确定和内容正确是两件事。",
             "en": "Confident wording is not factual correctness."
           }
+        },
+        {
+          "id": "embedding-cosine",
+          "source": "00-foundations/core/embeddings-and-similarity.md",
+          "question": {
+            "zh": "查询 (1,0)，候选 (2,2) 和 (1,0)，为什么点积与余弦选出的第一名不同？",
+            "en": "For query (1,0) and candidates (2,2), (1,0), why do dot product and cosine choose different winners?"
+          },
+          "answer": {
+            "zh": "点积分别是 2 和 1，包含长度的影响；余弦分别约为 0.707 和 1，只比较方向。先确认训练和检索用的分数是否一致。",
+            "en": "Dot products are 2 and 1 and include magnitude; cosines are about 0.707 and 1 and compare direction. First check whether training and retrieval use the same score."
+          },
+          "pitfall": {
+            "zh": "不要把余弦 0.8 解读成 80% 的相关概率。",
+            "en": "A cosine of 0.8 is not an 80% relevance probability."
+          }
+        },
+        {
+          "id": "embedding-temperature",
+          "source": "00-foundations/core/embeddings-and-similarity.md",
+          "question": {
+            "zh": "固定候选分数，只降低正温度，会改变排序吗？",
+            "en": "With fixed candidate scores, does lowering a positive temperature change ranking?"
+          },
+          "answer": {
+            "zh": "不会。除以同一个正数，再取 softmax 都保留排序，但分布会更集中，loss 也会变化。最高分错了时，降低温度会放大这种确信。",
+            "en": "No. Dividing by a shared positive number and applying softmax preserve order, but concentrate the distribution and change loss. A wrong top score becomes more confidently wrong."
+          },
+          "pitfall": {
+            "zh": "这里固定了分数；训练中调整温度也会影响梯度，进而改变向量。",
+            "en": "Scores are fixed here; changing training temperature also changes gradients and can change the vectors."
+          }
         }
       ]
     },
@@ -197,6 +229,38 @@
           "pitfall": {
             "zh": "并行训练并不意味着能随意看未来标签；某些加速解码还需要额外验证。",
             "en": "Parallel training doesn't permit future-label access; accelerated decoding methods may need extra verification."
+          }
+        },
+        {
+          "id": "training-mask-context",
+          "source": "00-foundations/deep-dives/training-step.md",
+          "question": {
+            "zh": "SFT 不计算问题部分的 loss，是否意味着模型看不到问题？",
+            "en": "If SFT excludes question tokens from loss, is the question hidden from the model?"
+          },
+          "answer": {
+            "zh": "不是。Loss mask 决定哪些目标计分，attention mask 决定能读取哪些输入。答案仍以问题为条件，梯度仍可通过这条路径影响共享参数。",
+            "en": "No. Loss masks select scored targets; attention masks control readable inputs. Answers still condition on the question, and gradients can reach shared parameters through that path."
+          },
+          "pitfall": {
+            "zh": "不要混用 causal、padding 和 loss mask，也不要在模型内外各 shift 一次。",
+            "en": "Do not conflate causal, padding, and loss masks or shift both outside and inside the model."
+          }
+        },
+        {
+          "id": "training-token-denominator",
+          "source": "00-foundations/deep-dives/training-step.md",
+          "question": {
+            "zh": "两个 microbatch 有 2 和 8 个有效 token，平均 loss 是 1 和 3。整体 token 平均是多少？",
+            "en": "Two microbatches have 2 and 8 valid tokens, with mean losses 1 and 3. What is the combined token mean?"
+          },
+          "answer": {
+            "zh": "是 (2×1+8×3)/10=2.6，而不是 2。若目标是按 token 平均，梯度累积也要按有效 token 总数归一化，并核对分布式框架的平均语义。",
+            "en": "It is (2×1+8×3)/10=2.6, not 2. A token-averaged objective needs accumulation normalized by total valid tokens, accounting for distributed reduction semantics."
+          },
+          "pitfall": {
+            "zh": "每个 microbatch 等权和每个 token 等权是两种不同目标。",
+            "en": "Equal microbatch weight and equal token weight define different objectives."
           }
         }
       ]
@@ -451,6 +515,70 @@
           "pitfall": {
             "zh": "描述更长、更流畅，不代表信息更可靠。",
             "en": "Longer, fluent descriptions aren't necessarily more reliable."
+          }
+        },
+        {
+          "id": "clip-two-directions",
+          "source": "03-multimodal-learning/clip.md",
+          "question": {
+            "zh": "CLIP 的图搜文和文搜图，能直接共用一张概率表的转置吗？",
+            "en": "Can CLIP text-to-image probabilities be the transpose of image-to-text probabilities?"
+          },
+          "answer": {
+            "zh": "不能。分数矩阵可以转置，但沿行和沿列的 softmax 分母不同。双向 loss 分别归一化，再对两个方向取平均。",
+            "en": "No. Scores can be transposed, but row and column softmax use different denominators. Normalize each direction separately, then average the two losses."
+          },
+          "pitfall": {
+            "zh": "转置 logits 和转置已经归一化的 probabilities 不是一回事。",
+            "en": "Transposing logits differs from transposing normalized probabilities."
+          }
+        },
+        {
+          "id": "clip-false-negatives",
+          "source": "03-multimodal-learning/clip.md",
+          "question": {
+            "zh": "同一 batch 有两句完全相同的猫描述，只把对角线设为正例会发生什么？",
+            "en": "What happens when a batch contains identical cat captions but only diagonal pairs count as positives?"
+          },
+          "answer": {
+            "zh": "同一张图对两句描述可能给出相同分数，却被要求只选其中一个。它们在分母里互相竞争。需要检查重复配对、多正例标注或采样，而不是只调温度。",
+            "en": "An image may give both captions the same score while the target demands only one. They compete in the denominator. Check duplicates, multiple-positive labeling, or sampling instead of only tuning temperature."
+          },
+          "pitfall": {
+            "zh": "未被配对不等于语义错误；梯度累积也不会自动扩大对比候选池。",
+            "en": "An unpaired example need not be semantically wrong; gradient accumulation does not automatically enlarge the contrastive pool."
+          }
+        },
+        {
+          "id": "vlm-projector-width",
+          "source": "03-multimodal-learning/vision-to-language.md",
+          "question": {
+            "zh": "196 个视觉 token 经过逐 token MLP，从 768 维投影到 4096 维，token 数是多少？",
+            "en": "A tokenwise MLP maps 196 visual tokens from width 768 to 4096. How many tokens remain?"
+          },
+          "answer": {
+            "zh": "仍是 196。它改变每个 token 的宽度，不改变序列长度。若要减少 token 数，需要显式的 pooling、resampler 或其他压缩模块。维度对上也不等于语义已经学会对齐。",
+            "en": "Still 196. It changes feature width, not sequence length. Reducing token count requires explicit pooling, resampling, or another compression mechanism. Matching dimensions alone does not learn semantic alignment."
+          },
+          "pitfall": {
+            "zh": "Projector、压缩器和训练目标解决的是不同问题。",
+            "en": "A projector, compressor, and training objective solve different problems."
+          }
+        },
+        {
+          "id": "vlm-evidence-pair",
+          "source": "03-multimodal-learning/vision-to-language.md",
+          "question": {
+            "zh": "怎么检查模型真的利用了图片里的左右关系，而不是猜文本？",
+            "en": "How would you test whether a model uses left/right visual relations instead of guessing from text?"
+          },
+          "answer": {
+            "zh": "做一对可核对的合成图，只交换目标物体的位置，保持问题和解码设置不变，检查答案是否正确跟着变化；再按关系类型统计。遮图可作为补充，但要考虑分布偏移。",
+            "en": "Create checkable paired synthetic images that swap only relevant object positions. Hold the question and decoding fixed, check the correct answer change, and report relation-specific results. Masking is supplementary and may introduce distribution shift."
+          },
+          "pitfall": {
+            "zh": "遮图后变差，既不等于干净的因果证明，也不等于原来回答正确。",
+            "en": "Degradation after masking is neither clean causal proof nor evidence that the original answer was correct."
           }
         }
       ]

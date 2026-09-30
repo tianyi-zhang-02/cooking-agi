@@ -1,86 +1,83 @@
-> Hopefully these notes save you some time searching for resources, and leave you more time for things you enjoy.
+# AGI Study Notes
+**ML fundamentals, language models, and engineering practice**
 
-<div align="center" markdown="1">
+[**Read online →**](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) · [中文](README.md) / **English** · [Learning paths](00-foundations/study-guide.en.md) · [Contribute](CONTRIBUTING.md#english)
 
-<img src="site/static/og.png" alt="AGI Study Notes" width="760">
+[![Build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
 
-<h1>AGI Study Notes</h1>
+A place to connect scattered resources: start with a question, work through a diagram or small experiment, and explain why a model is designed that way, where it helps, and where it falls short.
 
-Fundamentals I've studied, papers I've read, and notes from preparing for jobs.<br>
-Available in Chinese and English, with interactive diagrams to try.
+This bilingual collection is growing into a community-maintained project. The aim is to spend less time searching for material, more time understanding it—and leave a little more room for life outside preparation.
 
-[![read online](https://img.shields.io/badge/read-cooking--agi-E8A672?style=flat-square)](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html)
-[![build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
-[![bilingual](https://img.shields.io/badge/English-中文-8a8a8a?style=flat-square)](README.md)
+## Start here
 
-[**Read online**](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) · [中文](README.md) · [Behind the notes](contributors.en.md) · [Contribute](CONTRIBUTING.md#english)
-
-</div>
-
-## About these notes
-
-Last year, I started exploring industry after spending most of college focused on academic research. Preparing for jobs showed me how much I still needed to learn. After a lot of preparation and a few wrong turns, I began organizing these notes so I could revisit what I'd learned—and hopefully help someone on a similar path.
-
-They cover ML and language model fundamentals, post-training, evaluation, paper reading, and my approach to interview preparation and the job search. **This isn't a collection of company-specific interview questions.** Some sections are unfinished, and I won't get everything right. I'll keep adding to them.
-
-## Who they might help
-
-- People looking for **ML internships or new-grad roles** who want to review the fundamentals and plan their preparation;
-- People **moving into ML / LLM work** who aren't sure where to start;
-- Anyone curious about how models work, whether or not they're looking for a job.
-
-My preparation and interview experience has mainly been with **MLE and Research Scientist** roles, so I'm not the best source for SDE interview advice. For AI infrastructure and other areas I'm still learning, I'll share resources from people who know them better than I do. This isn't a universal roadmap—use whatever is helpful for you.
-
-## What you can read
-
-Not sure where to begin? The [study and review guide](00-foundations/study-guide.en.md) suggests routes based on your current question. Chapter review cards let you answer first, reveal the reasoning, and mark anything worth another attempt.
-
-There are two main entry points: [Study notes](00-foundations/README.en.md) for concepts, formulas, and teaching examples — split into Quant Researcher and AI / ML Engineer, because the two are tested on different things — and [Industry Practice](practice/README.en.md) for concrete problems, implementations, and validation. Career and paper notes remain separate.
-
-The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has language switching and working interactive diagrams. If you'd like to browse first, try the [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html).
-
-| Section | Topics |
+| What you want to do | Where to go |
 | --- | --- |
-| [Probability & statistics](quant/probability/README.en.md) | Quant Researcher: the axioms, drawing distributions, conditioning and independence |
-| [Model fundamentals](00-foundations/README.en.md) | Tokenization, RNNs / LSTMs, Transformers, MoE, and model families |
-| [Post-training](05-post-training/README.en.md) | How SFT, RLHF, PPO, and related methods work and when to use them |
-| [Evaluation](07-evaluation/README.en.md) | Evaluation design, metrics, and LLM-as-a-judge |
-| [Data & retrieval](01-data-and-feedback/README.en.md) | Data, feedback signals, and retrieval |
-| [Systems & multimodal](06-systems/README.en.md) | Request handling, debugging, and human involvement |
-| [Agents](10-agents/README.en.md) | Common architectures, use cases, and model selection |
-| [Industry Practice](practice/README.en.md) | Debugging, implementation, tests, and trade-offs when putting a method to use (in progress) |
-| [Interview preparation](interview/README.en.md) | ML review, coding practice, and system design resources |
-| [Job search](career/README.en.md) | Preparation, mistakes, and reflections on the process |
-| [Papers](papers/README.en.md) | Reading notes, questions, and experiment ideas |
+| Build a foundation | [Study and review guide](00-foundations/study-guide.en.md) → [Language-model learning map](00-foundations/README.en.md) |
+| Try something interactive | [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [CLIP alignment](03-multimodal-learning/clip.en.md) |
+| Prepare for an ML internship or new-grad role | [Technical preparation](interview/README.en.md) · [Job-search notes](career/README.en.md) |
+| Read a paper or add a note | [Papers](papers/README.en.md) · [Editorial guide](EDITORIAL.en.md) · [Content proposals](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
+
+**Read on the website for the full experience.** Language switching, interactive diagrams, and review cards work there. This repository contains the notes, experiments, and site source.
+
+## Content map
+
+Study notes have separate **Quant Researcher** and **AI / ML Engineer** routes. Industry practice, career notes, and papers have their own entry points rather than being forced into one curriculum.
+
+| Area | Topics and links |
+| --- | --- |
+| Probability and foundations | [Probability, distributions, conditioning](quant/probability/README.en.md) · [Tokens, vectors, Transformers](00-foundations/README.en.md) |
+| Language models and multimodal learning | [Model families](00-foundations/model-families/README.en.md) · [MoE](00-foundations/moe/README.en.md) · [CLIP and visual language models](03-multimodal-learning/README.en.md) |
+| Training and evaluation | [Post-training](05-post-training/README.en.md) · [Evaluation and LLM-as-a-judge](07-evaluation/README.en.md) |
+| Data, memory, and retrieval | [Feedback and objectives](01-data-and-feedback/README.en.md) · [Memory](02-memory/README.en.md) · [Retrieval](04-search/README.en.md) |
+| Agents and systems | [Agent patterns](10-agents/README.en.md) · [Observability and human involvement](06-systems/README.en.md) · [Model experience](08-model-experience/README.en.md) · [Personal AGI](09-personal-agi/README.en.md) |
+| Putting ideas to work | [Industry practice](practice/README.en.md) (in progress) · [Interview preparation](interview/README.en.md) · [Career](career/README.en.md) · [Papers](papers/README.en.md) |
+
+Notes aim to follow **question → example and diagram → mechanism → check → trade-offs → review**. A formula is not the finish line: explain its assumptions and test it on a small example.
 
 ## Join us!
 
-These notes are growing from a personal collection into a shared project. Fix one small thing or help look after a topic—there's no big time commitment required to get started. [How to contribute, area contacts, and review rules →](community/README.en.md)
+You do not need to write a chapter. A correction, a clearer diagram, or a question about an unclear passage can help the next reader.
 
-Found a mistake, an unclear explanation, or a topic you'd like to see? [Open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues). Your own notes and better examples are welcome as PRs too. I'd love to learn from you.
+- **Questions and corrections:** [open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) with the page and passage.
+- **New content:** send small fixes as PRs; propose new articles or navigation changes in a [content proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) to avoid duplicate work.
+- **Reviews:** see [area contacts and review rules](community/README.en.md). Routine merges require a relevant non-author CODEOWNER review and passing checks.
+- **Contributors:** [Behind the notes](contributors.en.md) recognizes participation. Map locations are optional countries or regions, never precise addresses.
 
-The [contributing guide](CONTRIBUTING.md#english) explains how to get involved, and contributors appear on the [Behind the notes](contributors.en.md) page. If you'd like a spot on the map, you can [share your country or region](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)—no precise address needed.
+[Contributing guide](CONTRIBUTING.md#english) · [Editorial guide](EDITORIAL.en.md)
 
-Please share only public technical knowledge and learning notes, not internal company materials, non-public interview content, or other sensitive information.
+Share public knowledge, reproducible examples, and public-project notes only. No internal company material, non-public interview questions, credentials, or other people's private information. AI assistance is welcome with source checks, validation, and disclosure in the PR.
 
 ## Run locally
 
+The static site builds with Python and needs no database. Run these commands from the repository root; Python 3.12 is recommended:
+
+```bash
+python3 -m pip install markdown pygments
+python3 site/build.py --serve
+```
+
+Open <http://localhost:8000>. For a build without the preview server, run `python3 site/build.py`; output goes to `_site/`.
+
 <details markdown="1">
-<summary>Show setup, preview, and check commands</summary>
-
-From the repository root:
+<summary>Checks before submitting</summary>
 
 ```bash
-pip install markdown pygments
-python3 site/build.py          # Build to _site/
-python3 site/build.py --serve  # Preview locally
+python3 site/collaboration.py
+python3 -m unittest discover -s site/tests
+python3 site/leakcheck.py
+python3 site/paritycheck.py
+python3 site/build.py
 ```
 
-Before submitting changes:
-
-```bash
-python3 site/paritycheck.py  # Check Chinese / English structure
-python3 site/leakcheck.py    # Check for sensitive content
-```
+Some teaching experiments also need NumPy or PyTorch, as documented in their chapters. Review progress stays in the current browser and is not uploaded.
 
 </details>
+
+## Why this exists
+
+These notes started during a transition from academic research into industry. There was plenty to learn, but connecting the ideas and explaining them in interviews or projects took preparation and a few wrong turns.
+
+The collection is most relevant to ML, language models, and MLE / Research Scientist paths, and is also for anyone curious about AI. It is not a universal recruiting roadmap or a company-specific question bank. For SDE, frontend/backend, and unfamiliar infrastructure topics, we point to more experienced authors.
+
+Some sections are incomplete, and explanations will keep changing. Questions, corrections, and suggestions are welcome.

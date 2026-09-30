@@ -51,6 +51,8 @@ flowchart LR
 
 ## 主线之外：两种进阶读法
 
+如果对“向量相似”或“训练一步”还有点模糊，可以先补[向量与相似度](core/embeddings-and-similarity.md)和[一次训练怎么走](deep-dives/training-step.md)。想接着看图片如何加入这套计算，再去 [CLIP → 视觉语言模型](../03-multimodal-learning/README.md)。
+
 读完主线，可以继续推公式、看梯度和代码，也可以拿不同模型来比较：面对同一个问题，它们为什么选了不同的做法？最后都要回到两个问题——效果怎么样，代价有多大。
 
 ### 1. 深挖机制

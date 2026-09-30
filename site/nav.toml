@@ -200,7 +200,7 @@ dir = "00-foundations/core"
 group = "foundations"
 zh  = "核心机制"
 en  = "Core mechanisms"
-order = ["README.md", "tokenization.md", "recurrent-models.md", "seq2seq.md",
+order = ["README.md", "tokenization.md", "embeddings-and-similarity.md", "recurrent-models.md", "seq2seq.md",
          "multi-head-attention.md", "normalization.md", "residual-connections.md",
          "vanilla-transformer.md", "decoder-only.md", "decoding.md"]
 
@@ -215,7 +215,7 @@ dir = "00-foundations/deep-dives"
 group = "foundations"
 zh  = "进阶 · 原理"
 en  = "Advanced · mechanisms"
-order = ["README.md", "recurrent-dynamics.md", "language-model-objective.md"]
+order = ["README.md", "recurrent-dynamics.md", "language-model-objective.md", "training-step.md"]
 
 [[section]]
 dir = "00-foundations/model-families"
@@ -254,6 +254,7 @@ en  = "Representation & memory"
 
 [[section]]
 dir = "03-multimodal-learning"
+order = ["README.md", "clip.md", "vision-to-language.md"]
 group = "systems"
 zh  = "多模态学习"
 en  = "Multimodal learning"
@@ -381,6 +382,10 @@ en  = "Templates"
 # ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
 # without a label falls back to its title up to the first colon.
 [label]
+"00-foundations/core/embeddings-and-similarity.md" = ["向量与相似度", "Embeddings & similarity"]
+"00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
+"03-multimodal-learning/clip.md" = ["CLIP 图文对齐", "CLIP alignment"]
+"03-multimodal-learning/vision-to-language.md" = ["图片怎样进入 LLM", "Vision to language"]
 "00-foundations/study-guide.md" = ["怎么读与怎么复习", "Study & review guide"]
 "00-foundations/model-families/how-to-read.md" = ["带着问题读模型", "Reading a model report"]
 "01-data-and-feedback/feedback-to-objectives.md" = ["反馈怎么变成目标", "Feedback to objectives"]
