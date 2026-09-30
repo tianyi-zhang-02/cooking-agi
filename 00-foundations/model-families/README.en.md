@@ -4,9 +4,9 @@
 
 > Reading time: ~8 min · Type: reading map · Last reviewed: 2026-09
 
-Model launches put parameter counts, context length, and benchmark scores in the largest type. The more useful thread is different: **where does this family place the capability bottleneck, and which architecture, training, and systems choices attack it?**
+Model launches tend to highlight parameter counts, context length, and scores. I want to understand **the problem the model addresses, why it uses this architecture, and how it was trained**.
 
-These notes do not compress a technical report into another parameter table. Every deep dive uses the same questions, then checks the story against papers, public configs, and reproducible evidence. The goal is not “I have seen this name.” It is a method that still works when the next model appears.
+These notes use the same questions across reports, checking explanations against public configurations and experiments. If you're new to technical reports, start with the [model-reading exercise](how-to-read.en.md): trace a token, calculate KV-cache size, and separate observations from explanations.
 
 <div class="lesson-recipe advanced">
   <div><span>Start with</span><strong>the objective and constraints, not parameter count</strong></div>

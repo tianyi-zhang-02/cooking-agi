@@ -1,4 +1,4 @@
-# Modern-First Editorial and Freshness Policy
+# Writing clear notes that are easy to revisit
 
 [中文](EDITORIAL.md) · **English** · [Back to home](README.en.md)
 
@@ -6,7 +6,7 @@
 
 ## Core principle
 
-The repository begins with real problems in current AI systems rather than an algorithm chronology:
+Start with the reader's question, then introduce the concepts needed to answer it. Pick a concrete part of this chain:
 
 ```text
 user goals
@@ -16,7 +16,7 @@ user goals
 → evaluation, feedback, and continual improvement
 ```
 
-An older work enters the main path only when it explains a mechanism, constraint, or failure that remains active today.
+Older methods belong when they explain later designs. We don't need a paper-by-year chronology, but we shouldn't skip foundations just to appear current.
 
 ## What belongs in the main path
 
@@ -39,7 +39,7 @@ An older work enters the main path only when it explains a mechanism, constraint
 
 Exception: historical mechanisms remain when they are still active. Stable softmax, embedding retrieval, SIMD versus SIMT, quadratic attention intermediates, and exposure bias all directly affect modern systems.
 
-## Five minutes by default
+## Answer one question at a time
 
 Each note normally has:
 
@@ -49,7 +49,21 @@ Each note normally has:
 - one quantity, experiment, or judgment the reader can verify;
 - a clear next note or related module.
 
-Large topics use an index plus short notes. A project overview remains short, while detailed milestones move into child notes or code directories.
+Split large topics into a guide and shorter notes. The guide explains the order and why each next step matters. Keep details in their own notes rather than reintroducing the whole system on every page.
+
+## Review cards are not summaries
+
+Each existing content chapter has 2–8 bilingual cards in `site/review.json`, shared across its pages. Ask readers to explain, calculate, or decide—not just expand an acronym.
+
+- `question`: a directly answerable question or a scenario with sufficient conditions.
+- `answer`: reasoning and assumptions; decision criteria rather than a fake single correct answer for open questions.
+- `pitfall`: a specific misconception, not a generic warning to be careful.
+- `source`: the related Chinese Markdown path; the builder connects the English version.
+- `id`: keep it stable when editing wording. Content changes automatically invalidate old mastery marks.
+
+Prefer small synthetic examples. Real measurements require public sources and experimental conditions. Review correctness, bilingual equivalence, and useful source links. Run `python3 -m unittest discover -s site/tests` to check chapter coverage and references.
+
+Chinese should sound like an explanation to a person. “Fix the candidate pool before comparing” is more useful than abstract process language. Keep standard English terms where helpful, without translating sentences word for word.
 
 ## Bilingual reading contract
 

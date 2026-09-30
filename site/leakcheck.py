@@ -57,6 +57,8 @@ def main():
         targets.append(ROOT / "crew.toml")
     if (ROOT / "site/collaboration.toml").exists():
         targets.append(ROOT / "site/collaboration.toml")
+    if (ROOT / "site/review.json").exists():
+        targets.append(ROOT / "site/review.json")
 
     hits = []
     for f in targets:

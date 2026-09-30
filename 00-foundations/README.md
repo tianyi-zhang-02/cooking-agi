@@ -6,6 +6,8 @@
 
 刚学 Transformer 时，我看过不少架构图。每个模块的名字都认识，但真要解释一句话怎么变成下一个 token，还是会卡住。
 
+想先看看整份知识库怎么串起来，可以从[学习与复习导读](study-guide.md)开始。这一页专门带你补语言模型的基础，不需要先读完其他板块。
+
 所以这部分按学习顺序来写：先看文本怎么变成数字，再看 RNN 和 LSTM 如何处理序列、Seq2Seq 如何连接输入和输出，然后学 attention 和 Transformer，最后到 decoder-only 大模型。先看例子，再看公式，最后动手写代码。
 
 <div class="curriculum-hero">

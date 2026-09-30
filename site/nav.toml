@@ -37,7 +37,7 @@ owner_url   = "https://tianyi-zhang-02.github.io/"
 id = "learn"
 zh = "学习笔记"
 en = "Study notes"
-home = "00-foundations/README.md"
+home = "00-foundations/study-guide.md"
 blurb_zh = "从大模型基础开始，理解训练、评估和 Agent 的原理。"
 blurb_en = "Model fundamentals and the ideas behind training, evaluation, and agents."
 
@@ -186,7 +186,7 @@ dir   = "00-foundations"
 group = "foundations"
 zh    = "学习路线"
 en    = "Learning path"
-order = ["README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
+order = ["study-guide.md", "README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
 dir   = "quant/probability"
@@ -222,7 +222,7 @@ dir = "00-foundations/model-families"
 group = "foundations"
 zh  = "进阶 · 模型家族"
 en  = "Advanced · model families"
-order = ["README.md", "llama.md", "qwen.md", "deepseek.md", "gemma.md"]
+order = ["README.md", "how-to-read.md", "llama.md", "qwen.md", "deepseek.md", "gemma.md"]
 
 [[section]]
 dir   = "00-foundations/moe"
@@ -240,12 +240,14 @@ order = ["README.md", "why-loops-reason.md", "adaptive-depth.md", "models.md", "
 
 [[section]]
 dir = "01-data-and-feedback"
+order = ["README.md", "feedback-to-objectives.md"]
 group = "data-retrieval"
 zh  = "数据与反馈"
 en  = "Data & feedback"
 
 [[section]]
 dir = "02-memory"
+order = ["README.md", "memory-lifecycle.md"]
 group = "data-retrieval"
 zh  = "表征与记忆"
 en  = "Representation & memory"
@@ -290,7 +292,7 @@ dir   = "07-evaluation"
 group = "eval"
 zh    = "评估基础"
 en    = "Evaluation basics"
-order = ["README.md", "evaluation-stack.md", "metric-robustness.md"]
+order = ["README.md", "evaluation-stack.md", "ablation-and-slices.md", "metric-robustness.md"]
 
 [[section]]
 dir   = "07-evaluation/llm-as-a-judge"
@@ -379,6 +381,11 @@ en  = "Templates"
 # ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
 # without a label falls back to its title up to the first colon.
 [label]
+"00-foundations/study-guide.md" = ["怎么读与怎么复习", "Study & review guide"]
+"00-foundations/model-families/how-to-read.md" = ["带着问题读模型", "Reading a model report"]
+"01-data-and-feedback/feedback-to-objectives.md" = ["反馈怎么变成目标", "Feedback to objectives"]
+"02-memory/memory-lifecycle.md" = ["写入、更新与遗忘", "Memory lifecycle"]
+"07-evaluation/ablation-and-slices.md" = ["对照实验与切片", "Comparisons & slices"]
 "practice/README.md"                                   = ["从这里开始", "Overview"]
 "README.md"                                             = ["首页", "Home"]
 "00-foundations/README.md"                              = ["学习地图", "Learning map"]

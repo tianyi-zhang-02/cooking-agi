@@ -1,0 +1,988 @@
+{
+  "decks": [
+    {
+      "section": "00-foundations",
+      "cards": [
+        {
+          "id": "model-path",
+          "source": "00-foundations/README.md",
+          "question": {
+            "zh": "不看图，怎样把一句话从 token 讲到 logits？",
+            "en": "Trace a sentence from tokens to logits without the diagram."
+          },
+          "answer": {
+            "zh": "分词得到 ID，embedding 变成向量，模型层在可见上下文中更新表示，输出投影得到词表上的 logits。训练再计算目标 token 的 loss；生成再选择 token。",
+            "en": "Tokenization produces IDs; embeddings turn them into vectors. Model layers update representations using visible context, and the output projection produces vocabulary logits. Training computes a target-token loss; generation chooses tokens."
+          },
+          "pitfall": {
+            "zh": "token ID 本身不是语义向量，logits 也还不是概率。",
+            "en": "A token ID is not a semantic vector; logits are not yet probabilities."
+          }
+        },
+        {
+          "id": "model-evidence",
+          "source": "00-foundations/study-guide.md",
+          "question": {
+            "zh": "模型效果变差，为什么不应该第一步就换更大的模型？",
+            "en": "Why not immediately replace a failing model with a larger one?"
+          },
+          "answer": {
+            "zh": "先检查输入和标签、检索证据、目标函数以及评估协议。用一个失败样本沿着流程追踪，找到错误发生在哪个环节，再测试对应改动。",
+            "en": "Check inputs, labels, retrieved evidence, objectives, and evaluation. Trace a failed example through the pipeline, locate the failing stage, then test a targeted change."
+          },
+          "pitfall": {
+            "zh": "更大可能有用，但不能修复所有数据泄漏、过期记忆或错误指标。",
+            "en": "Scale may help, but doesn't fix every data leak, stale memory, or incorrect metric."
+          }
+        }
+      ]
+    },
+    {
+      "section": "quant/probability",
+      "cards": [
+        {
+          "id": "probability-conditioning",
+          "source": "quant/probability/conditional.md",
+          "question": {
+            "zh": "知道 A 已发生后，为什么 P(B|A) 通常不同于 P(B)？",
+            "en": "Why can P(B|A) differ from P(B)?"
+          },
+          "answer": {
+            "zh": "条件概率把样本空间限制到 A。P(A)>0 时，P(B|A)=P(A∩B)/P(A)。只有在独立等条件下，它才等于 P(B)。可以画一张交集图检查分母。",
+            "en": "Conditioning restricts the sample space to A. For P(A)>0, P(B|A)=P(A∩B)/P(A). Under independence it equals P(B). Draw the overlap and check the denominator."
+          },
+          "pitfall": {
+            "zh": "不要把 P(A|B) 和 P(B|A) 对调，也别忽略基准发生率。",
+            "en": "Don't reverse P(A|B) and P(B|A), or ignore base rates."
+          }
+        },
+        {
+          "id": "probability-density",
+          "source": "quant/probability/distributions.md",
+          "question": {
+            "zh": "连续分布的密度可以大于 1 吗？",
+            "en": "Can a continuous probability density exceed 1?"
+          },
+          "answer": {
+            "zh": "可以。概率是区间上的密度积分，而不是某一点的函数值。均匀分布在长度为 0.5 的区间上，密度为 2，但总面积仍为 1。",
+            "en": "Yes. Probability is the integral over an interval, not the density at a point. A uniform distribution on an interval of length 0.5 has density 2 and total area 1."
+          },
+          "pitfall": {
+            "zh": "密度的高度和离散事件的概率不是一回事。",
+            "en": "A density height is not a discrete-event probability."
+          }
+        }
+      ]
+    },
+    {
+      "section": "00-foundations/core",
+      "cards": [
+        {
+          "id": "attention-mask",
+          "source": "00-foundations/core/multi-head-attention.md",
+          "question": {
+            "zh": "为什么 causal mask 要在 softmax 前处理？",
+            "en": "Why apply a causal mask before softmax?"
+          },
+          "answer": {
+            "zh": "把未来位置的分数设为负无穷，让它们 softmax 后的权重为 0，并只在可见位置归一化。softmax 后直接清零但不重新归一化，会改变权重总和。",
+            "en": "Setting future scores to negative infinity gives them zero softmax weight and normalizes over visible positions. Zeroing weights afterward without renormalization changes their sum."
+          },
+          "pitfall": {
+            "zh": "padding mask 和 causal mask 解决不同问题；还要防止整行都被遮住。",
+            "en": "Padding and causal masks solve different problems; also handle fully masked rows."
+          }
+        },
+        {
+          "id": "decoder-shift",
+          "source": "00-foundations/core/decoder-only.md",
+          "question": {
+            "zh": "训练 next-token prediction，输入和标签应该怎样错开？",
+            "en": "How should inputs and labels be shifted for next-token prediction?"
+          },
+          "answer": {
+            "zh": "位置 t 只能看到截至 t 的内容，并预测 t+1 的 token。把输入和标签错开一位，配合 causal mask；padding 或不参与监督的位置从 loss 中排除。",
+            "en": "Position t sees tokens up to t and predicts token t+1. Shift input and labels by one with a causal mask; exclude padding or unsupervised positions from the loss."
+          },
+          "pitfall": {
+            "zh": "别同时在数据和模型内部各 shift 一次；先检查框架的约定。",
+            "en": "Don't shift twice in both data and model code; inspect the framework contract."
+          }
+        },
+        {
+          "id": "decoding-sampling",
+          "source": "00-foundations/core/decoding.md",
+          "question": {
+            "zh": "调低 temperature，会让模型更准确吗？",
+            "en": "Does lowering temperature make a model more accurate?"
+          },
+          "answer": {
+            "zh": "它使采样分布更集中，不是直接修正知识或推理。模型最偏好的答案也可能错。用相同题目和生成预算测正确率与多样性，不能仅凭输出更确定就判断更好。",
+            "en": "It concentrates sampling, not directly corrects knowledge or reasoning. The preferred answer may be wrong. Compare correctness and diversity on fixed tasks and generation budgets."
+          },
+          "pitfall": {
+            "zh": "语气确定和内容正确是两件事。",
+            "en": "Confident wording is not factual correctness."
+          }
+        }
+      ]
+    },
+    {
+      "section": "00-foundations/code",
+      "cards": [
+        {
+          "id": "implementation-parity",
+          "source": "00-foundations/code/README.md",
+          "question": {
+            "zh": "自己写的 attention 能跑，怎样判断它算对了？",
+            "en": "Your attention implementation runs. How do you check it?"
+          },
+          "answer": {
+            "zh": "用固定小输入对照参考实现，分别检查 shape、mask、softmax 归一化、输出和梯度。先关掉 dropout，再设置容差；最后增加极端输入和边界测试。",
+            "en": "Compare small fixed inputs against a reference: shapes, masks, softmax sums, outputs, and gradients. Disable dropout, choose tolerances, then test edge cases."
+          },
+          "pitfall": {
+            "zh": "随机跑通一次不是正确性证据。",
+            "en": "One successful random run isn't evidence of correctness."
+          }
+        },
+        {
+          "id": "implementation-cache",
+          "source": "00-foundations/code/README.md",
+          "question": {
+            "zh": "KV cache 的一个最小回归测试是什么？",
+            "en": "What is a minimal KV-cache regression test?"
+          },
+          "answer": {
+            "zh": "在 eval 模式下，对同一序列比较完整前缀 forward 与逐 token 缓存 forward 的对应 logits。位置编号、mask 和缓存长度要一致，允许合理浮点误差。",
+            "en": "In eval mode, compare corresponding logits from full-prefix forward passes and incremental cached passes on the same sequence. Align positions, masks, and cache lengths, allowing numerical tolerance."
+          },
+          "pitfall": {
+            "zh": "只比较生成文字可能漏掉 logits 的偏差。",
+            "en": "Matching generated text can hide logit differences."
+          }
+        }
+      ]
+    },
+    {
+      "section": "00-foundations/deep-dives",
+      "cards": [
+        {
+          "id": "gradient-chain",
+          "source": "00-foundations/deep-dives/recurrent-dynamics.md",
+          "question": {
+            "zh": "RNN 梯度为什么会消失或爆炸？",
+            "en": "Why can RNN gradients vanish or explode?"
+          },
+          "answer": {
+            "zh": "跨时间反传包含多个 Jacobian 的乘积。反复收缩会削弱早期梯度，反复放大会使梯度失控。门控和状态通路改变梯度传播，但不保证任意长度都能稳定记住。",
+            "en": "Backpropagation through time multiplies Jacobians. Repeated contraction weakens early gradients; repeated expansion amplifies them. Gates and state paths help but don't guarantee stable memory at arbitrary lengths."
+          },
+          "pitfall": {
+            "zh": "梯度裁剪可以限制爆炸，不能自动解决长期信息丢失。",
+            "en": "Clipping can limit exploding gradients, not automatically recover lost long-range information."
+          }
+        },
+        {
+          "id": "training-generation",
+          "source": "00-foundations/deep-dives/language-model-objective.md",
+          "question": {
+            "zh": "训练能并行算多个位置，为什么生成通常要一步一步来？",
+            "en": "Why can training process positions in parallel while generation is usually sequential?"
+          },
+          "answer": {
+            "zh": "训练时目标序列已知，causal mask 允许同时计算各前缀的 next-token loss。生成时下一个 token 依赖之前实际选出的 token，未来输入还不存在。",
+            "en": "During training the target sequence is known, so causal masking permits parallel next-token losses. During generation the next input depends on the previously chosen token; future inputs don't exist yet."
+          },
+          "pitfall": {
+            "zh": "并行训练并不意味着能随意看未来标签；某些加速解码还需要额外验证。",
+            "en": "Parallel training doesn't permit future-label access; accelerated decoding methods may need extra verification."
+          }
+        }
+      ]
+    },
+    {
+      "section": "00-foundations/model-families",
+      "cards": [
+        {
+          "id": "family-version",
+          "source": "00-foundations/model-families/how-to-read.md",
+          "question": {
+            "zh": "为什么不能说一个模型家族“就是这种架构”？",
+            "en": "Why shouldn't a model family be treated as one fixed architecture?"
+          },
+          "answer": {
+            "zh": "家族可能跨代、跨尺寸和模态，base 与 instruct 的训练也不同。记录 checkpoint、config 和报告版本，再比较结构、训练和评估。",
+            "en": "Families span generations, sizes, and modalities; base and instruct training differ too. Record checkpoint, config, and report version before comparing architecture, training, and evaluation."
+          },
+          "pitfall": {
+            "zh": "不要把新版分数配上旧版结构来解释。",
+            "en": "Don't explain a newer result using an older architecture."
+          }
+        },
+        {
+          "id": "family-gqa",
+          "source": "00-foundations/model-families/how-to-read.md",
+          "question": {
+            "zh": "KV heads 从 16 减到 4，就会快 4 倍吗？",
+            "en": "Does reducing KV heads from 16 to 4 make inference 4× faster?"
+          },
+          "answer": {
+            "zh": "在相同其他条件下，简化的 KV cache 容量降为四分之一，但权重、其他算子和调度开销仍在。分 prefill / decode，固定 workload 后测延迟。",
+            "en": "Under otherwise fixed assumptions, the simplified KV cache becomes one quarter the size. Weights, other operators, and scheduling remain. Measure prefill and decode separately on a fixed workload."
+          },
+          "pitfall": {
+            "zh": "局部缓存节省不等于端到端加速。",
+            "en": "Local cache savings aren't end-to-end speedups."
+          }
+        },
+        {
+          "id": "family-ablation",
+          "source": "00-foundations/model-families/README.md",
+          "question": {
+            "zh": "新架构分数更高，怎样判断是不是架构本身带来的？",
+            "en": "How would you attribute a gain to architecture?"
+          },
+          "answer": {
+            "zh": "尽量固定数据、训练与推理预算、评估协议，做消融并报告变动条件。如果无法控制，只能把结果当整体方案的比较，不能单独归因。",
+            "en": "Control data, training and inference budgets, and evaluation; ablate the change and report remaining differences. Without controls, compare whole systems rather than attribute the result to architecture."
+          },
+          "pitfall": {
+            "zh": "一个 leaderboard 分数不能隔离因果机制。",
+            "en": "A leaderboard score doesn't isolate a causal mechanism."
+          }
+        }
+      ]
+    },
+    {
+      "section": "00-foundations/moe",
+      "cards": [
+        {
+          "id": "moe-active",
+          "source": "00-foundations/moe/README.md",
+          "question": {
+            "zh": "MoE 激活参数少，为什么显存和延迟不一定都低？",
+            "en": "Why doesn't low active-parameter count guarantee low memory and latency?"
+          },
+          "answer": {
+            "zh": "每 token 只走部分专家可减少相关计算，但所有专家权重仍要存放或调入，还可能有路由、通信和负载不均。要把总参数、激活计算和数据移动分开算。",
+            "en": "Selecting a few experts reduces some per-token computation, but all weights must be stored or loaded. Routing, communication, and imbalance add costs. Separate total parameters, active computation, and movement."
+          },
+          "pitfall": {
+            "zh": "不要只用激活参数量估计部署成本。",
+            "en": "Don't estimate deployment cost from active parameters alone."
+          }
+        },
+        {
+          "id": "moe-balance",
+          "source": "00-foundations/moe/load-balancing.md",
+          "question": {
+            "zh": "为什么不能只让所有 token 都去当前最强的专家？",
+            "en": "Why not route every token to the currently strongest expert?"
+          },
+          "answer": {
+            "zh": "少数专家可能拥塞，其他专家缺少训练机会。负载均衡鼓励分配，但也可能限制专门化，需要结合 capacity、丢弃策略和任务质量一起评估。",
+            "en": "A few experts may overload while others receive little training. Balancing encourages use but can constrain specialization; evaluate capacity, dropping policies, and task quality together."
+          },
+          "pitfall": {
+            "zh": "分配均匀本身不是最终任务目标。",
+            "en": "Uniform routing is not the task objective."
+          }
+        }
+      ]
+    },
+    {
+      "section": "00-foundations/looped",
+      "cards": [
+        {
+          "id": "looped-depth",
+          "source": "00-foundations/looped/README.md",
+          "question": {
+            "zh": "重复使用同一组层，和堆更多独立层有什么不同？",
+            "en": "How does reusing layers differ from adding independent layers?"
+          },
+          "answer": {
+            "zh": "权重共享改变参数量与有效计算深度的关系。多轮计算让状态继续更新，但每轮仍有成本，也不保证学到更好的迭代过程。",
+            "en": "Weight sharing changes the relation between parameter count and effective computational depth. Extra rounds update state but still cost compute and don't guarantee useful refinement."
+          },
+          "pitfall": {
+            "zh": "参数没增加，不代表计算和延迟没增加。",
+            "en": "Unchanged parameter count doesn't mean unchanged compute or latency."
+          }
+        },
+        {
+          "id": "looped-stop",
+          "source": "00-foundations/looped/adaptive-depth.md",
+          "question": {
+            "zh": "自适应停止应该怎样比较，才不只是多用了计算？",
+            "en": "How do you evaluate adaptive stopping without confusing it with extra compute?"
+          },
+          "answer": {
+            "zh": "同时比较质量、平均和尾部延迟、每样本迭代数；加入固定步数与相近总预算的基线，检查停止条件在难例上是否失灵。",
+            "en": "Compare quality, mean and tail latency, and iterations per example against fixed-step and comparable-budget baselines. Check whether stopping fails on hard cases."
+          },
+          "pitfall": {
+            "zh": "平均步数低可能掩盖少数请求的长尾。",
+            "en": "Low mean iterations can hide long-tail requests."
+          }
+        }
+      ]
+    },
+    {
+      "section": "01-data-and-feedback",
+      "cards": [
+        {
+          "id": "feedback-missing",
+          "source": "01-data-and-feedback/feedback-to-objectives.md",
+          "question": {
+            "zh": "没点击的内容都能做负例吗？",
+            "en": "Can every unclicked item be used as a negative?"
+          },
+          "answer": {
+            "zh": "先分开未曝光、曝光未点击和明确拒绝。未观察到行为不等于不喜欢；训练近似可以使用某些样本，但必须保存来源并验证偏差。",
+            "en": "Separate unexposed items, unclicked impressions, and explicit rejection. Missing behavior isn't dislike. Some may be training approximations, but preserve provenance and test bias."
+          },
+          "pitfall": {
+            "zh": "更多负例不一定提供更多可靠监督。",
+            "en": "More negatives don't necessarily provide more reliable supervision."
+          }
+        },
+        {
+          "id": "feedback-teacher",
+          "source": "01-data-and-feedback/feedback-to-objectives.md",
+          "question": {
+            "zh": "用 teacher 生成标签后，还让同一个 teacher 打分，有什么风险？",
+            "en": "What's risky about training and evaluating with the same teacher?"
+          },
+          "answer": {
+            "zh": "学生可能只学会迎合 teacher 的偏好。保留独立的人类或行为锚点，隔离数据，并单独测 teacher 的误差；teacher 给出的 hard negative 也要抽查。",
+            "en": "The student may learn the teacher's preferences rather than the target. Keep independent human or behavioral anchors, separate data, and audit teacher error and proposed hard negatives."
+          },
+          "pitfall": {
+            "zh": "换一个 prompt 或留出样本不一定消除同一 teacher 的系统偏差。",
+            "en": "A new prompt or held-out samples don't necessarily remove shared teacher bias."
+          }
+        },
+        {
+          "id": "feedback-multitask",
+          "source": "01-data-and-feedback/feedback-to-objectives.md",
+          "question": {
+            "zh": "多任务 loss 直接相加，最容易漏掉什么？",
+            "en": "What can go wrong when adding task losses together?"
+          },
+          "answer": {
+            "zh": "任务频率、loss 尺度和梯度方向不同，可能由一个任务主导或彼此冲突。先看各任务覆盖和单任务基线，再扫描权重并观察切片。",
+            "en": "Frequency, loss scales, and gradients differ; one task can dominate or conflict with another. Check coverage and single-task baselines before sweeping weights and examining slices."
+          },
+          "pitfall": {
+            "zh": "列出多个目标不代表模型真的同时学好了它们。",
+            "en": "Listing several objectives doesn't mean the model learns all of them well."
+          }
+        }
+      ]
+    },
+    {
+      "section": "02-memory",
+      "cards": [
+        {
+          "id": "memory-conflict",
+          "source": "02-memory/memory-lifecycle.md",
+          "question": {
+            "zh": "长期偏好和本周的例外冲突，应该永久覆盖吗？",
+            "en": "Should a temporary exception permanently overwrite a preference?"
+          },
+          "answer": {
+            "zh": "保存来源、范围和有效期，只在声明的范围内覆盖。例外过期后重新判断长期偏好是否适用；含糊时询问，不悄悄猜测。",
+            "en": "Keep provenance, scope, and validity. Override only in the stated scope, then reconsider the long-term preference after expiration. Ask when unclear."
+          },
+          "pitfall": {
+            "zh": "最新不一定最可靠；相似度也不是授权。",
+            "en": "Newest isn't always most reliable; similarity isn't authorization."
+          }
+        },
+        {
+          "id": "memory-delete",
+          "source": "02-memory/memory-lifecycle.md",
+          "question": {
+            "zh": "用户删除一条记忆，为什么只删原文可能不够？",
+            "en": "Why might deleting the original memory be insufficient?"
+          },
+          "answer": {
+            "zh": "摘要、向量索引、缓存或副本可能仍引用它。追踪派生内容，测试读取和生成不再使用被删除信息，并明确日志的独立保留策略。",
+            "en": "Summaries, indexes, caches, or replicas may retain it. Track derivatives and test that retrieval and generation no longer use it; disclose separate log retention."
+          },
+          "pitfall": {
+            "zh": "检索不到一次，不证明所有存储都已删除。",
+            "en": "One failed retrieval doesn't prove deletion from every store."
+          }
+        }
+      ]
+    },
+    {
+      "section": "03-multimodal-learning",
+      "cards": [
+        {
+          "id": "multimodal-use",
+          "source": "03-multimodal-learning/README.md",
+          "question": {
+            "zh": "有图像输入，怎么知道模型真的用了图像？",
+            "en": "How can you test whether a model actually uses its image input?"
+          },
+          "answer": {
+            "zh": "设计文本不足以回答的样本，比较正常图、遮图、换图和图文冲突。检查正确变化与错误变化，再按内容类型切片。",
+            "en": "Use cases where text alone is insufficient. Compare original, masked, swapped, and conflicting images; inspect appropriate changes and failures by content type."
+          },
+          "pitfall": {
+            "zh": "遮图导致下降可能包含分布外效应，需要多个互补测试。",
+            "en": "Masking can introduce distribution shift; use complementary tests."
+          }
+        },
+        {
+          "id": "multimodal-evidence",
+          "source": "03-multimodal-learning/README.md",
+          "question": {
+            "zh": "VLM 生成的描述能直接当事实标签吗？",
+            "en": "Can VLM descriptions be treated as ground-truth labels?"
+          },
+          "answer": {
+            "zh": "把可见证据和推断分开保存，保留来源、不确定性和拒答路径。用人工抽样或独立任务检验 grounding，再看是否帮助最终任务。",
+            "en": "Separate visible evidence from inference, retain provenance and uncertainty, and allow abstention. Audit grounding with human samples or independent tasks before checking downstream value."
+          },
+          "pitfall": {
+            "zh": "描述更长、更流畅，不代表信息更可靠。",
+            "en": "Longer, fluent descriptions aren't necessarily more reliable."
+          }
+        }
+      ]
+    },
+    {
+      "section": "04-search",
+      "cards": [
+        {
+          "id": "retrieval-rank",
+          "source": "04-search/README.md",
+          "question": {
+            "zh": "为什么先 retrieval，再 rerank？",
+            "en": "Why retrieve before reranking?"
+          },
+          "answer": {
+            "zh": "召回先在大库里低成本找出候选，reranker 再对小集合做更细的联合判断。两阶段是在覆盖、表达能力和成本之间分工。",
+            "en": "Retrieval cheaply selects candidates from a large collection; reranking applies richer joint scoring to a small set. The stages divide coverage, expressiveness, and cost."
+          },
+          "pitfall": {
+            "zh": "没被召回的正确结果，后面的 ranker 也排不上去。",
+            "en": "A ranker can't recover a relevant item absent from its candidate set."
+          }
+        },
+        {
+          "id": "retrieval-pool",
+          "source": "04-search/README.md",
+          "question": {
+            "zh": "一个模型在小候选池上 Recall 更高，说明它更好吗？",
+            "en": "Does higher Recall on a smaller candidate pool mean a model is better?"
+          },
+          "answer": {
+            "zh": "不能直接这样比较。先固定候选池、正例定义、K、过滤和采样协议；如果这些改变，就分别报告新的任务难度。",
+            "en": "Not directly. Hold the pool, positives, K, filtering, and sampling fixed. If they change, report the changed task rather than claim a like-for-like gain."
+          },
+          "pitfall": {
+            "zh": "同名 Recall 可能用了不同分母。",
+            "en": "Metrics named Recall may use different denominators."
+          }
+        }
+      ]
+    },
+    {
+      "section": "05-post-training",
+      "cards": [
+        {
+          "id": "posttrain-sft-preference",
+          "source": "05-post-training/README.md",
+          "question": {
+            "zh": "有标准答案和有成对偏好，对训练设计有什么不同？",
+            "en": "How do demonstrations and pairwise preferences suggest different training designs?"
+          },
+          "answer": {
+            "zh": "SFT 学习示范答案的条件分布；偏好数据说明在给定条件下更喜欢哪个输出。先检查标注含义、覆盖和一致性，再选目标，不是有偏好就必须跑在线 RL。",
+            "en": "SFT learns from demonstrated responses. Preferences indicate which response is favored in context. Inspect label meaning, coverage, and consistency before choosing an objective; preferences don't require online RL."
+          },
+          "pitfall": {
+            "zh": "不同目标可能共同受同一份数据偏差影响。",
+            "en": "Different objectives may share the same data bias."
+          }
+        },
+        {
+          "id": "posttrain-dpo",
+          "source": "05-post-training/where-preferences-come-from.md",
+          "question": {
+            "zh": "DPO 不单独训练 reward model，是否就不依赖偏好质量？",
+            "en": "Does avoiding a separate reward model make DPO independent of preference quality?"
+          },
+          "answer": {
+            "zh": "不是。DPO 仍通过偏好对更新策略；偏好来源、错误标注和分布覆盖仍重要。它改变优化方式，不把坏偏好自动变成好监督。",
+            "en": "No. DPO still updates a policy using preference pairs. Provenance, label errors, and coverage matter. Changing optimization doesn't turn poor preferences into reliable supervision."
+          },
+          "pitfall": {
+            "zh": "不显式拟合 reward model，不等于没有偏好假设。",
+            "en": "No explicit reward-model fitting doesn't mean no preference assumptions."
+          }
+        }
+      ]
+    },
+    {
+      "section": "05-post-training/rlhf",
+      "cards": [
+        {
+          "id": "rlhf-four-models",
+          "source": "05-post-training/rlhf/three-stages.md",
+          "question": {
+            "zh": "经典 PPO-RLHF 里，policy、reference、reward 和 value 分别干什么？",
+            "en": "What do policy, reference, reward, and value models do in classic PPO-RLHF?"
+          },
+          "answer": {
+            "zh": "policy 生成并学习；reference 提供固定比较基准；reward 评价输出；value 估计后续回报帮助降低策略梯度方差。具体实现可能共享部分网络。",
+            "en": "The policy generates and learns; the reference provides a fixed baseline distribution; reward scores outputs; value estimates returns to reduce policy-gradient variance. Implementations can share components."
+          },
+          "pitfall": {
+            "zh": "reference 不是 critic；reward 分数也不是 advantage。",
+            "en": "The reference isn't the critic; a reward score isn't an advantage."
+          }
+        },
+        {
+          "id": "rlhf-clipping",
+          "source": "05-post-training/rlhf/ppo-clipping.md",
+          "question": {
+            "zh": "PPO clipping 是否保证每次更新都不会走太远？",
+            "en": "Does PPO clipping guarantee a small policy update?"
+          },
+          "answer": {
+            "zh": "clipped surrogate 限制特定样本上的优化激励，不是对所有动作和状态的硬距离约束。还要监控 KL、ratio、更新轮数和异常样本。",
+            "en": "The clipped surrogate limits incentives on sampled actions, not a hard distance over all states and actions. Monitor KL, ratios, update epochs, and outliers."
+          },
+          "pitfall": {
+            "zh": "clip 的阈值不是参数变化幅度的直接上限。",
+            "en": "The clipping threshold isn't a direct bound on parameter changes."
+          }
+        },
+        {
+          "id": "rlhf-offpolicy",
+          "source": "05-post-training/rlhf/on-off-policy.md",
+          "question": {
+            "zh": "异步采样的轨迹变旧，为什么会影响训练？",
+            "en": "Why can stale asynchronous trajectories affect training?"
+          },
+          "answer": {
+            "zh": "轨迹来自较旧的行为策略，当前策略已变化。需要记录策略版本，核对 log-probability 和校正假设，观察重要性权重与轨迹年龄。",
+            "en": "Trajectories come from an older behavior policy. Track policy versions, verify log-probabilities and correction assumptions, and inspect importance weights and trajectory age."
+          },
+          "pitfall": {
+            "zh": "有 importance ratio 并不意味着任意陈旧数据都能稳定使用。",
+            "en": "An importance ratio doesn't make arbitrarily stale data stable."
+          }
+        }
+      ]
+    },
+    {
+      "section": "06-systems",
+      "cards": [
+        {
+          "id": "systems-trace",
+          "source": "06-systems/agent-observability.md",
+          "question": {
+            "zh": "一个 Agent 答错了，trace 至少要能还原什么？",
+            "en": "What should a trace reconstruct when an agent fails?"
+          },
+          "answer": {
+            "zh": "输入、检索与工具调用、返回结果、关键版本、延迟和错误，并能关联到同一次任务。按权限脱敏，让人能区分选错工具、工具失败和模型误读。",
+            "en": "Inputs, retrieval and tool calls, results, relevant versions, latency, and errors tied to one task. Redact by policy and distinguish wrong tool choice, tool failure, and misinterpretation."
+          },
+          "pitfall": {
+            "zh": "记录所有原始内容不是默认正确做法，要考虑隐私和保留期限。",
+            "en": "Logging every raw payload isn't the default; consider privacy and retention."
+          }
+        },
+        {
+          "id": "systems-approval",
+          "source": "06-systems/human-in-the-loop.md",
+          "question": {
+            "zh": "人工确认应该放在每一步，还是只放最后？",
+            "en": "Should human approval happen at every step or only at the end?"
+          },
+          "answer": {
+            "zh": "按风险、可逆性和不确定性设置关口。高影响或不可逆操作在执行前确认，低风险重复动作可预先授权；确认时要展示具体动作和影响。",
+            "en": "Place gates by risk, reversibility, and uncertainty. Confirm consequential or irreversible actions before execution; low-risk repeated actions may be preauthorized. Show the action and impact."
+          },
+          "pitfall": {
+            "zh": "确认按钮不能代替权限边界和失败恢复。",
+            "en": "An approval button doesn't replace authorization and recovery."
+          }
+        }
+      ]
+    },
+    {
+      "section": "07-evaluation",
+      "cards": [
+        {
+          "id": "eval-average",
+          "source": "07-evaluation/ablation-and-slices.md",
+          "question": {
+            "zh": "80% 人群涨 0.06，20% 人群跌 0.20，总体怎么变？",
+            "en": "If 80% improve by 0.06 and 20% regress by 0.20, what happens overall?"
+          },
+          "answer": {
+            "zh": "固定权重下，0.8×0.06−0.2×0.20=0.008。总体小幅上涨，但第二组明显退步。要报告切片，继续查原因，不能只报总分。",
+            "en": "With fixed weights: 0.8×0.06−0.2×0.20=0.008. A small aggregate gain hides a large subgroup regression. Report slices and investigate rather than only the mean."
+          },
+          "pitfall": {
+            "zh": "发现退步还不等于知道因果原因。",
+            "en": "Detecting a regression doesn't establish its cause."
+          }
+        },
+        {
+          "id": "eval-variance",
+          "source": "07-evaluation/ablation-and-slices.md",
+          "question": {
+            "zh": "对一个 checkpoint 做 bootstrap，能估计重训波动吗？",
+            "en": "Can bootstrapping one checkpoint estimate retraining variation?"
+          },
+          "answer": {
+            "zh": "不能。它针对测试样本抽样的不确定性；重训波动需要不同种子或独立训练。相关事件要按合适单位如用户重采样。",
+            "en": "No. It addresses test-sample uncertainty; retraining variation requires independent training runs or seeds. Resample correlated events at a suitable unit such as user."
+          },
+          "pitfall": {
+            "zh": "数据抽样、训练随机性和分布变化不能混成一个误差条。",
+            "en": "Sampling, training randomness, and distribution shift aren't one error bar."
+          }
+        },
+        {
+          "id": "eval-ablation",
+          "source": "07-evaluation/ablation-and-slices.md",
+          "question": {
+            "zh": "同时换了数据、模型和候选池，能归因给哪个改动？",
+            "en": "If data, model, and candidates all change, what can you attribute a gain to?"
+          },
+          "answer": {
+            "zh": "只能先说整体方案变化。要隔离贡献，固定其他条件做对照或组合实验，记录相互作用和剩余差异。",
+            "en": "Initially only the overall system change. Isolate contributions with controlled or factorial comparisons, documenting interactions and remaining differences."
+          },
+          "pitfall": {
+            "zh": "消融也要对齐预算，不能把少训的 baseline 当公平对照。",
+            "en": "Ablations still need fair budgets; an undertrained baseline isn't a fair control."
+          }
+        }
+      ]
+    },
+    {
+      "section": "07-evaluation/llm-as-a-judge",
+      "cards": [
+        {
+          "id": "judge-reference",
+          "source": "07-evaluation/llm-as-a-judge/scoring.md",
+          "question": {
+            "zh": "Few-shot 和 reference-based scoring 是同一件事吗？",
+            "en": "Are few-shot prompting and reference-based scoring the same?"
+          },
+          "answer": {
+            "zh": "不是。few-shot 决定是否给示范；reference-based 决定当前评分有没有参考答案。可以零示范但有参考，也可以有示范但无参考。",
+            "en": "No. Few-shot determines whether demonstrations are provided; reference-based determines whether a target answer is available for comparison. Either can be used without the other."
+          },
+          "pitfall": {
+            "zh": "示范里的答案和当前样本的参考答案用途不同。",
+            "en": "Demonstration answers and the current sample's reference serve different roles."
+          }
+        },
+        {
+          "id": "judge-probability",
+          "source": "07-evaluation/llm-as-a-judge/probability-scores.md",
+          "question": {
+            "zh": "概率加权评分，和采样 20 次再取平均有什么不同？",
+            "en": "How does probability-weighted scoring differ from averaging 20 sampled scores?"
+          },
+          "answer": {
+            "zh": "前者在定义好的分数选项上求期望 Σp(s)s；后者估计实际采样过程的均值。要明确合法分数集合、概率归一化和采样设置。多 token 分数还要处理序列概率。",
+            "en": "The former computes an expectation Σp(s)s over defined score options; the latter estimates the mean of a sampling process. Specify legal scores, normalization, and sampling settings; multi-token scores require sequence probabilities."
+          },
+          "pitfall": {
+            "zh": "小数更细不等于更准确，也不代表分数经过校准。",
+            "en": "Finer decimals aren't greater accuracy or calibration."
+          }
+        },
+        {
+          "id": "judge-order",
+          "source": "07-evaluation/llm-as-a-judge/bias-and-workflow.md",
+          "question": {
+            "zh": "Pairwise judge 总喜欢第一个答案，怎么发现？",
+            "en": "How do you detect a pairwise judge favoring the first answer?"
+          },
+          "answer": {
+            "zh": "交换候选顺序复评，检查不一致率，使用盲化 ID，并按长度、模型来源等切片抽查。仍需独立人工样本来判断质量。",
+            "en": "Swap candidate order and re-evaluate, inspect inconsistencies, use blinded IDs, and audit slices such as length and source. Retain independent human checks."
+          },
+          "pitfall": {
+            "zh": "顺序一致只是稳健性的一项，不代表判得对。",
+            "en": "Order consistency is one robustness property, not proof of correctness."
+          }
+        }
+      ]
+    },
+    {
+      "section": "08-model-experience",
+      "cards": [
+        {
+          "id": "experience-latency",
+          "source": "08-model-experience/README.md",
+          "question": {
+            "zh": "回答速度更快，用户体验就一定更好吗？",
+            "en": "Does faster response always mean a better experience?"
+          },
+          "answer": {
+            "zh": "看用户任务是否完成、等待是否可预期、错误能否修正。首 token 很快但长时间没给有用内容，未必比稍慢但完整可靠更好。",
+            "en": "Check task completion, predictable waiting, and recoverability. A fast first token followed by little useful content may be worse than a slower reliable answer."
+          },
+          "pitfall": {
+            "zh": "系统延迟指标和用户感受到的等待需要分别测。",
+            "en": "System latency and perceived waiting need separate measurement."
+          }
+        },
+        {
+          "id": "experience-uncertainty",
+          "source": "08-model-experience/README.md",
+          "question": {
+            "zh": "模型不确定时，怎样表达才对用户有用？",
+            "en": "How should a model express useful uncertainty?"
+          },
+          "answer": {
+            "zh": "说明具体不确定在哪里、依据是什么、可以怎样核实；如果缺一个关键条件就能解决，提出有针对性的澄清问题。",
+            "en": "Identify the uncertainty, available evidence, and a way to verify. Ask a targeted question when one missing condition could resolve it."
+          },
+          "pitfall": {
+            "zh": "泛泛地说“我可能会错”不能替代具体限制。",
+            "en": "A generic disclaimer doesn't explain the actual limitation."
+          }
+        }
+      ]
+    },
+    {
+      "section": "09-personal-agi",
+      "cards": [
+        {
+          "id": "personal-control",
+          "source": "09-personal-agi/README.md",
+          "question": {
+            "zh": "Personal AI 更懂用户，为什么还需要显式控制？",
+            "en": "Why does a more personalized AI still need explicit controls?"
+          },
+          "answer": {
+            "zh": "推断出的偏好可能错或过期。让用户查看、改写和删除记忆，限制访问范围，对高影响动作确认；理解用户不等于拥有无限授权。",
+            "en": "Inferred preferences can be wrong or stale. Let users inspect, edit, and delete memories, limit access, and confirm consequential actions. Understanding isn't unlimited authorization."
+          },
+          "pitfall": {
+            "zh": "个性化分数高不能证明隐私和控制做得好。",
+            "en": "High personalization scores don't establish privacy or control."
+          }
+        },
+        {
+          "id": "personal-longitudinal",
+          "source": "09-personal-agi/README.md",
+          "question": {
+            "zh": "一次对话成功，足以证明长期助手有效吗？",
+            "en": "Does one successful conversation validate a long-term assistant?"
+          },
+          "answer": {
+            "zh": "还要测偏好变化、冲突、遗忘、跨会话一致性和累积错误。使用有时间顺序的场景，检查后来的信息不会泄漏给更早的决策。",
+            "en": "Test changing preferences, conflicts, forgetting, cross-session consistency, and accumulated error. Use temporal scenarios without leaking later information into earlier decisions."
+          },
+          "pitfall": {
+            "zh": "长期评估不是把独立问题重复很多次。",
+            "en": "Long-term evaluation isn't just repeating independent questions."
+          }
+        }
+      ]
+    },
+    {
+      "section": "10-agents",
+      "cards": [
+        {
+          "id": "agent-workflow",
+          "source": "10-agents/patterns.md",
+          "question": {
+            "zh": "什么时候固定 workflow 比自由选择工具的 Agent 更合适？",
+            "en": "When is a fixed workflow preferable to an agent choosing tools freely?"
+          },
+          "answer": {
+            "zh": "步骤已知、规则稳定、错误代价高时，固定流程更容易测试和控制。只有任务确实需要动态决策，再增加模型规划的自由度。",
+            "en": "Known steps, stable rules, and costly errors favor testable fixed workflows. Add planning freedom when the task genuinely requires dynamic decisions."
+          },
+          "pitfall": {
+            "zh": "更多自治不是默认升级。",
+            "en": "More autonomy isn't automatically an improvement."
+          }
+        },
+        {
+          "id": "agent-retry",
+          "source": "10-agents/README.md",
+          "question": {
+            "zh": "工具超时后直接重试，可能出什么问题？",
+            "en": "What can go wrong if you retry a timed-out tool call immediately?"
+          },
+          "answer": {
+            "zh": "请求可能已经执行，只是回包丢了。先检查操作状态或幂等键，区分读操作和有副作用的写操作，避免重复扣费或重复提交。",
+            "en": "The action may have executed despite a missing response. Check status or idempotency keys, distinguish reads from side-effectful writes, and prevent duplicate effects."
+          },
+          "pitfall": {
+            "zh": "超时表示结果未知，不等于执行失败。",
+            "en": "A timeout means an unknown outcome, not necessarily failure."
+          }
+        }
+      ]
+    },
+    {
+      "section": "practice",
+      "cards": [
+        {
+          "id": "practice-reproduce",
+          "source": "practice/README.md",
+          "question": {
+            "zh": "一篇实践笔记至少要让别人复现什么？",
+            "en": "What should a practice note make reproducible?"
+          },
+          "answer": {
+            "zh": "问题触发条件、预期与实际行为、最小例子、改动和验证方法。写清环境和限制，无法复现的部分明确标注。",
+            "en": "Trigger conditions, expected and actual behavior, a minimal example, the change, and validation. State environment and limits, flagging anything not reproducible."
+          },
+          "pitfall": {
+            "zh": "架构图不能替代运行证据；公开材料也不能夹带私有数据。",
+            "en": "A diagram isn't execution evidence, and public notes must exclude private data."
+          }
+        },
+        {
+          "id": "practice-negative-result",
+          "source": "practice/README.md",
+          "question": {
+            "zh": "实验没提升，怎么写才仍然有价值？",
+            "en": "How can a no-gain experiment still make a useful note?"
+          },
+          "answer": {
+            "zh": "说明假设、对照、预算、观察和排查过程。区分“这次没观察到”与“方向不成立”，列出下一步最能区分解释的实验。",
+            "en": "Describe the hypothesis, controls, budget, observations, and investigation. Separate no observed gain from disproving a direction; propose a discriminating next test."
+          },
+          "pitfall": {
+            "zh": "不要把未验证的设计写成已经交付的效果。",
+            "en": "Don't present unvalidated designs as delivered gains."
+          }
+        }
+      ]
+    },
+    {
+      "section": "interview",
+      "cards": [
+        {
+          "id": "interview-explain",
+          "source": "interview/README.md",
+          "question": {
+            "zh": "被问一个模型设计，怎样避免只报技术名词？",
+            "en": "How do you explain a model design without listing buzzwords?"
+          },
+          "answer": {
+            "zh": "先讲目标和约束，再沿输入、计算、输出讲设计；给一个替代方案和为什么没选它，最后讲验证和限制。遇到不确定的细节，说明如何查证。",
+            "en": "Start with goals and constraints, trace inputs to outputs, compare one alternative, and explain validation and limits. State how you'd verify uncertain details."
+          },
+          "pitfall": {
+            "zh": "讲得复杂不等于理解得深。",
+            "en": "Complexity of wording isn't depth of understanding."
+          }
+        },
+        {
+          "id": "interview-code",
+          "source": "interview/README.md",
+          "question": {
+            "zh": "白板写完代码后，还应该做什么？",
+            "en": "What should you do after writing whiteboard code?"
+          },
+          "answer": {
+            "zh": "用小例子走一遍，检查边界、shape 或索引、复杂度和数值稳定性。解释不变量，再用反例尝试打破它。",
+            "en": "Walk through a small example, checking boundaries, shapes or indices, complexity, and numerical stability. State the invariant and try to break it with a counterexample."
+          },
+          "pitfall": {
+            "zh": "记住模板但解释不了输入输出，追问时容易卡住。",
+            "en": "Memorizing a template without its input/output contract won't survive follow-ups."
+          }
+        }
+      ]
+    },
+    {
+      "section": "career",
+      "cards": [
+        {
+          "id": "career-evidence",
+          "source": "career/prepare.md",
+          "question": {
+            "zh": "准备一个项目故事，除了“我做了什么”还要准备什么？",
+            "en": "What belongs in a project story besides what you did?"
+          },
+          "answer": {
+            "zh": "为什么值得做、哪些是自己负责的、比较过什么方案、证据和限制是什么。把提议、实现、交付、验证清楚分开。",
+            "en": "Why it mattered, your own responsibility, alternatives, evidence, and limitations. Distinguish proposals, implementation, delivery, and validation."
+          },
+          "pitfall": {
+            "zh": "团队成果不要全部归为个人贡献；没有的结果不要补。",
+            "en": "Don't claim all team output as your own or invent results."
+          }
+        },
+        {
+          "id": "career-feedback",
+          "source": "career/not-binary.md",
+          "question": {
+            "zh": "一次面试没过，能推断自己不适合这个方向吗？",
+            "en": "Does one unsuccessful interview show you're unsuited to a field?"
+          },
+          "answer": {
+            "zh": "不能从一次结果下这么大的结论。复盘能观察到的准备和表达问题，区分岗位匹配、流程波动与能力缺口，再选一个具体改进。",
+            "en": "One outcome cannot support that conclusion. Review observable preparation and communication issues, separate fit, process variation, and skill gaps, then choose a concrete improvement."
+          },
+          "pitfall": {
+            "zh": "既别把所有原因归给自己，也别把能改进的部分一概忽略。",
+            "en": "Neither blame yourself for everything nor dismiss useful feedback."
+          }
+        }
+      ]
+    },
+    {
+      "section": "papers",
+      "cards": [
+        {
+          "id": "paper-claim",
+          "source": "papers/README.md",
+          "question": {
+            "zh": "读完摘要，下一步先查什么？",
+            "en": "What should you check after reading a paper's abstract?"
+          },
+          "answer": {
+            "zh": "把核心 claim 改写成可检验的一句话，再找支撑它的实验、baseline、数据与适用条件。把作者的结论和自己的解释分开记。",
+            "en": "Rewrite the central claim as a testable statement, then locate supporting experiments, baselines, data, and conditions. Separate the authors' conclusions from your interpretation."
+          },
+          "pitfall": {
+            "zh": "方法新颖和证据充分是不同评价。",
+            "en": "Novelty and evidential strength are different judgments."
+          }
+        },
+        {
+          "id": "paper-transfer",
+          "source": "papers/README.md",
+          "question": {
+            "zh": "论文结果很好，为什么不能直接搬到自己的任务？",
+            "en": "Why might a strong paper result fail to transfer to your task?"
+          },
+          "answer": {
+            "zh": "数据、目标、预算、约束或评价标准可能不同。先列出差异，选一个最小实验检验关键假设，再决定是否扩大投入。",
+            "en": "Data, objectives, budgets, constraints, or evaluation may differ. List mismatches and test a key assumption with a minimal experiment before investing further."
+          },
+          "pitfall": {
+            "zh": "复现数值与验证迁移是两项不同工作。",
+            "en": "Reproducing a number and validating transfer are different tasks."
+          }
+        }
+      ]
+    }
+  ]
+}

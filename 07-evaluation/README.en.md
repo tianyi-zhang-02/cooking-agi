@@ -2,7 +2,9 @@
 
 [中文](README.md) · **English**
 
-## Evaluation begins by defining what “good” means
+Read this chapter as “define the goal → design a comparison → inspect the result.” The [evaluation stack](evaluation-stack.en.md) separates levels; [comparisons and slices](ablation-and-slices.en.md) works through a test; [metric robustness](metric-robustness.en.md) checks the conclusion.
+
+## First define what improvement means
 
 Evaluation is not producing a score for the model. It is collecting enough evidence to judge whether a specific change really improved the target behavior without causing a more serious problem somewhere else.
 

@@ -33,6 +33,8 @@ My preparation and interview experience has mainly been with **MLE and Research 
 
 ## What you can read
 
+Not sure where to begin? The [study and review guide](00-foundations/study-guide.en.md) suggests routes based on your current question. Chapter review cards let you answer first, reveal the reasoning, and mark anything worth another attempt.
+
 There are two main entry points: [Study notes](00-foundations/README.en.md) for concepts, formulas, and teaching examples — split into Quant Researcher and AI / ML Engineer, because the two are tested on different things — and [Industry Practice](practice/README.en.md) for concrete problems, implementations, and validation. Career and paper notes remain separate.
 
 The [website](https://tianyi-zhang-02.github.io/cooking-agi/index.en.html) has language switching and working interactive diagrams. If you'd like to browse first, try the [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html).

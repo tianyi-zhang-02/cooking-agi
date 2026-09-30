@@ -2,9 +2,11 @@
 
 [中文](README.md) · **English**
 
-## Start here: logs are not user intent
+Start here for the limits of behavioral logs, then read [feedback to objectives](feedback-to-objectives.en.md): missingness versus negatives, multi-signal supervision, and how to test whether a signal helps.
 
-The data a model sees is not the world itself. It is **the trace the world leaves after passing through an existing system, a product interface, and logging rules**.
+## Logs record behavior, not complete intent
+
+Training logs record **what users did with the choices, interface, and exposure available at the time**. They provide clues, not a complete record of intent or preferences.
 
 This matters because we routinely mistake “what happened in the logs” for “what the user actually wanted.”
 

@@ -1,0 +1,47 @@
+.chapter-review {
+  margin: 2.6rem 0 1.5rem;
+  padding: 1.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.chapter-review [hidden] { display: none !important; }
+.prose .chapter-review h2 { margin: 0; padding: 0; border: 0; font-size: 1.08rem; }
+.review-heading { display: flex; gap: 1rem; justify-content: space-between; align-items: start; }
+.prose .review-intro, .prose .review-storage { color: var(--muted); font-size: .85rem; line-height: 1.8; }
+.review-toolbar, .review-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chapter-review button {
+  appearance: none;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: .5rem .7rem;
+  min-height: 40px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.chapter-review button:hover, .chapter-review button[aria-pressed="true"] { background: var(--ember-bg); color: var(--ink); }
+.chapter-review button:disabled { opacity: .45; cursor: default; }
+.prose .review-progress, .prose .review-mark { font-size: .78rem; color: var(--muted); }
+.review-card { border-top: 1px solid var(--rule); margin: 1rem 0; padding-top: .5rem; }
+.prose .review-question { margin: .75rem 0 1rem; font-size: 1rem; line-height: 1.8; overflow-wrap: anywhere; }
+.prose .review-answer { margin: 0 0 1rem; padding: .7rem 1rem; border: 1px solid var(--rule); border-radius: 5px; }
+.review-answer summary { cursor: pointer; color: var(--ink); font-size: .87rem; }
+.review-answer p, .review-pitfall { font-size: .88rem; line-height: 1.85; }
+.review-pitfall { border-left: 2px solid var(--rule); padding-left: .8rem; color: var(--ink-soft); }
+.review-empty { color: var(--muted); }
+.review-actions { padding-top: .4rem; }
+.review-actions [data-review-action="next"] { margin-left: auto; }
+.prose .review-storage { margin-bottom: 0; font-size: .76rem; }
+@media (max-width: 540px) {
+  .chapter-review { padding: 1rem; }
+  .review-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .review-actions [data-review-action="next"] { margin-left: 0; }
+}
+@media print {
+  .chapter-review button, .review-progress, .review-mark, .review-storage { display: none !important; }
+  .chapter-review { break-inside: avoid; }
+  .chapter-review .review-card[hidden] { display: block !important; }
+}
