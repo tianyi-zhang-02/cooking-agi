@@ -1,0 +1,44 @@
+.talk-heading { margin: 0 0 1.7rem; }
+.talk-heading h1 { font-size: clamp(1.85rem, 3.6vw, 2.75rem); line-height: 1.3; letter-spacing: -.035em; margin: .5rem 0 1.1rem; text-wrap: balance; }
+.talk-eyebrow { font: 600 .72rem/1.6 var(--body); letter-spacing: .1em; color: var(--muted); }
+.talk-back { display: inline-block; font-size: .82rem; margin: 0 0 1.8rem; text-decoration: none; color: var(--muted); }
+.talk-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; color: var(--muted); font: 400 .76rem/1.6 var(--body); }
+.talk-meta a { color: inherit; text-decoration: none; }
+.talk-intro { display: grid; grid-template-columns: 1fr 150px; gap: 1.25rem; align-items: center; padding: 1.5rem 0 2rem; border-bottom: 1px solid var(--rule); margin-bottom: 2.5rem; }
+.prose .talk-lead { font-size: clamp(1.35rem, 2.5vw, 1.8rem); font-weight: 500; line-height: 1.55; margin: 0 0 .65rem; text-wrap: balance; }
+.prose .talk-caption { color: var(--muted); font-size: .84rem; margin: .6rem 0; }
+.talk-orbit { width: 100%; max-width: 180px; color: var(--ink-soft); overflow: visible; }
+.talk-bubble-a { animation: talk-drift 7s ease-in-out infinite; }
+.talk-bubble-b { animation: talk-drift 7s ease-in-out -3s infinite; }
+@keyframes talk-drift { 50% { transform: translateY(-5px); } }
+.talk-topics { margin: 2.5rem 0 3rem; }
+.prose .talk-topics > .talk-eyebrow { margin-bottom: 1rem; }
+.prose .talk-card { display: block; padding: 1.6rem 1.75rem; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; margin: 1rem 0; color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
+.prose .talk-card:hover { border-color: var(--muted); transform: translateY(-2px); }
+.prose .talk-card h3 { font-size: 1.25rem; line-height: 1.55; margin: 1rem 0 .6rem; font-weight: 600; text-wrap: balance; }
+.prose .talk-card p { color: var(--muted); margin: 0 0 1.4rem; font-size: .95rem; }
+.talk-card .talk-meta { justify-content: space-between; }
+.talk-card-link { font-size: .82rem; display: flex; justify-content: space-between; align-items: center; }
+.talk-card-link > span { font-size: 1.25rem; }
+.talk-comments { border-top: 1px solid var(--rule); margin-top: 3rem; padding: 1.8rem 0 0; }
+.prose .talk-comments h2 { border: 0; margin: 0 0 .75rem; padding: 0; font-size: 1.4rem; }
+.prose .talk-comments > p { font-size: .9rem; }
+.talk-load, .talk-external { display: inline-flex; align-items: center; padding: .65rem 1rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--panel); color: var(--ink); font: 500 .85rem/1.5 var(--body); cursor: pointer; }
+.talk-load:hover, .talk-external:hover { border-color: var(--muted); }
+.prose .talk-external { text-decoration: none; margin: .8rem 0; }
+.talk-load:disabled { cursor: wait; opacity: .6; }
+.talk-load[hidden] { display: none; }
+.talk-widget { margin-top: 1.25rem; }
+.prose .talk-load-status { font-size: .8rem; color: var(--muted); }
+.talk-load-status:empty { display: none; }
+.talk-widget .giscus { margin-top: 1rem; }
+@media (max-width: 560px) {
+  .talk-intro { grid-template-columns: 1fr 88px; gap: .5rem; padding-top: .5rem; }
+  .prose .talk-card { padding: 1.25rem; }
+  .talk-heading h1 { font-size: 1.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .talk-bubble-a, .talk-bubble-b { animation: none; }
+  .prose .talk-card { transition: none; }
+  .prose .talk-card:hover { transform: none; }
+}

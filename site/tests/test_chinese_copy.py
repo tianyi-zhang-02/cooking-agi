@@ -67,7 +67,7 @@ class ChineseCopyTests(unittest.TestCase):
         self.assertIn("多模态学习", names)
         css = (build.SITE / "static/style.css").read_text()
         self.assertNotRegex(css, r"(?m)^\s*\.term-en\s*\{[^}]*display\s*:\s*none")
-        self.assertIn(':root.lang-zh[data-english-terms="off"] .term-en', css)
+        self.assertNotIn('data-english-terms', css)
         self.assertNotIn('.term-en::before', css)
         template = (build.SITE / "template.html").read_text()
         for label in ("skip_label", "menu_label", "theme_label", "toc_label"):

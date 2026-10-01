@@ -5,7 +5,7 @@
 
 [![Build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
 
-学 AI 时，找资料往往就花掉不少时间。这里把读过的资料和自己的理解整理在一起，从具体问题讲起，配上图解、小实验和复习卡，尽量说清楚模型怎么工作、为什么这样设计。
+学 AI 时，找资料往往就花掉不少时间。这里把读过的资料和自己的理解整理在一起，从具体问题讲起，配上图解和小实验，尽量说清楚模型怎么工作、为什么这样设计。
 
 这份中英双语笔记由大家一起维护，还在慢慢补。希望能帮你少绕点路，准备起来更轻松些，也有时间做学习之外喜欢的事。
 
@@ -18,7 +18,7 @@
 | 准备 ML 实习或 new-grad | [代码与题解](interview/README.md) · [求职记录](career/README.md) |
 | 读论文或补一篇笔记 | [论文](papers/README.md) · [写作规范](EDITORIAL.md) · [内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
 
-**建议在网站阅读。** 中英文切换、交互图和复习卡在那里可直接使用；这个仓库保存正文、实验代码与站点源码。
+**建议在网站阅读。** 可以随时切换中英文，也能直接操作交互图；这个仓库保存正文、实验代码与站点源码。
 
 ## 内容地图
 

@@ -35,8 +35,8 @@ from pathlib import Path
 
 import markdown
 import collaboration
-import review
 import next_stop
+import discussions
 from markdown.extensions.toc import TocExtension, slugify
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1038,7 +1038,7 @@ def discover(nav):
         files.sort(key=lambda p: (rank.get(p.name, len(order)), p.name))
         entry = {"zh": sec["zh"], "en": sec["en"], "dir": sec["dir"],
                  "group": sec.get("group", "reference"),
-                 "review": sec.get("review", True), "pages": []}
+                 "pages": []}
         for f in files:
             zh = Page(f, entry, "zh")
             en_src = f.with_name(f.stem + ".en.md")
@@ -1592,9 +1592,23 @@ def footer_html(page, people, repo, built):
     <span class="sep">·</span>
     <a href="{edit}">{'提交修改' if zh else 'Suggest an edit'}</a>
   </div>
-  {collaboration.page_panel(page, collaboration.load_config(), repo)}
+  {"" if page.section.get("dir") == "discussions" else collaboration.page_panel(page, collaboration.load_config(), repo)}
   {contributor_portal}
 </footer>"""
+
+
+def contributor_avatar_html(person, page):
+    asset = {
+        "Claude Code": "static/crew-icons/claude.svg",
+        "Codex": "static/company-icons/openai.svg",
+    }.get(person["name"]) if person.get("kind") == "ai" else None
+    source = page.rel(asset) if asset else person.get("avatar")
+    image = (f'<img class="crew-src{" crew-mark" if asset else ""}" '
+             f'src="{html.escape(source, quote=True)}" alt="" crossorigin="anonymous" '
+             f'loading="lazy" decoding="async">' if source else "")
+    initials = html.escape(person["name"][:2].upper(), quote=True)
+    return (f'<span class="crew-face" data-crew-avatar data-initials="{initials}" aria-hidden="true">'
+            f'{image}<canvas class="crew-bits" width="72" height="72"></canvas></span>')
 
 
 def contributor_universe_html(people, page, site):
@@ -1620,12 +1634,9 @@ def contributor_universe_html(people, page, site):
         description = person.get("description", {}).get(page.lang, "")
         detail = f'<small>{html.escape(description)}</small>' if description else ""
         title = html.escape(person["name"])
-        avatar = person.get("avatar") or ""
-        seed = html.escape(person["name"][:2].upper(), quote=True)
-        face = (f'<img class="crew-src" src="{html.escape(avatar, quote=True)}" alt="" '
-                f'crossorigin="anonymous" loading="lazy" decoding="async">' if avatar else "")
-        link = (f'<a href="{html.escape(url, quote=True)}">{title} <span aria-hidden="true">↗</span></a>'
-                if url else f'<strong>{title}</strong>')
+        face = contributor_avatar_html(person, page)
+        link = (f'<a class="crew-name" href="{html.escape(url, quote=True)}">{title} <span aria-hidden="true">↗</span></a>'
+                if url else f'<strong class="crew-name">{title}</strong>')
         active = week_start.isoformat() <= person["last"] <= today.isoformat()
         crew.append(
             f'<div class="crew-drifter{" is-recent" if active else ""}" '
@@ -1634,8 +1645,7 @@ def contributor_universe_html(people, page, site):
             f'--start-y:{(23 + index * 29) % 56 + 22}%">'
             f'<button class="crew-pilot" type="button" aria-label="{html.escape(handle, quote=True)}" '
             f'aria-expanded="false" aria-controls="crew-label-{index}">'
-            f'<span class="crew-face" data-initials="{seed}">{face}'
-            f'<canvas class="crew-bits" width="72" height="72" aria-hidden="true"></canvas></span></button>'
+            f'{face}</button>'
             f'<div class="crew-label" id="crew-label-{index}">'
             f'<span class="crew-handle">{person["crew_id"]} · {html.escape(handle)}</span>'
             f'{link}<small>{role}</small>{detail}</div></div>')
@@ -1643,8 +1653,9 @@ def contributor_universe_html(people, page, site):
                  else ("补充署名" if zh else "Acknowledged contribution"))
         # the credits roll, grouped by what someone did, in the order the roles are listed
         credits.setdefault(role, []).append(
-            f'<li><span class="credit-name">{link}</span>'
-            f'<span class="credit-note">{person["crew_id"]} · {html.escape(handle)} · '
+            f'<li>{face}<span class="credit-name">{link}</span>'
+            f'{f"<span class=\"credit-handle\">{html.escape(handle)}</span>" if login else ""}'
+            f'<span class="credit-note">{person["crew_id"]} · '
             f'{since}</span>{detail}</li>')
         mine = [c for c in person.get("countries", ()) if c in countries]
         for code in mine:                      # two places: half the weight to each
@@ -1658,8 +1669,8 @@ def contributor_universe_html(people, page, site):
         url = site.get("owner_url") if is_owner else person.get("url")
         handle = f"@{login}" if login else person["name"]
         title = html.escape(person["name"])
-        link = (f'<a href="{html.escape(url, quote=True)}">{title}</a>' if url
-                else f'<strong>{title}</strong>')
+        link = (f'<a class="crew-name" href="{html.escape(url, quote=True)}">{title}</a>' if url
+                else f'<strong class="crew-name">{title}</strong>')
         role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
                 else ("笔记与代码" if zh else "Notes & code"))
         active = week_start.isoformat() <= person["last"] <= today.isoformat()
@@ -1676,7 +1687,8 @@ def contributor_universe_html(people, page, site):
         board.append(
             f'<tr class="{"is-recent" if active else ""}">'
             f'<td class="crew-id">{person["crew_id"]}</td>'
-            f'<th scope="row">{link}<small>{html.escape(handle)}</small></th>'
+            f'<th scope="row"><div class="board-identity">{contributor_avatar_html(person, page)}'
+            f'<div>{link}<small>{html.escape(handle)}</small></div></div></th>'
             f'<td class="role">{role}</td>'
             f'<td class="count">{count}</td>'
             f'<td>{first}</td>'
@@ -1804,26 +1816,16 @@ def share_description(page) -> str:
 def reading_controls_html(page):
     chinese = page.lang == "zh"
     sibling = getattr(page, "sibling", None)
-    pages = {page.lang: page}
-    if sibling:
-        pages[sibling.lang] = sibling
-    links = []
-    for language, label, html_language in (("zh", "中文", "zh-Hans"), ("en", "English", "en")):
-        target = pages.get(language)
-        if target:
-            current = ' aria-current="page"' if target is page else ""
-            href = html.escape(page.rel(target.url), quote=True)
-            links.append(f'<a href="{href}" lang="{html_language}" hreflang="{html_language}"{current}>{label}</a>')
-    title = "正文语言" if chinese else "Page language"
-    options = ('<label class="reading-terms" hidden><input type="checkbox" data-term-toggle checked '
-               'aria-describedby="reading-terms-hint">显示英文术语对照</label>'
-               '<p id="reading-terms-hint" class="reading-hint">只控制自动添加的英文括注，不隐藏解释、公式或模型名称。</p>'
-               '<p class="reading-hint">偏好仅保存在这台浏览器中。</p>') if chinese else (
-               '<p class="reading-hint">Read the complete page in either language. Switching stays on this note.</p>')
-    return ('<details class="reading-settings">'
-            '<summary class="lang-btn" aria-label="阅读语言 / Reading language">中 / EN</summary>'
-            f'<div class="reading-panel"><p class="reading-title">{title}</p>'
-            f'<nav class="reading-languages" aria-label="{title}">{"".join(links)}</nav>{options}</div></details>')
+    label = "EN" if chinese else "中文"
+    if not sibling:
+        unavailable = "暂无英文版" if chinese else "Chinese version not available"
+        return (f'<span class="lang-btn disabled" aria-disabled="true" '
+                f'title="{unavailable}">{label}</span>')
+    language = "en" if chinese else "zh-Hans"
+    description = "切换到英文 / Read in English" if chinese else "切换到中文 / Read in Chinese"
+    href = html.escape(page.rel(sibling.url), quote=True)
+    return (f'<a class="lang-btn" href="{href}" lang="{language}" hreflang="{language}" '
+            f'aria-label="{description}" title="{description}">{label}</a>')
 
 
 def assemble(page, sections, people, nav, built, template):
@@ -1856,6 +1858,13 @@ def assemble(page, sections, people, nav, built, template):
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     content = page.body
+    is_discussion = page.section.get("dir") == "discussions"
+    discussion_config = nav["_discussions"]
+    if is_discussion:
+        content = content.replace('<div data-discussion-index></div>', discussions.intro(page))
+        content = content.replace('<div data-discussion-topics></div>', discussions.topic_cards(page, discussion_config))
+        content += discussions.comments(page, discussion_config)
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/discussions.css?v={built}">\n<script defer src="{prefix}static/discussions.js?v={built}"></script>\n</head>')
     config = collaboration.load_config()
     content = content.replace('<div data-collaboration-areas></div>',
                               collaboration.areas_html(config, site['repo'], zh))
@@ -1896,8 +1905,8 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{sidebar_label}}", "笔记导航" if zh else "Note navigation")
             .replace("{{hero}}", hero_html(page))
             .replace("{{tabs}}", tabs_html(page))
-            .replace("{{toc}}", toc_html(page))
-            .replace("{{mobile_toc}}", mobile_toc_html(page))
+            .replace("{{toc}}", "" if is_discussion else toc_html(page))
+            .replace("{{mobile_toc}}", "" if is_discussion else mobile_toc_html(page))
             .replace("{{toc_label}}", "本页目录" if zh else "On this page")
             .replace("{{skip_label}}", "跳到正文" if zh else "Skip to content")
             .replace("{{menu_label}}", "打开目录" if zh else "Open navigation")
@@ -1918,10 +1927,9 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{crew_aria}}", "幕后" if zh else "Behind the notes")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", content)
-            .replace("{{page_header}}", page_header_html(page))
-            .replace("{{page_nav}}", "" if is_community_scene else page_nav_html(page))
+            .replace("{{page_header}}", discussions.header(page, discussion_config) if is_discussion else page_header_html(page))
+            .replace("{{page_nav}}", "" if is_community_scene or is_discussion else page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))
-            .replace("{{review}}", review.render(page, nav["_review"], BY_SRC))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))
 
@@ -1934,9 +1942,8 @@ def main():
     args = ap.parse_args()
 
     nav = load_nav()
+    nav["_discussions"] = discussions.load_config()
     collaboration.validate(collaboration.load_config(), nav)
-    nav["_review"] = review.load_config()
-    review.validate(nav["_review"], nav)
     terms = load_glossary()
     built = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -1960,9 +1967,6 @@ def main():
     index = []
     for page in pages:
         build_page(page, terms, nav['site']['repo'], known)
-        if review.deck_for(page, nav["_review"]):
-            page.toc.append({"id": "chapter-review", "name": "本章复习" if page.lang == "zh"
-                             else "Chapter review", "children": []})
         dest = OUT / page.out_rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(assemble(page, sections, people, nav, built, template),

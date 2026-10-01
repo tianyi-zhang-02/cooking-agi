@@ -77,3 +77,10 @@ zh = "站点与协作"
 en = "Site & collaboration"
 groups = ["start"]
 reviewers = ["tianyi-zhang-02"]
+
+[[area]]
+id = "discussions"
+zh = "聊聊：学习、工作与生活"
+en = "Discussions: learning, work & life"
+groups = ["discussions"]
+reviewers = ["tianyi-zhang-02"]

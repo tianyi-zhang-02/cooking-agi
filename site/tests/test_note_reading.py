@@ -1,4 +1,5 @@
 import copy
+import re
 import shutil
 import subprocess
 import sys
@@ -55,6 +56,62 @@ class NoteReadingTests(unittest.TestCase):
 
     def test_template_loads_reading_script(self):
         self.assertIn('static/note-reading.js', (build.SITE / 'template.html').read_text())
+
+    def test_chapter_recap_is_removed_from_build_and_template(self):
+        template = (build.SITE / 'template.html').read_text()
+        source = (build.SITE / 'build.py').read_text()
+        for marker in ('{{review}}', 'static/review.js', 'static/review.css', 'chapter-review'):
+            self.assertNotIn(marker, template)
+            self.assertNotIn(marker, source)
+        self.assertNotIn('import review', source)
+        for filename in ('review.py', 'review.json', 'static/review.js', 'static/review.css'):
+            self.assertFalse((build.SITE / filename).exists())
+
+    def test_bilingual_pages_keep_notes_and_navigation_without_recap(self):
+        nav = build.load_nav()
+        nav['_discussions'] = build.discussions.load_config()
+        previous_sources = dict(build.BY_SRC)
+        try:
+            pages, sections = build.discover(nav)
+            known = {page.url for page in pages}
+            template = (build.SITE / 'template.html').read_text()
+            selected = ('interview/algorithms/complexity-and-tools', 'practice/index', 'learn/index')
+            checked = set()
+            for page in pages:
+                canonical = page.url.replace('.en.html', '.html').removesuffix('.html')
+                if canonical not in selected:
+                    continue
+                build.build_page(page, [], nav['site']['repo'], known)
+                output = build.assemble(page, sections, [], nav, 'test', template)
+                for marker in ('chapter-review', 'review.js', 'review.css', '{{review}}', 'data-review-action'):
+                    self.assertNotIn(marker, output)
+                self.assertIn(page.body, output)
+                self.assertIn('class="lang-btn"', output)
+                self.assertIn('id="note-search"', output)
+                self.assertFalse(any(entry['id'] == 'chapter-review' for entry in page.toc))
+                checked.add((canonical, page.lang))
+            self.assertEqual(checked, {(name, language) for name in selected for language in ('zh', 'en')})
+        finally:
+            build.BY_SRC.clear()
+            build.BY_SRC.update(previous_sources)
+
+    def test_note_examples_run_and_languages_match(self):
+        sources = ('01-data-and-feedback/feedback-to-objectives', '02-memory/memory-lifecycle',
+                   '07-evaluation/ablation-and-slices', '00-foundations/model-families/how-to-read')
+        for source in sources:
+            code_by_language = []
+            for suffix in ('.md', '.en.md'):
+                content = (build.ROOT / (source + suffix)).read_text()
+                blocks = re.findall(r'```python\n(.*?)\n```', content, re.S)
+                code_by_language.append(blocks)
+                for block in blocks:
+                    exec(compile(block, source, 'exec'), {})
+            self.assertEqual(code_by_language[0], code_by_language[1])
+
+    def test_general_checklist_is_not_a_manifest(self):
+        output, terms = build.annotate('<p>准备清单与实验清单</p>', build.load_glossary())
+        self.assertIn('<p>准备清单与<span', output)
+        self.assertEqual([term['zh'] for term in terms], ['实验清单'])
 
     @unittest.skipUnless(shutil.which('node'), 'Node is required for reading behavior tests')
     def test_browser_behavior(self):

@@ -51,19 +51,13 @@ Each note normally has:
 
 Split large topics into a guide and shorter notes. The guide explains the order and why each next step matters. Keep details in their own notes rather than reintroducing the whole system on every page.
 
-## Review cards are not summaries
+## Keep practice close to the explanation
 
-Each existing content chapter has 2–8 bilingual cards in `site/review.json`, shared across its pages. Ask readers to explain, calculate, or decide—not just expand an acronym.
+Where practice helps, place it beside the relevant explanation: calculate a small example, change a line of code, or test whether a conclusion survives a different assumption. Not every note needs exercises, and pages do not get an automatic deck of cards, mastery scores, or check-in controls.
 
-The learning and industry-practice navigation pages do not show review cards; their sections set `review = false` in `site/nav.toml`. Reviews should test ideas readers have learned, not whether they remember where a section lives on the site.
+Explain the assumptions and reasoning in a worked answer. For open questions, offer decision criteria rather than a single supposedly correct answer. Point out a specific misconception instead of saying “watch the details.”
 
-- `question`: a directly answerable question or a scenario with sufficient conditions.
-- `answer`: reasoning and assumptions; decision criteria rather than a fake single correct answer for open questions.
-- `pitfall`: a specific misconception, not a generic warning to be careful.
-- `source`: the related Chinese Markdown path; the builder connects the English version.
-- `id`: keep it stable when editing wording. Content changes automatically invalidate old mastery marks.
-
-Prefer small synthetic examples. Real measurements require public sources and experimental conditions. Review correctness, bilingual equivalence, and useful source links. Run `python3 -m unittest discover -s site/tests` to check chapter coverage and references.
+Prefer small synthetic examples. Real measurements require public sources and experimental conditions. Review correctness, bilingual equivalence, and useful links.
 
 Write Chinese as a clear spoken explanation, not a word-for-word translation. Keep familiar names such as Transformer, SFT, and LLM. Use the glossary for English equivalents at first mention: at most two automatic annotations per paragraph, without duplicating existing parenthetical explanations. Keep headings, controls, and diagrams uncluttered. Prefer concrete inputs, outputs, and actions to abstract jargon or unnecessary language switching.
 

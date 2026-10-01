@@ -65,6 +65,14 @@ home = "papers/README.md"
 blurb_zh = "一起读论文：看方法和实验，也聊聊疑问和自己的理解。"
 blurb_en = "Papers read one at a time: what a paper actually claims, whether the evidence holds, and what it changes for us."
 
+[[category]]
+id = "discussions"
+zh = "聊聊"
+en = "Discussions"
+home = "discussions/README.md"
+blurb_zh = "学习、工作、生活，还有那些暂时没有答案的问题。"
+blurb_en = "Learning, work, life, and questions we are still figuring out."
+
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
 # 顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id；home 是点这个板块时落到哪一页（不写就用第一页）。
 # 不带 category 的分组（开始）排在最前面，不属于任何大类。
@@ -214,6 +222,13 @@ category = "reference"
 zh = "论文"
 en = "Papers"
 
+[[group]]
+id = "discussions"
+category = "discussions"
+zh = "聊聊"
+en = "Discussions"
+home = "discussions/README.md"
+
 
 [[section]]
 dir   = "."
@@ -232,7 +247,6 @@ order = ["README.md", "next-stop.md", "next-stop-guide.md"]
 [[section]]
 dir = "learn"
 group = "study"
-review = false
 zh = "学习导航"
 en = "Study map"
 order = ["README.md"]
@@ -380,7 +394,6 @@ order = ["README.md", "patterns.md", "scenarios.md", "model-choice.md", "review.
 [[section]]
 dir   = "practice"
 group = "practice"
-review = false
 zh    = "工程实践"
 en    = "Industry Practice"
 order = ["README.md"]
@@ -448,6 +461,13 @@ zh  = "论文"
 en  = "Papers"
 
 [[section]]
+dir = "discussions"
+group = "discussions"
+zh = "学习之外，也聊聊生活"
+en = "Beyond the notes"
+order = ["README.md", "your-own-path.md", "kindness-and-probability.md", "endings.md", "earning-and-enough.md", "room-to-live.md", "perspectives.md", "self-worth.md"]
+
+[[section]]
 dir   = "."
 group = "reference"
 zh    = "怎么写"
@@ -465,6 +485,14 @@ en  = "Templates"
 # ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
 # without a label falls back to its title up to the first colon.
 [label]
+"discussions/README.md" = ["所有话题", "All topics"]
+"discussions/self-worth.md" = ["钱与自我价值", "Money & self-worth"]
+"discussions/perspectives.md" = ["人生阶段与选择", "Life stages & choices"]
+"discussions/room-to-live.md" = ["水满则溢", "Room to live"]
+"discussions/earning-and-enough.md" = ["多赚一点，值不值", "Earning more & enough"]
+"discussions/endings.md" = ["结局就是结局", "Endings"]
+"discussions/kindness-and-probability.md" = ["行善的数学歪解", "Kindness & probability"]
+"discussions/your-own-path.md" = ["人生不是一条赛道", "Your own path"]
 "00-foundations/core/embeddings-and-similarity.md" = ["向量与相似度", "Embeddings & similarity"]
 "00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
 "03-multimodal-learning/clip.md" = ["CLIP 图文对齐", "CLIP alignment"]

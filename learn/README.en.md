@@ -7,7 +7,7 @@ You don't need to pick a job title first. Start with what you want to do: unders
 <details markdown="1">
 <summary>Want to switch languages or compare terms?</summary>
 
-Use **中 / EN** at the top right to switch between complete Chinese and English pages. When reading Chinese, you can turn automatic English term annotations on or off. You might prefer a Chinese explanation while recognizing *attention* more readily than its translation; there is no need to choose one language for everything. Model names, formulas, and code always remain visible.
+Click **EN / 中文** at the top right to switch directly to the same note in the other language. Chinese pages include English terms by default, such as 注意力（attention）, at their first mention rather than repeating them throughout. Model names, formulas, and code stay unchanged.
 
 Concept cards with a language button let you switch that explanation in place. Chinese pages also offer tappable term definitions and a glossary at the end. The English version is written to stand on its own; it does not require reading the Chinese page first.
 
