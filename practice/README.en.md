@@ -1,30 +1,48 @@
-# Industry Practice
+# Industry practice
 
 [中文](README.md) · **English**
 
-Study notes explain how a method works. This section follows what happens when we put it to use: how a problem was noticed, why a particular change was chosen, and how we checked whether it helped.
+Understanding a model is different from understanding the system around it. Here we follow requests through public projects: where the data comes from, what each component does, what can go wrong, and how to check a change.
 
-There isn't much here yet, and I'll add to it over time. Everything here needs public code, references, or reproducible experiments behind it—not internal company projects.
+## Start with recommendation systems
 
-## What a practice note covers
+Why do those particular posts appear when you refresh a feed? We use Twitter's open-source code as a starting point, then look at how recommendation systems have changed. This is not a file-by-file translation or a recipe for recreating a production service.
 
-1. **What was the problem?** Describe the task, constraints, and observations. Separate verified facts from hypotheses.
-2. **Why this approach?** Compare the options and explain both the choice and its trade-offs.
-3. **How was it implemented?** Use public code to follow the data flow, interfaces, and important details.
-4. **How was it checked?** Record reproduction steps, tests, and measurement conditions, including what hasn't been verified.
+| Episode | What we'll work through |
+| --- | --- |
+| [01 · How a post reaches your feed](recommender-systems/01-feed-pipeline.en.md) | Candidate sources, retrieval, ranking, and filtering |
+| [02 · Find candidates before comparing them](recommender-systems/02-candidate-retrieval.en.md) | What social graphs, interest communities, and dual encoders retrieve |
+| [03 · The best item isn't the best list](recommender-systems/03-ranking-and-diversity.en.md) | Multiple objectives, repetition, and an interactive diversity experiment |
+| [04 · What has changed in modern recommenders](recommender-systems/04-modern-recsys.en.md) | Longer histories, Transformers, multimodal inputs, and generation |
+| [05 · The score went up. Now what?](recommender-systems/05-evaluation-lab.en.md) | Candidate pools, cohort evaluation, and a Python example where an unchanged model loses points |
 
-A note doesn't need a big performance improvement to be worth sharing. A well-understood bug, an experiment that ruled out a hypothesis, or an approach that wasn't adopted can help the next person facing a similar problem.
+[Read the series introduction →](recommender-systems/README.en.md)
 
-## When you need the foundations
+For the reasoning behind those choices, continue with:
 
-- [Post-training](../05-post-training/README.en.md): understand the training objective before following its implementation.
-- [Evaluation](../07-evaluation/README.en.md): design experiments and understand what a metric can and cannot tell you.
-- [Systems and multimodal](../06-systems/README.en.md): follow a request through its components and observe the intermediate steps.
+- [06 · Why two towers](recommender-systems/06-why-two-towers.en.md): trading representational flexibility for reusable computation, and when not to.
+- [07 · Component choices](recommender-systems/07-component-choices.en.md): alternatives for encoders, indexes, rankers, feature updates, and merging.
+- [08 · Serving lifecycle](recommender-systems/08-serving-lifecycle.en.md): interfaces, timeouts, versions, freshness, rollout, and rollback, with a runnable reference.
 
-Small teaching experiments stay in [Study notes](../00-foundations/README.en.md). This section focuses on working through concrete problems. The two link to each other rather than duplicating articles.
+## Beyond the architecture diagram
 
-## Share your own experience
+Each note tries to answer four questions:
 
-Debugging stories, experiments, and implementations from public projects are welcome. Explain the context, process, and evidence; it doesn't need to be a complete solution. See the [contributing guide](../CONTRIBUTING.md#english) to get involved.
+1. **What's the problem?** State the task and constraints; separate observations from hypotheses.
+2. **Why this choice?** Compare alternatives and what each gives up.
+3. **How do the pieces connect?** Follow the data through public code, interfaces, and boundaries.
+4. **How would we verify it?** Distinguish teaching examples from actual measurements.
 
-Please don't submit internal company materials, private data, or other sensitive information. Adding this section does not make any existing private notes public.
+A well-understood bug or an experiment that rules out a hypothesis is worth recording. No clear gain doesn't mean nothing was learned.
+
+## Want to try a design yourself?
+
+The [system-design exercises](../learn/system-design/README.en.md) cover a community feed, a RAG knowledge base, and an assistant with memory. There you make choices under stated constraints; here you read existing public implementations. Use one to question the other.
+
+For the underlying ideas, return to [Study notes](../learn/README.en.md).
+
+## Join us!
+
+If you've debugged, tested, or implemented something in a public project, we'd love to read about it. Explain the context, process, and evidence; it doesn't need to be a universal solution. See the [contribution guide](../CONTRIBUTING.md).
+
+This section uses public materials, synthetic data, and reproducible experiments—not internal company projects or private datasets.

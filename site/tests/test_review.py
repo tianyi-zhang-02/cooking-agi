@@ -2,6 +2,8 @@ import copy
 import html
 import json
 import re
+import shutil
+import subprocess
 import sys
 import tomllib
 import unittest
@@ -39,12 +41,40 @@ class ReviewTests(unittest.TestCase):
                     for locale in ("zh", "en")}
 
     def render(self, section="00-foundations", language="zh", config=None):
-        page = SimpleNamespace(section={"dir": section}, lang=language,
+        settings = next((item for item in self.nav["section"] if item["dir"] == section),
+                        {"dir": section})
+        page = SimpleNamespace(section=settings, lang=language,
                                rel=lambda path: "../" + path)
         return review.render(page, config or self.config, self.pages)
 
     def test_every_existing_chapter_is_covered(self):
         review.validate(self.config, self.nav)
+
+    def test_navigation_hubs_are_not_quizzes(self):
+        for section in ("learn", "practice"):
+            for language in ("zh", "en"):
+                self.assertEqual(self.render(section, language), "")
+        self.assertIn("chapter-review", self.render("00-foundations"))
+        self.assertIn("chapter-review", self.render("practice/recommender-systems"))
+
+    def test_review_visibility_is_configurable(self):
+        page = SimpleNamespace(section={"dir": "00-foundations", "review": False})
+        self.assertIsNone(review.deck_for(page, self.config))
+        page.section["review"] = True
+        self.assertIsNotNone(review.deck_for(page, self.config))
+
+    def test_discovery_preserves_review_visibility(self):
+        import build
+        previous_sources = dict(build.BY_SRC)
+        try:
+            pages, _ = build.discover(self.nav)
+            hubs = [page for page in pages if page.section["dir"] in {"learn", "practice"}]
+            self.assertEqual(len(hubs), 4)
+            for page in hubs:
+                self.assertIsNone(review.deck_for(page, self.config))
+        finally:
+            build.BY_SRC.clear()
+            build.BY_SRC.update(previous_sources)
 
     def test_missing_chapter_is_rejected(self):
         self.config["decks"].pop()
@@ -76,7 +106,7 @@ class ReviewTests(unittest.TestCase):
 
     def test_answers_collapsed_without_javascript(self):
         tags = Tags(self.render()).tags
-        answers = [attrs for tag, attrs in tags if tag == "details"]
+        answers = [attrs for tag, attrs in tags if tag == "details" and attrs.get("class") == "review-answer"]
         self.assertEqual(len(answers), len(self.config["decks"][0]["cards"]))
         self.assertTrue(all("open" not in attrs for attrs in answers))
         controls = [attrs for tag, attrs in tags if "data-review-controls" in attrs]
@@ -95,6 +125,24 @@ class ReviewTests(unittest.TestCase):
                     if "data-review-copy" in attrs:
                         self.assertEqual("hidden" in attrs, attrs["data-review-copy"] != language)
             self.assertEqual(identities[0], identities[1])
+
+    def test_controls_have_clear_roles_and_unique_actions(self):
+        markup = self.render()
+        tags = Tags(markup).tags
+        actions = [attrs["data-review-action"] for tag, attrs in tags if "data-review-action" in attrs]
+        self.assertEqual(len(actions), len(set(actions)))
+        self.assertEqual(set(actions), {"language", "filter", "shuffle", "reset", "all", "previous", "next", "again", "understood"})
+        self.assertIn('class="review-options" data-review-controls hidden', markup)
+        self.assertIn('class="review-assessment" data-review-controls hidden', markup)
+        self.assertIn('class="review-answer-body"', markup)
+        self.assertIn('class="review-show-label"', markup)
+        self.assertIn('class="review-hide-label"', markup)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js is required")
+    def test_review_interactions(self):
+        result = subprocess.run([shutil.which("node"), str(Path(__file__).with_name("review-behavior.cjs"))],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_home_and_governance_have_no_decks(self):
         for section in (".", "community", "templates"):

@@ -1,27 +1,27 @@
-# LLM-as-a-Judge：偏差与稳健流程
+# LLM-as-a-Judge：怎样检查评分有没有偏
 
 **中文** · [English](bias-and-workflow.en.md)
 
 ## 常见偏差
 
-- **Position bias**：pairwise 中偏爱先出现或后出现的答案。
-- **Verbosity bias**：把更长、更详细误判为更好。
-- **Self-enhancement bias**：judge 偏爱与自己模型家族相似的输出。
-- **Style bias**：被标题、Markdown、语气和自信程度影响。
-- **Reference anchoring**：参考答案不完整时，judge 可能把其他同样有效的解法判错。
-- **Scale bias**：总是集中给某几个分数，其他档位几乎用不上。
-- **Evidence leakage**：被评回答里的提示注入或自我吹捧干扰了 judge。
+- **位置偏差（position bias）**：比较两份回答时，总偏向先出现或后出现的那份。
+- **长度偏差（verbosity bias）**：把写得更长、更详细误当成答得更好。
+- **偏爱同类输出（self-enhancement bias）**：更认可自己或同一模型家族的回答。
+- **风格偏差（style bias）**：被排版、语气和自信程度带偏，没有仔细检查内容。
+- **过度依赖参考答案（reference anchoring）**：参考答案没写全，就把其他同样有效的解法判错。
+- **分数使用不均（scale bias）**：总给某几个分数，其他档位几乎不用。
+- **受被评内容干扰（evidence leakage）**：回答里的提示注入或自我吹捧影响了评分。
 
-## 一个更稳健的最小流程
+## 实际使用前，可以这样检查
 
 ```text
 1. 先用确定性规则处理能明确验证的条件
-2. 每个 judge 只判断一个 criterion
-3. 写出有行为锚点的 rubric
-4. 有 reference 就提供，但允许其他等价答案
-5. 用少量人工样本校准 prompt 和阈值
-6. Pairwise 交换顺序；pointwise 检查分数分布
-7. 保存 verdict、rationale、evidence 和 evaluator version
-8. 按任务、用户和 failure type 做 slice analysis
-9. 定期重新测 judge 与人的一致性
+2. 每次只评一个明确的方面
+3. 写清每个分数对应的表现
+4. 提供可靠的参考答案，也允许其他等价解法
+5. 用少量人工标注检查提示词和阈值
+6. 两两比较时交换顺序；单独打分时检查分数分布
+7. 保存判断、理由、依据和评分模型的版本
+8. 按任务、用户群体和错误类型分别检查
+9. 定期重新比较模型评分和人工判断
 ```

@@ -1,29 +1,29 @@
-# AI Agent Observability：Agent 刚才到底做了什么？
+# Agent 可观测性：刚才到底哪一步出了问题？
 
 **中文** · [English](agent-observability.en.md)
 
-## 快速学习：Agent Observability 观察什么
+## 先看要点：需要记录哪些信息
 
 <details class="interview" markdown="1">
-<summary>Trace、state transition 与可复现失败</summary>
+<summary>把调用记录和状态变化连起来，才能复现问题</summary>
 
-**快速记忆**：Metrics 用来看整体指标有没有异常，logs 记录具体事件，traces 把一次运行中的模型调用、检索、工具和状态变化串起来。
+**先记住这三个词**：指标（metrics）看整体有没有异常，日志（logs）记具体事件，调用轨迹（traces）把一次运行中的模型调用、检索、工具和状态变化串起来。
 
 **面试回答**
 
 > 排查 Agent，不能只看某一次 API 调用，要看它完成任务的全过程。每一步的记录（span）应包括版本、输入依据、所选动作、工具参数与返回、状态变化、延迟和成本，再用 trace ID 串起来。这样才能回放问题，找到最先出错的环节。
 
 <details markdown="1">
-<summary><b>深挖</b>：为什么“把所有 prompt 都存下来”仍不等于 observability？</summary>
+<summary><b>再想一步</b>：为什么把提示词全存下来，还是不够？</summary>
 
 只存原始文本，很难看出调用之间的先后和依赖关系，还可能留下敏感信息。更有用的记录应包含结构化 span、父子调用关系、版本和状态变更，并对个人信息（PII）脱敏。目的是分清检索、模型、工具或评估哪一步出了问题，不是把日志越存越长。
 
 </details>
 </details>
 
-## Observability 要解释决策过程
+## 不只知道报错了，还要知道为什么
 
-Agent Observability 的目标，不只是知道服务有没有报错，而是能还原：**Agent 看到了什么、做了哪些决定、状态怎样变化，以及失败从哪一步开始。**
+可观测性要帮助我们还原整个过程：**Agent 当时看到了什么、做了什么、状态怎样变化，以及问题最早出在哪一步。** 只知道接口成功或失败，还不够排查。
 
 ## 一次失败运行里发生了什么
 
@@ -51,6 +51,7 @@ Agent Observability 的目标，不只是知道服务有没有报错，而是能
 | Traces | 一次请求按什么顺序经过了哪些决策和依赖？ |
 | Replay | 用相同版本和证据，能不能重现这次失败？ |
 | Evaluation | 这条完整轨迹是否满足任务要求？ |
+| 分组检查（Slicing） | 哪些用户、任务、工具或环境更容易出错？ |
 
 Agent 特别需要 trace，因为一次结果通常由多次模型、检索和工具调用共同产生。
 

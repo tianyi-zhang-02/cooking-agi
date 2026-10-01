@@ -1,0 +1,94 @@
+name: 下一站 · Share a career update
+description: 自愿分享、修改或撤下本人的职业近况。 / Share, correct, or remove your own career update.
+title: "[Next stop] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这里是公开 issue，账号和内容都会公开。即使网页不署名，也不等于匿名。不要上传 offer 文件、薪资、证件、联系方式或招聘私信。不想公开的信息请勿提交。内容先审核再展示，不会自动上线。
+
+        This issue and your account are public, even if the website entry has no name. Do not upload offer documents, salary details, IDs, contact details, or private hiring messages. Do not submit information you want to keep private. Entries require review and are not published automatically.
+  - type: dropdown
+    id: action
+    attributes:
+      label: 请求类型 · Request
+      options:
+        - 分享新经历 · New update
+        - 修改已有记录 · Correct a record
+        - 撤下已有记录 · Remove a record
+    validations:
+      required: true
+  - type: input
+    id: record
+    attributes:
+      label: 已有记录编号 · Existing record ID
+      description: 修改或撤下时填写，如 NS-0001；无需重复公开经历。 / For corrections or removal, e.g. NS-0001; no need to repeat the experience.
+  - type: input
+    id: company
+    attributes:
+      label: 公司 · Company
+      description: 新投稿时填写以下经历字段；撤下可留空。 / Complete the experience fields for a new entry; leave blank for removal.
+  - type: input
+    id: start-date
+    attributes:
+      label: 开始时间 · Start date
+      description: 填实际开始的年月，例如 May 2026 或 2026-05；尚未入职的填预计开始时间。不确定月份就只填年份，不填收到 offer、结束或投稿的时间。 / Actual start month, e.g. May 2026 or 2026-05. For an offer, use the expected start date. Year-only is fine if the month is unknown; do not use the offer, completion, or submission date.
+      placeholder: May 2026 / 2026-05
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: 进展 · Milestone
+      options:
+        - 拿到 offer · Received an offer
+        - 已入职 · Started the role
+        - 已结束 · Completed
+  - type: dropdown
+    id: role
+    attributes:
+      label: 岗位类别 · Role category
+      options:
+        - 软件工程 · SWE / SDE
+        - 机器学习工程 · MLE
+        - 研究 · RS / RE
+        - 数据科学与分析 · Data science & analytics
+        - 产品 · Product
+        - 其他 · Other
+  - type: dropdown
+    id: employment
+    attributes:
+      label: 工作类型 · Employment type
+      options:
+        - 实习 · Internship
+        - 全职 · Full-time
+        - 合同制 · Contract
+        - 其他 · Other
+  - type: input
+    id: title
+    attributes:
+      label: 具体岗位名（可选）· Job title (optional)
+      description: 例如 ML Engineer Intern；岗位类别仍用于筛选，不知道正式名称可以不填。 / E.g. ML Engineer Intern; the role category still controls filtering. Leave blank if you are unsure of the exact title.
+  - type: input
+    id: display-name
+    attributes:
+      label: 展示名（可选）· Display name (optional)
+      description: 留空则网页显示“一位读者”，但本 issue 的 GitHub 账号仍公开。 / Blank means “A reader” on the page; your issue account is still public.
+  - type: checkboxes
+    id: github
+    attributes:
+      label: 用户名与账号链接（可选）· Username and profile link (optional)
+      options:
+        - label: 我希望网页在这条经历旁展示我的 @GitHub 用户名，并链接到我的 GitHub 主页。 / Show my @GitHub username alongside this update and link it to my GitHub profile.
+  - type: textarea
+    id: note
+    attributes:
+      label: 留句话（可选）· A short note (optional)
+      description: 哪些笔记有帮助，或者还有哪里不足？也可以说说转行；不需要分享面试细节。中文或英文均可，400 字符以内。 / What helped or was missing? Career changes are welcome; no private interview details. Chinese or English, up to 400 characters.
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 本人确认 · Your confirmation
+      options:
+        - label: 这是我本人的经历或记录请求，内容真实；我不会提交他人信息或保密材料。 / This is my own experience or record request, is truthful, and contains no third-party personal data or confidential material.
+          required: true
+        - label: 新增或修改时，我同意将填写的展示字段用于中英文网页和公开源数据；撤下时仅授权处理移除。已公开的 issue、Git 历史或缓存可能仍保留旧信息。 / For additions or corrections, I consent to publishing the display fields on both language pages and in public source data; removal requests authorize removal only. Public issues, Git history, or caches may retain earlier information.
+          required: true

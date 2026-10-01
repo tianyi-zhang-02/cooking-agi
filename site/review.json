@@ -1039,6 +1039,67 @@
       ]
     },
     {
+      "section": "interview/algorithms",
+      "cards": [
+        {
+          "id": "algo-cost-model",
+          "source": "interview/algorithms/complexity-and-tools.md",
+          "question": {"zh": "dict 的平均 O(1) 和 append 的摊还 O(1)，是一回事吗？", "en": "Are average O(1) dict lookup and amortized O(1) append the same claim?"},
+          "answer": {"zh": "不是。前者依赖哈希分布等条件；后者把偶尔扩容的成本分摊到一串操作中。都不能保证每次操作固定耗时。", "en": "No. The former relies on hashing assumptions; the latter spreads occasional resizing cost across a sequence. Neither promises fixed cost for every operation."},
+          "pitfall": {"zh": "复杂度还要包含构造 key、切片和递归栈。", "en": "Include key construction, slicing, and recursion frames where relevant."}
+        },
+        {
+          "id": "algo-prefix-count",
+          "source": "interview/algorithms/hash-and-prefix.md",
+          "question": {"zh": "前缀和计数为什么初始放 {0: 1}，而且先查再存？", "en": "Why initialize prefix counts with {0: 1} and query before inserting?"},
+          "answer": {"zh": "0 代表输入之前的空前缀，让从下标 0 开始的区间也被计数。先查旧前缀，避免 target 为 0 时把当前空区间算进去。", "en": "Zero represents the empty prefix so intervals starting at index 0 count. Query old prefixes first to avoid counting an empty current interval when target is zero."},
+          "pitfall": {"zh": "同一个前缀出现多次，需要频次，不只是 set。", "en": "Repeated prefixes need counts, not just a set."}
+        },
+        {
+          "id": "algo-window-assumption",
+          "source": "interview/algorithms/pointers-and-search.md",
+          "question": {"zh": "最短子数组和至少为目标，正数窗口加入负数后为什么可能失效？", "en": "Why can negative values break the positive-sum shortest-window method?"},
+          "answer": {"zh": "扩张不一定增大和，收缩也不一定减小和。[1,-1,3]、目标 3，收缩一次后和为 2，若停止就漏掉单独的 [3]。", "en": "Expansion need not increase the sum, nor contraction decrease it. In [1,-1,3] with target 3, stopping after shrinking to sum 2 misses [3]."},
+          "pitfall": {"zh": "看到连续区间，不代表一定能套滑动窗口。", "en": "Contiguous intervals alone do not justify a sliding window."}
+        },
+        {
+          "id": "algo-binary-boundary",
+          "source": "interview/algorithms/pointers-and-search.md",
+          "question": {"zh": "lower_bound 返回 len(values) 是错了吗？", "en": "Is lower_bound returning len(values) an error?"},
+          "answer": {"zh": "不是，说明所有值都小于 target，插入位置在末尾。检查元素存在前，要先确认下标没有越界。", "en": "No: every value is smaller than target, so insertion belongs at the end. Check bounds before testing equality at the returned position."},
+          "pitfall": {"zh": "边界位置不是一定存在的元素。", "en": "A boundary position need not point to an existing element."}
+        },
+        {
+          "id": "algo-traversal-choice",
+          "source": "interview/algorithms/traversal.md",
+          "question": {"zh": "DFS 改成 iterative，就能得到最短路了吗？", "en": "Does making DFS iterative make it find shortest paths?"},
+          "answer": {"zh": "不会。实现方式和探索顺序是两件事。等边代价最短路用 BFS 的队列按层扩展；显式栈仍然是深度优先。", "en": "No. Implementation and exploration order are separate. BFS uses a queue for equal-cost shortest paths; an explicit DFS stack still explores depth first."},
+          "pitfall": {"zh": "BFS 入队就登记 visited，递归 DFS 的调用栈也占空间。", "en": "Register visited on BFS enqueue, and count recursive DFS stack memory."}
+        },
+        {
+          "id": "algo-stack-heap",
+          "source": "interview/algorithms/stack-heap-links.md",
+          "question": {"zh": "单调栈的 while 为什么不是 O(n²)？Top K 为什么用小顶堆？", "en": "Why isn't a monotonic-stack while loop O(n²), and why use a min-heap for Top K?"},
+          "answer": {"zh": "每个下标最多入栈、出栈各一次，所以总共 O(n)。Top K 中最小的保留值是淘汰线，小顶堆让它随时可取。", "en": "Each index is pushed and popped at most once, totaling O(n). The retained minimum is the Top-K cutoff, so a min-heap keeps it accessible."},
+          "pitfall": {"zh": "堆不是排序数组，输出有序结果还需排序。", "en": "A heap isn't a sorted array; ordered output adds sorting work."}
+        },
+        {
+          "id": "algo-state-path",
+          "source": "interview/algorithms/backtracking-and-dp.md",
+          "question": {"zh": "回溯的 path 和 DP 的 state 有什么区别？", "en": "How does a backtracking path differ from a DP state?"},
+          "answer": {"zh": "path 记录当前选择，保存答案时通常要复制；state 是足以决定剩余子问题的信息，相同状态可复用结果。但输出全部路径的成本不会被缓存消掉。", "en": "A path records current choices and often needs copying into outputs. A state contains enough information to determine a remaining subproblem. Caching states cannot erase the cost of emitting all paths."},
+          "pitfall": {"zh": "状态漏了约束，cache 会把不同问题错误合并。", "en": "An incomplete state makes cache conflate different subproblems."}
+        },
+        {
+          "id": "algo-greedy-proof",
+          "source": "interview/algorithms/sorting-and-greedy.md",
+          "question": {"zh": "怎么判断一个看起来合理的贪心选择是否真的成立？", "en": "How do you justify a plausible greedy choice?"},
+          "answer": {"zh": "写不变量或交换论证，再尝试小反例。比如硬币 [1,3,4] 凑 6，先拿最大值不是最优；Jump Game 的前沿则依赖可跳至多指定步数。", "en": "State an invariant or exchange argument, then seek small counterexamples. Largest-first coins [1,3,4] fail for 6; Jump Game's frontier relies on jumping up to a length."},
+          "pitfall": {"zh": "规则变了，原来的正确性证明也需要重看。", "en": "Changed rules require rechecking the correctness argument."}
+        }
+      ]
+    },
+    {
       "section": "career",
       "cards": [
         {
@@ -1108,6 +1169,266 @@
           "pitfall": {
             "zh": "复现数值与验证迁移是两项不同工作。",
             "en": "Reproducing a number and validating transfer are different tasks."
+          }
+        }
+      ]
+    },
+    {
+      "section": "learn",
+      "cards": [
+        {
+          "id": "learn-route",
+          "source": "learn/README.md",
+          "question": {
+            "zh": "看懂了 attention，却写不出来，该看哪个板块？",
+            "en": "You understand attention but can't implement it. Where next?"
+          },
+          "answer": {
+            "zh": "先到代码与题解，检查 shape、mask 和数值稳定性；遇到解释不了的步骤，再回基础与模型补原理。",
+            "en": "Go to Code & exercises to check shapes, masks, and numerical stability. Return to Foundations & models for steps you can't explain."
+          },
+          "pitfall": {
+            "zh": "四个板块不是难度排行榜，可以来回走。",
+            "en": "The four areas aren't a difficulty ladder; move between them."
+          }
+        },
+        {
+          "id": "learn-boundary",
+          "source": "learn/README.md",
+          "question": {
+            "zh": "求职、学习笔记和工程实践，怎么分？",
+            "en": "How do Career, Study notes, and Industry practice differ?"
+          },
+          "answer": {
+            "zh": "求职记录经历、心态和选择；学习笔记讲知识与练习；工程实践跟着公开项目理解实现、约束和验证。",
+            "en": "Career records experiences and decisions; Study notes explains ideas and exercises; Industry practice follows public implementations, constraints, and verification."
+          },
+          "pitfall": {
+            "zh": "同一篇不用复制几份，互相链接就好。",
+            "en": "Link a note from related areas rather than copying it."
+          }
+        }
+      ]
+    },
+    {
+      "section": "learn/ml-exercises",
+      "cards": [
+        {
+          "id": "ml-practice-shape",
+          "source": "learn/ml-exercises/README.md",
+          "question": {
+            "zh": "写 attention 时，为什么先标 shape？",
+            "en": "Why write down shapes before implementing attention?"
+          },
+          "answer": {
+            "zh": "先知道每个轴代表 batch、head、位置还是通道，才能解释转置、广播和 mask 的方向。用不相等的小维度测试，别让巧合的尺寸掩盖错误。",
+            "en": "Identify batch, head, position, and channel axes before checking transposes, broadcasting, and masks. Use small unequal dimensions so coincidental shapes don't hide mistakes."
+          },
+          "pitfall": {
+            "zh": "shape 对了，不代表遮罩位置或计算含义就对。",
+            "en": "Correct shapes don't guarantee correct masking or semantics."
+          }
+        },
+        {
+          "id": "ml-practice-check",
+          "source": "learn/ml-exercises/README.md",
+          "question": {
+            "zh": "代码能跑后，怎么检查自己真的懂了？",
+            "en": "Once the code runs, how do you check understanding?"
+          },
+          "answer": {
+            "zh": "用小例子手算，与实现对照；改一个边界条件，说明预期输出，再解释复杂度和另一种实现的取舍。",
+            "en": "Calculate a tiny case by hand, compare it with the implementation, change one boundary condition, then explain complexity and an alternative."
+          },
+          "pitfall": {
+            "zh": "只复现一份模板，不能证明能迁移到新问题。",
+            "en": "Reproducing a template doesn't establish transfer."
+          }
+        }
+      ]
+    },
+    {
+      "section": "learn/system-design",
+      "cards": [
+        {
+          "id": "design-feed-budget",
+          "source": "learn/system-design/feed.md",
+          "question": {
+            "zh": "加一个召回来源，怎么避免只是靠更多候选涨分？",
+            "en": "How do you evaluate a retrieval source without rewarding a larger pool?"
+          },
+          "answer": {
+            "zh": "先固定总候选预算、数据时间窗和评估人群，比较去重后的独有相关候选、覆盖、成本；另做扩预算实验，不混成一个结论。",
+            "en": "Fix total candidate budget, time window, and cohort. Compare unique relevant candidates after deduplication, coverage, and cost; test a larger budget separately."
+          },
+          "pitfall": {
+            "zh": "新的候选来源不一定提供新的有效信号。",
+            "en": "A new source need not add useful new evidence."
+          }
+        },
+        {
+          "id": "design-rag-access",
+          "source": "learn/system-design/rag.md",
+          "question": {
+            "zh": "文档权限刚撤回，为什么只更新索引还不够？",
+            "en": "Why isn't updating the index enough after document access is revoked?"
+          },
+          "answer": {
+            "zh": "旧内容可能仍在检索结果缓存、答案缓存或生成上下文里。设计需要明确缓存失效、请求时权限检查和撤回验证。",
+            "en": "Old content may remain in retrieval caches, answer caches, or generation context. Define invalidation, request-time access checks, and revocation tests."
+          },
+          "pitfall": {
+            "zh": "检索相关不等于有权读取。",
+            "en": "Relevance does not grant permission."
+          }
+        },
+        {
+          "id": "design-memory-delete",
+          "source": "learn/system-design/memory.md",
+          "question": {
+            "zh": "用户说忘掉一件事，系统要忘到哪一层？",
+            "en": "What must happen when a user asks an assistant to forget something?"
+          },
+          "answer": {
+            "zh": "明确承诺范围：记忆记录、向量索引、派生摘要和缓存都可能有副本。按来源追踪并清理，再测试后续请求不会重新带出旧信息。",
+            "en": "Define the deletion scope across memory records, vector indexes, derived summaries, and caches. Trace copies through provenance and test later requests."
+          },
+          "pitfall": {
+            "zh": "只从向量库删掉，不等于全部副本都消失。",
+            "en": "Deleting an index entry doesn't remove every copy."
+          }
+        }
+      ]
+    },
+    {
+      "section": "practice/recommender-systems",
+      "cards": [
+        {
+          "id": "recsys-versions",
+          "source": "practice/recommender-systems/01-feed-pipeline.md",
+          "question": {
+            "zh": "为什么先区分 2023 Twitter 和 2026 X 的公开版本？",
+            "en": "Why distinguish the 2023 Twitter and 2026 X releases first?"
+          },
+          "answer": {
+            "zh": "组件和模型已经变化。读代码时记录仓库、提交版本和对应层级，避免拿历史权重解释今天的线上行为。",
+            "en": "Components and models changed. Record repository, commit, and system layer so historical weights aren't mistaken for current behavior."
+          },
+          "pitfall": {
+            "zh": "公开组件也不等于完整生产环境。",
+            "en": "Public components aren't a complete production environment."
+          }
+        },
+        {
+          "id": "recsys-complement",
+          "source": "practice/recommender-systems/02-candidate-retrieval.md",
+          "question": {
+            "zh": "两路候选重叠小，就证明互补了吗？",
+            "en": "Does little overlap between two sources prove complementarity?"
+          },
+          "answer": {
+            "zh": "还要看新增候选是否相关，以及在相同总预算下是否改善覆盖和目标指标。纯粹多找一些不相关内容也会降低重叠。",
+            "en": "Check whether unique candidates are relevant and improve coverage or target metrics under the same total budget. Irrelevant additions also reduce overlap."
+          },
+          "pitfall": {
+            "zh": "集合不同与有效信息不同，是两回事。",
+            "en": "Different sets aren't necessarily different useful information."
+          }
+        },
+        {
+          "id": "recsys-list",
+          "source": "practice/recommender-systems/03-ranking-and-diversity.md",
+          "question": {
+            "zh": "调大多样性惩罚，这个实验改变了什么？",
+            "en": "What changes when you raise the diversity penalty in the lab?"
+          },
+          "answer": {
+            "zh": "只改变固定候选集的选择顺序。没有训练新模型，也没有发现新的兴趣；主题数和向量距离必须与相关性一起看。",
+            "en": "Only selection from a fixed candidate set changes. No model is trained and no new interests are discovered; inspect relevance alongside topic counts and distances."
+          },
+          "pitfall": {
+            "zh": "向量变散不是用户满意度的证明。",
+            "en": "Spread-out vectors don't prove satisfaction."
+          }
+        },
+        {
+          "id": "recsys-generative",
+          "source": "practice/recommender-systems/04-modern-recsys.md",
+          "question": {
+            "zh": "推荐系统用了 Transformer，就算生成式推荐吗？",
+            "en": "Does using a Transformer make a recommender generative?"
+          },
+          "answer": {
+            "zh": "不一定。它可能只编码历史或给现成候选打分；生成式召回让模型输出物品 ID 或语义 ID 序列，输出空间和检索方式都不同。",
+            "en": "Not necessarily. It may encode history or score supplied candidates. Generative retrieval emits item IDs or semantic-ID sequences, changing the output space and retrieval process."
+          },
+          "pitfall": {
+            "zh": "模型骨架和系统任务不能混为一谈。",
+            "en": "A model backbone is not the system's task."
+          }
+        },
+        {
+          "id": "recsys-pool",
+          "source": "practice/recommender-systems/05-evaluation-lab.md",
+          "question": {
+            "zh": "模型没变，为什么 Recall 也能下降？",
+            "en": "How can Recall fall when the model doesn't change?"
+          },
+          "answer": {
+            "zh": "候选池变大或变难，会改变已知正例的名次。先固定池子和标签口径再比较模型，并明确 Recall 的分母。",
+            "en": "A larger or harder pool can change known positives' ranks. Fix the pool and label protocol when comparing models, and state the Recall denominator."
+          },
+          "pitfall": {
+            "zh": "不同评估协议下的绝对分数不能直接比较。",
+            "en": "Absolute scores under different protocols aren't directly comparable."
+          }
+        },
+        {
+          "id": "recsys-simulation",
+          "source": "practice/recommender-systems/05-evaluation-lab.md",
+          "question": {
+            "zh": "模拟用户反馈很好，可以当成真实效果吗？",
+            "en": "Does positive simulated-user feedback establish real impact?"
+          },
+          "answer": {
+            "zh": "模拟器适合查协议、边界和反馈循环；它也带着自己的假设。真实收益仍需要独立证据和合适的受控验证。",
+            "en": "Simulation can test protocols, boundaries, and feedback loops, but carries its own assumptions. Real impact needs independent evidence and suitable controlled validation."
+          },
+          "pitfall": {
+            "zh": "用同一套假设造标签再评估，可能只是在自证。",
+            "en": "Generating and evaluating labels with the same assumptions can be circular."
+          }
+        },
+        {
+          "id": "recsys-factorization",
+          "source": "practice/recommender-systems/06-why-two-towers.md",
+          "question": {
+            "zh": "双塔省下什么，为什么不等于线上零模型？",
+            "en": "What do two towers save, and why isn't serving necessarily model-free?"
+          },
+          "answer": {
+            "zh": "内容编码可跨请求复用；查询侧仍可能要编码用户和当前上下文，之后还有索引检索与排序。收益来自可分离计算，代价是受限的交互与更新维护。",
+            "en": "Item encoding can be reused across requests. User/context encoding, search, and ranking may remain online. Separability saves work at the cost of constrained interactions and update maintenance."
+          },
+          "pitfall": {
+            "zh": "双塔是模型结构，ANN 是搜索实现，不是同一件事。",
+            "en": "Two towers describe the model; ANN describes the search implementation."
+          }
+        },
+        {
+          "id": "recsys-release",
+          "source": "practice/recommender-systems/08-serving-lifecycle.md",
+          "question": {
+            "zh": "新模型和旧索引维度相同，可以直接切换吗？",
+            "en": "Can a new model directly use an old index if dimensions match?"
+          },
+          "answer": {
+            "zh": "先验证表示空间、预处理、归一化和打分兼容性。按配套版本构建、回放和小流量验证；回滚也应恢复兼容组合，而不是只替换一个模型文件。",
+            "en": "Verify representation space, preprocessing, normalization, and score compatibility. Build and validate a compatible release through replay and canary testing; roll back the bundle, not just one model file."
+          },
+          "pitfall": {
+            "zh": "版本标签只能挡误接，不能代替数值与任务验证。",
+            "en": "A version label prevents accidental wiring mistakes; it cannot replace numerical and task validation."
           }
         }
       ]

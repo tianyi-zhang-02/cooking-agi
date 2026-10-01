@@ -1,0 +1,47 @@
+name: 公司图标 · Request a company icon
+description: 缺了哪家公司？把名称和公开资源发来，确认后就加。 / Suggest a missing company and its public logo resources.
+title: "[Company icon] "
+assignees:
+  - tianyi-zhang-02
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tech、AI、量化，或其他行业都欢迎。不需要公司已经有读者去向记录，也不需要证明你在那里工作。
+        这个 issue 会自动指派给 @tianyi-zhang-02；也可以在下方补充说明里 ping 我一下 :) 确认名称和资源后，我会加到图标库。
+        请只分享公开资源，不要上传内部品牌文件或招聘材料。新增图标不代表合作或背书。
+
+        Companies from any field are welcome. No existing reader update or proof of employment is needed.
+        This issue is assigned to @tianyi-zhang-02; feel free to ping me below too :) I’ll check the name and resources before adding it.
+        Share public resources only, not internal brand files or hiring materials. Adding an icon does not imply a partnership or endorsement.
+  - type: input
+    id: company
+    attributes:
+      label: 公司名称 · Company name
+      description: 填写完整名称，方便区分同名或关联公司。 / Use the full name to distinguish similarly named or related companies.
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: 官方网站 · Official website
+      placeholder: https://...
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Logo 与公开资源 · Logo and public resources
+      description: 最好附官网的品牌页、媒体资源页或 SVG 来源。找不到 logo 也可以提供官网，我们先直接显示完整公司名。 / Prefer an official brand page, media kit, or SVG source. If no logo is available, share the website and we can display the full company name instead.
+    validations:
+      required: true
+  - type: input
+    id: aliases
+    attributes:
+      label: 简称或中文名（可选）· Aliases (optional)
+      description: 帮助搜索和避免重复收录。 / Helps with search and avoiding duplicates.
+  - type: textarea
+    id: notes
+    attributes:
+      label: 补充说明（可选）· Anything else? (optional)
+      description: 如果是更换旧图标，也在这里说一下。 / Mention here if this replaces an outdated icon.

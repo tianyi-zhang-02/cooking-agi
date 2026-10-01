@@ -4,7 +4,7 @@
 
 > Reading time: ~2 min · Last reviewed: 2026-09
 
-Two kinds of things live here: **how to prepare for technical interviews**, and **a record of my own job search**. The scope is **MLE / RE (research engineer)** roles only: that is the direction I am on myself, and I do not write about the others. Three things need saying before you read on.
+This section records **the experiences, mindset, and decisions behind a job search**: how I prepared, handled setbacks, and changed my mind. It reflects my experience in ML and research, not a universal recruiting playbook. A few things to keep in mind:
 
 > **Read this first**
 >
@@ -23,20 +23,19 @@ Start with whichever part you need right now.
 
 ### 2. My own road
 
-- [Looking for a job: notes from the road](journey.en.md) — the timeline, the mistakes, and three things I learned
+- [25-26 internship search](journey.en.md) — the earlier timeline, mistakes, and three things I learned
+- [26-27 new-grad search 🚧](new-grad-2026-2027.en.md) — in progress; updates as I go
 - [A retrospective on one MLE interview](one-interview.en.md) — written right after the interview
+
+I'm now looking for **new-grad roles in the 2026–2027 recruiting season** and will keep adding notes on my preparation and experience. New entries will be dated and kept distinct from the internship search.
 
 ### 3. What to prepare
 
 - [What to actually prepare](prepare.en.md) — not everything, not nothing: your story, the fundamentals, people, and the vocabulary
 
-### 4. Technical preparation
+### 4. When you want technical practice
 
-- [Tech interviews: how to use these notes](../interview/README.en.md) — interview basics, whiteboard coding, the ML maths line, and an interactive Transformer lab
-- [How I practise LeetCode](../interview/leetcode.en.md) — what to practise, how, and how far to take it
-- [System design](../interview/system-design.en.md) — no fixed formula; it is about explaining trade-offs, plus public resources
-
-I put technical preparation after goals and mindset. Technical skills matter, of course, but it is also worth asking what you enjoy and what kind of life you want :)
+Python, algorithms, ML questions, and system design now belong in [Study notes](../learn/README.en.md). This section keeps preparation habits and personal decisions separate from technical exercises.
 
 ## One more thing I believe
 

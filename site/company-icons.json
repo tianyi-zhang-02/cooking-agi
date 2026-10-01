@@ -1,0 +1,780 @@
+{
+  "version": 1,
+  "companies": [
+    {
+      "id": "apple",
+      "name": "Apple",
+      "asset": "apple.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.apple.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "asset": "google.svg",
+      "aliases": [
+        "谷歌"
+      ],
+      "group": "tech",
+      "source": "https://partnermarketinghub.withgoogle.com",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://about.google/brand-resource-center/brand-elements/"
+    },
+    {
+      "id": "microsoft",
+      "name": "Microsoft",
+      "asset": "microsoft.svg",
+      "aliases": [
+        "微软"
+      ],
+      "group": "tech",
+      "source": "https://github.com/gilbarbara/logos",
+      "provider": "SVG Logos via @iconify-json/logos 1.2.15"
+    },
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "aliases": [
+        "亚马逊"
+      ],
+      "group": "tech"
+    },
+    {
+      "id": "meta",
+      "name": "Meta",
+      "asset": "meta.svg",
+      "aliases": [
+        "Facebook"
+      ],
+      "group": "tech",
+      "source": "https://www.meta.com",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.facebook.com/brand/resources/meta/company-brand"
+    },
+    {
+      "id": "nvidia",
+      "name": "NVIDIA",
+      "asset": "nvidia.svg",
+      "aliases": [
+        "英伟达"
+      ],
+      "group": "tech",
+      "source": "https://www.nvidia.com/en-us",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "amd",
+      "name": "AMD",
+      "asset": "amd.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.amd.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "intel",
+      "name": "Intel",
+      "asset": "intel.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.intel.com/content/www/us/en/newsroom/resources/press-kits-intel-overview.html",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "qualcomm",
+      "name": "Qualcomm",
+      "asset": "qualcomm.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.qualcomm.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "samsung",
+      "name": "Samsung",
+      "asset": "samsung.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.samsung.com/us/about-us/brand-identity/logo/",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.samsung.com/us/about-us/brand-identity/logo/"
+    },
+    {
+      "id": "huawei",
+      "name": "Huawei",
+      "asset": "huawei.svg",
+      "aliases": [
+        "华为"
+      ],
+      "group": "tech",
+      "source": "https://e.huawei.com/ph/material/partner/0a72728b864949c48b22106454352483",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://e.huawei.com/ph/material/partner/0a72728b864949c48b22106454352483"
+    },
+    {
+      "id": "tencent",
+      "name": "Tencent",
+      "aliases": [
+        "腾讯"
+      ],
+      "group": "tech"
+    },
+    {
+      "id": "alibaba",
+      "name": "Alibaba",
+      "asset": "alibaba.svg",
+      "aliases": [
+        "阿里巴巴"
+      ],
+      "group": "tech",
+      "source": "https://www.alibabagroup.com/en/ir/reports",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "bytedance",
+      "name": "ByteDance",
+      "asset": "bytedance.svg",
+      "aliases": [
+        "字节跳动"
+      ],
+      "group": "tech",
+      "source": "https://www.bytedance.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "baidu",
+      "name": "Baidu",
+      "asset": "baidu.svg",
+      "aliases": [
+        "百度"
+      ],
+      "group": "tech",
+      "source": "https://www.baidu.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "meituan",
+      "name": "Meituan",
+      "asset": "meituan.svg",
+      "aliases": [
+        "美团"
+      ],
+      "group": "tech",
+      "source": "https://www.meituan.com/media",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "xiaomi",
+      "name": "Xiaomi",
+      "asset": "xiaomi.svg",
+      "aliases": [
+        "小米"
+      ],
+      "group": "tech",
+      "source": "https://www.mi.com/global",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "kuaishou",
+      "name": "Kuaishou",
+      "asset": "kuaishou.svg",
+      "aliases": [
+        "快手"
+      ],
+      "group": "tech",
+      "source": "https://www.kuaishou.com/official/material-lib",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.kuaishou.com/official/material-lib"
+    },
+    {
+      "id": "xiaohongshu",
+      "name": "Xiaohongshu",
+      "asset": "xiaohongshu.svg",
+      "aliases": [
+        "小红书",
+        "RedNote"
+      ],
+      "group": "tech",
+      "source": "https://pro.xiaohongshu.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "bilibili",
+      "name": "Bilibili",
+      "asset": "bilibili.svg",
+      "aliases": [
+        "哔哩哔哩"
+      ],
+      "group": "tech",
+      "source": "https://www.bilibili.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "asset": "linkedin.svg",
+      "aliases": [
+        "领英"
+      ],
+      "group": "tech",
+      "native": true,
+      "source": "https://github.com/gilbarbara/logos",
+      "provider": "SVG Logos via @iconify-json/logos 1.2.15"
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "asset": "netflix.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://brand.netflix.com/en/assets/logos",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://brand.netflix.com/en/assets/logos"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "asset": "spotify.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://developer.spotify.com/documentation/general/design-and-branding/#using-our-logo",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://developer.spotify.com/documentation/general/design-and-branding/#using-our-logo"
+    },
+    {
+      "id": "uber",
+      "name": "Uber",
+      "asset": "uber.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://assets.uber.com/d/k4nuxdZ8MC7E/logos/collection/151",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://assets.uber.com/d/k4nuxdZ8MC7E/user-guide#/user-guide/terms-of-use"
+    },
+    {
+      "id": "airbnb",
+      "name": "Airbnb",
+      "asset": "airbnb.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.airbnb.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "doordash",
+      "name": "DoorDash",
+      "asset": "doordash.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.doordash.com/about/",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "pinterest",
+      "name": "Pinterest",
+      "asset": "pinterest.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://business.pinterest.com/en/brand-guidelines",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://business.pinterest.com/en/brand-guidelines"
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "asset": "reddit.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.redditinc.com/brand",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.redditinc.com/brand"
+    },
+    {
+      "id": "roblox",
+      "name": "Roblox",
+      "asset": "roblox.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.roblox.com",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://en.help.roblox.com/hc/en-us/articles/115001708126-Roblox-Name-and-Logo-Community-Usage-Guidelines"
+    },
+    {
+      "id": "snap",
+      "name": "Snap",
+      "asset": "snap.svg",
+      "aliases": [
+        "Snapchat"
+      ],
+      "group": "tech",
+      "source": "https://www.snapchat.com/brand-guidelines",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.snapchat.com/brand-guidelines"
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "asset": "shopify.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.shopify.com/brand-assets",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.shopify.com/brand-assets"
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "asset": "dropbox.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.dropbox.com/branding",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "duolingo",
+      "name": "Duolingo",
+      "asset": "duolingo.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://design.duolingo.com",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://design.duolingo.com"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "asset": "zoom.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://brand.zoom.us/media-library/",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://brand.zoom.us/usage-legal/"
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "asset": "openai.svg",
+      "aliases": [],
+      "group": "ai",
+      "source": "https://github.com/gilbarbara/logos",
+      "provider": "SVG Logos via @iconify-json/logos 1.2.15"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "asset": "anthropic.svg",
+      "aliases": [],
+      "group": "ai",
+      "source": "https://www.anthropic.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "google-deepmind",
+      "name": "Google DeepMind",
+      "aliases": [
+        "DeepMind"
+      ],
+      "group": "ai"
+    },
+    {
+      "id": "xai",
+      "name": "xAI",
+      "aliases": [],
+      "group": "ai"
+    },
+    {
+      "id": "mistral",
+      "name": "Mistral AI",
+      "asset": "mistral.svg",
+      "aliases": [],
+      "group": "ai",
+      "source": "https://chat.mistral.ai",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "asset": "deepseek.svg",
+      "aliases": [
+        "深度求索"
+      ],
+      "group": "ai",
+      "source": "https://www.deepseek.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "moonshot",
+      "name": "Moonshot AI",
+      "asset": "moonshot.svg",
+      "aliases": [
+        "Kimi",
+        "月之暗面"
+      ],
+      "group": "ai",
+      "source": "https://www.moonshot.cn",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax",
+      "asset": "minimax.svg",
+      "aliases": [],
+      "group": "ai",
+      "source": "https://github.com/MiniMax-AI/MiniMax-01/blob/57cf223b177e99636c7711a0f179e9fdc9c38e8a/figures/minimax.svg",
+      "provider": "Simple Icons 16.33.0",
+      "license": {
+        "type": "custom",
+        "url": "https://github.com/simple-icons/simple-icons/pull/13982#issuecomment-3531627803"
+      }
+    },
+    {
+      "id": "hugging-face",
+      "name": "Hugging Face",
+      "asset": "hugging-face.svg",
+      "aliases": [],
+      "group": "ai",
+      "source": "https://huggingface.co/brand",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://huggingface.co/brand"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "asset": "perplexity.svg",
+      "aliases": [],
+      "group": "ai",
+      "source": "https://www.perplexity.ai",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "asset": "cursor.svg",
+      "aliases": [
+        "Anysphere"
+      ],
+      "group": "ai",
+      "source": "https://cursor.com/brand",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "cohere",
+      "name": "Cohere",
+      "aliases": [],
+      "group": "ai"
+    },
+    {
+      "id": "scale-ai",
+      "name": "Scale AI",
+      "aliases": [],
+      "group": "ai"
+    },
+    {
+      "id": "servicenow",
+      "name": "ServiceNow",
+      "asset": "servicenow.svg",
+      "aliases": [
+        "Service Now"
+      ],
+      "group": "software",
+      "native": true,
+      "source": "https://www.servicenow.com/content/dam/servicenow-assets/images/naas/servicenow-header-logo-white.svg",
+      "provider": "Official website"
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "asset": "salesforce.svg",
+      "aliases": [],
+      "group": "software",
+      "native": true,
+      "source": "https://github.com/gilbarbara/logos",
+      "provider": "SVG Logos via @iconify-json/logos 1.2.15"
+    },
+    {
+      "id": "adobe",
+      "name": "Adobe",
+      "asset": "adobe.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://github.com/gilbarbara/logos",
+      "provider": "SVG Logos via @iconify-json/logos 1.2.15"
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "asset": "oracle.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://github.com/gilbarbara/logos",
+      "provider": "SVG Logos via @iconify-json/logos 1.2.15"
+    },
+    {
+      "id": "sap",
+      "name": "SAP",
+      "aliases": [],
+      "group": "software"
+    },
+    {
+      "id": "atlassian",
+      "name": "Atlassian",
+      "asset": "atlassian.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://atlassian.design/resources/logo-library",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://atlassian.design/foundations/logos"
+    },
+    {
+      "id": "databricks",
+      "name": "Databricks",
+      "asset": "databricks.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.databricks.com",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://brand.databricks.com/Styleguide/Guide/"
+    },
+    {
+      "id": "snowflake",
+      "name": "Snowflake",
+      "asset": "snowflake.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.snowflake.com/brand-guidelines/",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.snowflake.com/brand-guidelines/"
+    },
+    {
+      "id": "palantir",
+      "name": "Palantir",
+      "asset": "palantir.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://github.com/palantir/conjure/blob/1b0d450dc52c4822b4c9d1da8c61ad7f78855fe5/docs/media/palantir-logo.svg",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "asset": "mongodb.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.mongodb.com/pressroom",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "datadog",
+      "name": "Datadog",
+      "asset": "datadog.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.datadoghq.com/about/resources",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.datadoghq.com/about/resources/"
+    },
+    {
+      "id": "elastic",
+      "name": "Elastic",
+      "asset": "elastic.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.elastic.co/brand",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "asset": "cloudflare.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.cloudflare.com/logo/",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.cloudflare.com/trademark/"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "asset": "figma.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.figma.com/using-the-figma-brand/",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://www.figma.com/using-the-figma-brand/"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "asset": "github.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://github.com/logos",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://github.com/logos"
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab",
+      "asset": "gitlab.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://about.gitlab.com/press/press-kit/",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://about.gitlab.com/handbook/marketing/corporate-marketing/brand-activation/trademark-guidelines/"
+    },
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "asset": "vercel.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://vercel.com/geist/brands",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://vercel.com/geist/brands"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "asset": "notion.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://www.notion.so",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "asset": "linear.svg",
+      "aliases": [],
+      "group": "software",
+      "source": "https://linear.app",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "hrt",
+      "name": "Hudson River Trading",
+      "asset": "hrt.svg",
+      "aliases": [
+        "HRT"
+      ],
+      "group": "quant",
+      "native": true,
+      "source": "https://www.hudsonrivertrading.com/wp-content/uploads/2024/04/01-HRT-Primary-Logo-with-%C2%AE-Q2-2024.svg",
+      "provider": "Official website"
+    },
+    {
+      "id": "jane-street",
+      "name": "Jane Street",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "citadel",
+      "name": "Citadel",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "citadel-securities",
+      "name": "Citadel Securities",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "two-sigma",
+      "name": "Two Sigma",
+      "aliases": [
+        "2 Sigma"
+      ],
+      "group": "quant"
+    },
+    {
+      "id": "jump-trading",
+      "name": "Jump Trading",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "optiver",
+      "name": "Optiver",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "imc",
+      "name": "IMC Trading",
+      "aliases": [
+        "IMC"
+      ],
+      "group": "quant"
+    },
+    {
+      "id": "sig",
+      "name": "Susquehanna",
+      "aliases": [
+        "Susquehanna International Group",
+        "SIG"
+      ],
+      "group": "quant"
+    },
+    {
+      "id": "drw",
+      "name": "DRW",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "de-shaw",
+      "name": "D. E. Shaw",
+      "aliases": [
+        "DE Shaw"
+      ],
+      "group": "quant"
+    },
+    {
+      "id": "bloomberg",
+      "name": "Bloomberg",
+      "aliases": [],
+      "group": "quant"
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "asset": "stripe.svg",
+      "aliases": [],
+      "group": "quant",
+      "source": "https://stripe.com/newsroom/information",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "coinbase",
+      "name": "Coinbase",
+      "asset": "coinbase.svg",
+      "aliases": [],
+      "group": "quant",
+      "source": "https://www.coinbase.com/press",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "revolut",
+      "name": "Revolut",
+      "asset": "revolut.svg",
+      "aliases": [],
+      "group": "quant",
+      "source": "https://developer.revolut.com/docs/resources/marketing-assets-guidelines/marketing-guidelines",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
+      "id": "wise",
+      "name": "Wise",
+      "asset": "wise.svg",
+      "aliases": [],
+      "group": "quant",
+      "source": "https://wise.design/foundations/logo",
+      "provider": "Simple Icons 16.33.0",
+      "guidelines": "https://wise.design/foundations/logo"
+    }
+  ]
+}

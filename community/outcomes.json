@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "companies": {
+    "linkedin": "LinkedIn"
+  },
+  "records": [
+    {
+      "id": "NS-0001",
+      "start_date": "2026-05",
+      "company": "linkedin",
+      "role": "ml",
+      "title": {
+        "zh": "机器学习工程师实习生（MLE Intern）",
+        "en": "ML Engineer Intern"
+      },
+      "employment": "internship",
+      "milestone": "completed",
+      "github": "tianyi-zhang-02",
+      "consent": true,
+      "owner_submission": true
+    }
+  ]
+}

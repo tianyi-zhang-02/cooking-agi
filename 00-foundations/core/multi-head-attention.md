@@ -162,6 +162,8 @@ $$\frac{\partial\,\text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij}-\alp
 
 ## 为什么使用多头：目的不是增加维度
 
+$$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V), \quad \text{MultiHead} = \text{Concat}(\text{head}_1..\text{head}_h)W^O$$
+
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
   <p>下面三张卡默认中文；点 <strong>English ↻</strong> 可在原位置查看完整英文。</p>

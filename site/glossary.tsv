@@ -1,14 +1,14 @@
-# 术语表 — 中文版页面里，每个词的第一次出现会自动标注英文原文。
+# 术语表 — 中文正文首次出现时标注英文，每段最多两处；已有英文括注不重复添加。
 #
 # 格式：中文<TAB>English<TAB>一句话解释（可留空）
 # 只需在这里加一行，全站生效；不要在正文里手写括号注释。
 # 以 # 开头的行和空行会被忽略。
 
 超平面	hyperplane	n 维空间里的 n−1 维平面；二维是直线，三维是平面
-决策边界	decision boundary	模型判定类别翻转的那个面
+决策边界	decision boundary	模型对输入作出不同分类的分界线或分界面
 线性可分	linearly separable	存在一个超平面能把两类完全分开
 特征映射	feature map	把原始输入换到另一个坐标系的函数 φ
-坐标变换	change of coordinates	同上，强调「换个空间看问题」
+坐标变换	change of coordinates	用另一套坐标描述同一个对象，方便计算或观察关系
 激活函数	activation function	逐元素的非线性函数，网络深度靠它才有意义
 交叉熵	cross-entropy	分类任务的标准损失，−log 正确类的概率
 梯度消失	vanishing gradient	激活饱和导致梯度趋近 0，深层学不动
@@ -29,14 +29,15 @@
 标签平滑	label smoothing	把 one-hot 目标softened，换 BLEU 不换困惑度
 词表	vocabulary	模型能输出的所有 token 的集合
 困惑度	perplexity	exp(交叉熵)，语言模型的常用指标
-监督微调	SFT	用输入—输出示范教模型模仿目标行为
+监督微调	supervised fine-tuning, SFT	用输入和期望输出的示范，训练模型完成指定任务
 偏好学习	preference learning	从「A 比 B 好」这类比较里学习
-强化学习	RL	通过与环境交互、按回报调整策略来学习
+强化学习	reinforcement learning, RL	根据行动带来的回报调整策略，学习怎样作出更好的选择
 奖励	reward	RL 里指导策略更新的标量信号
 检索	retrieval	从外部语料里找出相关内容
 稠密检索	dense retrieval	用向量相似度而非关键词匹配来检索
 可观测性	observability	能从外部信号推断系统内部状态的程度
 人在回路	human-in-the-loop	让人参与到系统的判断或纠错环节
+人工参与	human-in-the-loop, HITL	在需要时由人确认、纠正或接手，而不是让系统全程自行处理
 分布偏移	distribution shift	训练时和使用时的数据分布不一致
 长尾	long tail	出现频率很低但总量可观的那部分情况
 曝光	exposure	内容真的被展示给用户这件事，和「被检索到」不是一回事
@@ -54,7 +55,7 @@
 双重稳健	doubly robust	结合倾向性加权和结果模型，降低 IPS 的方差
 冷启动	cold start	用户或内容缺少历史证据，模型只能靠先验
 校准	calibration	模型给出的置信度是否等于真实正确率
-候选生成	candidate generation	从海量内容里低成本捞出一批，交给精排
+候选生成	candidate generation	先从大量内容中快速找出一批可能相关的结果，再交给后续排序
 互补性	complementarity	新模块贡献了多少别的通道拿不到的相关候选
 训练服务一致性	train/serve parity	离线算的相似度必须等于线上索引用的相似度
 
@@ -63,10 +64,9 @@
 召回模型	retriever	第一阶段，从海量内容里低成本捞出一批候选
 精排	ranker	第二阶段，对少量候选做充分交互后精细排序
 编码器	encoder	把原始输入压成向量的那一半模型
-教师模型	teacher model	离线跑、只用来产生监督或特征的模型，不进在线链路
+教师模型	teacher model	为另一个模型提供训练信号或中间表示的模型；具体是否离线运行取决于设计
 路由器	router	决定一条输入走哪条处理路径、或各分支占多少权重
 向量索引	vector index	预先算好的内容向量集合，支持近似最近邻查询
-证据	evidence	用来支持或检验一个判断的依据，需要说明来源和适用范围
 实验清单	manifest	记录一次实验所用数据、模型、代码版本和配置的文件
 新鲜度	freshness	内容产生到可被检索之间的延迟
 切片	slice	按内容或用户属性划分的子群体，用来检查平均值掩盖了什么
@@ -118,7 +118,7 @@
 重要性采样	importance sampling	从容易采样的 proposal 抽样，再用权重估计目标分布下的期望
 重要性比值	importance ratio	目标策略与行为策略对同一动作的概率之比
 目标函数	objective function	训练直接优化的数学量；它不一定等于最终产品目标
-用户表示	user representation	把画像、历史与上下文压缩成可供模型消费的状态
+用户表示	user representation	将用户资料、历史和当前上下文编码成模型可以使用的形式
 用户塔	user tower	双塔检索中把用户信息编码成 query 向量的模型分支
 内容塔	candidate tower	双塔检索中把候选内容编码成可预计算向量的模型分支
 多塔	multi-tower	用多个表示分支保留不同信息来源或潜在意图
@@ -147,7 +147,6 @@
 
 # 大模型学习
 分词器	tokenizer	把原始字符串切成 token 并映射为整数 ID 的组件
-词表	vocabulary	模型能够直接表示或输出的 token 集合
 子词	subword	介于完整单词和字符之间的可复用字符串片段
 字节对编码	Byte Pair Encoding, BPE	反复合并高频相邻符号对来学习子词词表的方法
 循环神经网络	recurrent neural network, RNN	用共享状态更新函数逐步处理序列的模型
@@ -157,9 +156,38 @@
 序列到序列	sequence-to-sequence, Seq2Seq	用 encoder 表示输入、再由 decoder 生成输出序列的架构
 教师强制	teacher forcing	训练 decoder 时使用真实前缀而非模型自己预测的前缀
 反向传播穿越时间	backpropagation through time, BPTT	把递归计算沿时间展开后执行反向传播
-因果掩码	causal mask	阻止位置访问未来 token 的注意力掩码
 预填充	prefill	一次并行处理完整 prompt 并建立 KV cache 的推理阶段
 自回归解码	autoregressive decoding	把刚生成的 token 作为下一步输入并逐步继续生成
 随机失活	dropout	训练时随机置零一部分激活，逼模型不依赖固定通道，换取泛化
-正则化	regularization	牺牲一点训练集拟合，换取在没见过的数据上表现更好
+正则化	regularization	通过约束、惩罚或训练方式减少过拟合，让模型更好地处理新数据
 过拟合	overfitting	训练集越来越好，没见过的数据反而变差
+
+机器学习	machine learning, ML	从数据中学习规律，用于预测、生成或决策
+语言模型	language model, LM	对文本序列建模，用上下文预测或生成后续内容
+预训练	pre-training	先用大量数据学习通用表示和能力，再适配具体任务
+继续预训练	continued pre-training	在已有模型上继续训练，适应新的领域或数据分布
+指令微调	instruction tuning	用指令和回答示范，训练模型按要求完成任务
+多任务学习	multi-task learning	让多个相关任务共享一部分模型，并一起训练
+多模态学习	multimodal learning	结合文字、图片、声音等不同形式的信息来学习
+视觉语言模型	vision-language model, VLM	能够结合图像与文字处理任务的模型
+用户资料	profile	用户提供或系统整理的相对稳定信息，与具体行为历史区分
+会话	session	一段连续的交互；具体边界由产品或实验定义
+任务状态	task state	执行任务时保存的目标、已知信息、进度和待确认事项
+表征	representation	将原始信息转换成模型可以使用的形式，例如向量
+工作记忆	working memory	当前任务正在使用的信息，如本轮对话和工具结果
+情景记忆	episodic memory	对具体事件及其时间、情境的记录
+语义记忆	semantic memory	相对稳定的事实和知识，不局限于某次具体经历
+程序性记忆	procedural memory	保存做事的步骤或协作习惯
+延迟交互	late interaction	先分别编码查询和内容，再保留较细粒度的表示进行匹配
+混合检索	hybrid retrieval	结合关键词、向量等不同检索方式，互相补充
+重排序模型	reranker	在已有候选上进行更细的比较，重新决定顺序
+相关性	relevance	内容在多大程度上满足当前查询或任务的需要
+覆盖率	coverage	结果覆盖了多少目标内容或类别，计算前需要说清范围和分母
+多样性	diversity	结果之间在主题、来源或其他指定维度上有多大差异
+提示词	prompt	提供给模型的任务说明、上下文和示例
+评分标准	criterion	这次评估究竟要判断哪一项质量
+评分细则	rubric	不同分数对应什么可观察的表现
+基线	baseline	用来比较新方法的参考方法或配置
+会话级评估	session-level evaluation	把完整的一段交互作为评估对象，而不只检查单次回答
+纵向评估	longitudinal evaluation	沿时间观察多次交互，检查长期效果和变化
+模型体验	model experience	这里指用户持续使用模型时，对效果、连贯性和可控性的整体感受

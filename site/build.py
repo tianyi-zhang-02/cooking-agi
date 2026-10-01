@@ -36,6 +36,7 @@ from pathlib import Path
 import markdown
 import collaboration
 import review
+import next_stop
 from markdown.extensions.toc import TocExtension, slugify
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,13 +47,17 @@ OUT = ROOT / "_site"
 # headings stay clean: an inline gloss there is noise, and it would
 # disagree with the (unannotated) text used in the table of contents
 PROTECTED = {"code", "pre", "a", "script", "style", "abbr",
-             "h1", "h2", "h3", "h4", "h5", "h6"}
+             "h1", "h2", "h3", "h4", "h5", "h6", "button", "label",
+             "summary", "option", "svg"}
 
 # Structured components whose text is laid out by CSS. An inline gloss chip
 # inside one splits a word in half and breaks the grid, so they are skipped
 # wholesale -- the annotation belongs in running prose, not in a summary card.
 NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid",
-                   "home-block"}
+                   "home-block", "term", "curriculum-card", "curriculum-hero",
+                   "learning-path", "lab-matrix", "bilingual-intro"}
+
+GLOSS_BLOCKS = {"p", "li", "td", "th", "dd"}
 
 # elements that never carry an end tag, so they must not push onto the stack
 VOID = {"br", "img", "hr", "input", "meta", "link", "source", "col", "wbr"}
@@ -132,6 +137,28 @@ def world_dots():
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def contributor_name(name: str, email: str) -> str:
+    name = name.strip()
+    if email.strip().casefold() == "noreply@anthropic.com" or name.casefold() == "claude code":
+        return "Claude Code"
+    if name.casefold() in {"codex", "openai codex"}:
+        return "Codex"
+    return name
+
+
+def crew_ai_collaborators():
+    path = ROOT / "crew.toml"
+    if not path.exists():
+        return {}
+    credits = {}
+    for entry in tomllib.loads(path.read_text(encoding="utf-8")).get("ai", []):
+        name = contributor_name(entry.get("name", ""), "")
+        if not name or name in credits or not entry.get("zh") or not entry.get("en"):
+            raise ValueError("AI credits need unique names and bilingual descriptions")
+        credits[name] = {language: entry[language] for language in ("zh", "en")}
+    return credits
+
+
 def contributors(repo: str):
     """Everyone who has committed or is credited as a co-author, most recent first.
 
@@ -139,40 +166,32 @@ def contributors(repo: str):
     source), falls back to `git log` so a local build still works offline.
     """
     recency, earliest, counts = {}, {}, {}
-    log = git("log", "--format=%an\t%ae\t%cI")
-    for line in log.splitlines():
-        parts = line.split("\t")
-        if len(parts) != 3:
-            continue
-        name, email, when = parts
-        key = name.strip()
-        counts[key] = counts.get(key, 0) + 1
-        if key not in recency or when > recency[key][0]:
-            recency[key] = (when, email.strip())
-        if key not in earliest or when < earliest[key]:
-            earliest[key] = when
-
-    # AI-assisted and pair-authored commits keep their credit in trailers even
-    # when the primary Git author is the repository owner. Aggregate Claude
-    # model names into one honest "Claude Code" crew member instead of
-    # pretending each model version is a different person.
-    ai_models = set()
-    coauthor_log = git(
+    ai_credits = crew_ai_collaborators()
+    ai_names = {"Claude Code", "Codex"} | set(ai_credits)
+    ai_models = {}
+    log = git(
         "log",
-        "--format=%cI%x09%(trailers:key=Co-authored-by,valueonly,separator=%x1f)",
+        "--format=%an%x09%ae%x09%cI%x09%(trailers:key=Co-authored-by,valueonly,separator=%x1f)",
     )
-    for line in coauthor_log.splitlines():
-        if "\t" not in line:
+    for line in log.splitlines():
+        parts = line.split("\t", 3)
+        if len(parts) < 3:
             continue
-        when, credits = line.split("\t", 1)
+        name, email, when = parts[:3]
+        identities = [(name, email)]
+        credits = parts[3] if len(parts) == 4 else ""
         for credit in credits.split("\x1f"):
             match = re.match(r"\s*(.*?)\s*<([^>]+)>\s*$", credit)
-            if not match:
+            if match:
+                identities.append(match.groups())
+        seen = set()
+        for name, email in identities:
+            key = contributor_name(name, email)
+            if key in ai_names:
+                ai_models.setdefault(key, set()).add(name.strip())
+            if key in seen:
                 continue
-            name, email = match.groups()
-            key = "Claude Code" if "claude" in name.lower() else name.strip()
-            if key == "Claude Code":
-                ai_models.add(name.strip())
+            seen.add(key)
             counts[key] = counts.get(key, 0) + 1
             if key not in recency or when > recency[key][0]:
                 recency[key] = (when, email.strip())
@@ -212,18 +231,28 @@ def contributors(repo: str):
             "url": f"https://github.com/{login}" if login else None,
             "avatar": info.get("avatar") or (f"https://github.com/{login}.png?size=80"
                                              if login else None),
-            "commits": info.get("commits", counts.get(name, 0)),
+            "commits": (counts.get(name, 0) if name in ai_names
+                        else info.get("commits", counts.get(name, 0))),
             "last": datetime.fromisoformat(when).astimezone(timezone.utc).date().isoformat(),
             "first": datetime.fromisoformat(earliest.get(name, when)).astimezone(
                 timezone.utc).date().isoformat(),
             "countries": crew_countries().get((login or name).lower(), ()),
             "initial": name[:1].upper(),
-            "kind": "ai" if name == "Claude Code" else "human",
-            "models": sorted(ai_models) if name == "Claude Code" else [],
+            "kind": "ai" if name in ai_names else "human",
+            "models": sorted(ai_models.get(name, set())),
+            "description": ai_credits.get(name, {}),
         })
+    for name, description in ai_credits.items():
+        if name not in recency:
+            out.append({
+                "name": name, "login": None, "url": None, "avatar": None,
+                "commits": None, "first": "", "last": "", "countries": (),
+                "initial": name[:1].upper(), "kind": "ai", "models": [],
+                "description": description,
+            })
     # a catalogue number, the way a star gets one: by the order it was first seen,
     # so a number stays with the same person as the list grows
-    for n, person in enumerate(sorted(out, key=lambda p: (p["first"], p["name"])), start=1):
+    for n, person in enumerate(sorted(out, key=lambda p: (p["first"] or "9999", p["name"])), start=1):
         person["crew_id"] = f"CG {n:03d}"
     return out
 
@@ -241,12 +270,13 @@ class Annotator(HTMLParser):
 
     def __init__(self, terms):
         super().__init__(convert_charrefs=True)
-        self.terms = terms
+        self.terms = sorted(terms, key=lambda term: -len(term[0]))
         self.seen = set()
         self.depth = 0
         self.stack = []          # one entry per open element: does it protect?
         self.out = []
         self.used = []
+        self.block_counts = []
 
     @staticmethod
     def _protects(tag, attrs):
@@ -259,6 +289,8 @@ class Annotator(HTMLParser):
         return bool(classes & NOGLOSS_CLASSES)
 
     def handle_starttag(self, tag, attrs):
+        if tag in GLOSS_BLOCKS:
+            self.block_counts.append(0)
         if tag not in VOID:
             hit = self._protects(tag, attrs)
             self.stack.append(hit)
@@ -269,6 +301,8 @@ class Annotator(HTMLParser):
         self.out.append(self.get_starttag_text())
 
     def handle_endtag(self, tag):
+        if tag in GLOSS_BLOCKS and self.block_counts:
+            self.block_counts.pop()
         if tag not in VOID and self.stack:
             self.depth -= self.stack.pop()
             self.depth = max(0, self.depth)
@@ -289,25 +323,38 @@ class Annotator(HTMLParser):
             # "映到同一向量空间靠内积召回" contains 向量, which would then split
             # the attribute open and leak markup into the page.
             hits, taken = [], []
+            matched = set(self.seen)
             for zh, en, gloss in self.terms:
-                if zh in self.seen:
-                    continue
-                i = text.find(zh)
-                while i != -1 and any(i < e and i + len(zh) > s for s, e in taken):
-                    i = text.find(zh, i + 1)
-                if i == -1:
-                    continue
-                taken.append((i, i + len(zh)))
-                hits.append((i, zh, en, gloss))
+                for occurrence in re.finditer(re.escape(zh), text):
+                    start, stop = occurrence.span()
+                    if any(start < end and stop > begin for begin, end in taken):
+                        continue
+                    following = text[stop:]
+                    existing = re.match(r"\s*[（(]([^()（）\n]{1,160})[)）]", following)
+                    explained = bool(existing and re.search(r"[A-Za-z]", existing.group(1)))
+                    end = stop + (existing.end() if explained else 0)
+                    taken.append((start, end))
+                    if zh not in matched:
+                        hits.append((start, zh, en, gloss, explained))
+                        matched.add(zh)
 
             out, prev = [], 0
-            for i, zh, en, gloss in sorted(hits):
+            remaining = max(0, 2 - self.block_counts[-1]) if self.block_counts else 2
+            for i, zh, en, gloss, explained in sorted(hits):
+                if not explained and remaining == 0:
+                    continue
                 self.seen.add(zh)
                 self.used.append({"zh": zh, "en": en, "gloss": gloss})
                 tip = html.escape(f"{en}" + (f" — {gloss}" if gloss else ""), quote=True)
                 out.append(text[prev:i])
-                out.append(f'<span class="term" tabindex="0" data-tip="{tip}">{zh}'
-                           f'<span class="term-en">{html.escape(en)}</span></span>')
+                if explained:
+                    out.append(zh)
+                else:
+                    out.append(f'<span class="term" tabindex="0" data-tip="{tip}">{zh}'
+                               f'<span class="term-en">（{html.escape(en)}）</span></span>')
+                    remaining -= 1
+                    if self.block_counts:
+                        self.block_counts[-1] += 1
                 prev = i + len(zh)
             out.append(text[prev:])
             text = "".join(out)
@@ -990,7 +1037,8 @@ def discover(nav):
         rank = {n: i for i, n in enumerate(order)}
         files.sort(key=lambda p: (rank.get(p.name, len(order)), p.name))
         entry = {"zh": sec["zh"], "en": sec["en"], "dir": sec["dir"],
-                 "group": sec.get("group", "reference"), "pages": []}
+                 "group": sec.get("group", "reference"),
+                 "review": sec.get("review", True), "pages": []}
         for f in files:
             zh = Page(f, entry, "zh")
             en_src = f.with_name(f.stem + ".en.md")
@@ -1223,6 +1271,9 @@ def build_page(page: Page, terms, repo: str, known: set):
     # the generated home blocks (routes, category cards) are navigation, not reading
     prose_only = re.sub(r'<section class="[^"]*home-block.*?</section>', " ", body, flags=re.S)
     page.text = strip_tags(prose_only)[:1500]
+    page.search_text = html.unescape(strip_tags(prose_only))
+    search_prose = re.sub(r'<(pre|svg|script|style)\b[^>]*>.*?</\1>', ' ', prose_only, flags=re.S)
+    page.search_preview = html.unescape(strip_tags(search_prose))
     plain = strip_tags(prose_only)
     cjk = len(re.findall(r"[\u3400-\u9fff]", plain))
     latin = len(re.findall(r"\b[\w'-]+\b", re.sub(r"[\u3400-\u9fff]", " ", plain)))
@@ -1247,8 +1298,7 @@ def nav_label(page) -> str:
 
 
 def section_html(page, sec, show_head=True):
-    """One section: an optional small heading and its page links, each under its short label
-    with the full title on hover. The heading is left out where the block name already says it."""
+    """Render a chapter with native folding when its parent contains multiple chapters."""
     label = html.escape(sec["zh" if page.lang == "zh" else "en"])
     items, has_active = [], False
     for pair in sec["pages"]:
@@ -1256,30 +1306,31 @@ def section_html(page, sec, show_head=True):
         active = target.url == page.url
         has_active = has_active or active
         cls = ' class="active" aria-current="page"' if active else ""
-        items.append(f'<li><a{cls} href="{page.rel(target.url)}" title="{html.escape(target.title, quote=True)}">'
+        note = target.src.relative_to(ROOT).as_posix().replace('.en.md', '.md')
+        items.append(f'<li><a{cls} data-note="{html.escape(note, quote=True)}" '
+                     f'href="{page.rel(target.url)}" title="{html.escape(target.title, quote=True)}">'
                      f'{html.escape(nav_label(target))}</a></li>')
-    head = f'<span class="sec-name">{label}</span>' if show_head else ""
-    return (f'<li class="sec{"" if show_head else " sec-flat"}">{head}'
-            f'<ul>{"".join(items)}</ul></li>'), has_active
+    links = f'<ul class="chapter-pages">{"".join(items)}</ul>'
+    if show_head:
+        key = html.escape(sec['dir'], quote=True)
+        links = (f'<details data-chapter="{key}"{" open" if has_active else ""}>'
+                 f'<summary><span class="chapter-chevron" aria-hidden="true">›</span>'
+                 f'<span class="grp-name">{label}</span>'
+                 f'<span class="grp-count">{len(items)}</span></summary>{links}</details>')
+    return f'<li class="sec{"" if show_head else " sec-flat"}">{links}</li>', has_active
 
 
 def sidebar_html(page, sections, groups):
-    """Sections bucketed into collapsible topic groups.
-
-    Built on <details>, so collapsing still works with JavaScript disabled. The
-    group holding the current page ships open; the rest ship closed and their
-    state is remembered client-side.
-    """
+    """Show the current direction; retain the full catalog for local reading history."""
     by_group = {}
     for sec in sections:
         by_group.setdefault(sec.get("group", "reference"), []).append(sec)
 
-    out, seen_cat, seen_zone = [], None, None
+    out, seen_zone = [], None
     cats = {c["id"]: c for c in NAV.get("category", [])}
     zones = {z["id"]: z for z in NAV.get("zone", [])}
     scope = page_category(page)
-    if scope in cats:
-        groups = [g for g in groups if g.get("category") == scope]
+    visible_groups = [group for group in groups if group.get("category") == scope]
     ordered = sorted(groups, key=lambda g: list(cats).index(g["category"]) if g.get("category") in cats else -1)
     for g in ordered:
         if not g.get("category"):          # "start" is the home page itself; the top bar links it
@@ -1287,18 +1338,13 @@ def sidebar_html(page, sections, groups):
         secs = [s for s in by_group.get(g["id"], []) if s["pages"]]
         if not secs:
             continue
-        cat = cats.get(g.get("category"))
-        if cat and cat["id"] != seen_cat:
-            seen_cat = cat["id"]
-            home = category_home(cat)
-            target = home and (home.get(page.lang) or home["zh"])
-            label_cat = html.escape(cat["zh" if page.lang == "zh" else "en"])
-            out.append(f'<li class="cat"><a href="{page.rel(target.url)}">{label_cat}</a></li>' if target
-                       else f'<li class="cat"><span>{label_cat}</span></li>')
+        visible = g["category"] == scope
+        category_attr = (f' data-category="{html.escape(g["category"], quote=True)}"'
+                         f'{"" if visible else " hidden"}')
         zone = g.get("zone")                # study notes split by what each role is tested on
         if zone in zones and zone != seen_zone:
             seen_zone = zone
-            out.append(f'<li class="zone"><span>{both(zones[zone], page.lang == "zh")[0]}</span></li>')
+            out.append(f'<li class="zone"{category_attr}><span>{both(zones[zone], page.lang == "zh")[0]}</span></li>')
         # a heading only where it adds something: several sections in the block, and
         # more than one note in this one (a lone note's label already names it)
         rendered = [section_html(page, s, len(secs) > 1 and len(s["pages"]) > 1) for s in secs]
@@ -1306,9 +1352,14 @@ def sidebar_html(page, sections, groups):
         is_active = any(a for _, a in rendered)
         n_pages = sum(len(s["pages"]) for s in secs)
         label = html.escape(g["zh" if page.lang == "zh" else "en"])
+        if n_pages == 1:
+            out.append(f'<li class="grp grp-single"{category_attr}><div data-grp="{g["id"]}">'
+                       f'<span class="grp-name" hidden>{label}</span><ul class="grp-body">{body}</ul></div></li>')
+            continue
+        expanded = is_active or (visible and len(visible_groups) <= 3)
         out.append(
-            f'<li class="grp"><details data-grp="{g["id"]}"'
-            f'{" open" if is_active else ""}>'
+            f'<li class="grp"{category_attr}><details data-grp="{g["id"]}"'
+            f'{" open" if expanded else ""}>'
             f'<summary><svg class="chev" viewBox="0 0 12 12" width="11" height="11" '
             f'aria-hidden="true"><path d="M4 2.5 L7.5 6 L4 9.5" fill="none" '
             f'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" '
@@ -1316,12 +1367,40 @@ def sidebar_html(page, sections, groups):
             f'<span class="grp-name">{label}</span>'
             f'<span class="grp-count">{n_pages}</span></summary>'
             f'<ul class="grp-body">{body}</ul></details></li>')
-    # the way into the contributors page from any note, not just the page foot
-    crew = page.rel("contributors.html" if page.lang == "zh" else "contributors.en.html")
-    out.append(f'<li class="nav-crew"><a href="{crew}">'
-               f'<span aria-hidden="true">✧</span>'
-               f'{"幕后" if page.lang == "zh" else "Behind the notes"}</a></li>')
-    return f'<ul class="nav">{"".join(out)}</ul>'
+    zh = page.lang == 'zh'
+    context = cats[scope]["zh" if zh else "en"] if scope in cats else ("本页导航" if zh else "On this page")
+    local_toc = ""
+    if scope not in cats:
+        local_toc = (f'<div class="side-page-toc">{toc_html(page)}</div>' if getattr(page, "toc", [])
+                     else f'<p class="side-empty">{"从顶部选择一个板块开始阅读。" if zh else "Choose a direction from the top navigation to get started."}</p>')
+    return (
+        f'<div class="side-context">{html.escape(context)}</div>'
+        '<div class="side-tools" hidden>'
+        f'<div class="side-views" role="group" aria-label="{"导航视图" if zh else "Navigation view"}">'
+        f'<button type="button" data-side-view="directory" aria-pressed="true" aria-controls="side-directory">'
+        f'{"目录" if zh else "Contents"}</button>'
+        f'<button type="button" data-side-view="reading" aria-pressed="false" aria-controls="side-reading">'
+        f'{"我的阅读" if zh else "My reading"}</button></div>'
+        '</div>'
+        f'<div class="side-scroll"><div id="side-directory">{local_toc}<ul class="nav">{"".join(out)}</ul></div>'
+        '<section id="side-reading" hidden>'
+        f'<button type="button" class="side-save" data-side-save aria-pressed="false">'
+        f'{"收藏本页" if zh else "Save this page"}</button>'
+        f'<p class="side-local">{"关掉网页也会保留。记录只存于当前浏览器，不会上传或自动跨设备同步。" if zh else "Kept after closing the page. Stored in this browser only, without uploads or automatic device sync."}</p>'
+        f'<h2>{"收藏" if zh else "Saved"}</h2><ul class="side-reading-list" data-side-saved></ul>'
+        f'<div class="side-recent-heading"><h2>{"最近打开" if zh else "Recently opened"}</h2>'
+        f'<button type="button" data-side-clear>{"清空" if zh else "Clear"}</button></div>'
+        '<ul class="side-reading-list" data-side-recent></ul>'
+        '<details class="side-backup">'
+        f'<summary>{"备份与迁移" if zh else "Back up & move"}</summary>'
+        f'<p>{"换浏览器前，可以导出收藏，再到新浏览器导入。只备份收藏清单，不含阅读记录；导入会合并，不覆盖已有收藏。" if zh else "Export your saved notes before switching browsers, then import them in the new browser. Backups contain bookmarks only, not reading history. Importing merges with your existing list."}</p>'
+        '<div class="side-backup-actions">'
+        f'<button type="button" data-reading-export>{"导出收藏" if zh else "Export saved"}</button>'
+        f'<button type="button" data-reading-import>{"导入收藏" if zh else "Import saved"}</button></div>'
+        f'<input type="file" data-reading-file accept="application/json,.json" aria-label="{"导入收藏文件" if zh else "Import bookmark file"}" hidden>'
+        '</details>'
+        '<p class="side-status" role="status" aria-live="polite"></p>'
+        '</section></div>')
 
 
 def page_category(page):
@@ -1330,15 +1409,6 @@ def page_category(page):
         return "home"
     groups = {g["id"]: g for g in NAV.get("group", [])}
     return groups.get(page.section.get("group"), {}).get("category")
-
-
-def group_target(page, group):
-    """The page a block tab lands on: the group's `home`, else the first page of its first section."""
-    pair = BY_SRC.get(group.get("home", ""))
-    if not pair:
-        secs = [s for s in NAV.get("_sections", []) if s["group"] == group["id"] and s["pages"]]
-        pair = secs[0]["pages"][0] if secs else None
-    return pair and (pair.get(page.lang) or pair["zh"])
 
 
 def tabs_html(page):
@@ -1362,40 +1432,6 @@ def tabs_html(page):
                  f'<i class="tab-sep" aria-hidden="true"></i>') + links
     label_nav = "大方向" if zh else "Directions"
     return f'<nav class="topbar-tabs" aria-label="{label_nav}">{links}</nav>'
-
-
-def subtabs_html(page):
-    """Level 2, at the top of the content column: the blocks inside the chosen direction."""
-    zh = page.lang == "zh"
-    current = page_category(page)
-    if current == "home":
-        return ""                         # the home page is one short page; the top bar is enough
-    cat = next((c for c in NAV.get("category", []) if c["id"] == current), None)
-    if not cat:
-        return ""
-    here = page.section.get("group")
-    zones = {z["id"]: z for z in NAV.get("zone", [])}
-    label = both(cat, zh)[0]
-    rows = []                             # [label, links]; one row per zone, or one row in all
-    for group in (g for g in NAV.get("group", []) if g.get("category") == current):
-        target = group_target(page, group)
-        if not target:
-            continue
-        zone = group.get("zone")
-        head = both(zones[zone], zh)[0] if zone in zones else label
-        if not rows or rows[-1][0] != head:
-            rows.append([head, ""])
-        cls = ' class="active" aria-current="true"' if group["id"] == here else ""
-        rows[-1][1] += f'<a href="{page.rel(target.url)}"{cls}><span>{both(group, zh)[0]}</span></a>'
-    if not rows:
-        return ""
-    aria = "板块" if zh else "Blocks"
-    if len(rows) == 1:
-        return f'<nav class="subtabs" aria-label="{aria}"><span class="subtabs-label">{rows[0][0]}</span>{rows[0][1]}</nav>'
-    body = "".join(f'<div class="subtabs-zone"><span class="subtabs-label">{head}</span>'
-                   f'<span class="subtabs-pills">{links}</span></div>'
-                   for head, links in rows)
-    return f'<nav class="subtabs has-zones" aria-label="{aria}">{body}</nav>'
 
 
 def hero_html(page) -> str:
@@ -1441,6 +1477,14 @@ def glossary_html(page):
             f'<dl>{"".join(rows)}</dl></details></section>')
 
 
+def chapter_home(page):
+    for pair in page.section.get("pages", []):
+        target = pair.get(page.lang) or pair.get("zh")
+        if target and target.src.name in {"README.md", "README.en.md"}:
+            return target
+    return None
+
+
 def page_header_html(page):
     zh = page.lang == "zh"
     if page.url in {"contributors.html", "contributors.en.html"}:
@@ -1449,15 +1493,15 @@ def page_header_html(page):
     section = page.section["zh" if zh else "en"]
     labels = {
         "home": "学习笔记" if zh else "Study notes",
-        "index": "章节概览" if zh else "Chapter overview",
+        "index": "本章导读" if zh else "Chapter overview",
         "workshop": "实践" if zh else "Practice",
         "guide": "参考资料" if zh else "Reference",
         "article": "概念笔记" if zh else "Concept note",
     }
     read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"
-    position = (f"{page.position:02d} / {page.section_count:02d}"
+    position = ((f"本章 {page.position} / {page.section_count} 篇" if zh else f"Note {page.position} of {page.section_count}")
                 if page.kind != "home" and page.section_count > 1 else "")
-    reviewed = (("审阅于 " if zh else "Reviewed ") + page.reviewed
+    reviewed = (("最近核对 " if zh else "Reviewed ") + page.reviewed
                 if page.reviewed else "")
     number_match = re.match(r"^(\d\d)-", page.section["dir"])
     chapter_mark = (f'<em class="chapter-mark" aria-hidden="true">'
@@ -1467,13 +1511,25 @@ def page_header_html(page):
         bits.append(f'<span>{html.escape(reviewed)}</span>')
     if position:
         bits.append(f'<span class="page-position">{position}</span>')
+    overview = chapter_home(page)
+    section_label = html.escape(section)
+    if overview and overview.url != page.url:
+        section_label = f'<a href="{html.escape(page.rel(overview.url), quote=True)}">{section_label}</a>'
+    tools = ""
+    if page.kind not in {"home", "index"}:
+        note = html.escape(page.src.relative_to(ROOT).as_posix().replace(".en.md", ".md"), quote=True)
+        tools = (f'<div class="note-tools" data-reading-note="{note}" hidden>'
+                 f'<button type="button" data-side-save aria-pressed="false">{"收藏本页" if zh else "Save this page"}</button>'
+                 '<a class="note-resume" data-note-resume hidden></a>'
+                 f'<span class="note-tool-status" role="status" aria-live="polite"></span></div>')
     return f"""
 <header class="article-head">
   {chapter_mark}
   <div class="article-kicker"><span>{html.escape(labels[page.kind])}</span>
-    <i>{html.escape(section)}</i></div>
+    <i>{section_label}</i></div>
   <h1>{html.escape(page.title)}</h1>
   <div class="article-meta">{'<b aria-hidden="true"></b>'.join(bits)}</div>
+  {tools}
 </header>"""
 
 
@@ -1481,7 +1537,7 @@ def mobile_toc_html(page):
     toc = toc_html(page)
     if not toc:
         return ""
-    label = "查看本页目录" if page.lang == "zh" else "Open this page's route"
+    label = "查看本页目录" if page.lang == "zh" else "On this page"
     return (f'<details class="mobile-toc"><summary>{label}'
             f'<span>{len(page.toc)}</span></summary><nav>{toc}</nav></details>')
 
@@ -1503,7 +1559,13 @@ def page_nav_html(page):
         items.append(
             f'<a class="page-turn-{direction}" href="{page.rel(target.url)}">'
             f'<small>{arrow} {label}</small><strong>{html.escape(target.title)}</strong></a>')
-    return f'<nav class="page-turn" aria-label="{"继续阅读" if zh else "Continue reading"}">' + "".join(items) + "</nav>"
+    overview = chapter_home(page)
+    context = ""
+    if overview and overview.url != page.url:
+        label = "回到本章目录" if zh else "Back to chapter overview"
+        context = (f'<div class="page-turn-context"><a href="{html.escape(page.rel(overview.url), quote=True)}">'
+                   f'{label} · {html.escape(page.section["zh" if zh else "en"])}</a></div>')
+    return f'<nav class="page-turn" aria-label="{"继续阅读" if zh else "Continue reading"}">' + context + "".join(items) + "</nav>"
 
 
 def footer_html(page, people, repo, built):
@@ -1547,7 +1609,7 @@ def contributor_universe_html(people, page, site):
     countries = world_dots().get("countries", {})
 
     crew, board, credits, tally, weight = [], [], {}, {}, {}
-    ranked = sorted(people, key=lambda p: (-p.get("commits", 0), p["name"]))
+    ranked = sorted(people, key=lambda p: (-(p.get("commits") or 0), p["name"]))
     for index, person in enumerate(people):
         login = person.get("login")
         is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
@@ -1555,6 +1617,8 @@ def contributor_universe_html(people, page, site):
         handle = f"@{login}" if login else person["name"]
         role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
                 else ("笔记与代码" if zh else "Notes & code"))
+        description = person.get("description", {}).get(page.lang, "")
+        detail = f'<small>{html.escape(description)}</small>' if description else ""
         title = html.escape(person["name"])
         avatar = person.get("avatar") or ""
         seed = html.escape(person["name"][:2].upper(), quote=True)
@@ -1574,18 +1638,20 @@ def contributor_universe_html(people, page, site):
             f'<canvas class="crew-bits" width="72" height="72" aria-hidden="true"></canvas></span></button>'
             f'<div class="crew-label" id="crew-label-{index}">'
             f'<span class="crew-handle">{person["crew_id"]} · {html.escape(handle)}</span>'
-            f'{link}<small>{role}</small></div></div>')
+            f'{link}<small>{role}</small>{detail}</div></div>')
+        since = (f'{person["first"][:7]} {"起" if zh else "onwards"}' if person["first"]
+                 else ("补充署名" if zh else "Acknowledged contribution"))
         # the credits roll, grouped by what someone did, in the order the roles are listed
         credits.setdefault(role, []).append(
             f'<li><span class="credit-name">{link}</span>'
             f'<span class="credit-note">{person["crew_id"]} · {html.escape(handle)} · '
-            f'{person["first"][:7]} {"起" if zh else "onwards"}</span></li>')
+            f'{since}</span>{detail}</li>')
         mine = [c for c in person.get("countries", ()) if c in countries]
         for code in mine:                      # two places: half the weight to each
             tally.setdefault(code, []).append(person["name"])
-            weight[code] = weight.get(code, 0.0) + max(person.get("commits", 0), 1) / len(mine)
+            weight[code] = weight.get(code, 0.0) + max(person.get("commits") or 0, 1) / len(mine)
 
-    top = max([p.get("commits", 0) for p in people] + [1])
+    top = max([p.get("commits") or 0 for p in people] + [1])
     for person in ranked:
         login = person.get("login")
         is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
@@ -1598,6 +1664,13 @@ def contributor_universe_html(people, page, site):
                 else ("笔记与代码" if zh else "Notes & code"))
         active = week_start.isoformat() <= person["last"] <= today.isoformat()
         commits = person.get("commits", 0)
+        count = (f'<span class="bar" style="--fill:{commits / top:.3f}" '
+                 f'aria-hidden="true"></span><b>{commits}</b>' if commits is not None
+                 else f'<span title="{"未单独统计" if zh else "Not separately tracked"}">—</span>')
+        first = (f'<time datetime="{person["first"]}">{person["first"]}</time>'
+                 if person["first"] else "—")
+        last = (f'<time datetime="{person["last"]}">{person["last"]}</time>'
+                if person["last"] else "—")
         week = (f'<span class="crew-weekly">{"本周" if zh else "This week"}</span>'
                 if active else "")
         board.append(
@@ -1605,10 +1678,9 @@ def contributor_universe_html(people, page, site):
             f'<td class="crew-id">{person["crew_id"]}</td>'
             f'<th scope="row">{link}<small>{html.escape(handle)}</small></th>'
             f'<td class="role">{role}</td>'
-            f'<td class="count"><span class="bar" style="--fill:{commits / top:.3f}" '
-            f'aria-hidden="true"></span><b>{commits}</b></td>'
-            f'<td><time datetime="{person["first"]}">{person["first"]}</time></td>'
-            f'<td><time datetime="{person["last"]}">{person["last"]}</time>{week}</td></tr>')
+            f'<td class="count">{count}</td>'
+            f'<td>{first}</td>'
+            f'<td>{last}{week}</td></tr>')
 
     # five steps of brightness: a single commit already lights a country, more burns
     # brighter up to a ceiling, and the first few stay clearly ahead of the rest
@@ -1642,7 +1714,7 @@ def contributor_universe_html(people, page, site):
   style="background-image:url('{prefix}static/crew-sky-1bit.png')">
   <nav class="orbit-nav" aria-label="{'页面导航' if zh else 'Page navigation'}">
     <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
-    <div><a href="#crew-board">{'榜单' if zh else 'Board'}</a>
+    <div><a href="{page.rel('community/next-stop.html' if zh else 'community/next-stop.en.html')}">{'下一站' if zh else 'Next stop'}</a><a href="#crew-board">{'榜单' if zh else 'Board'}</a>
     <button class="crew-motion" type="button" aria-pressed="false" hidden
       data-pause="{'暂停' if zh else 'Pause'}" data-play="{'继续' if zh else 'Resume'}">{'暂停' if zh else 'Pause'}</button>
     <a href="{language}">{'EN' if zh else '中文'}</a></div>
@@ -1667,7 +1739,7 @@ def contributor_universe_html(people, page, site):
 <section class="crew-board" id="crew-board" aria-labelledby="board-title">
   <div class="board-head">
     <h2 id="board-title">{'贡献榜单' if zh else 'Contribution board'}</h2>
-    <p>{'按 main 分支的提交次数排序，包括 Co-authored-by 共同署名。' if zh else 'By commits, from main-branch commits and Co-authored-by credits.'}</p>
+    <p>{'按可追溯的提交数排序，包括 Co-authored-by 共同署名；补充署名但未单独统计的贡献显示为 —。' if zh else 'Ordered by traceable commits, including Co-authored-by credits. A dash means acknowledged work without a separate commit count.'}</p>
   </div>
   <div class="board-scroll"><table class="board-table">
     <thead><tr><th class="crew-id">{'编号' if zh else 'No.'}</th><th>{'贡献者' if zh else 'Contributor'}</th>
@@ -1693,6 +1765,7 @@ def contributor_universe_html(people, page, site):
   <p class="map-how"><a href="{crew_issue}">{'提交或移除所在地区' if zh else 'Add or remove a location'}</a>{'，维护者核实后更新。' if zh else ' — maintainers will review the request.'}</p>
 </section>
 <footer class="crew-end">
+  <a href="{page.rel('community/next-stop.html' if zh else 'community/next-stop.en.html')}">{'看看大家的下一站 ↗' if zh else 'See where readers go next ↗'}</a>
   <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'欢迎加入我们 ↗' if zh else 'Room for one more ↗'}</a>
   <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
 </footer>"""
@@ -1726,6 +1799,31 @@ def share_description(page) -> str:
         stops = [k for k, ch in enumerate(text[:150]) if ch in "。！？.!?" and k > 50]
         text = text[:stops[-1] + 1] if stops else text[:148].rstrip() + "…"
     return text
+
+
+def reading_controls_html(page):
+    chinese = page.lang == "zh"
+    sibling = getattr(page, "sibling", None)
+    pages = {page.lang: page}
+    if sibling:
+        pages[sibling.lang] = sibling
+    links = []
+    for language, label, html_language in (("zh", "中文", "zh-Hans"), ("en", "English", "en")):
+        target = pages.get(language)
+        if target:
+            current = ' aria-current="page"' if target is page else ""
+            href = html.escape(page.rel(target.url), quote=True)
+            links.append(f'<a href="{href}" lang="{html_language}" hreflang="{html_language}"{current}>{label}</a>')
+    title = "正文语言" if chinese else "Page language"
+    options = ('<label class="reading-terms" hidden><input type="checkbox" data-term-toggle checked '
+               'aria-describedby="reading-terms-hint">显示英文术语对照</label>'
+               '<p id="reading-terms-hint" class="reading-hint">只控制自动添加的英文括注，不隐藏解释、公式或模型名称。</p>'
+               '<p class="reading-hint">偏好仅保存在这台浏览器中。</p>') if chinese else (
+               '<p class="reading-hint">Read the complete page in either language. Switching stays on this note.</p>')
+    return ('<details class="reading-settings">'
+            '<summary class="lang-btn" aria-label="阅读语言 / Reading language">中 / EN</summary>'
+            f'<div class="reading-panel"><p class="reading-title">{title}</p>'
+            f'<nav class="reading-languages" aria-label="{title}">{"".join(links)}</nav>{options}</div></details>')
 
 
 def assemble(page, sections, people, nav, built, template):
@@ -1763,8 +1861,13 @@ def assemble(page, sections, people, nav, built, template):
                               collaboration.areas_html(config, site['repo'], zh))
     content = content.replace('<div data-community-credits></div>',
                               collaboration.acknowledgements_html(config, zh))
-    if 'data-contributors-universe' in content:
-        content = contributor_universe_html(people, page, site)
+    is_next_stop = 'data-next-stop' in page.body
+    is_community_scene = 'data-contributors-universe' in page.body or is_next_stop
+    if is_community_scene:
+        content = (next_stop.render(page, site['repo']) if is_next_stop
+                   else contributor_universe_html(people, page, site))
+        if is_next_stop:
+            template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/next-stop.css?v={built}">\n<script defer src="{prefix}static/next-stop.js?v={built}"></script>\n</head>')
         template = re.sub(r'<header class="topbar">.*?</header>', "", template, count=1, flags=re.S)
         # this page has its own still sky, so the animated one is never loaded here
         template = template.replace('<canvas class="sky" aria-hidden="true"></canvas>\n', "")
@@ -1777,7 +1880,7 @@ def assemble(page, sections, people, nav, built, template):
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
-            .replace("{{page_class}}", "page-crew" if 'data-contributors-universe' in page.body else f"page-{page.kind}")
+            .replace("{{page_class}}", "page-crew page-next-stop" if is_next_stop else "page-crew" if is_community_scene else f"page-{page.kind}")
             .replace("{{title}}", html.escape(page.title))
             .replace("{{site_title}}", html.escape(site["title_zh" if zh else "title_en"]))
             .replace("{{tagline}}", html.escape(site["tagline_zh" if zh else "tagline_en"]))
@@ -1790,23 +1893,33 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{home}}", page.rel("index.html" if zh else "index.en.html"))
             .replace("{{prefix}}", prefix)
             .replace("{{sidebar}}", sidebar_html(page, sections, nav.get("group", [])))
+            .replace("{{sidebar_label}}", "笔记导航" if zh else "Note navigation")
             .replace("{{hero}}", hero_html(page))
             .replace("{{tabs}}", tabs_html(page))
-            .replace("{{subtabs}}", subtabs_html(page))
             .replace("{{toc}}", toc_html(page))
             .replace("{{mobile_toc}}", mobile_toc_html(page))
             .replace("{{toc_label}}", "本页目录" if zh else "On this page")
-            .replace("{{search_ph}}", "搜索笔记…" if zh else "Search notes…")
+            .replace("{{skip_label}}", "跳到正文" if zh else "Skip to content")
+            .replace("{{menu_label}}", "打开目录" if zh else "Open navigation")
+            .replace("{{theme_label}}", "切换明暗主题" if zh else "Toggle color theme")
+            .replace("{{search_ph}}", "搜索笔记" if zh else "Search notes")
+            .replace("{{search_close}}", "关闭搜索" if zh else "Close search")
+            .replace("{{search_input_ph}}", "想找什么？概念、模型或一道题…" if zh else "Find a concept, model, or exercise…")
+            .replace("{{search_current}}", "中文笔记" if zh else "English notes")
+            .replace("{{search_all}}", "中英一起搜" if zh else "Both languages")
+            .replace("{{search_hint}}", "↑ ↓ 选择 · Enter 打开 · Esc 关闭" if zh else "↑ ↓ navigate · Enter open · Esc close")
+            .replace("{{search_privacy}}", "仅在站内搜索" if zh else "Search stays on this site")
             .replace("{{lang_href}}", lang_href)
             .replace("{{lang_cls}}", lang_cls)
             .replace("{{lang_label}}", "EN" if zh else "中文")
+            .replace("{{reading_controls}}", reading_controls_html(page))
             .replace("{{crew_href}}", page.rel("contributors.html" if zh else "contributors.en.html"))
             .replace("{{crew_label}}", "幕后" if zh else "Behind the notes")
             .replace("{{crew_aria}}", "幕后" if zh else "Behind the notes")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", content)
             .replace("{{page_header}}", page_header_html(page))
-            .replace("{{page_nav}}", "" if 'data-contributors-universe' in page.body else page_nav_html(page))
+            .replace("{{page_nav}}", "" if is_community_scene else page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{review}}", review.render(page, nav["_review"], BY_SRC))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
@@ -1847,7 +1960,7 @@ def main():
     index = []
     for page in pages:
         build_page(page, terms, nav['site']['repo'], known)
-        if any(deck["section"] == page.section["dir"] for deck in nav["_review"]["decks"]):
+        if review.deck_for(page, nav["_review"]):
             page.toc.append({"id": "chapter-review", "name": "本章复习" if page.lang == "zh"
                              else "Chapter review", "children": []})
         dest = OUT / page.out_rel
@@ -1856,7 +1969,7 @@ def main():
                         encoding="utf-8")
         index.append({"u": page.url, "t": page.title, "l": page.lang,
                       "s": page.section["zh" if page.lang == "zh" else "en"],
-                      "x": page.text})
+                      "x": page.search_text, "p": page.search_preview})
     print(f"  {len(pages)} pages")
 
     redirect_count = write_redirects(nav, known)

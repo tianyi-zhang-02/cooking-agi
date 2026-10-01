@@ -6,7 +6,7 @@
 
 CLIP 能说“这张图更像这句描述”，但不会接着写答案。要让语言模型读图，我们需要把视觉信息变成它能利用的输入，再用合适的目标教它回答。
 
-这里用 **ViT + projector + decoder-only LLM** 这条路线解释，不代表所有 VLM 都这样做。先读 [CLIP](clip.md) 和 [Decoder-only](../00-foundations/core/decoder-only.md) 会顺一些。
+这里选一条常见路线来讲：**ViT 提取视觉特征，投影层（projector）连接两侧，再由 decoder-only LLM 生成回答**。不是所有视觉语言模型都这样搭。先读 [CLIP](clip.md) 和 [Decoder-only](../00-foundations/core/decoder-only.md)，会更容易跟上。
 
 ## 图片不是一个词，也不是只能变成一个向量
 
@@ -37,7 +37,7 @@ flowchart TD
 | 图文对齐 | projector；视觉 encoder 和 LLM 冻结 | 让视觉特征成为语言模型能使用的条件 |
 | 视觉指令微调 | projector 和 LLM；视觉 encoder 冻结 | 学习结合图片和问题给出回答 |
 
-这是特定论文的配方，不是“VLM 永远冻结视觉分支”的规则。其他训练方案要逐个核对数据、模块和算力约束。
+这是这篇论文采用的训练方案，不代表 VLM 都要冻结视觉分支。读其他方案时，仍要看用了什么数据、训练了哪些模块，以及算力是否够用。
 
 ## 训练时，loss 算在哪里
 

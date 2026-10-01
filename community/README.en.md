@@ -16,6 +16,8 @@ These started as one person's study notes. We're opening them up for more people
 | Help maintain a topic | Propose a scope and rough availability; daily attendance is not expected |
 | Add a credit or an optional map location | Use the [contribution record](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) and link an issue or PR |
 
+Reader updates live in [Next stop](next-stop.en.md): voluntary internship, full-time, and career-change milestones. These are separate from contribution records; where someone works does not determine contributor status.
+
 Discussions live in GitHub Issues; reviews of specific edits live in PRs. Chinese and English versions share a discussion entry. Search first and continue an existing thread when possible. We won't maintain a separate comments system.
 
 ## Who looks after each area

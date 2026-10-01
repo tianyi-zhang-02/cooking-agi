@@ -2,15 +2,15 @@
 
 **中文** · [English](README.en.md)
 
-这一层先不追求把每个公式都推到底。我更想先回答三个朴素问题：**它在算什么，为什么需要这样做，还有哪些问题没解决。**
+这一部分不急着推完每个公式，先回答三个问题：**它在算什么，为什么这样算，还有什么没解决。**
 
-如果一页读完只能记住一个名词，那就算我没讲好；最好是你能在脑子里看到数据真的流过去。
+读完以后，试着拿一句话当输入，说说它经过了哪些计算。能把这个过程讲出来，就不只是记住几个名词了。
 
-1. [Tokenization](tokenization.md)：字符串 → token → ID → embedding。
-2. [RNN 与 LSTM](recurrent-models.md)：用隐藏状态保存历史信息，看看门控怎样帮助保留这些信息。
-3. [Seq2Seq](seq2seq.md)：把输入编码与输出生成分开，attention 动态读取输入。
-4. [Vanilla Transformer](vanilla-transformer.md)：不再按时间步递推，改用 attention 让各个位置交换信息。
-5. [Decoder-only](decoder-only.md)：把任务统一成 causal next-token prediction。
+1. [文本切分（Tokenization）](tokenization.md)：把文字切成小单元，编号后再映射成模型能计算的向量。
+2. [循环神经网络：RNN 与 LSTM](recurrent-models.md)：边读边更新一份状态；LSTM 用门控决定保留和忘掉哪些信息。
+3. [序列到序列（Seq2Seq）](seq2seq.md)：先理解输入，再逐步生成输出；注意力让模型每一步都能回看相关输入。
+4. [原始 Transformer](vanilla-transformer.md)：不再逐步传递一个状态，改用注意力让不同位置交换信息。
+5. [仅解码器模型（Decoder-only）](decoder-only.md)：根据前面的内容预测下一个单元，一步步生成完整文本。
 
 ```mermaid
 flowchart LR

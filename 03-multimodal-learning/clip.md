@@ -8,9 +8,9 @@
 
 需要先会一点[向量、余弦和 softmax](../00-foundations/core/embeddings-and-similarity.md)。本页讲 2021 年原始 CLIP 的核心目标，不把它当成所有多模态模型的统一配方。
 
-## 两个 encoder 先各自读，再比较
+## 图片和文字先分别编码，再比较
 
-[CLIP](https://arxiv.org/abs/2103.00020) 用 image encoder 和 text encoder 分别处理两种输入，投影到相同维度并归一化，再计算配对分数。原论文研究了 ResNet 和 ViT 视觉分支；CLIP 不是某一种视觉架构的别名。
+[CLIP](https://arxiv.org/abs/2103.00020) 分别用图像编码器和文本编码器处理输入，再把两边的表示投影到相同维度、归一化，计算匹配程度。原论文尝试了 ResNet 和 ViT 作为视觉分支，所以 CLIP 并不等于某一种图像模型。
 
 ```mermaid
 flowchart TD
@@ -24,7 +24,7 @@ flowchart TD
     H --> I["双向 loss 更新两个 encoder"]
 ```
 
-这里没有让图片 token 对每句话做 cross-attention。两个分支可以分别计算，是它适合检索的原因之一；代价是交互细节被压缩进了向量。
+这里不让图片 token 和每句话直接做交叉注意力。两边可以分别计算，所以适合用来检索；但比较时只能使用已经压缩好的向量，一些细节也可能丢失。
 
 ## 先看一张分数表
 

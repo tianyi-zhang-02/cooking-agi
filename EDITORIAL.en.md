@@ -55,6 +55,8 @@ Split large topics into a guide and shorter notes. The guide explains the order 
 
 Each existing content chapter has 2–8 bilingual cards in `site/review.json`, shared across its pages. Ask readers to explain, calculate, or decide—not just expand an acronym.
 
+The learning and industry-practice navigation pages do not show review cards; their sections set `review = false` in `site/nav.toml`. Reviews should test ideas readers have learned, not whether they remember where a section lives on the site.
+
 - `question`: a directly answerable question or a scenario with sufficient conditions.
 - `answer`: reasoning and assumptions; decision criteria rather than a fake single correct answer for open questions.
 - `pitfall`: a specific misconception, not a generic warning to be careful.
@@ -63,21 +65,21 @@ Each existing content chapter has 2–8 bilingual cards in `site/review.json`, s
 
 Prefer small synthetic examples. Real measurements require public sources and experimental conditions. Review correctness, bilingual equivalence, and useful source links. Run `python3 -m unittest discover -s site/tests` to check chapter coverage and references.
 
+Write Chinese as a clear spoken explanation, not a word-for-word translation. Keep familiar names such as Transformer, SFT, and LLM. Use the glossary for English equivalents at first mention: at most two automatic annotations per paragraph, without duplicating existing parenthetical explanations. Keep headings, controls, and diagrams uncluttered. Prefer concrete inputs, outputs, and actions to abstract jargon or unnecessary language switching.
+
 Chinese should sound like an explanation to a person. “Fix the candidate pool before comparing” is more useful than abstract process language. Keep standard English terms where helpful, without translating sentences word for word.
 
 ## Bilingual reading contract
 
-Chinese is the default reading surface, without hiding the canonical English
-terminology:
+Preferred reading language and familiar terminology are separate choices. Some readers use only Chinese, some learned the subject in English but enjoy Chinese explanations, and others read only English. Do not infer a preference from nationality, education, or browser language.
 
-- the Chinese concept card is the front, with technical terms linked to their
-  standard English names through the glossary;
-- every concept card has a complete, one-to-one English back—not merely a summary;
-- readers switch language in place on the current card, without returning to the top
-  or navigating away;
-- formulas, shapes, examples, and caveats remain equivalent on both sides;
-- the standalone English page remains available for continuous English reading, but
-  it is not the primary bilingual-comparison interface.
+- **Chinese must stand on its own.** Explain what a concept does in Chinese before supplying its English name. Keep standard names such as Transformer and SFT, but explain essential acronyms at first use. Readers should not need to look up English just to continue.
+- **Bilingual readers choose freely.** Offer full Chinese and English pages, plus an independent switch for automatic English annotations on Chinese pages. Keep annotations on by default, with at most two per paragraph; avoid sentences built from unexplained English jargon.
+- **English is not an appendix.** Preserve the derivations, examples, code, diagrams, interaction instructions, review questions, and caveats. Navigation, controls, and accessibility labels must also work in English. No essential material should require a trip to the Chinese page.
+- **Compare concepts in place.** Both faces of a bilingual card must be complete, with equivalent formulas, tensor shapes, examples, and assumptions. Open on the page's language and allow switching without losing the reading position.
+- **No forced redirects.** Respect the language of the URL the reader opened. Store term preferences only in their browser, without collecting identity or automatically changing the page language.
+
+Review each note three ways: can someone understand the Chinese without relying on English? Can an English-trained reader recognize the concepts? Can someone complete the examples and exercises using only the English page? `site/paritycheck.py` checks structural parity, not translation quality; it cannot replace this review.
 
 When a concept changes, both sides are updated together. If an accurate counterpart
 is not ready, do not publish a permanently drifting pair.

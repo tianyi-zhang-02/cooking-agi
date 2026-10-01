@@ -1,4 +1,4 @@
-# Tech interviews: system design
+# System design: reading and trade-offs
 
 [中文](system-design.md) · **English**
 
@@ -6,7 +6,7 @@
 
 > **Read this first**: interview formats and emphases change fast, so this is time-sensitive; it lists public resources and my own understanding only, with no company's questions or process.
 
-Up front: **system design is my weak spot.** So this note does not try to teach a methodology. It gives two things — a few public resources I trust, and how I think about it.
+I'm still learning system design too. This page keeps the public resources and ideas I've found useful. For hands-on practice, start with the [system-design exercises](../learn/system-design/README.en.md): a feed, a RAG knowledge base, or an assistant with memory.
 
 ## There is no fixed formula
 
@@ -23,7 +23,7 @@ So start from the basics:
 
 Say you are building recommendations. Start from what you have:
 
-- **If you can leverage connections between users** (follows, friends, interactions), that social graph is a strong signal on its own, and retrieval can use a graph structure — the [PinSage](https://arxiv.org/abs/1806.01973) family of graph-convolution approaches, for instance.
+- **If follows, friendships, or interactions are available**, use those relationships to find candidates. A graph need not be a social graph: [PinSage](https://arxiv.org/abs/1806.01973) uses Pinterest's item–board relationships. Keep these different data structures distinct.
 - **And if there is no relationship data?** Fall back to behaviour itself: item–item co-occurrence, two-tower retrieval, content features (titles, categories, multimodal embeddings). In cold start, content features and a popularity fallback often beat a complicated model.
 
 Every layer below that is a trade-off: how fast retrieval has to be, how large a model ranking can afford, how fresh the features must be, whether an offline gain will show up online, and whether the complexity is worth maintaining. Saying those clearly is worth more than reciting an architecture diagram.
@@ -41,7 +41,7 @@ ML and recommendation:
 - [Designing Machine Learning Systems](https://huyenchip.com/books/) (Chip Huyen)
 - [Evidently's ML system design case collection](https://www.evidentlyai.com/ml-system-design): hundreds of public write-ups of real systems
 - [Eugene Yan: system design for discovery](https://eugeneyan.com/writing/system-design-for-discovery/): the layered design of search and recommender systems
-- [Twitter's open-sourced recommendation algorithm](https://github.com/twitter/the-algorithm): a rare complete industrial implementation
+- [Twitter's open-sourced recommendation algorithm](https://github.com/twitter/the-algorithm): public components of a recommendation pipeline, not a complete deployable production service
 
 ## Related notes here
 

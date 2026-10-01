@@ -6,6 +6,8 @@ A note, a diagram, a typo caught. Thanks to everyone making this pot of AGI a li
 
 <div data-contributors-universe></div>
 
+Looking for an internship, a full-time role, or a career change? [Next stop](community/next-stop.en.md) collects voluntary updates from readers.
+
 There’s room for one more cook.
 
 On the site, the crew drifts slowly across the night sky. Hover or tap someone to see a name; “List” in the top-right corner opens the full roster.
@@ -15,6 +17,8 @@ Avatars are dithered to black and white (Floyd–Steinberg) in your browser, whi
 Keep scrolling for three more things: the **credits**, rolling past the way they do at the
 end of a film; the **board**, ordered by commits; and a **world map**. Everyone also carries
 a catalogue number (`CG 001` and so on), in order of first appearance.
+
+Codex and Claude Code are credited as **AI collaborators**. Git history does not capture every contribution: some AI-assisted changes were committed under the maintainer's name without separate credit. Confirmed assistance can be acknowledged here; untracked commit counts and dates appear as `—`, not estimates.
 
 Commit counts are not a quality ranking or review authority. Questions, reviews, translations, and corrections deserve credit too; link the relevant issue or PR to request an acknowledgement. See [contributing together](community/README.en.md) for area contacts and the review process.
 

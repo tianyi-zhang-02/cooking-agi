@@ -37,25 +37,25 @@ owner_url   = "https://tianyi-zhang-02.github.io/"
 id = "learn"
 zh = "学习笔记"
 en = "Study notes"
-home = "00-foundations/study-guide.md"
-blurb_zh = "从大模型基础开始，理解训练、评估和 Agent 的原理。"
-blurb_en = "Model fundamentals and the ideas behind training, evaluation, and agents."
+home = "learn/README.md"
+blurb_zh = "补基础、学模型、写代码、做设计，按你现在想学的内容开始。"
+blurb_en = "Foundations, training and applications, coding exercises, and system design."
 
 [[category]]
 id = "practice"
 zh = "工程实践"
 en = "Industry Practice"
 home = "practice/README.md"
-blurb_zh = "具体问题怎么发现、怎么实现、怎么验证，以及过程中的取舍。"
-blurb_en = "Concrete problems, implementations, validation, and the trade-offs along the way."
+blurb_zh = "从 Twitter / X 等公开项目读起，看看每个模块为什么需要、代码里怎样实现。"
+blurb_en = "Read public systems end to end, starting with Twitter / X recommendations."
 
 [[category]]
 id = "career"
 zh = "求职"
 en = "Career"
 home = "career/README.md"
-blurb_zh = "我的面试准备方法，以及找工作时的经历和想法。"
-blurb_en = "Interview preparation, plus the mistakes, decisions, and lessons from my own job search."
+blurb_zh = "找实习和应届岗位时的经历、心态与选择，也记录走过的弯路。"
+blurb_en = "Internship and new-grad journeys, decisions, setbacks, and reflections."
 
 [[category]]
 id = "reference"
@@ -73,22 +73,37 @@ id = "start"
 zh = "开始"
 en = "Start here"
 
-# 学习笔记分两区：Quant Researcher 和 AI / ML Engineer 考察的方向很不一样，分开放。
-# 每个学习笔记的分组都带 zone；分区的名字和顺序在下面的 [[zone]] 里。
 [[zone]]
-id = "quant"
-zh = "Quant Researcher"
-en = "Quant Researcher"
+id = "basics"
+zh = "01 · 基础与模型"
+en = "01 · Foundations & models"
 
 [[zone]]
-id = "ml"
-zh = "AI / ML Engineer"
-en = "AI / ML Engineer"
+id = "applications"
+zh = "02 · 训练与应用"
+en = "02 · Training & applications"
+
+[[zone]]
+id = "coding"
+zh = "03 · 代码与题解"
+en = "03 · Code & exercises"
+
+[[zone]]
+id = "design"
+zh = "04 · 系统设计"
+en = "04 · System design"
+
+[[group]]
+id = "study"
+category = "learn"
+zh = "学习导航"
+en = "Study map"
+home = "learn/README.md"
 
 [[group]]
 id = "quant"
 category = "learn"
-zone = "quant"
+zone = "basics"
 zh = "概率与统计"
 en = "Probability & statistics"
 home = "quant/probability/README.md"
@@ -96,7 +111,7 @@ home = "quant/probability/README.md"
 [[group]]
 id = "foundations"
 category = "learn"
-zone = "ml"
+zone = "basics"
 zh = "大模型基础"
 en = "Foundations"
 home = "00-foundations/README.md"
@@ -104,7 +119,7 @@ home = "00-foundations/README.md"
 [[group]]
 id = "posttrain"
 category = "learn"
-zone = "ml"
+zone = "applications"
 zh = "Post-training"
 en = "Post-training"
 home = "05-post-training/README.md"
@@ -112,7 +127,7 @@ home = "05-post-training/README.md"
 [[group]]
 id = "eval"
 category = "learn"
-zone = "ml"
+zone = "applications"
 zh = "评估"
 en = "Evaluation"
 home = "07-evaluation/README.md"
@@ -120,7 +135,7 @@ home = "07-evaluation/README.md"
 [[group]]
 id = "data-retrieval"
 category = "learn"
-zone = "ml"
+zone = "applications"
 zh = "数据与检索"
 en = "Data & retrieval"
 home = "01-data-and-feedback/README.md"
@@ -128,7 +143,7 @@ home = "01-data-and-feedback/README.md"
 [[group]]
 id = "systems"
 category = "learn"
-zone = "ml"
+zone = "applications"
 zh = "系统与多模态"
 en = "Systems & multimodal"
 home = "06-systems/README.md"
@@ -136,10 +151,42 @@ home = "06-systems/README.md"
 [[group]]
 id = "agents"
 category = "learn"
-zone = "ml"
+zone = "applications"
 zh = "Agents"
 en = "Agents"
 home = "10-agents/README.md"
+
+[[group]]
+id = "coding"
+category = "learn"
+zone = "coding"
+zh = "Python 与练习"
+en = "Python & practice guide"
+home = "interview/README.md"
+
+[[group]]
+id = "algorithms"
+category = "learn"
+zone = "coding"
+zh = "LeetCode 方法"
+en = "Algorithm patterns"
+home = "interview/leetcode.md"
+
+[[group]]
+id = "ml-exercises"
+category = "learn"
+zone = "coding"
+zh = "ML 问答与手写"
+en = "ML questions & implementations"
+home = "learn/ml-exercises/README.md"
+
+[[group]]
+id = "system-design"
+category = "learn"
+zone = "design"
+zh = "设计题与推演"
+en = "Design exercises"
+home = "learn/system-design/README.md"
 
 [[group]]
 id = "practice"
@@ -149,16 +196,17 @@ en = "Start here"
 home = "practice/README.md"
 
 [[group]]
+id = "recsys"
+category = "practice"
+zh = "推荐系统拆解"
+en = "Inside recommender systems"
+home = "practice/recommender-systems/README.md"
+
+[[group]]
 id = "career"
 category = "career"
 zh = "求职与规划"
 en = "Job search"
-
-[[group]]
-id = "interview"
-category = "career"
-zh = "技术面"
-en = "Interviews"
 
 [[group]]
 id = "reference"
@@ -179,6 +227,14 @@ dir = "community"
 group = "start"
 zh = "一起参与"
 en = "Contributing together"
+order = ["README.md", "next-stop.md", "next-stop-guide.md"]
+
+[[section]]
+dir = "learn"
+group = "study"
+review = false
+zh = "学习导航"
+en = "Study map"
 order = ["README.md"]
 
 [[section]]
@@ -324,6 +380,7 @@ order = ["README.md", "patterns.md", "scenarios.md", "model-choice.md", "review.
 [[section]]
 dir   = "practice"
 group = "practice"
+review = false
 zh    = "工程实践"
 en    = "Industry Practice"
 order = ["README.md"]
@@ -338,25 +395,51 @@ en    = "RL basics"
 order = ["README.md", "mdp-and-policy-gradient.md", "baseline-and-advantage.md",
          "ppo.md"]
 
-# --- 求职：技术面 + 求职与规划 ------------------------------------------------
-# 面试笔记的文件仍在 00-foundations/ 里（URL 不变）；include 只改变它们在导航里的归属。
-
 [[section]]
 dir     = "interview"
-group   = "interview"
-zh      = "面试准备"
-en      = "Interview prep"
-order   = ["README.md", "leetcode.md", "python.md", "system-design.md", "questions.md", "transformer-followups.md", "interview-basics.md",
-           "hand-write-kit.md", "ml-math-interview.md"]
-include = ["00-foundations/interview-basics.md", "00-foundations/hand-write-kit.md",
-           "00-foundations/ml-math-interview.md"]
+group   = "coding"
+zh      = "Python 与练习方法"
+en      = "Python & practice"
+order   = ["README.md", "python.md"]
+
+[[section]]
+dir = "learn/ml-exercises"
+group = "ml-exercises"
+zh = "ML 问答与手写"
+en = "ML questions & implementations"
+order = ["README.md", "interview-basics.md", "hand-write-kit.md", "ml-math-interview.md", "transformer-followups.md", "questions.md"]
+include = ["00-foundations/interview-basics.md", "00-foundations/hand-write-kit.md", "00-foundations/ml-math-interview.md", "interview/transformer-followups.md", "interview/questions.md"]
+
+[[section]]
+dir = "learn/system-design"
+group = "system-design"
+zh = "系统设计练习"
+en = "System design exercises"
+order = ["README.md", "feed.md", "rag.md", "memory.md", "system-design.md"]
+include = ["interview/system-design.md"]
+
+[[section]]
+dir = "practice/recommender-systems"
+group = "recsys"
+zh = "Twitter / X 与现代推荐"
+en = "Twitter / X & modern recommendation"
+order = ["README.md", "00-architecture.md", "01-feed-pipeline.md", "02-candidate-retrieval.md", "03-ranking-and-diversity.md", "04-modern-recsys.md", "05-evaluation-lab.md", "06-why-two-towers.md", "07-component-choices.md", "08-serving-lifecycle.md"]
+
+[[section]]
+dir     = "interview/algorithms"
+group   = "algorithms"
+zh      = "LeetCode · 方法复习"
+en      = "LeetCode · Patterns"
+order   = ["leetcode.md", "complexity-and-tools.md", "hash-and-prefix.md", "pointers-and-search.md",
+           "traversal.md", "stack-heap-links.md", "backtracking-and-dp.md", "sorting-and-greedy.md"]
+include = ["interview/leetcode.md"]
 
 [[section]]
 dir   = "career"
 group = "career"
 zh    = "MLE / RE 求职笔记"
 en    = "MLE / RE job-search notes"
-order = ["README.md", "not-binary.md", "metrics.md", "prepare.md", "journey.md", "one-interview.md"]
+order = ["README.md", "not-binary.md", "metrics.md", "prepare.md", "journey.md", "new-grad-2026-2027.md", "one-interview.md"]
 
 [[section]]
 dir = "papers"
@@ -438,22 +521,29 @@ en  = "Templates"
 "05-post-training/alignment-tax.md"                     = ["对齐税", "Alignment tax"]
 "06-systems/README.md"                                  = ["总览", "Overview"]
 "06-systems/agent-observability.md"                     = ["Agent 可观测性", "Agent observability"]
-"06-systems/human-in-the-loop.md"                       = ["人在回路", "Human in the loop"]
+"06-systems/human-in-the-loop.md"                       = ["人工参与", "Human in the loop"]
 "07-evaluation/README.md"                               = ["总览", "Overview"]
-"07-evaluation/evaluation-stack.md" = ["评估栈", "Evaluation stack"]
+"07-evaluation/evaluation-stack.md" = ["分层评估", "Evaluation stack"]
 "07-evaluation/metric-robustness.md" = ["指标靠得住吗", "Is the metric robust?"]
 "07-evaluation/llm-as-a-judge/README.md" = ["总览", "Overview"]
-"07-evaluation/llm-as-a-judge/criteria.md" = ["Criterion 怎么写", "Writing criteria"]
+"07-evaluation/llm-as-a-judge/criteria.md" = ["评分标准怎么写", "Writing criteria"]
 "07-evaluation/llm-as-a-judge/scoring.md" = ["打分方式", "Scoring modes"]
 "07-evaluation/llm-as-a-judge/probability-scores.md" = ["概率加权分数", "Probability scores"]
 "07-evaluation/llm-as-a-judge/bias-and-workflow.md" = ["偏差与稳健流程", "Biases & workflow"]
 "08-model-experience/README.md"                         = ["模型体验", "Model experience"]
 "09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
 "contributors.md"                                      = ["幕后", "Behind the notes"]
-"interview/README.md"                                   = ["使用说明", "How to use"]
-"interview/leetcode.md"  = ["LeetCode", "LeetCode"]
+"interview/README.md"                                   = ["练习导读", "Practice guide"]
+"interview/leetcode.md"  = ["LeetCode 方法地图", "LeetCode pattern map"]
+"interview/algorithms/complexity-and-tools.md" = ["复杂度与工具", "Complexity & tools"]
+"interview/algorithms/hash-and-prefix.md" = ["Hash map 与前缀和", "Hash maps & prefix sums"]
+"interview/algorithms/pointers-and-search.md" = ["双指针、窗口与二分", "Pointers, windows & search"]
+"interview/algorithms/traversal.md" = ["DFS / BFS 图解", "DFS / BFS walkthrough"]
+"interview/algorithms/stack-heap-links.md" = ["栈、堆与链表", "Stacks, heaps & lists"]
+"interview/algorithms/backtracking-and-dp.md" = ["回溯与 DP", "Backtracking & DP"]
+"interview/algorithms/sorting-and-greedy.md" = ["排序、区间与贪心", "Sorting, intervals & greedy"]
 "interview/python.md"    = ["Python 语法", "Python idioms"]
-"interview/system-design.md" = ["系统设计", "System design"]
+"interview/system-design.md" = ["阅读与取舍", "Reading & trade-offs"]
 "interview/questions.md"                                = ["考前速查", "Question bank"]
 "interview/transformer-followups.md"                    = ["Transformer 追问", "Transformer follow-ups"]
 "00-foundations/interview-basics.md"                    = ["基础题", "Basics"]
@@ -463,7 +553,8 @@ en  = "Templates"
 "career/not-binary.md" = ["心态", "Mindset"]
 "career/metrics.md"    = ["别被指标锁死", "Metrics"]
 "career/prepare.md"    = ["准备什么", "What to prepare"]
-"career/journey.md"                                     = ["我的心路历程", "My journey"]
+"career/journey.md"                                     = ["25-26 intern 求职", "25-26 internship search"]
+"career/new-grad-2026-2027.md"                          = ["26-27 new grad 求职 🚧", "26-27 new-grad search 🚧"]
 "career/one-interview.md" = ["一次面试复盘", "One interview"]
 "EDITORIAL.md"                                          = ["写作规范", "Editorial policy"]
 "papers/README.md"                                      = ["论文笔记", "Paper notes"]
@@ -485,3 +576,19 @@ en  = "Templates"
 "10-agents/scenarios.md"                                         = ["不同场景", "Settings"]
 "10-agents/model-choice.md"                                      = ["API 还是自己 serve", "API or self-hosted"]
 "10-agents/review.md"                                            = ["复习题", "Review"]
+"learn/README.md" = ["从这里选一条路线", "Choose a learning route"]
+"learn/ml-exercises/README.md" = ["练什么，怎么检查", "What to practise"]
+"learn/system-design/README.md" = ["从需求到设计", "From needs to design"]
+"learn/system-design/feed.md" = ["信息流推荐", "A recommendation feed"]
+"learn/system-design/rag.md" = ["RAG 知识库", "A RAG knowledge base"]
+"learn/system-design/memory.md" = ["带记忆的助手", "An assistant with memory"]
+"practice/recommender-systems/README.md" = ["系列导读", "Series introduction"]
+"practice/recommender-systems/00-architecture.md" = ["00 · 架构全貌", "00 · Architecture map"]
+"practice/recommender-systems/01-feed-pipeline.md" = ["01 · 一次请求", "01 · One request"]
+"practice/recommender-systems/02-candidate-retrieval.md" = ["02 · 多路召回", "02 · Candidate retrieval"]
+"practice/recommender-systems/03-ranking-and-diversity.md" = ["03 · 排序与多样性", "03 · Ranking & diversity"]
+"practice/recommender-systems/04-modern-recsys.md" = ["04 · 今天的推荐系统", "04 · Modern recommenders"]
+"practice/recommender-systems/05-evaluation-lab.md" = ["05 · 指标与实验", "05 · Metrics & experiments"]
+"practice/recommender-systems/06-why-two-towers.md" = ["06 · 为什么是双塔", "06 · Why two towers"]
+"practice/recommender-systems/07-component-choices.md" = ["07 · 组件怎么选", "07 · Component choices"]
+"practice/recommender-systems/08-serving-lifecycle.md" = ["08 · 工程落地", "08 · Serving lifecycle"]

@@ -4,7 +4,7 @@
 
 You don't need to read the directory from top to bottom. Start with the thing you're stuck on: the computation inside a model, how to train it, or how to tell whether it improved.
 
-The two study areas remain **Quant Researcher** and **AI / ML Engineer**. They share some foundations, but they aren't the same preparation checklist. Practice, career notes, and papers also keep their own entry points.
+This page guides the foundations-and-models route. The full [study map](../learn/README.en.md) also separates training and applications, coding exercises, and system design. Technical material no longer lives inside career reflections.
 
 ## Pick a route
 
@@ -16,7 +16,7 @@ The two study areas remain **Quant Researcher** and **AI / ML Engineer**. They s
 | Read a new model report | [Model-reading exercise](model-families/how-to-read.en.md) → family notes | Identify the exact version, its changes, and the experiments supporting an explanation |
 | Train or post-train models | [Feedback to objectives](../01-data-and-feedback/feedback-to-objectives.en.md) → [methods](../05-post-training/README.en.md) → [evaluation](../07-evaluation/README.en.md) | Explain what a label means, what the loss rewards, and how to catch side effects |
 | Build memory, retrieval, or agents | [Memory lifecycle](../02-memory/memory-lifecycle.en.md) → [retrieval](../04-search/README.en.md) → [agents](../10-agents/README.en.md) | Trace the evidence used for a request and locate the stage responsible for a failure |
-| Prepare for interviews | [Interview preparation](../interview/README.en.md) → unfamiliar chapters → review cards | Explain an example, a limitation, and a test without looking at the notes |
+| Prepare for interviews | [ML questions and implementations](../learn/ml-exercises/README.en.md) → unfamiliar chapters → review cards | Explain an example, a limitation, and a test without looking at the notes |
 
 ## Understand both the module and its connections
 

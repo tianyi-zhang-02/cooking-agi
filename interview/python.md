@@ -71,7 +71,7 @@ nums[-1]                        # 最后一个元素
 | 计数 | `collections.Counter` | `Counter(s).most_common(k)` 取出现次数最多的 k 个 |
 | 分组、建图 | `collections.defaultdict(list)` | 访问不存在的 key 时，自动建一个空列表 |
 | 队列、BFS | `collections.deque` | `append` 和 `popleft` 都是 O(1)；list 的 `pop(0)` 是 O(n) |
-| 最小堆、Top K | `heapq` | 只有最小堆；要最大堆，就把数字取负再放进去 |
+| 最小堆、Top K | `heapq` | 默认小顶堆；负数法可实现最大堆，兼容较老版本；Python 3.14+ 也有 `_max` 接口 |
 | 在有序数组里找位置 | `bisect` | `bisect_left` 找第一个大于等于 x 的位置，O(log n) |
 | 记忆化递归 | `functools.cache` | 加在递归函数上，参数相同的调用直接返回缓存结果 |
 | 排列组合 | `itertools` | `permutations`、`combinations`、`product`、`accumulate` |
@@ -94,7 +94,7 @@ heapq.nlargest(k, nums)           # 直接拿最大的 k 个
 - **浅拷贝和深拷贝。** `x[:]`、`list(x)`、`x.copy()` 只复制最外层；里面还套着列表的话，要用 `copy.deepcopy`。
 - **负数的整除和取余。** Python 的 `//` 向下取整：`-7 // 2` 是 `-4`，`-7 % 2` 是 `1`。C++ 和 Java 是向零取整，`-7 / 2` 得 `-3`，换语言时容易踩坑。
 - **字符串不能原地修改。** 在循环里用 `s += c` 拼接，每次都会新建一个字符串；先把片段放进列表，最后 `"".join(parts)`。
-- **递归深度有上限。** 默认大约 1000 层，DFS 遇到很长的链会报 `RecursionError`。可以用 `sys.setrecursionlimit` 调高，或者改写成用栈的迭代版本。
+- **递归深度有上限。** 常见默认值约 1000 层，以 `sys.getrecursionlimit()` 为准。DFS 遇到长链可能报 `RecursionError`，优先考虑显式栈；盲目提高限制不能保证安全。对照例子见 [DFS / BFS 图解](algorithms/traversal.md)。
 - **`*args` 和 `**kwargs`。** 前者把多出来的位置参数收成一个 tuple，后者把多出来的关键字参数收成一个 dict。
 - **生成器。** 函数里用了 `yield` 就成了生成器：每次取值时算出一个就停下，下次从停下的地方继续。适合处理很大的数据，或者没有尽头的序列。
 
@@ -126,7 +126,7 @@ lambda 记住的是变量 `i` 本身，调用时才去看 `i` 的值；循环结
 <details class="interview" markdown="1">
 <summary>heapq 怎么当最大堆用？Top K 问题怎么做？</summary>
 
-`heapq` 只提供最小堆，存进去时取负数，取出来再取负，就相当于最大堆。求最大的 k 个元素，可以维护一个大小为 k 的最小堆：新元素比堆顶大就替换堆顶，最后堆里就是最大的 k 个，时间 O(n log k)。数据不大时直接 `heapq.nlargest(k, nums)`。
+`heapq` 默认使用小顶堆。存入时取负、取出再取负，可以实现数值最大堆，兼容较老 Python；3.14 起也提供公开的 `_max` 接口。求最大的 k 个元素（1≤k≤n），维护大小不超过 k 的小顶堆：新元素比堆顶大就替换。扫描时间 O(n log(k+1))，有序输出还需 O(k log k)。详见 [Top K 的淘汰线](algorithms/stack-heap-links.md) 和 [官方接口](https://docs.python.org/3/library/heapq.html)。
 
 </details>
 
