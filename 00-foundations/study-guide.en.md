@@ -16,7 +16,7 @@ This page guides the foundations-and-models route. The full [study map](../learn
 | Read a new model report | [Model-reading exercise](model-families/how-to-read.en.md) → family notes | Identify the exact version, its changes, and the experiments supporting an explanation |
 | Train or post-train models | [Feedback to objectives](../01-data-and-feedback/feedback-to-objectives.en.md) → [methods](../05-post-training/README.en.md) → [evaluation](../07-evaluation/README.en.md) | Explain what a label means, what the loss rewards, and how to catch side effects |
 | Build memory, retrieval, or agents | [Memory lifecycle](../02-memory/memory-lifecycle.en.md) → [retrieval](../04-search/README.en.md) → [agents](../10-agents/README.en.md) | Trace the evidence used for a request and locate the stage responsible for a failure |
-| Prepare for interviews | [ML questions and implementations](../learn/ml-exercises/README.en.md) → unfamiliar chapters → review cards | Explain an example, a limitation, and a test without looking at the notes |
+| Prepare for interviews | [ML questions and implementations](../learn/ml-exercises/README.en.md) → unfamiliar chapters → run a small example | Explain an example, a limitation, and a test without looking at the notes |
 
 ## Understand both the module and its connections
 
@@ -39,10 +39,10 @@ A dissatisfied user may reflect stale memory rather than a small model. A higher
 <div class="curriculum-hero">
   <div><span class="level-chip core">01 · Understand</span><strong>Follow one example</strong><p>What comes in, what computation happens, and who uses the output? Mark difficult formulas for later.</p></div>
   <div><span class="level-chip deep">02 · Inspect</span><strong>Calculate or run a small test</strong><p>Check shapes, denominators, masks, and assumptions. Change one condition and predict the effect.</p></div>
-  <div><span class="level-chip lab">03 · Recall</span><strong>Answer before reopening the notes</strong><p>The chapter cards initially show only the question. Reveal the reasoning after trying; mark uncertain answers “Try again.”</p></div>
+  <div><span class="level-chip lab">03 · Recall</span><strong>Explain it in your own words</strong><p>Pick an example, explain the design, and consider a different assumption. Return to the notes wherever you get stuck.</p></div>
 </div>
 
-Review marks stay in this browser. They aren't uploaded, don't sync across devices, and aren't proof of mastery. Chinese and English pages share progress within a chapter. The answers are starting points: explaining assumptions and reasoning matters more than matching the wording.
+You don't need to memorize the wording. Explaining the assumptions and reasoning with an example of your own is a good place to start.
 
 ## Connect the chapters
 
@@ -53,6 +53,6 @@ Review marks stay in this browser. They aren't uploaded, don't sync across devic
 
 ## Want to add a note?
 
-It doesn't have to start as a full tutorial. Begin with something you didn't understand, add an example that can be calculated or run, then explain limitations and add 2–4 review cards. Separate public evidence, your interpretation, and untested ideas.
+It doesn't have to start as a full tutorial. Begin with something you didn't understand, add an example that can be calculated or run, then explain the reasoning and limitations. Separate public evidence, your interpretation, and untested ideas.
 
 [Open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues) for missing topics, or read [how to contribute](../community/README.en.md). One clear note is worth more than a directory filled with outlines.

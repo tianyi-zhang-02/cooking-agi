@@ -51,7 +51,7 @@ This isn't a keyword classifier. “Shortest” could mean BFS or DP; structure 
 - **Close the solution and rewrite:** check empty input, duplicates, and extreme orderings.
 - **Change a condition a few days later:** sorted to unsorted, positive to signed, tree to cyclic graph. Explaining what breaks matters more than remembering an ID.
 
-Review cards let you mark “Try again” or “Understood”; marks stay in this browser. Reading isn't mastery, but you don't need a perfect streak either.
+Don't worry about hitting a problem count. Being able to rewrite a solution days later and explain what changes under a different constraint matters more than remembering its number.
 
 ## 4. Run the examples
 

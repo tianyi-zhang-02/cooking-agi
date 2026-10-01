@@ -18,7 +18,7 @@ This bilingual collection is growing into a community-maintained project. The ai
 | Prepare for an ML internship or new-grad role | [Code & exercises](interview/README.en.md) · [Job-search notes](career/README.en.md) |
 | Read a paper or add a note | [Papers](papers/README.en.md) · [Editorial guide](EDITORIAL.en.md) · [Content proposals](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
 
-**Read on the website for the full experience.** Language switching, interactive diagrams, and review cards work there. This repository contains the notes, experiments, and site source.
+**Read on the website for the full experience.** Switch between languages and explore the interactive diagrams there. This repository contains the notes, experiments, and site source.
 
 ## Content map
 

@@ -133,10 +133,19 @@
     var reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
     var userPaused = false, frame = null, previous = 0, bounds = { w: 0, h: 0 };
 
-    function ditherInto(canvas, source, initials) {
+    function ditherInto(canvas, source, initials, isMark) {
       var size = canvas.width, ctx = canvas.getContext("2d", { willReadFrequently: true });
       ctx.fillStyle = "#000"; ctx.fillRect(0, 0, size, size);
-      if (source) { try { ctx.drawImage(source, 0, 0, size, size); } catch (e) { source = null; } }
+      if (source) {
+        try {
+          if (isMark) {
+            var light = ctx.createRadialGradient(size * .3, size * .24, 0, size * .5, size * .5, size * .66);
+            light.addColorStop(0, "#fff"); light.addColorStop(.6, "#aaa"); light.addColorStop(1, "#181818");
+            ctx.fillStyle = light; ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(source, size * .19, size * .19, size * .62, size * .62);
+          } else ctx.drawImage(source, 0, 0, size, size);
+        } catch (error) { source = null; }
+      }
       if (!source) {                                   // no avatar: a dithered disc with initials
         var g = ctx.createRadialGradient(size * .42, size * .36, 1, size * .5, size * .5, size * .62);
         g.addColorStop(0, "#fff"); g.addColorStop(1, "#111");
@@ -189,20 +198,24 @@
       return true;
     }
 
+    $$("[data-crew-avatar]").forEach(function (face) {
+      var canvas = $(".crew-bits", face), img = $(".crew-src", face);
+      function paint() {
+        if (ditherInto(canvas, img && img.complete && img.naturalWidth ? img : null,
+                       face.dataset.initials, img && img.classList.contains("crew-mark"))) {
+          face.classList.add("is-dithered");
+        }
+      }
+      if (img) { img.complete ? paint() : (img.onload = paint, img.onerror = paint); } else paint();
+    });
+
     var travelers = $$(".crew-drifter", field).map(function (element, index) {
-      var face = $(".crew-face", element), canvas = $(".crew-bits", element), img = $(".crew-src", element);
       var traveler = {
-        element: element, pilot: $(".crew-pilot", element), canvas: canvas, label: $(".crew-label", element),
+        element: element, pilot: $(".crew-pilot", element), label: $(".crew-label", element),
         x: 0, y: 0, vx: 0, vy: 0, held: false,
         startX: parseFloat(getComputedStyle(element).getPropertyValue("--start-x")) || 20 + index * 7,
         startY: parseFloat(getComputedStyle(element).getPropertyValue("--start-y")) || 30 + index * 5
       };
-      function paint() {
-        if (ditherInto(canvas, img && img.complete && img.naturalWidth ? img : null, face.dataset.initials)) {
-          element.classList.add("is-dithered");
-        }
-      }
-      if (img) { img.complete ? paint() : (img.onload = paint, img.onerror = paint); } else paint();
       return traveler;
     });
 
@@ -610,8 +623,18 @@
   /* ---- block tabs: on a narrow screen the strip scrolls, so bring the current block into view ---- */
   $$(".topbar-tabs").forEach(function (strip) {
     var current = $("a.active", strip);
-    if (current && strip.scrollWidth > strip.clientWidth) {
-      strip.scrollLeft = current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2;
+    if (!current) return;
+    function centerCurrentTab() {
+      if (strip.scrollWidth <= strip.clientWidth) return;
+      var stripBounds = strip.getBoundingClientRect();
+      var currentBounds = current.getBoundingClientRect();
+      strip.scrollLeft += currentBounds.left - stripBounds.left - (strip.clientWidth - currentBounds.width) / 2;
+    }
+    requestAnimationFrame(centerCurrentTab);
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(centerCurrentTab).observe(strip);
+    } else {
+      addEventListener("resize", centerCurrentTab, { passive: true });
     }
   });
 

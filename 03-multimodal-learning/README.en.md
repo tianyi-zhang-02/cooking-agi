@@ -15,7 +15,7 @@ Separate matching from answering before asking what multimodal input adds. The t
 | 3 · Answering | [How images enter an LLM](vision-to-language.en.md) | Patches, projectors, instruction tuning, and visual-evidence tests |
 | 4 · Training code | [One training step](../00-foundations/deep-dives/training-step.en.md) | Target alignment, masks, and loss normalization |
 
-The CLIP page lets you change temperature and mismatched pairs. Each chapter ends with review cards. The overview below helps you choose what to explore next.
+The CLIP page lets you change temperature and mismatched pairs to see how image–text matching responds. The overview below helps you choose what to explore next.
 
 ## Start here: multimodality adds evidence
 

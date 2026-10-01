@@ -16,7 +16,7 @@
 | 看懂新模型 | [模型家族阅读练习](model-families/how-to-read.md) → 各家族精读 | 能说清具体版本改了什么，以及哪项实验支持这个解释 |
 | 做训练或 Post-training | [反馈怎么变成目标](../01-data-and-feedback/feedback-to-objectives.md) → [训练方法](../05-post-training/README.md) → [评估](../07-evaluation/README.md) | 能解释标签意味着什么、loss 在奖励什么、怎样发现副作用 |
 | 做记忆、检索或 Agent | [记忆的写入与更新](../02-memory/memory-lifecycle.md) → [检索](../04-search/README.md) → [Agents](../10-agents/README.md) | 能追踪一次请求用了哪些证据，出错后能找到责任环节 |
-| 准备技术面 | [ML 问答与手写](../learn/ml-exercises/README.md) → 不熟的章节 → 章末复习卡 | 不看笔记也能讲一个例子、一个限制，以及怎么验证 |
+| 准备技术面 | [ML 问答与手写](../learn/ml-exercises/README.md) → 不熟的章节 → 动手跑一个例子 | 不看笔记也能讲一个例子、一个限制，以及怎么验证 |
 
 ## 看懂一个模块，还要看懂它接在哪里
 
@@ -39,10 +39,10 @@ flowchart TD
 <div class="curriculum-hero">
   <div><span class="level-chip core">01 · 看懂</span><strong>先跟着一个例子走</strong><p>输入是什么？经过什么计算？输出交给谁？暂时不懂的公式可以先圈出来。</p></div>
   <div><span class="level-chip deep">02 · 拆开</span><strong>再算一次，或写个小实验</strong><p>检查张量形状、分母、mask 和假设。只改一个条件，看看结果会怎样变。</p></div>
-  <div><span class="level-chip lab">03 · 回忆</span><strong>合上正文，再回答问题</strong><p>章末卡片先只给题目。讲完再看思路，没讲顺的标记“再练一次”。</p></div>
+  <div><span class="level-chip lab">03 · 回忆</span><strong>试着用自己的话讲一遍</strong><p>挑一个例子，说清楚为什么这么做、换个条件会怎样。不确定的地方，再回正文找答案。</p></div>
 </div>
 
-复习记录只保存在当前浏览器，不会上传或跨设备同步；同一章节的中英文页共用记录。“已掌握”只是方便你安排复习，不是考试结果。能说明前提、讲清推理，比背出答案更重要。
+不必背原文。能说明前提、讲清推理，再举一个自己的例子，就已经很好了。
 
 ## 笔记之间怎么接起来
 
@@ -53,6 +53,6 @@ flowchart TD
 
 ## 如果你也想补一篇
 
-不必一次写成教程。先写“我哪里没懂”，给一个能算清或跑通的小例子，再补解释、限制和 2–4 张复习卡。公开证据、自己的推测、还没验证的想法，请分开写。
+不必一次写成教程。先写“我哪里没懂”，给一个能算清或跑通的小例子，再补解释和限制。公开证据、自己的推测、还没验证的想法，请分开写。
 
 有遗漏就[提 issue](https://github.com/tianyi-zhang-02/cooking-agi/issues)，想一起改可以看[参与方式](../community/README.md)。我们宁可一篇讲清楚，也不急着把每个目录都填满。
