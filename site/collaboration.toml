@@ -12,7 +12,7 @@ reviewers = ["tianyi-zhang-02", "2pir2"]
 id = "foundations"
 zh = "大模型基础"
 en = "Foundations"
-groups = ["foundations"]
+groups = ["study", "foundations"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
@@ -47,14 +47,21 @@ reviewers = ["tianyi-zhang-02", "2pir2"]
 id = "practice"
 zh = "工程实践与开源"
 en = "Practice & open source"
-groups = ["practice"]
+groups = ["practice", "recsys"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "career"
-zh = "求职与面试准备"
-en = "Career & interview preparation"
-groups = ["career", "interview"]
+zh = "求职经历与心态"
+en = "Career journeys & reflections"
+groups = ["career"]
+reviewers = ["tianyi-zhang-02", "2pir2"]
+
+[[area]]
+id = "exercises"
+zh = "代码题解与系统设计"
+en = "Coding exercises & system design"
+groups = ["coding", "algorithms", "ml-exercises", "system-design"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]

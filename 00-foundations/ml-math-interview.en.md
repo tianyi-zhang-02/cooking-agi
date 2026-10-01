@@ -42,13 +42,15 @@ $$\mathcal L_{\mathrm{CE}}=-\sum_i y_i\log p_i.$$
 
 If the correct class is $c$ and $y$ is one-hot:
 
-$$\mathcal L=-\log p_c=-z_c+\operatorname{LSE}(z),\qquad
-\operatorname{LSE}(z)=\log\sum_j e^{z_j}.$$
+$$\mathcal L=-\log p_c=-z_c+\operatorname{LSE}(z),$$
+
+$$\operatorname{LSE}(z)=\log\sum_j e^{z_j}.$$
 
 The three most important gradients are
 
-$$\frac{\partial p_i}{\partial z_j}=p_i(\mathbf1_{i=j}-p_j),\qquad
-\nabla_z\operatorname{LSE}(z)=\operatorname{softmax}(z),$$
+$$\frac{\partial p_i}{\partial z_j}=p_i(\mathbf1_{i=j}-p_j),$$
+
+$$\nabla_z\operatorname{LSE}(z)=\operatorname{softmax}(z),$$
 
 $$\frac{\partial\mathcal L}{\partial z_i}=p_i-y_i.$$
 
@@ -88,8 +90,9 @@ hard labels.
 
 ### 3. L1 and L2: why one is sparse and the other only shrinks
 
-$$\mathcal L_{L1}=\mathcal L_{\text{data}}+\lambda\|w\|_1,\qquad
-\mathcal L_{L2}=\mathcal L_{\text{data}}+\frac\lambda2\|w\|_2^2.$$
+$$\mathcal L_{L1}=\mathcal L_{\text{data}}+\lambda\|w\|_1,$$
+
+$$\mathcal L_{L2}=\mathcal L_{\text{data}}+\frac\lambda2\|w\|_2^2.$$
 
 L2 has gradient $\lambda w$: the closer a parameter is to zero, the weaker the shrinkage.
 Away from zero the L1 subgradient is $\lambda\operatorname{sign}(w)$; at zero it is the
@@ -105,7 +108,10 @@ $$w^*=\operatorname{sign}(a)\max(|a|-\lambda,0).$$
 
 When $|a|\le\lambda$, the subgradient at zero contains the optimality condition, so a whole
 interval of inputs maps to an **exact zero**. The same data term paired with L2 gives
-$w^*=a/(1+\lambda)$, which, unless $a=0$, normally only shrinks and never reaches zero.
+
+$$w^*=\frac{a}{1+\lambda},$$
+
+which, unless $a=0$, only shrinks the coefficient rather than setting it to zero.
 Geometrically, the diamond-shaped boundary of the L1 constraint has corners, so level sets
 are more likely to touch it on a coordinate axis; the L2 boundary is smooth.
 

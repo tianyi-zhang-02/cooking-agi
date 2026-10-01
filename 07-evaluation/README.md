@@ -1,8 +1,8 @@
-# Evaluation：我们凭什么说系统变好了？
+# 评估：我们凭什么说系统变好了？
 
 **中文** · [English](README.en.md)
 
-这章按“定义目标 → 设计比较 → 检查结果”来读。[评估栈](evaluation-stack.md)看不同层次，[对照实验与切片](ablation-and-slices.md)练习怎么比较，[指标稳健性](metric-robustness.md)再检查结论靠不靠谱。
+这章先说清什么算好，再看怎么比较。[分层评估](evaluation-stack.md)介绍不同检查方法，[对照实验与分组评估](ablation-and-slices.md)讲怎么做公平的比较，[指标稳健性](metric-robustness.md)则检查分数变化能不能支持结论。
 
 ## 先说清楚，什么才算变好了
 
@@ -22,11 +22,11 @@
 - 行程是否符合用户偏好，可能需要语义判断；
 - 用户长期是否满意，需要看后续行为。
 
-所以通常要把几种评估方式结合起来，不能只靠一个 evaluator。
+这些问题适合不同的检查方法，通常不能靠一个评分器全部回答。
 
 ## 先写清“好”是什么意思
 
-开始评估前，先约定这项任务怎么算完成（task contract）：
+开始前，先把成功标准写下来。后面选指标、做测试，都要回到这些约定：
 
 ```text
 Goal        用户真正想完成什么？
@@ -40,16 +40,16 @@ Slice       哪些用户、任务和环境必须分别观察？
 
 ## 这一块怎么读
 
-- [评估栈](evaluation-stack.md)：从确定性检查到在线结果，每一层适合回答什么问题。
-- [指标靠得住吗](metric-robustness.md)：平均值掩盖了什么，evaluator 自己又会怎样漂移。
-- [LLM-as-a-Judge](llm-as-a-judge/)：让模型打分时，criterion、打分方式和偏差分别怎么处理。
+- [分层评估](evaluation-stack.md)：规则检查、实际执行和用户反馈，各能告诉我们什么。
+- [指标靠得住吗](metric-robustness.md)：平均值会掩盖什么，评分器本身稳不稳定。
+- [LLM-as-a-Judge](llm-as-a-judge/)：评分标准怎么写、分数怎么算，以及怎样发现评分偏差。
 
-## 它和其他知识点怎样连接
+## 接着可以看什么
 
-- [Agent Observability](../06-systems/agent-observability.md) 记录中间步骤，方便查出问题发生在哪里。
-- [Human-in-the-Loop](../06-systems/human-in-the-loop.md) 介绍哪些判断需要人来确认，以及怎么用人工评审检查 evaluator 的评分。
-- [数据与反馈](../01-data-and-feedback/) 决定 eval set 是否代表真实任务。
-- [Model Experience](../08-model-experience/) 检查离线指标能否反映用户长期使用的体验。
+- [Agent 可观测性](../06-systems/agent-observability.md)记录中间步骤，方便查出问题发生在哪里。
+- [人工参与](../06-systems/human-in-the-loop.md)讲哪些判断需要人来确认，以及怎样核对模型评分。
+- [数据与反馈](../01-data-and-feedback/)帮助判断评估集能否代表真实任务。
+- [模型体验](../08-model-experience/)关注离线指标能否反映长期使用感受。
 
 ## 工程实践阅读
 

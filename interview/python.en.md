@@ -71,7 +71,7 @@ Many problem types have a tool waiting for them. Knowing this table saves a lot 
 | Counting | `collections.Counter` | `Counter(s).most_common(k)` gives the k most frequent |
 | Grouping, building a graph | `collections.defaultdict(list)` | a missing key gets an empty list automatically |
 | A queue, BFS | `collections.deque` | `append` and `popleft` are O(1); a list's `pop(0)` is O(n) |
-| Min-heap, top K | `heapq` | min-heap only; for a max-heap, push negated numbers |
+| Min-heap, top K | `heapq` | min-heap by default; negation works on older versions, and Python 3.14+ also has `_max` APIs |
 | A position in a sorted array | `bisect` | `bisect_left` finds the first index with value ≥ x, in O(log n) |
 | Memoised recursion | `functools.cache` | put it on a recursive function; repeated calls return the cached result |
 | Permutations and combinations | `itertools` | `permutations`, `combinations`, `product`, `accumulate` |
@@ -94,7 +94,7 @@ heapq.nlargest(k, nums)           # the k largest, directly
 - **Shallow versus deep copy.** `x[:]`, `list(x)` and `x.copy()` copy only the outer layer; if there are lists inside, use `copy.deepcopy`.
 - **Integer division and modulo with negatives.** Python's `//` rounds down: `-7 // 2` is `-4` and `-7 % 2` is `1`. C++ and Java round towards zero, so `-7 / 2` is `-3`, which trips people up when switching languages.
 - **Strings cannot be changed in place.** `s += c` in a loop builds a new string every time; collect the pieces in a list and finish with `"".join(parts)`.
-- **Recursion depth is limited.** The default limit is about 1000 frames, so a DFS down a long chain raises `RecursionError`. Raise it with `sys.setrecursionlimit`, or rewrite the search iteratively with a stack.
+- **Recursion depth is limited.** A common default is about 1000 frames; check `sys.getrecursionlimit()`. A long DFS chain may raise `RecursionError`. Prefer an explicit stack over blindly raising the limit, which is not a safety guarantee. See the [DFS / BFS walkthrough](algorithms/traversal.en.md).
 - **`*args` and `**kwargs`.** The first collects extra positional arguments into a tuple, the second collects extra keyword arguments into a dict.
 - **Generators.** A function that uses `yield` becomes a generator: each time a value is requested it computes one and pauses, then resumes where it stopped. Good for very large data or sequences with no end.
 
@@ -126,7 +126,7 @@ The lambda remembers the variable `i`, not its value, and looks the value up whe
 <details class="interview" markdown="1">
 <summary>How do you use heapq as a max-heap? How do you solve top K?</summary>
 
-`heapq` only provides a min-heap: push negated values and negate them again when you pop, and it behaves as a max-heap. For the k largest elements, keep a min-heap of size k and replace the top whenever a new element is larger; at the end the heap holds the k largest, in O(n log k). For small inputs just use `heapq.nlargest(k, nums)`.
+`heapq` uses a min-heap by default. Negating numeric values on push and pop implements a max-heap on older versions; Python 3.14 also exposes `_max` APIs. For the k largest values (1≤k≤n), maintain at most k elements and replace the minimum when a larger value arrives. Scanning costs O(n log(k+1)); sorted output adds O(k log k). See [the Top-K cutoff](algorithms/stack-heap-links.en.md) and [official API](https://docs.python.org/3/library/heapq.html).
 
 </details>
 

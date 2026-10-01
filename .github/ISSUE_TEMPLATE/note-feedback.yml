@@ -6,7 +6,7 @@ body:
     id: area
     attributes:
       label: 板块 · Area
-      description: "保留 Area: 前缀，方便分区检索。可用 foundations / posttrain / evaluation / data-retrieval / systems-agents / practice / career / papers / site。"
+      description: "保留 Area: 前缀，方便分区检索。可用 quant / foundations / posttrain / evaluation / data-retrieval / systems-agents / practice / exercises / career / papers / site。"
       placeholder: "Area: evaluation"
     validations:
       required: true

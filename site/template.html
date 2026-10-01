@@ -21,6 +21,11 @@
 <link rel="stylesheet" href="{{prefix}}static/style.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/review.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/clip-lab.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/traversal-lab.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/recsys-lab.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/recsys-design.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/sidebar.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/search.css?v={{built}}">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
       integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
@@ -37,10 +42,10 @@
 
 <div class="reading-progress" aria-hidden="true"><span></span></div>
 
-<a class="skip" href="#content">Skip to content</a>
+<a class="skip" href="#content">{{skip_label}}</a>
 
 <header class="topbar">
-  <button class="icon-btn menu" aria-label="Menu" aria-expanded="false">
+  <button class="icon-btn menu" aria-label="{{menu_label}}" aria-expanded="false" aria-controls="side">
     <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
       <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
     </svg>
@@ -54,6 +59,9 @@
   </a>
   {{tabs}}
   <div class="topbar-right">
+    <button type="button" class="icon-btn search-toggle" data-search-open aria-label="{{search_ph}}" aria-haspopup="dialog" aria-controls="note-search" hidden>
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+    </button>
     <a class="crew-link" href="{{crew_href}}" aria-label="{{crew_aria}}"><span aria-hidden="true">✧</span>{{crew_label}}</a>
     <a class="icon-btn repo-btn" href="https://github.com/{{repo}}" aria-label="GitHub" rel="noopener">
       <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
@@ -65,8 +73,8 @@
           3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
       </svg>
     </a>
-    <a class="lang-btn{{lang_cls}}" href="{{lang_href}}">{{lang_label}}</a>
-    <button class="icon-btn theme" aria-label="Theme">
+    {{reading_controls}}
+    <button class="icon-btn theme" aria-label="{{theme_label}}">
       <svg class="i-sun" viewBox="0 0 20 20" width="17" height="17" aria-hidden="true">
         <circle cx="10" cy="10" r="3.6" fill="currentColor"/>
         <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -87,42 +95,14 @@
 <div class="shell">
 
   <aside class="side" id="side">
-    <a class="brand" href="{{home}}">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 28 28" width="26" height="26">
-          <path d="M4.5 6.5h6.8c1.5 0 2.7 1.2 2.7 2.7v12.3c0-1.5-1.2-2.7-2.7-2.7H4.5z"
-                fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M23.5 6.5h-6.8c-1.5 0-2.7 1.2-2.7 2.7v12.3c0-1.5 1.2-2.7 2.7-2.7h6.8z"
-                fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-        </svg>
-      </span>
-      <span class="brand-text">
-        <b>{{site_title}}</b>
-        <i>{{tagline}}</i>
-      </span>
-    </a>
-
-    <div class="search">
-      <input type="search" class="search-input" placeholder="{{search_ph}}"
-             autocomplete="off" spellcheck="false" aria-label="{{search_ph}}">
-      <kbd class="search-key" aria-hidden="true">/</kbd>
-      <div class="search-results" hidden></div>
-    </div>
-
-    <nav class="side-nav" aria-label="Sections">
+    <nav class="side-nav" aria-label="{{sidebar_label}}">
       {{sidebar}}
     </nav>
-
-    <div class="side-foot">
-      <a href="https://github.com/{{repo}}">GitHub</a>
-      <a class="lang-inline{{lang_cls}}" href="{{lang_href}}">{{lang_label}}</a>
-    </div>
   </aside>
 
   <div class="side-scrim" hidden></div>
 
   <main id="content">
-    {{subtabs}}
     <article class="prose">
       {{page_header}}
       {{mobile_toc}}
@@ -139,13 +119,29 @@
   <aside class="rail">
     <div class="rail-inner">
       <div class="rail-title">{{toc_label}}</div>
-      <nav class="toc" aria-label="Table of contents">{{toc}}</nav>
+      <nav class="toc" aria-label="{{toc_label}}">{{toc}}</nav>
     </div>
   </aside>
 
 </div>
 
+<dialog id="note-search" class="note-search" aria-labelledby="note-search-title">
+  <div class="note-search-shell">
+    <header class="note-search-heading"><h2 id="note-search-title">{{search_ph}}</h2><button type="button" class="note-search-close" aria-label="{{search_close}}">×</button></header>
+    <div class="note-search-field">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+      <input id="note-search-query" type="search" placeholder="{{search_input_ph}}" aria-label="{{search_ph}}" aria-controls="note-search-results" aria-describedby="note-search-status" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="note-search-tools"><div class="note-search-scopes" role="group" aria-label="{{search_ph}}">
+      <button type="button" data-search-scope="current" aria-pressed="true">{{search_current}}</button>
+      <button type="button" data-search-scope="all" aria-pressed="false">{{search_all}}</button>
+    </div><p id="note-search-status" role="status" aria-live="polite"></p></div>
+    <div class="note-search-body"><div class="note-search-empty"></div><ol id="note-search-results" hidden></ol></div>
+    <footer class="note-search-footer"><span>{{search_hint}}</span><span>{{search_privacy}}</span></footer>
+  </div>
+</dialog>
 <script>window.SITE = { prefix: "{{prefix}}", lang: "{{lang}}", built: "{{built}}" };</script>
+<script defer src="{{prefix}}static/reading.js?v={{built}}"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
         integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
         crossorigin="anonymous"></script>
@@ -153,8 +149,14 @@
         integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
         crossorigin="anonymous"></script>
 <script defer src="{{prefix}}static/app.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/search.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/sidebar.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/note-reading.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/review.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/clip-lab.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/traversal-lab.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/recsys-lab.js?v={{built}}"></script>
+<script defer src="{{prefix}}static/recsys-design.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/sky.js?v={{built}}"></script>
 </body>
 </html>

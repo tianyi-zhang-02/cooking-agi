@@ -2,10 +2,10 @@
 
 **中文** · [English](README.en.md)
 
-## 快速学习：Judge 不是一个 prompt，而是一套 measurement system
+## 先看要点：让模型打分前，要准备什么
 
 <details class="interview" markdown="1">
-<summary>Criterion、scoring、calibration 与 validation</summary>
+<summary>评分标准怎么写，分数又该怎么检查？</summary>
 
 **快速记忆**：先说清楚评什么（criterion），再决定用成对比较、等级评分还是通过/不通过。最后对照专家标注、输入扰动和不同类别的样本，检查 judge 的判断是否可靠。
 
@@ -14,16 +14,16 @@
 > 让 LLM 当裁判，要先告诉它依据什么、评哪一项、每个分数代表什么，以及结果按什么格式输出、怎样汇总。成对比较（pairwise）往往比直接打绝对分更稳，但仍可能偏爱某个位置、更长的回答或与自身风格相近的输出，也要防止参考答案泄漏。使用前要和专家判断对照，除了平均分，还要看分歧和不确定性。
 
 <details markdown="1">
-<summary><b>深挖</b>：为什么 weighted mean 会隐藏失败？</summary>
+<summary><b>再想一步</b>：平均分为什么会把问题藏起来？</summary>
 
 “每次都给 3 分”和“一半给 1 分、一半给 5 分”的均值相同，含义却很不一样。所以要保留分数分布、分歧程度、各评估维度的结果，以及 judge 的版本。涉及重要决策时，还需要人工复核，不能拿一个平均分就把分歧略过去。
 
 </details>
 </details>
 
-## Judge 是评估系统，不是一个 Prompt
+## 不只是写一句“请给这个回答打分”
 
-LLM-as-a-Judge 不是一种固定 prompt，而是一组可以自由组合的设计选择：**给不给示范、给不给参考答案、怎样比较候选、判断什么 criterion，以及最后怎样聚合分数。**
+LLM-as-a-Judge 是让大模型按规则评估回答或行为。设计时要分别想清楚：**给不给示范、要不要参考答案、比较哪些回答、按什么标准判断，最后怎样汇总分数。**
 
 很多概念看起来相似，是因为一段 prompt 往往同时使用了好几种方法。
 
@@ -67,10 +67,10 @@ Rationale          支持 verdict 的具体证据
 
 ## 这一组怎么读
 
-- [Criterion 怎么写](criteria.md)：好 criterion 的五个特点，以及不同任务常用的 criterion。
-- [打分方式怎么选](scoring.md)：binary、ordinal、pairwise、listwise、QAG、DAG 各适合什么，以及我会怎样选。
+- [评分标准怎么写](criteria.md)：标准要具体到什么程度，不同任务各自关心什么。
+- [打分方式怎么选](scoring.md)：通过或不通过、按等级打分、两两比较、整组排序，以及 QAG、DAG 各适合什么情况。
 - [概率加权分数](probability-scores.md)：G-Eval 式的期望分数、重复采样，以及为什么只存均值不够。
-- [偏差与稳健流程](bias-and-workflow.md)：judge 常见的偏差，和一个更稳健的最小流程。
+- [怎样检查评分偏差](bias-and-workflow.md)：模型常在哪些地方判断不稳，以及上线使用前可以做哪些检查。
 
 ## 推荐阅读
 

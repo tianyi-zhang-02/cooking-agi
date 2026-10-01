@@ -1,0 +1,71 @@
+.search-toggle { display: grid; }
+.note-search {
+  width: min(720px, calc(100vw - 3rem)); max-width: none; max-height: min(720px, 82dvh);
+  margin: min(12vh, 7rem) auto auto; padding: 0; overflow: hidden;
+  border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); color: var(--ink);
+  box-shadow: 0 24px 100px #0006; font-family: var(--body);
+}
+.note-search::backdrop { background: #0008; backdrop-filter: blur(7px); }
+.search-is-open { overflow: hidden; }
+.note-search-shell { display: flex; flex-direction: column; max-height: inherit; }
+.note-search-heading { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.4rem .35rem; }
+.note-search-heading h2 { font: 500 .8rem/1.5 var(--body); color: var(--muted); }
+.note-search-close {
+  display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: 6px;
+  color: var(--muted); background: transparent; font: 1.45rem/1 var(--sans); cursor: pointer;
+}
+.note-search-close:hover { background: var(--panel); color: var(--ink); }
+.note-search-field { display: flex; align-items: center; gap: .85rem; margin: 0 1.4rem .7rem; }
+.note-search-field svg { flex: 0 0 auto; color: var(--muted); }
+.note-search-field input {
+  width: 100%; min-width: 0; height: 3rem; padding: .3rem 0; border: 0; border-radius: 0;
+  color: var(--ink); background: transparent; font: 500 1.18rem/1.5 var(--body); box-shadow: none;
+}
+.note-search-field input::placeholder { color: var(--muted); font-weight: 400; opacity: .8; }
+.note-search-field input:focus { outline: none; }
+.note-search-field:focus-within { box-shadow: 0 1px var(--muted); }
+.note-search-tools { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .4rem 1.4rem 1rem; border-bottom: 1px solid var(--rule); }
+.note-search-scopes { display: flex; flex-shrink: 0; gap: .25rem; }
+.note-search-scopes button {
+  padding: .4rem .65rem; border: 1px solid transparent; border-radius: 6px;
+  background: transparent; color: var(--muted); font: .76rem/1.4 var(--body); cursor: pointer;
+}
+.note-search-scopes button[aria-pressed=true] { background: var(--panel); color: var(--ink); border-color: var(--rule); }
+#note-search-status { font: .7rem/1.5 var(--body); color: var(--muted); text-align: right; }
+.note-search-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+#note-search-results { list-style: none; padding: .5rem; margin: 0; }
+#note-search-results li + li { border-top: 1px solid var(--rule-soft); }
+.note-search-result { display: block; padding: .9rem 1rem; border-radius: 9px; text-decoration: none; color: var(--ink); }
+.note-search-result:hover, .note-search-result:focus-visible { background: var(--panel); color: var(--ink); }
+.note-search-result:focus-visible { outline-offset: -2px; }
+.note-search-context { display: flex; align-items: center; gap: .5rem; color: var(--muted); font: .68rem/1.4 var(--body); }
+.note-search-language { margin-left: auto; font: .64rem/1.4 var(--sans); }
+.note-search-title { display: block; margin: .35rem 0; font-size: .98rem; font-weight: 550; line-height: 1.5; }
+.note-search-excerpt { display: block; font: .8rem/1.65 var(--body); color: var(--muted); overflow-wrap: anywhere; }
+.note-search mark { color: var(--ink); background: var(--mark); border-radius: 2px; }
+.note-search-empty { min-height: 15rem; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 2.2rem; }
+.note-search-empty h3 { font: 500 1.05rem/1.6 var(--body); }
+.note-search-empty p { margin: .45rem 0 0; font: .85rem/1.7 var(--body); color: var(--muted); }
+.note-search-topics { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
+.note-search-topics button, .note-search-retry {
+  padding: .5rem .75rem; border: 1px solid var(--rule); border-radius: 7px;
+  background: var(--panel); color: var(--ink-soft); font: .78rem/1.4 var(--body); cursor: pointer;
+}
+.note-search-topics button:hover, .note-search-retry:hover { border-color: var(--faint); color: var(--ink); }
+.note-search-retry { margin-top: 1rem; }
+.note-search-footer { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 1.4rem; border-top: 1px solid var(--rule); color: var(--muted); font: .66rem/1.5 var(--body); }
+.note-search [hidden], [data-search-open][hidden] { display: none !important; }
+@media (max-width: 820px) { .topbar-brand { display: none; } }
+@media (max-width: 580px) {
+  .topbar-right .crew-link, .topbar-right .repo-btn { display: none; }
+  .note-search { width: calc(100vw - 1.25rem); margin-top: max(.625rem, env(safe-area-inset-top)); max-height: calc(100dvh - 1.25rem); border-radius: 12px; }
+  .note-search-heading { padding: .75rem 1rem .25rem; }
+  .note-search-field { gap: .6rem; margin: 0 1rem .65rem; }
+  .note-search-field input { font-size: 1rem; }
+  .note-search-tools { flex-wrap: wrap; padding: .25rem 1rem .7rem; gap: .5rem; }
+  .note-search-empty { padding: 1.5rem; min-height: 14rem; }
+  .note-search-result { padding: .85rem .65rem; }
+  .note-search-footer { padding: .7rem 1rem; }
+  .note-search-footer span:first-child { display: none; }
+  .note-search-close, .note-search-scopes button, .note-search-topics button { min-height: 2.75rem; }
+}

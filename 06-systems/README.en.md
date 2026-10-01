@@ -120,10 +120,11 @@ actions pending confirmation; a long-conversation summary keeps only evidence-ba
 and unresolved items. The enterprise database and versioned policy remain the source of
 truth and cannot be replaced by a summary.
 
-A write action such as a refund needs, at minimum, authorization, schema validation, user
-confirmation, an idempotency key, and an audit log. A tool timeout can be retried safely,
-but the model must never pretend the operation succeeded. When evidence is insufficient,
-policies conflict, or risk is too high, the system should clarify or hand off to a human.
+A write action such as a refund needs authorization, schema validation, user confirmation,
+an idempotency key, and an audit log. A timeout does not tell us whether the action happened:
+check its status or rely on the API's idempotency guarantee before retrying. Never pretend
+it succeeded. When evidence is insufficient, policies conflict, or risk is too high,
+ask for clarification or hand off to a human.
 
 Evaluation looks at task resolution, grounding, policy compliance, tool-call correctness,
 unsafe-action rate, multilingual consistency, escalation quality, latency, cost, CSAT, and

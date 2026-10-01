@@ -1,5 +1,6 @@
 * @tianyi-zhang-02
 /community/ @tianyi-zhang-02
+/learn/ @tianyi-zhang-02 @2pir2
 /00-foundations/ @tianyi-zhang-02 @2pir2
 /01-data-and-feedback/ @tianyi-zhang-02 @2pir2
 /02-memory/ @tianyi-zhang-02 @2pir2
@@ -26,12 +27,24 @@
 /00-foundations/looped/ @tianyi-zhang-02 @2pir2
 /05-post-training/rlhf/ @tianyi-zhang-02 @2pir2
 /07-evaluation/llm-as-a-judge/ @tianyi-zhang-02 @2pir2
+/learn/ml-exercises/ @tianyi-zhang-02 @2pir2
+/learn/system-design/ @tianyi-zhang-02 @2pir2
+/practice/recommender-systems/ @tianyi-zhang-02 @2pir2
+/interview/algorithms/ @tianyi-zhang-02 @2pir2
 /00-foundations/interview-basics.md @tianyi-zhang-02 @2pir2
 /00-foundations/interview-basics.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/hand-write-kit.md @tianyi-zhang-02 @2pir2
 /00-foundations/hand-write-kit.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/ml-math-interview.md @tianyi-zhang-02 @2pir2
 /00-foundations/ml-math-interview.en.md @tianyi-zhang-02 @2pir2
+/interview/transformer-followups.md @tianyi-zhang-02 @2pir2
+/interview/transformer-followups.en.md @tianyi-zhang-02 @2pir2
+/interview/questions.md @tianyi-zhang-02 @2pir2
+/interview/questions.en.md @tianyi-zhang-02 @2pir2
+/interview/system-design.md @tianyi-zhang-02 @2pir2
+/interview/system-design.en.md @tianyi-zhang-02 @2pir2
+/interview/leetcode.md @tianyi-zhang-02 @2pir2
+/interview/leetcode.en.md @tianyi-zhang-02 @2pir2
 /.github/ @tianyi-zhang-02
 /site/ @tianyi-zhang-02
 /community/ @tianyi-zhang-02

@@ -1,4 +1,4 @@
-# 技术面：系统设计
+# 系统设计：阅读与取舍
 
 **中文** · [English](system-design.en.md)
 
@@ -6,7 +6,7 @@
 
 > **先读这个**：面试的形式和重点变得很快，这里的内容有时效性；这里只写公开的资源和我自己的理解，不写任何一家公司的面试题或流程。
 
-先说清楚：**系统设计是我的弱项。** 所以这一篇不展开讲方法论，只给两样东西——几个我觉得靠谱的公开资源，和我自己对这件事的理解。
+我也还在补系统设计。这页保留我读过的公开资源和一些思考；想动手练习，可以先去[系统设计练习](../learn/system-design/README.md)，从信息流、RAG 或带记忆的助手选一个。
 
 ## 没有固定公式
 
@@ -23,7 +23,7 @@
 
 比如要做推荐。先看手上有什么：
 
-- **如果能 leverage 用户之间的 connections**（关注、好友、互动），那社交关系本身就是很强的信号，可以用 graph 结构来做召回，比如 [PinSage](https://arxiv.org/abs/1806.01973) 那一类图卷积的做法。
+- **如果有关注、好友或互动关系**，可以先用这些关系找候选。图也不只指社交图：[PinSage](https://arxiv.org/abs/1806.01973) 用的是 Pinterest 的物品与收藏板关系，别把几种不同的数据结构混为一谈。
 - **如果没有关系数据呢？** 那就退回到行为本身：item–item 的共现、双塔召回、内容特征（标题、类目、多模态 embedding）。冷启动阶段，内容特征和热门兜底往往比复杂模型更管用。
 
 再往下每一层都是取舍：召回要多快、排序能用多大的模型、特征要多新鲜、离线指标涨了线上会不会涨、复杂度值不值得维护。把这些说清楚，比背一套架构图有用得多。
@@ -41,7 +41,7 @@ ML / 推荐方向：
 - [Designing Machine Learning Systems](https://huyenchip.com/books/)（Chip Huyen）
 - [Evidently 的 ML system design 案例合集](https://www.evidentlyai.com/ml-system-design)：几百个真实系统的公开分享
 - [Eugene Yan: system design for discovery](https://eugeneyan.com/writing/system-design-for-discovery/)：搜索与推荐系统的分层设计
-- [Twitter 开源的推荐算法](https://github.com/twitter/the-algorithm)：少见的完整工业实现
+- [Twitter 开源的推荐算法](https://github.com/twitter/the-algorithm)：推荐链路中的公开组件，不是完整可部署的生产系统
 
 ## 站内相关
 

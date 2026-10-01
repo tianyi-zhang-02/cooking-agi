@@ -3,17 +3,24 @@
   if (!deck) return;
   const cards = [...deck.querySelectorAll('[data-card-id]')];
   const progress = deck.querySelector('.review-progress');
+  const mastery = deck.querySelector('.review-mastery');
+  const meter = deck.querySelector('.review-meter span');
+  const assessment = deck.querySelector('.review-assessment');
+  const navigation = deck.querySelector('.review-actions');
+  const options = deck.querySelector('.review-options');
   const storageNote = deck.querySelector('.review-storage');
   const buttons = Object.fromEntries([...deck.querySelectorAll('[data-review-action]')]
     .map(button => [button.dataset.reviewAction, button]));
   const storageKey = `agi-review:v1:${deck.dataset.reviewSection}`;
   const messages = {
-    zh: {count: (position, total, done) => `${position} / ${total} 张 · 已标记掌握 ${done} / ${cards.length} 张`,
-      understood: '已标记：讲清楚了', again: '已标记：再练一次',
+    zh: {count: (position, total) => total ? `第 ${position} / ${total} 题` : '本轮已完成',
+      mastery: done => `已掌握 ${done} / ${cards.length}`,
+      understood: '已记下：能讲清了', again: '已记下：下次再练',
       storage: '浏览器暂时无法保存记录。这次仍可复习，离开页面后标记可能丢失。',
       reset: '再点一次，清除本章记录', resetLabel: '重置本章记录', language: '用英语复习'},
-    en: {count: (position, total, done) => `${position} / ${total} cards · ${done} / ${cards.length} marked understood`,
-      understood: 'Marked: understood', again: 'Marked: try again',
+    en: {count: (position, total) => total ? `Question ${position} / ${total}` : 'All caught up',
+      mastery: done => `${done} / ${cards.length} understood`,
+      understood: 'Saved: got it', again: 'Saved for another try',
       storage: 'Browser storage is unavailable. You can still practice; marks may not survive leaving this page.',
       reset: 'Click again to clear this chapter', resetLabel: 'Reset chapter marks', language: 'Review in Chinese'}
   };
@@ -53,15 +60,22 @@
       card.querySelector('.review-mark').textContent = messages[language][marks[identity(card)]] || '';
     }
     const answered = current?.querySelector('details').open;
+    assessment.hidden = !answered;
+    navigation.hidden = visible.length < 2;
     buttons.again.disabled = !answered;
     buttons.understood.disabled = !answered;
+    for (const action of ['again', 'understood']) {
+      buttons[action].setAttribute('aria-pressed', String(Boolean(current && marks[identity(current)] === action)));
+    }
     buttons.previous.disabled = visible.length < 2;
     buttons.next.disabled = visible.length < 2;
     buttons.shuffle.disabled = visible.length < 2;
     buttons.filter.setAttribute('aria-pressed', String(practiceOnly));
     deck.querySelector('.review-empty').hidden = visible.length !== 0;
-    progress.textContent = messages[language].count(current ? visible.indexOf(current) + 1 : 0,
-      visible.length, cards.filter(card => marks[identity(card)] === 'understood').length);
+    const done = cards.filter(card => marks[identity(card)] === 'understood').length;
+    progress.textContent = messages[language].count(current ? visible.indexOf(current) + 1 : 0, visible.length);
+    mastery.textContent = messages[language].mastery(done);
+    meter.style.transform = `scaleX(${done / cards.length})`;
     buttons.language.textContent = language === 'zh' ? 'EN' : '中文';
     buttons.language.setAttribute('aria-label', messages[language].language);
     buttons.reset.textContent = messages[language][resetPending ? 'reset' : 'resetLabel'];
@@ -76,10 +90,17 @@
     current.querySelector('details').open = false;
   }
 
+  function closeOptions(restoreFocus) {
+    options.open = false;
+    resetPending = false;
+    if (restoreFocus) options.querySelector('summary').focus();
+  }
+
   deck.addEventListener('click', event => {
     const button = event.target.closest('[data-review-action]');
     if (!button || button.disabled) return;
     const action = button.dataset.reviewAction;
+    const previousCard = current;
     if (action !== 'reset') resetPending = false;
     if (action === 'language') {
       language = language === 'zh' ? 'en' : 'zh';
@@ -89,6 +110,8 @@
       });
     } else if (action === 'filter') {
       practiceOnly = !practiceOnly;
+    } else if (action === 'all') {
+      practiceOnly = false;
     } else if (action === 'shuffle') {
       for (let index = order.length - 1; index > 0; index--) {
         const partner = Math.floor(Math.random() * (index + 1));
@@ -113,7 +136,30 @@
       marks[identity(current)] = action;
       save();
     }
+    if (['filter', 'shuffle'].includes(action) || (action === 'reset' && !resetPending)) closeOptions(true);
     render();
+    if (['previous', 'next', 'all'].includes(action) || previousCard !== current) {
+      if (current) current.querySelector('.review-question').focus({preventScroll: true});
+      else buttons.all.focus({preventScroll: true});
+    }
+  });
+
+  document.addEventListener('click', event => {
+    if (options.open && !options.contains(event.target)) {
+      closeOptions(false);
+      render();
+    }
+  });
+  options.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !options.open) return;
+    closeOptions(true);
+    render();
+  });
+  options.addEventListener('toggle', () => {
+    if (!options.open && resetPending) {
+      resetPending = false;
+      render();
+    }
   });
 
   cards.forEach(card => card.querySelector('details').addEventListener('toggle', render));

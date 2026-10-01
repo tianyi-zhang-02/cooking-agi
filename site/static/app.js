@@ -52,7 +52,9 @@
       zh.hidden = english;
       en.hidden = !english;
       btn.setAttribute("aria-pressed", String(english));
-      btn.setAttribute("aria-label", english ? "切换回中文" : "查看对应英文");
+      btn.setAttribute("aria-label", LANG === "en"
+        ? (english ? "Read this concept in Chinese" : "Read this concept in English")
+        : (english ? "切换回中文" : "查看对应英文"));
       btn.innerHTML = "<span>" + (english ? "中文" : "English") +
         "</span><i aria-hidden=\"true\">↻</i>";
       if (animate && !matchMedia("(prefers-reduced-motion: reduce)").matches && card.animate) {
@@ -85,34 +87,40 @@
 
   /* ---------------------------------------------------------- mobile drawer */
   var side = $("#side"), scrim = $(".side-scrim"), menu = $(".icon-btn.menu");
+  var drawerScreen = matchMedia("(max-width: 1080px)");
   function drawer(open) {
     if (!side) return;
+    open = open && drawerScreen.matches;
+    if (!open && side.contains(document.activeElement) && menu) menu.focus();
     side.classList.toggle("open", open);
+    side.inert = drawerScreen.matches && !open;
     if (scrim) scrim.hidden = !open;
     if (menu) menu.setAttribute("aria-expanded", String(open));
   }
-  if (menu) menu.addEventListener("click", function () { drawer(!side.classList.contains("open")); });
-  if (scrim) scrim.addEventListener("click", function () { drawer(false); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") drawer(false); });
-
-  /* ---------------------------------------------------------- nav groups */
-  /* The group holding the current page ships open from the build. Everything
-     else remembers whatever the reader last set, and the active group is never
-     closed out from under them. */
-  var GKEY = "nav:groups", saved = {};
-  try { saved = JSON.parse(localStorage.getItem(GKEY) || "{}"); } catch (e) { saved = {}; }
-  $$(".nav details").forEach(function (d) {
-    var id = d.dataset.grp, holdsActive = !!$("a.active", d);
-    if (!holdsActive && typeof saved[id] === "boolean") d.open = saved[id];
-    d.addEventListener("toggle", function () {
-      saved[id] = d.open;
-      try { localStorage.setItem(GKEY, JSON.stringify(saved)); } catch (e) {}
-    });
+  drawer(false);
+  drawerScreen.addEventListener("change", function () { drawer(false); });
+  if (menu) menu.addEventListener("click", function () {
+    drawer(!side.classList.contains("open"));
+    if (side.classList.contains("open")) {
+      var firstControl = $$('button, summary, a[href]', side).find(function (element) {
+        return element.getClientRects().length;
+      });
+      if (firstControl) firstControl.focus();
+    }
   });
-
-  /* keep the active sidebar entry in view -- a no-op when it already is */
-  var active = $(".nav a.active");
-  if (active) active.scrollIntoView({ block: "nearest" });
+  if (scrim) scrim.addEventListener("click", function () { drawer(false); });
+  document.addEventListener("keydown", function (e) {
+    if ($(".note-search[open]")) return;
+    if (!side || !side.classList.contains("open")) return;
+    if (e.key === "Escape") drawer(false);
+    if (e.key === "Tab") {
+      var focusable = [menu].concat($$('a[href], button:not([disabled]), input, select, summary', side))
+        .filter(function (element) { return element && element.getClientRects().length; });
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
 
   /* ------------------------------------------------ contributors, in 1 bit
      Avatars are dithered to two colours on a canvas (Floyd–Steinberg), then drift
@@ -386,63 +394,6 @@
     spy();
   }
 
-  /* ---------------------------------------------------------- search */
-  var input = $(".search-input"), box = $(".search-results"), idx = null, sel = -1;
-  function load() {
-    if (idx) return Promise.resolve(idx);
-    return fetch((window.SITE.prefix || "") + "search-index.json")
-      .then(function (r) { return r.json(); })
-      .then(function (j) { idx = j; return j; });
-  }
-  function score(item, q) {
-    var t = item.t.toLowerCase(), x = item.x.toLowerCase(), s = 0;
-    if (t.indexOf(q) >= 0) s += 100 - t.indexOf(q);
-    if (item.s.toLowerCase().indexOf(q) >= 0) s += 20;
-    var n = x.split(q).length - 1;
-    return s + Math.min(n, 8) * 3;
-  }
-  function render(q) {
-    var hits = idx.filter(function (i) { return i.l === LANG; })
-      .map(function (i) { return { i: i, s: score(i, q) }; })
-      .filter(function (h) { return h.s > 0; })
-      .sort(function (a, b) { return b.s - a.s; })
-      .slice(0, 8);
-    box.innerHTML = hits.length
-      ? hits.map(function (h) {
-          return '<a href="' + (window.SITE.prefix || "") + h.i.u + '">' +
-                 h.i.t.replace(/</g, "&lt;") + "<small>" + h.i.s.replace(/</g, "&lt;") + "</small></a>";
-        }).join("")
-      : '<div class="search-empty">' + (LANG === "en" ? "No matches" : "没有匹配") + "</div>";
-    box.hidden = false;
-    sel = -1;
-  }
-  if (input && box) {
-    input.addEventListener("input", function () {
-      var q = input.value.trim().toLowerCase();
-      if (q.length < 1) { box.hidden = true; return; }
-      load().then(function () { render(q); });
-    });
-    input.addEventListener("keydown", function (e) {
-      var items = $$("a", box);
-      if (e.key === "Escape") { box.hidden = true; input.blur(); return; }
-      if (!items.length) return;
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        sel = (sel + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length;
-        items.forEach(function (a, i) { a.classList.toggle("sel", i === sel); });
-      } else if (e.key === "Enter" && sel >= 0) { items[sel].click(); }
-    });
-    document.addEventListener("click", function (e) {
-      if (!e.target.closest(".search")) box.hidden = true;
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "/" && document.activeElement !== input &&
-          !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) {
-        e.preventDefault(); drawer(true); input.focus();
-      }
-    });
-  }
-
   /* ---------------------------------------------------------- katex + mermaid */
   function typeset() {
     if (!window.renderMathInElement) return;
@@ -657,7 +608,7 @@
   });
 
   /* ---- block tabs: on a narrow screen the strip scrolls, so bring the current block into view ---- */
-  $$(".subtabs, .topbar-tabs").forEach(function (strip) {
+  $$(".topbar-tabs").forEach(function (strip) {
     var current = $("a.active", strip);
     if (current && strip.scrollWidth > strip.clientWidth) {
       strip.scrollLeft = current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2;

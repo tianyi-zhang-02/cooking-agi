@@ -1,0 +1,24 @@
+.traversal-lab { margin: 1.8rem 0; padding: 1.1rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--panel); }
+.traversal-heading, .traversal-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+.traversal-heading { justify-content: space-between; margin-bottom: 1rem; }
+.traversal-lab button, .traversal-lab select { font: inherit; font-size: .85rem; color: var(--ink); background: var(--paper, var(--panel)); border: 1px solid var(--rule); border-radius: 5px; padding: .45rem .6rem; min-height: 40px; cursor: pointer; }
+.traversal-lab button:disabled { opacity: .4; cursor: default; }
+.traversal-lab :focus-visible { outline: 2px solid var(--ember, #b97645); outline-offset: 3px; }
+.traversal-columns { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
+.traversal-lane { min-width: 0; border: 1px solid var(--rule); border-radius: 6px; padding: .8rem; }
+.prose .traversal-lane h3 { font-size: .9rem; margin: 0; }
+.traversal-lab svg { width: 100%; height: auto; display: block; }
+.traversal-edges line { stroke: var(--muted); stroke-width: 1.4; opacity: .7; }
+.traversal-lab marker path { fill: var(--muted); }
+.traversal-node circle { fill: var(--panel); stroke: var(--ink-soft); stroke-width: 1.4; }
+.traversal-node.seen circle { fill: var(--ember-bg); stroke: var(--ember, #b97645); stroke-width: 2; }
+.traversal-node.current circle { fill: var(--ember-bg); stroke: var(--ink); stroke-width: 4; stroke-dasharray: 3 2; }
+.traversal-node text { fill: var(--ink); text-anchor: middle; font: 14px ui-monospace, monospace; }
+.prose .traversal-event { min-height: 3.6em; margin: .3rem 0 .9rem; font-size: .82rem; }
+.traversal-lane dl { margin: 0; font-size: .8rem; }
+.traversal-lane dt { color: var(--muted); margin-top: .6rem; }
+.traversal-lane dd { margin: .2rem 0 0; overflow-wrap: anywhere; }
+.traversal-controls span, .prose .traversal-note { color: var(--muted); font-size: .77rem; line-height: 1.7; }
+.prose .traversal-note { margin-bottom: 0; }
+@media (max-width: 600px) { .traversal-columns { grid-template-columns: 1fr; } .traversal-lab { padding: .8rem; } .traversal-lab svg { max-height: 220px; } }
+@media print { .traversal-heading button, .traversal-controls, .traversal-lab label { display: none; } }

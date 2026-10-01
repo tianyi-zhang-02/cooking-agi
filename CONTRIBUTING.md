@@ -44,6 +44,8 @@ python site/build.py --serve
 
 代码与笔记署名来自 main 的提交和 `Co-authored-by`；合并时请保留。审阅、提问、翻译和纠错也可以在[贡献记录](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)里附链接，经本人同意后补到[幕后](contributors.md)。提交数不是质量排名，也不决定权限。
 
+AI 协助没有单独提交署名时，维护者可以在 `crew.toml` 的 `[[ai]]` 条目中补充工具名称和中英文参与说明。不填猜测的提交数、日期或 GitHub 账号；之后出现对应的提交署名，会自动合并到同一个身份。
+
 地图只收自愿提供的国家或地区，不要填地址。自己可以提 PR 更新或移除 `crew.toml` 的条目，维护者核实后合并。感谢记录在 `site/collaboration.toml` 的 `acknowledgements`：每人一项，包含 `login`、`zh`、`en` 和 `evidence`（本仓库 issue / PR 链接数组）。没有记录时保持空数组，不编造贡献或提前列朋友的名字。
 
 尊重不同意见，不做人身攻击，不发广告。一般问题先沟通；严重或反复滥用才限制参与。详细规则和需要拍板时的做法，都在[协作约定](community/README.md)。
@@ -95,6 +97,8 @@ For new navigation groups or reviewers, update `site/collaboration.toml`, run `p
 ## Credit and participation
 
 Preserve main-branch authors and `Co-authored-by` trailers when merging. Reviews, questions, translations, and corrections can also receive credit on [Behind the notes](contributors.en.md): submit a [contribution record](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) with evidence and the person's consent. Commit counts do not determine quality or access.
+
+When confirmed AI assistance has no separate commit credit, a maintainer can add its name and bilingual contribution description under `[[ai]]` in `crew.toml`. Do not invent counts, dates, or GitHub accounts. Later commit credits merge into the same identity.
 
 Map locations are optional countries or regions, not addresses. You may propose updates or removal of your own entry in `crew.toml`; maintainers verify requests. Non-commit credits live in the `acknowledgements` array in `site/collaboration.toml`, one record per person with `login`, `zh`, `en`, and `evidence` (issue/PR URLs in this repository). Leave the array empty until there are verified, consented credits.
 

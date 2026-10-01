@@ -58,9 +58,15 @@ def copy_html(values, language, tag="span"):
                    for locale, text in values.items())
 
 
-def render(page, config, pages_by_source):
-    deck = next((item for item in config["decks"]
+def deck_for(page, config):
+    if page.section.get("review") is False:
+        return None
+    return next((item for item in config["decks"]
                  if item["section"] == page.section["dir"]), None)
+
+
+def render(page, config, pages_by_source):
+    deck = deck_for(page, config)
     if not deck:
         return ""
     language = page.lang
@@ -75,32 +81,45 @@ def render(page, config, pages_by_source):
                          f'{" hidden" if locale != language else ""}>'
                          f'{"回到相关笔记 →" if locale == "zh" else "Revisit the note →"}</a>')
         cards.append(f'''<div class="review-card" data-card-id="{card['id']}" data-version="{fingerprint(card)}">
-<h3 class="review-question">{copy_html(card['question'], language)}</h3>
+<h3 class="review-question" tabindex="-1">{copy_html(card['question'], language)}</h3>
 <details class="review-answer">
-<summary>{copy("展开思路", "Reveal reasoning")}</summary>
+<summary><span class="review-show-label">{copy("看看思路", "Show reasoning")}</span><span class="review-hide-label">{copy("收起思路", "Hide reasoning")}</span><span class="review-reveal-arrow" aria-hidden="true">↓</span></summary>
+<div class="review-answer-body">
 {copy_html(card['answer'], language, "p")}
-<div class="review-pitfall"><strong>{copy("容易漏掉：", "Watch out: ")}</strong>{copy_html(card['pitfall'], language)}</div>
-<p>{''.join(links)}</p>
+<div class="review-pitfall"><strong>{copy("别漏掉", "Keep in mind")}</strong>{copy_html(card['pitfall'], language)}</div>
+<p class="review-source">{''.join(links)}</p>
+</div>
 </details>
 <p class="review-mark" aria-live="polite"></p>
 </div>''')
     return f'''<section class="chapter-review" id="chapter-review" data-review-section="{deck['section']}" data-review-language="{language}" aria-labelledby="review-heading">
-<div class="review-heading"><h2 id="review-heading">{copy("合上笔记，试着讲一遍", "Close the notes. Try explaining it.")}</h2>
-<button type="button" data-review-action="language" hidden>{"EN" if language == "zh" else "中文"}</button></div>
-<p class="review-intro">{copy("本章复习 · 先自己回答，再展开思路。不用背答案，能讲清前提和理由就好。", "Chapter review · Answer before revealing the reasoning. Explain assumptions rather than memorizing the wording.")}</p>
-<div class="review-toolbar" data-review-controls hidden>
+<div class="review-heading"><div><h2 id="review-heading">{copy("回顾一下", "Quick recap")}</h2>
+<p class="review-intro">{copy("先想一想，再看参考思路。", "Think it through, then compare your reasoning.")}</p></div>
+<div class="review-utilities">
+<button type="button" data-review-action="language" hidden>{"EN" if language == "zh" else "中文"}</button>
+<details class="review-options" data-review-controls hidden>
+<summary>{copy("更多", "More")}<span aria-hidden="true"> ···</span></summary>
+<div class="review-toolbar">
 <button type="button" data-review-action="filter" aria-pressed="false">{copy("只看未掌握", "Needs practice only")}</button>
 <button type="button" data-review-action="shuffle">{copy("打乱顺序", "Shuffle")}</button>
 <button type="button" data-review-action="reset">{copy("重置本章记录", "Reset chapter marks")}</button>
+</div></details></div></div>
+<div class="review-status" data-review-controls hidden>
+<p class="review-progress" aria-live="polite" aria-atomic="true"></p><p class="review-mastery"></p>
 </div>
-<p class="review-progress" aria-live="polite" aria-atomic="true"></p>
+<div class="review-meter" data-review-controls hidden aria-hidden="true"><span></span></div>
 <div class="review-cards">{''.join(cards)}</div>
-<p class="review-empty" hidden>{copy("这章都标记过了。可以取消筛选，再试一次。", "All cards are marked understood. Turn off the filter to revisit them.")}</p>
-<div class="review-actions" data-review-controls hidden>
-<button type="button" data-review-action="previous">{copy("上一张", "Previous")}</button>
-<button type="button" data-review-action="again" disabled>{copy("再练一次", "Try again")}</button>
-<button type="button" data-review-action="understood" disabled>{copy("讲清楚了", "Understood")}</button>
-<button type="button" data-review-action="next">{copy("下一张", "Next")}</button>
+<div class="review-empty" hidden><p>{copy("这一组都掌握了。想再过一遍，随时回来。", "You've covered this set. Come back whenever you want a refresher.")}</p>
+<button type="button" data-review-action="all">{copy("查看全部题目", "View all questions")}</button></div>
+<div class="review-assessment" data-review-controls hidden>
+<p>{copy("这题感觉怎么样？", "How did that go?")}</p><div class="review-ratings">
+<button type="button" data-review-action="again" aria-pressed="false" disabled>{copy("还需练习", "Keep practicing")}</button>
+<button type="button" data-review-action="understood" aria-pressed="false" disabled>{copy("能讲清了", "Got it")}</button>
 </div>
-<p class="review-storage">{copy("这是自测，不是考试。记录只保存在当前浏览器，中英文共用，不会上传。", "Self-checks, not an exam. Marks stay in this browser, shared across languages, never uploaded.")}</p>
+</div>
+<div class="review-actions" data-review-controls hidden>
+<button type="button" data-review-action="previous"><span aria-hidden="true">←</span> {copy("上一题", "Previous")}</button>
+<button type="button" data-review-action="next">{copy("下一题", "Next")} <span aria-hidden="true">→</span></button>
+</div>
+<p class="review-storage">{copy("进度只保存在此浏览器，中英文共用。", "Progress stays in this browser, shared across languages.")}</p>
 </section>'''

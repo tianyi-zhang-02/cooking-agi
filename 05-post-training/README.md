@@ -1,27 +1,27 @@
-# Post-Training：模型预训练之后还要学什么？
+# 后训练：模型预训练之后还要学什么？
 
 **中文** · [English](README.en.md)
 
 > 阅读时间：约 12 分钟 · 类型：总览 · 最近审阅：2026-08
 
-## Post-Training 改变的是模型行为
+## 会续写文本，还不等于会完成任务
 
-Pretraining 让模型学会“世界里通常有什么”，Post-Training 则让它学会“面对某类任务时，应该怎样表现和行动”。
+预训练让模型从大量数据里学习语言、知识和通用能力。后训练则进一步教它怎样完成任务：怎么遵循指令、什么回答更合适，以及怎样根据反馈调整行为。
 
 ## 各阶段的直观分工
 
-- **Pretraining**：从大规模语料中学习语言、知识和通用能力。
-- **Continued Pretraining**：继续适应某个领域的数据分布和术语。
-- **SFT**：通过高质量示范学习指令遵循和目标行为。
-- **Preference Learning**：通过回答之间的比较学习偏好。
-- **RL**：根据结果或可验证奖励调整完整的行动策略。
+- **预训练**：从大规模语料中学习语言、知识和通用能力。
+- **继续预训练**：进一步适应某个领域的数据和术语。
+- **监督微调**：通过高质量示范学习怎样遵循指令、完成任务。
+- **偏好学习**：比较不同回答，学习哪一种更符合要求。
+- **强化学习**：根据任务结果或奖励信号调整策略。
 
 这些方法各有用途，不能简单地互相替代。选哪一种，要看手上的数据和希望模型学会什么。
 
-## 从 Base Model 到 Aligned Model：先把地图画对
+## 从基础模型到对齐模型：先分清每一步在学什么
 
 <div class="bilingual-note bilingual-intro">
-  <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
+  <span>中英对照 · CONCEPT-BY-CONCEPT</span>
   <p>下面 4 张卡默认显示中文；点 <strong>English ↻</strong> 就能切换到对应英文，不用离开当前阅读位置。</p>
 </div>
 
@@ -44,16 +44,16 @@ $$
 
 | 阶段 | 主要数据 | 训练信号 | 常见结果称呼 |
 | --- | --- | --- | --- |
-| Pre-Training | 海量普通文本、代码等 | 文本自身构造的 token 目标 | Base Model |
-| SFT | instruction–response demonstrations | 指定的理想回答 | Instruction Model |
-| Preference Alignment | chosen/rejected、reward 或 verifier | 哪种完整行为更好 | Aligned Model / Policy |
+| 预训练 | 海量普通文本、代码等 | 根据上下文预测文本单元 | 基础模型（Base Model） |
+| 监督微调（SFT） | 指令与示范回答 | 指定的理想回答 | 指令模型（Instruction Model） |
+| 偏好对齐 | 被选中与被拒绝的回答、奖励或验证结果 | 哪种完整行为更好 | 对齐后的模型或策略 |
 
-这是按训练目的划分的阶段，不代表实际训练一定会分别留下 3 个 checkpoint。主要区别在于：
+这是按训练目的划分的阶段，不代表实际训练一定会分别保存 3 份模型状态。主要区别在于：
 预训练学习数据分布中的语言、知识与基础能力；SFT 教模型按示范调用这些能力；偏好对齐
 再告诉它多个可行回答中哪种更符合目标。
 
-**Pre-Training 在经典 RLHF 之前，不是 RLHF 的第一阶段。** 若从完整模型生命周期看，
-它位于上游；经典 RLHF pipeline 通常从一个 SFT 起点开始讨论。
+**预训练在经典 RLHF 之前，不是 RLHF 的第一阶段。** RLHF 指利用人类反馈进行强化学习；
+讲它的训练流程时，通常从监督微调这一步开始，而不是从零预训练。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -96,23 +96,23 @@ policy.
 
 ### 2. 同叫 Pre-Training，GPT 与 BERT 的目标并不一样
 
-GPT 类 decoder-only 模型使用 causal language modeling：
+GPT 类仅解码器模型使用因果语言建模（causal language modeling）：只根据前面的文本预测下一个单元。
 
 $$
 \mathcal L_{\text{causal}}
 =-\sum_t\log p_\theta(x_t\mid x_{<t}).
 $$
 
-它只看左侧上下文，天然适合逐 token 续写。BERT 类 encoder 模型常使用 masked
-language modeling：遮住部分 token，让模型同时利用左右上下文恢复它们。后者更自然地
+它只看左侧上下文，适合逐个文本单元（token）续写。BERT 类编码器常使用掩码语言建模（masked
+language modeling）：遮住部分文本，让模型同时利用左右上下文恢复它们。后者更自然地
 服务双向表征、分类和抽取，而不是自回归生成。
 
-预训练结束后的 Base Model 已经会续写、模仿文本模式并编码大量知识，但不一定会把
-用户问题当作必须直接回答的 instruction。它可能续写问题、模仿网页格式或忽略“三句话”
+预训练结束后的基础模型已经会续写、模仿文本模式并编码大量知识，但不一定会把
+用户问题当作必须直接回答的指令。它可能续写问题、模仿网页格式或忽略“三句话”
 之类的约束，因为它优化的原始任务是预测文本，不是成为对话助手。
 
-“Pre-Training 学能力，SFT 教模型怎样使用能力”是好用的近似，不是绝对定律：SFT 也能
-改变知识和能力，只是数据规模与目标通常更偏向行为塑形。
+“预训练学能力，SFT 教模型怎样使用能力”是好用的近似，不是绝对定律：SFT 也能
+改变知识和能力，只是数据规模与目标通常更偏向调整行为。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -149,21 +149,22 @@ scale and objective usually emphasize behavioral shaping.
 
 ### 3. Post-Training 是范围；LoRA 是更新参数的方法
 
-Post-Training 泛指初始基础预训练之后的训练工作，范围大于 RLHF：
+后训练（Post-training）泛指初始基础预训练之后的训练工作，范围大于 RLHF：
 
 $$
 \text{Post-Training}\supset
 \{\text{SFT, preference optimization, RL, domain/safety tuning, distillation, tool use}\}.
 $$
 
-经典 RLHF 使用偏好对训练 Reward Model，再用 PPO 等 RL 方法优化 policy；DPO 则直接
-从 chosen/rejected pairs 优化 policy，不训练独立 Reward Model，也没有在线 RL loop。
-因此 DPO 严格来说不是强化学习，但两者都属于 preference alignment。
+经典 RLHF 先用成对的偏好数据训练奖励模型，再用 PPO 等强化学习算法调整模型的生成策略。
+直接偏好优化（DPO）则直接用“选中哪个回答、拒绝哪个回答”的配对数据训练，不单独训练
+奖励模型，也不需要在线采样并计算奖励的强化学习过程。因此 DPO 严格来说不是强化学习，
+但两者都能用于偏好对齐。
 
-还要区分两条正交的轴：
+还要分清两个可以独立选择的问题：
 
-- **训练什么（objective / data）**：SFT、DPO、语言建模、蒸馏、RL；
-- **怎样更新参数（parameterization）**：full-parameter fine-tuning、LoRA / adapters。
+- **用什么数据和目标来教模型**：SFT、DPO、语言建模、蒸馏、RL；
+- **允许哪些参数改变**：更新整个模型，或像 LoRA、适配器（adapters）那样只训练少量附加参数。
 
 同一个 SFT 或 DPO 目标都可以全参数更新，也可以用 LoRA。把“LoRA”与“SFT”并列成
 训练阶段，会把优化目标和参数更新方式混为一谈。
@@ -213,12 +214,12 @@ General Base Model
   → Medical SFT / preference alignment
 ```
 
-中间一步叫 Continued Pre-Training（CPT）或 Domain-Adaptive Pre-Training。它发生在
+中间一步叫继续预训练（Continued Pre-Training, CPT），用于领域适配时也叫领域自适应预训练。它发生在
 初始预训练之后，但仍使用语言建模目标与无指令领域语料；SFT 则用示范回答塑造行为。
 
 所以 “pre-training / post-training” 的边界有时取决于说话者是在按**时间阶段**还是按
 **训练目标**分类。遇到模糊术语时，直接问四件事：数据是什么、目标函数是什么、从哪个
-checkpoint 开始、最后想得到什么用途的模型。
+模型检查点（checkpoint）开始、最后想得到什么用途的模型。
 
 英文也要区分：**pre-training** 是训练过程，**pre-trained model** 是完成该过程后的
 模型；“pretrained LLM” 在日常语境里有时又宽泛地指一个已经完成对齐的通用模型。
@@ -258,7 +259,7 @@ even refer broadly to a general-purpose model that has already been aligned.
 SFT 用输入—输出示范教模型模仿目标行为。它适合：
 
 - 学习固定任务格式；
-- 建立基本 instruction following；
+- 学会按指令完成任务；
 - 把专家过程蒸馏给模型；
 - 让模型先学会一个相对稳定的行为起点。
 
@@ -268,13 +269,13 @@ SFT 用输入—输出示范教模型模仿目标行为。它适合：
 
 当“最好的答案”很难直接写出来，但人可以比较 A 和 B 时，可以学习偏好。
 
-DPO 等方法把偏好对直接变成策略训练目标。它比写完整 reward pipeline 简单，但仍然依赖几个假设：偏好标签是否稳定、候选是否有足够差异、训练分布是否接近真实使用场景。
+DPO 等方法把偏好对直接变成策略训练目标，不必另建一套奖励模型训练与评分流程。但仍要检查：偏好标签是否稳定、候选是否有足够差异、训练分布是否接近真实使用场景。
 
 ## RL 在做什么
 
 RL 更适合需要多步行动、结果延迟，或者策略必须通过探索学习的任务。
 
-但 RL 并不会自动把弱反馈变强。如果 reward 稀疏、含义模糊或被策略偏置污染，模型可能只学会利用指标漏洞。
+但 RL 并不会自动把弱反馈变强。如果奖励稀疏、含义模糊，或只反映旧策略让用户看到的内容，模型可能只学会利用指标漏洞。
 
 例如推荐场景里，一个点击同时受到曝光位置、标题和用户时间影响。直接把点击当 reward，模型可能学会更强的吸引点击，而不是更高的长期内容价值。
 
@@ -307,13 +308,13 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 
 ## 怎样评估
 
-不能只看训练 loss 或一个总 reward。还要检查：
+不能只看训练损失或一个总奖励分。还要检查：
 
 - 新行为是否来自目标机制，而不是数据泄漏；
-- 不同用户和任务 slice 是否一致改善；
+- 不同用户和任务分组是否都受益；
 - 模型是否牺牲多样性、校准或安全性换取一个指标；
 - 离线偏好是否转化为真实任务结果；
-- 训练和推理时的 policy、log-probability 与数据语义是否一致。
+- 训练和推理时使用的策略、对数概率（log-probability）与数据含义是否一致。
 
 ## 这个系列怎么读
 
