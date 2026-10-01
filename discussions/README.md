@@ -2,20 +2,23 @@
 
 **中文** · [English](README.en.md)
 
-<div data-discussion-index></div>
+学累了，换个话题。这里写点工作和生活里的想法，有些还没想明白，先放上来聊聊。
 
 <div data-discussion-topics></div>
 
-## 不只聊技术
+<div class="talk-invitation" markdown="1">
 
-这里留给笔记之外的想法。学习卡住了、工作让人有点累、对未来换了个想法，或者最近发现了一件值得分享的小事，都可以聊。
+## 来聊聊？
 
-每篇只聊一个主题。我先说说自己的看法，再留一个问题，你可以在下面接着说。不同话题有各自的留言区，不用挤在一篇里。不用写成长文，也不必带着结论来。
+同意、不同意，或者想起了自己的事，都可以在文章下面接着说。也欢迎另开一个话题。
 
-## 怎么聊
+[去 GitHub 聊聊 ↗](https://github.com/tianyi-zhang-02/cooking-agi/discussions)
 
-大家处在不同的人生阶段，在意的东西、能承担的代价也不一样。求同存异，不用聊到最后只剩一种答案。可以不同意，也可以说「我还没想清楚」；尽量说自己的经历和理由，少替别人下结论。我们不拿收入、学历或职级给人排座次。
+<details class="talk-guidelines" markdown="1">
+<summary>留言说明</summary>
 
-留言是公开的，请别贴个人联系方式、未公开的工作资料，或能认出别人的私事。中英文都欢迎；人身攻击、广告和隐私泄露会被处理。
+留言是公开的，中文英文都行。别贴自己或别人的隐私、未公开的工作资料，也别做人身攻击或发广告。想把讨论整理成文章，可以提 PR，我们一起看看。
 
-想开个新话题？先在 [GitHub Discussions](https://github.com/tianyi-zhang-02/cooking-agi/discussions) 发出来。适合整理成文章的，我们一起补进这里；网站上的文章仍然经过 PR 审核。
+</details>
+
+</div>

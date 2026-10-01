@@ -465,7 +465,7 @@ dir = "discussions"
 group = "discussions"
 zh = "学习之外，也聊聊生活"
 en = "Beyond the notes"
-order = ["README.md", "your-own-path.md", "kindness-and-probability.md", "endings.md", "earning-and-enough.md", "room-to-live.md", "perspectives.md", "self-worth.md"]
+order = ["README.md", "your-own-path.md", "room-to-live.md", "perspectives.md", "earning-and-enough.md", "self-worth.md", "kindness-and-probability.md", "endings.md"]
 
 [[section]]
 dir   = "."
@@ -486,13 +486,13 @@ en  = "Templates"
 # without a label falls back to its title up to the first colon.
 [label]
 "discussions/README.md" = ["所有话题", "All topics"]
-"discussions/self-worth.md" = ["钱与自我价值", "Money & self-worth"]
-"discussions/perspectives.md" = ["人生阶段与选择", "Life stages & choices"]
-"discussions/room-to-live.md" = ["水满则溢", "Room to live"]
-"discussions/earning-and-enough.md" = ["多赚一点，值不值", "Earning more & enough"]
-"discussions/endings.md" = ["结局就是结局", "Endings"]
-"discussions/kindness-and-probability.md" = ["行善的数学歪解", "Kindness & probability"]
-"discussions/your-own-path.md" = ["人生不是一条赛道", "Your own path"]
+"discussions/self-worth.md" = ["收入之外，怎么看自己","Beyond income"]
+"discussions/perspectives.md" = ["人会变，答案也会","Changing your mind"]
+"discussions/room-to-live.md" = ["给生活留点空","Room to live"]
+"discussions/earning-and-enough.md" = ["多赚一点，值得吗？","Earning more"]
+"discussions/endings.md" = ["有些故事，就到这里","Some stories end here"]
+"discussions/kindness-and-probability.md" = ["善意，也能算笔账？","Kindness & probability"]
+"discussions/your-own-path.md" = ["我们不必走同一条路","Your own path"]
 "00-foundations/core/embeddings-and-similarity.md" = ["向量与相似度", "Embeddings & similarity"]
 "00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
 "03-multimodal-learning/clip.md" = ["CLIP 图文对齐", "CLIP alignment"]

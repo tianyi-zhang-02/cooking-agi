@@ -1,31 +1,19 @@
-# Money matters. It doesn't have to measure the whole person.
+# Who am I beyond what I earn?
 
 [中文](self-worth.md) · **English**
 
-I want to separate two things that are easy to blur together: how much money someone has, and whether they deserve respect.
+I saw a post from someone who had worked for years and saved a substantial amount, but was losing interest in the job. They wanted more time with family, to travel, and to write. Quite a few replies asked what there could possibly be to worry about with that much money.
 
-Money matters. It affects where we can live, whom we can support, and how much risk we can take. But if it becomes our entire measure of ourselves, earning less or taking longer professionally can turn into “Maybe there's something wrong with me.”
+Money really does remove a lot of worries. I don't think readers owe that person reassurance, either. But knowing what to do once you've saved it doesn't seem to happen automatically.
 
-## Acknowledging pressure isn't the same as judging yourself
+Sometimes circumstances change faster than the way we think. The old rule remains: keep moving up; stopping is dangerous. There may be nothing we urgently need to buy, but seeing someone earn more still makes what we have feel insufficient.
 
-Rent, family responsibilities, immigration status—we're carrying different things. “Don't worry about money” is easy to say and not always useful to hear.
+I think getting to know yourself can be slow like that. Changing jobs or cities might happen quickly. Figuring out what you're still chasing can take much longer. Wanting to travel and being reluctant to give up a salary doesn't seem strange to me.
 
-What I'd rather say is: take a real difficulty seriously, without turning it into a verdict on yourself. **Self-worth doesn't have to move with an account balance.** The options available to us and the respect we have for ourselves are different things.
+With less money, the same comparison can hurt in another way. A job search isn't going anywhere, someone posts a great offer, and suddenly it's “Maybe I'm just not good enough.”
 
-Someone with more financial security can feel lost too. We can disagree with their view of money without deciding their uncertainty must be fake.
+There may be skills to work on or other opportunities to try. But “I didn't get this one” is a long way from “I'm useless.” One interview or salary doesn't tell us that much.
 
-## Getting to know ourselves takes time
+I'm reminding myself as well. When something goes badly, it's easy to notice only what I don't have. I haven't suddenly forgotten everything I know. My friends aren't going to stop being my friends because I didn't get an offer.
 
-I don't think self-worth becomes steady just because we tell ourselves we're doing fine. My understanding is that we gradually discover what matters to us, what we want to take responsibility for, and what we value even when it doesn't translate into pay or a title.
-
-We don't necessarily need to prove those things to anyone. I just hope that when money is tight, we don't withdraw our own respect along with it.
-
-## I'd like to hear your side
-
-Outside income and work, what is something about yourself that you value?
-
-No financial details or proof that life is going well are needed. Share a little if you'd like.
-
-A related but separate question—how we understand other people's choices—has its own post: [Different stages of life can have different answers](perspectives.en.md).
-
-The tradeoff between more income and more time has its own conversation too: [Earning more: what am I trading for it?](earning-and-enough.en.md)
+I hope being short of money for now doesn't make us think less of ourselves. There is already enough to worry about. A meal I enjoy or a conversation with a friend doesn't have to wait until I've “made it.”

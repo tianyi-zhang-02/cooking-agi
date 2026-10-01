@@ -1861,9 +1861,9 @@ def assemble(page, sections, people, nav, built, template):
     is_discussion = page.section.get("dir") == "discussions"
     discussion_config = nav["_discussions"]
     if is_discussion:
-        content = content.replace('<div data-discussion-index></div>', discussions.intro(page))
         content = content.replace('<div data-discussion-topics></div>', discussions.topic_cards(page, discussion_config))
         content += discussions.comments(page, discussion_config)
+        content += discussions.related(page, discussion_config)
         template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/discussions.css?v={built}">\n<script defer src="{prefix}static/discussions.js?v={built}"></script>\n</head>')
     config = collaboration.load_config()
     content = content.replace('<div data-collaboration-areas></div>',
@@ -1886,10 +1886,14 @@ def assemble(page, sections, people, nav, built, template):
             '<main id="content" class="crew-space">{{content}}</main>\n',
             template, count=1, flags=re.S,
         )
+    page_class = "page-crew page-next-stop" if is_next_stop else "page-crew" if is_community_scene else f"page-{page.kind}"
+    if is_discussion:
+        discussion_kind = "article" if discussions.topic_for(page, discussion_config) else "index"
+        page_class += f" page-talk page-talk-{discussion_kind}"
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
-            .replace("{{page_class}}", "page-crew page-next-stop" if is_next_stop else "page-crew" if is_community_scene else f"page-{page.kind}")
+            .replace("{{page_class}}", page_class)
             .replace("{{title}}", html.escape(page.title))
             .replace("{{site_title}}", html.escape(site["title_zh" if zh else "title_en"]))
             .replace("{{tagline}}", html.escape(site["tagline_zh" if zh else "tagline_en"]))
