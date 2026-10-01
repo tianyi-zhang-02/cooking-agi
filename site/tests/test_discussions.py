@@ -98,6 +98,67 @@ class DiscussionTests(unittest.TestCase):
             self.assertIn(f'self-worth{suffix}.html', discussions.topic_cards(self.page(language), self.config))
             self.assertIn(f'href="index{suffix}.html"', discussions.header(self.page(language), self.config))
 
+    def test_collections_show_every_topic_once_without_hiding_content(self):
+        for language in ("zh", "en"):
+            output = discussions.topic_cards(self.page(language, slug="README"), self.config)
+            for collection in self.config["collection"]:
+                identifier = "collection-" + collection["id"]
+                self.assertIn(f'href="#{identifier}"', output)
+                self.assertEqual(output.count(f'id="{identifier}"'), 1)
+                self.assertIn(collection[f"title_{language}"].replace("&", "&amp;"), output)
+            for topic in self.config["topic"]:
+                self.assertEqual(output.count(f'id="topic-{topic["slug"]}"'), 1)
+            self.assertNotIn("<button", output)
+            self.assertNotIn(" hidden", output)
+
+    def test_empty_collections_do_not_create_dead_jump_links(self):
+        self.config["topic"] = [topic for topic in self.config["topic"] if topic["collection"] != "money"]
+        output = discussions.topic_cards(self.page(slug="README"), self.config)
+        self.assertNotIn("collection-money", output)
+
+    def test_collection_validation_and_escaping(self):
+        for identifier in ("../unsafe", 'bad"'):
+            config = copy.deepcopy(self.config)
+            config["collection"][0]["id"] = identifier
+            with self.subTest(identifier=identifier), self.assertRaises(ValueError):
+                discussions.validate(config)
+        config = copy.deepcopy(self.config)
+        config["collection"].append(copy.deepcopy(config["collection"][0]))
+        with self.assertRaises(ValueError):
+            discussions.validate(config)
+        config = copy.deepcopy(self.config)
+        config["topic"][0]["collection"] = "missing"
+        with self.assertRaises(ValueError):
+            discussions.validate(config)
+        self.config["collection"][0]["title_zh"] = "<script>unsafe</script>"
+        self.config["collection"][0]["summary_zh"] = '<img src="bad">'
+        output = discussions.topic_cards(self.page(slug="README"), self.config)
+        self.assertNotIn("<script>", output)
+        self.assertNotIn("<img", output)
+        self.assertIn("&lt;script&gt;", output)
+
+    def test_article_header_links_to_collection_and_comments(self):
+        for language in ("zh", "en"):
+            suffix = ".en" if language == "en" else ""
+            output = discussions.header(self.page(language), self.config)
+            self.assertIn(f'href="index{suffix}.html#collection-money"', output)
+            self.assertIn('href="#comments"', output)
+            self.assertEqual(output.count("<h1>"), 1)
+
+    def test_related_reading_uses_same_collection_and_language(self):
+        for language in ("zh", "en"):
+            suffix = ".en" if language == "en" else ""
+            output = discussions.related(self.page(language), self.config)
+            self.assertIn(f'earning-and-enough{suffix}.html', output)
+            self.assertNotIn('id="related-self-worth"', output)
+            self.assertNotIn("your-own-path", output)
+            self.assertLessEqual(output.count('class="talk-card"'), 2)
+        self.assertEqual(discussions.related(self.page(slug="README"), self.config), "")
+
+    def test_single_topic_collection_has_no_empty_related_section(self):
+        self.config["topic"] = [topic for topic in self.config["topic"] if topic["slug"] == "self-worth"]
+        self.assertEqual(discussions.related(self.page(), self.config), "")
+
     @unittest.skipUnless(shutil.which("node"), "Node required")
     def test_comment_loader_behavior(self):
         result = subprocess.run([shutil.which("node"), str(Path(__file__).with_name("discussions-behavior.cjs"))],

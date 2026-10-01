@@ -1,38 +1,36 @@
-# Can the law of large numbers explain kindness?
+# Does kindness add up?
 
 [中文](kindness-and-probability.md) · **English**
 
-A slightly ridiculous thought: can probability theory explain kindness? If helping has a negative expected return today, does doing it often enough make “what goes around comes around” work? Add a Markov model and suddenly it sounds respectable.
+I wanted a mathematical argument for kindness. If helping someone costs me something and brings nothing back this time, surely doing it often enough will let the law of large numbers even things out?
 
-We can play with that. But **this is a mathematical analogy, not a proof that good people get rewarded. Every number below is an assumption, not a finding about human behavior.**
+The first step is already a problem: averaging a negative expectation doesn't turn it positive. Not the answer I was hoping for.
 
-## 1 · The law of large numbers does not process karmic refunds
+The numbers below are made up to play with this idea. This isn't a mathematical proof that kindness gets rewarded.
 
-Suppose each favor costs you 1 point. There is a 20% chance of receiving 3 points in return, and otherwise nothing. Counting only this personal balance, the expected net payoff is:
+## 1 · Start with the losing calculation
+
+Suppose each favor costs 1 point. There's a 20% chance of receiving 3 points back, and otherwise nothing. Counting only your own costs and returns, the expected net payoff is:
 
 $$\mathbb{E}[X]=0.2\times 3-1=-0.4.$$
 
-For independent, identically distributed outcomes with a finite expectation, the law of large numbers says the sample average approaches that expectation. We mean convergence in probability here, not an exact guarantee for every batch. [MIT's lecture on the law of large numbers](https://math.mit.edu/~sheffield/2019600/Lecture29.pdf)
+For independent, identically distributed outcomes with a finite expectation, the law of large numbers says the sample average converges in probability to that expectation. With more trials, the average becomes increasingly likely to be close to −0.4—not suddenly positive. [More on the law of large numbers: MIT lecture notes](https://math.mit.edu/~sheffield/2019600/Lecture29.pdf)
 
-So **a negative expectation doesn't turn positive just because you repeat it**. In this model, the average heads toward −0.4. Receiving nothing the last few times doesn't mean you're due a reward next time, either.
+Doing it more often just makes the average loss more likely to settle near −0.4. Getting nothing the last few times doesn't improve my chances next time, either. The law of large numbers isn't in charge of returning favors.
 
-The universe isn't necessarily keeping a reimbursement ticket open for you. At least, the law of large numbers doesn't expose that API.
+## 2 · Would I do this before buying a friend coffee?
 
-## 2 · Maybe the ledger only counts what comes back to me
+I spend 10 minutes saving someone an afternoon. In the calculation above, if they give me nothing back, I've lost out.
 
-You spend 10 minutes saving someone an afternoon. A ledger that only asks whether they repay you might record a loss. But their afternoon was still saved.
+But maybe saving them the afternoon was what I wanted. I wouldn't buy a friend a coffee and chase them afterward for a return.
 
-If their well-being matters to me, it belongs among the things I value. That's a statement about my values, not a proof that my financial return has become positive—and not a reason to invent an upside to every bad experience.
+The calculation left out that I might be happy to do it. The time and money are still spent, of course. If I want to spend them and can afford to, that's fine with me.
 
-There's an even simpler possibility: I know this won't come back to me, I can afford it, and I want to help anyway. Buying a friend a coffee doesn't always need an earnings forecast attached.
+## 3 · What if we'll meet again?
 
-**Something can be worth doing without being a profitable transaction.**
+The first calculation treated favors as unrelated events. Friends, colleagues, and neighbors keep seeing each other: if you help me today, I may be more willing to help next time.
 
-## 3 · Enter Markov: could this interaction change the next one?
-
-The first model treats favors as unrelated, one-off events. If we'll keep interacting, though, what happens today might affect how willing we are to cooperate tomorrow.
-
-Let's compress the relationship into two states: **N, keeping to ourselves; C, helping each other.** These are interaction states, not categories of good and bad people or a trust score.
+That calls for a different model, one in which how we interact can change. We'll use two states: **N, keeping to ourselves; C, helping each other.** These describe interactions, not categories of good and bad people.
 
 <figure>
 <svg viewBox="0 0 480 240" role="img" aria-labelledby="kindness-states-title" style="display:block;width:100%;max-width:36rem;margin:1.5rem auto;color:var(--ink-soft)">
@@ -45,16 +43,18 @@ Let's compress the relationship into two states: **N, keeping to ourselves; C, h
 </svg>
 </figure>
 
-The Markov assumption is that the current state is enough to describe next-step probabilities without separately tracking the entire history. Real relationships are much messier. This is a sketch to help us think.
+The Markov model makes a strong simplification here: use how we're interacting now to estimate what happens next, without tracking every earlier encounter. Real relationships are messier, but this gives us something simple to work with.
 
-Let's invent two sets of parameters. Suppose helping within limits makes mutual help easier to establish and maintain. The comparison policy isn't a bad person; it just involves less active investment.
+Suppose offering some help makes a habit of mutual support easier to build and maintain. We'll invent two sets of parameters to explore that. Taking less initiative is another approach, not a judgment about who's a good person.
 
-| Entirely hypothetical policy | a: apart → mutual help | b: mutual help → apart | Long-run share in mutual help |
+| Entirely hypothetical approach | a: apart → mutual help | b: mutual help → apart | Long-run share in mutual help |
 | --- | --- | --- | --- |
 | Less active investment | 0.10 | 0.30 | 25% |
-| Help within limits | 0.30 | 0.20 | 60% |
+| Help within your limits | 0.30 | 0.20 | 60% |
 
-**The 25% and 60% come from parameters we invented. They aren't evidence that kindness works.** Whether helping actually changes these probabilities is the question, not something we get to assume and then claim to have proved.
+**The 25% and 60% come from assumptions, not observations.** Does helping actually change these probabilities? That's the question. We can't put the benefit into the parameters and then say the math proved it.
+
+You can skip the formulas and read on. The calculation is here if you'd like to see where the numbers come from—and when helping costs more than it brings back.
 
 <details markdown="1">
 <summary>Show the calculation—and when the comparison goes the other way</summary>
@@ -81,18 +81,12 @@ The first example assumed independent outcomes. This one has state dependence, s
 
 </details>
 
-## 4 · Don't remove the decline button from the model
+## 4 · I'd still like to help sometimes
 
-What I like about the analogy isn't that it calculates an obligation to be kind. It separates immediate returns, future interactions, what I value, and what I can afford.
+After all that, I haven't proved that kindness always pays. Fair enough. Something I can reverse by changing a few parameters probably shouldn't become a rule for living.
 
-If repeated effort meets no mutual respect, calling it “long-term thinking” doesn't erase the cost. Declining an unreasonable request, doing less, or leaving are actions too. **A model without a no button won't tell you much about boundaries.**
+I'd still like to offer small favors when I can. If it saves someone trouble and I'm happy to do it, I'll do it. If we get to know each other better and help each other later, even better.
 
-My version would be: offer some goodwill, pay attention to what happens, and keep the freedom to say no. Not because the universe owes me a payout, but because I'd like the environment I share with others to be a little better. When I can't help, “being a good person” shouldn't become a way to pressure myself.
+If someone keeps asking without so much as a thank-you, or I'm already too busy, I'd like to say no. Having helped before shouldn't mean I've signed up to do it forever.
 
-Math can separate the questions. It doesn't choose our values for us :)
-
-## I'd like to hear your side
-
-Is there a small kindness you're happy to offer even when you expect nothing back? How do you decide when to help and when to stop?
-
-No identifying details needed. I'm curious about the measure you use.
+That's probably enough math. I'll try not to bring this table out when I'm actually buying a friend coffee.

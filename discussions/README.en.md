@@ -2,20 +2,23 @@
 
 [中文](README.md) · **English**
 
-<div data-discussion-index></div>
+Taking a break from studying? Here are a few thoughts about work and life. I'm still figuring some of them out.
 
 <div data-discussion-topics></div>
 
-## Beyond the technical notes
+<div class="talk-invitation" markdown="1">
 
-This is a place for everything that doesn't quite fit into a study note. Getting stuck, feeling tired of work, changing your mind about the future, or finding something worth sharing—all welcome.
+## Want to join in?
 
-Each post stays with one topic. I'll share my perspective and leave a question for you to pick up below. Separate topics have their own comment threads. A short reply is fine; you don't need a settled opinion.
+Agree, disagree, or share something this reminded you of. There's a discussion link under each post, and you're welcome to start another topic.
 
-## A few things to keep in mind
+[Join us on GitHub ↗](https://github.com/tianyi-zhang-02/cooking-agi/discussions)
 
-We're at different stages of life, with different priorities and tradeoffs we can afford to make. We can find common ground without ending up with the same answer. Disagreement is welcome, as is “I'm still figuring this out.” Share your experience and reasoning rather than deciding what someone else's life should look like. Income, degrees, and job titles aren't a ranking of people here.
+<details class="talk-guidelines" markdown="1">
+<summary>About comments</summary>
 
-Comments are public. Please leave out contact details, confidential work material, and other people's private information. Write in Chinese or English; personal attacks, spam, and privacy violations will be moderated.
+Comments are public; Chinese and English are both welcome. Please don't post private information, confidential work material, personal attacks, or ads. If you'd like to turn a discussion into an article, open a PR and we can work on it together.
 
-Have another topic in mind? Start it in [GitHub Discussions](https://github.com/tianyi-zhang-02/cooking-agi/discussions). We can develop it into a post together; articles published on the site still go through PR review.
+</details>
+
+</div>

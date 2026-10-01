@@ -1,57 +1,37 @@
-# Earning more: what am I trading for it?
+# Is earning more worth it?
 
 [中文](earning-and-enough.md) · **English**
 
-When people talk about money, they're often using different measures. For some, it's binary: financially free or not. Others look at numbers—income, savings, growth. Someone else might be asking whether they can spend more time with family or afford to leave a job they don't like.
+“How much money is enough?” can turn out to be several different questions.
 
-All reasonable questions. Just not the same question. Comparing one number won't get us very far.
+One person wants never to work again. Another wants a buffer if they lose their job. Someone else wants a more comfortable place to live. Put the numbers side by side and the conversation goes nowhere: what feels like enough to one person looks far off to another.
 
-The question I keep coming back to is: **What would I give up to earn a little more, and is that a trade I actually want right now?** These are personal views, and I expect some of them to change.
+I'm more interested in the time I'd have to give up for the extra money. I might accept that trade just after graduation and feel differently a few years later. Having family to care for could change the answer again.
 
-## An exceptional offer doesn't have to be the passing grade
+## Of course a great offer looks good
 
-I don't think reaching financial independence through a salary is easy. Effort matters, but timing, circumstances, and the people around us matter too.
+I see an unusually large package and want it too. But a company paying that amount usually has particular needs at that moment. The number alone doesn't tell me much about the circumstances.
 
-When I see an unusually large offer, I wonder what problem the company urgently needs solved and what that person brings. It could be scarce research expertise, years of judgment and experience, or the ability to build and lead a strong team. My instinct is to understand the role and the timing before drawing conclusions from a degree, years of experience, or the headline number.
+I'll pursue work I like and try for a better opportunity when it comes along. I also know that putting two or three times as much effort into a job doesn't necessarily multiply the pay. If the extra hours teach me something I want to learn, I might be happy to do them. If it's more of the same work, I'd want to think about it.
 
-There's nothing wrong with aiming for that. I just don't want a handful of exceptional offers to become the line below which I consider myself a failure. Nor would I assume that putting in 2 or 3 times the effort will multiply my pay accordingly. What those extra hours actually buy deserves a separate look.
+I don't find “It's too late to join” very useful on its own. Interesting research, people I want to work with, and early equity can be quite different reasons for taking a job.
 
-## Too late to join depends on what you want
+If I want to help a startup grow, I need to include the part where nobody has heard of it, resources are scarce, and plans keep changing. I can't picture only the ones that eventually succeeded. Joining early could leave me with nothing from the equity, and I'd need to be able to accept that.
 
-I'm not a fan of casually calling somewhere a *sinking ship* or saying it's already too late to join. Wanting to do interesting research with good people is different from wanting very early equity.
+## A side business takes up actual evenings
 
-If the appeal of a startup is helping it grow from something small, the picture has to include the less glamorous years: limited resources, uncertainty, and plans that keep changing. Joining once the outcome looks obvious may not come with the same terms as joining before it did.
+Having something outside work that I enjoy and that pays sounds good. But building it is only part of the work. Finding customers, talking to them, and handling changes all take time. Working with people can be difficult in its own right.
 
-But **joining early doesn't guarantee a larger return**. Whether the company succeeds or the equity ever becomes money is still uncertain. Early opportunity comes with early risk; working hard isn't a ticket you can redeem for a particular outcome.
+Being willing to put in the hours helps, but plenty of others are willing too. I'd still have to find something I'm good at that someone actually needs.
 
-Instead of only asking whether I'm late, I'd rather ask what I want to be part of—and whether I could live with the time and costs involved if things didn't turn out as hoped.
+If I wanted another source of income and ended up losing every evening and weekend, I'd hesitate. The money is real. So are the sleep I've lost and the plans I've turned down. I'd want to count those too.
 
-## A side project still costs your time
+## I'd like some time left for myself
 
-I like the idea of finding something outside work that you enjoy and that might earn money. It can give life another focus and potentially reduce dependence on one paycheck. Another income source isn't automatically stable, though, or insulated from the same market affecting your main job.
+I remind myself to do the job well without taking on everything. The company will carry on without me.
 
-And it isn't necessarily easy money after hours. Learning, delivering, finding customers, and communicating all take time. Being willing to work hard is a starting point, not a unique edge. Why would someone choose what you offer?
+Is earning more worth spending less time with family at this point in my life? Do I still want to live like this? If my partner shares the cost, we both need to want it. I shouldn't do the calculation alone and then try to persuade them.
 
-Starting a company adds plenty of work with other people, too. Personally, I think that part is difficult and easy to underestimate when all we picture is the product we've built.
+I'd like more options in the future, but I don't want to keep waiting. A promotion, a new job, another savings target: the things I wanted to do could sit there for years.
 
-If a side project leaves me more exhausted, with less time for things I enjoy, I'd want to revisit why I started it.
-
-## Enough has to mean something in your own life
-
-My current view is fairly simple: do the main job well, pursue good opportunities, and leave some room for life. Taking work seriously doesn't have to mean giving it all of yourself.
-
-I remind myself that the company will keep going without me. Not as an excuse to be careless, but as a check on the feeling that everything depends on me. To family and the people close to me, whether I'm around may matter much more.
-
-Is more money worth less time together at this stage? If my partner shares the cost of that choice, can we talk honestly about what each of us wants rather than treating it as a matter of persuading them? Am I looking for security, more options, or a break I keep postponing?
-
-To me, being at ease with where I am doesn't mean giving up on plans. It means understanding what I want and what I can realistically do, while allowing myself to enjoy the life I already have. Not everything needs to wait until I have a little more.
-
-We only get so many years. I'd like to enjoy some of them along the way :)
-
-## I'd like to hear your side
-
-Was there a time when earning more felt worth the extra effort—or when you decided you'd rather keep the time? What actually settled the decision for you?
-
-No salary or savings figures needed. I'm more interested in how you thought about it.
-
-Related conversations: [Money & self-worth](self-worth.en.md) · [Leaving some room in life](room-to-live.en.md).
+When there's time, I hope I'll actually go out and do some of them. That's a reminder to myself as much as to anyone reading this. :)

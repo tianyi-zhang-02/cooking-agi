@@ -4,86 +4,114 @@ category = "Announcements"
 category_id = "DIC_kwDOTyuOJ84DG0a1"
 embed_enabled = false
 
+[[collection]]
+id = "pace"
+title_zh = "自己的节奏"
+title_en = "At your own pace"
+summary_zh = "总跟别人比、想换个活法，或者只是有点累。"
+summary_en = "Comparing ourselves, changing our minds, or just feeling tired."
+
+[[collection]]
+id = "money"
+title_zh = "钱与选择"
+title_en = "Money & choices"
+summary_zh = "工资、offer、副业，还有花在上面的时间。"
+summary_en = "Pay, offers, side projects, and the hours they take."
+
+[[collection]]
+id = "together"
+title_zh = "人与相处"
+title_en = "Life with others"
+summary_zh = "帮人一把，或是跟一段往事告别。"
+summary_en = "Helping someone out, or saying goodbye."
+
 [[topic]]
 slug = "your-own-path"
+collection = "pace"
 number = 52
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "人生不是一条赛道"
-title_en = "Life is not one race"
+title_zh = "我们不必走同一条路"
+title_en = "Not everyone is on the same road"
 tag_zh = "比较与自己的路"
 tag_en = "Comparison & choosing a path"
-summary_zh = "出身不同，背着的东西不同，想去的方向也不同。要经过同一套筛选，不代表要过同一种人生。"
-summary_en = "Different backgrounds, responsibilities, and destinations. Facing the same selection systems doesn't mean wanting the same life."
+summary_zh = "我不太理解，为什么方向都不一样的人，非得比谁走得快。"
+summary_en = "I'm not sure why people heading in different directions need to race each other."
 
 [[topic]]
 slug = "kindness-and-probability"
+collection = "together"
 number = 51
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "行善这件事，大数定律管不管？"
-title_en = "Can the law of large numbers explain kindness?"
+title_zh = "善意，也能算笔账？"
+title_en = "Does kindness add up?"
 tag_zh = "一点数学歪解"
 tag_en = "A playful mathematical detour"
-summary_zh = "大数定律不负责报恩。拿一个 Markov 玩具模型，聊聊善意、长期相处，还有不能删掉的「拒绝」按钮。"
-summary_en = "No karmic refunds from the law of large numbers. A Markov toy model for kindness, repeated interactions, and the option to say no."
+summary_zh = "想拿大数定律给行善找个理由，结果一算，负期望好像更亏了。"
+summary_en = "I tried to make a case for kindness with probability. The first calculation didn't cooperate."
 
 [[topic]]
 slug = "endings"
+collection = "together"
 number = 50
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "结局就是结局"
-title_en = "An ending can be an ending"
+title_zh = "有些故事，就到这里"
+title_en = "Some stories end here"
 tag_zh = "结局与执念"
 tag_en = "Endings & attachment"
-summary_zh = "灯灭了，香味也散去了。会不会重逢，有没有后续，可以不再那么重要。"
-summary_en = "The lights are off. The scent has faded. Whether there is another meeting or another chapter can matter a little less."
+summary_zh = "以后还见不见，能不能做朋友，我想先不问了。"
+summary_en = "Will we meet again? Could we be friends? I'd like to stop asking for now."
 
 [[topic]]
 slug = "earning-and-enough"
+collection = "money"
 number = 49
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "再多赚一点，要拿什么来换？"
-title_en = "Earning more: what am I trading for it?"
+title_zh = "多赚一点，值得吗？"
+title_en = "Is earning more worth it?"
 tag_zh = "收入、时间与选择"
 tag_en = "Money, time & choices"
-summary_zh = "顶包、早期股权、副业，还有陪家人的时间。多赚一点值不值，得放回自己想过的生活里。"
-summary_en = "Big offers, early equity, side projects, and time with family. What makes earning more worth the trade?"
+summary_zh = "钱想多赚，但再多花那些时间，到底值不值？"
+summary_en = "I'd like to earn more. I'm less sure how many more hours I want to give it."
 
 [[topic]]
 slug = "room-to-live"
+collection = "pace"
 number = 48
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "水满则溢：给生活留一点余地"
-title_en = "When the cup is full: leaving some room in life"
+title_zh = "给生活留点空"
+title_en = "Leave a little room"
 tag_zh = "生活的余地"
 tag_en = "Room to live"
-summary_zh = "从《道德经》的一句话聊起：生活塞得太满时，能不能给变化、休息和自己留一点空间？"
-summary_en = "A line from the Dao De Jing, and a question about leaving room for change, rest, and ourselves."
+summary_zh = "难得空出来一个晚上，能不能先别急着拿它做点什么。"
+summary_en = "An evening finally opens up. Does it need another plan?"
 
 [[topic]]
 slug = "perspectives"
+collection = "pace"
 number = 47
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "人生阶段不同，答案也可以不同"
-title_en = "Different stages of life can have different answers"
+title_zh = "人会变，答案也会"
+title_en = "We change. So do our answers."
 tag_zh = "人生阶段与选择"
 tag_en = "Life stages & choices"
-summary_zh = "阶段、处境和时间尺度不同，选择自然不同。求同存异，不急着替彼此下结论。"
-summary_en = "Different circumstances and time horizons can lead to different choices. We don't have to leave a conversation with the same answer."
+summary_zh = "同一个 offer，有人非去不可，有人嫌离家太远。谁也未必想错了。"
+summary_en = "The same offer is irresistible to one person and too far from home for another."
 
 [[topic]]
 slug = "self-worth"
+collection = "money"
 number = 46
 author = "tianyi-zhang-02"
 date = "2026-10-01"
-title_zh = "钱很重要，但不必拿它衡量整个人"
-title_en = "Money matters. It doesn't have to measure the whole person."
+title_zh = "收入之外，怎么看自己"
+title_en = "Who am I beyond what I earn?"
 tag_zh = "钱与自我价值"
 tag_en = "Money & self-worth"
-summary_zh = "钱会影响现实中的选择，但手里暂时少一些钱，不该连对自己的尊重也一起收回去。"
-summary_en = "Money affects our options. Having less of it doesn't mean we deserve less respect, including from ourselves."
+summary_zh = "看到一个攒了不少钱、却不知道接下来想干什么的帖子，想到一些事。"
+summary_en = "A post about having savings but not knowing what to do next got me thinking."

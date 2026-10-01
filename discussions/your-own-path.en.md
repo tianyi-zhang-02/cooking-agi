@@ -1,35 +1,29 @@
-# Life is not one race
+# Not everyone is on the same road
 
 [中文](your-own-path.md) · **English**
 
-I've never really liked the idea that life has a starting line and a finish line.
+I've never liked talking about life in terms of starting lines and finish lines. It makes it sound as though we're all in the same race: start late and you're behind; go somewhere else and you've dropped out.
 
-We come from different families, carry different responsibilities, and want to go to different places. If we're not even heading in the same direction, what would a shared finish line mean?
+But our families are different. So are our responsibilities and the places we want to go. How did this become one race?
 
-Of course, we do get measured by the same systems. Exams, hiring, promotions: a few criteria help decide who gets limited opportunities and resources. I don't deny those rules. Saying “stop comparing” doesn't pay the rent or make a difficult situation disappear. The world is unfair. Some people travel light; others have spent a lot of effort just finding their footing.
+Exams, hiring, and competition for resources do put us under the same criteria. I have to deal with that too. Disliking an unfair world doesn't make it fair.
 
-But having to pass through those checkpoints doesn't mean I want to turn my whole life into a ranking.
+Once that round is over, though, I still have a life to live. I'd rather not come home from being ranked at work and carry on ranking myself.
 
-A job can have selection criteria without a life having a universal passing grade. Some people want to go far; others want to stay closer to home. Some can take a chance; others need stability right now. Those choices can all make sense in the lives where they're being made.
+I understand envy. More money, better opportunities—of course those look good. Sometimes I get so caught up in the result that I forget to ask whether I'd actually want the daily life that comes with it.
 
-**There's a whole world out there. Why keep our eyes on the one road everyone calls the right way?**
+Maybe I want to do work I like, live somewhere I enjoy, and spend more time with people close to me. That sounds like a life worth having. Squeezing onto the supposedly right path, then spending years proving I chose correctly, sounds tiring.
 
-I don't mean that the side road is always prettier, or every detour is worth it. Some frustrations are just frustrating. Exhaustion doesn't have to become a story about growth. An easier path is a perfectly good thing to want.
+There's a line by Su Shi I like:
 
-I just think that if you're already on a different road, you don't have to call it falling behind.
+> 莫听穿林打叶声，何妨吟啸且徐行。
 
-There might be more mud on your clothes, more compromises, more tired days. There might also be a view you wouldn't have seen otherwise. Not necessarily better than someone else's. Just one you were actually there to see.
+— *Ding Feng Bo*. [Original Chinese text](https://zh.wikisource.org/zh-hans/定風波_(蘇軾)).
 
-Following your own path doesn't mean never envying anyone. I probably couldn't manage that either. But after the envy, it's worth asking: do I actually want that life, or do I just hate losing the comparison?
+Roughly: “Don't mind the rain beating through the trees; why not sing and walk slowly?”
 
-Sometimes looking back at what's in front of you makes things a little lighter. You don't have to account for every step or prove that your route will eventually win.
+It makes me want to look around a bit. My shoes might be muddy and I might be tired. Some stretches are simply hard. I don't feel much need to turn every one of them into a lesson about personal growth.
 
-Look up. Even the rain is beautiful right now.
+The rain is quite beautiful, though. While I was rushing, all I noticed was that it was getting my clothes wet.
 
-Getting a little wet doesn't feel quite so annoying anymore. Let's walk this stretch of the road first. :)
-
-## I'd like to hear your side
-
-Have you ever realized that a goal you'd been chasing wasn't somewhere you actually wanted to go?
-
-Or tell us about a path you're beginning to enjoy, even if you don't know where it ends. It doesn't need a neat success story.
+“Go your own way” is something I'm still working on. For now, I'll try spending a little less time watching everyone else. :)

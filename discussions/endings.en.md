@@ -1,27 +1,17 @@
-# An ending can be an ending
+# Some stories end here
 
 [中文](endings.md) · **English**
 
-Sometimes I think the beauty of an ending isn't that it turns out well. It's that it is an ending.
+Sometimes I think part of what's good about an ending—even one I'm reluctant to accept—is that it finally ends. Good or bad, it isn't left hanging.
 
-Happy or disappointing, the story has somewhere to stop.
+Then it's over, and the questions return. Will we meet again? Could we be friends? Would different timing have changed anything?
 
-But we can stay attached and keep asking: what happens next? Could one more conversation, one more meeting, give us a different answer? As though leaving a possibility open means it isn't really over.
+I don't think there's anything wrong with wondering. But if I need to put a “maybe” after every ending, it's hard to leave any of them behind.
 
-And yet the story has ended. **The lights are off. The scent has faded.** Staying behind doesn't necessarily bring another scene.
+The lights are off and the scent has faded. If I'm still standing there waiting, what am I waiting for?
 
-Whether we'll meet again, whether we could be friends, whether this story has a tomorrow—maybe it does, maybe it doesn't. I'd like to let those questions matter a little less. Not keep resting the present on a “maybe someday.”
+I don't want to deny what happened, or insist on adding a better ending later. Some regret might just have to stay for a while.
 
-The moments we had don't stop counting because nothing follows them.
+If we meet again one day and want to say hello, we can. If that day never comes, I don't have to start missing it now.
 
-Writing this doesn't mean sadness or longing disappears. I don't want “letting go” to become another thing we have to get right. Some feelings stay for a while. They can stay for a while.
-
-We just don't have to add another chapter every time we remember.
-
-An ending can be an ending. The story can stop here.
-
-## I'd like to hear your side
-
-Has there been an ending after which you eventually stopped asking what would happen next?
-
-You can talk about the feeling without sharing who or what it involved.
+Some things I'd like to leave here.

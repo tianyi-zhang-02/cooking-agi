@@ -1,44 +1,106 @@
-.talk-heading { margin: 0 0 1.7rem; }
-.talk-heading h1 { font-size: clamp(1.85rem, 3.6vw, 2.75rem); line-height: 1.3; letter-spacing: -.035em; margin: .5rem 0 1.1rem; text-wrap: balance; }
-.talk-eyebrow { font: 600 .72rem/1.6 var(--body); letter-spacing: .1em; color: var(--muted); }
-.talk-back { display: inline-block; font-size: .82rem; margin: 0 0 1.8rem; text-decoration: none; color: var(--muted); }
-.talk-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; color: var(--muted); font: 400 .76rem/1.6 var(--body); }
-.talk-meta a { color: inherit; text-decoration: none; }
-.talk-intro { display: grid; grid-template-columns: 1fr 150px; gap: 1.25rem; align-items: center; padding: 1.5rem 0 2rem; border-bottom: 1px solid var(--rule); margin-bottom: 2.5rem; }
-.prose .talk-lead { font-size: clamp(1.35rem, 2.5vw, 1.8rem); font-weight: 500; line-height: 1.55; margin: 0 0 .65rem; text-wrap: balance; }
-.prose .talk-caption { color: var(--muted); font-size: .84rem; margin: .6rem 0; }
-.talk-orbit { width: 100%; max-width: 180px; color: var(--ink-soft); overflow: visible; }
-.talk-bubble-a { animation: talk-drift 7s ease-in-out infinite; }
-.talk-bubble-b { animation: talk-drift 7s ease-in-out -3s infinite; }
-@keyframes talk-drift { 50% { transform: translateY(-5px); } }
-.talk-topics { margin: 2.5rem 0 3rem; }
-.prose .talk-topics > .talk-eyebrow { margin-bottom: 1rem; }
-.prose .talk-card { display: block; padding: 1.6rem 1.75rem; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; margin: 1rem 0; color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
-.prose .talk-card:hover { border-color: var(--muted); transform: translateY(-2px); }
-.prose .talk-card h3 { font-size: 1.25rem; line-height: 1.55; margin: 1rem 0 .6rem; font-weight: 600; text-wrap: balance; }
-.prose .talk-card p { color: var(--muted); margin: 0 0 1.4rem; font-size: .95rem; }
-.talk-card .talk-meta { justify-content: space-between; }
-.talk-card-link { font-size: .82rem; display: flex; justify-content: space-between; align-items: center; }
-.talk-card-link > span { font-size: 1.25rem; }
-.talk-comments { border-top: 1px solid var(--rule); margin-top: 3rem; padding: 1.8rem 0 0; }
-.prose .talk-comments h2 { border: 0; margin: 0 0 .75rem; padding: 0; font-size: 1.4rem; }
-.prose .talk-comments > p { font-size: .9rem; }
-.talk-load, .talk-external { display: inline-flex; align-items: center; padding: .65rem 1rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--panel); color: var(--ink); font: 500 .85rem/1.5 var(--body); cursor: pointer; }
+.page-talk .rail { display: none; }
+.page-talk main { width: 100%; max-width: 56rem; margin-inline: auto; padding-top: 3.3rem; }
+.page-talk .prose, .page-talk .page-foot { max-width: none; }
+.page-talk-article main { max-width: 46rem; }
+.page-talk .prose h2::before { display: none; }
+.page-talk .talk-heading h1 { margin: .7rem 0 1rem; font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1.35; font-weight: 650; letter-spacing: -.035em; text-wrap: balance; }
+.talk-heading { margin-bottom: 1.65rem; }
+.talk-home-heading { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.page-talk .talk-home-heading h1 { font-size: clamp(2.8rem, 5.8vw, 4.2rem); margin-bottom: 0; line-height: 1.15; }
+.talk-sketch { width: clamp(88px, 12vw, 138px); height: auto; color: var(--muted); flex: none; }
+.page-talk .talk-eyebrow { margin: 0; color: var(--muted); font: 500 .72rem/1.6 var(--body); letter-spacing: .1em; }
+.talk-total { display: inline-block; border-left: 1px solid var(--rule); padding-left: .8rem; margin-left: .8rem; letter-spacing: 0; }
+.page-talk-index .article-body > p:first-child { max-width: 37rem; font-size: 1.04rem; line-height: 1.85; color: var(--muted); margin-bottom: 1.9rem; }
+.page-talk .talk-jump { display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; padding: .55rem 0 1rem; border-bottom: 1px solid var(--rule); margin-bottom: 2rem; }
+.page-talk .talk-jump a { display: inline-flex; align-items: center; gap: .65rem; min-height: 44px; padding: .4rem 0; text-decoration: none; color: var(--ink-soft); font-size: .85rem; }
+.page-talk .talk-jump a:hover { color: var(--link); }
+.talk-count { color: var(--muted); font: .65rem/1.4 var(--mono); font-variant-numeric: tabular-nums; }
+.talk-collection { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 2rem; margin: 0 0 2.65rem; scroll-margin-top: 1rem; }
+.page-talk .talk-collection-heading h2 { margin: .95rem 0 .65rem; padding: 0; border: 0; font-size: .95rem; line-height: 1.5; font-weight: 650; letter-spacing: 0; }
+.page-talk .talk-collection-heading p { color: var(--muted); font-size: .78rem; line-height: 1.8; margin: 0; max-width: 12rem; }
+.page-talk .talk-list { list-style: none; padding: 0; margin: 0; min-width: 0; }
+.page-talk .talk-list > li { margin: 0; border-bottom: 1px solid var(--rule); }
+.page-talk .talk-list > li:last-child { border-bottom: 0; }
+.page-talk .talk-card { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1rem 0 1.1rem; color: var(--ink); text-decoration: none; background: transparent; border: 0; border-radius: 4px; }
+.talk-card-copy { min-width: 0; }
+.page-talk .talk-card h3 { font-size: 1.14rem; font-weight: 600; line-height: 1.6; letter-spacing: -.02em; margin: 0 0 .4rem; text-wrap: pretty; }
+.page-talk .talk-card p { font-size: .9rem; line-height: 1.8; color: var(--muted); margin: 0; max-width: 42rem; }
+.talk-card-arrow { flex: none; color: var(--muted); font-size: 1.1rem; transition: transform .18s ease, color .18s ease; }
+.page-talk .talk-card:hover h3 { text-decoration: underline; text-underline-offset: .25em; text-decoration-thickness: 1px; }
+.page-talk .talk-card:hover .talk-card-arrow { color: var(--ink); transform: translateX(4px); }
+.page-talk .talk-invitation { margin-top: 2rem; padding: 1.7rem 0 .2rem; border-top: 1px solid var(--rule); }
+.page-talk .talk-invitation h2 { font-size: 1.25rem; border: 0; margin: 0 0 .65rem; padding: 0; }
+.page-talk .talk-invitation p { max-width: 37rem; font-size: .9rem; color: var(--muted); line-height: 1.85; margin-bottom: .7rem; }
+.page-talk .talk-guidelines { margin: 1.2rem 0 0; background: transparent; border: 0; border-radius: 0; }
+.page-talk .talk-guidelines > summary { padding: .6rem 1.25rem .6rem 0; font-size: .8rem; color: var(--muted); }
+.page-talk .talk-guidelines > *:not(summary) { margin-inline: 0; font-size: .8rem; }
+.page-talk .talk-guidelines[open] > summary { border-bottom: 0; }
+.talk-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: 2.5rem; color: var(--muted); font-size: .8rem; }
+.page-talk .talk-breadcrumb a { color: var(--muted); text-decoration: none; }
+.page-talk .talk-breadcrumb a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
+.talk-article-heading { border-bottom: 1px solid var(--rule); padding-bottom: 1.8rem; margin-bottom: 2rem; }
+.talk-byline { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .7rem 1.2rem; margin-top: 1.2rem; }
+.page-talk .talk-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin: 0; font-size: .75rem; color: var(--muted); }
+.page-talk .talk-meta a { color: inherit; text-decoration: none; }
+.page-talk .talk-comment-jump { font-size: .76rem; color: var(--muted); text-decoration: none; }
+.page-talk .talk-comment-jump:hover { color: var(--ink); }
+.page-talk-article .article-body { font-size: 1.025rem; line-height: 1.95; color: var(--ink-soft); }
+.page-talk-article .article-body > p { margin-bottom: 1.3rem; }
+.page-talk-article .article-body > p:first-child { color: var(--ink); font-size: 1.08rem; }
+.page-talk-article .article-body > h2 { font-size: 1.26rem; line-height: 1.6; margin: 2.5rem 0 1rem; border: 0; padding: 0; color: var(--ink); letter-spacing: -.02em; }
+.page-talk-article .article-body > blockquote { margin: 1.7rem 0 .6rem; padding: .5rem 0 .5rem 1.1rem; background: none; border: 0; border-left: 2px solid var(--muted); border-radius: 0; box-shadow: none; font-size: 1.15rem; line-height: 1.9; color: var(--ink); }
+.page-talk-article .article-body > blockquote::before { display: none; }
+.page-talk-article .article-body > blockquote p { margin: 0; }
+.page-talk-article .article-body > blockquote + p { font-size: .8rem; color: var(--muted); margin-bottom: 1.8rem; }
+.page-talk .talk-comments { border: 1px solid var(--rule); border-radius: 10px; background: color-mix(in srgb, var(--panel) 72%, transparent); margin-top: 2.7rem; padding: 1.5rem 1.6rem; }
+.page-talk .talk-comments h2 { margin: 0 0 .6rem; padding: 0; border: 0; font-size: 1.25rem; line-height: 1.5; }
+.page-talk .talk-comments > p { color: var(--muted); font-size: .83rem; line-height: 1.8; margin: 0 0 .4rem; }
+.page-talk .talk-caption { color: var(--muted); font-size: .8rem; }
+.talk-load, .talk-external { display: inline-flex; align-items: center; padding: .55rem .85rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--panel); color: var(--ink); font: 500 .82rem/1.5 var(--body); cursor: pointer; }
 .talk-load:hover, .talk-external:hover { border-color: var(--muted); }
-.prose .talk-external { text-decoration: none; margin: .8rem 0; }
+.page-talk .talk-external { text-decoration: none; margin: .75rem 0 0; }
 .talk-load:disabled { cursor: wait; opacity: .6; }
 .talk-load[hidden] { display: none; }
 .talk-widget { margin-top: 1.25rem; }
-.prose .talk-load-status { font-size: .8rem; color: var(--muted); }
+.page-talk .talk-load-status { font-size: .8rem; color: var(--muted); }
 .talk-load-status:empty { display: none; }
 .talk-widget .giscus { margin-top: 1rem; }
-@media (max-width: 560px) {
-  .talk-intro { grid-template-columns: 1fr 88px; gap: .5rem; padding-top: .5rem; }
-  .prose .talk-card { padding: 1.25rem; }
-  .talk-heading h1 { font-size: 1.85rem; }
+.page-talk .talk-related { margin: 2.5rem 0 0; }
+.page-talk .talk-related > h2 { margin: 0 0 .4rem; padding: 0; border: 0; font-size: .82rem; font-weight: 500; color: var(--muted); }
+.page-talk .talk-related .talk-card h3 { font-size: 1.03rem; }
+.page-talk .talk-related .talk-card p { font-size: .8rem; }
+.page-talk .page-foot { margin-top: 2.5rem; }
+@media (min-width: 1081px) {
+  .page-talk .shell { grid-template-columns: var(--side-w) minmax(0, 1fr); gap: 0 3.5rem; }
+  .page-talk main { padding-right: 1rem; }
+}
+@media (max-width: 760px) {
+  .page-talk main { padding-top: 2rem; }
+  .talk-collection { grid-template-columns: minmax(0, 1fr); gap: .45rem; margin-bottom: 1.85rem; }
+  .talk-collection-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .4rem 1rem; padding-top: .25rem; }
+  .page-talk .talk-collection-heading h2 { margin: 0; font-size: .85rem; }
+  .page-talk .talk-collection-heading p { max-width: none; font-size: .74rem; }
+  .page-talk .talk-card { padding: .95rem 0; }
+  .page-talk .talk-card h3 { font-size: 1.1rem; }
+}
+@media (max-width: 440px) {
+  .page-talk .talk-home-heading h1 { font-size: 2.6rem; }
+  .talk-sketch { width: 76px; }
+  .page-talk .talk-jump { column-gap: 1rem; }
+  .page-talk .talk-jump a { font-size: .78rem; gap: .4rem; }
+  .page-talk .talk-count { font-size: .6rem; }
+  .page-talk .talk-card { gap: .9rem; }
+  .page-talk .talk-card p { font-size: .88rem; }
+  .talk-breadcrumb { margin-bottom: 1.7rem; }
+  .page-talk .talk-heading h1 { font-size: 1.95rem; }
+  .page-talk .talk-home-heading h1 { font-size: 2.6rem; }
+  .page-talk .talk-comments { padding: 1.2rem; }
+  .page-talk-article .article-body { font-size: 1rem; }
+}
+@media (max-width: 360px) {
+  .talk-sketch { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .talk-bubble-a, .talk-bubble-b { animation: none; }
-  .prose .talk-card { transition: none; }
-  .prose .talk-card:hover { transform: none; }
+  .talk-card-arrow { transition: none; }
+  .page-talk .talk-card:hover .talk-card-arrow { transform: none; }
 }

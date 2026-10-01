@@ -1,35 +1,21 @@
-# When the cup is full: leaving some room in life
+# Leave a little room
 
 [中文](room-to-live.md) · **English**
 
-I like the Chinese saying 水满则溢: water spills when a vessel is too full. It makes me think of a life packed so tightly that no task can slip, no plan can change, and we can't afford a single off day.
+I like the Chinese saying 水满则溢: water spills when the container is too full. A tightly packed day can look impressive on a calendar and be unpleasant to live through.
 
-It can look well organized while leaving very little room to move.
+Work runs half an hour late, and everything after it needs moving. A friend asks you to dinner. You want to go, but tonight doesn't work, and neither does tomorrow. Then an evening finally opens up and you wonder whether you should use it to learn something.
 
-## A line I'd like to remember
+When did having nothing planned become something to justify?
+
+There's a line in chapter 9 of the *Dao De Jing*:
 
 > 持而盈之，不如其已。
 
-— *Dao De Jing*, chapter 9. [Original Chinese text](https://www.gutenberg.org/cache/epub/7337/pg7337.html)
+[Original Chinese text](https://www.gutenberg.org/cache/epub/7337/pg7337.html). My reading is: if it's already that full, stop adding to it. The saying about water overflowing isn't the exact wording; it's the image this brings to mind.
 
-My loose translation is: “Rather than keep filling it to the brim, better to stop.” I read it as a reminder to notice when adding more no longer helps. The saying about water overflowing isn't the chapter's exact wording; what follows is my personal reflection, not a definitive interpretation of the whole chapter.
+Some commitments can't be dropped. There is work to do and money to earn. Reading an old text won't clear tomorrow's calendar. But I would like to put fewer things into the small amount of time I do control.
 
-## When everything is full, small things become hard to absorb
+I don't really want to justify rest as a way to be more productive tomorrow, either. I'm tired and want to sit down. The weather is nice and I'd like to go outside. Those seem like good enough reasons.
 
-A busy stretch isn't necessarily a problem. We can be deeply absorbed in work we love. What I care about is whether there's still room for something to change.
-
-A task takes a little longer and the rest of the day falls apart. One extra request can only come out of our rest. An hour finally opens up and we feel we ought to fill it immediately.
-
-If that keeps happening, I'd want to pause and take a look. It doesn't mean something is about to go wrong. But life won't always follow the plan, and we can't absorb every surprise by asking ourselves to push a little harder.
-
-## Space doesn't have to earn its keep
-
-Taking on one less thing, leaving a buffer, or keeping a little time we don't have to account for can all help make room. It doesn't always need to be justified as “resting so I can be more productive.” Rest and enjoyment can matter in their own right.
-
-Of course, not everyone can simply reduce their work or responsibilities. If you can't make space right now, that isn't another reason to blame yourself for failing at balance. It may help to distinguish what truly can't move from what you habitually feel you should add.
-
-I like this line because it doesn't ask me to stop caring or trying. It reminds me that **life doesn't have to be filled to the point where nothing else can fit.**
-
-## I'd like to hear your side
-
-How do you notice when life is getting too full? If you could make a little room, what would you put down first?
+When a little time opens up, I'd like to leave it alone for a bit. If someone wants to meet, or I feel like going out, it would be nice to be able to say yes.
