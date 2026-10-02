@@ -1,91 +1,77 @@
-# LLM-as-a-Judge：到底应该怎样让模型打分？
+# LLM-as-a-Judge：怎么评，才有用？
 
 **中文** · [English](README.en.md)
 
-## 先看要点：让模型打分前，要准备什么
+换了一个 prompt，回答更流畅，平均分也涨了。可用户的问题真的解决得更好了吗？
 
-<details class="interview" markdown="1">
-<summary>评分标准怎么写，分数又该怎么检查？</summary>
+LLM-as-a-Judge，就是让模型按给定标准检查另一个模型的输出。它能帮我们读很多答案，但**打出一个分数，和知道这个分数值得相信，是两件事**。
 
-**快速记忆**：先说清楚评什么（criterion），再决定用成对比较、等级评分还是通过/不通过。最后对照专家标注、输入扰动和不同类别的样本，检查 judge 的判断是否可靠。
+不用先记一堆指标。我们从一条客服回答开始，走完「给材料 → 分项判断 → 做决定 → 检查 judge」这条路。例子里的规则和判断都是手写的，不调用模型。
 
-**面试回答**
+## 先走一遍：这条回答，能不能发给用户？
 
-> 让 LLM 当裁判，要先告诉它依据什么、评哪一项、每个分数代表什么，以及结果按什么格式输出、怎样汇总。成对比较（pairwise）往往比直接打绝对分更稳，但仍可能偏爱某个位置、更长的回答或与自身风格相近的输出，也要防止参考答案泄漏。使用前要和专家判断对照，除了平均分，还要看分歧和不确定性。
+<div data-judge-lab="walkthrough"><p>这是虚构的退货问答：一个回答可能同时做到切题、友好，却编错了退货政策。不能因为 3 项过了 2 项，就把事实错误放过去。交互版可以更换回答、隐藏政策、比较两种放行规则。</p></div>
 
-<details markdown="1">
-<summary><b>再想一步</b>：平均分为什么会把问题藏起来？</summary>
+可以这样试：先保留「热情，但编错政策」，走到第 3 步。它为什么能通过“多数项通过”的规则？再打开必要条件，看看**判断没变，决定为什么变了**。最后换一条完整回答，隐藏政策：这时不是模型答错了，而是我们没给 judge 足够的判断依据。
 
-“每次都给 3 分”和“一半给 1 分、一半给 5 分”的均值相同，含义却很不一样。所以要保留分数分布、分歧程度、各评估维度的结果，以及 judge 的版本。涉及重要决策时，还需要人工复核，不能拿一个平均分就把分歧略过去。
+这里故意把 3 件事拆开了：
 
-</details>
-</details>
+- **被测模型**写答案。
+- **Judge**按 rubric 给出分项判断，并说明依据。
+- **决策规则**决定接受、拦截还是转人工。它不是模型临场拍脑袋定的。
 
-## 不只是写一句“请给这个回答打分”
+同一个 judge 结果可以对应不同用途：离线比较两版 prompt，和自动把回答发给用户，对误判的容忍度就不一样。单条通过，也不能直接推出整个系统值得上线。
 
-LLM-as-a-Judge 是让大模型按规则评估回答或行为。设计时要分别想清楚：**给不给示范、要不要参考答案、比较哪些回答、按什么标准判断，最后怎样汇总分数。**
+## 这组笔记怎么读
 
-很多概念看起来相似，是因为一段 prompt 往往同时使用了好几种方法。
+<div class="judge-route" aria-label="分成 3 段的阅读路线">
+<section><span class="jr-number">01 · 定义</span><h3>先说清楚，什么叫好</h3><p>把“回答不错”拆成能检查的条件；决定要类别、分数还是比较结果。</p><ul><li><a href="criteria.md">评分标准：评什么，凭什么？</a></li><li><a href="scoring.md">评分方式：通过、打分、二选一</a></li></ul><small>写出一份有边界例子的 rubric。</small></section>
+<section><span class="jr-number">02 · 验证</span><h3>再检查，裁判靠不靠谱</h3><p>不只看平均分。换顺序、藏证据、对照人工，看看它具体错在哪里。</p><ul><li><a href="probability-scores.md">概率分数：20 次评分说明什么？</a></li><li><a href="bias-and-workflow.md">偏差检查：哪些改动不该影响结果？</a></li><li><a href="calibration.md">人工校准：误放、误拦与复核</a></li></ul><small>拿出分项错误、样本数和不确定性。</small></section>
+<section><span class="jr-number">03 · 使用</span><h3>最后，放回实际任务</h3><p>任务变了，证据也得变。把输出校验、失败处理和报告接起来。</p><ul><li><a href="case-studies.md">RAG、Agent、Memory 怎么评？</a></li><li><a href="implementation.md">跑通一个 Python 小实验</a></li></ul><small>交出可复查的记录，而不只是一个总分。</small></section>
+</div>
 
-## Few-shot 和 Reference-based 为什么容易混淆
+**第一次接触**：按 01 → 02 → 03 读。**已经在用 judge**：先看[偏差检查](bias-and-workflow.md)和[人工校准](calibration.md)。**想自己搭一个**：带着一条 rubric 去跑[最小实现](implementation.md)，再回来补不理解的部分。
 
-它们回答的是两个不同的问题，可以分别选择：
+每篇解决一个具体问题。这里没有背完才准往下走的清单，也不用一次读完。
 
-| 维度 | Few-shot | Reference-based |
+## 能用规则判的，为什么还要问模型？
+
+比如“输出能不能解析为 JSON”，解析器比一句“我觉得格式正确”更有用；“agent 到底有没有保存草稿”，先查最终状态。
+
+但“摘要漏掉了哪项限制”“回答有没有回应用户真正的问题”，不总能用一条正则写清楚。这是 LLM judge 可以帮忙的地方。**确定性检查负责能直接核对的事实，语义判断补上不容易写成规则的部分。**
+
+| 你在检查什么 | 先用什么 | 别混淆 |
 | --- | --- | --- |
-| 它在问什么 | 要不要先给模型看几个评分示范？ | 当前答案有没有一个参考答案可以对照？ |
-| 主要作用 | 示范怎样使用评分规则（rubric），以及按什么格式回答 | 让 judge 对照参考答案判断当前回答 |
-| 核心内容 | 多个输入 → 评分示例 | 当前样本的 `Expected Answer` |
-| 对立面 | Zero-shot | Reference-free |
+| 格式、数值、测试、最终状态 | Parser、测试、状态断言 | 测试通过只覆盖测试检查过的行为 |
+| 含义、遗漏、材料支持、偏好 | 明确的 rubric + LLM / 人工判断 | 理由流畅不等于判断正确 |
+| Judge 自己是否可靠 | 独立人工对照、边界例子、扰动测试 | 几个模型同意，也不是自动获得真值 |
 
-因此四种组合都存在：
+[MT-Bench / Chatbot Arena](https://arxiv.org/abs/2306.05685)记录了位置、篇幅等偏差；[JudgeBench](https://arxiv.org/abs/2410.12784)则直接考查 judge 能不能分清较难题目的正确与错误答案。模型很会回答，不代表它在你的任务上就很会判卷。
 
-| | Reference-free | Reference-based |
-| --- | --- | --- |
-| **Zero-shot** | 只给 criterion，让 judge 独立评分 | 给 criterion 和当前参考答案，不给示范 |
-| **Few-shot** | 给几个评分示范，但示范和当前样本都没有参考答案 | 示范与当前样本都带参考答案 |
+还有一个容易混的地方：**同样的分数，拿来观测和拿来训练，风险不同。**一旦分数成了 reward，系统会主动寻找让分数上涨的办法。那更需要独立验收，不能既用同一位 teacher 产标签，又只用它证明 student 变好了。[偏差与流程](bias-and-workflow.md)里会接着讲。
 
-一句话记忆：
+## 这些词，各管哪件事？
 
-> **Few-shot 管“有没有示范”，reference-based 管“当前答案有没有标准答案作对照”。**
+| 名称 | 放回刚才的例子 |
+| --- | --- |
+| Criterion · 评估维度 | 政策有没有编错？申请步骤有没有说？ |
+| Rubric · 分档与判定规则 | 哪些情况算 pass、fail、unknown，边界怎么判 |
+| Evidence · 判断依据 | 商店的退货政策 |
+| Reference · 参考答案 | 这道题的一份可接受答案；不一定是唯一表述 |
+| Few-shot examples · 评分示范 | 另外几道已经评过的题，展示如何应用标准 |
+| Verdict · 判断结果 | 每一项的 pass、fail 或 unknown |
+| Meta-evaluation · 评估裁判 | 对照人工，检查 judge 有没有漏掉错误 |
 
-## 先把几个容易混在一起的字段分开
+Few-shot 决定给不给示范，reference-based 决定给不给当前题的参考答案。它们可以一起用，也可以分开用。[下一篇会展开](criteria.md)。
 
-```text
-Task / Input       原始任务是什么？
-Candidate          正在被评估的回答或轨迹是什么？
-Criterion          这一次只想判断哪个质量维度？
-Rubric             不同分数分别代表什么可观察行为？
-Reference          一个理想答案、关键事实或允许的答案集合
-Demonstrations     教 judge 怎样使用 rubric 的评分示例
-Evidence           检索内容、工具结果、环境状态或其他验证信息
-Verdict            分数、类别、偏好或通过/失败
-Rationale          支持 verdict 的具体证据
-```
+## 想继续往下看
 
-最容易混的是 reference 和 demonstration：前者告诉 judge，**这道题的参考答案是什么**；后者演示，**遇到这样的回答应该怎么评分**。
+- [G-Eval](https://arxiv.org/abs/2303.16634)：为什么要写 rubric，以及评分 token 概率怎么参与加权。
+- [Prometheus 2](https://arxiv.org/abs/2405.01535)：专门训练 evaluator 的思路；换成它也要做任务校准。
+- [Judging the Judges](https://arxiv.org/abs/2406.07791)：位置偏差该怎么测。
+- [Replacing Judges with Juries](https://arxiv.org/abs/2404.18796)：多个 judge 组成 panel 的一种做法，不是正确性的保证。
+- [Confident AI Blog](https://www.confident-ai.com/blog)：可以继续找实践例子；选了框架，仍然得自己定义“好”。
 
-## 这一组怎么读
+本组所有互动都用虚构数据，不上传输入、不调用模型。分数和判断只是用来解释机制，不是任何真实模型的成绩。
 
-- [评分标准怎么写](criteria.md)：标准要具体到什么程度，不同任务各自关心什么。
-- [打分方式怎么选](scoring.md)：通过或不通过、按等级打分、两两比较、整组排序，以及 QAG、DAG 各适合什么情况。
-- [概率加权分数](probability-scores.md)：G-Eval 式的期望分数、重复采样，以及为什么只存均值不够。
-- [怎样检查评分偏差](bias-and-workflow.md)：模型常在哪些地方判断不稳，以及上线使用前可以做哪些检查。
-
-## 推荐阅读
-
-- [G-Eval](https://arxiv.org/abs/2303.16634)：CoT evaluation steps、form filling 与 probability-weighted scoring。
-- [Judging LLM-as-a-Judge](https://arxiv.org/abs/2306.05685)：pointwise、pairwise 评估与常见偏差。
-- [Prometheus](https://arxiv.org/abs/2310.08491)：使用细粒度 rubric 与 reference answer 训练专门 evaluator。
-- [Judging the Judges](https://arxiv.org/abs/2406.07791)：系统分析 pairwise position bias。
-
-### 工程实践
-
-- [Confident AI Blog](https://www.confident-ai.com/blog)：有较完整的 LLM-as-a-Judge、G-Eval、Arena-style comparison、RAG evaluation、Agent evaluation 与 observability 实践文章。适合补充实现思路，但不替代原始论文和针对自己任务的校准实验。
-
-## 和其他章节的连接
-
-- [Evaluation 总览](../)
-- [Agent Observability](../../06-systems/agent-observability.md)
-- [Human-in-the-Loop](../../06-systems/human-in-the-loop.md)
-- [数据与反馈](../../01-data-and-feedback/)
+接着读：[评分标准](criteria.md) · [评估总览](../README.md)

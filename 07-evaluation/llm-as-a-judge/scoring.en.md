@@ -1,65 +1,68 @@
-# LLM-as-a-Judge: choosing a scoring mode
+# Scoring modes: what decision will this result support?
 
 [中文](scoring.md) · **English**
 
-The same criterion can be scored in different ways.
+Checking a violation and choosing between two prompts need not use the same output. Don't turn every question into a numerical rating just because the API can return one.
 
-## 1. Binary / categorical
+## Common options, side by side
 
-Output `pass / fail / unknown`, or one of a finite set of categories.
+| Mode | Example | Useful for | Trade-off |
+| --- | --- | --- | --- |
+| Binary / categorical | pass, fail, unknown | Specific conditions | Define boundaries and count unknown separately |
+| Ordinal | Anchored 1–5 | Severity of errors or omissions | 4→5 need not equal the improvement from 2→3 |
+| Pairwise | A, B, tie, both_bad, unknown | Comparing candidates on the same task | Order effects, extra calls; better doesn't mean acceptable |
+| Listwise | Rank a candidate set | Whole-set comparisons | Long context and ordering effects; fewer calls may not cost less |
+| Checklist / QAG | Cover 3 of 5 requirements | Decomposable conditions | Bad decomposition yields a precise but useless ratio |
+| Gated / DAG | Hard checks before quality | Non-compensable failures | Upstream mistakes propagate; LLM nodes remain uncertain |
 
-Good for well-defined conditions, such as "does it cite a fact that is not in the context?" It is usually easier to calibrate than a vague continuous score.
+Reference-based evaluation concerns the information supplied, not a competing output format. Probability weighting aggregates a score distribution; it isn't a new quality criterion.
 
-## 2. Anchored ordinal score
+## Swap A/B without losing answer identity
 
-Output ordered levels such as 1–5, each with a clear behavioral anchor.
+<div data-judge-lab="pairwise"><p>This interaction needs JavaScript. Always choosing the first slot changes answer identity after a swap. Map choices back to stable IDs before checking consistency.</p></div>
 
-It fits cases that need to express severity, but don't assume the gap between 4 and 3 necessarily equals the gap between 3 and 2.
+Three deliberately simple “judges” follow policy, always pick the first slot, or prefer the longer response. They are fixed rules, not models, designed to make failure modes visible.
 
-## 3. Pairwise comparison
+Keep the task, rubric, and answers unchanged; swap only their display order. Choosing A first and then choosing “the first answer” again does **not** necessarily support A twice.
 
-Give two candidates, A and B, and let the judge choose `A / B / tie / both bad`.
+For example, record:
 
-Good for A/B comparison of models, prompts, or policies. It is usually more natural than absolute scoring but is prone to position bias, so swap the order and judge again.
+~~~json
+{"case_id":"return-01","order":["answer-A","answer-B"],"winner":"answer-A"}
+{"case_id":"return-01","order":["answer-B","answer-A"],"winner":"answer-A"}
+~~~
 
-## 4. Listwise ranking
+Both results map to the same answer ID here. Define how ties, both_bad, and unknown count as well. A consistently chosen answer can still be wrong: consistency isn't correctness. Read the [position-bias study](https://arxiv.org/abs/2406.07791) alongside this demonstration.
 
-Rank several candidates at once. It saves calls, but as the candidates multiply, context and order effects become more complex. It usually needs randomized order or grouped comparison.
+## Decide the win-rate denominator in advance
 
-## 5. QAG / decomposable ratio
+For 20 independent tasks, suppose A wins 8, B wins 6, with 4 ties, 1 both_bad, and 1 unknown.
 
-First split a complex target into several answerable yes/no questions, then compute the score from the fraction that pass.
+One explicit convention records unknown as abstention and both_bad as task failure, then computes a quality win rate on the remaining 18:
 
-For completeness, for example, first extract five required points, then judge how many of them the response covers:
+$$W_A=\frac{8+0.5\times4}{8+6+4}=\frac{10}{18}.$$
 
-```text
-completeness = required points covered / total required points
-```
+This is a convention, not the only valid formula. Report all 20 tasks, the abstention, and the both_bad case alongside 55.6%. A relative win is not permission to ship when both versions fail the minimum requirements.
 
-Where this score comes from is much clearer than directly asking the model to "rate completeness 0.73."
+Pairwise results can also cycle: A beats B, B beats C, C beats A. Elo or Bradley–Terry can fit overall rankings under assumptions; a few comparisons do not reveal a single true model ability.
 
-## 6. DAG / hierarchical gating
+## Decompose a checklist carefully
 
-Check the inviolable conditions first, then evaluate open-ended quality. For example:
+For “explain eligibility, deadline, and application steps,” check three observable requirements instead of asking for a completeness score of 0.83.
 
-```text
-Tool arguments wrong? → fail immediately
-Fact not supported by the evidence? → score capped at 2
-Otherwise → go on to judge helpfulness and quality of expression
-```
+They may not be equally important. Adding “nice punctuation” should not compensate for false eligibility information. Specify whether a requirement is inapplicable or missing rather than silently changing the denominator.
 
-The value of a DAG is that it expresses the evaluation logic; it does not automatically make LLM judgment deterministic.
+QAG generally decomposes evaluation using questions and answers; a DAG represents dependent evaluation steps. Framework terminology and APIs vary. Neither name guarantees a good measurement.
 
-## How I would choose a scoring mode
+## Keep hard gates separate from quality scores
 
-| Scenario | Better starting point |
-| --- | --- |
-| There is an explicit rule or an executor | Deterministic checks; an LLM is not the first choice |
-| Judging whether one semantic condition is violated | Binary + rationale + evidence |
-| Comparing two models or prompts | Pairwise, swap the order, allow ties |
-| Judging how severe a quality problem is | A 1–5 ordinal rubric with behavioral anchors |
-| A complex target made of several sub-conditions | QAG or DAG decomposition |
-| Need a finer ranking and the API has logprobs | Rating-token probability expectation |
-| No logprobs, but stability needs estimating | Repeated sampling, reporting the distribution and the variance as well |
-| A high-quality gold answer exists | Reference-based |
-| There is no single correct answer | Reference-free + a clear rubric + human calibration |
+~~~text
+Unparseable JSON → evaluator error, not candidate task failure
+Necessary evidence absent → unknown / human review
+Confirmed permission violation or incorrect final state → criterion fail
+Otherwise → separate grounding, completeness, and expression judgments
+~~~
+
+You can record every dimension while defining the release gate separately. An agent that placed an unauthorized order shouldn't pass because its wording was polite.
+
+Continue: [Probability scores](probability-scores.en.md) · [Task examples](case-studies.en.md)
