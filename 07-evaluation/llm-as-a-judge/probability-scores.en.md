@@ -1,65 +1,69 @@
-# LLM-as-a-Judge: probability-weighted scores
+# Probability scores: what does 4.1 actually tell us?
 
 [中文](probability-scores.md) · **English**
 
-## What a probability-weighted score actually is
+Integer ratings often bunch together. Could we ask a judge 20 times and calculate a weighted score? Yes, but first distinguish the probabilities you actually have.
 
-Suppose the judge can only output 1–5. Taking one discrete score produces many ties, and you cannot see the model hesitating between 3 and 4.
+## Same mean, different disagreement
 
-If you can get the probabilities of the rating tokens, you can compute the expectation `E[s] = Σ s·p(s)`:
+<div data-judge-lab="distribution"><p>This interaction needs JavaScript. Twenty scores of 3 and ten each of 1 and 5 both average 3, but have variances of 0 and 4.</p></div>
 
-```text
-score = 1·p(1) + 2·p(2) + 3·p(3) + 4·p(4) + 5·p(5)
-```
+The controls edit **fictional score counts**. Switch between “All 3” and “Split 1 / 5”: the mean stays fixed while disagreement changes. Setting every count to zero means no data, not a score of zero.
 
-For example:
+## Method A: probabilities of rating labels
 
-```text
-p(3)=0.10, p(4)=0.70, p(5)=0.20
-score = 3×0.10 + 4×0.70 + 5×0.20 = 4.10
-```
+With probabilities for all allowed labels at a common rating position:
 
-That is the core idea of probability-weighted scoring in G-Eval: you end up with a finer, continuous score rather than only integers.
+$$\bar{s}=\sum_{k=1}^{5}k\,p(k).$$
 
-## What "generate 20 scores" means
+For \(p(3)=0.1,\ p(4)=0.7,\ p(5)=0.2\), the result is 4.1. [G-Eval](https://arxiv.org/abs/2303.16634) uses rating-token probabilities to refine discrete scores.
 
-Two implementations need to be told apart here.
+Having an API that returns logprobs is not sufficient by itself:
 
-### Method A: read token probabilities directly
+- Returned top-k tokens may omit rating labels. **Absent does not mean probability zero.**
+- “4,” “ 4,” and multi-token labels may differ. Fix formatting, inspect tokenization, and identify the rating position.
+- Renormalizing only a returned subset creates a **conditional distribution**. Report the probability mass retained.
+- Incomplete top-k probabilities do not give the full expectation. Change the output protocol, use an interface exposing the needed probabilities, or use repeated sampling.
 
-If the model API exposes log probabilities for output tokens, you get `p(1)...p(5)` directly and then compute the weighted expectation.
+The probability of generating the token 4 is not a 70% probability that the answer is correct. **Token probabilities and calibration of judgment correctness are different.**
 
-### Method B: approximate the distribution by repeated sampling
+## Method B: separate calls, repeated sampling
 
-If the full probabilities are not available, have the judge sample independently several times. Say 20 runs give:
+If 20 calls return four 3s, twelve 4s, and four 5s:
 
-```text
-score 3:  4 times
-score 4: 12 times
-score 5:  4 times
-```
+$$\hat p(k)=\frac{n_k}{N},\qquad
+\bar{s}=\sum_k k\frac{n_k}{N}=\frac{1}{N}\sum_{i=1}^{N}s_i=4.$$
 
-The empirical probabilities are `0.2 / 0.6 / 0.2`, and the final expected score is 4.0.
+This is the ordinary mean, rewritten using frequencies. It doesn't invent a separate weight for each of the 20 calls.
 
-So "generate 20 scores and take a weighted sum" is not a new criterion; it is **one way to estimate the score distribution**.
+- One prompt requesting “20 scores” does not produce 20 independent calls.
+- Keep the model, rubric, context, and sampling setup fixed. Independent sampling is a modeling assumption, not protection from systematic bias.
+- Identical temperature-zero outputs do not establish a useful sampling distribution. Temperature isn't a quality-calibration dial.
+- Two parsing failures mean 18 valid results from 20 attempts plus 2 errors. Don't report only the mean of the 18.
 
-## Storing only the weighted mean is not enough
+More draws can reveal sampling variation. They won't repair a biased rubric, and 20 is not a universally appropriate sample size.
 
-Both of the distributions below have a mean of 3:
+## Keep more than a mean
 
-```text
-A: 100% give a 3
-B: 50% give a 1, 50% give a 5
-```
+| Record | What it tells you |
+| --- | --- |
+| Counts / probability distribution | Where scores concentrate; whether they are bimodal |
+| Mean and variance | Location and dispersion under the chosen numeric encoding |
+| Valid / attempted | How often a usable judgment is returned |
+| Separate unknown and error counts | Missing evidence versus evaluator failure |
+| Criterion and model versions | Whether two batches are comparable |
 
-A means the judge consistently finds the answer mediocre; B means the judge is extremely uncertain, or the rubric admits two conflicting readings.
+A value of 4.137 is not necessarily more meaningful than 4.100. A 1–5 scale is ordinal; treating its steps as equally spaced is a modeling choice whose usefulness needs validation against people and decisions.
 
-So it is best to store all of these together:
+## Two kinds of weighting
 
-- the weighted mean;
-- the variance or standard deviation;
-- the probability of each score;
-- the agreement rate across repeated samples;
-- the `unknown / abstain` rate.
+**Distribution weighting** calculates an expectation within one criterion. **Metric weighting** combines dimensions such as grounding, relevance, and style. The former cannot determine the latter's weights or justify offsetting false facts with better prose.
 
-If the distribution is clearly bimodal, inspect the criterion and the input evidence first, rather than letting the mean paper over the disagreement.
+<details markdown="1">
+<summary>If two groups average 3, should we prefer lower variance?</summary>
+
+Not on variance alone. A consistently wrong judge can have zero variance. Check human judgments and the criterion before interpreting disagreement as sampling noise, task ambiguity, or incomplete evidence.
+
+</details>
+
+Continue: [Bias tests](bias-and-workflow.en.md) · [Calibration and thresholds](calibration.en.md)

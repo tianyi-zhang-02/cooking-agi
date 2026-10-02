@@ -370,7 +370,8 @@ dir   = "07-evaluation/llm-as-a-judge"
 group = "eval"
 zh    = "LLM-as-a-Judge"
 en    = "LLM-as-a-Judge"
-order = ["README.md", "criteria.md", "scoring.md", "probability-scores.md", "bias-and-workflow.md"]
+order = ["README.md", "criteria.md", "scoring.md", "probability-scores.md", "bias-and-workflow.md",
+         "calibration.md", "case-studies.md", "implementation.md"]
 
 [[section]]
 dir = "08-model-experience"
@@ -558,6 +559,9 @@ en  = "Templates"
 "07-evaluation/llm-as-a-judge/scoring.md" = ["打分方式", "Scoring modes"]
 "07-evaluation/llm-as-a-judge/probability-scores.md" = ["概率加权分数", "Probability scores"]
 "07-evaluation/llm-as-a-judge/bias-and-workflow.md" = ["偏差与稳健流程", "Biases & workflow"]
+"07-evaluation/llm-as-a-judge/calibration.md" = ["人工校准与阈值", "Calibration & thresholds"]
+"07-evaluation/llm-as-a-judge/case-studies.md" = ["RAG、Agent 与 Memory", "RAG, agents & memory"]
+"07-evaluation/llm-as-a-judge/implementation.md" = ["跑一个最小流程", "A minimal workflow"]
 "08-model-experience/README.md"                         = ["模型体验", "Model experience"]
 "09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
 "contributors.md"                                      = ["幕后", "Behind the notes"]

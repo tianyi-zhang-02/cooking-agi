@@ -1858,6 +1858,8 @@ def assemble(page, sections, people, nav, built, template):
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     content = page.body
+    if page.section.get("dir") == "07-evaluation/llm-as-a-judge":
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/judge-lab.css?v={built}">\n<script defer src="{prefix}static/judge-lab.js?v={built}"></script>\n</head>')
     is_discussion = page.section.get("dir") == "discussions"
     discussion_config = nav["_discussions"]
     if is_discussion:
