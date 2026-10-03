@@ -2,7 +2,7 @@
 
 [中文](conditional.md) · **English**
 
-> Reading time: ~8 min · Level: beginner · Last reviewed: 2026-09
+> Reading time: ~8 min · Level: beginner · Last reviewed: 2026-10
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>how learning that one event happened changes the probability of another</strong></div>
@@ -23,26 +23,26 @@ In the figure below the whole square is Ω and area is probability. Switch to "g
 
 <!-- widget:tx-prob-events -->
 
-## The chain rule: always true
+## The chain rule: no independence required
 
 Rearrange the definition:
 
 $$P(A \cap B) = P(A)\,P(B \mid A)$$
 
-This holds **always**, with no assumptions. When events are dependent you still multiply; you just multiply by the conditional.
+This holds when $P(A)>0$, **without independence**. If $P(A)=0$, the intersection probability is also 0, but the ratio definition above no longer defines the conditional.
 
 Rain and snow: $P(\text{rain and snow}) = P(\text{rain}) \cdot P(\text{snow} \mid \text{rain})$. If snow is more likely on rainy days, this is larger than $P(\text{rain}) \cdot P(\text{snow})$.
 
 ## Independence: the conditional collapses to the plain probability
 
-**Definition**: $P(A \cap B) = P(A)\,P(B)$. It says the same thing as $P(B \mid A) = P(B)$, in two forms:
+**Definition**: $P(A\cap B)=P(A)P(B)$. When $P(A)>0$, this is equivalent to $P(B\mid A)=P(B)$:
 
 - if $P(A \cap B) = P(A)P(B)$, put it into the definition of conditional probability: $P(B \mid A) = P(A)P(B) / P(A) = P(B)$;
 - conversely, multiply both sides of $P(B \mid A) = P(B)$ by $P(A)$ and you are back at $P(A \cap B) = P(A)P(B)$.
 
-By symmetry $P(A \mid B) = P(A)$ as well. So independence is just the special case of the chain rule where the conditional happens to equal the plain probability.
+When $P(B)>0$, we also have $P(A\mid B)=P(A)$. The product definition itself handles zero-probability events without any division.
 
-One thing that is often said wrong: **"can happen together" is not independence.** Rain and snow can fall on the same day, yet they are almost certainly dependent — both are driven by the same weather system. Overlap is necessary for independence, not sufficient. Independence is an equation you compute and check, not a feeling that two events are unrelated. In real problems it usually comes from the setup — two separate coins, two separate days — not from what the sets look like.
+**"Can happen together" does not mean independent.** If both events have positive probability, independence requires a positive intersection probability, but overlap alone is insufficient. Zero-probability events can even be both disjoint and independent. Use the product equation or an explicit modeling assumption; different coins or different days do not themselves guarantee independence.
 
 ## Disjoint is not independent
 
@@ -68,11 +68,11 @@ Split on whether A happens, weight each case, and add:
 
 $$P(B) = P(B \mid A)\,P(A) + P(B \mid A^c)\,P(A^c)$$
 
-Reach for it whenever you need B without knowing how A turned out.
+Here assume $0<P(A)<1$. Omit zero-probability groups rather than writing undefined conditionals. General partitions and proofs appear in [Conditional expectation](conditioning-proofs.en.md).
 
 ## Bayes: turning the condition around
 
-When you know $P(B \mid A)$ and want $P(A \mid B)$, use Bayes' rule. It is the chain rule written in both directions, with total probability in the denominator:
+When you know $P(B \mid A)$ and want $P(A \mid B)$, use Bayes' rule. Require $P(B)>0$ and the positive-probability groups above. Write the chain rule in both directions and expand the denominator using total probability:
 
 $$P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B \mid A)\,P(A) + P(B \mid A^c)\,P(A^c)}$$
 

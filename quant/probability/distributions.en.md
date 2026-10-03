@@ -2,7 +2,7 @@
 
 [中文](distributions.md) · **English**
 
-> Reading time: ~6 min · Level: beginner · Last reviewed: 2026-09
+> Reading time: ~6 min · Level: beginner · Last reviewed: 2026-10
 
 <div class="lesson-recipe">
   <div><span>The problem</span><strong>what a random variable looks like, and how to describe and draw it</strong></div>
@@ -25,7 +25,7 @@ Drawn, it is a bar chart. Flip a coin 8 times with heads probability p, and the 
 
 ## Continuous: area under a curve
 
-When X can take a whole interval of real values, giving each point a probability stops working — there are too many points, so each one can only get 0. Instead you use a **density** f (the PDF, probability density function), and probability is the area under the curve:
+For distributions with a **probability density function** f (PDF), probabilities are areas under a curve. These distributions are called absolutely continuous. Taking values across an interval does not by itself guarantee a density; the mixed example below illustrates why:
 
 $$P(a \le X \le b) = \int_a^b f(x)\,dx$$
 
@@ -34,7 +34,7 @@ Two things are easy to get wrong:
 - **f(x) is not a probability and can exceed 1.** Uniform(0, 1/2) has density 2 everywhere, and the area is still 1.
 - **Every single point has probability 0.** So for a continuous variable $P(X \le b)$ and $P(X < b)$ are the same.
 
-The expectation becomes an integral: $\mathbb{E}[X] = \int x\,f(x)\,dx$.
+For $\mathbb E|X|<\infty$, expectation becomes $\mathbb E[X]=\int x f(x)\,dx$. Nonnegative variables may have the extended expectation $+\infty$.
 
 ## The CDF: the one picture that always works
 
@@ -45,7 +45,7 @@ $$F(x) = P(X \le x)$$
 It collects probability from left to right, so it never decreases, tends to 0 on the left and 1 on the right, and is right-continuous: at a jump it takes the value after the jump.
 
 - The CDF of a discrete variable is a **staircase**: each step is exactly as tall as the PMF at that point;
-- the CDF of a continuous variable is a **smooth ramp** whose slope is the density, $F' = f$;
+- with a density, the CDF is its cumulative integral and $F'=f$ almost everywhere, not necessarily at every point; a continuous CDF alone does not guarantee a density;
 - reading probabilities takes two rules: $P(a < X \le b) = F(b) - F(a)$, and $P(X = x) = F(x) - F(x^-)$ — **how far it jumps** at x.
 
 Move x and watch F(x) collect everything to its left:
@@ -54,7 +54,7 @@ Move x and watch F(x) collect everything to its left:
 
 ## Mixed distributions: bars and a curve at once
 
-The third kind is the fun one. Take an insurance payout: with probability π the year has no claim and pays exactly 0; otherwise the amount is roughly normal, but capped at 5.5. So 0 and 5.5 **each carry real probability**, and the stretch in between is a density.
+A mixed toy payout gives a third example. With probability π there is no claim, giving 0. Otherwise take a normal variable Z and clip it to $[0,5.5]$. Both 0 and 5.5 then carry point mass, with a density between them. The mass at 0 includes both no-claim outcomes and clipped nonpositive values of Z.
 
 - A PMF alone fails: every point in the middle has probability 0;
 - a PDF alone fails too: the probability sitting on 0 and on 5.5 cannot be written as a density;

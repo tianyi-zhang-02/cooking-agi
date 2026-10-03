@@ -112,9 +112,9 @@ home = "learn/README.md"
 id = "quant"
 category = "learn"
 zone = "basics"
-zh = "概率与统计"
-en = "Probability & statistics"
-home = "quant/probability/README.md"
+zh = "数学与量化"
+en = "Math & quant"
+home = "quant/README.md"
 
 [[group]]
 id = "foundations"
@@ -259,11 +259,44 @@ en    = "Learning path"
 order = ["study-guide.md", "README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
 
 [[section]]
+dir   = "quant"
+group = "quant"
+zh    = "复习导航"
+en    = "Review map"
+order = ["README.md", "review.md"]
+
+[[section]]
 dir   = "quant/probability"
 group = "quant"
-zh    = "概率"
+zh    = "概率基础与证明"
 en    = "Probability"
-order = ["README.md", "distributions.md", "conditional.md"]
+order = ["study-guide.md", "README.md", "distributions.md", "conditional.md",
+         "counting.md", "distribution-toolkit.md", "joint-and-order.md",
+         "event-proofs.md", "expectation-proofs.md", "conditioning-proofs.md",
+         "inequalities.md", "limits.md", "continuous-calculus.md",
+         "markov-chains.md", "proof-toolbox.md", "practice.md"]
+
+[[section]]
+dir   = "quant/methods"
+group = "quant"
+zh    = "数学、统计与计算"
+en    = "Math, statistics & computation"
+order = ["README.md", "calculus-optimization.md", "linear-algebra.md",
+         "statistics.md", "numerical-and-coding.md"]
+
+[[section]]
+dir   = "quant/processes"
+group = "quant"
+zh    = "随机过程与决策"
+en    = "Processes & decisions"
+order = ["README.md", "martingales.md", "dynamic-programming.md", "brownian-ito.md"]
+
+[[section]]
+dir   = "quant/finance"
+group = "quant"
+zh    = "金融数学"
+en    = "Financial mathematics"
+order = ["README.md", "options-and-greeks.md", "portfolio-and-market.md"]
 
 [[section]]
 dir = "00-foundations/core"
@@ -509,6 +542,33 @@ en  = "Templates"
 "00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
 "00-foundations/transformer.md"                         = ["Transformer 架构", "Transformer"]
 "00-foundations/transformer-lab.md"                     = ["Transformer 交互图解", "Transformer lab"]
+"quant/probability/study-guide.md" = ["复习路线", "Review guide"]
+"quant/README.md" = ["覆盖表与路线", "Coverage & routes"]
+"quant/review.md" = ["综合复习", "Mixed review"]
+"quant/probability/counting.md" = ["计数与抽样", "Counting & sampling"]
+"quant/probability/distribution-toolkit.md" = ["常用分布推导", "Distribution toolkit"]
+"quant/probability/joint-and-order.md" = ["联合分布与顺序统计", "Joint & order statistics"]
+"quant/methods/README.md" = ["逻辑与证明方法", "Logic & proof methods"]
+"quant/methods/calculus-optimization.md" = ["微积分与优化", "Calculus & optimization"]
+"quant/methods/linear-algebra.md" = ["线代与最小二乘", "Linear algebra"]
+"quant/methods/statistics.md" = ["统计推断", "Statistical inference"]
+"quant/methods/numerical-and-coding.md" = ["数值与编程", "Numerics & coding"]
+"quant/processes/README.md" = ["Poisson 与到达时间", "Poisson & arrivals"]
+"quant/processes/martingales.md" = ["随机游走与鞅", "Walks & martingales"]
+"quant/processes/dynamic-programming.md" = ["动态规划与最优停止", "DP & optimal stopping"]
+"quant/processes/brownian-ito.md" = ["Brownian motion 与 Itô", "Brownian motion & Itô"]
+"quant/finance/README.md" = ["无套利与复制", "No-arbitrage & replication"]
+"quant/finance/options-and-greeks.md" = ["Black–Scholes 与 Greeks", "Black–Scholes & Greeks"]
+"quant/finance/portfolio-and-market.md" = ["组合与风险", "Portfolios & risk"]
+"quant/probability/event-proofs.md" = ["事件与公理证明", "Event proofs"]
+"quant/probability/expectation-proofs.md" = ["期望与方差", "Expectation & variance"]
+"quant/probability/conditioning-proofs.md" = ["条件期望与全方差", "Conditional expectation"]
+"quant/probability/inequalities.md" = ["常用不等式", "Inequalities"]
+"quant/probability/limits.md" = ["大数定律与 CLT", "LLN & CLT"]
+"quant/probability/continuous-calculus.md" = ["连续概率与微积分", "Continuous probability"]
+"quant/probability/markov-chains.md" = ["Markov 链与等待时间", "Markov chains"]
+"quant/probability/proof-toolbox.md" = ["证明技巧", "Proof techniques"]
+"quant/probability/practice.md" = ["练习与反例", "Exercises"]
 "quant/probability/README.md"      = ["公理与随机变量", "Axioms"]
 "quant/probability/distributions.md" = ["把分布画出来", "Drawing distributions"]
 "quant/probability/conditional.md" = ["条件概率与独立", "Conditioning & independence"]
