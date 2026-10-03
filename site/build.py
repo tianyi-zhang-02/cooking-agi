@@ -36,7 +36,6 @@ from pathlib import Path
 import markdown
 import collaboration
 import next_stop
-import discussions
 from markdown.extensions.toc import TocExtension, slugify
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1592,7 +1591,7 @@ def footer_html(page, people, repo, built):
     <span class="sep">·</span>
     <a href="{edit}">{'提交修改' if zh else 'Suggest an edit'}</a>
   </div>
-  {"" if page.section.get("dir") == "discussions" else collaboration.page_panel(page, collaboration.load_config(), repo)}
+  {collaboration.page_panel(page, collaboration.load_config(), repo)}
   {contributor_portal}
 </footer>"""
 
@@ -1860,13 +1859,6 @@ def assemble(page, sections, people, nav, built, template):
     content = page.body
     if page.section.get("dir") == "07-evaluation/llm-as-a-judge":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/judge-lab.css?v={built}">\n<script defer src="{prefix}static/judge-lab.js?v={built}"></script>\n</head>')
-    is_discussion = page.section.get("dir") == "discussions"
-    discussion_config = nav["_discussions"]
-    if is_discussion:
-        content = content.replace('<div data-discussion-topics></div>', discussions.topic_cards(page, discussion_config))
-        content += discussions.comments(page, discussion_config)
-        content += discussions.related(page, discussion_config)
-        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/discussions.css?v={built}">\n<script defer src="{prefix}static/discussions.js?v={built}"></script>\n</head>')
     config = collaboration.load_config()
     content = content.replace('<div data-collaboration-areas></div>',
                               collaboration.areas_html(config, site['repo'], zh))
@@ -1889,9 +1881,6 @@ def assemble(page, sections, people, nav, built, template):
             template, count=1, flags=re.S,
         )
     page_class = "page-crew page-next-stop" if is_next_stop else "page-crew" if is_community_scene else f"page-{page.kind}"
-    if is_discussion:
-        discussion_kind = "article" if discussions.topic_for(page, discussion_config) else "index"
-        page_class += f" page-talk page-talk-{discussion_kind}"
     return (template
             .replace("{{lang}}", "zh-Hans" if zh else "en")
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
@@ -1911,8 +1900,8 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{sidebar_label}}", "笔记导航" if zh else "Note navigation")
             .replace("{{hero}}", hero_html(page))
             .replace("{{tabs}}", tabs_html(page))
-            .replace("{{toc}}", "" if is_discussion else toc_html(page))
-            .replace("{{mobile_toc}}", "" if is_discussion else mobile_toc_html(page))
+            .replace("{{toc}}", toc_html(page))
+            .replace("{{mobile_toc}}", mobile_toc_html(page))
             .replace("{{toc_label}}", "本页目录" if zh else "On this page")
             .replace("{{skip_label}}", "跳到正文" if zh else "Skip to content")
             .replace("{{menu_label}}", "打开目录" if zh else "Open navigation")
@@ -1933,8 +1922,8 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{crew_aria}}", "幕后" if zh else "Behind the notes")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", content)
-            .replace("{{page_header}}", discussions.header(page, discussion_config) if is_discussion else page_header_html(page))
-            .replace("{{page_nav}}", "" if is_community_scene or is_discussion else page_nav_html(page))
+            .replace("{{page_header}}", page_header_html(page))
+            .replace("{{page_nav}}", "" if is_community_scene else page_nav_html(page))
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))
@@ -1948,7 +1937,6 @@ def main():
     args = ap.parse_args()
 
     nav = load_nav()
-    nav["_discussions"] = discussions.load_config()
     collaboration.validate(collaboration.load_config(), nav)
     terms = load_glossary()
     built = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

@@ -69,7 +69,6 @@ class NoteReadingTests(unittest.TestCase):
 
     def test_bilingual_pages_keep_notes_and_navigation_without_recap(self):
         nav = build.load_nav()
-        nav['_discussions'] = build.discussions.load_config()
         previous_sources = dict(build.BY_SRC)
         try:
             pages, sections = build.discover(nav)
