@@ -17,7 +17,7 @@ Concept cards with a language button let you switch that explanation in place. C
 
 Understand what a component computes before comparing how different models change it.
 
-- [Probability & statistics](../quant/probability/README.en.md): distributions, conditioning, and uncertainty—useful in both ML and quant work.
+- [Math & quant review](../quant/README.en.md): probability proofs, counting, linear algebra, statistics, stochastic processes, numerics, and financial mathematics. A coverage map distinguishes full derivations from introductions.
 - [Language-model study guide](../00-foundations/study-guide.en.md): vectors, tokens, and Transformers, with room to revisit missing foundations.
 - [Model families](../00-foundations/model-families/README.en.md): read Llama, Qwen, DeepSeek, and Gemma using a shared set of questions.
 - [Interactive diagrams](../00-foundations/transformer-lab.en.md): change a parameter and see what happens to the computation.

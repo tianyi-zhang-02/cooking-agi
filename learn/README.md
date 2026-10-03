@@ -17,7 +17,7 @@
 
 先弄明白每个模块在算什么，再看不同模型为什么会选不一样的做法。
 
-- [概率与统计](../quant/probability/README.md)：从分布和条件概率开始，学会描述不确定性。做机器学习或量化研究都用得上。
+- [数学与量化复习](../quant/README.md)：从概率证明出发，接到计数、线代、统计、随机过程、数值与金融数学；覆盖表标明推导深度，复习时能直接找到缺的那一块。
 - [大模型学习路线](../00-foundations/study-guide.md)：从向量、Token 到 Transformer，不熟的地方随时回去补。
 - [模型家族](../00-foundations/model-families/README.md)：带着同一组问题读 Llama、Qwen、DeepSeek、Gemma。
 - [交互图解](../00-foundations/transformer-lab.md)：拖动滑块、改一个参数，看看计算过程和结果怎样变化。
