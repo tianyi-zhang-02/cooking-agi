@@ -2,66 +2,42 @@
 
 [中文](not-binary.md) · **English**
 
-> Reading time: ~3 min · Last reviewed: 2026-09
+> Reading time: ~3 min · Last reviewed: 2026-10
 
-> **Read this first**: a lot of this is time-sensitive and may no longer hold by the time you read it; I am an international student, so it may not apply to green-card holders or US citizens; there are no interview questions here, and nothing about any company's specific process. The full note is in [Career: read this page first](README.en.md).
+After a bad interview, it's easy to go from “I couldn't answer that question” to “Maybe I'm not suited for this.” There are quite a few steps between those thoughts, but they don't feel very far apart at the time.
 
-Looking for a job is only one part of life. **It is not a yes-or-no question.**
+I don't think I've mastered the mental side of recruiting. It's easy to write something sensible and still feel awful when the rejection arrives. This page is partly a reminder to myself.
 
-## What an interview is
+## How much can one interview show?
 
-My view of interviews: I roll my eyes at plenty of what they test, but fundamentally they are a fast filter.
+I don't agree with everything interviews test. But a hiring team has limited time and needs something it can observe: can you write the code, explain your reasoning, or draw on relevant experience?
 
-The things that matter most in a person — trust, a steady character — take a long time to become visible and cannot be established quickly. So solving problems became the filter: pass it and you get a chance. Seen that way, it is fair in a sense.
+Whether someone follows through, handles disagreements well, or sees a project through is harder to establish in an hour. An interview catches some of that and misses plenty.
 
-But remember that solving problems is not the only way through. This is just tech, which needs people who can execute :)
+A rejection might reflect a gap in my preparation, or a team looking for someone with more experience in that particular area. Often I don't know which. If I can identify something I answered badly, I can work on it. Guessing at the parts I never got feedback on doesn't get me very far.
 
-## Why nobody can cover everything
+## I couldn't prepare for every direction at once
 
-What I would tell people: **don't prepare for everything, and also prepare for everything.**
+I've left an interview realizing my ML fundamentals were weak, spent time reviewing them, and then struggled with LeetCode in the next one. That's frustrating: before the work you've just done gets a chance to help, another gap shows up.
 
-It sounds contradictory, but that is what interviews look like in 2026. They are not standardised tests like TOEFL, the SAT, or the GRE, where one body of preparation covers every variation. Company interviews have become strange, and every team wants something different:
+Last year I applied to SDE, MLE, and quant roles at the same time. That was when I learned how much separate preparation they needed. Some fundamentals overlap, but the follow-up questions go in very different directions. With the time and background I had, I couldn't do all of them well.
 
-- **QR**: statistics and probability basics;
-- **frontier startup labs**: domain knowledge, straight away;
-- **large companies, and companies in China**: LeetCode, and ML basics too — even if your work is on LLMs, you may well get asked about CV or something else entirely.
+Looking back, I needed to narrow my focus rather than add another preparation checklist. Exploring other roles is fine. It just takes time, and sometimes it means accepting that you aren't ready for a particular opportunity yet.
 
-The deeper point: **different career tracks want fundamentally different candidates.** Very few people fit both job description A and job description B — that may have been workable once, but it feels harder every year.
+## Compensation, title, and what comes after
 
-Covering all of it is genuinely hard. I am not saying this to depress anyone, but so you know: **it is not that you alone failed to prepare enough.**
+Read enough tech career discussions and life can start to look like a short list: which company, how much compensation, when the next promotion happens. It's easy to lose track of what you wanted before you started reading.
 
-## Don't overfit to the criteria
+I care about money too. Pay, location, and stability all matter. I also want to ask what another step up would cost in time, and whether I actually want that trade.
 
-Bay Area standards make it easy to believe they are the only standards: a big offer, climbing the ladder, always at the frontier.
+Some people love intense research work and want to give it a large part of their lives. Others want more time with family and friends, or for photography and travel. Neither needs to make that decision for the other. We're not all trying to get the same thing out of work.
 
-How it feels to me: the Bay Area is one big trap. It draws in bright young people and returns tired middle-aged ones who all look the same, releasing a few of the winners now and then to give everyone else some hope. The dangerous part is not the entertainment that keeps you numb; it is a decent salary plus a little hope, traded for the best years of your life. Traded for what? That is the part worth working out for yourself.
+I need the reminder myself: admiring someone else's choice isn't a reason to adopt all the expectations that come with it.
 
-A $1M package looks like a lot, but at what cost? Does it suit everyone? Can everyone even get there?
+## Be disappointed, then get on with your day
 
-There are countless businesses in the world and countless possibilities. Do what suits you; there is no need to overfit to a set of criteria someone else assembled.
+It's okay to feel bad after a rejection. You don't have to turn it into a “growth opportunity” that evening. Later, you can look at the concept you missed, the code you got stuck on, or the project explanation that wandered.
 
-**Everybody is playing a different game.** Some people are happy grinding for a big package in a brightly lit office; others would rather drive a small car, have a drink with friends, go out to shoot photos and surf. Neither life is wrong; both are personal choices.
+You also don't need to stay up analyzing every rejection. Some answers aren't available. Rehearsing the next project discussion—or getting some sleep—can be more useful than another hour guessing what the interviewer thought.
 
-## What to do when you fail an interview
-
-Failing interviews is normal, I think. Learn from your mistakes, don't let them happen again, and that is enough.
-
-**Failing does not mean you are not good.** Most of the time you and the company simply are not a match, and there are countless factors you never see — compared side by side, another candidate may have actually worked in that area and can be hands-on from day one.
-
-So don't overthink it. But do keep learning, keep preparing, keep your options open, and spend your limited time on the right things: after one rejection I realised my ML basics were too weak and went to fix them, and then the next interview turned around and grilled my LeetCode instead, which, well, nothing I could do about that one.
-
-People have limits too; nobody can cover everything. I believe everyone gradually finds what they are good at and the direction that suits them :) Don't let it weigh on you. Life is meant to be enjoyed.
-
-## Work out what you actually want
-
-What is the job for? To work on harder problems at the frontier, or something else? What is the goal in the end?
-
-If that question never gets an answer, it is easy to stop one day, look back, and find yourself lost. And how thick your wallet is does not depend only on how hard you grind — tech built a system that makes it feel like more effort always buys a step up the ladder, and that mindset is hard to shake.
-
-So: work out what you need, do what you enjoy, and be as happy as you can. **The job search is only one part of it.**
-
-## And not only the job search
-
-None of this is really about job hunting alone. Saving money, buying a place, getting married — none of those are black-and-white progress either, and not every step has to be the optimal one.
-
-Life is more colourful than that :)
+I want work I care about, and I want time for the rest of my life. Waiting for an offer before allowing myself to enjoy anything could turn into a long wait :)

@@ -2,34 +2,34 @@
 
 [中文](metrics.md) · **English**
 
-> Reading time: ~2 min · Last reviewed: 2026-09
+> Reading time: ~2 min · Last reviewed: 2026-10
 
-> **Read this first**: a lot of this is time-sensitive and may no longer hold by the time you read it; I am an international student, so it may not apply to green-card holders or US citizens; there are no interview questions here, and nothing about any company's specific process. The full note is in [Career: read this page first](README.en.md).
+Problems solved, applications sent, interviews scheduled: these are easy to count. A few more problems done today, a few more rows in the spreadsheet. At least there's a visible record of the work.
 
-## "I did X, so I should get Y"
+It's tempting to extend that calculation one step further: after doing this much, shouldn't I get something back?
 
-Don't let your thinking lock up.
+## “I did X, so I should get Y”
 
-**I did X, so I will get Y** — the world does not run like that. Relationships do not, and real life certainly does not. Once you treat that equation as fact, hitting a wall becomes incomprehensible: I did everything, so why not?
+I understand the appeal. After months of preparation, you want to know how much is left and when it will be enough. A progress bar you could fill and be done with would make this a lot easier.
 
-That is exactly when looking inward is more useful.
+But solving a problem once doesn't mean you can handle a variation. A good project may not be relevant to the team hiring right now. Openings, timing, and work authorization also affect the outcome, and another week of preparation won't necessarily change those.
 
-## A very common example
+Effort matters. It just doesn't come with a fixed exchange rate.
 
-Plenty of people think: I contributed so much to this company, I worked so hard, why no promotion? And then they can produce ten million reasons for it.
+## What I want the numbers to tell me
 
-But one uncomfortable possibility is this: **the supply and demand simply are not there.** There may be no room above that position at all. So, right now, should you keep forcing it?
+During that internship search, I did 120 problems in a month and still failed an interview because of my coding speed and approach. The problem count was real. So were the gaps in my preparation.
 
-## Don't let metrics lead you around
+Looking at that record now, I'd want to ask: can I handle a changed constraint? Can I write the solution again a week later? If someone asks why I made a particular project decision, can I explain it?
 
-- don't let metrics and pressure drive you;
-- don't let comparison tie you down;
-- don't let one fixed path limit the freedom in your own head.
+The same goes for applications. If none are getting a response, another hundred isn't the only possible next step. I could check whether I'm applying too broadly, whether my résumé makes the relevant experience clear, or talk to someone who knows the role.
 
-I know people love chasing clear, simple metrics — a spreadsheet is far easier to grasp than a broad idea. But we routinely ignore what a metric cannot see: **chase the number and you will overlook the real need and the real effect.**
+Those questions are less convenient to track, but they give me a better idea of what to do next.
 
-Worse, the metric track pulls people off the right direction, and what gets produced in the end is a pile of things nobody wants and nobody can maintain.
+## I expect this comes up after hiring too
 
-## So
+Someone can do a lot of work and still not be promoted. Their performance may be part of it; so may the role, available openings, or organizational decisions. I don't have enough experience to offer a rule, but “work harder” doesn't seem like a sufficient explanation for every case.
 
-Use metrics to check your direction, but don't treat one as the goal itself, and never treat it as a verdict on you.
+If more time keeps failing to produce the outcome you want, it's worth asking whether the approach needs to change—or whether that position can offer what you're looking for at all.
+
+I'll keep using the spreadsheet. I just don't want a few numbers in it to become my entire assessment of the year.

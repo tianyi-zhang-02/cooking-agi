@@ -2,45 +2,36 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~2 min · Last reviewed: 2026-09
+> Reading time: ~2 min · Last reviewed: 2026-10
 
-This section records **the experiences, mindset, and decisions behind a job search**: how I prepared, handled setbacks, and changed my mind. It reflects my experience in ML and research, not a universal recruiting playbook. A few things to keep in mind:
+When I started looking for internships last year, I had spent most of college doing research and knew very little about industry roles. I wanted to see my work become something people could use. Working out which jobs to apply for, and how to prepare for them, took longer than I expected.
 
-> **Read this first**
->
-> 1. **Much of this is time-sensitive.** The hiring market moves fast, and by the time you read this some of it may no longer apply. Every page carries a “last reviewed” date; read with that date in mind.
-> 2. **I am an international student.** So these notes may not fully apply if you hold a green card or are a US citizen.
-> 3. **No interview questions, and nothing about any specific company's process.** Only my own timeline, the mistakes I made, and what I learned about roles.
+These pages are about that part: the gaps in my preparation, things I only figured out after an interview, and decisions I changed along the way. I'm still looking for work myself, so this isn't a guide written from the other side of a finished search.
 
-## What is here
+If you're preparing for an ML internship or a new-grad role, take whatever is useful. I'd be happy if this saved you some time searching for resources, or made a frustrating part of the process feel a little less lonely :)
 
-Start with whichever part you need right now.
+## Where to start
 
-### 1. Mindset
+### My experience
 
-- [It is only one part of life](not-binary.en.md) — what an interview actually filters for, why nobody can cover everything, and why failing is not a verdict on you
-- [Don't let a metric lock you in](metrics.en.md) — "I did X, so I should get Y" is not how the world works
+- [25-26 internship search](journey.en.md): why I started by applying to everything, then narrowed my focus to MLE / Research Engineer.
+- [26-27 new-grad search 🚧](new-grad-2026-2027.en.md): still happening; I'll add updates as I have them.
+- [One MLE interview, reviewed](one-interview.en.md): a decent project discussion, a difficult fundamentals round, and the extra practice I need to explain technical work in Chinese.
 
-### 2. My own road
+### Preparation and the less technical parts
 
-- [25-26 internship search](journey.en.md) — the earlier timeline, mistakes, and three things I learned
-- [26-27 new-grad search 🚧](new-grad-2026-2027.en.md) — in progress; updates as I go
-- [A retrospective on one MLE interview](one-interview.en.md) — written right after the interview
+- [What to prepare](prepare.en.md): where I would spend my time if I were starting again.
+- [It is only one part of life](not-binary.en.md): taking preparation seriously without turning every rejection into a judgment of yourself.
+- [Don't let a metric lock you in](metrics.en.md): problems solved and applications sent don't tell the whole story.
 
-I'm now looking for **new-grad roles in the 2026–2027 recruiting season** and will keep adding notes on my preparation and experience. New entries will be dated and kept distinct from the internship search.
+### Technical practice
 
-### 3. What to prepare
+Python, LeetCode, ML fundamentals, and system design are in [Study notes](../learn/README.en.md). This section is for the experience of preparing and applying.
 
-- [What to actually prepare](prepare.en.md) — not everything, not nothing: your story, the fundamentals, people, and the vocabulary
+## A little context
 
-### 4. When you want technical practice
+My background is mostly in ML and research. I'm not a good source of advice for SDE, frontend, or backend interviews. I'm also an international student, so work authorization, location, and timing affect my options in ways that may not apply to you.
 
-Python, algorithms, ML questions, and system design now belong in [Study notes](../learn/README.en.md). This section keeps preparation habits and personal decisions separate from technical exercises.
+Older entries stay attached to their recruiting season. Hiring changes, and one interview tells you very little about an entire company. I won't share specific interview questions or non-public processes here.
 
-## One more thing I believe
-
-For me, looking for a job is not just about showing technical ability. It is also about whether people can work well together: how we communicate, handle disagreements, and follow through on commitments.
-
-I am still learning this too. I hope to find work that fits me and to be someone others can trust and enjoy working with.
-
-If you are not sure where to start, go back to [the home page](../README.en.md) and choose a section that interests you.
+If something is unclear, feel free to open an issue. Your experience may be different from mine, and there are things you will have noticed that I haven't.

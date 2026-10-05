@@ -2,70 +2,56 @@
 
 [中文](journey.md) · **English**
 
-> Reading time: ~3 min · Last reviewed: 2026-09
+> Reading time: ~3 min · Last reviewed: 2026-10
 
-This is a record of my **2025–2026 internship recruiting season**, from not knowing what to prepare to gradually finding a direction.
+This page is for the 2025–2026 internship search. I'm now looking for full-time roles and keeping those notes in [26-27 new-grad search 🚧](new-grad-2026-2027.en.md). Keeping the two rounds separate should make them easier to follow later, including for me.
 
-I'm now looking for new-grad roles and keeping those updates in [26-27 new-grad search 🚧](new-grad-2026-2027.en.md). This page stays focused on the earlier internship search.
+## August 2025: starting from scratch
 
-> **Read this first**: a lot of this is time-sensitive and may no longer hold by the time you read it; I am an international student, so it may not apply to green-card holders or US citizens; there are no interview questions here, and nothing about any company's specific process. The full note is in [Career: read this page first](README.en.md).
+I was starting the MSCS at GT and had no industry internship experience. Most of college had been spent doing research. I wanted to try industry, but knew little about the roles or interviews.
 
-## Background
+I started LeetCode, behavioral preparation, and applications at the same time. At first I didn't filter much by company size or role: QR, QT, MLE, SDE, DS—I applied to all of them.
 
-At the time, I had no industry internship experience and was starting the MSCS programme at GT. In August 2025 I began preparing from scratch: LeetCode, behavioural prep, and internship applications at the same time.
+More applications seemed like more chances. Once interviews arrived, I realized that more chances didn't come with more preparation time.
 
-## Timeline
+## Every role brought something else to catch up on
 
-- **Around August 2025**: started preparing from scratch and applying at the same time.
-- **After that**: applied at scale. Any size of company, any role — QR, QT, MLE, SDE, DS.
-- **Later**: narrowed the target to MLE / Research Engineer.
+Some fundamentals overlap, but the preparation differed more than I expected. SDE coding, MLE models and projects, and quant probability and statistics weren't the same material rearranged into a different order.
 
-## Three mistakes I made
+I knew particularly little about QR interviews. I hadn't looked into them properly before applying, so I was rushing to prepare once I got one. That also took time away from other roles. Trying it wasn't necessarily the mistake; I hadn't allowed enough time for the attempt.
 
-1. **No clear main line.**
-2. **No consistent interview performance.** During that search, preparation didn't always translate into a good interview.
-3. **I did not understand the roles.**
+Interviews that round included HRT Algo Dev, SIG QR, LinkedIn MLE, Millennium AI Engineer, Amazon Bedrock AI SDE, Apple AI/ML SDE, Tower Research Ventures MLE, Google SDE, Databricks DS, and others.
 
-All of this is pretty normal — there is a gap between school and industry :) Stepping into the real world tends to look like this.
+The names are here to show how widely I was applying, not as an interview-question index. I won't describe the questions or each company's process.
 
-## Stage one: apply to everything
+## 120 problems in a month, and I still didn't pass
 
-At the start I understood nothing. Any company, any role, I applied to whatever I could.
+Before one interview, I solved 120 problems in a month. I had almost no prior practice, and it felt like a substantial amount of work.
 
-Here is where it went wrong: **with limited time, every interview was different** — they were not even the same domain. Data Engineer, Data Scientist, MLE, SDE, and Quant Researcher barely overlap in what they test, so I could not prepare properly, let alone get deep in any one direction.
+In the interview, my coding speed and approach still weren't good enough. There was an additional round, and I ultimately didn't pass. That one was disappointing.
 
-## Interviews I got
+Looking back, the count showed how much I had done, not whether I could find an approach to an unfamiliar problem and implement it reliably. I needed to revisit which methods I could actually use, rather than simply keep raising the number.
 
-HRT Algo Dev, SIG QR, LinkedIn MLE, Millennium AI Engineer, Amazon Bedrock AI SDE, Apple AI/ML SDE, Tower Research Ventures MLE, Google SDE, Databricks DS, and others.
+## Why I narrowed it to MLE / Research Engineer
 
-Only the roles are listed. Nothing about any company's process, rounds, or questions.
+After trying several directions, I was clearer that I liked work close to both research and product: investigating a problem and seeing something built from it get used. I started focusing on MLE / Research Engineer.
 
-## Three things I learned
+That doesn't mean the other directions were worse or that exploring them was wasted effort. Trying them helped me understand what I wanted to spend time learning, and how much preparation I could realistically handle at once.
 
-### 1. Don't spread the target too wide
+## Work authorization and location mattered too
 
-SDE, MLE, and QR interviews are worlds apart and want different skill sets; with limited time it is hard to prepare for all of them at once (unless you are exceptional).
+I needed to consider sponsorship. During that search, some small and mid-size company opportunities weren't a fit for that reason, and I got very few interviews in that part of the market.
 
-My biggest mistake was preparing for QR: I had never looked into what those interviews actually favour — stats or coding, and every hedge fund and quant shop has its own taste — so starting to prepare once I had the interview was far too late, and it thinned out my attention. After thinking it over, I realised I prefer product plus research, and focused on MLE / Research Engineer.
+That describes my experience then, not a rule about all companies of a certain size. For future applications, I still need to check the particular role and current policy. It belongs in this account because it affected my options; technical preparation wasn't the only factor.
 
-### 2. LeetCode has to be solid
+## What I'd take into the next round
 
-In that round of interviews, algorithm questions were almost always part of the process, sometimes dressed up in a different scenario. After getting one interview I did 120 problems in a month (with no prior practice at all), and still failed after an extra round because of my coding speed and how I approached the problems. That one hurt.
+Some interviewers were generous with hints and willing to discuss things properly. Others left me puzzled 😂 A few interviews still aren't enough for me to judge everyday work at a company, much less rank companies for someone else.
 
-### 3. Visa status does matter
+Starting again, I'd learn about the roles earlier, focus on work I actually want, and leave more time for steady coding practice. I wouldn't assume a popular field was something I had to try.
 
-It does. Many small and mid-size companies do not sponsor, so I got almost no interviews there. Among the people around me, the difference between having status and not having it is clear — it removes a lot of options.
+The next search is still happening, and these views may change:
 
-## On companies and interviewers
-
-On career development I don't have much standing: I don't know what any company's culture is really like, and I can't judge a company through its interview process. That said, some companies' interviewers really were something else 😂
-
-As for picking an industry, my own view is: **pick one you actually like, and don't chase whatever is hot.** What is hot is not right for everyone :)
-
-The upside of the industry itself does matter, of course. But there is genuinely no fixed answer here.
-
-## Next
-
-- [26-27 new-grad search 🚧](new-grad-2026-2027.en.md): still in progress; notes as I go
-- [A retrospective on one MLE interview](one-interview.en.md): an interview right after coming back from my internship, written while it was fresh
-- [It is only one part of life](not-binary.en.md): job hunting was never a yes-or-no question
+- [26-27 new-grad search 🚧](new-grad-2026-2027.en.md)
+- [One MLE interview, reviewed](one-interview.en.md)
+- [It is only one part of life](not-binary.en.md)
