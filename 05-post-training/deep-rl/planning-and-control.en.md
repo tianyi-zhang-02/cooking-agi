@@ -55,6 +55,25 @@ Implement this with linear solves, not explicit matrix inversion. It is multidim
 
 For the final single step, take $A=B=Q=R=Q_f=1$ and $x=2$. Minimize $4+u^2+(2+u)^2$. Its derivative is $4u+4$, giving $u=-1$ and cost 6. Under a hard bound $|u|\le0.2$, that unconstrained solution is infeasible; it is no longer valid to call $-1$ the optimal admissible control.
 
+## One more step reveals the feedback gains
+
+Keep $A=B=Q=R=Q_f=1$ but allow two actions. Start from terminal $P_2=1$ and work backward:
+
+| Time | Next $P$ | Current gain $K$ | Current $P$ |
+| --- | --- | --- | --- |
+| $t=1$ | 1 | $1/(1+1)=0.5$ | $1+1-1\times0.5=1.5$ |
+| $t=0$ | 1.5 | $1.5/(1+1.5)=0.6$ | $1+1.5-1.5\times0.6=1.6$ |
+
+At $x_0=2$, action $u_0=-1.2$ gives $x_1=0.8$; then $u_1=-0.4$ gives $x_2=0.4$. Total cost is $4+1.44+0.64+0.16+0.16=6.4$, equal to $P_0x_0^2=1.6\times4$.
+
+This is not worse control than the one-stage cost of 6: the objectives include different numbers of stage costs. Interpret values with their horizon. Feedback also recomputes actions from observed states; after a disturbance, the original numeric action sequence is no longer equivalent to feedback control.
+
+## Constraints are not an afterthought clip
+
+Clipping an unconstrained LQR action makes its value legal but does not generally solve the constrained trajectory problem optimally. An unavailable large action today changes tomorrow’s state and remaining choices. Include the constraint in planning.
+
+Likewise, heavily penalizing a collision in CEM differs from requiring every candidate to satisfy a safety constraint. A finite penalty may still be traded for enough reward. If no feasible candidate is found, specify a failure response rather than labeling the least-bad violating sequence a success.
+
 ## iLQR, shooting, and collocation
 
 iLQR locally linearizes dynamics and quadratizes cost around the current trajectory, solves backward for a local control correction, then rolls forward with a line search. It reuses LQR's structure but **solves local approximations**, not a guaranteed global optimum.

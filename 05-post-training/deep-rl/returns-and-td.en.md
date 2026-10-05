@@ -70,6 +70,36 @@ These expressions assume a nonterminal transition. At true termination, both con
 
 Let $Q(s',\cdot)=[2,5]$ and exploration select the first action. For $r=1,\gamma=0.9$, SARSA targets 2.8 and Q-learning targets 5.5. The distinction is not whether exploration exists; it is which continuation the target evaluates.
 
+## Compare three targets on the same trajectory
+
+Keep rewards $[1,0,2]$, frozen estimates $V(s_1)=1.5,V(s_2)=1$, genuine termination after the third reward, and $\gamma=0.9$:
+
+| Update | Target at the starting state | Observation versus estimate |
+| --- | --- | --- |
+| 1-step TD | $1+0.9\times1.5=2.35$ | One observed reward plus the next-state estimate |
+| 2-step TD | $1+0.9\times0+0.9^2\times1=1.81$ | Two observed rewards plus a later estimate |
+| Full MC | $1+0.9\times0+0.9^2\times2=2.62$ | Complete trajectory, no post-terminal value |
+
+The two-step target happens to be farther from MC because $V(s_2)$ underestimates the remaining reward. A bias–variance tradeoff concerns repeated sampling, not a promise that more steps improve every trajectory. With an accurate Critic, additional observed steps may introduce more reward noise.
+
+## Why is TD a semi-gradient update?
+
+For linear approximation $V_\theta(s)=\theta^\top x(s)$, the update is:
+
+$$
+\theta\leftarrow\theta+\eta\,[r+\gamma V_\theta(s')-V_\theta(s)]x(s).
+$$
+
+The target in brackets is treated as fixed; gradients do not flow through $V_\theta(s')$. Differentiating the full squared residual introduces a next-state-feature term and produces a different update. Two implementations mentioning MSE need not optimize the same thing.
+
+MC targets do not depend on current parameters and resemble ordinary supervised regression. TD targets move with the estimate. That helps propagate local information sooner, while making approximation stability more delicate. [Fitted Q](fitted-q.en.md) provides a concrete counterexample.
+
+## Even tabular convergence has assumptions
+
+Tabular TD(0) for a fixed policy converges under suitable visitation and learning-rate conditions. Standard stochastic-approximation conditions require each state’s step sizes to satisfy $\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$: keep enough opportunity to correct errors while gradually reducing sampling noise.
+
+A constant step size may help track change, but it does not inherit an exact-convergence conclusion. Nonlinear approximation, off-policy data, and poor coverage require further care. Verify updates in a tiny tabular environment before adding the network.
+
 ## Check the implementation assumption
 
 <details markdown="1">

@@ -19,6 +19,20 @@
   font-size: .78em;
 }
 .drl-flow > b { color: var(--muted); }
+.drl-sequence > span { animation: drl-read-step 1.1s ease-out 1; }
+.drl-sequence > span:nth-of-type(2) { animation-delay: 1.1s; }
+.drl-sequence > span:nth-of-type(3) { animation-delay: 2.2s; }
+.drl-sequence > span:nth-of-type(4) { animation-delay: 3.3s; }
+@keyframes drl-read-step {
+  0%, 100% { border-color: var(--rule); }
+  25%, 70% { border-color: var(--ember); box-shadow: inset 0 -3px 0 var(--ember); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drl-sequence > span { animation: none; }
+}
+@media print {
+  .drl-sequence > span { animation: none; box-shadow: none; }
+}
 .drl-lab { margin: 2rem 0; }
 .drl-experiment {
   padding: clamp(1rem, 3vw, 1.7rem);

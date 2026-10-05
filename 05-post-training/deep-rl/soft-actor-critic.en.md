@@ -21,6 +21,27 @@ $\alpha$ controls the relative weight of return and randomness. With two discret
 
 Continuous actions use differential entropy. It can be negative and depends on coordinate scale. Do not transfer the numerical range of the discrete visualization to a continuous Gaussian policy.
 
+## Why does softmax emerge from the entropy objective?
+
+Fix a state and action values $Q_a$, and optimize a discrete distribution $p$. Set $Z=\sum_a\exp(Q_a/\alpha)$ and $p^*_a=\exp(Q_a/\alpha)/Z$. Then:
+
+$$
+\sum_a p_aQ_a+\alpha H(p)
+=\alpha\log Z-\alpha D_{\rm KL}(p\|p^*).
+$$
+
+Nonnegative KL makes $p=p^*$ optimal. Softmax is the solution to the entropy-regularized problem, not an arbitrary insertion. The corresponding soft value is $\alpha\log\sum_a\exp(Q_a/\alpha)$.
+
+For Q values $[0,1]$ and $\alpha=0.5$, the better action has probability about 0.8808, expected Q is about 0.8808, entropy is about 0.3653, and soft value is about 1.0635. Exceeding the maximum Q of 1 reflects the entropy bonus, not an action with reward above 1.
+
+With continuous actions, the sum becomes an integral and normalization may be intractable. SAC uses a parameterized policy for approximate improvement rather than enumerating continuous actions in a giant softmax.
+
+## Check automatic temperature with its update direction
+
+For an entropy floor $H_{\rm target}$, hold the policy fixed and consider minimizing $L_\alpha=\alpha(H-H_{\rm target})$ over $\alpha\ge0$. Below-target entropy gives a negative derivative, increasing $\alpha$ and the incentive for randomness. Above-target entropy does the opposite.
+
+When estimating entropy with sampled $-\log\pi(a\mid s)$, stop policy gradients for this update. Implementations often optimize $\log\alpha$ to maintain positivity; some use a surrogate with the same direction but different scaling. State the actual loss when comparing code. Continuous differential-entropy targets may be negative; that alone is not a sign error.
+
 ## The common twin-Q formulation
 
 We use the common SAC variant without a separate V-network; the original paper's network arrangement differs. Sample the next action from the current stochastic policy and use slowly updated target Q parameters, with $d$ denoting true termination:

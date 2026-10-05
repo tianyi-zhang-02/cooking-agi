@@ -51,6 +51,31 @@ $$
 
 Here $d$ denotes true termination, $\epsilon\sim\mathcal N(0,\sigma^2I)$ is smoothing noise, and $c$ bounds its magnitude. The outer clip then enforces the environment's action bounds. The Q-networks are not statistically independent, and their minimum can underestimate value. The Actor commonly updates through the first current Critic.
 
+## Follow the Actor gradient back to parameters
+
+Keep $Q(a)=-(a-0.7)^2$ and let the Actor output $a=\tanh\theta$. At $a=0.2$:
+
+$$
+\frac{dQ}{d\theta}=\frac{dQ}{da}\frac{da}{d\theta}
+=-2(a-0.7)\cdot(1-a^2)=1\times0.96=0.96.
+$$
+
+Gradient ascent increases $\theta$, moving toward 0.7. Near ±1, the factor $1-a^2$ becomes small and the action saturates. Bounds and scaling affect both environment meaning and optimization; treating controls with different units as identically scaled is not neutral.
+
+Freezing Critic parameters does not mean freezing Q as a function of the action. You may disable gradient accumulation on Critic parameters while retaining the Q → action → Actor graph. Otherwise the Actor has no direction to follow.
+
+## Can the minimum of two Q estimates be too conservative?
+
+Yes. Give two estimates of the same true zero-valued action independent, equally likely ±1 errors. The four minima are $[-1,-1,-1,1]$, averaging −0.5. Suppressing optimism can introduce pessimism. Real Critics have correlated errors, but the example disproves the intuition that the smaller estimate must be more accurate.
+
+For smoothing, consider a quadratic peak $Q(a)=-(a-a^*)^2$ and zero-mean noise with variance $\sigma^2$, temporarily ignoring boundary clipping:
+
+$$
+\mathbb E_\epsilon[Q(a+\epsilon)]=-(a-a^*)^2-\sigma^2.
+$$
+
+Smoothing evaluates a neighborhood, not just a point. Neural-network peaks can have more complex shapes; noise truncation and action clipping change the distribution. Interpret noise relative to action range rather than copying a scale between environments.
+
 ## Trace one update round
 
 Make the update switches explicit. For illustration, update the Actor once every 2 Critic steps:

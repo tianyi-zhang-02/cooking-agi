@@ -18,7 +18,7 @@ $$
 
 这叫拟合 Q 迭代（fitted Q-iteration，FQI）。同一轮内，标签固定；下一轮标签才随 $Q_k$ 改变。DQN 用 replay、若干梯度步和周期性 target 更新来做相关的近似迭代，并不是每轮都把回归精确求解。
 
-<div class="drl-flow" aria-label="拟合 Q 迭代">
+<div class="drl-flow drl-sequence" aria-label="拟合 Q 迭代">
 <span>旧 Q<br><small>构造固定标签</small></span><b>→</b><span>回归<br><small>限制在函数族内</small></span><b>→</b><span>新 Q<br><small>下一轮再造标签</small></span>
 </div>
 
@@ -72,6 +72,35 @@ $$
 FQI 每轮可以用梯度下降拟合固定标签；Q-learning 的 semi-gradient 也确实是当前固定 target 的梯度。问题是外层目标随 Q 改变，**它们不等于对一个永远不变的整体 Bellman residual 做完整梯度下降**。
 
 若改为对 $\mathbb E[(Q-\mathcal TQ)^2]$ 求完整梯度，又会遇到随机转移下条件期望乘积的估计问题：同一条 next-state 样本同时用于两部分通常不够。独立双样本问题（double sampling）与 Double DQN 的“选择、估值分开”不是同一回事。
+
+## 为什么一条 next-state 样本不够估完整梯度？
+
+先不看 RL 的长公式，设随机 target 为 $Y_\theta$，当前预测为 $c_\theta$。我们想优化的是期望 target 的平方残差：
+
+$$
+L(\theta)=(c_\theta-\mathbb E[Y_\theta])^2.
+$$
+
+但用一条样本直接平方，期望变成：
+
+$$
+\mathbb E[(c_\theta-Y_\theta)^2]
+=(c_\theta-\mathbb E[Y_\theta])^2+\operatorname{Var}(Y_\theta).
+$$
+
+如果 target 方差随参数变化，多出来的项也有梯度。比如 $c_\theta=0$，target 等概率为 $+\theta$ 或 $-\theta$。真正的期望残差始终为零，单样本平方的期望却是 $\theta^2$。你在不知不觉中还优化了方差。
+
+在完整 Bellman residual 梯度里，需要分别估计残差与 target 导数的条件期望；同一次转移用于两边，通常会引入相关性。两份独立 next-state 样本能处理这种乘积，但真实环境未必允许从完全相同的状态动作重新采两次。半梯度绕开了一部分计算，却也换了更新规则，不能说它就是原目标的无偏梯度。
+
+## 看见 loss 下降，要追问是哪一种误差
+
+| 误差 | 在问什么 | 一个排查方式 |
+| --- | --- | --- |
+| 优化误差 | 对这轮固定标签，网络有没有拟合好？ | 固定小 batch，停止更新 target |
+| 逼近误差 | 函数族能不能表示所需的 Q？ | 在已知真值的小环境比较表示能力 |
+| 统计与覆盖误差 | 有限样本是否代表要访问的区域？ | 查不同状态的覆盖与独立 rollout |
+
+把模型做大，主要改变表示能力，不保证补齐缺失数据；多跑梯度步，主要减少当前回归误差，也不保证外层迭代更稳。前面的两状态例子中，内层精确求解依然发散，正好把这两件事分开了。
 
 ## 回到工程：每个稳定化部件各管一点
 

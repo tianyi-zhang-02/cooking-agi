@@ -41,15 +41,19 @@ Exception: historical mechanisms remain when they are still active. Stable softm
 
 ## Answer one question at a time
 
-Each note normally has:
+An overview can be short; a lesson should not stop at an outline. Do not remove reasoning or assumptions to meet a five-minute reading target, or add repetitive definitions just to make a page longer.
 
-- one central question;
-- roughly five minutes of reading;
-- one core example or mental model;
-- one quantity, experiment, or judgment the reader can verify;
-- a clear next note or related module.
+Build each lesson around a question the reader should be able to work through afterward:
 
-Split large topics into a guide and shorter notes. The guide explains the order and why each next step matters. Keep details in their own notes rather than reintroducing the whole system on every page.
+- Start with a concrete situation and name the prerequisites.
+- Carry one small example through the mechanism. Explain the symbols, calculate a result, and change an assumption.
+- Give readers something they can check: a calculation, runnable code, or an interactive experiment. A diagram is not a substitute for an explanation.
+- Compare at least one reasonable alternative: what does each save, sacrifice, and fail to handle?
+- Separate established results, teaching assumptions, and untested designs, with links to the relevant original sources.
+
+Order the material by how understanding develops, not by labels for beginners and experts. Someone looking for intuition can read the example and diagram; someone exploring the mechanism can follow the derivation; someone building it can find code and experimental conditions. A few in-page links can locate these parts. Do not add rows of proficiency badges or hide essential reasoning inside collapsed panels.
+
+Split long topics by question, not word count. Guides explain the reading order; lessons develop the subject. Reuse examples and terminology across adjacent notes instead of introducing the whole system again. Career reflections and section landing pages do not need to follow a technical-lesson template.
 
 ## Keep practice close to the explanation
 
@@ -68,10 +72,10 @@ Chinese should sound like an explanation to a person. “Fix the candidate pool 
 Preferred reading language and familiar terminology are separate choices. Some readers use only Chinese, some learned the subject in English but enjoy Chinese explanations, and others read only English. Do not infer a preference from nationality, education, or browser language.
 
 - **Chinese must stand on its own.** Explain what a concept does in Chinese before supplying its English name. Keep standard names such as Transformer and SFT, but explain essential acronyms at first use. Readers should not need to look up English just to continue.
-- **Bilingual readers choose freely.** Offer full Chinese and English pages, plus an independent switch for automatic English annotations on Chinese pages. Keep annotations on by default, with at most two per paragraph; avoid sentences built from unexplained English jargon.
+- **Bilingual readers choose freely.** Switch directly between the Chinese and English versions of the same article. Show English terms at first mention on Chinese pages by default, at most two per paragraph; avoid sentences built from unexplained jargon.
 - **English is not an appendix.** Preserve the derivations, examples, code, diagrams, interaction instructions, review questions, and caveats. Navigation, controls, and accessibility labels must also work in English. No essential material should require a trip to the Chinese page.
 - **Compare concepts in place.** Both faces of a bilingual card must be complete, with equivalent formulas, tensor shapes, examples, and assumptions. Open on the page's language and allow switching without losing the reading position.
-- **No forced redirects.** Respect the language of the URL the reader opened. Store term preferences only in their browser, without collecting identity or automatically changing the page language.
+- **No forced redirects.** Respect the language of the URL the reader opened. Do not choose the page language from their identity or browser settings.
 
 Review each note three ways: can someone understand the Chinese without relying on English? Can an English-trained reader recognize the concepts? Can someone complete the examples and exercises using only the English page? `site/paritycheck.py` checks structural parity, not translation quality; it cannot replace this review.
 

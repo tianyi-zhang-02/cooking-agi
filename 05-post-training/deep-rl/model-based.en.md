@@ -93,6 +93,26 @@ For $L=1$, error is at most $H\epsilon$; for $L>1$, it can grow faster. If the i
 
 If the model underestimates collision risk near obstacles, its optimal route may hug those obstacles. Average one-step MSE can hide exactly the errors that matter to decisions.
 
+## Low one-step MSE can average two paths into a wall
+
+Suppose the same input leads equally often to positions −1 and +1. The optimal squared-error point prediction is their mean, 0, although the system never actually reaches 0. If that represents an impassable location, planning with the average state can fail.
+
+A distributional model can represent uncertainty beyond one mean. A Gaussian negative log-likelihood includes:
+
+$$
+\tfrac12\left[(s'-\mu)^2/\sigma^2+\log\sigma^2\right]+\text{constant}.
+$$
+
+Variance explains randomness, but the log-variance term penalizes unlimited inflation. One Gaussian may still miss separated modes; mixtures, latent variables, or other models may be appropriate. An ensemble does not automatically fix an inadequate distribution family shared by all members.
+
+## Why can harder planning exploit more model errors?
+
+Two routes have predicted returns 3 and 10 but actual returns 3 and −5. Choosing the second is not weak search: the planner optimized the incorrect prediction successfully. Additional search may simply find the same flaw more reliably.
+
+Hold the model fixed and increase search budget, comparing predicted and real returns. If predictions improve while real outcomes worsen, inspect exploited regions before tuning search further. Then fix the planner, add real data from those regions, and check whether the gap closes.
+
+Short rollouts, disagreement penalties, and constraints can reduce some risks but have costs. Short horizons miss distant gains; pessimism may reject genuinely good routes; an incorrect constraint model gives no safety guarantee. Compare with model-free baselines and an oracle model, not only the learned model’s own scores.
+
 ## Planning-budget trade-offs
 
 | Choice | Benefit | Risk |

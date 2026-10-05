@@ -71,6 +71,31 @@ $$
 
 This supervises a reward difference, but does not automatically separate quality from length, style, or annotator preference. A policy optimizing the learned reward can exploit regions beyond label coverage. Keep independent task validation rather than relying on the same judge to approve its own influence.
 
+## How does one preference pair update a reward model?
+
+For one question, an annotator prefers A to B. Current scores are $r_A=1,r_B=0$. Predicted preference probability is $\sigma(1)\approx0.731$, and negative log-likelihood is about 0.313.
+
+$$
+L=-\log\sigma(r_A-r_B),\qquad
+\frac{\partial L}{\partial r_A}=p-1,\quad
+\frac{\partial L}{\partial r_B}=1-p.
+$$
+
+Gradients are approximately −0.269 and +0.269, so descent raises A and lowers B. Adding 100 to both scores leaves probability and loss unchanged. The supervision constrains differences; an absolute reward of 100 is not a hundred times the quality of reward 1.
+
+If annotators favor length, the model may learn a length shortcut. Test equal-quality answers of different lengths and similar-length answers of different factual quality. When annotators disagree, inspect genuine preference differences rather than treating all disagreement as labeling error.
+
+## After demonstrations, which data is worth adding?
+
+| Failure | More specific intervention than collecting more good demonstrations | Limitation |
+| --- | --- | --- |
+| Cannot recover from a small deviation | Query the expert at deviated states visited by the learner | Requires safe, reliable expert answers |
+| Several valid actions at one state | Retain alternatives and conditions instead of averaging them | The policy must express multimodal choices |
+| Uses a background shortcut | Change backgrounds while preserving task conditions | Do not remove genuinely useful context |
+| High reward, poor task completion | Independent outcomes and difficult preference comparisons | Do not rely only on the same scoring model |
+
+A DAgger round executes the learner, queries expert actions at those states, aggregates data, and refits. It does not label the learner’s own action as correct. Limited annotation budgets may prioritize risky, disputed, or uncertain states, but selection changes coverage too; confident successful trajectories alone are insufficient.
+
 ## Connecting back to language models
 
 SFT resembles learning demonstrations; RL changes behavior using outcome feedback. Neither simply replaces the other. Once a policy can perform basic tasks, ask which feedback adds information beyond demonstrations. Human preferences, programmatic verification, and environmental rewards each have blind spots.

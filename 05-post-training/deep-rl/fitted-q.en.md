@@ -18,7 +18,7 @@ $$
 
 This is fitted Q-iteration (FQI). Labels remain fixed within a regression round and change at the next round. DQN performs related approximate iterations using replay, gradient steps, and periodic target updates, rather than solving each regression exactly.
 
-<div class="drl-flow" aria-label="Fitted Q-iteration">
+<div class="drl-flow drl-sequence" aria-label="Fitted Q-iteration">
 <span>Old Q<br><small>Construct fixed labels</small></span><b>→</b><span>Regression<br><small>Stay in the function class</small></span><b>→</b><span>New Q<br><small>Build labels next round</small></span>
 </div>
 
@@ -72,6 +72,35 @@ The general recurrence is $\theta_{k+1}=1.2\gamma\theta_k$. At $\gamma=0.5$, the
 FQI may use gradient descent to fit each fixed set of labels. Q-learning's semi-gradient is also the gradient against its current fixed target. The outer targets change with Q, however: **neither is full gradient descent on one permanently fixed overall Bellman residual.**
 
 Differentiating $\mathbb E[(Q-\mathcal TQ)^2]$ fully introduces estimation of products of conditional expectations under stochastic transitions. Reusing one next-state sample for both terms is generally insufficient. This double-sampling issue is different from Double DQN's separation of action selection and evaluation.
+
+## Why can one next-state sample miss the full gradient?
+
+Set aside the RL notation. Let $Y_\theta$ be a random target and $c_\theta$ the current prediction. The intended squared residual against the expected target is:
+
+$$
+L(\theta)=(c_\theta-\mathbb E[Y_\theta])^2.
+$$
+
+Squaring a single sampled residual instead gives:
+
+$$
+\mathbb E[(c_\theta-Y_\theta)^2]
+=(c_\theta-\mathbb E[Y_\theta])^2+\operatorname{Var}(Y_\theta).
+$$
+
+If target variance depends on parameters, that extra term has a gradient. For $c_\theta=0$ and a target equally likely to be $+\theta$ or $-\theta$, the intended residual is always zero, while expected sample-squared error is $\theta^2$. The update also optimizes variance.
+
+A full Bellman-residual gradient contains a product involving conditional expectations of the residual and target derivative. Reusing one transition for both generally introduces dependence. Independent next-state samples can address the product, but a real environment may not let you resample exactly the same state–action pair. Semi-gradients avoid part of this computation by changing the update, not by becoming unbiased full gradients.
+
+## Which error decreased when the loss fell?
+
+| Error | Question | Diagnostic |
+| --- | --- | --- |
+| Optimization | Did the network fit this round’s fixed targets? | Freeze a tiny batch and its targets |
+| Approximation | Can the function class express the needed Q? | Compare representations where true values are known |
+| Statistical and coverage | Do finite samples represent the regions the policy needs? | Inspect state coverage and independent rollouts |
+
+A larger model mainly changes representation capacity, not missing data. More gradient steps mainly improve the current regression, not necessarily the outer iteration. The two-state example diverges even with exact inner fitting, separating these concerns.
 
 ## Each stabilization component addresses one problem
 

@@ -2,6 +2,8 @@
 
 [中文](README.md) · **English**
 
+This overview follows the complete path. For how vectors are learned, continue with [dual encoders](dual-encoder.en.md): computation, contrastive updates, and model–index compatibility. For combining sources, read [hybrid retrieval and reranking](hybrid-and-reranking.en.md): calculate RRF and compare designs under a fixed budget.
+
 ## Start here: search is a decision process
 
 Search is not just finding the most similar content in a database. It helps the model, when information is incomplete, decide **what to look for, where to look, which evidence is still missing, and when it can stop**.

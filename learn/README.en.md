@@ -48,6 +48,19 @@ Try first, check the answer, and change a condition before trying again. Underst
 
 [Design exercises](system-design/README.en.md) use original public scenarios: a recommendation feed, knowledge-base answers with citations, and editable long-term memory. Each includes constraints, alternatives, and follow-up questions—not a diagram presented as the only correct answer.
 
+## Follow a question across chapters
+
+The same ideas can be approached through different questions. These are neither required sequences nor career tracks; start with whichever question interests you.
+
+| Your question | A connected reading path |
+| --- | --- |
+| Why is a model learning so little from so many logs? | [Feedback and objectives](../01-data-and-feedback/feedback-to-objectives.en.md) → [How dual encoders learn](../04-search/dual-encoder.en.md) → [What a score supports](../07-evaluation/metric-robustness.en.md) |
+| How do I build an assistant that finds evidence and remembers corrections? | [Hybrid retrieval and reranking](../04-search/hybrid-and-reranking.en.md) → [Updating and forgetting memories](../02-memory/memory-lifecycle.en.md) → [Locating evaluation failures](../07-evaluation/evaluation-stack.en.md) |
+| Why does a model perform these computations? | [Attention](../00-foundations/core/multi-head-attention.en.md) → [Implementations](../00-foundations/hand-write-kit.en.md) → [Model-family close readings](../00-foundations/model-families/README.en.md) |
+| How do I take an algorithm into an experiment? | [Deep RL](../05-post-training/deep-rl/README.en.md) → [Experimental settings](../05-post-training/deep-rl/experiments.en.md) → [Ablations and slices](../07-evaluation/ablation-and-slices.en.md) |
+
+You do not need to read every equation and code block on the first pass. Follow the example, then return to the derivation. If the concept is familiar, go straight to implementation and failure cases. There are no beginner/expert labels to earn, and no requirement to complete every chapter in order.
+
 ## How the sections fit together
 
 - **Study notes:** concepts, code, worked questions, and design exercises.

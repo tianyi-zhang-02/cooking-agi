@@ -65,6 +65,35 @@ states has shape [batch, state_dim], actions is integer [batch], and terminated 
 
 Exploration often uses $\epsilon$-greedy. Random training actions collect information; document whether evaluation disables them. Otherwise low scores from exploration and low scores from the policy itself become hard to separate.
 
+## Why does max turn zero-mean noise into overestimation?
+
+Both actions have true value 0, with independent errors of +1 or −1, each equally likely:
+
+| Two errors | Maximum |
+| --- | --- |
+| −1, −1 | −1 |
+| −1, +1 | +1 |
+| +1, −1 | +1 |
+| +1, +1 | +1 |
+
+Each action’s error has mean zero, but the maximum has expectation 0.5. Selection retains favorable noise. Evaluating the chosen action with independent zero-mean errors returns expectation 0 in this example.
+
+Double DQN networks are not truly independent, so this explains motivation rather than proving unbiasedness. Frequent synchronization can correlate errors; infrequent synchronization can leave targets stale.
+
+## Replay and target networks are slow in different ways
+
+Replay stores transitions, not permanent targets. Sample $(s,a,r,s')$, then construct labels using the specified target network. Shuffling reduces consecutive-sample correlation but does not ensure coverage of the new policy’s states.
+
+Targets may be copied periodically or softly updated as $\bar\theta\leftarrow(1-\tau)\bar\theta+\tau\theta$. Specify whether synchronization counts environment or gradient steps: 1000 steps means different things with ten updates per interaction versus one.
+
+| Increase | Potential benefit | Additional risk |
+| --- | --- | --- |
+| Replay capacity | More varied history | Staleness and dilution of rare successes |
+| Updates per interaction | More reuse of collected data | Overfitting replay and amplifying Q errors |
+| Synchronization interval | Temporarily steadier targets | Stale estimates and slower propagation |
+
+Compare environment interactions and gradient updates, not just an hour of training. Otherwise more data and more computation are indistinguishable.
+
 ## Check these before tuning
 
 First test that terminal targets equal reward. Then verify that targets have no gradients, replay actions align with their states, and target synchronization uses the intended step units. If loss falls while return does not improve, inspect these semantics before enlarging the network.

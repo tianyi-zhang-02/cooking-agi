@@ -94,6 +94,27 @@ $$
 
 It stops rewarding large ratio changes in certain directions. **It does not hard-constrain every probability ratio to the clipping interval**, nor impose a strict KL bound. Shared parameters, other samples, and other losses can still move ratios farther. Monitor KL, clip fraction, entropy, and actual task performance. See the [PPO clipping visualization](../rlhf/ppo-clipping.en.md).
 
+## Calculate all four PPO cases
+
+Take $\epsilon=0.2$. The table shows the per-sample objective to maximize; negate it for gradient descent.
+
+| Advantage | Ratio $\rho$ | Unclipped term | Clipped term | Minimum |
+| --- | --- | --- | --- | --- |
+| +2 | 1.3 | 2.6 | 2.4 | 2.4: no further incentive to increase probability |
+| +2 | 0.7 | 1.4 | 1.6 | 1.4: retains gradient in the worsening direction |
+| −2 | 0.7 | −1.4 | −1.6 | −1.6: no further incentive to decrease probability |
+| −2 | 1.3 | −2.6 | −2.4 | −2.6: retains gradient in the worsening direction |
+
+A ratio outside the interval does not always give zero gradient. Clipping removes additional incentive for moving too far in the direction this sample considers helpful. Other samples, value loss, or entropy loss can still move shared parameters.
+
+## Why track KL and data freshness?
+
+Under old-policy sampling, the mean of $\log\pi_{\rm old}(a\mid s)-\log\pi_\theta(a\mid s)$ estimates forward KL. Its expectation is nonnegative, but a finite-sample estimate can be negative. Distinguish it from exact enumeration over actions.
+
+Clip fraction measures ratios outside the interval, not samples with no gradient or policy distance. Read it alongside KL, entropy, and actual return.
+
+More epochs reuse costly data but move the policy farther from its collection version. Measured-KL early stopping and fewer updates are practical controls, not strict guarantees. Asynchronous sampling also needs policy-version tracking: older-policy trajectories are not fresh data from the current rollout batch.
+
 ## Implementation checks before tuning
 
 - Freeze old log-probabilities throughout updates on a collected batch; do not redefine them after each optimizer step.

@@ -48,6 +48,19 @@
 
 [设计题与推演](system-design/README.md)里有几道自拟练习：推荐信息流、带引用的知识库问答、允许更正和删除的长期记忆。每题先交代需求和限制，再比较方案，最后想一想哪里可能出错。架构图是讨论的起点，不是标准答案。
 
+## 想从一个问题一路学下去？
+
+同一套知识可以从不同问题进入。下面不是必修顺序，也不是岗位路线；哪件事让你好奇，就从那儿读。
+
+| 现在的疑问 | 可以连着读什么 |
+| --- | --- |
+| 日志这么多，为什么模型还是学不好？ | [反馈与目标](../01-data-and-feedback/feedback-to-objectives.md) → [双塔如何学习](../04-search/dual-encoder.md) → [分数能说明什么](../07-evaluation/metric-robustness.md) |
+| 做一个能找到资料、记得住更正的助手 | [混合检索与重排](../04-search/hybrid-and-reranking.md) → [记忆的更新与遗忘](../02-memory/memory-lifecycle.md) → [怎样定位评估失败](../07-evaluation/evaluation-stack.md) |
+| 想明白模型为什么这样计算 | [注意力](../00-foundations/core/multi-head-attention.md) → [从零实现](../00-foundations/hand-write-kit.md) → [模型家族精读](../00-foundations/model-families/README.md) |
+| 想从算法走到实验 | [Deep RL](../05-post-training/deep-rl/README.md) → [实验设置](../05-post-training/deep-rl/experiments.md) → [对照实验与切片](../07-evaluation/ablation-and-slices.md) |
+
+正文中的公式和代码不必第一次就全部读完。先跟着例子理解问题，再回来看推导；已经熟悉概念的话，可以直接去实现和失败案例。这里不按“初级／高级”给读者分组，也不要求把所有章节顺着刷完。
+
 ## 想看别的内容？
 
 - **学习笔记**：概念、代码、题解和设计练习。

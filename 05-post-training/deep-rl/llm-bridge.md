@@ -26,6 +26,40 @@ GRPO 常用同一 prompt 下多个回答的相对奖励构造组内 advantage，
 
 公式与已有交互在 [PPO clipping](../rlhf/ppo-clipping.md) 和 [GRPO / DPO / RLVR](../rlhf/after-rlhf.md)。这里负责把经典 RL 的问题接起来，不另造一套记号。
 
+## 用三个 token 看清训练到底在改什么
+
+假设 prompt 后生成三个 token，最后一个是 EOS，完整回答得到奖励 1。生成过程可以静态地拆成：
+
+<div class="drl-flow drl-sequence" aria-label="文本生成与奖励归因">
+<span>Prompt<small>不是本轮动作</small></span><b>→</b><span>Token 1、2<small>每步保存 log-prob</small></span><b>→</b><span>EOS<small>完整答案得到评分</small></span><b>→</b><span>更新<small>奖励归因到有效动作</small></span>
+</div>
+
+假设三个已采样 token 的条件概率，旧策略是 $[0.5,0.25,0.5]$，新策略是 $[0.6,0.2,0.6]$。逐 token 比值为 $[1.2,0.8,1.2]$，整段概率比却是它们的乘积 1.152。Token-level PPO 不能把这两者混用；长序列乘积的尺度和方差都不同。
+
+如果只在最后给一个分数，前面的动作也会得到由它构造的学习信号；这不是声称每一步推理都被独立验证。过程奖励可以增加中间反馈，但它自己也可能有偏差，不能因为分数更密就叫它更准确。
+
+## GRPO 的组内信号，什么时候会消失？
+
+取同一 prompt 的四个回答，奖励 $[0,0,1,1]$。用总体标准差约定，均值 0.5、标准差 0.5，标准化优势为 $[-1,-1,1,1]$。高于本组平均的回答被鼓励，低于平均的被压低。
+
+若四个回答都是 0，减均值后全部为 0；分母加 $\epsilon$ 可以避免除零，却不能制造任务奖励梯度。四个都是 1 也可能如此。这说明组内比较需要有信息的差异，而不是简单地“组越大越好”。不同实现的方差约定、是否除标准差、按 token 还是按序列平均，也会改变更新。
+
+| 选择 | 节省或获得什么 | 付出什么 |
+| --- | --- | --- |
+| 学 Value Critic | 跨状态估计回报，支持时序归因 | 多一条估值训练路径，可能有误差 |
+| 组内相对奖励 | 不必单独训练同样的 Value Critic | 同题多次生成，组内无差异时信号弱 |
+| 程序验证奖励 | 对可执行约束提供直接反馈 | 只覆盖验证器能检查的部分 |
+
+这些不是同一个维度的互斥选项。可验证奖励可以用于不同策略优化算法，GRPO 也不能修复一个把错误答案判对的 verifier。
+
+## Old policy、reference model、reward model 别混
+
+Old policy 是产生本批动作的行为策略，log-prob 在这批更新期间固定。Reference model 通常是一个较稳定的行为锚，用 KL 等方式限制偏离；它不一定等于当前 old policy。Reward model 或 verifier 决定如何评分，作用又不同。
+
+保存 prompt / response 边界、EOS、padding、采样温度和策略版本，才能知道哪些位置是动作、概率比对应谁。对工具 agent，工具返回的文字是观察，不是模型采样的 token；不能因为拼进同一序列，就把它也当 Actor 的行为来训练。
+
+这里的算例解释共同机制，不声称所有 GRPO / PPO 实现采用完全相同的 loss。读具体实现时，可接着比较 [DeepSeekMath 的 GRPO 设计](https://arxiv.org/abs/2402.03300) 与站内 [RLHF 的模型分工](../rlhf/three-stages.md)。
+
 ## 长任务：memory 改变的是什么
 
 当完整环境不可见，可以维护历史或学习记忆状态。记忆不是奖励函数，也不自动让过程满足 Markov；关键是是否保存了未来决策需要的信息。

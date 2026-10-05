@@ -78,6 +78,39 @@ $$
 
 By monotonicity of the Bellman operator, repeated application of $T_{\pi'}$ cannot reduce these values. Under the discounted assumptions above it converges to $V^{\pi'}$, so $V^{\pi'}\ge V^\pi$. This justifies exact policy improvement. Finite evaluation steps and neural approximation introduce errors; the guarantee does not transfer unconditionally.
 
+## What happens when the system has a loop?
+
+The charging example ends after two steps. Now fix a policy: state A gives reward 1, then stays in A with probability one half or moves to B with probability one half. B gives reward 2, then returns to A. With $\gamma=0.5$:
+
+$$
+V_A=1+0.5(0.5V_A+0.5V_B),\qquad V_B=2+0.5V_A.
+$$
+
+Substituting the second equation into the first gives $0.625V_A=1.5$, so $V_A=2.4,V_B=3.2$. This evaluates a fixed policy; there is no maximization over actions.
+
+```text
+           50% stay in A
+                ↺
+        A, reward 1 ──50%──→ B, reward 2
+              ↑__________________|
+                   100% to A
+```
+
+In matrix notation, $V=r+\gamma P_\pi V$, or $(I-\gamma P_\pi)V=r$. Solving this linear system and repeatedly applying the Bellman update address the same policy-evaluation problem. Explicitly storing and solving the matrix can be costly for many states, motivating sample-based updates.
+
+## What does a small residual guarantee?
+
+Suppose a value table satisfies $\|TV-V\|_\infty\le\varepsilon$. Contraction and the triangle inequality give:
+
+$$
+\|V-V^*\|_\infty\le\|V-TV\|_\infty+\|TV-TV^*\|_\infty
+\le\varepsilon+\gamma\|V-V^*\|_\infty.
+$$
+
+Rearranging yields $\|V-V^*\|_\infty\le\varepsilon/(1-\gamma)$. A residual of 0.01 gives a bound of 0.1 at $\gamma=0.9$, but 1 at $\gamma=0.99$. Valuing the distant future more requires a tighter residual for the same value-error guarantee.
+
+This needs the true Bellman residual over the entire state space. A small minibatch MSE does not establish that uniform bound: sampling noise and uncovered states matter.
+
 ## Change one assumption
 
 <details markdown="1">

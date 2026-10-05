@@ -357,6 +357,7 @@ en  = "Multimodal learning"
 
 [[section]]
 dir = "04-search"
+order = ["README.md", "dual-encoder.md", "hybrid-and-reranking.md"]
 group = "data-retrieval"
 zh  = "搜索与检索"
 en  = "Search & retrieval"
@@ -599,6 +600,8 @@ en  = "Templates"
 "02-memory/README.md"                                   = ["表征与记忆", "Representation & memory"]
 "03-multimodal-learning/README.md"                      = ["多模态学习", "Multimodal learning"]
 "04-search/README.md"                                   = ["搜索与检索", "Search & retrieval"]
+"04-search/dual-encoder.md" = ["双塔：表示与目标", "Dual encoders & objectives"]
+"04-search/hybrid-and-reranking.md" = ["混合检索与重排", "Hybrid retrieval & reranking"]
 "05-post-training/README.md"                            = ["总览", "Overview"]
 "05-post-training/deep-rl/README.md" = ["从这里开始", "Start here"]
 "05-post-training/deep-rl/mdp-bellman.md" = ["MDP 与 Bellman", "MDPs & Bellman"]
