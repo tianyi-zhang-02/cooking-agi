@@ -2,90 +2,78 @@
 
 [中文](prepare.md) · **English**
 
-> Reading time: ~4 min · Last reviewed: 2026-09
+> Reading time: ~4 min · Last reviewed: 2026-10
 
-The short version: **don't prepare everything, and don't prepare nothing.**
+When I started preparing, the hardest part was knowing how much was enough. LeetCode, ML fundamentals, system design, papers, projects—any one of them could take all the time I had.
 
-Those sound contradictory; they are the same sentence. Preparing everything means spreading LeetCode, system design, textbook questions, papers and projects across a desk, touching each of them a little, ending up solid in none of them and exhausted on top. Preparing nothing means assuming "I did the work, so I can talk about it" — and then not being able to.
+Last year I spread myself too thin, then discovered another gap whenever an interview came along. If I were arranging my preparation again, this is where I'd start. It's based on my own gaps, not a schedule everyone needs to follow.
 
-The path between the two: **work out what you want first, then decide what to prepare.**
+## Work out what you're applying for
 
-## 1. What do you want?
+I'd pick a few job descriptions I actually care about and look for what they have in common. I wouldn't assume two MLE roles need the same preparation just because they share a title.
 
-Skip this and much of the rest is wasted effort. A few questions. The answers don't have to be certain, but you need a direction:
+Teams can put very different weight on modeling, data, training, and production work. I'd ask which part I want to do, what experience I already have, and what is missing. Location, graduation date, and work authorization belong in that first pass too.
 
-- Which kind of work? (modelling / data / infrastructure / product side)
-- Where are you? Visa, location, family — real constraints, and nothing to be embarrassed about.
-- What would you work late for? What would you not?
-- What do you want to be good at in three years?
+This doesn't mean deciding on a lifelong direction before sending an application. Preparing mainly for one kind of role, while learning about others, would have worked better for me than starting everything at once.
 
-Different directions want genuinely different people. Two jobs both called MLE can mean writing SQL and features all day, tuning training runs all day, or mostly repairing pipelines. If that isn't clear to you before you apply, it will become clear during the interview, the hard way.
+## Be able to explain what's on the résumé
 
-My own take is [here](not-binary.en.md): a job search is one part of a life, not a yes/no question.
+I used to treat “I did it” and “I can explain it” as roughly the same thing. Follow-up questions made it clear that I needed another pass through the work.
 
-## 2. Three tracks, in order of importance
+For a project, I'd take the résumé bullet and try talking through it for a few minutes without a script: what was wrong, which part was mine, why I chose that approach, and how far the work actually got.
 
-### a. Your story (most important, most underrated)
+The places where I get stuck usually point to something worth reviewing. For example:
 
-Every line on your résumé needs three minutes in it: **what the problem was, what you specifically did, how it turned out, and what you took away from it.** That last part separates people — most stop after the third.
+- I keep saying “we” without explaining my own contribution.
+- I remember the model but can't explain why we chose it over another one.
+- I can quote a metric without explaining the comparison, data, or evaluation conditions.
+- I mix up a proposed design, an implementation, and a result that was actually validated.
 
-Where this usually goes wrong:
+Numbers help when I have them. When I don't, I need to be specific about what I delivered and what evidence exists—not turn an untested idea into an improvement because the résumé needs a strong result. Work that went badly can be worth discussing too, especially how I noticed the problem and decided what to change.
 
-- **The contribution is vague.** "Our team did X" — so what did you do?
-- **No numbers.** How much faster, how much cheaper, how much better. If it can't be quantified, say why.
-- **Failures left out.** One project that genuinely went wrong, and how you judged it and changed course, is worth ten smooth ones.
-- **Detail runs out.** Every word on that page — a model, a framework — can be followed three questions deep.
+## Practice the parts that don't come out reliably
 
-### b. The fundamentals
+Solving a problem once doesn't mean I can write it again. Studying a model doesn't mean I can explain it. Some preparation time has to involve writing code and speaking, rather than reading another answer.
 
-These already have their own pages: [how to grind LeetCode](../interview/leetcode.en.md), [system design](../interview/system-design.en.md), [the interview index](../interview/README.en.md). One rule: **maintain, don't cram.** An hour a day beats ten hours on a Saturday, because this is muscle memory.
+For algorithms, there's [LeetCode methods](../interview/leetcode.en.md). For ML and design, start with the [technical study index](../interview/README.en.md) or [system design](../interview/system-design.en.md). I won't duplicate the entire topic list here.
 
-### c. People
+I'd rather keep a regular, manageable slot for revisiting things I got stuck on than restart everything when an interview arrives. For research-oriented roles, papers and project discussions need time too; preparation can't become only coding practice.
 
-Former colleagues, people you built something with, someone who answered your question properly online. This is not "networking" as a verb. It means: **whether someone is willing to say a sentence on your behalf often matters more than fifty extra problems solved.**
+One detail I underestimated: I learned most technical material in English. For an interview in Chinese, I need to practice saying it in Chinese. Knowing the English term doesn't always translate into a fluent explanation on the spot.
 
-That is what I mean by [skills being about 30% of it](README.en.md). How you treat people gets settled, all at once, when you are looking for a job.
+## Some things are easier to ask someone
 
-## 3. The vocabulary
+A job description can be broad about what the work actually involves. Talking to someone doing that work may be more useful than guessing. I'd ask what a new hire usually takes on, how much time goes into experiments versus engineering, and whether my experience seems relevant.
 
-The first time around, these words lost me. They are industry-wide usage, not any one company's process:
+It's okay to ask about a referral too, but I don't want every person I know to become a recruiting contact. Someone taking time to answer questions or read a résumé is already helping. I can explain my situation clearly without treating a forwarded application as a promise of an outcome.
 
-| Term | Roughly |
+## Terms I had to look up
+
+A small reference table to save some searching. These are common uses, not a description of any particular company's process.
+
+| Term | How I would read it |
 | --- | --- |
-| OA | Online assessment: timed problems, usually auto-graded |
-| recruiter screen | A call about direction, timeline, visa status |
-| phone screen / technical screen | The first technical round, usually an hour |
-| onsite / loop | A run of interviews back to back, mostly still remote |
-| BQ / behavioral | Questions about how you handled specific situations |
-| system design | A design discussion — it is about trade-offs, not recall |
-| HC | Usually headcount, the number of open slots; some people also use it for hiring committee, so read it in context |
-| team match | Pairing with a specific team after the technical rounds; some companies do it first |
-| level | Seniority. Two offers at different levels are very different offers |
-| base / bonus / RSU / sign-on | Salary / bonus / stock / joining payment — an offer is all of them together |
-| refresh | Additional stock granted each year after you join |
-| return offer | The full-time offer at the end of an internship |
-| referral | Gets your résumé looked at. It does not skip the interviews |
-| ATS | The system that screens résumés, which is why a heavily designed one can be unreadable |
+| OA | Online assessment; it may involve coding or other tests |
+| recruiter screen | A conversation about background, interests, timing, and other basics |
+| phone / technical screen | A technical screening round; the name doesn't necessarily tell you the format |
+| onsite / loop | A set of interviews, not necessarily in person |
+| BQ / behavioral | Discussion of how you handled past situations, usually using real examples |
+| system design | Designing a system around requirements and constraints, and explaining the choices |
+| HC | Usually headcount; sometimes hiring committee, depending on context |
+| team match | Conversations about fit with a particular team; where this happens in the process varies |
+| level | Seniority, with responsibilities and expectations worth asking about separately |
+| base / bonus / RSU / sign-on | Salary, bonus, restricted stock units, and a signing payment; not every offer includes all four |
+| refresh | An additional equity grant after joining; availability and timing depend on the arrangement |
+| return offer | An offer to return after an internship; the role and start date depend on the actual terms |
+| referral | A way to forward or recommend an application, not a guarantee of an interview or offer |
+| ATS | Applicant tracking system: software for managing applications and recruiting; a clear, readable résumé helps |
 
-## 4. Mindset: harder than the technical part
+## Adjust after interviews
 
-**A rejection is normal, not a verdict.** The same person fails here and passes there. Hiring is a noisy process: the interviewer's day, how many openings are left, how strong the candidate before you was — none of it is yours to control.
+While I still remember, I'd write down a few specific things: the concept I couldn't explain, the project answer that ran long, whether the coding difficulty was in the idea or the implementation. My own example is [this interview review](one-interview.en.md).
 
-**An offer is not a score for you as a person.** It measures how well you came across, at this point in time, in this one interview, for this one role. A long sentence, and every qualifier in it matters.
+It doesn't need to become an essay or a reason to rebuild the entire plan. If the same gap appears in several interviews, it deserves more attention. If it happened once, I can work on it without assuming everything is wrong.
 
-**Review what you can change.** Which problem stalled you, which concept you couldn't explain, which story rambled — all fixable. "The interviewer didn't like me" is not; don't spend time there. Mine looks like this: [one MLE interview, reviewed](one-interview.en.md).
+Taking a break is an option too. There's no need for a rule about resting a certain number of days after a certain number of rejections. When I'm too tired to absorb anything, sitting at the desk longer may not help.
 
-**Set a stop-loss.** Three bad interviews in a row is a signal to stop for two days, not to push harder. Interviewing is draining, and going in flat turns interviews you would have passed into ones you don't.
-
-**You are allowed to change your mind.** Three months of preparing and then finding you don't want that direction is information you bought, not time you lost.
-
-## 5. A rough rhythm
-
-If you have two or three months:
-
-1. **Week one**: turn every line of the résumé into a story. Record yourself telling it and listen back. Unpleasant, and it works.
-2. **First month**: an hour of fundamentals a day, and start applying — don't wait until you feel ready, that day doesn't arrive.
-3. **While interviewing**: write the review the same day, while you remember. Read a week of them together and look for what repeats.
-4. **Throughout**: talk to people. About the field, about teams, about what they are working on. Slowest return, longest lasting.
-
-One last thing: it is a genuinely miserable stretch, and it is a stretch. I went through it too :)
+Applying and preparing can happen together. I don't want to wait until I know everything before applying—that probably won't happen. I also don't want every new opening to become a reason to learn an entirely new field immediately.
