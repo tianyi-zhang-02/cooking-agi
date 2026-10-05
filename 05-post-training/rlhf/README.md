@@ -2,6 +2,8 @@
 
 **中文** · [English](README.en.md)
 
+如果 Actor、Critic 和 advantage 还没串起来，先读 [Deep RL 基础](../deep-rl/README.md)；本系列重点讲它们怎样接到语言模型与人类反馈。
+
 > 阅读时间：约 2 分钟 · 难度：必修 · 最近审阅：2026-09
 
 <div class="lesson-recipe">

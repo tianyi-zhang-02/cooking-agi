@@ -54,7 +54,8 @@ PROTECTED = {"code", "pre", "a", "script", "style", "abbr",
 # wholesale -- the annotation belongs in running prose, not in a summary card.
 NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid",
                    "home-block", "term", "curriculum-card", "curriculum-hero",
-                   "learning-path", "lab-matrix", "bilingual-intro"}
+                   "learning-path", "lab-matrix", "bilingual-intro",
+                   "drl-flow", "drl-paths", "drl-lab"}
 
 GLOSS_BLOCKS = {"p", "li", "td", "th", "dd"}
 
@@ -76,10 +77,10 @@ def load_roadmap():
     return tomllib.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
 
 
-def load_glossary():
+def load_glossary(filename="glossary.tsv"):
     """中文 -> (English, gloss). Longest terms first so 多头注意力 wins over 注意力."""
     terms = []
-    for line in (SITE / "glossary.tsv").read_text(encoding="utf-8").splitlines():
+    for line in (SITE / filename).read_text(encoding="utf-8").splitlines():
         line = line.rstrip()
         if not line or line.startswith("#"):
             continue
@@ -88,6 +89,15 @@ def load_glossary():
             terms.append((parts[0].strip(), parts[1].strip(),
                           parts[2].strip() if len(parts) > 2 else ""))
     return sorted(terms, key=lambda t: -len(t[0]))
+
+
+def glossary_for_page(page, terms):
+    if page.section.get("group") != "deep-rl":
+        return terms
+    scoped = load_glossary("glossary.deep-rl.tsv")
+    names = {term[0] for term in scoped}
+    return sorted(scoped + [term for term in terms if term[0] not in names],
+                  key=lambda term: -len(term[0]))
 
 
 # --------------------------------------------------------------------------- #
@@ -314,7 +324,8 @@ class Annotator(HTMLParser):
         self.out.append(f"<!{decl}>")
 
     def handle_data(self, data):
-        text = html.escape(data, quote=False)
+        prose, math_stash = protect_math(data)
+        text = html.escape(prose, quote=False)
         if self.depth == 0 and self.terms:
             # Collect non-overlapping matches against the ORIGINAL text, then
             # splice once. Replacing term by term would let a later term match
@@ -357,7 +368,7 @@ class Annotator(HTMLParser):
                 prev = i + len(zh)
             out.append(text[prev:])
             text = "".join(out)
-        self.out.append(text)
+        self.out.append(restore_math(text, math_stash))
 
     def result(self):
         return "".join(self.out)
@@ -1257,7 +1268,7 @@ def build_page(page: Page, terms, repo: str, known: set):
     body, toc = render_markdown(raw)
     used = []
     if page.lang == "zh":
-        body, used = annotate(body, terms)
+        body, used = annotate(body, glossary_for_page(page, terms))
     body = rewrite_links(body, page, repo, known)
     # stable targets for the question bank, whatever the heading slug turned out to be
     body = re.sub(r'(<h[23] id="[^"]*">)(?=[^<]*(?:面试|[Ii]nterview))', r'<a id="interview"></a>\1', body, count=1)
@@ -1857,6 +1868,8 @@ def assemble(page, sections, people, nav, built, template):
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     content = page.body
+    if page.section.get("group") == "deep-rl":
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/deep-rl-lab.css?v={built}">\n<script defer src="{prefix}static/deep-rl-lab.js?v={built}"></script>\n</head>')
     if page.section.get("dir") == "07-evaluation/llm-as-a-judge":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/judge-lab.css?v={built}">\n<script defer src="{prefix}static/judge-lab.js?v={built}"></script>\n</head>')
     config = collaboration.load_config()

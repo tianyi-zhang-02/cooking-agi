@@ -2,6 +2,8 @@
 
 [中文](README.md) · **English**
 
+If Actor, Critic, and advantage still feel disconnected, start with [Deep RL foundations](../deep-rl/README.en.md). This series focuses on language models and human feedback.
+
 > Reading time: ~3 min · Level: core · Last reviewed: 2026-09
 
 <div class="lesson-recipe">

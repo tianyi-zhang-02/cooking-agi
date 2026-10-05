@@ -1,0 +1,53 @@
+# 探索与层级：随机走，不一定能找到路
+
+**中文** · [English](exploration-and-hierarchy.en.md)
+
+> 阅读时间：约 6–8 分钟 · 最近审阅：2026-10
+
+迷宫只有到终点才得分。随机多走几步不一定有用，因为到终点需要一串方向一致的动作。**动作有随机性，与真的发现新策略，是两回事。**
+
+## 为什么 epsilon 和 entropy 有时不够
+
+$\epsilon$-greedy 偶尔乱选一步；entropy bonus 鼓励动作分布保持分散。若连续 20 步都选对才有奖励，逐步随机很容易把已经走对的路线打断。需要考虑跨时间一致的探索，而不只是每一步更“热闹”。
+
+可以从探索状态覆盖、训练多样化策略、使用有意义的技能，或利用预测不确定性入手。探索最充分的区域也未必是目标需要的区域，尤其在真实系统里还有安全限制。
+
+## Intrinsic reward：给新鲜感一个分数
+
+随机网络蒸馏用固定随机网络 $f$ 和可训练预测器 $\hat f_\psi$，把对当前观测特征的预测误差作为内在奖励：
+
+$$
+r^{\rm int}(s)=\|\hat f_\psi(s)-f(s)\|^2,\qquad
+r^{\rm total}=r^{\rm task}+\beta r^{\rm int}.
+$$
+
+这里有个容易混淆的区别：预测“下一帧”的误差，可能让 agent 一直盯着随机闪烁的电视，因为未来画面本来就猜不准。RND 不预测下一帧；给定当前观测，目标网络的输出是确定的，它避开了这类由随机预测目标产生的误差。
+
+但陌生不等于有用。特征选择、有限数据和优化误差仍会影响 RND 的分数。检查观测归一化、内在奖励的尺度和衰减，也要看外部任务是否真的进步；不要把 RND 分数直接当成校准过的认知不确定性。
+
+## Reward shaping：怎样加提示，才不乱改目标
+
+任意加一项“靠近目标就给分”，可能让 agent 来回刷分。Potential-based shaping 用：
+
+$$
+r'_t=r_t+\gamma\Phi(s_{t+1})-\Phi(s_t).
+$$
+
+折扣求和后，中间项相消，只剩原 return 加 $-\Phi(s_0)+\gamma^T\Phi(s_T)$。若初态固定，且终端 potential 为 0（或无限折扣时尾项消失），策略间的比较保持不变。**不满足这些条件，就不能承诺最优策略不变。**
+
+## Option：一次选一段行为
+
+Option 通常包含启动集合、内部策略、终止规则。高层选“走到门口”，底层连续执行若干步；持续时间 $\tau$ 不固定，因此高层 target 要正确计时：
+
+$$
+y=\sum_{k=0}^{\tau-1}\gamma^kr_{t+k}
++\gamma^\tau V(s_{t+\tau}).
+$$
+
+执行 3 步的 option 后，尾部要乘 $\gamma^3$，不是 $\gamma$。这叫 semi-Markov 结构。层级可以缩短高层决策链，但错误的技能边界也可能限制可达策略。
+
+## 先做哪个实验
+
+先固定外部奖励，记录探索覆盖与成功率是否一起改善；再分别测试 bonus、技能和预算。不把内部 novelty 上升当成任务成功。
+
+这是探索与层级的入口，尚未覆盖完整 option-critic 或贝叶斯探索推导。参考：[RND](https://arxiv.org/abs/1810.12894) · [Potential-based shaping](https://ai.stanford.edu/~ang/papers/shaping-icml99.pdf) · [Options 与 semi-MDP](https://www.sciencedirect.com/science/article/pii/S0004370299000521)。下一篇：[有示范时，为什么还会走偏？](imitation-and-rewards.md)

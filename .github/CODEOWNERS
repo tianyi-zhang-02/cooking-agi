@@ -29,12 +29,16 @@
 /00-foundations/model-families/ @tianyi-zhang-02 @2pir2
 /00-foundations/moe/ @tianyi-zhang-02 @2pir2
 /00-foundations/looped/ @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/ @tianyi-zhang-02 @2pir2
 /05-post-training/rlhf/ @tianyi-zhang-02 @2pir2
 /07-evaluation/llm-as-a-judge/ @tianyi-zhang-02 @2pir2
 /learn/ml-exercises/ @tianyi-zhang-02 @2pir2
 /learn/system-design/ @tianyi-zhang-02 @2pir2
 /practice/recommender-systems/ @tianyi-zhang-02 @2pir2
 /interview/algorithms/ @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/basics/ @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/algorithms/ @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/extensions/ @tianyi-zhang-02 @2pir2
 /00-foundations/interview-basics.md @tianyi-zhang-02 @2pir2
 /00-foundations/interview-basics.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/hand-write-kit.md @tianyi-zhang-02 @2pir2
@@ -49,6 +53,38 @@
 /interview/system-design.en.md @tianyi-zhang-02 @2pir2
 /interview/leetcode.md @tianyi-zhang-02 @2pir2
 /interview/leetcode.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/mdp-bellman.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/mdp-bellman.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/returns-and-td.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/returns-and-td.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/policy-gradients.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/policy-gradients.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/actor-critic-gae.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/actor-critic-gae.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/trust-region.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/trust-region.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/fitted-q.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/fitted-q.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/dqn.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/dqn.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/continuous-control.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/continuous-control.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/soft-actor-critic.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/soft-actor-critic.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/model-based.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/model-based.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/planning-and-control.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/planning-and-control.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/imitation-and-rewards.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/imitation-and-rewards.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/offline-and-ope.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/offline-and-ope.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/exploration-and-hierarchy.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/exploration-and-hierarchy.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/experiments.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/experiments.en.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/llm-bridge.md @tianyi-zhang-02 @2pir2
+/05-post-training/deep-rl/llm-bridge.en.md @tianyi-zhang-02 @2pir2
 /.github/ @tianyi-zhang-02
 /site/ @tianyi-zhang-02
 /community/ @tianyi-zhang-02
