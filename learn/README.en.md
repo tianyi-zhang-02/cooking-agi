@@ -28,6 +28,7 @@ A model's computation is only part of the story. What teaches it, how do we eval
 
 | What you want to understand | Start here |
 | --- | --- |
+| How rewards teach sequential decisions | [Deep RL](../05-post-training/deep-rl/README.en.md): foundations → core algorithms → data and experiments |
 | How feedback becomes a training objective | [Data & feedback](../01-data-and-feedback/README.en.md) → [Post-training](../05-post-training/README.en.md) |
 | What a higher score actually tells us | [Evaluation](../07-evaluation/README.en.md) → [LLM-as-a-Judge](../07-evaluation/llm-as-a-judge/README.en.md) |
 | How models use images, memory, and external information | [Multimodal learning](../03-multimodal-learning/README.en.md) · [Memory](../02-memory/README.en.md) · [Retrieval](../04-search/README.en.md) |

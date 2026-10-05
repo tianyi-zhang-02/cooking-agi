@@ -117,6 +117,14 @@ en = "Foundations"
 home = "00-foundations/README.md"
 
 [[group]]
+id = "deep-rl"
+category = "learn"
+zone = "applications"
+zh = "强化学习"
+en = "Deep RL"
+home = "05-post-training/deep-rl/README.md"
+
+[[group]]
 id = "posttrain"
 category = "learn"
 zone = "applications"
@@ -361,6 +369,37 @@ zh  = "方法与取舍"
 en  = "Methods & trade-offs"
 
 [[section]]
+dir = "05-post-training/deep-rl"
+group = "deep-rl"
+zh = "学习路线"
+en = "Learning route"
+order = ["README.md"]
+
+[[section]]
+dir = "05-post-training/deep-rl/basics"
+group = "deep-rl"
+zh = "01 · 基础推导"
+en = "01 · Foundations"
+include = ["05-post-training/deep-rl/mdp-bellman.md", "05-post-training/deep-rl/returns-and-td.md", "05-post-training/deep-rl/policy-gradients.md", "05-post-training/deep-rl/actor-critic-gae.md", "05-post-training/deep-rl/trust-region.md", "05-post-training/deep-rl/fitted-q.md"]
+order = ["mdp-bellman.md", "returns-and-td.md", "policy-gradients.md", "actor-critic-gae.md", "trust-region.md", "fitted-q.md"]
+
+[[section]]
+dir = "05-post-training/deep-rl/algorithms"
+group = "deep-rl"
+zh = "02 · 核心算法"
+en = "02 · Core algorithms"
+include = ["05-post-training/deep-rl/dqn.md", "05-post-training/deep-rl/continuous-control.md", "05-post-training/deep-rl/soft-actor-critic.md", "05-post-training/deep-rl/model-based.md", "05-post-training/deep-rl/planning-and-control.md"]
+order = ["dqn.md", "continuous-control.md", "soft-actor-critic.md", "model-based.md", "planning-and-control.md"]
+
+[[section]]
+dir = "05-post-training/deep-rl/extensions"
+group = "deep-rl"
+zh = "03 · 数据与实验"
+en = "03 · Data & experiments"
+include = ["05-post-training/deep-rl/imitation-and-rewards.md", "05-post-training/deep-rl/offline-and-ope.md", "05-post-training/deep-rl/exploration-and-hierarchy.md", "05-post-training/deep-rl/experiments.md", "05-post-training/deep-rl/llm-bridge.md"]
+order = ["imitation-and-rewards.md", "offline-and-ope.md", "exploration-and-hierarchy.md", "experiments.md", "llm-bridge.md"]
+
+[[section]]
 dir   = "05-post-training/rlhf"
 group = "posttrain"
 zh    = "RLHF"
@@ -561,6 +600,23 @@ en  = "Templates"
 "03-multimodal-learning/README.md"                      = ["多模态学习", "Multimodal learning"]
 "04-search/README.md"                                   = ["搜索与检索", "Search & retrieval"]
 "05-post-training/README.md"                            = ["总览", "Overview"]
+"05-post-training/deep-rl/README.md" = ["从这里开始", "Start here"]
+"05-post-training/deep-rl/mdp-bellman.md" = ["MDP 与 Bellman", "MDPs & Bellman"]
+"05-post-training/deep-rl/returns-and-td.md" = ["MC、TD 与边界", "MC, TD & boundaries"]
+"05-post-training/deep-rl/policy-gradients.md" = ["Policy Gradient", "Policy gradients"]
+"05-post-training/deep-rl/actor-critic-gae.md" = ["Actor–Critic 与 GAE", "Actor–Critic & GAE"]
+"05-post-training/deep-rl/trust-region.md" = ["Natural Gradient 与 TRPO", "Natural gradient & TRPO"]
+"05-post-training/deep-rl/fitted-q.md" = ["Fitted Q 与收敛边界", "Fitted Q & convergence"]
+"05-post-training/deep-rl/dqn.md" = ["DQN 与 Double DQN", "DQN & Double DQN"]
+"05-post-training/deep-rl/continuous-control.md" = ["DDPG → TD3", "DDPG → TD3"]
+"05-post-training/deep-rl/soft-actor-critic.md" = ["SAC 与最大熵", "SAC & maximum entropy"]
+"05-post-training/deep-rl/model-based.md" = ["Model-based RL", "Model-based RL"]
+"05-post-training/deep-rl/planning-and-control.md" = ["规划与 LQR", "Planning & LQR"]
+"05-post-training/deep-rl/imitation-and-rewards.md" = ["模仿与奖励", "Imitation & rewards"]
+"05-post-training/deep-rl/offline-and-ope.md" = ["Offline RL 与 OPE", "Offline RL & OPE"]
+"05-post-training/deep-rl/exploration-and-hierarchy.md" = ["探索与层级", "Exploration & hierarchy"]
+"05-post-training/deep-rl/experiments.md" = ["实验与排错", "Experiments & debugging"]
+"05-post-training/deep-rl/llm-bridge.md" = ["接到 LLM 与 Agents", "LLMs & agents"]
 "05-post-training/model-adaptation.md"                  = ["微调与 LoRA", "Fine-tuning & LoRA"]
 "05-post-training/sft-and-its-ceiling.md"               = ["SFT", "SFT"]
 "05-post-training/where-preferences-come-from.md"       = ["偏好与奖励模型", "Reward models"]

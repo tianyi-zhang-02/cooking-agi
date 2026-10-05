@@ -1,0 +1,58 @@
+# Deep RL 专用：避免把“策略、回报”等日常用词在其他板块也标成 RL 术语。
+# 中文<TAB>English<TAB>一句话解释；规则与主术语表相同。
+马尔可夫决策过程	Markov decision process, MDP	用状态、动作、转移和奖励描述连续决策；当前状态与动作应包含预测下一步所需的信息
+隐藏状态	hidden state	这里指环境中未直接观测到的真实状态；不要与 RNN 内部的隐藏表示混为一谈
+信念状态	belief state	根据已有观测和动作，对当前隐藏状态维护的概率分布
+观测	observation	智能体实际收到的信息，可能只是环境完整状态的一部分
+策略	policy	给定状态，规定怎样选动作；可以输出一个动作，也可以输出动作的概率分布
+策略梯度	policy gradient	通过改变动作的概率来提高期望回报；不要求环境本身可微
+轨迹	trajectory	与环境交互得到的一串状态、动作和奖励；采样时也可能只保存其中一段
+回合	episode	从初始状态开始的一次交互过程；采样片段结束不一定代表任务真正结束
+折扣因子	discount factor	给未来奖励打折的系数 γ；既影响优化目标，也影响远期反馈的权重
+回报	return	从某一步开始，把后续奖励按约定累加；有折扣时还要乘上相应的折扣权重
+状态价值	state value	遵循指定策略时，从这个状态出发能获得的期望回报，即 V
+动作价值	action value	先在指定状态执行某个动作，再遵循指定策略时的期望回报，即 Q
+训练目标值	target	这次更新拿来拟合的数；可能由奖励和当前估值共同构造，并不等于真实答案
+全期望公式	law of total expectation	先在给定条件下求期望，再对这些条件取平均，结果等于直接求期望
+策略评估	policy evaluation	给定一个策略，计算或估计按它行动的期望回报；不等于寻找最优策略
+策略改进	policy improvement	根据当前价值估计调整动作选择；精确表格情形的保证不能直接搬到任意近似实现
+价值迭代	value iteration	反复应用最优 Bellman 更新，让当前价值估计逐步接近最优价值
+策略迭代	policy iteration	交替评估当前策略、再根据估值改进策略
+压缩映射	contraction mapping	在指定距离下，让任意两个输入之间的距离按严格小于 1 的比例缩小
+函数逼近	function approximation	用一个受限的函数族表示价值或策略，例如用神经网络代替逐状态查表
+自举	bootstrapping	用已有估值补上尚未完整观察到的未来；这里不是统计学中有放回重采样的 bootstrap
+时序差分	temporal difference, TD	用即时奖励和下一步估值构造目标，再修正当前估值
+TD 误差	TD error / residual	一步目标减去当前估值；是学习信号，不是与真实价值之差
+行为策略	behavior policy	实际产生这批状态和动作数据的策略
+目标策略	target policy	这次希望评估或改进的策略，不一定是收集数据的那个策略
+状态访问分布	state-visitation distribution	策略与环境共同决定会遇到哪些状态；折扣和归一化方式也要说明
+状态基线	state-dependent baseline	从策略梯度的评分中减去一个不依赖当前采样动作的量，用于降低方差
+优势函数	advantage function	A(s,a)=Q(s,a)−V(s)，比较这个动作与该状态下按策略行动的平均预期
+广义优势估计	generalized advantage estimation, GAE	把多步 TD 误差加权相加，用 λ 调节对采样奖励和尾部估值的依赖
+重要性采样	importance sampling	用目标分布与采样分布的概率比重新加权；采样分布必须覆盖目标分布需要的区域
+支持集	support	分布实际覆盖的区域；离散情形中可理解为概率非零的状态或动作
+替代目标	surrogate objective	用来近似原目标、便于优化的目标函数；要检查这种替代在哪些条件下有效
+自然梯度	natural gradient	用分布变化而不只是参数的欧氏距离衡量更新，局部方向由 Fisher 信息矩阵调整
+信赖域	trust region	把更新限制在局部近似仍可信的范围；TRPO 用策略分布的 KL 变化来度量
+共轭梯度	conjugate gradient	在适用的正定条件下迭代解线性方程，可避免显式求逆
+经验回放	experience replay	把过去的交互保存起来重新采样，提高数据复用；并不消除分布偏移
+回放缓冲区	replay buffer	存储交互样本、供后续更新重新采样的数据结构
+在线网络	online network	当前接受梯度更新的网络；这里的 online 不表示已部署为在线服务
+目标网络	target network	用于构造学习目标的网络；DQN 中缓慢更新，RND 中则是固定的随机网络
+半梯度	semi-gradient	更新当前预测时把自举目标视为常数，不沿目标中的估值继续求导
+最大熵目标	maximum-entropy objective	在累计奖励之外，还鼓励策略分布保留一定随机性的优化目标
+微分熵	differential entropy	连续分布的熵，可以为负，也会随变量的坐标尺度改变
+重参数化	reparameterization	把采样写成与参数无关的噪声经过可微变换，方便梯度穿过采样动作
+变量变换	change of variables	改变随机变量的表示时，用 Jacobian 修正概率密度，不能只换样本不换密度
+动力学模型	dynamics model	预测给定状态和动作后，下一状态或其分布会怎样变化
+规划器	planner	利用模型比较未来动作序列，再选择当前要执行的动作
+模型预测控制	model predictive control, MPC	反复规划一段未来，只执行第一步，再根据真实反馈重新规划
+偶然不确定性	aleatoric uncertainty	在当前信息条件下，结果本身仍有的随机性；增加观测有时能减少它
+认知不确定性	epistemic uncertainty	数据或模型知识不足造成的不确定性，可通过新证据减少，但估计并不自动可靠
+离线强化学习	offline reinforcement learning	只用固定数据学习策略，训练期间不能再与环境交互收集新反馈
+离策略评估	off-policy evaluation, OPE	用其他策略产生的数据估计目标策略的表现；需要覆盖与可信的统计假设
+有效样本量	effective sample size, ESS	重要性权重下的一种信息集中度诊断，不是独立观测数，也不保证估计准确
+内在奖励	intrinsic reward	为探索或其他辅助目的添加的反馈，与外部任务奖励分开检查
+随机网络蒸馏	random network distillation, RND	用固定随机网络提供目标，预测器的特征预测误差可作为新颖性的近似信号
+行为克隆	behavior cloning, BC	用示范中的状态与动作做监督学习；不自动处理自己行动后遇到的新状态
+因果混淆	causal confusion	把与示范动作相关、却不能可靠支持决策的线索当成依据

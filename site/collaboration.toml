@@ -17,9 +17,9 @@ reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "posttrain"
-zh = "Post-training"
-en = "Post-training"
-groups = ["posttrain"]
+zh = "强化学习与 Post-training"
+en = "Deep RL & post-training"
+groups = ["deep-rl", "posttrain"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]

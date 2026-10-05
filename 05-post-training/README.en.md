@@ -6,6 +6,8 @@
 
 ## Post-training changes how the model behaves
 
+Want the RL foundations first? Start with the separate [Deep RL route](deep-rl/README.en.md): MDPs, Bellman, policy gradients, DQN, SAC, and model-based RL. Then return here for their language-model applications.
+
 Pretraining teaches a model what the world usually contains. Post-training teaches it how to behave and act when it faces a particular kind of task.
 
 ## What each stage does, intuitively

@@ -28,6 +28,7 @@
 
 | 想弄明白什么 | 从这里开始 |
 | --- | --- |
+| 从奖励学会一连串决策 | [强化学习 · Deep RL](../05-post-training/deep-rl/README.md)：基础推导 → 核心算法 → 数据与实验 |
 | 反馈怎样变成训练目标 | [数据与反馈](../01-data-and-feedback/README.md) → [Post-training](../05-post-training/README.md) |
 | 分数涨了，究竟哪里变好了 | [评估](../07-evaluation/README.md) → [LLM-as-a-Judge](../07-evaluation/llm-as-a-judge/README.md) |
 | 模型怎么用图片、记忆和外部信息 | [多模态](../03-multimodal-learning/README.md) · [记忆](../02-memory/README.md) · [检索](../04-search/README.md) |
