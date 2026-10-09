@@ -14,10 +14,19 @@ def dot(first, second):
 
 
 def cosine(first, second):
-    denominator = math.sqrt(dot(first, first) * dot(second, second))
-    if denominator == 0:
+    if not first or len(first) != len(second):
+        raise ValueError("Use nonempty vectors of the same length")
+    if not all(math.isfinite(value) for vector in (first, second) for value in vector):
+        raise ValueError("Use finite vector components")
+    first_scale = max(abs(value) for value in first)
+    second_scale = max(abs(value) for value in second)
+    if first_scale == 0 or second_scale == 0:
         raise ValueError("Cosine is undefined for a zero vector")
-    return dot(first, second) / denominator
+    first_scaled = [value / first_scale for value in first]
+    second_scaled = [value / second_scale for value in second]
+    denominator = math.hypot(*first_scaled) * math.hypot(*second_scaled)
+    similarity = math.fsum(left * right for left, right in zip(first_scaled, second_scaled)) / denominator
+    return max(-1.0, min(1.0, similarity))
 
 
 def log_softmax(values):

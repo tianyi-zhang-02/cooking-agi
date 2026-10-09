@@ -2,35 +2,19 @@
 
 **中文** · [English](normalization.en.md)
 
-> 阅读时间：约 12 分钟 · 难度：必修 · 最近审阅：2026-09
+> 阅读时间：约 12 分钟 · 难度：必修 · 最近审阅：2026-10-09
 
-<div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>让深层网络中的数值尺度与梯度路径更可控</strong></div>
-  <div><span>前置知识</span><strong>残差连接 · 均值与方差 · Jacobian</strong></div>
-  <div><span>核心机制</span><strong>沿哪条轴统计，以及 Norm 放在残差分支的哪里</strong></div>
-  <div><span>常见错误</span><strong>忘掉 final LN，或笼统地说 BatchNorm 一定泄漏未来</strong></div>
-</div>
+拿向量 `[1, 3]` 看归一化会比较直观。暂时忽略 epsilon 和可学习参数：LayerNorm 先减均值 2，再除以标准差 1，得到 `[-1, 1]`；RMSNorm 不减均值，而是除以均方根 √5。两者都改变尺度，却没有做同一件事。下面再把这笔计算放回一批序列里，看清到底沿哪个轴统计。
 
-## 30 秒建立 mental model
-
-| 概念 | 一句话记忆 | 面试关键词 |
-| --- | --- | --- |
-| 为什么归一化 | 让每个 sublayer 看到尺度可预测的输入，使优化对参数尺度不那么敏感 | stable activations · conditioning · larger learning rate |
-| 为什么不用 BatchNorm | 一个 token 的表示不应依赖 batch 里的其他样本或未来位置 | variable length · padding · train/eval mismatch · causality |
-| Pre-LN vs Post-LN | Pre-LN 把 Norm 移出残差主干，留下 identity gradient path | $I+J_fJ_{\mathrm{LN}}$ · final LN |
-| RMSNorm | 保留 re-scaling，去掉 re-centering | RMS only · no mean subtraction · cheaper reduction |
-
-> **Normalization 不是为了让所有表示永久保持“均值 0、方差 1”，而是为了控制送进每个子层的数值尺度，并让深网络更容易优化。**
-
-## 核心区别：归一化轴不同
+## 核心区别：归一化轴不同 {#_1}
 
 **BatchNorm 沿着「一批样本」求统计量，LayerNorm 沿着「一个样本自己的特征」求。**
 
-剩下的差别，能不能处理变长、batch size 能不能是 1、能不能自回归生成、训练和推理是否一致，全都能从这句话推出来。
+先看统计轴，再看 running statistics 与 train / eval 模式，才能判断变长、batch size 为 1 和自回归生成时的行为。轴的选择很重要，但不是唯一的实现约定。
 
 ![三种归一化各自沿哪条轴](../assets/norm-axes.svg)
 
-## 三个公式
+## 三个公式 {#_2}
 
 **BatchNorm**（对每个特征 $j$，在批次维上统计）：
 
@@ -42,13 +26,19 @@ $$\hat{x}_{ij} = \frac{x_{ij}-\mu_j}{\sqrt{\sigma_j^2+\epsilon}}, \qquad y_{ij} 
 
 $$\mu_i = \frac{1}{d}\sum_{j=1}^{d} x_{ij}, \qquad y_{ij} = \gamma_j\,\frac{x_{ij}-\mu_i}{\sqrt{\sigma_i^2+\epsilon}} + \beta_j$$
 
-**RMSNorm**（LayerNorm 去掉减均值，也去掉 $\beta$）：
+**RMSNorm**（按均方根缩放，常见写法只保留可学习增益 $\gamma$）：
 
 $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_{k} x_{ik}^2+\epsilon}}$$
 
-三种写法里，$\gamma$ 和 $\beta$ 都是**按特征维**走的，长度都是 $d$。真正变的只有一件事：统计量沿哪条轴算。
+这些写法中的 $\gamma$，以及使用时的 $\beta$，都是**按特征维**学习的，长度为 $d$。BatchNorm 与 LayerNorm 要先分清统计轴；LayerNorm 与 RMSNorm 则沿同一特征轴，但分母分别来自方差和原始二阶矩。RMSNorm 不是“假设均值已经等于 0 的 LayerNorm”。
 
-## 四个概念：先会答，再深挖
+把开头的 `[1, 3]` 整体加 10，得到 `[11, 13]`。忽略 epsilon，LayerNorm 仍输出 `[-1, 1]`；RMSNorm 的分母从 $\sqrt{5}$ 变成 $\sqrt{145}$，输出当然也变了。它没有去掉这次平移。至于 Norm 放在子层前还是后，那是 **Pre-Norm / Post-Norm 的另一个选择**，不能与使用哪种归一化公式混为一谈。[RMSNorm 原论文](https://arxiv.org/abs/1910.07467)讨论的正是去掉 re-centering 后的尺度归一化。
+
+## 四个概念：先会答，再深挖 {#_3}
+
+这里的 BatchNorm 公式用二维输入举例；在 `[N,C,L]` 上，`BatchNorm1d` 对每个 channel 沿 `N,L` 统计。训练前向的方差通常用 `correction=0`，更新 running variance 时使用的估计量则不同。默认 eval 使用 running statistics；`track_running_stats=False` 时 eval 也使用当前 batch。均值 / 方差是统计状态，不是像 gamma / beta 那样由梯度学习的参数。[PyTorch 文档](https://docs.pytorch.org/docs/main/generated/torch.nn.BatchNorm1d.html)明确区分了这些行为。
+
+需要先补输入特征的 min–max 与 Z-score，可以看[预处理和网络 Norm 的区别](../deep-dives/generalization.md)。
 
 <details class="interview" markdown="1">
 <summary>1. 为什么深层网络需要 normalization？</summary>
@@ -219,7 +209,7 @@ $$
 \sqrt{\frac{1}{d}\sum_j(x_j-\mu)^2+\epsilon},
 $$
 
-RMSNorm 的分母是二阶矩，
+RMSNorm 的分母是二阶矩加 epsilon 后的平方根，
 
 $$
 \sqrt{\frac{1}{d}\sum_jx_j^2+\epsilon}.
@@ -233,20 +223,20 @@ $$
 
 </details>
 
-## 怎样选择归一化方法
+## 怎样选择归一化方法 {#_4}
 
 | 场景 | 用什么 | 为什么 |
 | --- | --- | --- |
-| CNN 图像分类，batch 够大且固定 | **BatchNorm** | 批统计量稳定，顺带带来正则化效果，通常还更快收敛 |
-| 任何 Transformer / 语言模型 | **LayerNorm / RMSNorm** | 变长、batch 可能为 1、生成必须确定 |
-| RNN / LSTM | **LayerNorm** | 时间步之间批统计量不可比 |
-| batch size 很小（检测、分割、大模型微调） | **GroupNorm / LayerNorm** | BatchNorm 在小批次下统计量噪声太大 |
-| 强化学习、在线学习 | **LayerNorm** | 数据分布随策略变化，滑动平均会一直滞后 |
-| GAN 判别器 | 常用 **InstanceNorm / LayerNorm** | 避免同批次样本互相泄漏信息 |
+| CNN 图像分类，有足够统计样本 | **BatchNorm** 是常见基线 | 按 channel 统计；有效样本还包括空间位置，不只看 batch size |
+| 自回归 Transformer | 常用 **LayerNorm / RMSNorm** | 按 token 的特征统计，不把未来位置或同行样本混进来 |
+| RNN / LSTM | 可比较 **LayerNorm** | 每个时间步独立归一化；仍要检查放在门控前还是后 |
+| 小 batch 的检测、分割 | 可比较 **GroupNorm / LayerNorm** | 不依赖批统计，但分组和归一化轴仍需与架构匹配 |
+| 强化学习、在线学习 | **LayerNorm** 可作为基线 | 不维护批均值；分布变化并不意味着 BatchNorm 在所有 RL 方法中都不可用 |
+| 不允许跨样本耦合的目标 | 使用样本内的统计量 | 先看目标约束，再选 LN、GN 或其他方案，不能只按任务名字决定 |
 
 一句判据：**只要「同一个输入在不同批次里应该得到同一个输出」是硬要求，就不要让 normalization 使用 batch statistics。**
 
-现代大模型常进一步选择 RMSNorm：少一次 mean reduction，计算、同步和内存流量更简单，实践中通常能保持相近质量。
+现代大模型常进一步选择 RMSNorm。少做均值中心化可以简化计算，但实际速度和同步次数还取决于融合 kernel 与张量切分，不能只数公式里的求和号。
 
 <details markdown="1">
 <summary><b>补充</b>：为什么 internal covariate shift 不是完整解释？</summary>
@@ -255,17 +245,17 @@ $$
 
 更稳妥的表述是：归一化降低了模型对参数尺度的敏感度，并经常让 loss landscape 与梯度更平滑，从而改善优化；这不是对任意网络全局条件数的无条件保证。
 
-还有一个常被忽略的角度：归一化把权重的**尺度**自由度消掉了。$\text{Norm}(\alpha W x) = \text{Norm}(Wx)$，所以权重整体放大不改变输出——只改变有效学习率。这也是为什么归一化层通常不做 weight decay。
+还有一个值得分清的性质：忽略 epsilon、统计量非零且 $\alpha>0$，并从当前输入重算统计量时，$\text{Norm}(\alpha Wx)=\text{Norm}(Wx)$。这是对输入整体正向缩放的不变性，不是说任意改动权重都不影响网络。使用固定 running statistics 的 BatchNorm eval 不满足这个前提。保留 epsilon 时通常只有近似关系；Norm 自己的 $\gamma$ 是否做 weight decay，又是单独的优化选择，不能从这个等式直接推出。
 
 </details>
 
-## 动手验证
+## 动手验证 {#_5}
 
-[`../code/norm_compare.py`](../code/norm_compare.py) 用同一批激活值分别跑三种归一化，打印各自沿哪条轴统计、以及把 batch size 降到 1 时 BatchNorm 怎么塌掉。
+[`../code/norm_compare.py`](../code/norm_compare.py) 用同一批激活比较统计轴，再检查三个不同情况：`[1,C]` 的 BatchNorm 训练前向会报错；eval 使用 running statistics 可以运行；`[1,C,L]` 在 `L>1` 时也能训练，但统计会跨时间。不要把这三件事都概括成“小 batch 不能用”。
 
 图由 [`../code/make_norm_figures.py`](../code/make_norm_figures.py) 生成。
 
-## 自检
+## 自检 {#_6}
 
 <div class="taste-check">
   <strong>如果真的理解了，你应该能解释：</strong>
@@ -278,6 +268,17 @@ $$
   </ol>
 </div>
 
-## 继续阅读
+## 继续阅读 {#_7}
 
 归一化让每层输入的尺度可控，但深度真正可行还差另一半——[残差连接](residual-connections.md)。
+
+## 30 秒建立 mental model {#30-mental-model}
+
+| 概念 | 一句话记忆 | 面试关键词 |
+| --- | --- | --- |
+| 为什么归一化 | 让每个 sublayer 看到尺度可预测的输入，使优化对参数尺度不那么敏感 | stable activations · conditioning · larger learning rate |
+| 为什么不用 BatchNorm | 一个 token 的表示不应依赖 batch 里的其他样本或未来位置 | variable length · padding · train/eval mismatch · causality |
+| Pre-LN vs Post-LN | Pre-LN 把 Norm 移出残差主干，留下 identity gradient path | $I+J_fJ_{\mathrm{LN}}$ · final LN |
+| RMSNorm | 保留 re-scaling，去掉 re-centering | RMS only · no mean subtraction · cheaper reduction |
+
+> **Normalization 不是为了让所有表示永久保持“均值 0、方差 1”，而是为了控制送进每个子层的数值尺度，并让深网络更容易优化。**

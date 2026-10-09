@@ -26,30 +26,18 @@ But it cannot prove:
 user only likes pop
 ```
 
-Jazz never entered your choice set. The system first decided what you could see, and then used your clicks to prove that its own decision was right. This is the familiar **policy bias / exposure bias**.
+Jazz never entered your choice set. The system chose what to show, so the log only contains responses to those options. Here, **policy bias and exposure bias** refer to this recommender setting: the display policy affects which feedback can be observed.
 
 ## What one log entry actually mixes together
 
-A click, a dwell, or a reply is usually shaped by all of these at once:
+Tracing the example makes the missing feedback visible:
 
 ```mermaid
 flowchart TB
-    A["Latent user need"]
-    B["Previous model and serving policy"]
-    C["Interface · rank · presentation"]
-    D["Time · device · environment"]
-    E[("Observed behavior")]
-    F{"Enough causal context?"}
-    G["Use as weak evidence with propensity and uncertainty"]
-    H["Do not treat as a direct preference label"]
-
-    A --> E
-    B --> E
-    C --> E
-    D --> E
-    E --> F
-    F -- "enough" --> G
-    F -- "not enough" --> H
+    pool["Candidates: pop and jazz"] --> shown["System shows only pop"]
+    shown --> clicked["User clicks a pop song"]
+    clicked --> log["Log: one click on pop"]
+    pool -. "Jazz was not shown" .-> missing["No feedback on jazz<br/>Not evidence of dislike"]
 ```
 
 So data is not a clean label. It is the joint product of several mechanisms.
@@ -70,7 +58,7 @@ The system only receives feedback on what it chose to show. The more it relies o
 
 ### 4. Missing longitudinal structure
 
-A single click is easy to record; a change in long-term goals is not. What Personal AGI really needs is “how this person is changing,” not just many disconnected events.
+A single click is easy to record; connecting events across time is harder. If an assistant is meant to help over the long term, it needs to track changing needs rather than just store disconnected events.
 
 ### 5. Ambiguous labels
 
@@ -96,9 +84,9 @@ What matters is whether the data adds new information about the goal, the user, 
 ## How it connects to other topics
 
 - [Representation and memory](../02-memory/README.en.md) decides how this data becomes long-term state.
-- [Search](../04-search/README.en.md) decides which new observations the system will generate.
+- [Search](../04-search/README.en.md) affects what users see and therefore which feedback the system can collect.
 - [Post-Training](../05-post-training/README.en.md) decides how this feedback changes model behavior.
-- [Evaluation](../07-evaluation/README.en.md) checks whether the model merely learned the bias in the data.
+- [Evaluation](../07-evaluation/README.en.md) checks whether the model learned useful information or mainly reproduced biases in the data.
 - [Human-in-the-Loop](../06-systems/human-in-the-loop.en.md) can provide fewer but clearer correction signals.
 
 ## The questions I now ask first

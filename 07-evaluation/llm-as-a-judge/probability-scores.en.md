@@ -12,11 +12,23 @@ The controls edit **fictional score counts**. Switch between “All 3” and “
 
 ## Method A: probabilities of rating labels
 
-With probabilities for all allowed labels at a common rating position:
+First define $p(k)$ as a distribution summing to one over rating labels 1–5. With the complete label probabilities at a common rating position:
 
 $$\bar{s}=\sum_{k=1}^{5}k\,p(k).$$
 
 For \(p(3)=0.1,\ p(4)=0.7,\ p(5)=0.2\), the result is 4.1. [G-Eval](https://arxiv.org/abs/2303.16634) uses rating-token probabilities to refine discrete scores.
+
+Raw vocabulary probabilities need not sum to one over the rating labels. Suppose all five labels are available: ratings 3, 4, and 5 have probabilities 0.08, 0.56, and 0.16, ratings 1 and 2 have zero, and other tokens hold the remaining 0.20. The raw weighted sum is 3.28. Dividing by the rating mass of 0.80 gives 4.1, the mean conditional on a valid 1–5 label. Retain that mass rather than presenting the conditional score as an unconditional distribution.
+
+```python
+raw_rating_probabilities = {1: 0.0, 2: 0.0, 3: 0.08, 4: 0.56, 5: 0.16}
+rating_mass = sum(raw_rating_probabilities.values())
+weighted_sum = sum(score * probability for score, probability in raw_rating_probabilities.items())
+conditional_mean = weighted_sum / rating_mass
+assert abs(rating_mass - 0.80) < 1e-12
+assert abs(weighted_sum - 3.28) < 1e-12
+assert abs(conditional_mean - 4.1) < 1e-12
+```
 
 Having an API that returns logprobs is not sufficient by itself:
 
@@ -35,6 +47,8 @@ $$\hat p(k)=\frac{n_k}{N},\qquad
 \bar{s}=\sum_k k\frac{n_k}{N}=\frac{1}{N}\sum_{i=1}^{N}s_i=4.$$
 
 This is the ordinary mean, rewritten using frequencies. It doesn't invent a separate weight for each of the 20 calls.
+
+This is also part of G-Eval's implementation history. [Section 3.1](https://arxiv.org/html/2303.16634v3#S3.SS1) says its GPT-4 interface did not expose token probabilities at the time, so the authors estimated the rating distribution from 20 samples. That describes the paper's setup, not a restriction on every current interface. Twenty independent completions need not require twenty HTTP requests if the interface supports batch generation.
 
 - One prompt requesting “20 scores” does not produce 20 independent calls.
 - Keep the model, rubric, context, and sampling setup fixed. Independent sampling is a modeling assumption, not protection from systematic bias.

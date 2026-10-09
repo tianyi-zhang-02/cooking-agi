@@ -49,7 +49,7 @@ On-policy / off-policy compares **the behavior policy collecting data with the t
 
 ## Prerequisites and notation
 
-Conditional expectation, the chain rule, and gradients are enough to start. Revisit the [probability guide](../../quant/probability/study-guide.en.md) when needed, especially conditional and total expectation. The PyTorch examples assume familiarity with autograd and tensor shapes.
+Conditional expectation, the chain rule, and gradients are enough to start. For a refresher on probability and gradients, see [ML mathematics](../../00-foundations/ml-math-interview.en.md). The PyTorch examples assume familiarity with autograd and tensor shapes.
 
 Throughout, $s_t$ is the state, $a_t$ the action, $r_t$ the reward received after that action, and $\gamma$ the discount. Finite episodes use $t=0,\ldots,T-1$; terminal value is zero. We use $\pi_\theta$ for a stochastic policy and $\phi$ for value parameters. Reward, return, and value are not interchangeable.
 

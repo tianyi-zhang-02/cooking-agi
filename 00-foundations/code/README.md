@@ -8,6 +8,8 @@
 
 高层 API 当然不是坏东西，但如果一开始就封装所有核心计算，后续 shape、mask 或 state 出错时，很难定位不收敛的原因。
 
+如果对 view、broadcasting 或自动求导还不熟，先读 [PyTorch：从张量到训练](../pytorch/README.md)。那里用小例子把存储、梯度和完整训练循环接起来，再回这里实现模型。
+
 ## 第一阶段：用纯 Python / NumPy 验证计算
 
 | 文件 | 依赖 | 验证什么 |

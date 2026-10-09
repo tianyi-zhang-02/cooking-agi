@@ -4,11 +4,7 @@
 
 ## First, put the model back into the full system
 
-The final behavior of an AI system is not decided by model parameters alone. It also depends on what data the system saw, which memory it pulled out, what evidence it found, which tools it called, and how we judge whether the result is good.
-
-Many apparent model failures originate outside the model: training data does not represent the task, retrieval supplies the wrong evidence, tool state violates model assumptions, offline evaluation measures the wrong objective, or deployed feedback is contaminated by the product policy.
-
-I therefore view an AI system as a continuous **sense–model–search–act–measure–learn loop**.
+An AI system's result depends on more than its model. Data, retrieved memories, evidence, and tools all affect what it does. Improving the result means examining those parts together, rather than only trying a larger model.
 
 ## Which stages one request really passes through
 
@@ -27,27 +23,13 @@ If you stare only at the last sentence of the answer, you will very likely fix t
 ## Walk through it end to end
 
 ```mermaid
-flowchart TD
-    subgraph O["Observe and construct state"]
-        A(["User goals · tasks · constraints"]) --> B["Interaction and environment signals"]
-        B --> C["Data semantics and feedback model"]
-        C --> D[("Memory · representation · world state")]
-    end
-
-    subgraph A1["Reason and act"]
-        E["Search · tools · context construction"] --> F["Foundation model and policy"]
-        F --> G["Reasoning · generation · action"]
-        G --> H["Runtime · serving · state transitions"]
-    end
-
-    subgraph L["Measure and learn"]
-        I(["User and environment outcome"]) --> J["Offline eval · online metrics · human audit"]
-        J --> K[("Versioned evidence and update candidates<br/>↺ state · retrieval · model · policy")]
-    end
-
-    D --> E
-    H --> I
-    K -.-> C
+flowchart TB
+    change["User: leave on Friday instead"] --> state["Replace the old travel date in state"]
+    state --> search["Search flights and prices for the new date"]
+    search --> confirm["Show flight, date, and cost<br/>Book only after user confirmation"]
+    confirm --> tool["Call the booking API"]
+    tool --> order["Read the actual order: correct date?"]
+    order -. "Trace a failure to the responsible step" .-> state
 ```
 
 ### 1. User goal: what are we actually trying to solve
@@ -58,25 +40,17 @@ First state clearly the task, the target population, the cost of failure, and th
 
 Data is produced jointly by previous models, the product interface, and user behavior. It is not a neutral fact. See [Data and feedback](../01-data-and-feedback/README.en.md).
 
-Training requires understanding who was observed, who was omitted, and why feedback occurred.
-
 ### 3. Representation and memory: how the system keeps state
 
 This layer decides what enters the current context, what persists across sessions, and how new evidence revises old understanding. See [Representation and memory](../02-memory/README.en.md).
-
-User intent is often a distribution rather than one static point.
 
 ### 4. Search and tools: how the system connects to the outside world
 
 Search is responsible for finding evidence and candidates; tools are responsible for reading or changing external state. Both can return successfully and still deliver wrong or outdated information.
 
-Search includes query formulation, candidate generation, evidence deduplication, exploration, tool choice, and context-budget allocation—not only similarity ranking.
-
 ### 5. Model and policy: how the system decides the next step
 
 The model combines the goal, the state, and the evidence to decide whether to answer, ask a follow-up question, search, or act. Post-training shapes that behavioral tendency.
-
-Pretraining creates a capability prior; continued pretraining shifts domain knowledge; SFT shapes imitable behavior; preference learning and RL adjust policy. The feedback must be dense, stable, and attributable enough for the selected method.
 
 ### 6. Runtime and execution: what decides whether it can really be done
 
@@ -89,8 +63,6 @@ What really has to be checked is whether the task was completed, whether the ext
 ### 8. Evaluation and learning: how the next round gets better
 
 Rules, executors, LLM judges, human review, and online metrics together form the evidence. Failure cases also have to flow back as new tests, data, or policy updates.
-
-Evaluation is not a final score. It continuously tests the system contract through regression checks, structural invariants, semantic quality, subgroup behavior, online outcomes, and long-term effects. Deployed behavior becomes future data, but it is conditioned on the current policy; the system must distinguish what users prefer from what the system happened to expose.
 
 ## Example: a support agent that can look up orders and issue refunds
 
@@ -188,7 +160,7 @@ The point is not to master every layer. It is to preserve the complete context w
 
 ### Agent Observability: first, see what happened
 
-It strings the model, retrieval, tools, memory, and state changes into one trajectory that can be queried and reproduced.
+It connects model calls, retrieval, tools, memories, and state changes into a trace that can be inspected and used to construct controlled replay tests.
 
 → [Read Agent Observability](agent-observability.en.md)
 
@@ -203,7 +175,9 @@ Together they form an improvement loop:
 ```mermaid
 flowchart TB
     A["Agent plan and pending action"] --> B[("Trace · tool state · permissions · evidence")]
-    B --> C["Deterministic checks and calibrated evaluators"]
+    B --> P{"Permissions and required approvals in place?"}
+    P -- "no" --> stop["Stop or request the missing authorization"]
+    P -- "yes" --> C["Deterministic checks and calibrated evaluators"]
     C --> D{"High risk, uncertainty, or irreversible impact?"}
     D -- "low" --> E["Execute automatically"]
     D -- "high" --> F["Request a human decision"]
@@ -215,6 +189,8 @@ flowchart TB
 ```
 
 ## One layer further down: infra
+
+For a first explanation of how training spans devices, read [distributed training](distributed-training.en.md). It compares DDP, FSDP, TP, and PP on one small model, checks the global loss denominator, and accounts for memory and communication. It is a mechanism guide, not a deployment manual.
 
 This chapter is about the path a request takes. Below it — how an inference engine schedules,
 how memory is laid out, how RL training and rollout are stitched together — is not my

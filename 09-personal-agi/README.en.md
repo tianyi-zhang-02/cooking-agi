@@ -4,7 +4,7 @@
 
 ## Personal AGI needs a revisable user state
 
-Personal AGI is not a chatbot that knows your name. It is a system that, over long-term interaction, forms an understanding, admits uncertainty, accepts correction, and gradually learns how to help you.
+Here, Personal AGI names an aspiration for a personal assistant, not a claim that general intelligence has been achieved. Through long-term interaction, it would learn how to help you, ask when uncertain, and accept corrections—not just remember your name.
 
 ## Start with a recommendation that misunderstood you
 
@@ -22,7 +22,7 @@ The real value is not “remembering more.” It is **using the right understand
 
 ## How it differs from ordinary personalization
 
-Traditional personalization often does this: given historical behavior, predict what the user is most likely to click next.
+Click prediction is a common personalization task, but personalization can also consider satisfaction, task completion, and long-term goals. Here, the focus is how an assistant could use that understanding across different tasks.
 
 Personal AGI wants to go further and handle:
 
@@ -32,9 +32,11 @@ Personal AGI wants to go further and handle:
 - how the user views, edits, or deletes the state the model has formed;
 - how the system knows that its judgment about the user may be wrong.
 
-So it is not just a recommender, and not just memory. It needs a complete closed loop.
+Recommendation or memory alone is not enough: the system needs to retrieve relevant information, carry out the task, and update its understanding from feedback.
 
-## Six necessary parts
+## Six parts to consider {#six-necessary-parts}
+
+This is one way to organize the design, not a sufficient recipe for AGI or a requirement to use six separate models. Start with the tasks the assistant should help with, then choose which capabilities to build.
 
 ### 1. User state
 
@@ -64,7 +66,7 @@ Let the user know what the system has remembered and why it judged the way it di
 
 ### A user is not one fixed vector
 
-A person can hold several interests and roles at once, and they change over time. Compressing the whole history into one average representation easily makes niche but important intents disappear.
+A person can hold several interests and roles at once, and they change over time. Compressing all history into one representation may make niche intents harder to retrieve. Multiple vectors are not automatically better either: test whether they preserve useful distinctions under the same budget.
 
 ### Behavior is not the goal
 

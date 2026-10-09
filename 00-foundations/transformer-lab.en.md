@@ -2,7 +2,7 @@
 
 [中文](transformer-lab.md) · **English**
 
-> Reading time: ~12 min, longer if you play · Level: intro → advanced · Last reviewed: 2026-09
+> Reading time: ~15 min, longer if you play · Level: intro → advanced · Last reviewed: 2026-10-09
 >
 > This is the hands-on companion to [The Transformer architecture](transformer.en.md). The formulas and derivations live there; this page does one thing: make every mechanism something you can drag, click, and watch the numbers of. Everything in the figures is computed live in your browser. Model-family configurations change quickly, so treat the papers and released configs at the end as the source of truth.
 
@@ -17,9 +17,9 @@ One colour key runs through the page: **blue** is queries and attention, **orang
 
 ## The map: one block, many families
 
-Every modern LLM runs the same loop: embed the tokens, push them through $N$ identical blocks, predict the next token. A block has two sub-layers. Attention moves information **between** tokens; the FFN transforms each token **on its own**. Both sit inside residual connections.
+Start with a common autoregressive Transformer: embed tokens, pass them through several blocks, and predict the next token. Repeated structure does not mean shared parameters. In a standard block, attention moves information **between** tokens and the FFN transforms each token **independently**, both through residual branches. Hybrid architectures can replace some attention layers with recurrent state updates, so this diagram is not a universal blueprint for every LLM.
 
-What separates one family from another is a short list of choices: where the norm goes, how position is encoded, how K/V heads are shared, and whether the FFN is dense or a mixture of experts. Pick a family and watch what moves; rows marked with a dot on the right are the ones that changed from your previous choice.
+Start with a few visible choices: where the norm goes, how position is encoded, how K/V heads are shared, and whether the FFN is dense or a mixture of experts. Pick a family and watch what moves; rows marked with a dot changed from the previous selection. Data, training objectives, and inference settings are outside the diagram but also affect performance.
 
 <!-- widget:tx-arch -->
 
@@ -31,15 +31,15 @@ Each token emits three vectors: a **query** (what am I looking for?), a **key** 
 
 <!-- widget:tx-attention -->
 
-This is a toy: 6 tokens, $d_k=4$, weights set by hand (not trained) so that every number can be checked in your head. Hover a row to follow one token through the computation; turn the causal mask off and you get a BERT-style encoder. Why the $\sqrt{d_k}$, and what the three projections mean, is in [The Transformer architecture](transformer.en.md).
+This is a toy: 6 tokens, $d_k=4$, and hand-set rather than trained weights, so the calculation is easy to check. Hover a row to follow one token through it. Removing the causal mask demonstrates bidirectional attention, not a complete BERT model: the objective and other layers also differ. For the $\sqrt{d_k}$ factor and the three projections, see [The Transformer architecture](transformer.en.md).
 
 ## Why decoding needs a KV cache
 
-Generation happens one token at a time. Without a cache, every step re-runs attention over the whole prefix: step $t$ recomputes $t$ keys, $t$ values and about $t^2/2$ scores. But under a causal mask, past keys and values never change, so store them: step $t$ then computes one new K/V pair and one row of scores.
+Generation happens one token at a time. Recomputing a complete length-$t$ prefix requires $t$ keys, $t$ values, and $t(t+1)/2$ valid causal scores per layer and head. With unchanged weights, prefix, and position settings, and dropout disabled, past K/V can be reused: calculate only the new token's K/V and one attention row. Changing the prefix, weights, or position handling can invalidate that cache.
 
 <!-- widget:tx-kv-cache -->
 
-Switch to “No cache” and watch again, keeping an eye on the two cumulative bars. The price is memory that grows with every token. Per-step compute drops from $O(t^2)$ to $O(t)$, but decoding becomes memory-bound: every step has to read the entire cache. That is exactly what the next section attacks.
+Switch to “No cache” and compare the cumulative bars. At fixed depth and dimensions, attention work per step falls from $O(t^2)$ to $O(t)$, while cache storage grows with length. Small-batch decoding is often limited by weight and KV reads; larger batches, different kernels, or other hardware can change the bottleneck. The next section compares KV storage, not guaranteed throughput.
 
 ## Shrinking the cache: MHA → GQA → MQA → MLA
 
@@ -49,15 +49,15 @@ $$
 2 \times n_{\text{kv heads}} \times d_{\text{head}}
 $$
 
-numbers, times layers, tokens and bytes per number. The number of query heads does not appear, so the savings all come from the K/V side:
+numbers, assuming equal K/V dimensions and the same configuration in every layer. Multiply by layers, tokens, and bytes per number for storage in bytes. With KV head count and dimensions fixed, query head count adds no extra factor:
 
-- **MQA** (2019): keep every query head, share a single K/V head. Smallest cache, some quality loss.
-- **GQA** (2023): groups of query heads share one K/V head, the middle ground between MHA and MQA. Llama 3, Mistral, Qwen and Gemma all use it.
-- **MLA** (DeepSeek-V2, 2024): cache one small latent vector per token and re-expand it into per-head keys and values. The cache is $4.5\,d_{\text{head}}$ regardless of the number of heads, what GQA would need with 2.25 KV heads.
+- **MQA** (2019): all query heads share one K/V head. At fixed dimensions, this is the smallest cache within these head-sharing schemes; any quality loss depends on training and the task.
+- **GQA** (2023): each group of query heads shares a K/V head, trading storage against representation capacity. The Llama 3, Mistral, Qwen3, and Gemma 3 versions below use it.
+- **MLA** (DeepSeek-V2, 2024): cache a compressed KV latent plus a separate RoPE key. Storage per layer and token is $d_c+d_r$, not universally $4.5\,d_{\text{head}}$. DeepSeek-V3 uses $512+64=576$ elements. Weight absorption can also avoid explicitly reconstructing all K/V during decoding; see the [MLA derivation](deep-dives/latent-and-sparse-attention.en.md).
 
 <!-- widget:tx-kv-heads -->
 
-The lower half is a calculator: pick a model shape, drag the context length and the number of concurrent sequences, and read off the memory for all four variants. Switch the shape to DeepSeek-V3 (128 heads) and compare the MHA and MLA rows.
+The calculator is a controlled comparison, not a deployment configuration: keep depth, length, and storage precision fixed while replacing the attention scheme. The MLA row fixes a 512-dimensional latent and a 64-dimensional RoPE key. It excludes weights, temporary activations, KV page fragmentation, and cross-device replication, and does not imply that every model supports all four variants.
 
 ## Not every token needs to see every token
 
@@ -65,19 +65,19 @@ Full causal attention costs $O(n^2)$. **Sliding-window attention** lets each tok
 
 <!-- widget:tx-windows -->
 
-Drag “Stacked layers” and watch the pale region grow. The other three modes are real models: Gemma 3 interleaves five local layers with one global layer, and only the global layers keep a full-length cache; gpt-oss alternates windowed and full layers; StreamingLLM keeps the first few sink tokens forever, because softmax has to put its weight somewhere and models learn to dump the excess there.
+Drag “Stacked layers” to expand the possible information paths. Reachability does not guarantee that distant content is remembered. Gemma 3 interleaves five local layers with one global layer; gpt-oss alternates windowed and full attention. StreamingLLM retains initial sink tokens and a recent window to reduce instability from discarding the initial KV. Details evicted from the window do not remain fully available.
 
 ## RoPE: position as rotation
 
-Instead of adding a position vector to the embedding, RoPE rotates each pair of dimensions in $q$ and $k$ by an angle proportional to the token's position, with every pair turning at its own frequency. The dot product of two rotated vectors depends only on the **difference** of their angles, so the score depends only on the relative distance $m-n$.
+RoPE rotates pairs of dimensions in $q$ and $k$ at different frequencies instead of adding a position vector to embeddings. **For fixed content vectors**, the positional effect on their dot product depends on relative distance $m-n$. Real attention scores still depend on content, not distance alone.
 
 <!-- widget:tx-rope -->
 
-Press play: both vectors spin and the score does not move. That is what “relative position” means. Then drag the distance $\Delta$, or scrub along the curve on the right, and watch the score decay with distance. A larger base $\theta$ turns more slowly and decays more slowly, which is how Llama 3 ($\theta=500\text{k}$) and Gemma 3 ($\theta=1\text{M}$ on global layers) stretch to long context. The derivation is in [The Transformer architecture · RoPE](transformer.en.md).
+Press play: shifting both positions leaves the score unchanged. Drag distance $\Delta$ and the curve oscillates; it is **not pointwise monotonically decreasing**. One rotation plane is enough to see why: with both content vectors set to $(1,0)$, the dot product is $\cos\Delta$, rising from -1 to 1 between phase differences $\pi$ and $2\pi$. Increasing the base slows some dimensions, but changing that number alone does not guarantee useful long context; training and evaluation still matter. See [The Transformer architecture · RoPE](transformer.en.md).
 
-## MoE: more parameters, same compute per token
+## MoE: more parameters without using all of them {#moe-more-parameters-same-compute-per-token}
 
-The FFN holds roughly two thirds of a dense block's parameters. A mixture-of-experts layer replaces it with $N$ expert FFNs and a router that sends each token to only the top $k$. Total parameters scale with $N$; compute scales with $k$.
+A mixture-of-experts layer replaces one FFN with several experts and a router that selects $k$ for each token. At fixed expert size and $k$, more total experts do not increase the selected FFNs' arithmetic. Routing, communication, and load imbalance still cost work. Selecting two equally sized experts is not as cheap as the original single dense FFN.
 
 <!-- widget:tx-moe -->
 
@@ -85,7 +85,7 @@ The grids are drawn at true scale (8, 128 or 256 experts), so the sparsity you s
 
 ## FlashAttention: same math, less memory traffic
 
-On a GPU, attention is limited by memory traffic rather than arithmetic: the standard implementation writes the full $n\times n$ score matrix to slow HBM and reads it back. FlashAttention cuts Q, K and V into blocks that fit in fast on-chip SRAM, computes attention block by block while keeping only a running max and normaliser per row (the online softmax), and only ever writes the $n\times d$ output. The result is **exact**, not an approximation, with extra memory linear in $n$.
+Naive attention materializes full $n\times n$ score and probability matrices in HBM, which can make memory traffic expensive. FlashAttention uses tiling and online softmax to accumulate outputs without storing those two full matrices in HBM. It does not approximate attention by sparsifying it, but floating-point order changes mean results need not be bitwise identical. Speedups depend on shapes, hardware, and kernels; attention is not universally memory-bound.
 
 <!-- widget:tx-flash -->
 
@@ -93,7 +93,7 @@ Switch to “Standard attention” and watch the two $n\times n$ matrices S and 
 
 ## Families at a glance
 
-The same checklist, side by side. Numbers come from each family's paper, tech report and released config.
+These are **specific historical versions**, not a ranking of each family's latest release. Numbers come from the corresponding reports and configs; see [model-family readings](model-families/README.en.md) for later versions.
 
 | Family | Layout | Norm | Position | Attention | FFN | Context | Size |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -113,7 +113,7 @@ The same checklist, side by side. Numbers come from each family's paper, tech re
   <strong>After this page you should be able to explain six things:</strong>
   <ol>
     <li>Which four parts of the block changed between the original Transformer and Llama 3, and what did each fix?</li>
-    <li>The KV cache cuts per-step compute from $O(t^2)$ to $O(t)$. Why does decoding become memory-bound as a result?</li>
+    <li>Under what conditions can KV be reused, and why can memory bandwidth still limit decoding after computation is reduced?</li>
     <li>What exactly do GQA, MQA and MLA cache? Why is the MLA cache independent of the number of heads?</li>
     <li>With a sliding window each layer sees only $w$ tokens. How does information travel further than that?</li>
     <li>Why is FlashAttention exact, and which kind of cost does it remove?</li>

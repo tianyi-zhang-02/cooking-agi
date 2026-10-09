@@ -2,37 +2,50 @@
 
 [中文](three-stages.md) · **English**
 
-> Reading time: ~2 min · Level: core · Last reviewed: 2026-09
+> Reading time: ~3 min · Level: core · Last reviewed: 2026-10
 
-Step through the figure below: first what each of the three stages produces, then how the four models of stage three work together.
+To teach a model to summarize a long email in three sentences, we could show it a good summary, ask it to compare two summaries, or let it write one and learn from feedback. These roughly correspond to the three stages of classic RLHF.
+
+Step through the figure or read on. This page describes a common PPO-style pipeline; other post-training methods need not retain every stage.
 
 <!-- widget:tx-rlhf -->
 
-## The three stages
+<span id="the-three-stages"></span>
 
-**Stage 1, SFT.** Finetune the pretrained model on human demonstrations to get something that at least follows the instruction format. It becomes RL's initial policy, and RL cannot rescue a bad starting point.
+## Demonstrations, comparisons, then new attempts
 
-**Stage 2, the reward model.** Collect **pairwise** rankings — two answers to the same prompt, labelled which is better — and train $r_\phi$ to score answers with the Bradley–Terry loss:
+**SFT: learn from a demonstration.** Each example pairs an email with a suitable three-sentence summary. The model learns to produce that output from the input. A useful starting policy makes worthwhile samples easier to obtain later; if even occasional success is hard to sample, RL may struggle for signal too.
 
-$$\mathcal{L}(\phi) = -\mathbb{E}_{(x, y_w, y_l)}\Big[\log \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big)\Big]$$
+**Reward modeling: learn to compare.** Now pair the same email with two summaries. One preserves the deadline; the other reads smoothly but omits it. An annotator prefers the first. From comparisons like this, a model learns to predict preferences without requiring people to assign an absolute score to every sentence.
 
-It learns **relative** order. Its zero point is unidentifiable: adding the same constant to every score changes no loss. Raw scores therefore are not literal units of “human satisfaction,” and comparisons across prompts or data distributions require calibration checks. The objective directly constrains the chosen–rejected gap for the same prompt.
+**RL: generate new attempts.** The Actor writes a summary, the reward model scores it, and the policy updates from that feedback. This adds an active attempt: training evaluates what the current model writes, rather than only imitating summaries already in the dataset.
 
-**Stage 3, optimise with RL.** Four models are present at once, in quite different roles.
+<details markdown="1">
+<summary>How can “the first is better” train a numerical score?</summary>
 
-## The four models, and which two actually train
+A common choice is a Bradley–Terry preference model. With preferred answer $y_w$ and alternative $y_l$, its training loss is:
 
-This is the part most explanations blur:
+$$
+\mathcal L(\phi)=-\mathbb E_{(x,y_w,y_l)}\log\sigma\big(r_\phi(x,y_w)-r_\phi(x,y_l)\big).
+$$
 
-| Model | Comes from | Trains? | Role |
-| --- | --- | --- | --- |
-| **Actor** (policy) | copy of the SFT model | **yes** | the thing being optimised, and what ships |
-| **Critic** (value) | often initialised from the reward model | **yes** | estimates $V_t$ to reduce gradient variance |
-| **Reward** | stage 2's output | frozen | scores complete answers |
-| **Reference** | copy of the SFT model | frozen | the KL anchor that keeps the Actor from drifting |
+It favors a higher score for the preferred answer. The loss directly uses the **score difference**: adding 10 to both scores leaves it unchanged. An individual score is therefore not a fixed unit of satisfaction; comparisons across prompts, domains, or versions require checking scale and calibration.
 
-**Only the first two update weights.** Reward and Reference run forward passes and nothing else.
+</details>
 
-Actor and Reference start as two copies of the same weights. The Actor trains and drifts; the Reference stays put as the measuring stick.
+<span id="the-four-models-and-which-two-actually-train"></span>
 
-These are four **conceptual roles**, not necessarily four independent full models that remain GPU-resident at all times. A Critic may be a value head on a shared backbone, while frozen models can be sharded or offloaded. Their training relationships stay the same.
+## Who does what during the RL stage?
+
+The Actor writes the summary. The Reward Model evaluates the completed result, the Critic estimates the return expected from continuing a prefix, and the Reference retains the anchor behavior.
+
+| Model | Common starting point | Updated at this stage? | Role |
+|---|---|---|---|
+| Actor | SFT model | Yes | Generates answers; the model we want to improve |
+| Critic | Pretrained backbone with a value head; may start from the reward model | Yes | Estimates state value to help construct advantages |
+| Reward Model | Model trained in the preceding stage | Usually frozen | Scores completed answers |
+| Reference | Copy of the SFT model | Usually frozen | Provides the KL anchor |
+
+This setup primarily updates the Actor and Critic. Actor and Reference can start with identical weights; the Actor then trains while the Reference stays put.
+
+These are roles, not a memory budget. Shared backbones, caching, sharding, and offloading change the resident weights required. See [InstructGPT](https://arxiv.org/abs/2203.02155) for a public pipeline, or continue with [Reference and Critic](reference-and-critic.en.md) to separate their roles.

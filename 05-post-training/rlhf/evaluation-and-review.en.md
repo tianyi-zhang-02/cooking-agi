@@ -2,7 +2,7 @@
 
 [中文](evaluation-and-review.md) · **English**
 
-> Reading time: ~5 min · Level: core · Last reviewed: 2026-09
+> Reading time: ~6 min · Level: core · Last reviewed: 2026-10
 
 ## Evaluation closes the loop
 
@@ -17,30 +17,47 @@ A/B tests. Do not feed every production failure straight back into training. Ded
 audit, and stratify it with a failure taxonomy, then decide whether it belongs as an SFT
 demonstration, preference pair, verifier case, or system rule.
 
+## Reward increased: what explanations should we rule out? {#independent-evaluation}
+
+A higher training reward might reflect better ability, longer answers, more attempts, or better accommodation of a particular judge. Before reducing everything to one score, fix the comparison conditions.
+
+| Check | Procedure | Misinterpretation prevented |
+|---|---|---|
+| Problems and data splits | Hold out problems from training and tuning; audit near-duplicates and template leakage | Memorization mistaken for generalization |
+| Generation budget | Match sample counts, token limits, and decoding; report costs too | Extra attempts mistaken for a better model |
+| Independent acceptance | Add boundary tests, human audits, or another standard beyond the training verifier | A faulty reward function grading its own success |
+| Subgroups | Break down difficulty, language, length, and task type | Average gains concealing a subgroup regression |
+| Variability and uncertainty | Keep paired per-problem results; report sample size, seeds, and suitable intervals | A small sample or lucky generation mistaken for a stable improvement |
+| Capability and cost regression | Check previous tasks, refusals, factuality, latency, and output length | Improving one behavior while harming another |
+
+A small example: if each independent sample succeeds with probability $0.5$, four attempts yield at least one success with probability $1-(1-0.5)^4=0.9375$. **The model did not change; the budget did.** This teaching calculation assumes independent attempts with a fixed success probability. Real problems vary in difficulty, so an aggregate average success rate cannot simply be substituted into this formula. Distinguish single-generation and multiple-attempt results; if a selector must identify the correct answer, include its error and cost as well.
+
+For a preference judge, randomize A/B order and check whether it merely favors longer answers. Do not discard every disagreement with human labels: disagreement may reveal an unclear rubric. See [LLM-as-a-Judge](../../07-evaluation/llm-as-a-judge/README.en.md) for examples and [metric robustness](../../07-evaluation/metric-robustness.en.md) for paired comparisons and population mixtures.
+
 ## Interview questions
 
 <details class="interview" markdown="1">
-<summary>How many models are in RLHF stage 3, and which train?</summary>
+<summary>What roles appear in typical PPO-style RLHF, and which train?</summary>
 
-Four: Actor, Critic, Reward, Reference. **Only Actor and Critic update weights.** Reward is frozen after stage 2; Reference is a frozen copy of the SFT model. Actor and Reference start identical — the Actor drifts as it trains, and the Reference stays put as the KL anchor.
+The four common roles are Actor, Critic, Reward, and Reference; they do not require four full models to be resident simultaneously. **Actor and Critic update weights in this setup.** Reward is frozen after stage 2; Reference is a frozen SFT copy. Actor and Reference start identical, but only the Actor changes as policy training proceeds.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Why is the reference model and KL penalty needed? What if you remove it?</summary>
 
-The reward model is a fit on limited data with no constraint off-distribution. Optimise freely and the policy finds outputs it scores highly and people reject — reward hacking. Typical symptoms: answers grow longer, pile up ingratiating phrasing, or collapse into a repetitive pattern.
+Preferences learned from limited data may not generalize to later policy outputs. Stronger optimization can find high-scoring answers that people do not actually prefer, such as accommodating a stylistic bias instead of improving the answer.
 
-The KL penalty tethers the policy near SFT. Too large a $\beta$ and nothing moves; too small and it drifts off. It is the method's central hyperparameter, not an optional regulariser.
+Reference KL adds a cost for deviating from an anchor. Increasing $\beta$ generally strengthens that cost, but its effect also depends on reward scale. Removing KL does not guarantee collapse, and retaining it does not guarantee freedom from reward hacking. Compare its presence and coefficient with independent evaluation rather than treating a nonzero coefficient as a law. See [Reference and Critic](reference-and-critic.en.md) for the derivation and numerical example.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>What is the Critic for, and how does GRPO avoid it?</summary>
 
-It estimates $V_t$ so the advantage $A_t = R_t - V_t$ has lower variance. Plain returns make policy-gradient variance too large to train through.
+The Critic estimates state value $V_t$ to construct advantages such as $\hat A_t=\hat G_t-V_t$. A suitable baseline can reduce variance; TD or GAE also introduces a bootstrapping bias tradeoff. Training without a Critic is possible—for example, REINFORCE—rather than inherently impossible.
 
-GRPO's observation: if a baseline is all you need, sampling a group of answers per prompt and normalising by the group's mean and standard deviation supplies one. That removes a full-size network *that was being trained* — real memory and real compute.
+GRPO constructs relative signals from answers to the same prompt instead of training a separate Critic. It saves Critic-related costs but requires group sampling; all-correct or all-wrong groups, reward scales, and length normalization still matter. Counting fewer models does not establish lower total training cost.
 
 </details>
 
@@ -65,11 +82,11 @@ A fixed Reward Model's raw outputs can of course be used numerically, but compar
 </details>
 
 <details class="interview" markdown="1">
-<summary>Why is there less reward hacking under RLVR?</summary>
+<summary>Why is independent evaluation still needed with a verifier?</summary>
 
-Because the reward is no longer fitted. Checking a maths answer or running a test suite is a fixed program — there is no "outside the training distribution" to exploit.
+A verifier only checks the conditions implemented in it. Incomplete tests, faulty answer extraction, or missing boundary cases can reward incorrect outputs. A deterministic program need not express the full task correctly.
 
-The trade is coverage: it only applies where outcomes are automatically verifiable. Writing and open-ended dialogue have no checker and still need a learned reward model. And verifiers can be gamed too — code that passes the tests while being wrong.
+RLVR fits tasks or subgoals with automatically checkable outcomes. Open-ended dialogue can also use format or tool-argument checks, but these do not cover all aspects of answer quality. Reserve independent problems, different test families, and human review where needed to distinguish task learning from checker exploitation. The [worked counterexample](after-rlhf.en.md) is a constant-output “solution” that passes a single sorting test.
 
 </details>
 
@@ -78,9 +95,9 @@ The trade is coverage: it only applies where outcomes are automatically verifiab
 <div class="taste-check">
   <strong>You understand this if you can explain:</strong>
   <ol>
-    <li>Where each of the four models comes from, and which two update weights.</li>
-    <li>What happens without the KL penalty, and the symptoms of $\beta$ being too large or too small.</li>
-    <li>Whether the Critic reduces variance or improves accuracy, and what GRPO replaces it with.</li>
+    <li>What each role does in typical PPO-style RLHF, and why four roles do not imply four resident weight copies.</li>
+    <li>Which policies reference KL and the old-policy ratio compare against.</li>
+    <li>What the Critic helps estimate, and what tradeoffs GRPO makes by not training one.</li>
     <li>Why DPO needs no reward model, and what it gives up for that.</li>
     <li>For PPO-style clipping, which two combinations of advantage sign and ratio crossing make the local gradient zero?</li>
   </ol>

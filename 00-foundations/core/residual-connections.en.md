@@ -2,43 +2,19 @@
 
 [中文](residual-connections.md) · **English**
 
-> Reading time: ~7 min · Level: core · Last reviewed: 2026-08
+> Reading time: ~10 min · Level: core · Last reviewed: 2026-10-09
 
-<div class="lesson-recipe">
-  <div><span>The problem</span><strong>depth that stops being an obstacle to training</strong></div>
-  <div><span>Prerequisites</span><strong>a sublayer f · one identity path</strong></div>
-  <div><span>Core mechanism</span><strong>y = x + f(x) — the plus sign is the whole idea</strong></div>
-  <div><span>Common mistakes</span><strong>believing it prevents overfitting, or that depth is now free</strong></div>
-</div>
+Suppose the input is `[2, 3]` and a sublayer produces an update `[0.1, -0.2]`. Adding them gives `[2.1, 2.8]`. If the update is zero, the input passes through unchanged. This simple addition changes the function the layer learns and provides a direct path for backpropagation.
 
-## Quick learning: why residual connections make depth trainable
-
-<details class="interview" markdown="1">
-<summary>The identity path, gradients, and what it does not guarantee</summary>
-
-**Quick memory**: $y=x+f(x)$ asks a block to learn an update relative to its input and preserves an identity route for both forward information and backward gradients.
-
-**Interview answer**
-
-> A residual block has Jacobian $I+J_f$. Even if the branch Jacobian is small, the identity term lets gradients travel directly. The model can also set $f(x)\approx0$, making an identity map easy instead of forcing every extra layer to relearn the input.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: does a residual path prove gradients can never vanish?</summary>
-
-No. The cross-layer Jacobian remains $\prod_\ell(I+J_{f_\ell})$, whose spectrum can still become unstable; Post-LN also puts $J_{\mathrm{LN}}$ back on the main route. Residual structure helps but is not an unconditional stability theorem, so initialization, normalization, residual scaling, and the optimizer still matter.
-
-</details>
-</details>
-
-## The residual path provides an identity map
+## The residual path provides an identity map {#the-residual-path-provides-an-identity-map}
 
 An ordinary layer replaces its input. A residual layer **edits** it:
 
 $$y = x + f(x)$$
 
-If $f$ learns zero, the layer is the identity and has done nothing. The default behaviour flips from "you must learn a useful transform" to **"when in doubt, leave it alone"** — and that is where all of the benefit comes from.
+If $f$ is zero, the layer is the identity. An added layer can learn what needs changing rather than relearning how to copy the input. But uncertainty does not automatically make the branch output zero; initialization and optimization still determine what it learns.
 
-## Why the gradient gets through
+## Why the gradient gets through {#why-the-gradient-gets-through}
 
 $$\frac{\partial y}{\partial x} = I + \frac{\partial f}{\partial x}$$
 
@@ -46,82 +22,84 @@ That $I$ is the point. Stack $L$ layers and backprop becomes
 
 $$\frac{\partial y_L}{\partial x_0} = \prod_{l=1}^{L}\left(I + \frac{\partial f_l}{\partial x_{l-1}}\right)$$
 
-Expand it and one term is $I \cdot I \cdots I = I$: **a path exists along which the gradient reaches layer 1 untouched.**
+The product follows the chain rule from the last layer backward; matrices cannot be reordered arbitrarily. Its expansion contains $I\cdots I=I$, but **the total gradient adds every term, not just that path**. [Identity Mappings](https://arxiv.org/abs/1603.05027) studies why identity routes help propagation.
 
-Without the residual it is a bare product $\prod_l \partial f_l / \partial x_{l-1}$. Slightly below 1 per layer and it decays exponentially; slightly above and it explodes. You have to tune the initialisation to sit exactly at the critical point.
+Without the residual, the product is $\prod_l J_{f_l}$. In a scalar example, a derivative of 0.8 per layer gives $0.8^{40}\approx0.000133$ after 40 layers. In higher dimensions, directions, singular values, and activation states matter; a whole matrix is not simply “above 1.”
 
-## How gradients change without residual paths
+Residuals have counterexamples too: $f(x)=-x$ gives $y=0$ and derivative $1-1=0$; $f(x)=x$ gives derivative $2^{40}$ through 40 layers. The structure helps optimization but does not guarantee against vanishing or exploding gradients.
 
-A 40-layer MLP, tanh, initialisation set 20% below critical — the ordinary case of "not tuned perfectly." Same weights, same input; the only difference is the plus sign:
+## How gradients change without residual paths {#how-gradients-change-without-residual-paths}
+
+A small check uses a 40-layer, width-64 tanh MLP with weight standard deviation $0.8/\sqrt{64}$. Both variants use the same seed, weights, and input; only residual addition changes. The objective is the mean final activation, so both variants receive the same upstream gradient at the last layer:
 
 ![gradient norm by depth, with and without residual](../assets/residual-gradient.svg)
 
-Walking from layer 40 back to layer 1 the plain stack loses about **10³×** of its gradient, arriving at $2\times10^{-9}$. The residual one is flat and arrives at $2.1$. **At the same learning rate, the early layers of the plain stack are not training at all.**
+The graph shows activation-gradient norms, not parameter updates. In this setting the plain stack's gradient decays toward the input, while the residual version retains a larger gradient. Its curve is not flat, and larger is not always better.
 
-There is no training here — one forward, one backward. The decay is a property of the architecture, not of insufficient optimisation.
+There is no optimizer update: only one forward and backward pass. This checks propagation for one input, initialization, and objective—not convergence or generalization—and does not establish a universal tanh “critical gain.” The numbers come from [`make_norm_figures.py`](../code/make_norm_figures.py); changing its parameters changes the graph.
 
-## Three common misreadings
+## Three common misreadings {#three-common-misreadings}
 
-**"It prevents overfitting."** No — it fixes **optimisation**, not generalisation. The famous ResNet observation is that a 56-layer plain network has higher **training** error than a 20-layer one. That is not overfitting.
+**"Its main purpose is preventing overfitting."** That was not the original motivation. [ResNet](https://arxiv.org/abs/1512.03385) addresses ordinary networks whose training error can increase with depth. Residuals primarily help optimization; any generalization benefit still needs validation, and the two are not mutually exclusive.
 
-**"So we can go arbitrarily deep."** No. It removes vanishing gradients as the binding constraint; compute, memory, data and diminishing returns are all still there.
+**"So we can go arbitrarily deep."** No. Gradients can still become unstable, and compute, memory, data, and returns from additional depth remain limited.
 
-**"What if the dimensions don't match?"** They must, or the addition is undefined. CNNs use a $1\times1$ projection when downsampling; Transformers keep $d_\text{model}$ everywhere, so the question never arises.
+**"What if the dimensions don't match?"** Shapes must be compatible at the addition. A projection can match the skip branch; common constant-width Transformer blocks already preserve $d_\text{model}$, but width-changing or hierarchical designs need another check.
 
 <details markdown="1">
 <summary><b>Deeper</b>: a residual net behaves like an ensemble of shallow ones</summary>
 
-[Residual Networks Behave Like Ensembles](https://arxiv.org/abs/1605.06431) unrolls an $L$-layer residual network into $2^L$ paths of differing length — at each layer you either take $f$ or the identity.
+[Residual Networks Behave Like Ensembles](https://arxiv.org/abs/1605.06431) interprets residual networks through paths of different lengths and studies removing layers in its experimental setting. That perspective does not guarantee arbitrary networks tolerate arbitrary layer removal.
 
-Measured, the *effective* paths are short: most of the gradient comes from paths of length 10–30 even in a 100+ layer network. Delete a few layers at random and a residual network barely degrades; do that to a plain network and it collapses.
+At a fixed forward point, the Jacobian product $\prod_l(I+J_l)$ expands into $2^L$ matrix-product terms. The nonlinear forward function cannot generally be decomposed into outputs from $2^L$ independent networks: later branches already depend on earlier outputs.
 
-Which is why residual depth behaves more like width: it is not doing $L$ sequential steps of reasoning so much as summing many shorter transforms.
+The actual computation still visits the layers sequentially. This interpretation does not turn depth into parallel width.
 
 </details>
 
-## The full sublayer also has a Dropout
+## The full sublayer also has a Dropout {#the-full-sublayer-also-has-a-dropout}
 
 The formulas above were simplified to keep the residual in focus. The 2017 sublayer is really:
 
 $$\text{LayerNorm}\big(x + \text{Dropout}(f(x))\big)$$
 
-Dropout zeroes a fraction $p$ of activations during training and divides the rest by $1-p$ to keep the expectation, then switches off entirely at inference. It stops the model leaning on any fixed set of channels, and what that buys is **generalisation**. The paper uses $p=0.1$ in three places: each sublayer's output, the embedding-plus-positional-encoding sum, and the attention weights.
+Standard inverted dropout zeroes activations with probability $p$ during training and divides survivors by $1-p$, preserving the layer output's conditional expectation. It is disabled in eval mode. This is regularization, not a guaranteed improvement on every task. The 2017 Transformer's residual dropout operates on the sublayer output before addition.
 
-**Placement matters: dropout applies to the branch output $f(x)$, never to $x$.**
+**To retain an identity skip, place this dropout on the branch $f(x)$ rather than dropping elements of the skip itself.**
 
 $$\underbrace{x + \text{Dropout}(f(x))}_{\text{identity path intact}} \qquad\text{vs}\qquad \underbrace{\text{Dropout}(x) + f(x)}_{\text{path broken}}$$
 
-Put dropout on $x$ and the clean route derived above gets randomly cut at every layer — the $I$ term stops holding and the residual has bought nothing. It has to stay inside the branch: **the residual stream must stay clean.**
+Dropout on $x$ changes the direct-path Jacobian from $I$ into a random diagonal matrix. That is a different architecture and no longer satisfies the identity-path argument; it does not, by itself, prove the architecture cannot train.
 
-Worth knowing: large-model pretraining now usually sets dropout to 0. With enough data, overfitting is not the binding constraint and dropout only slows convergence. It survives in finetuning, small models, and limited-data settings.
+Whether to use dropout, where to put it, and which rate to use depend on the model configuration and validation results. One model's zero-dropout setting is not a universal answer for pretraining or finetuning.
 
-## How it interacts with normalisation
+## How it interacts with normalisation {#how-it-interacts-with-normalisation}
 
 Three different problems, but their **relative placement** matters:
 
 $$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm, 2017}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm, now}}$$
 
-post-norm puts the norm *on* the residual path, so the clean identity route above is **interrupted** — every layer crosses a norm. That is exactly why the original Transformer needs warmup.
+Post-norm multiplies the block Jacobian by the normalization Jacobian, so the skip is no longer a pure identity. [On Layer Normalization](https://arxiv.org/abs/2002.04745) analyzes the connection to gradients at initialization and warmup; it does not prove every configuration must—or need not—use warmup.
 
 pre-norm moves the norm into the branch and leaves the identity path intact, at the cost of output scale accumulating with depth — so a final norm is added at the end.
 
 ![post-norm versus pre-norm residual paths](../assets/transformer-block.svg)
 
-## Common interview questions
+## Common interview questions {#common-interview-questions}
 
 <details class="interview" markdown="1">
 <summary>What problem do residual connections solve?</summary>
 
-Optimisation in deep networks, not generalisation. A bare product of Jacobians decays or explodes exponentially; adding the identity gives $\partial y/\partial x = I + \partial f/\partial x$, so one route through the product leaves the gradient intact.
+They make updates relative to the input easier to represent and add an identity term to the Jacobian. Total gradients can still cancel or amplify; the existence of one path is not unconditional stability.
 
-The evidence is ResNet's own observation: a 56-layer plain net has higher **training** error than a 20-layer one. Overfitting would show the opposite.
+Separate optimization from overfitting by inspecting training error as well as validation error. Higher training error is not explained merely by saying the larger model overfits.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Why add instead of concatenate?</summary>
 
-Concatenation (DenseNet) also preserves information, but the width grows with depth, and so do parameters and memory. Addition keeps the dimension fixed, so layers are stackable and identically sized.
+Concatenation, as in DenseNet, also preserves information but increases later input widths, requiring parameter and memory management. Addition preserves the current width and makes stacking convenient; it neither permits infinite depth nor requires identical parameter counts in every layer.
 
 Addition also makes "do nothing" a *reachable* solution ($f = 0$). With concatenation, later layers have to actively learn to ignore what was appended.
 
@@ -130,18 +108,22 @@ Addition also makes "do nothing" a *reachable* solution ($f = 0$). With concaten
 <details class="interview" markdown="1">
 <summary>What happens to the variance of $x + f(x)$?</summary>
 
-It accumulates: the residual stream's variance grows roughly linearly with depth. Two standard fixes — scale the residual branch's output projection at init by $1/\sqrt{2L}$ (GPT-2's trick), or apply a final norm at the end.
+For one coordinate, write the full expression:
 
-Left alone, deep layers reach a scale that saturates the softmax.
+$$\operatorname{Var}(x+f)=\operatorname{Var}(x)+\operatorname{Var}(f)+2\operatorname{Cov}(x,f).$$
+
+Approximately linear growth requires negligible covariance and comparable update variance across layers. If $f=-x$, the output variance is zero instead. Branch scaling controls each increment; final normalization only controls the scale entering the output head, not every intermediate propagation problem.
+
+Inspect activation and gradient distributions before choosing initialization, residual scaling, or normalization.
 
 </details>
 
 <details class="interview" markdown="1">
-<summary>Pre-norm or post-norm — why has everything moved to pre-norm?</summary>
+<summary>How should we compare pre-norm and post-norm?</summary>
 
-pre-norm trains more easily: no norm on the identity path, so the gradient has a clean route, warmup can be crude, and depth scales further.
+Pre-norm often makes deep networks easier to optimize because normalization stays in the branch rather than the main skip. Suitable learning rates, initialization, and training budgets still matter.
 
-post-norm sometimes ends up slightly better when it trains at all, since every layer's output is normalised. But it is very sensitive to the schedule, and in practice stability won.
+Post-norm normalizes each residual output and has different training and representation behavior. Compare quality at matched budgets rather than claiming one universally wins.
 
 </details>
 
@@ -150,22 +132,22 @@ post-norm sometimes ends up slightly better when it trains at all, since every l
 
 On the branch output: $x + \text{Dropout}(f(x))$.
 
-Not on $x$, because that breaks the identity path — cut randomly at every layer, the $I$ in $\partial y/\partial x = I + \partial f/\partial x$ stops being reliable and the residual's contribution to gradient flow is cancelled out. The original paper also applies dropout after the embedding + positional encoding sum, and to the attention weights.
+Applying dropout to the skip changes its direct Jacobian to a random mask rather than $I$. This explains the standard branch placement; it does not prove every other dropout design is ineffective.
 
-Note that large-model pretraining often sets dropout to 0 now: with enough data, overfitting isn't the binding constraint and it just slows convergence.
+Embedding, attention, and residual dropout occupy different locations; inspect their settings separately.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>How does this relate to an LSTM's cell state?</summary>
 
-Same trick. $c_t = f_t \odot c_{t-1} + i_t \odot \tilde c_t$ is an additive path through *time* when $f_t \to 1$; a residual connection is an additive path through *depth*.
+Both provide additive paths. In $c_t = f_t \odot c_{t-1} + i_t \odot \tilde c_t$, holding gates fixed gives the forget gate as the direct derivative along cell state. Values near 1 help propagation across time; the total derivative also includes the gates' dependence on history.
 
-One fixes "too many timesteps away", the other "too many layers deep".
+This is a useful analogy between propagation across time and depth, not an equivalence between the architectures.
 
 </details>
 
-## Self-check
+## Self-check {#self-check}
 
 <div class="taste-check">
   <strong>You understand this if you can explain:</strong>
@@ -177,6 +159,25 @@ One fixes "too many timesteps away", the other "too many layers deep".
   </ol>
 </div>
 
-## Next
+## Next {#next}
 
 Attention, normalisation and residuals are all covered — time to assemble them: [the vanilla Transformer](vanilla-transformer.en.md).
+
+## Quick learning: why residual connections make depth trainable {#quick-learning-why-residual-connections-make-depth-trainable}
+
+<details class="interview" markdown="1">
+<summary>The identity path, gradients, and what it does not guarantee</summary>
+
+**Quick memory**: $y=x+f(x)$ asks a block to learn an update relative to its input and preserves an identity route for both forward information and backward gradients.
+
+**Interview answer**
+
+> A residual block has Jacobian $I+J_f$, retaining a direct propagation term. With $f(x)\approx0$ the block approximates the identity; that is an easy function to represent, not a guarantee optimization finds it or that adding depth improves the metric.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: does a residual path prove gradients can never vanish?</summary>
+
+No. The cross-layer Jacobian remains $\prod_\ell(I+J_{f_\ell})$, whose spectrum can still become unstable; Post-LN also puts $J_{\mathrm{LN}}$ back on the main route. Residual structure helps but is not an unconditional stability theorem, so initialization, normalization, residual scaling, and the optimizer still matter.
+
+</details>
+</details>

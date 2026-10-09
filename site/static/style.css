@@ -1163,6 +1163,7 @@ main { padding-top: 2.8rem; }
   box-shadow: var(--shadow);
 }
 .article-body .table-wrap {
+  position: relative;
   margin: 1.8rem -.8rem; padding: .35rem .8rem .6rem;
   border: 1px solid color-mix(in srgb, var(--rule) 72%, transparent);
   border-radius: 14px; background: color-mix(in srgb, var(--panel) 82%, transparent);

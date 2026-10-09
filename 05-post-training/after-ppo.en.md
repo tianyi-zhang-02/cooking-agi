@@ -1,31 +1,12 @@
-# After PPO: every algorithm deletes one of its parts
+# PPO, GRPO, and DPO: turning feedback into an update
 
 [中文](after-ppo.md) · **English**
 
-> Reading time: ~14 min · Type: chapter · Last reviewed: 2026-09
+> Reading time: ~14 min · Type: chapter · Last reviewed: 2026-10-08
 
-## Quick learning: what do PPO, GRPO, and DPO remove?
+## Start with how feedback enters training {#start-with-what-each-algorithm-removes}
 
-<details class="interview" markdown="1">
-<summary>Choose from data availability and reward verifiability, not algorithm fashion</summary>
-
-**Quick memory**: PPO uses Actor, Critic, RM, and Reference. GRPO removes the Critic with within-prompt relative baselines. DPO uses static chosen/rejected pairs and removes both an explicit RM and the rollout loop.
-
-**Interview answer**
-
-> DPO is cheap and stable but mainly learns from offline preference pairs and does not automatically explore current-policy failures. GRPO still requires online rollouts; it replaces the Critic with group-relative reward. Online RL is more natural for verifiable multi-step exploration, while DPO fits settings with only static preference data.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why does an all-correct or all-wrong GRPO group carry no signal?</summary>
-
-Group-normalized advantage uses $(r_i-\bar r)/s_r$. If every reward is equal, centering makes every advantage zero; adding epsilon to the denominator cannot create a relative ordering. Many homogeneous groups indicate that rollout difficulty or sampling diversity needs adjustment.
-
-</details>
-</details>
-
-## Start with what each algorithm removes
-
-The long list of algorithms that followed PPO looks like a pile of separate inventions. It isn't: each one **deletes a component of PPO and then deals with whatever surfaces afterwards.** Work out what each removed and what it cost, and you no longer have to memorize the table.
+Some methods change advantage estimation; others change the data source or objective. They are not all PPO with a component removed. Ask where feedback comes from, how many responses are sampled, and how the gradient is calculated.
 
 PPO, GRPO, and DPO answer the same question: once an SFT model exists, how can response quality or human preference make good answers more likely and bad answers less likely? They differ in how feedback enters training:
 
@@ -33,7 +14,7 @@ PPO, GRPO, and DPO answer the same question: once an SFT model exists, how can r
 - **GRPO** samples a group of responses to one prompt and replaces the Critic with group-relative rewards;
 - **DPO** reads chosen/rejected pairs and updates the policy through a preference-classification loss.
 
-### Build intuition with one problem
+### Build intuition with one problem {#build-intuition-with-one-problem}
 
 Use the same prompt, “calculate $17\times24$,” in all three cases:
 
@@ -45,7 +26,7 @@ Use the same prompt, “calculate $17\times24$,” in all three cases:
 
 One sentence each: PPO asks “how much better was the result than the Critic expected?” GRPO asks “how much better was this result than the other answers to the same prompt?” DPO does not estimate an advantage; it directly asks whether chosen improved more than rejected relative to the Reference.
 
-## What PPO has available to delete
+## What PPO has available to delete {#what-ppo-has-available-to-delete}
 
 A classic PPO-RLHF diagram has four conceptual roles, two of them training:
 
@@ -58,9 +39,9 @@ A classic PPO-RLHF diagram has four conceptual roles, two of them training:
 
 **The Critic is one of the most expensive extra roles**: it trains alongside the current policy and carries optimizer state. It may be a separate value model, or share an Actor backbone and add only a value head. These are conceptual roles, not a promise that four independent full models remain resident in memory. Much of the later story is still about removing the Critic.
 
-## The main line: delete the Critic
+## The main line: delete the Critic {#the-main-line-delete-the-critic}
 
-The Critic exists for exactly one reason: **to supply a baseline for the advantage**, to cut variance. If all you need is a baseline, it does not have to be a learned network.
+The Critic estimates state value, providing a variance-reducing baseline and participating in TD / GAE bootstrapping. For suitable whole-response outcome tasks, sampling statistics can construct a relative signal instead. Multi-step, delayed-reward tasks require another look at credit assignment.
 
 | Algorithm | Where the baseline comes from | Cost |
 | --- | --- | --- |
@@ -68,7 +49,7 @@ The Critic exists for exactly one reason: **to supply a baseline for the advanta
 | **RLOO** | leave-one-out: one sample's baseline is the mean reward of the others | same sampling cost; and it treats the whole response as **one action**, giving up token-level credit assignment |
 | **REINFORCE++** | batch-level statistics for advantage normalization | a coarser baseline, but it keeps PPO's clipping and KL stabilization |
 
-What they share: **the baseline goes from learned to sampled.** That removes a full-size training model — and plants the seed of every problem below.
+These methods avoid an independently trained value model, not estimation error. Compare saved training state against extra sampling, signal variance, and task structure.
 
 RLOO's baseline, with $k$ samples per prompt:
 
@@ -76,7 +57,7 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 
 Its argument is that RLHF starts from a trained SFT model rather than a randomly initialized network, so PPO's machinery for stabilizing unstable training (GAE, per-token value estimation) may not be necessary.
 
-### GRPO's group-relative advantage
+### GRPO's group-relative advantage {#grpos-group-relative-advantage}
 
 Sample $G$ responses for one prompt and score them $R_1,\ldots,R_G$. A common response-level advantage is
 
@@ -114,7 +95,7 @@ usually with a KL constraint against a frozen Reference. GRPO therefore does not
 | Main cost | train a value function | multiple rollouts per prompt |
 | Typical failure | Critic is inaccurate or unstable | no reward variation within the group, hence no learning signal |
 
-## What surfaces once the Critic is gone
+## What surfaces once the Critic is gone {#what-surfaces-once-the-critic-is-gone}
 
 This section is the point. **A sampled baseline fails differently than a learned one.**
 
@@ -122,17 +103,17 @@ This section is the point. **A sampled baseline fails differently than a learned
 If every response is right or every one is wrong—for example, $R=[0,0,0,0]$—subtracting the mean leaves every advantage at zero. An $\varepsilon$ in the denominator prevents division by zero but cannot create a relative signal. The group contributes **no useful policy-gradient signal**. On tasks that are too easy or too hard, that share gets large.
 
 **Two: normalization introduces bias.**
-Dividing by the group's standard deviation looks like standardization but weights groups unequally; normalizing by sequence length pushes systematically toward one length. That is Dr. GRPO's argument: those terms bias the model toward **longer answers that aren't necessarily better**. Remove them and token efficiency improves visibly.
+Dividing by within-group standard deviation changes prompt weights; averaging within responses changes token weights across lengths. [Dr. GRPO](https://arxiv.org/abs/2503.20783) analyzes these biases. Whether removing a normalization helps your task still requires matched sampling and evaluation budgets; it is not a universally correct repair.
 
 **Three: symmetric clipping can't lift low-probability tokens.**
-PPO clips the probability ratio to $[1-\epsilon, 1+\epsilon]$. For a token whose current probability is tiny, the ceiling $1+\epsilon$ permits only a minuscule absolute increase — it has almost no path back. The long-run consequence is entropy collapse: the model gets more certain and less diverse.
+PPO flattens surrogate gains on selected branches rather than hard-constraining actual ratios. The same multiplicative ceiling corresponds to a smaller absolute change for a low-probability token. Raising it may affect exploration, but entropy decline has multiple causes; one curve does not establish which one applies.
 
 **Four: sequence-level loss dilutes long answers.**
 Average the loss per sample and a 1000-token response carries the same weight as a 50-token one, so each token in the long answer receives a thinner share of gradient. Reasoning tasks are exactly the ones that need long answers.
 
-DAPO's four changes map onto these four problems: dynamic sampling filters out all-right/all-wrong groups, the clip bounds are decoupled (Clip-Higher), the loss becomes token-level, and overlong responses get soft shaping instead of a hard cut.
+DAPO combines changes to sampling, clipping, token weighting, and overlong responses. Soft length penalties do not remove the generation cap or within-group standardization. Work through [DAPO's sampling, length, and clipping examples](dapo.en.md).
 
-## Another line: delete the RL loop entirely
+## Another line: delete the RL loop entirely {#another-line-delete-the-rl-loop-entirely}
 
 DPO goes further: in its standard offline training phase, it needs **no explicit Reward Model, Critic, or online rollout loop**.
 
@@ -173,7 +154,7 @@ $$
 
 Substitute this relation into the preference probability: $C(x)$ cancels in the reward difference for the same prompt, so a policy/reference log-ratio directly represents the implicit reward difference. Reward has not vanished; it has been **absorbed into the policy objective**. See [the three stages of RLHF](rlhf/after-rlhf.en.md) for the full derivation.
 
-### DPO versus SFT
+### DPO versus SFT {#dpo-versus-sft}
 
 If A is chosen and B is rejected,
 
@@ -189,10 +170,10 @@ Standard DPO typically pays for its simplicity with **fixed offline preference p
 
 Two follow-ups:
 
-- **IPO** — DPO overfits preference data fast. IPO adds a regularizer so the model converges without tricks like early stopping.
-- **KTO** — no pairs required, just a "good" or "bad" label per sample. An order of magnitude cheaper to collect, at the price of a coarser signal.
+- **IPO** — Uses a different preference objective with a finite target margin for relative log-ratios; it is not simply DPO plus a generic regularizer. [Paper](https://arxiv.org/abs/2310.12036)
+- **KTO** — Can use unpaired desirable / undesirable labels. This allows a different data format; actual labeling costs still depend on the collection process.
 
-## And one more: replace the reward model with a program
+## And one more: replace the reward model with a program {#and-one-more-replace-the-reward-model-with-a-program}
 
 Math has answers to check. Code has tests to run. For these, the reward **doesn't need to be learned** — write a checker.
 
@@ -200,7 +181,7 @@ What this deletes is the Reward Model. A deterministic checker removes one major
 
 The limitation is obvious: it only applies where you can write the checker.
 
-## The table
+## The table {#the-table}
 
 | | Typical training data | Explicit reward | Critic | Training-time rollout | Central trade-off |
 | --- | --- | --- | --- | --- | --- |
@@ -210,7 +191,7 @@ The limitation is obvious: it only applies where you can write the checker.
 
 The extensions still fit the “what was removed?” lens: RLOO replaces the Critic with a leave-one-out baseline; REINFORCE++ uses batch statistics; RLVR replaces a learned Reward Model with a verifier; DAPO moves beyond deletion and repairs GRPO's sampling, clipping, token weighting, and overlong-response behavior one by one.
 
-## How to choose
+## How to choose {#how-to-choose}
 
 <details class="interview" markdown="1">
 <summary>Step 1: can the reward be verified automatically?</summary>
@@ -235,7 +216,7 @@ If Critic memory, compute, or stability is the bottleneck, consider critic-free 
 
 The order is: **validate the feedback, decide whether an online loop is possible, then diagnose the system bottleneck.**
 
-## Down to a checklist
+## Down to a checklist {#down-to-a-checklist}
 
 <details class="interview" markdown="1">
 <summary>1. Is the reward learned or verified, and what should each monitor?</summary>
@@ -279,7 +260,7 @@ Not in general. Standard DPO is cheap and stable when high-quality offline pairs
 
 </details>
 
-## Can you explain it in two minutes?
+## Can you explain it in two minutes? {#can-you-explain-it-in-two-minutes}
 
 <details class="interview" markdown="1">
 <summary>Write the three central equations for PPO, GRPO, and DPO.</summary>
@@ -309,13 +290,13 @@ No. DPO is simple and stable when fixed, high-quality preference pairs cover the
 
 </details>
 
-## Where to read next
+## Where to read next {#where-to-read-next}
 
 - [The three stages of RLHF, and what came after](rlhf/README.en.md): what each model does, and the DPO derivation
 - [Data and feedback](../01-data-and-feedback/): the quality of preference labels themselves
 - [Evaluation](../07-evaluation/): telling whether alignment actually helped
 
-## Starting papers
+## Starting papers {#starting-papers}
 
 - [PPO](https://arxiv.org/abs/1707.06347) — clipped objective and trust region
 - [DeepSeekMath](https://arxiv.org/abs/2402.03300) — GRPO
@@ -325,6 +306,25 @@ No. DPO is simple and stable when fixed, high-quality preference pairs cover the
 - [REINFORCE++](https://arxiv.org/abs/2501.03262) — drop the Critic, keep PPO's stabilizers
 - [DPO](https://arxiv.org/abs/2305.18290) · [IPO](https://arxiv.org/abs/2310.12036) · [KTO](https://arxiv.org/abs/2402.01306)
 
-## Further reading (Chinese)
+## Quick learning: what do PPO, GRPO, and DPO remove? {#quick-learning-what-do-ppo-grpo-and-dpo-remove}
+
+<details class="interview" markdown="1">
+<summary>Choose from data availability and reward verifiability, not algorithm fashion</summary>
+
+**Quick memory**: PPO uses Actor, Critic, RM, and Reference. GRPO removes the Critic with within-prompt relative baselines. DPO uses static chosen/rejected pairs and removes both an explicit RM and the rollout loop.
+
+**Interview answer**
+
+> DPO is cheap and stable but mainly learns from offline preference pairs and does not automatically explore current-policy failures. GRPO still requires online rollouts; it replaces the Critic with group-relative reward. Online RL is more natural for verifiable multi-step exploration, while DPO fits settings with only static preference data.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does an all-correct or all-wrong GRPO group carry no signal?</summary>
+
+Group-normalized advantage uses $(r_i-\bar r)/s_r$. If every reward is equal, centering makes every advantage zero; adding epsilon to the denominator cannot create a relative ordering. Many homogeneous groups indicate that rollout difficulty or sampling diversity needs adjustment.
+
+</details>
+</details>
+
+## Further reading (Chinese) {#further-reading-chinese}
 
 - [Reinforcement learning in large models](https://zhuanlan.zhihu.com/p/693582342) — a Zhihu article, in Chinese. This chapter is organized along a single axis, "what got deleted," and covers only the trunk. That piece is the encyclopedic view — MDP elements, the Bellman equation, MC/TD/GAE, then each algorithm in detail. Start there if you want the fuller map.

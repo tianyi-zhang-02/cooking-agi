@@ -18,7 +18,16 @@ function mount(blocked = false) {
   const active = Object.assign(element(), {dataset:{note:'learn/one.md'}, title:'First note',
     getAttribute:() => '../learn/one.html', getBoundingClientRect: () => ({top:0,bottom:100}),
     closest: selector => selector === '[data-grp]' ? {querySelector:() => ({textContent:'Basics'})} : {dataset:{category:'learn'}}});
-  const directory = {querySelectorAll: selector => selector === 'a[data-note]' ? [active] : [], querySelector: () => active};
+  const locate = element(), collapse = element();
+  const directoryActions = Object.assign(element(), {querySelector: selector => selector === '[data-side-current]' ? locate : collapse});
+  const currentGroup = Object.assign(element(), {tagName:'DETAILS', dataset:{grp:'basics'}, open:true, querySelector:() => active});
+  const otherGroup = Object.assign(element(), {tagName:'DETAILS', dataset:{grp:'other'}, open:true, querySelector:() => null});
+  const directory = {
+    querySelectorAll: selector => selector === 'a[data-note]' ? [active] : selector === 'details' ? [currentGroup, otherGroup] : [],
+    querySelector: selector => selector === '.side-directory-actions' ? directoryActions : selector === 'a.active[data-note]' ? active : null
+  };
+  active.parentElement = currentGroup;
+  currentGroup.parentElement = directory;
   const inlineSave = element(), inlineStatus = element(), noteTools = element();
   const side = {querySelector: selector => selector === '#side-directory' ? directory : selectors[selector], querySelectorAll:() => []};
   const storage = new Map(), windowEvents = {}, blobs = [], downloads = [];
@@ -34,6 +43,7 @@ function mount(blocked = false) {
     Blob:class {constructor(parts) {blobs.push(parts.join(''));}}, URL:{createObjectURL:() => 'blob:backup', revokeObjectURL() {}},
     setTimeout: callback => callback()});
   return {selectors, inlineSave, inlineStatus, storage, blobs, downloads, windowEvents,
+    locate, collapse, currentGroup, otherGroup, directoryActions,
     async import(text, size = text.length) {
       selectors['[data-reading-file]'].files = [{size, text:async () => text}];
       await selectors['[data-reading-file]'].listeners.change();
@@ -42,6 +52,13 @@ function mount(blocked = false) {
 
 (async function () {
   const page = mount();
+  assert.equal(page.directoryActions.hidden, false);
+  page.collapse.click();
+  assert.equal(page.currentGroup.open, true);
+  assert.equal(page.otherGroup.open, false);
+  page.currentGroup.open = false;
+  page.locate.click();
+  assert.equal(page.currentGroup.open, true);
   assert.equal(page.inlineSave.textContent, '+ Save this page');
   page.inlineSave.click();
   assert.equal(page.inlineSave.attributes['aria-pressed'], 'true');

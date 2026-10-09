@@ -119,18 +119,16 @@ class QuantReviewTests(unittest.TestCase):
         self.assertEqual(result, Fraction(1, 180))
         self.assertEqual(result / variance_square, Fraction(1, 16))
 
-    def test_coverage_navigation_and_bilingual_shapes(self):
+    def test_retained_quant_sources_are_bilingual_and_unpublished(self):
         nav = tomllib.loads((ROOT / "site/nav.toml").read_text())
         sections = [section for section in nav["section"] if section.get("group") == "quant"]
-        self.assertEqual(len(sections), 5)
-        self.assertEqual(sum(len(section["order"]) for section in sections), 30)
-        for section in sections:
-            for filename in section["order"]:
-                chinese = ROOT / section["dir"] / filename
-                english = chinese.with_name(chinese.stem + ".en.md")
-                self.assertTrue(chinese.exists(), str(chinese))
-                self.assertTrue(english.exists(), str(english))
-                self.assertEqual(PARITY.shape(chinese.read_text()), PARITY.shape(english.read_text()), filename)
+        self.assertEqual(sections, [])
+        sources = [page for page in QUANT.rglob('*.md') if not page.name.endswith('.en.md')]
+        self.assertEqual(len(sources), 30)
+        for chinese in sources:
+            english = chinese.with_name(chinese.stem + '.en.md')
+            self.assertTrue(english.exists(), str(english))
+            self.assertEqual(PARITY.shape(chinese.read_text()), PARITY.shape(english.read_text()), str(chinese))
 
     def test_links_and_details(self):
         for page in QUANT.rglob("*.md"):

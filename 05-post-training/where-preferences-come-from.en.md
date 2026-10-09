@@ -4,38 +4,19 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
-## Quick learning: the boundary between preference data and a reward model
+## Preference data provides relative order {#preference-data-provides-relative-order}
 
-<details class="interview" markdown="1">
-<summary>Why comparisons are steadier than absolute scores and why reward scale is not unique</summary>
+A user asks how to fix an error. Response A gives a working fix; B gives a lengthy explanation without resolving it. Choosing A records a preference between these two answers to this prompt.
 
-**Quick memory**: a chosen/rejected pair supplies relative order. A reward model learns a scalar consistent with that order, but its absolute origin and scale have no intrinsic meaning.
+It does not give A an objective quality score or establish what a different user would prefer. A reward model learns patterns across many comparisons and uses them to score new answers. How the comparisons were collected determines what that score can mean.
 
-**Interview answer**
+## Why comparisons instead of scores {#why-comparisons-instead-of-scores}
 
-> Preference data asks which answer is better for the same prompt. Bradley–Terry models that choice through a reward difference. The reward model therefore recovers an ordering rather than objective utility, and annotator disagreement, position bias, length preference, and policy drift can all distort it.
+Two annotators may mean different things by a score of 8 out of 10. Comparing answers to the same prompt under a stated criterion can make the task easier to calibrate. A common record is a prompt $x$, preferred response $y_w$, and alternative $y_l$.
 
-<details markdown="1">
-<summary><b>Deep dive</b>: why does a reward model become stale?</summary>
+Pairwise comparisons are not automatically reliable. Both answers may be poor, good in different ways, or judged under different priorities. Ties, both-bad labels, and reasons for disagreement can be useful instead of forcing a winner every time.
 
-The RM learns to discriminate outputs from an older policy distribution. As the actor changes, it explores new regions and may find blind spots that inflate proxy reward. Offline accuracy can remain high while online ranking fails, requiring current-policy sampling, human audits, and adversarial held-out evaluation.
-
-</details>
-</details>
-
-## Preference data provides relative order
-
-The **H** in RLHF happens entirely at this step. Everything downstream — PPO, GRPO, DPO — **amplifies the signal this step produced**, and an amplifier cannot produce what isn't in the signal. Whatever the reward model learned wrong, the rest of the pipeline will faithfully optimize toward.
-
-## Why comparisons instead of scores
-
-The obvious approach is to have people score each response and fit a regression. It doesn't work, because humans are unreliable at **absolute scores**: the same response gets a 7 today and a 5 tomorrow, different annotators use entirely different scales, and scores drift — after a run of bad responses, a mediocre one gets rated too high.
-
-People are much more reliable at **relative comparison**. "Which of these two is better" has far higher agreement than "how many points is this worth."
-
-So preference data comes in pairs: for a prompt $x$, a preferred response $y_w$ and a worse one $y_l$.
-
-## Bradley-Terry: turning comparisons into a score
+## Bradley-Terry: turning comparisons into a score {#bradley-terry-turning-comparisons-into-a-score}
 
 To get from pairwise comparisons to a function that scores any response, you need a model that translates **order** into a **scalar**. Bradley-Terry is that translator:
 
@@ -53,59 +34,67 @@ $$\mathcal{L}_{\text{RM}} = -\mathbb{E}_{(x,y_w,y_l)}\left[\log \sigma\big(r(x,y
 
 In practice this is a pretrained model with a scalar head that reads the whole response and emits one number.
 
-## A consequence: the reward model learns order, not scale
+## Score offsets and scale {#a-consequence-the-reward-model-learns-order-not-scale}
 
-Only the **difference** in $r$ appears above. Add the same constant to every $r$ and the loss is unchanged.
+Suppose rewards for A and B are 2 and 1. Bradley–Terry gives A a preference probability of $\sigma(1)\approx0.731$. Adding 10 to both rewards gives 12 and 11 without changing the probability.
 
-**A reward model's absolute values mean nothing. Only relative ones do.**
+Multiplying both by 2 is different: the gap becomes 2 and the probability becomes $\sigma(2)\approx0.881$. **A shared offset is invariant; scaling is not.** Depending only on differences does not make the scale arbitrary.
 
-That isn't theoretical fastidiousness; it has direct engineering consequences:
+Scores still are not universal utility units shared across reward models. In RL, their scale affects advantages, gradients, and the relative weight of a KL penalty. Normalization is a design choice to examine with the objective and implementation, not an unconditional repair.
 
-- "this response scored 3.2" says nothing on its own — only higher or lower than another;
-- scores are not comparable across reward models, or even across training runs of the same one;
-- so the RL stage almost always normalizes rewards — **that isn't a tuning trick, it's supplying a scale the model never defined**.
+## Four traps in preference data {#four-traps-in-preference-data}
 
-## Four traps in preference data
+Start with a small sample and four concrete checks:
 
-**One: annotators disagree with each other to begin with.** Show the same pair to different people and agreement is well below 100%. That agreement rate is the **ceiling** on reward model accuracy — you cannot learn to be more accurate than the labels. So when RM accuracy sits at 70%, check human agreement before touching the model.
+| Check | How to test it | What to distinguish |
+| --- | --- | --- |
+| Annotator agreement | Have people independently compare the same pairs | Unclear criteria versus genuinely different preferences |
+| Length preference | Add repetition without changing useful information | Useful detail versus length alone |
+| Factual checking | Supply verifiable sources or execute the code | Credible-looking versus correct |
+| Presentation order | Swap A/B and hide model names | Compare answer IDs, not left/right choices |
 
-**Two: length.** The most famous and most stubborn one. Longer responses are systematically preferred — they look more complete, more effortful. So part of what the reward model learns is "longer is better," and RL will faithfully amplify that into "write more." See [the alignment tax](alignment-tax.en.md) for the downstream shape of this.
+Inter-annotator agreement is not a universal upper bound on reward-model accuracy. It depends on the annotators, aggregation rule, and data distribution. It is more useful for identifying cases that need clearer criteria or multiple preference profiles.
 
-**Three: what annotators can't check, the reward model can't learn.** Whether a fact is right, whether the code actually runs, whether a citation exists — if annotators had no way to verify, their preference can only rest on **whether it looks right**. So the reward model learns *credible-looking*, not *correct*. This is a structural ceiling that more data does not fix, and it's why [verifiable rewards](verifiable-rewards.en.md) exist.
+## The one people miss: reward models expire {#the-one-people-miss-reward-models-expire}
 
-**Four: presentation order and formatting.** Position bias, Markdown structure, whether things were bolded — all of it seeps into the labels. These aren't noise (noise averages out); they're **systematic bias**, and they get learned in full.
+A reward model may have seen only outputs from an older policy. After the actor changes, it may produce a different kind of answer. An RM that still performs well on its old validation set can misjudge these new outputs.
 
-## The one people miss: reward models expire
+For example, detailed explanations may have been useful in the old data, while the new policy learns to repeat itself for a higher score. Reward increases without helping the user. Inspect current-policy samples rather than relying only on the old validation set.
 
-A reward model is trained on **a distribution** — typically the SFT model's outputs.
+A KL penalty limits drift relative to a reference policy; it does not certify that new answers remain in the RM's reliable region. Independent human review, task checks, and evaluation on new outputs are still needed.
 
-The moment RL starts, the policy moves. As training proceeds, its responses drift further from that distribution, and the reward model starts scoring **a kind of response it has never seen**. Its scores stop being trustworthy — but it **still returns a number**.
+## Down to a checklist {#down-to-a-checklist}
 
-This is the first reason the KL penalty exists. The textbook line is "keep the model from drifting too far." The more accurate one:
+When reading a preference-training experiment, I look for the annotation criterion, checks on current-policy outputs, and final evidence independent of the training reward. Reporting only the RM score leaves user benefit unresolved.
 
-> **The KL penalty confines the policy to the region where the reward model is still valid.**
-
-It's not a moral constraint, it's a **validity constraint**. Which is also why the KL coefficient is so hard to tune — it is really asking "how wide is my reward model's radius of trust," and you have never measured that radius.
-
-It also explains the mechanism of reward hacking. Those high-scoring terrible responses the policy discovers are usually out-of-distribution oddities — **the reward model was never supervised there, and the high score is an extrapolation artifact.**
-
-## Down to a checklist
-
-1. What's my annotator agreement rate? Is my RM accuracy already pressed against that ceiling?
-2. In my preference pairs, how strongly does length correlate with the label? How much signal survives after regressing length out?
-3. Could annotators verify facts and code? If not, is my RM learning *right* or *looks right*?
-4. During RL, am I monitoring how far policy outputs have drifted from the RM's training distribution?
-5. Is my reward normalization supplying a missing scale, or papering over a distribution shift I haven't understood?
-
-## Where to read next
+## Where to read next {#where-to-read-next}
 
 - [The three stages of RLHF](rlhf/three-stages.en.md): what happens to this reward model next
 - [Verifiable rewards](verifiable-rewards.en.md): which of these traps disappear when the reward isn't learned
 - [The alignment tax](alignment-tax.en.md): what the bias in preferences grows into downstream
 - [Data and feedback](../01-data-and-feedback/): label quality in general
 
-## Starting papers
+## Starting papers {#starting-papers}
 
 - [Deep RL from Human Preferences](https://arxiv.org/abs/1706.03741) — the origin of training a reward model from pairwise preferences
 - [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325) — early evidence on KL penalties and reward hacking
 - [InstructGPT](https://arxiv.org/abs/2203.02155) — the three-stage pipeline and annotation guidelines
+
+## Quick learning: the boundary between preference data and a reward model {#quick-learning-the-boundary-between-preference-data-and-a-reward-model}
+
+<details class="interview" markdown="1">
+<summary>What does a comparison provide, and what does a score difference mean?</summary>
+
+**Quick memory**: a chosen/rejected pair records a preference. A reward model fits such choices; its scores are not universal utility units. A shared offset leaves Bradley–Terry probabilities unchanged, while scaling the differences changes them.
+
+**Interview answer**
+
+> Preference data records choices for the same prompt. Bradley–Terry fits choice probabilities using score differences, whose magnitudes matter as well as their signs. Scores are not objective utility units: check annotator disagreement, position and length bias, and distribution shifts after policy updates.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does a reward model become stale?</summary>
+
+The RM learns to discriminate outputs from an older policy distribution. As the actor changes, it explores new regions and may find blind spots that inflate proxy reward. Offline accuracy can remain high while online ranking fails, requiring current-policy sampling, human audits, and adversarial held-out evaluation.
+
+</details>
+</details>

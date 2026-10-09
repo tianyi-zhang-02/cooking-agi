@@ -143,6 +143,94 @@ class DeepRLTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 REFERENCE.effective_sample_size(weights)
 
+    def test_ess_is_scale_invariant_at_extreme_magnitudes(self):
+        for scale in (1e-300, 1e-200, 1, 1e200, 1e300):
+            self.assertAlmostEqual(REFERENCE.effective_sample_size([scale, scale, 8 * scale]), 100 / 66)
+            self.assertEqual(REFERENCE.effective_sample_size([0, scale]), 1)
+            self.assertEqual(REFERENCE.effective_sample_size([scale] * 3), 3)
+
+    def test_action_independent_baseline_cancels_in_expected_gradient(self):
+        probabilities = [.25, .75]
+        score_gradients = [1 - probabilities[0], -probabilities[0]]
+        baseline_error = -2
+        self.assertAlmostEqual(sum(probability * gradient * baseline_error
+                                   for probability, gradient in zip(probabilities, score_gradients)), 0)
+        action_dependent = [-3, 1]
+        self.assertNotEqual(sum(probability * gradient * error
+                               for probability, gradient, error in zip(probabilities, score_gradients, action_dependent)), 0)
+
+    def test_value_targets_use_raw_not_normalized_advantages(self):
+        values = [10, 10]
+        raw = REFERENCE.gae([11, 13], values, [0, 0], [True, True], [False, False])
+        self.assertEqual(raw, [1, 3])
+        self.assertEqual([value + advantage for value, advantage in zip(values, raw)], [11, 13])
+        centered = [advantage - sum(raw) / len(raw) for advantage in raw]
+        self.assertEqual([value + advantage for value, advantage in zip(values, centered)], [9, 11])
+
+    def load_torch_updates(self):
+        if importlib.util.find_spec("torch") is None:
+            self.skipTest("PyTorch required")
+        spec = importlib.util.spec_from_file_location("torch_updates", NOTES / "code/torch_updates.py")
+        updates = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(updates)
+        return updates
+
+    def test_dqn_rejects_silent_broadcast_and_wrong_dtypes(self):
+        updates = self.load_torch_updates()
+        import torch
+        network = torch.nn.Linear(2, 2)
+        states = torch.ones(2, 2)
+        actions = torch.tensor([0, 1])
+        rewards = torch.ones(2)
+        terminated = torch.tensor([False, True])
+        invalid = [(actions, rewards[:, None], terminated),
+                   (actions[:, None], rewards, terminated),
+                   (actions, rewards, terminated[:, None]),
+                   (actions.float(), rewards, terminated),
+                   (actions, rewards.long(), terminated),
+                   (actions, rewards, terminated.long())]
+        for current_actions, current_rewards, current_terminated in invalid:
+            with self.assertRaises(ValueError):
+                updates.double_dqn_loss(network, network, states, current_actions,
+                                        current_rewards, states, current_terminated)
+        with self.assertRaises(ValueError):
+            updates.double_dqn_loss(network, network, states, actions, rewards,
+                                    states, terminated, float('nan'))
+
+    def test_dqn_never_evaluates_terminal_successors(self):
+        updates = self.load_torch_updates()
+        import torch
+
+        class TableNetwork(torch.nn.Module):
+            def __init__(self, table):
+                super().__init__()
+                self.table = torch.nn.Parameter(torch.tensor(table, dtype=torch.float64))
+
+            def forward(self, states):
+                if not torch.isfinite(states).all():
+                    raise ValueError("invalid successor was evaluated")
+                return self.table[states[:, 0].long()]
+
+        online = TableNetwork([[.5, .25], [5, 4]])
+        target = TableNetwork([[0, 0], [2, 6]])
+        states = torch.tensor([[0.], [0.]])
+        next_states = torch.tensor([[float('nan')], [1.]])
+        actions = torch.tensor([0, 1])
+        rewards = torch.tensor([1., 1.], dtype=torch.float64)
+        loss = updates.double_dqn_loss(online, target, states, actions, rewards,
+                                       next_states, torch.tensor([True, False]), .9)
+        self.assertAlmostEqual(loss.item(), (.125 + 2.05) / 2)
+        loss.backward()
+        self.assertIsNone(target.table.grad)
+        self.assertEqual(online.table.grad[1].abs().sum().item(), 0)
+        self.assertLess(online.table.grad[0, 0], 0)
+        self.assertLess(online.table.grad[0, 1], 0)
+        for flags, gamma in [(torch.tensor([True, True]), .9), (torch.tensor([False, False]), 0)]:
+            result = updates.double_dqn_loss(online, target, states, actions, rewards,
+                                             torch.full_like(states, float('nan')), flags, gamma)
+            expected = torch.nn.functional.smooth_l1_loss(torch.tensor([.5, .25], dtype=torch.float64), rewards)
+            self.assertAlmostEqual(result.item(), expected.item())
+
     def test_projected_regression_improves_fit_but_grows_values(self):
         parameter = 1.0
         updated = REFERENCE.projected_value_step(parameter)

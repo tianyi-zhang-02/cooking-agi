@@ -35,7 +35,7 @@ class Config:
     max_seq_len: int = 512
     rope_theta: float = 10000.0
     norm_eps: float = 1e-6
-    mlp_ratio: float = 8 / 3  # SwiGLU has 3 matrices, so shrink to keep params ~4*d^2
+    mlp_ratio: float = 8 / 3
 
     @property
     def head_dim(self) -> int:
@@ -60,7 +60,6 @@ class RMSNorm(nn.Module):
         self.weight = nn.Parameter(torch.ones(dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # accumulate the variance in fp32 even when the activations are bf16/fp16
         out = x.float()
         out = out * torch.rsqrt(out.pow(2).mean(-1, keepdim=True) + self.eps)
         return out.type_as(x) * self.weight
@@ -151,7 +150,6 @@ class CausalSelfAttention(nn.Module):
         k = self.wk(x).view(b, t, self.cfg.n_kv_head, hd).transpose(1, 2)
         v = self.wv(x).view(b, t, self.cfg.n_kv_head, hd).transpose(1, 2)
 
-        # rotate q/k only -- v carries no positional information
         q = apply_rope(q, cos, sin)
         k = apply_rope(k, cos, sin)
 

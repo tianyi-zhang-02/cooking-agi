@@ -23,7 +23,8 @@ flowchart TD
  C --> D["User, post, and context features"]
  D --> E["Model predictions"]
  E --> F["Filters, list constraints, mixing"]
- F --> G["Return results and log exposure"]
+ F --> G["Server returns results"]
+ G -. "Client confirms display" .-> H["Log exposure, then join feedback"]
 ```
 
 This is a conceptual data-flow diagram, not the exact code execution order. Eligibility checks can occur at multiple stages. Product elements such as ads have additional logic rather than being ordinary posts with another prediction score.
@@ -37,7 +38,8 @@ Trace the fictional candidate `post-17` through one request:
 | Retrieval | ID, source, source-specific score | Cannot distinguish a retrieval miss from later removal |
 | Feature hydration | Values, timestamps, missingness | Defaults and observations become indistinguishable |
 | Scoring | Model version and objective predictions | Cannot separate model changes from weight changes |
-| Selection and response | Removal reason, position, exposure | “Not shown” gets mistaken for “not liked” |
+| Selection and response | Removal reason, returned items and positions | Cannot locate the final removal stage |
+| Actual display | Client-impression event, request and item IDs | “Returned but unseen” gets mistaken for “not liked” |
 
 This is a reading and debugging checklist, not a claim that the repository logs these exact fields.
 
@@ -46,6 +48,22 @@ This is a reading and debugging checklist, not a claim that the repository logs 
 Different costs suit different jobs: broad inexpensive retrieval, richer scoring over fewer candidates, then list constraints. A timed-out source can also fail independently.
 
 The price is more interfaces. Fields can disappear, features can become stale, and configurations can disagree with models. Correctness includes preserving meaning across the whole path, not just getting one function right.
+
+## Why does the list keep shrinking?
+
+Two sources return `[A,B,C,D]` and `[B,C,E,F]`, with a target of four final items. These are teaching counts:
+
+| Stage | Remaining candidates | Why it shrank |
+| --- | --- | --- |
+| Source results | 8 entries | An item may appear in multiple sources |
+| Deduplicate by item ID | A, B, C, D, E, F | Merge B and C while retaining both sources |
+| Current eligibility | A, B, C, E, F | D was deleted |
+| Feature enrichment | A, B, C, E | F lacks a required feature under this example's rule |
+| Author constraint | A, C, E | B shares A's author and exceeds the example's cap |
+
+Three remain. Do not restore deleted D merely to fill four slots. A bounded refill within the remaining deadline or an explicitly allowed short list are alternatives, depending on latency and product requirements. Retrieving more from every source costs additional feature lookup and scoring.
+
+Record counts and removal reasons at each stage rather than only “not enough candidates” at the end. Returning A, C, E also doesn't mean all three were seen: the user might stop after the first screen. Separate server-return and client-impression events so training can distinguish unseen items from seen items without action.
 
 ## Where to start reading
 

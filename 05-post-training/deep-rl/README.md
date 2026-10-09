@@ -49,7 +49,7 @@ On-policy / off-policy 比较的是**收集数据的行为策略，与正在评�
 
 ## 先补哪几块基础
 
-能读条件期望、链式法则和梯度就可以开始。不熟时回到[概率复习](../../quant/probability/study-guide.md)，尤其是条件期望与全期望；PyTorch 部分需要知道自动求导和张量形状。
+能读条件期望、链式法则和梯度就可以开始。需要补基础时，可以先看[ML 数学](../../00-foundations/ml-math-interview.md)里的概率与梯度；PyTorch 部分需要知道自动求导和张量形状。
 
 统一记号：$s_t$ 是状态，$a_t$ 是动作，$r_t$ 是执行该动作后收到的奖励，$\gamma$ 是折扣。有限时域写 $t=0,\ldots,T-1$，终止后的 value 为 0。概率策略用 $\pi_\theta$，value 参数用 $\phi$。不要把 reward、return 和 value 当成同一个数。
 

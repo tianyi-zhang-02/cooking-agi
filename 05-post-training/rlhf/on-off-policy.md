@@ -1,43 +1,129 @@
-# RLHF：On-policy、off-policy，以及 Reward Model 不是 Critic
+# On-policy、off-policy：旧回答还能拿来训练吗？
 
 **中文** · [English](on-off-policy.en.md)
 
-> 阅读时间：约 3 分钟 · 难度：必修 · 最近审阅：2026-09
+> 阅读时间：约 8 分钟 · 难度：必修 · 最近审阅：2026-10
 
-## On-policy、off-policy 与 offline RL
+生成一批长回答很贵。刚收集完就丢掉，当然心疼；但一直反复使用，又会遇到一个问题：**生成这批回答的模型，已经不是眼下正在更新的模型了。**
 
-判断标准不是“代码是否在线运行”，而是：**生成训练数据的 behavior policy，与正在学习的 target policy 是不是同一个或足够接近。**
+这不是数据过了几天的问题。就算刚过去十秒，只要参数或采样规则变了，行为分布就可能不同。
 
-| Setting | 数据怎样产生 | 典型特点 |
-| --- | --- | --- |
-| **On-policy** | 当前或最近的 policy 采样新 trajectory | 分布匹配，但 rollout 贵，旧数据很快失效 |
-| **Off-policy** | 另一个 behavior policy 或历史 policy 产生数据 | 能复用 replay buffer / logs，但要处理 distribution mismatch |
-| **Offline RL** | 只有一份固定数据集，训练时不能再与环境交互 | 通常是 off-policy 的特殊情形，最受数据覆盖范围限制 |
+<span id="on-policyoff-policy-offline-rl"></span>
 
-PPO 用 $\pi_{\text{old}}$ 采一批数据，再让 $\pi_\theta$ 在这批数据上做几次受限更新，看起来同时有 old/new policy；但二者足够接近，而且数据很快会被新 rollout 替换，所以仍属于 on-policy / near-on-policy。Off-policy 则不等于 offline：SAC 可以一边继续收集数据，一边反复学习 replay buffer 中由过去策略生成的经验。
+## 三个容易混在一起的问题
 
-标准 DPO 使用固定 chosen/rejected pairs，具有 offline data 的特征，但没有 Bellman backup、Critic 或环境 rollout；更准确的名字是 **offline preference optimization**，而不是经典 off-policy RL。
+| 问题 | 在问什么 | 一个例子 |
+|---|---|---|
+| On-policy / off-policy | 学习所针对的策略，和产生数据的策略是否一致 | 用旧策略的回答更新新策略，需要考虑分布差异 |
+| Online / offline | 学习过程中还能不能取得新交互数据 | 固定日志上的 offline RL 无法现场补采样 |
+| On / off distribution | 测试输入与训练输入的分布是否不同 | 即使每轮重新 rollout，也可能没见过新的业务领域 |
 
-<details class="interview" markdown="1">
-<summary>工业里什么时候真的需要 RL？</summary>
+它们不是同义词。SAC 一边和环境交互、一边使用 replay buffer，是 **online、off-policy** 的例子。[Spinning Up 的 SAC 文档](https://spinningup.openai.com/en/latest/algorithms/sac.html)可以看到完整流程。标准离线 DPO 使用固定偏好对，但不宜因此把它直接当作带环境转移和 Bellman backup 的 offline RL。
 
-当一个动作会改变后续状态，而且产品关心的是长期结果时，RL 的抽象最有价值：推荐系统要权衡即时点击与长期留存；广告系统要同时考虑转化、预算和用户体验；物流与机器人要优化一连串相互影响的动作；Conversational AI 要把检索、工具调用、澄清、回答和人工升级看成完整 episode。
+## 为什么 PPO 叫 on-policy，却能训练好几个 epoch？
 
-真实探索会伤害用户或产生成本，因此工业系统通常组合 logged data、simulation、offline evaluation、action constraints、小流量探索和 A/B test。算法名字不是第一步：先定义 state/action/reward，确认 reward 能否验证、数据由谁生成，以及是否允许安全地收集新 trajectory。
+先想清一批数据的生命周期：
 
-</details>
+```text
+策略 v7 生成回答 → 保存回答、reward、v7 的 log-prob
+                         ↓
+                 更新为 v8，再更新为 v9
+                         ↓
+               结束这批更新，重新采样
+```
 
-## Reward Model 不是 Critic
+最初的数据由 rollout policy $\pi_{\mathrm{old}}$ 生成。更新开始后，$\pi_\theta$ 就变了，但分母仍然使用生成数据时的概率：
 
-这两个模型都输出标量，所以很容易混：
+$$
+\rho_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)}.
+$$
 
-| | Reward Model | Critic / Value Model |
-| --- | --- | --- |
-| 输入 | prompt + 完整回答 | 当前 prompt + 生成前缀 |
-| 输出 | 学到的偏好代理分数 | 从当前状态出发的预计 return |
-| 回答的问题 | 「这个完成的回答看起来有多好？」 | 「从这里按当前策略继续，预计能拿多少分？」 |
-| PPO 阶段 | 通常冻结 | 跟随当前 Actor 训练 |
+PPO 允许对这一批数据做多轮 minibatch 更新，同时用 surrogate objective、clipping，或实现里的 KL early stopping 控制变化。它通常被归为 on-policy，也常被口头称为 near-on-policy：这是强调**频繁刷新 rollout、限制旧数据复用**的工作方式，不是保证每次更新后分布完全一致。[PPO 论文](https://arxiv.org/abs/1707.06347)与 [Spinning Up 实现说明](https://spinningup.openai.com/en/latest/algorithms/ppo.html)分别给出了方法和具体训练循环。
 
-Reward Model 给出的不是「真实人类满意度」，而是从有限偏好数据学到的 **proxy reward**（代理奖励）。它会判断错、偏爱表面风格，也可能被策略钻空子。Critic 学的则是当前 policy 下的条件期望；Actor 一变，它要估计的目标也会跟着变。
+不要每更新一步就把分母改成最新模型的 log-prob。那样的 ratio 已经不是「相对这批数据的生成策略」了。这里的 old policy 也不是用于 KL anchor 的 Reference。
 
-从完整回答粒度看，这套训练有一点像 contextual bandit：给一个 prompt，生成一个回答，最后拿一个整体分数。但 token 生成内部仍然是序列决策，状态会随前缀不断变化。两种说法只是抽象粒度不同。
+## 一个两动作例子：为什么要做重要性加权 {#reweighting}
+
+先不用语言模型。假设只做一次选择，动作 A 的奖励为 1，B 为 3。旧策略 $\mu$ 以 $0.9/0.1$ 的概率选择 A/B；目标策略 $\pi$ 则各选一半。
+
+| 动作 | 旧策略 $\mu$ | 目标策略 $\pi$ | reward | 权重 $\pi/\mu$ |
+|---|---|---|---|---|
+| A | 0.9 | 0.5 | 1 | $5/9$ |
+| B | 0.1 | 0.5 | 3 | 5 |
+
+旧策略的期望 reward 是 $1.2$，目标策略是 $2$。直接平均旧日志，当然不会自动变成目标策略的表现。若目标策略有概率选择的动作，旧策略也都有非零概率，即满足支持条件，就可以换测度：
+
+$$
+\mathbb E_{a\sim\pi}[r(a)]
+=\sum_a\mu(a)\frac{\pi(a)}{\mu(a)}r(a)
+=\mathbb E_{a\sim\mu}\left[\frac{\pi(a)}{\mu(a)}r(a)\right].
+$$
+
+这里动作后的 reward 机制也假定不变。对一次随机决策，这是一个精确的期望恒等式；有限样本估计仍然有误差。
+
+下面刻意造 45 个 A 和 5 个 B，让频数恰好等于期望比例，方便核算；不是说真实采样每次都会这样。
+
+```python
+import math
+
+behavior = {"A": 0.9, "B": 0.1}
+target = {"A": 0.5, "B": 0.5}
+rewards = {"A": 1.0, "B": 3.0}
+actions = ["A"] * 45 + ["B"] * 5
+weights = [target[action] / behavior[action] for action in actions]
+logged_mean = sum(rewards[action] for action in actions) / len(actions)
+estimate = sum(weight * rewards[action] for weight, action in zip(weights, actions)) / len(actions)
+effective_size = sum(weights) ** 2 / sum(weight ** 2 for weight in weights)
+assert math.isclose(logged_mean, 1.2)
+assert math.isclose(estimate, 2.0)
+assert math.isclose(effective_size, 18.0)
+print(round(logged_mean, 2), round(estimate, 2), round(effective_size, 2))
+```
+
+虽然有 50 条记录，权重的有效样本量指标（ESS）只有 18：少数 B 扛了很大一部分权重。这是**权重集中程度的诊断**，不是严格保证「相当于 18 个独立样本」，更不是置信区间。
+
+## 三个修不回来的地方
+
+### 1. 从未采到的动作，不能靠除法补出来
+
+如果旧策略从来不选 B，我们只观察到 A 的 reward 是 1。B 的 reward 可以是 0，也可以是 3，这两个世界都符合手里的日志，却对应不同的目标策略期望：$0.5$ 或 $2$。
+
+在分母加一个很小的数能让程序不报错，却不能创造缺失的观测。需要新探索、额外假设或更保守的决策。更多推导见 [offline RL 与 OPE](../deep-rl/offline-and-ope.md)，以及 [Levine 等人的 offline RL 综述](https://arxiv.org/abs/2005.01643)。
+
+### 2. 单个 token 的小偏差，乘起来也不小
+
+完整轨迹的重要性权重通常含有各步 ratio 的乘积。哪怕每步只有 $1.1$，20 步后也是 $1.1^{20}\approx6.73$。不是说真实 ratio 总会同向变化，而是提醒我们：长序列可能放大估计方差。
+
+用 log-prob 相加能改善数值计算，却不会消除统计方差。PPO 的逐 token surrogate 也不能简单解释成「精确修正了整条旧轨迹的分布」。
+
+### 3. 裁剪权重改变了估计
+
+上例若把权重截到 2，五个 B 的贡献被压小，估计变成 $(45\times5/9+5\times2\times3)/50=1.1$，不再是 2。这说明 bias–variance tradeoff 很具体，不是写一句「加 clipping 更稳定」就结束了。
+
+这只是普通重要性权重裁剪的例子，**不是 PPO 的完整 clipped objective**。PPO 还会根据 advantage 的正负取最小值，详见 [PPO clipping](ppo-clipping.md)。
+
+## 放回 LLM：该保存哪些信息？
+
+| 信息 | 为什么要保存 | 常见误区 |
+|---|---|---|
+| Rollout policy 版本 | 知道是哪次参数生成的回答 | 用当前模型重算，然后假装是旧 log-prob |
+| 实际采样规则与概率 | temperature、top-p 等会改变行为分布 | 把未处理的模型概率直接当作 sampler 概率 |
+| Token、mask、终止原因 | 区分 prompt、padding、EOS 与长度截断 | 把截断当自然结束，或把 padding 算入 loss |
+| Reward / verifier 版本 | 打分规则变了，目标也可能变了 | 混合不同版本分数却不做标记 |
+| 轨迹年龄与队列延迟 | 异步生成可能落后于训练很多步 | 只看墙上过去几秒，不看策略更新了几次 |
+
+特别是 top-p 等截断采样：一些 token 的实际采样概率会变成零。若你要声称做了精确 importance correction，就必须说明实际行为概率、目标分布与支持条件；不能默认为未截断 softmax。工程上采用近似也可以，但要明确近似在哪，并检查它的影响。
+
+<span id="reward-model-critic"></span>
+
+## Reward Model、Critic 和日志分别告诉你什么？
+
+| 对象 | 回答的问题 | 不能替代什么 |
+|---|---|---|
+| Reward Model / verifier | 按这套标准，这个结果得几分？ | 不是产生样本的行为概率 |
+| Critic | 从这个状态按所评估的策略继续，预期回报多少？ | 不是外部的「正确答案判官」 |
+| 行为日志 | 某个策略实际选了什么、随后发生什么？ | 没发生过的反事实不能直接读出来 |
+
+回到开头：旧回答不是不能用，而是要知道它们来自哪里、覆盖了什么，以及你愿意承担哪种偏差。数据复用能省生成成本；为了省这笔钱，把估计前提弄丢了，最后可能连「训练变好了没有」都说不清。
+
+下一篇看 [Reference 与 Critic](reference-and-critic.md)，把 reference KL、old-policy ratio 和 baseline 彻底分开。

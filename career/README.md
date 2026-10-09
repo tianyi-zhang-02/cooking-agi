@@ -26,7 +26,7 @@
 
 ### 想直接练技术
 
-Python、LeetCode、ML 基础和系统设计放在[学习笔记](../learn/README.md)。这里留给经历和想法，不把两边混在一起。
+ML / LLM 基础问答、ML Coding、Python 与 LeetCode 放在[面试准备](../interview/README.md)。系统设计去[工程实践](../learn/system-design/README.md)。这里留给经历和想法，不把两边混在一起。
 
 ## 读的时候，知道我的情况就好
 

@@ -37,6 +37,8 @@ $$
 
 With 3 trajectory weights $[1,1,8]$, ESS is approximately 1.52, not 3. It warns that a few trajectories may dominate. It does not establish unbiasedness or absence of hidden confounding.
 
+Multiplying every weight by the same positive constant leaves ESS unchanged. Divide by the maximum before sums and squares to avoid overflow or squared-weight underflow. Starting from log-weights, subtract their maximum before exponentiation; rescaling cannot recover weights already rounded to infinity. This fixes numerical evaluation, not missing behavioral coverage.
+
 ## Calculate weights in a two-action bandit first
 
 Left and right have fixed rewards 1 and 3. The logging policy chooses them with probabilities 90% and 10%; the target policy chooses each with 50%. Suppose 100 logged observations contain exactly 90 left and 10 right actions:

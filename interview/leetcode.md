@@ -22,6 +22,19 @@
 | 6 | [回溯与动态规划](algorithms/backtracking-and-dp.md) | 路径和状态怎么区分，记忆化和循环怎么互换 |
 | 7 | [排序、区间与贪心](algorithms/sorting-and-greedy.md) | 排序省掉了什么，局部选择为什么不会后悔 |
 
+第一遍不用把所有方法一起背。基础模板熟悉后，按自己卡住的问题往下读：
+
+| 我卡在这里 | 接着看 | 这次多想一步 |
+| --- | --- | --- |
+| 字符串匹配总是从头重来 | [字符串匹配 · KMP](algorithms/string-matching.md) | 失败后哪些已匹配信息还能复用 |
+| 窗口最大值离开后不知道谁接班 | [单调队列](algorithms/monotonic-queue.md) | 一个候选为什么可以永久删除 |
+| BST 只会写递归模板 | [二叉搜索树](algorithms/binary-search-trees.md) | 祖先范围、中序排名与树高 |
+| DP 的循环方向老是反 | [背包与凑钱](algorithms/knapsack.md) | 读上一层，还是允许复用当前层 |
+| LCS、LIS 与子串搞混 | [序列 DP](algorithms/sequence-dp.md) | 前缀、结尾、连续，分别限制什么 |
+| 只存一个最优值就丢了规则 | [状态机 DP](algorithms/state-machine-dp.md) | 哪段历史会改变后续可选动作 |
+
+还有一篇按需看的[质数判断与筛法](algorithms/primes-and-sieves.md)：一个数用试除，一段数用筛表，重点是平方根边界和预处理何时值得。它不在第一轮必刷清单里。
+
 语法不熟，先看朋友整理的 [Python 语法](python.md)。这里更关心“这行代码在算法里起什么作用”，两篇可以来回查。
 
 ## 2. 读完题，先问 5 个问题
@@ -60,6 +73,8 @@
 ```bash
 python interview/code/patterns.py
 python -m unittest discover -s site/tests -p 'test_algorithm_patterns.py'
+python interview/code/deeper_patterns.py
+python -m unittest discover -s site/tests -p 'test_deeper_algorithm_patterns.py'
 ```
 
 测试会拿小输入枚举答案，检查窗口、前缀和、DP 等模板；也会核对正文代码和测试文件是否一致。样例用于学习方法，不宣称覆盖 LeetCode 所有输入规格。提交时注意题目要求的 `Solution`、下标从 0 还是 1 开始，以及是否允许修改输入。

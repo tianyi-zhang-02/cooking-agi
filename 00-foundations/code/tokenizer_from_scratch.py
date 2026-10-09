@@ -31,6 +31,8 @@ class TinyBPE:
     def train(self, corpus: list[str], num_merges: int = 24) -> None:
         sequences = [word for text in corpus for word in self._words(text)]
         self.merge_rules.clear()
+        vocabulary = {"<unk>"}
+        vocabulary.update(symbol for sequence in sequences for symbol in sequence)
 
         for _ in range(num_merges):
             counts = Counter(
@@ -44,11 +46,9 @@ class TinyBPE:
             if frequency < 2:
                 break
             self.merge_rules.append(best_pair)
+            vocabulary.add("".join(best_pair))
             sequences = [merge_pair(sequence, best_pair) for sequence in sequences]
 
-        vocabulary = {"<unk>"}
-        for sequence in sequences:
-            vocabulary.update(sequence)
         self.token_to_id = {token: index for index, token in enumerate(sorted(vocabulary))}
 
     def tokenize(self, text: str) -> list[str]:

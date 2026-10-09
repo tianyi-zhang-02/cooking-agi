@@ -198,14 +198,16 @@ Training loss or one aggregate reward is not enough. Also check:
 
 ## How to read this series
 
-Model adaptation begins with two questions: **what supplies the learning signal**, and **which parameters may change**. Post-training then shapes behavior into a usable product through demonstrations, preferences, and outcomes. The series is ordered by dependency — skip ahead and the later pieces will not land.
+First separate **what supplies supervision** from **which parameters may change**. If you already understand SFT, go straight to preference learning and return for unfamiliar concepts; there is no need to restart from page one.
 
 **I. Foundations: why more teaching is needed**
 
 1. Why pretraining isn't enough (this page) — what learning problem SFT, preference learning, and RL each solve
 2. [Model adaptation: Full Fine-Tuning, LoRA, Prompt Tuning, and Distillation](model-adaptation.en.md) — separate the learning objective from parameterization, and explain how the system constrains classification output
-3. [SFT: how far imitation goes, and where it stops](sft-and-its-ceiling.en.md) — why cross-entropy can't see the pivotal token, and how demonstrations that always contain an answer train hallucination in
-4. [Where preferences come from: the reward model and what it learns](where-preferences-come-from.en.md) — Bradley-Terry learns order but not scale, and a reward model **expires** as the policy drifts
+3. [SFT](sft-and-its-ceiling.en.md) — why mean token loss does not replace task success, and how demonstrations teach answering, clarification, or abstention
+4. [Preferences and reward models](where-preferences-come-from.en.md) — how Bradley–Terry models preferences through score differences, and whether the reward model remains reliable as the policy changes
+
+For worked calculations, continue to [LoRA / QLoRA](lora-and-qlora.en.md) and [distillation](distillation.en.md): parameters, gradients, and memory in the former; soft targets, KL, and what top-k leaves out in the latter.
 
 **II. Teaching by outcome: the RL line**
 
@@ -220,14 +222,17 @@ Model adaptation begins with two questions: **what supplies the learning signal*
 
 **IV. What it costs**
 
-10. [The alignment tax: what you lose by becoming agreeable](alignment-tax.en.md) — trading distribution width for out-of-distribution robustness. **pass@1 up with pass@k down means you compressed the distribution into a point**
+10. [Alignment trade-offs](alignment-tax.en.md) — check task-level regressions, diversity, and distribution shift; aggregate pass@1 and pass@k alone cannot establish mode collapse
 
-The ten notes form one line: **choose supervision and parameterization → teach by demonstration → teach by outcome → make it actually run → what it costs.**
+Read these as a connected sequence: choose supervision and an update method, then examine training, validation, and costs. Or go directly to the question you need to answer.
 
-Read in order it's about an hour. If you're here for one specific problem, the "In one sentence" opener of each piece is the index.
+Use the contents to jump to a specific problem; there is no need to finish everything in one sitting.
 
 ## Continue reading
 
+- [DAPO: sampling, length, and clipping](dapo.en.md): inspect weighting and filtering on small batches.
+- [GSPO and ASPO](policy-ratios.en.md): sequence ratios, token weights, and stop-gradients.
+- [SAO and asynchronous training](async-policy-learning.en.md): what changes when sampling lags behind policy updates.
 - [Data and feedback](../01-data-and-feedback/README.en.md)
 - [Evaluation](../07-evaluation/README.en.md)
 - [Model Experience](../08-model-experience/README.en.md)

@@ -4,9 +4,11 @@
 
 A good recommendation can look like a model simply guessed your interests. But before scoring, the system has chosen where to search and which posts are eligible. After scoring, it still needs to assemble a useful list.
 
-This series asks **what each stage solves, why it belongs there, and what changes with another design**. Start with one request, then connect it to training, content updates, and engineering decisions. No catalog of model names required.
+Follow a feed refresh: retrieve candidates, score them, and assemble a list. Then return to the design choices—why split the work this way, and what changes with another model or index?
 
-## Start with the whole system—then select a stage
+<span id="start-with-the-whole-systemthen-select-a-stage"></span>
+
+## Separate requests, updates, and training
 
 This is a teaching architecture, not Twitter / X’s production topology. Switch among 3 paths to separate a refresh, a content update, and a training run. On the request path, change one condition and trace where candidates disappear.
 
@@ -39,9 +41,11 @@ For a first pass, try **architecture guide → 01 → 02 → 03 → 05**. Return
 | [07 · Component choices](07-component-choices.en.md) | What could implement the same responsibility? | State constraints, alternatives, and stopping conditions |
 | [08 · Engineering the path](08-serving-lifecycle.en.md) | Can a successful response still be wrong? | Check compatibility, timeouts, freshness, and rollback |
 
-The recurring thread is **problem → approach → alternatives → cost → evidence**. Small experiments explain mechanisms; they do not stand in for real users.
+Each note compares alternatives and works through computation, latency, or candidate budgets. The small teaching datasets explain mechanisms; whether real users prefer the results requires separate validation.
 
-## What comes from public code, and what is a teaching design?
+<span id="what-comes-from-public-code-and-what-is-a-teaching-design"></span>
+
+## Public sources used in this series
 
 | Material | How it is used | What it does not establish |
 | --- | --- | --- |

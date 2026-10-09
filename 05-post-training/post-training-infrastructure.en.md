@@ -4,36 +4,17 @@
 
 > Reading time: ~7 min · Type: chapter · Last reviewed: 2026-08
 
-## Quick learning: why post-training is first a systems problem
-
-<details class="interview" markdown="1">
-<summary>Rollout throughput, logprob consistency, and context lifecycle</summary>
-
-**Quick memory**: sampling often dominates RL cost. Trainer and inference logprobs must agree numerically. Long-task context, tool state, and checkpoints must be recoverable.
-
-**Interview answer**
-
-> A post-training system must make the rollout engine, trainer, and evaluator agree on the semantics of the same token sequence. Throughput determines available online data, numerical skew distorts importance ratios and KL, and context truncation or state loss silently changes the task being optimized.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why can near-zero mean logprob error still be dangerous?</summary>
-
-Positive and negative errors cancel in the mean, while PPO ratios exponentiate per-token differences. A small long tail can create extreme ratios, trigger clipping, or dominate gradients. Inspect quantiles, maxima, length slices, and token alignment rather than only mean error.
-
-</details>
-</details>
-
-## Infrastructure decides whether the algorithm runs as intended
+## Infrastructure decides whether the algorithm runs as intended {#infrastructure-decides-whether-the-algorithm-runs-as-intended}
 
 Public discussion of post-training is almost entirely about algorithms — PPO or GRPO, Critic or no Critic. What actually stalls a post-training run is usually two other things: **how much experience you can collect per hour**, and **whether the training side and the inference side compute the same number**. Neither appears in any loss function.
 
-## Why this layer gets ignored
+## Why this layer gets ignored {#why-this-layer-gets-ignored}
 
 It doesn't make papers. A new loss can be written as an equation, plotted as a curve, and given a name. Tripling rollout throughput cannot be written as an equation.
 
 But on return per unit of effort the order is often reversed: **an algorithm generation buys tens of percent, while doubling sampling throughput means running the entire experiment twice in the same wall-clock time.**
 
-## One: sampling throughput, RL's real cost center
+## One: sampling throughput, RL's real cost center {#one-sampling-throughput-rls-real-cost-center}
 
 Supervised learning's data already exists. **RL's data has to be generated on the spot**, by the current policy — that is what on-policy means.
 
@@ -58,7 +39,7 @@ That's the real tradeoff:
 
 **The test isn't "more async is better," it's "does the importance-ratio distribution still look sane."** Ratios piling up against the clip boundary mean the experience is too stale for the current policy — the throughput you gained didn't turn into learning.
 
-## Two: numerical agreement, a silent crack
+## Two: numerical agreement, a silent crack {#two-numerical-agreement-a-silent-crack}
 
 Rollout runs on an inference engine; training runs in a training framework. Kernels, precision, and fusion all differ, so **the same text through the same weights can yield different logprobs on each side**.
 
@@ -83,7 +64,7 @@ diff = logp_train - logp_rollout
 
 One real system reported significant gains after driving this difference to the $10^{-7}$ range (see [how far one base model can go](same-base-different-posttraining.en.md)). The gain appears in no formula. It appears as **every previous update finally meaning what it claimed to mean.**
 
-## Three: context management, so long tasks can finish
+## Three: context management, so long tasks can finish {#three-context-management-so-long-tasks-can-finish}
 
 A multi-step agent task's context grows monotonically — every tool call and every environment response adds to it. Run long enough and it overflows.
 
@@ -93,7 +74,7 @@ Compaction (summarizing history, folding redundant tool output) addresses **whet
 
 An easily missed side effect: **compaction changes the state.** Same task, different compaction policy, different context — which makes it a different MDP. **The compaction policy has to be versioned alongside the model**, or you'll compare results from two different environments.
 
-## What the three have in common
+## What the three have in common {#what-the-three-have-in-common}
 
 None of them changes the objective, and all of them change what you can do to it:
 
@@ -103,7 +84,7 @@ None of them changes the objective, and all of them change what you can do to it
 
 A very practical corollary: **when post-training isn't working, check these three before reaching for a different algorithm.** Inverting that order means using a more complex algorithm to fix a problem the algorithm didn't cause, probably failing, and then concluding — wrongly — that the algorithm doesn't work.
 
-## Down to a checklist
+## Down to a checklist {#down-to-a-checklist}
 
 1. What are my GPUs doing during sampling? Have I measured the train/sample time split?
 2. What does the importance-ratio distribution look like? What fraction sits at the clip boundary?
@@ -111,7 +92,26 @@ A very practical corollary: **when post-training isn't working, check these thre
 4. How is long-task context truncated or compacted? Is the task goal what's getting cut?
 5. Is my compaction policy versioned — or did it quietly change while I compared two different environments?
 
-## Where to read next
+## Where to read next {#where-to-read-next}
 
 - [How far one base model can go](same-base-different-posttraining.en.md): these three in a real system
 - [After PPO](after-ppo.en.md): the algorithm half
+
+## Quick learning: why post-training is first a systems problem {#quick-learning-why-post-training-is-first-a-systems-problem}
+
+<details class="interview" markdown="1">
+<summary>Rollout throughput, logprob consistency, and context lifecycle</summary>
+
+**Quick memory**: sampling often dominates RL cost. Trainer and inference logprobs must agree numerically. Long-task context, tool state, and checkpoints must be recoverable.
+
+**Interview answer**
+
+> A post-training system must make the rollout engine, trainer, and evaluator agree on the semantics of the same token sequence. Throughput determines available online data, numerical skew distorts importance ratios and KL, and context truncation or state loss silently changes the task being optimized.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why can near-zero mean logprob error still be dangerous?</summary>
+
+Positive and negative errors cancel in the mean, while PPO ratios exponentiate per-token differences. A small long tail can create extreme ratios, trigger clipping, or dominate gradients. Inspect quantiles, maxima, length slices, and token alignment rather than only mean error.
+
+</details>
+</details>

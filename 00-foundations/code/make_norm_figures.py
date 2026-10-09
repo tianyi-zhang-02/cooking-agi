@@ -56,16 +56,13 @@ def norm_axes():
                   "features →", "lbl-s", "middle"))
 
     b.append(text(24, 252,
-                  "BatchNorm's statistics depend on the other examples in the batch. "
-                  "LayerNorm's depend only on the token itself —", "sub"))
+                  "Training BatchNorm uses batch statistics; default evaluation uses stored running statistics.", "sub"))
     b.append(text(24, 268,
-                  "which is why variable-length sequences, batch size 1, and "
-                  "autoregressive decoding all leave BatchNorm without a usable", "sub"))
+                  "One training value per channel is invalid; [1, C, L] can work when L > 1, but mixes time.", "sub"))
     b.append(text(24, 284,
-                  "estimate, and LayerNorm completely unbothered.", "sub"))
+                  "LayerNorm reduces within each token. Its statistics do not depend on neighboring tokens.", "sub"))
     b.append(text(24, 306,
-                  "RMSNorm keeps LayerNorm's axis and drops the mean subtraction: "
-                  "one fewer reduction, no measurable loss.", "sub"))
+                  "RMSNorm uses the same feature axis without centering. Speed and quality need measurement.", "sub"))
     return svg(W, H, "\n".join(b))
 
 
@@ -75,11 +72,9 @@ def norm_axes():
 def measure_gradients(depth=40, width=64, residual=False, seed=0, gain=0.8):
     """Forward+backward a deep MLP, return the gradient norm arriving at each layer.
 
-    gain=0.8 puts the init 20% below the critical value for tanh. At exactly
-    critical (gain=1.0) a plain stack sits on a knife's edge and neither vanishes
-    nor explodes -- which would make a misleadingly flat picture. Real training
-    is never exactly at the critical point, and the whole practical value of the
-    residual connection is that it stops caring where you are.
+    Weights have standard deviation gain/sqrt(width). The final activation mean
+    supplies identical upstream gradients in both variants. This single input
+    and initialization illustrate propagation, not a universal stability bound.
     """
     torch.manual_seed(seed)
     layers = nn.ModuleList([nn.Linear(width, width) for _ in range(depth)])
@@ -91,13 +86,11 @@ def measure_gradients(depth=40, width=64, residual=False, seed=0, gain=0.8):
     acts = []
     h = x
     for lin in layers:
-        h = h.detach().requires_grad_(True) if False else h
-        h.retain_grad() if h.requires_grad else None
         pre = torch.tanh(lin(h))
         h = h + pre if residual else pre
         h.retain_grad()
         acts.append(h)
-    loss = h.pow(2).mean()
+    loss = h.mean()
     loss.backward()
     return [a.grad.norm().item() for a in acts]
 
@@ -117,9 +110,7 @@ def residual_gradient():
         (math.log10(hi) - math.log10(lo)) * PH
 
     b = [text(24, 24, "What depth does to the gradient", "ttl"),
-         text(24, 41, f"{depth}-layer MLP, tanh, init 20% below critical — "
-                      "identical weights and input, the only difference is the "
-                      "residual add", "sub")]
+         text(24, 41, f"{depth}-layer tanh MLP, gain 0.8, width 64, seed 0; identical input, weights and final gradient.", "sub")]
 
     for e in range(math.floor(math.log10(lo)), math.ceil(math.log10(hi)) + 1):
         y = ly(10.0 ** e)
@@ -150,11 +141,9 @@ def residual_gradient():
     decay = plain[-1] / max(plain[0], 1e-30)   # layer 40 -> layer 1
     ratio = res[0] / max(plain[0], 1e-30)
     b.append(text(24, H - 26,
-                  f"Walking back from layer {depth} to layer 1 the plain stack loses "
-                  f"{decay:.0e}× of its gradient; the residual one is flat.", "sub"))
+                  f"This initialization: plain-stack gradient shrinks {decay:.0e}× from layer {depth} to layer 1.", "sub"))
     b.append(text(24, H - 10,
-                  f"At layer 1 the two differ by {ratio:.0e}×. Same weights, same "
-                  "data — the identity path is all of it.", "sub"))
+                  f"Layer-1 norms differ by {ratio:.0e}×. Larger is not always better; this is not a training experiment.", "sub"))
     return svg(W, H, "\n".join(b)), plain, res
 
 

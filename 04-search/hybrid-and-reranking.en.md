@@ -19,6 +19,8 @@ Use this four-document teaching collection:
 
 Keyword methods such as BM25 score term matches; exact identifiers, error codes, and rare names can matter. Dense retrieval can connect different wording, but may prioritize the topic over detailed constraints. Neither source automatically captures the entire need.
 
+For the keyword score itself, [TF-IDF and BM25](tfidf-and-bm25.en.md) separates frequency, rarity, and length effects.
+
 Inspect unique relevant results before combining sources. If both always return the same content, fusion may add little. If the second source only adds noise, it can make downstream processing more expensive without helping.
 
 ## 2. Why not just add the scores? {#rank-fusion}

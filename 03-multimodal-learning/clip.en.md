@@ -2,7 +2,7 @@
 
 [中文](clip.md) · **English**
 
-> Reading time: about 7 minutes · Level: introductory to intermediate · Last reviewed: 2026-09
+> Reading time: about 9 minutes · Level: introductory to intermediate · Last reviewed: 2026-10
 
 Take three images—a cat, a bicycle, and a coffee—and their three captions. Instead of asking for an essay, ask: **which image belongs with which caption?** This is a useful starting point for CLIP.
 
@@ -59,6 +59,8 @@ The first needs no PyTorch. The second checks the same scores with PyTorch, then
 
 ## Three easy mistakes
 
+First clarify “unlabeled”: CLIP does not require a human class ID for each image, but image–text pairing is supervision. Noisy web descriptions are not arbitrary text without a learning target. Natural-language supervision relaxes fixed categories while making pair quality part of the training problem. [CLIP paper](https://arxiv.org/abs/2103.00020)
+
 1. **“Every other pairing is wrong.”** That is the single-positive target assignment, not a real-world guarantee. Two cat images may both suit a cat caption. Duplicate captions treated as negatives create conflicting supervision; try that setting in the experiment.
 2. **“Gradient accumulation enlarges the contrastive pool.”** If each microbatch scores only its own candidates, cross-microbatch pairs never enter the denominator. Accumulation does not add them automatically; cross-device candidate sharing also requires an explicit implementation.
 3. **“Lower temperature is always better.”** It makes the highest score more decisive, including when that score is wrong. Temperature cannot repair incorrect pair labels.
@@ -68,3 +70,11 @@ The first needs no PyTorch. The second checks the same scores with PyTorch, then
 Encode candidate descriptions such as “a photo of a cat,” then compare them with the image. Zero-shot here means no weight update for the downstream classification task—not no pretraining or a guarantee that related concepts were unseen. See the [official CLIP example](https://github.com/openai/CLIP#zero-shot-prediction).
 
 Original CLIP scores classes or pairs; **it does not generate an answer token by token**. To ask what the person on the left is doing, continue with [connecting vision to a language model](vision-to-language.en.md).
+
+## What does a score of 0.88 mean?
+
+Suppose a bicycle photo has logits `[2, 0]` for two candidates. Softmax assigns about 0.881 to the first. Add another candidate scoring 2, giving `[2, 0, 2]`, and the first probability falls to about 0.468. The image, original candidates, and original scores have not changed.
+
+This invented softmax example shows candidate-list dependence, not an “88% chance of identifying the real object correctly.” Rejection and confidence thresholds require calibration under a fixed protocol, especially when none of the candidates fits.
+
+CLIP's text branch produces text vectors, but cross-modal training does not establish suitability for every text–text task. For sentence retrieval, compare against a dedicated text-embedding baseline on the target data. Being able to compute cosine does not establish that cosine captures the semantics you need.

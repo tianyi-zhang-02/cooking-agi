@@ -8,6 +8,8 @@ I like to write the same thing twice. The first time without PyTorch, forcing my
 
 High-level APIs are of course not a bad thing. But if every core computation is wrapped from the very start, then when a shape, mask, or state goes wrong later, it is hard to locate why training does not converge.
 
+If views, broadcasting, or autograd are still unfamiliar, start with [PyTorch: tensors to training](../pytorch/README.en.md). Small examples connect storage, gradients, and a complete training loop before you return here to build models.
+
 ## Stage one: verify the computation with pure Python and NumPy
 
 | File | Dependency | What it verifies |

@@ -2,45 +2,23 @@
 
 [中文](from-linear-to-neural.md) · **English**
 
-<div class="lesson-recipe">
-  <div><span>The problem</span><strong>See how a neural network turns “cutting a straight line” into a complex boundary</strong></div>
-  <div><span>Prerequisites</span><strong>linear model · sigmoid · cross-entropy · ReLU</strong></div>
-  <div><span>Core mechanism</span><strong>feature maps · chain rule · backpropagation</strong></div>
-  <div><span>Common mistakes</span><strong>Assuming depth or the sigmoid itself creates nonlinear boundaries</strong></div>
-</div>
+Place four points at the corners of a square and give opposite corners the same label. No single line separates the classes. Stacking linear layers alone does not help: they still compose into one linear transform. We use this XOR example to see how nonlinear hidden layers change the representation.
 
-## Quick learning: from linear readout to learned feature map
+## A linear model's decision boundary is always a hyperplane {#a-linear-models-decision-boundary-is-always-a-hyperplane}
 
-<details class="interview" markdown="1">
-<summary>The one-line spine, the standard answer, and a function-approximator deep dive</summary>
-
-**Quick memory**: a linear model draws a hyperplane in a given feature space. A neural network uses nonlinear layers to learn new coordinates $\phi_\theta(x)$, and a linear head reads the result out.
-
-**Interview answer**
-
-> Stacked linear layers without activations can still be merged into one matrix. With nonlinearities such as ReLU, the network can learn a piecewise nonlinear feature map that makes a complex boundary in the original space linearly separable in hidden space. A linear final layer does not make the whole model linear.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why does universal approximation not mean “it will certainly learn well”?</summary>
-
-It only says that, in a sufficiently large function family, parameters **exist** that approximate a continuous function on a compact domain. It does not guarantee that gradient descent finds them, that finite data identifies them, that the parameter count is affordable, that the model extrapolates out of distribution, or that it generalizes in the end. Expressivity, optimization, and generalization are three different things.
-
-</details>
-</details>
-
-## A linear model's decision boundary is always a hyperplane
-
-A neural network is a **learned change of coordinates** followed by **a linear classifier**. The last layer is always logistic regression; it just lives in the new coordinate system.
+Start with a common classification network: **hidden layers learn features, and a linear classification head reads them out**. With a sigmoid for binary classification, this resembles logistic regression on learned features. It is a useful view for this chapter, not a required output structure for every neural network.
 
 This page goes from least squares to backpropagation. Every step comes with its formula and a framework-free Python implementation.
 
-## Linear regression: the decision boundary can only be a hyperplane
+## Linear regression: the decision boundary can only be a hyperplane {#linear-regression-the-decision-boundary-can-only-be-a-hyperplane}
 
 $$\hat{y} = \mathbf{w}^\top \mathbf{x} + b = \sum_{i=1}^{n} w_i x_i + b, \qquad \mathbf{x}, \mathbf{w} \in \mathbb{R}^n$$
 
-With squared loss $\mathcal{L} = \frac{1}{2}\sum_k (y_k - \hat y_k)^2$, absorb the bias into $\mathbf{w}$ (append a constant 1 to $\mathbf{x}$); setting the gradient to zero gives the closed-form solution directly:
+With squared loss $\mathcal{L} = \frac{1}{2}\sum_k (y_k - \hat y_k)^2$, absorb the bias into $\mathbf{w}$ (append a constant 1 to $\mathbf{x}$). When $X$ has full column rank, setting the gradient to zero gives:
 
 $$\nabla_{\mathbf{w}}\mathcal{L} = X^\top(X\mathbf{w} - \mathbf{y}) = 0 \;\Longrightarrow\; \hat{\mathbf{w}} = (X^\top X)^{-1} X^\top \mathbf{y}$$
+
+With linearly dependent features, $X^\top X$ can be singular; a pseudoinverse gives the minimum-norm solution. In code, use a QR / SVD least-squares solver rather than explicitly computing the inverse.
 
 Used as a classifier, its decision surface is
 
@@ -48,7 +26,7 @@ $$\{\mathbf{x} : \mathbf{w}^\top \mathbf{x} + b = 0\}$$
 
 a hyperplane: a line in two dimensions, a plane in three. This is **the only shape a linear model can draw**.
 
-## Is it still linear once you add interaction terms?
+## Is it still linear once you add interaction terms? {#is-it-still-linear-once-you-add-interaction-terms}
 
 This is easy to get tangled in, because “linear” has two meanings.
 
@@ -65,7 +43,7 @@ that sends two-dimensional points into three dimensions, separates them there wi
 
 The catch is that you have to guess $\phi$ yourself.
 
-## Sigmoid changes the form of the output, not the expressive power
+## Sigmoid changes the form of the output, not the expressive power {#sigmoid-changes-the-form-of-the-output-not-the-expressive-power}
 
 Compute the same linear score first, then squash it into a probability:
 
@@ -73,7 +51,7 @@ $$z = \mathbf{w}^\top \mathbf{x} + b, \qquad \sigma(z) = \frac{1}{1 + e^{-z}}$$
 
 **The decision boundary is still a hyperplane**: $\sigma(z) = 0.5 \iff z = 0 \iff \mathbf{w}^\top\mathbf{x} + b = 0$. The sigmoid is monotone, so it cannot change the shape of that surface; it only translates *distance from the surface* into a probability.
 
-### So what does the sigmoid actually fix?
+### So what does the sigmoid actually fix? {#so-what-does-the-sigmoid-actually-fix}
 
 An **optimization** problem. Suppose we skip the sigmoid and fit 0/1 labels with MSE on the raw score. A point with $\mathbf{w}^\top\mathbf{x} = 100$ and label 1 is already classified as correctly as it can be — yet its residual is 99 and its gradient is huge, so it drags the decision surface toward itself as hard as it can. **Points that are already correct dominate training.**
 
@@ -95,27 +73,27 @@ The denominator is cancelled exactly by $\sigma'$, leaving only **prediction min
 
 $$\nabla_{\mathbf{w}} \mathcal{L} = (\sigma(z) - y)\,\mathbf{x}, \qquad \frac{\partial \mathcal{L}}{\partial b} = \sigma(z) - y$$
 
-This is why the sigmoid must be paired with cross-entropy:
+This is one reason sigmoid and cross-entropy are a common binary-classification pair:
 
 - A far-away, correctly classified point has $\sigma(100) \approx 1$, so $s - y \approx 0$ — it **falls silent on its own**.
 - A misclassified point has $\sigma(-10) \approx 0$ while $y=1$, so $s - y \approx -1$ — the gradient cannot saturate, and the optimizer concentrates on it.
 
-With MSE instead, the gradient carries an extra $\sigma'(z)$ factor that goes to 0 in the saturated regions, so the misclassified points are exactly the ones that stop learning. In passing: the loss surface of $\sigma$ with cross-entropy is **convex** (a single global optimum); with MSE it is not.
+With MSE instead, the gradient carries an extra $\sigma'(z)$ factor that approaches 0 in saturated regions, making misclassified points harder to update. For the linear logistic regression used here, cross-entropy is **convex** in the parameters. That does not automatically guarantee a unique or finite optimum: collinear features can produce multiple solutions, and unregularized parameters can grow without bound on completely separable data. The convexity claim does not extend to a multilayer network.
 
 ![the sigmoid and its derivative](assets/sigmoid.svg)
 
 $\sigma'$ is largest at $z=0$ ($0.25$) and goes to $0$ at both ends — this is the origin of **vanishing gradients**, and the reason ReLU later replaced sigmoid as the hidden-layer activation.
 
-### Python: write it from scratch
+### Python: write it from scratch {#python-write-it-from-scratch}
 
 NumPy only; the gradient is the one line derived above.
 
 ```python
 import numpy as np
 
-def sigmoid(z):
-    return np.where(z >= 0, 1 / (1 + np.exp(-z)),           # branching avoids exp overflow
-                    np.exp(z) / (1 + np.exp(z)))
+def sigmoid(values):
+    values = np.asarray(values, dtype=float)
+    return np.exp(-np.logaddexp(0.0, -values))
 
 def fit_logistic(X, y, lr=0.1, steps=2000):
     """X: (N, d)   y: (N,) in {0, 1}"""
@@ -129,7 +107,7 @@ def fit_logistic(X, y, lr=0.1, steps=2000):
     return w, b
 ```
 
-## Four common functions: all of them “transform numbers”, but their roles are entirely different
+## Four common functions: all of them “transform numbers”, but their roles are entirely different {#four-common-functions-all-of-them-transform-numbers-but-their-roles-are-entirely-different}
 
 $$
 \boxed{
@@ -214,7 +192,7 @@ This step prevents $e^{z_i}$ from overflowing without changing the result. Softm
 
 </details>
 
-### Sigmoid versus Softmax: independent labels or a mutually exclusive choice
+### Sigmoid versus Softmax: independent labels or a mutually exclusive choice {#sigmoid-versus-softmax-independent-labels-or-a-mutually-exclusive-choice}
 
 | Question | Output layer | Why |
 | --- | --- | --- |
@@ -222,7 +200,7 @@ This step prevents $e^{z_i}$ from overflowing without changing the result. Softm
 | “What is the image's single main class?” | Softmax + categorical CE | classes compete and the probabilities sum to 1 |
 | “Is it the positive class?” | a one-logit Sigmoid, or a Softmax over two logits | in binary classification, a two-class Softmax is equivalent to a Sigmoid of the logit difference |
 
-### Putting the four back into the model
+### Putting the four back into the model {#putting-the-four-back-into-the-model}
 
 ```text
 LSTM gates                 → Sigmoid: how much passes in each channel
@@ -234,7 +212,7 @@ Vanilla Transformer FFN    → ReLU; modern models mostly use GELU / SiLU / SwiG
 
 One-line memory aid: **Sigmoid is like an independent valve, Softmax is like splitting votes among candidates, ReLU is like cutting off the negative half-axis, and Tanh is like squashing a signed state into $(-1,1)$.**
 
-## What a neural network really adds: learning $\phi$
+## What a neural network really adds: learning $\phi$ {#what-a-neural-network-really-adds-learning-phi}
 
 $$\mathbf{h} = \phi(W_1 \mathbf{x} + \mathbf{b}_1), \qquad \hat{y} = \sigma(\mathbf{w}_2^\top \mathbf{h} + b_2)$$
 
@@ -246,7 +224,7 @@ $$W_2(W_1\mathbf{x}) = (W_2 W_1)\mathbf{x} = W'\mathbf{x}$$
 
 A composition of linear maps is still a linear map. It makes no difference how many layers you stack: the whole network collapses back to logistic regression.
 
-### Backpropagation is the chain rule
+### Backpropagation is the chain rule {#backpropagation-is-the-chain-rule}
 
 Reuse the result above, $\delta_2 \equiv \partial\mathcal{L}/\partial z_2 = \hat y - y$, and push it back one layer:
 
@@ -284,7 +262,7 @@ def step(p, X, y, lr=0.05):
 
 The full runnable versions are in [`code/why_nonlinear.py`](code/why_nonlinear.py) (PyTorch) and [`code/make_figures.py`](code/make_figures.py) (generates every figure on this page).
 
-## Testing expressive power with XOR
+## Testing expressive power with XOR {#testing-expressive-power-with-xor}
 
 Four Gaussian blobs, with diagonally opposite blobs sharing a class. No straight line can separate them — this is the example Minsky & Papert used in 1969 to show what a perceptron cannot do.
 
@@ -302,7 +280,7 @@ Three models, same data and same training configuration:
 
 50% is not undertraining: on symmetric XOR the best accuracy any straight line can reach is 50%, with the loss pinned at $\ln 2 \approx 0.693$.
 
-### What the hidden layer does geometrically
+### What the hidden layer does geometrically {#what-the-hidden-layer-does-geometrically}
 
 Push a square grid on the input space through the hidden layer and see what it gets kneaded into:
 
@@ -312,7 +290,7 @@ Push a square grid on the input space through the hidden layer and see what it g
 
 <!-- widget:xor -->
 
-## From linear models all the way to the Transformer
+## From linear models all the way to the Transformer {#from-linear-models-all-the-way-to-the-transformer}
 
 | | Feature map $\phi$ | Final step | Boundary shape |
 | --- | --- | --- | --- |
@@ -323,7 +301,7 @@ Push a square grid on the input space through the hidden layer and see what it g
 | CNN | learned, constrained to be translation-equivariant | linear classifier | same as above |
 | Transformer | learned, $N$ layers of attention + FFN | linear classifier | same as above |
 
-## Connecting to the Transformer
+## Connecting to the Transformer {#connecting-to-the-transformer}
 
 $$\mathbf{h} = \text{TransformerBlocks}\big(\text{Embed}(\mathbf{x})\big), \qquad \text{logits} = W_{\text{head}}\, \mathbf{h}$$
 
@@ -335,7 +313,7 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
 
 still **prediction minus target**. `lm_head` is that linear classifier, with the number of classes replaced by vocab_size; the dozens of attention layers beneath it exist for one purpose only: to bend the space until “what is the next token” becomes linearly readable.
 
-## Are they all function approximators in the end?
+## Are they all function approximators in the end? {#are-they-all-function-approximators-in-the-end}
 
 In the broad sense, yes. Every supervised model searches a parameterized function family for a function $f_\theta$ that approximates the unknown true mapping $f^*$, or the true conditional distribution $p^*$:
 
@@ -384,7 +362,51 @@ $$
 
 this complete map contains attention, Softmax, MLP activations, and many composed layers, so the whole is a highly nonlinear conditional-distribution approximator. What really decides whether it is useful is not only “can it approximate”, but also **inductive bias, data, objective, optimization, and evaluation**.
 
-## Self-check
+## Representing, learning, and generalizing are different
+
+Approximate $f(x)=x^2$ with line segments. The endpoint interpolant on $[a,b]$ is $s(x)=(a+b)x-ab$, giving
+
+$$s(x)-x^2=(x-a)(b-x)\leq (b-a)^2/4.$$
+
+With $M$ equal segments on $[0,1]$, the maximum error is $1/(4M^2)$: 0.015625 for four segments and 0.0025 for ten. A piecewise-linear function can also be written as an initial line plus slope changes:
+
+$$s(x)=b_0+a_0x+\sum_j c_j\operatorname{ReLU}(x-t_j).$$
+
+Here $t_j$ are breakpoints and $c_j$ slope increments. This constructs a ReLU representation, **not a proof that training will find it**.
+
+```python
+def square_interpolant(value, segments):
+    if type(segments) is not int or segments < 1 or not 0 <= value <= 1:
+        raise ValueError("Expected x in [0, 1] and a positive segment count")
+    index = min(int(value * segments), segments - 1)
+    left, right = index / segments, (index + 1) / segments
+    return (left + right) * value - left * right
+
+for segments in (4, 10):
+    errors = [
+        square_interpolant((index + 0.5) / segments, segments)
+        - ((index + 0.5) / segments) ** 2
+        for index in range(segments)
+    ]
+    assert abs(max(errors) - 1 / (4 * segments ** 2)) < 1e-12
+```
+
+Now consider data sufficiency: with observations only at $x=0,1$, both $x^2$ and $x^2+10x(1-x)$ fit perfectly but disagree in between. Zero training error cannot distinguish them. More data, prior knowledge, or constraints are needed, not just a larger network.
+
+Empirical risk minimization selects parameters using samples; it does not establish the true relationship. With noisy labels, the population squared-loss optimum is $\mathbb E[Y\mid X=x]$ under suitable conditions, not perfect prediction of every random fluctuation.
+
+## When should a simpler method come first?
+
+| Setting | Baseline worth comparing | Main checks |
+| --- | --- | --- |
+| Few features, near-linear relationships, limited data | Regularized linear / logistic regression | Scaling, calibration, interpretation |
+| Structured tables with nonlinear interactions | Trees and boosting | Categories, missing values, temporal transfer |
+| Useful similarity and manageable sample count | Kernel methods | Regularization, kernel, computation |
+| Text, images, transferable representations | Neural networks / pretrained representations | Data, transfer, compute |
+
+These are comparisons to try, not fixed rules by data type. Use the same splits, comparable tuning budgets, and preprocessing fitted only on training data. Shuffling a time series does not establish future generalization; repeated observations of one person may require grouped splits. The conclusion should be “better under these data and constraints,” not “a more expressive family must win.”
+
+## Self-check {#self-check}
 
 <div class="taste-check">
   <strong>Without looking at the tables above, try to answer:</strong>
@@ -399,14 +421,33 @@ this complete map contains attention, Softmax, MLP activations, and many compose
   </ol>
 </div>
 
-## Where to read next
+## Where to read next {#where-to-read-next}
 
 - [The Transformer architecture](transformer.en.md) — what that $\phi$ concretely looks like
 - [Post-Training](../05-post-training/README.en.md) — how you keep changing it after training is done
 - [Representation and memory](../02-memory/README.en.md) — what should be kept in $\mathbf{h}$
 
-## Reference papers
+## Reference papers {#reference-papers}
 
 - [Learning representations by back-propagating errors](https://www.nature.com/articles/323533a0) — Rumelhart, Hinton & Williams, 1986
 - [Multilayer feedforward networks are universal approximators](https://www.sciencedirect.com/science/article/abs/pii/0893608089900208) — Hornik et al., 1989
 - [Delving Deep into Rectifiers](https://arxiv.org/abs/1502.01852) — He initialization and ReLU
+
+## Quick learning: from linear readout to learned feature map {#quick-learning-from-linear-readout-to-learned-feature-map}
+
+<details class="interview" markdown="1">
+<summary>The one-line spine, the standard answer, and a function-approximator deep dive</summary>
+
+**Quick memory**: a linear model draws a hyperplane in a given feature space. A neural network uses nonlinear layers to learn new coordinates $\phi_\theta(x)$, and a linear head reads the result out.
+
+**Interview answer**
+
+> Stacked linear layers without activations can still be merged into one matrix. With nonlinearities such as ReLU, the network can learn a piecewise nonlinear feature map that makes a complex boundary in the original space linearly separable in hidden space. A linear final layer does not make the whole model linear.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does universal approximation not mean “it will certainly learn well”?</summary>
+
+It only says that, in a sufficiently large function family, parameters **exist** that approximate a continuous function on a compact domain. It does not guarantee that gradient descent finds them, that finite data identifies them, that the parameter count is affordable, that the model extrapolates out of distribution, or that it generalizes in the end. Expressivity, optimization, and generalization are three different things.
+
+</details>
+</details>

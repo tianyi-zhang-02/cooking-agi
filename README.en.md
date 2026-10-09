@@ -15,26 +15,26 @@ This bilingual collection is growing into a community-maintained project. The ai
 | --- | --- |
 | Build a foundation | [Study and review guide](00-foundations/study-guide.en.md) → [Language-model learning map](00-foundations/README.en.md) |
 | Try something interactive | [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [CLIP alignment](03-multimodal-learning/clip.en.md) |
-| Prepare for an ML internship or new-grad role | [Code & exercises](interview/README.en.md) · [Job-search notes](career/README.en.md) |
-| Read a paper or add a note | [Papers](papers/README.en.md) · [Editorial guide](EDITORIAL.en.md) · [Content proposals](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
+| Prepare for an ML internship or new-grad role | [Interview preparation](interview/README.en.md) · [Job-search notes](career/README.en.md) |
+| Practice design or study implementations | [Engineering practice](practice/README.en.md): design exercises, recommendation, RAG, and post-training |
+| Add a note | [Editorial guide](EDITORIAL.en.md) · [Content proposals](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
 
 **Read on the website for the full experience.** Switch between languages and explore the interactive diagrams there. This repository contains the notes, experiments, and site source.
 
+You can read by interest rather than from start to finish. Open an area's introduction, then choose the chapters you need. The [coverage and backlog](learn/coverage.en.md) shows what is available and what still needs work.
+
 ## Content map
 
-Study notes are organized by what you want to practice: **foundations and models, training and applications, code and exercises, and system design**. Career is for personal journeys; Industry Practice follows public implementations.
+The site has four sections for different purposes: understanding concepts, preparing for technical interviews, building systems, and reading about the job search. Each article has one main home, with links to related material rather than duplicate entries across directories.
 
 | Area | Topics and links |
 | --- | --- |
-| 01 · Foundations & models | [Probability](quant/probability/README.en.md) · [Language-model foundations](00-foundations/README.en.md) · [Model families](00-foundations/model-families/README.en.md) |
-| 02 · Training & applications | [Post-training](05-post-training/README.en.md) · [Evaluation](07-evaluation/README.en.md) · [Multimodal learning](03-multimodal-learning/README.en.md) · [Data, memory, search & agents](learn/README.en.md) |
-| 03 · Code & exercises | [Python](interview/python.en.md) · [Algorithm patterns](interview/leetcode.en.md) · [ML questions & implementations](learn/ml-exercises/README.en.md) |
-| 04 · System design | [A feed, a RAG knowledge base, and an assistant with memory](learn/system-design/README.en.md): exercises under stated constraints |
-| Industry Practice | [Twitter / X recommendations](practice/recommender-systems/README.en.md): start with the architecture, then explore retrieval, ranking, evaluation, and implementation |
-| Career | [Journeys, mindset, and preparation habits](career/README.en.md), separate from technical exercises |
-| Papers | [Paper notes](papers/README.en.md): methods, evidence, and limits in the original work |
+| [Foundations](learn/README.en.md) | Models and multimodal learning, training and evaluation, inference and applications; introductory and advanced routes |
+| [Interview preparation](interview/README.en.md) | [ML / LLM questions](interview/basics/README.en.md) · [ML coding](learn/ml-exercises/README.en.md) · [Python](interview/python.en.md) · [Algorithm patterns](interview/leetcode.en.md) |
+| [Engineering practice](practice/README.en.md) | [System design](learn/system-design/README.en.md) · [Recommendation](practice/recommender-systems/README.en.md) · [RAG](practice/rag/README.en.md) · [Post-training projects](practice/post-training/README.en.md) |
+| [Career](career/README.en.md) | Internship and new-grad experiences, mindset, and preparation habits, separate from technical exercises |
 
-Notes aim to follow **question → example and diagram → mechanism → check → trade-offs → review**. A formula is not the finish line: explain its assumptions and test it on a small example.
+Small examples, derivations, and code show what happens at each step. You do not need every formula on the first read: follow an example, then return to the steps you want to understand better.
 
 ## Join us!
 
@@ -54,7 +54,7 @@ Share public knowledge, reproducible examples, and public-project notes only. No
 The static site builds with Python and needs no database. Run these commands from the repository root; Python 3.12 is recommended:
 
 ```bash
-python3 -m pip install markdown pygments
+python3 -m pip install markdown pygments numpy
 python3 site/build.py --serve
 ```
 
@@ -67,11 +67,11 @@ Open <http://localhost:8000>. For a build without the preview server, run `pytho
 python3 site/collaboration.py
 python3 -m unittest discover -s site/tests
 python3 site/leakcheck.py
-python3 site/paritycheck.py
+python3 site/paritycheck.py --strict
 python3 site/build.py
 ```
 
-Some teaching experiments also need NumPy or PyTorch, as documented in their chapters. Review progress stays in the current browser and is not uploaded.
+Some teaching experiments also need PyTorch, as documented in their chapters; the corresponding tests explicitly skip when it is unavailable. Bookmarks, recently opened notes, and reading positions stay in the current browser and are not uploaded.
 
 </details>
 

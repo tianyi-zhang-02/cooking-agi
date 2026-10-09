@@ -15,9 +15,13 @@
         [...left, ...right].some(value => !Number.isFinite(value))) {
       throw new Error('Vectors must be finite and have equal, nonzero dimensions');
     }
-    const denominator = Math.hypot(...left) * Math.hypot(...right);
-    if (!denominator) throw new Error('Zero vectors have no cosine');
-    const dot = left.reduce((total, value, index) => total + value * right[index], 0);
+    const leftScale = Math.max(...left.map(Math.abs));
+    const rightScale = Math.max(...right.map(Math.abs));
+    if (!leftScale || !rightScale) throw new Error('Zero vectors have no cosine');
+    const scaledLeft = left.map(value => value / leftScale);
+    const scaledRight = right.map(value => value / rightScale);
+    const denominator = Math.hypot(...scaledLeft) * Math.hypot(...scaledRight);
+    const dot = scaledLeft.reduce((total, value, index) => total + value * scaledRight[index], 0);
     return Math.max(-1, Math.min(1, dot / denominator));
   }
 

@@ -1,0 +1,139 @@
+reviewed = "2026-10-08"
+reference = "https://tcn6r3nlptym.feishu.cn/wiki/N2Yjwoez0iUA0AkGQBRcSps1nPf"
+comparison = "browser-chapter-review-in-progress"
+
+[[chapter]]
+zh = "1 · 基础"
+en = "1 · Foundations"
+topics = [
+  {zh="人工智能、算法与函数逼近", en="AI, algorithms & function approximation", state="article", notes=["00-foundations/from-linear-to-neural.md"]},
+  {zh="Embedding", en="Embeddings", state="article", notes=["00-foundations/core/embeddings-and-similarity.md"]},
+  {zh="Token、BPE、WordPiece、Byte-level 与 Unigram", en="Tokens, BPE, WordPiece, byte-level encoding & Unigram", state="article", notes=["00-foundations/core/tokenization.md", "00-foundations/deep-dives/tokenizer-algorithms.md"]},
+  {zh="Transformer Encoder", en="Transformer encoders", state="article", notes=["00-foundations/core/vanilla-transformer.md"]},
+  {zh="Transformer Decoder", en="Transformer decoders", state="article", notes=["00-foundations/core/decoder-only.md"]},
+]
+
+[[chapter]]
+zh = "2 · 训练与推理"
+en = "2 · Training & inference"
+topics = [
+  {zh="Pretraining、SFT、RLHF 的关系", en="Pretraining, SFT & RLHF", state="article", notes=["05-post-training/README.md"]},
+  {zh="预训练", en="Pretraining", state="article", notes=["00-foundations/deep-dives/pretraining-pipeline.md"]},
+  {zh="SFT", en="SFT", state="article", notes=["05-post-training/sft-and-its-ceiling.md"]},
+  {zh="RL 基础", en="RL foundations", state="article", notes=["05-post-training/deep-rl/README.md"]},
+  {zh="Reward Model", en="Reward models", state="article", notes=["05-post-training/where-preferences-come-from.md"]},
+  {zh="PPO", en="PPO", state="article", notes=["05-post-training/rlhf/ppo-clipping.md"]},
+  {zh="推理策略", en="Decoding strategies", state="article", notes=["00-foundations/core/decoding.md"]},
+  {zh="DPO", en="DPO", state="article", notes=["05-post-training/after-ppo.md", "05-post-training/rlhf/after-rlhf.md"]},
+  {zh="GRPO", en="GRPO", state="article", notes=["05-post-training/rlhf/after-rlhf.md", "05-post-training/after-ppo.md", "05-post-training/dapo.md"]},
+  {zh="DAPO", en="DAPO", state="article", notes=["05-post-training/dapo.md"]},
+  {zh="GSPO", en="GSPO", state="article", notes=["05-post-training/policy-ratios.md"], source="https://arxiv.org/abs/2507.18071"},
+  {zh="ASPO · Asymmetric Importance Sampling Policy Optimization", en="ASPO · Asymmetric Importance Sampling Policy Optimization", state="article", notes=["05-post-training/policy-ratios.md"], source="https://arxiv.org/abs/2510.06062"},
+  {zh="SAO · 单 rollout 与异步训练", en="SAO · Single-rollout asynchronous training", state="article", notes=["05-post-training/async-policy-learning.md"], source="https://arxiv.org/abs/2607.07508"},
+]
+
+[[chapter]]
+zh = "3 · 微调与蒸馏"
+en = "3 · Adaptation & distillation"
+topics = [
+  {zh="Prompt Tuning", en="Prompt tuning", state="article", notes=["05-post-training/parameter-efficient-tuning.md"]},
+  {zh="Prefix Tuning", en="Prefix tuning", state="article", notes=["05-post-training/parameter-efficient-tuning.md"]},
+  {zh="Adapter Tuning", en="Adapter tuning", state="article", notes=["05-post-training/parameter-efficient-tuning.md"]},
+  {zh="LoRA", en="LoRA", state="article", notes=["05-post-training/lora-and-qlora.md"]},
+  {zh="QLoRA", en="QLoRA", state="article", notes=["05-post-training/lora-and-qlora.md"]},
+  {zh="知识蒸馏与数据蒸馏", en="Knowledge & data distillation", state="article", notes=["05-post-training/distillation.md"]},
+]
+
+[[chapter]]
+zh = "4 · 评估"
+en = "4 · Evaluation"
+topics = [
+  {zh="BLEU · clipped n-gram precision 与 brevity penalty", en="BLEU · clipped n-gram precision & brevity penalty", state="article", notes=["07-evaluation/text-metrics.md"]},
+  {zh="ROUGE-N、ROUGE-L 与编辑距离", en="ROUGE-N, ROUGE-L & edit distance", state="article", notes=["07-evaluation/text-metrics.md"]},
+  {zh="Perplexity · 固定文本的条件概率与比较条件", en="Perplexity · held-out token likelihoods & comparison conditions", state="article", notes=["00-foundations/deep-dives/language-model-objective.md", "07-evaluation/text-metrics.md"]},
+  {zh="Needle-in-a-haystack · 长度、位置与能力边界", en="Needle-in-a-haystack · length, position & limitations", state="article", notes=["07-evaluation/benchmark-protocols.md", "00-foundations/deep-dives/position-and-context.md"]},
+  {zh="Benchmark 选型 · 中文、知识、推理、对话与鲁棒性", en="Choosing benchmarks · Chinese, knowledge, reasoning, dialogue & robustness", state="article", notes=["07-evaluation/benchmark-protocols.md", "07-evaluation/metric-robustness.md"]},
+]
+
+[[chapter]]
+zh = "5 · 架构与效率优化"
+en = "5 · Architecture & efficiency"
+topics = [
+  {zh="SwiGLU", en="SwiGLU", state="article", notes=["00-foundations/core/ffn-and-gates.md"]},
+  {zh="RMSNorm", en="RMSNorm", state="article", notes=["00-foundations/core/normalization.md"]},
+  {zh="RoPE", en="RoPE", state="article", notes=["00-foundations/deep-dives/position-and-context.md"]},
+  {zh="KV cache", en="KV cache", state="article", notes=["00-foundations/deep-dives/kv-cache-and-inference.md"]},
+  {zh="MHA / MQA / GQA", en="MHA / MQA / GQA", state="article", notes=["00-foundations/deep-dives/kv-cache-and-inference.md"]},
+  {zh="混合精度训练", en="Mixed-precision training", state="article", notes=["00-foundations/deep-dives/precision-and-memory.md"]},
+  {zh="FlashAttention", en="FlashAttention", state="article", notes=["00-foundations/deep-dives/attention-kernels.md"]},
+  {zh="PagedAttention", en="PagedAttention", state="article", notes=["00-foundations/deep-dives/attention-kernels.md"]},
+  {zh="Gradient Checkpointing", en="Gradient checkpointing", state="article", notes=["00-foundations/deep-dives/precision-and-memory.md"]},
+  {zh="MoE 与 DeepSeekMoE", en="MoE & DeepSeekMoE", state="article", notes=["00-foundations/moe/README.md", "00-foundations/moe/fine-grained-and-shared.md"]},
+  {zh="MLA", en="MLA", state="article", notes=["00-foundations/deep-dives/latent-and-sparse-attention.md"]},
+  {zh="NSA", en="NSA", state="article", notes=["00-foundations/deep-dives/latent-and-sparse-attention.md"]},
+  {zh="YaRN", en="YaRN", state="article", notes=["00-foundations/deep-dives/position-and-context.md"]},
+  {zh="MTP", en="MTP", state="article", notes=["00-foundations/deep-dives/multi-token-prediction.md"]},
+  {zh="DCA · Dual Chunk Attention", en="DCA · Dual Chunk Attention", state="article", notes=["00-foundations/deep-dives/position-and-context.md"], source="https://arxiv.org/abs/2402.17463"},
+  {zh="DeepSeek-V3.2-Exp / DSA", en="DeepSeek-V3.2-Exp / DSA", state="article", notes=["00-foundations/deep-dives/latent-and-sparse-attention.md"]},
+  {zh="Gated Attention", en="Gated attention", state="article", notes=["00-foundations/deep-dives/gated-attention.md"], source="https://arxiv.org/abs/2505.06708"},
+  {zh="DeepSeek Engram", en="DeepSeek Engram", state="article", notes=["00-foundations/deep-dives/engram.md"], source="https://arxiv.org/abs/2601.07372v1"},
+  {zh="Kimi Block AttnRes", en="Kimi Block AttnRes", state="article", notes=["00-foundations/deep-dives/attention-residuals.md"], source="https://arxiv.org/abs/2603.15031"},
+]
+
+[[chapter]]
+zh = "6 · 模型家族"
+en = "6 · Model families"
+topics = [
+  {zh="GPT-1 / 2 / 3、InstructGPT · 学习方式与证据边界", en="GPT-1 / 2 / 3, InstructGPT · learning methods & evidence boundaries", state="article", notes=["00-foundations/model-families/gpt.md"]},
+  {zh="gpt-oss · sink、训练边界与评估预算", en="gpt-oss · sinks, training disclosures & evaluation budgets", state="article", notes=["00-foundations/model-families/gpt.md"]},
+  {zh="Llama 1–3.1 · 版本、block、缓存与后训练", en="Llama 1–3.1 · versions, blocks, cache & post-training", state="article", notes=["00-foundations/model-families/llama.md"]},
+  {zh="DeepSeek V2 / V3 / R1 · 缓存、路由与训练信号", en="DeepSeek V2 / V3 / R1 · cache, routing & training signals", state="article", notes=["00-foundations/model-families/deepseek.md"]},
+  {zh="DeepSeek-V4 · 压缩、残差约束与后训练", en="DeepSeek-V4 · compression, residual constraints & post-training", state="article", notes=["00-foundations/model-families/deepseek-v4.md"], source="https://arxiv.org/abs/2606.19348"},
+  {zh="Qwen1–2.5 · 架构、数据与接口变化", en="Qwen1–2.5 · architecture, data & interface changes", state="article", notes=["00-foundations/model-families/qwen-early.md"]},
+  {zh="Qwen3 / 3.5 / 3.8 · 后训练、混合状态与型号边界", en="Qwen3 / 3.5 / 3.8 · post-training, hybrid states & model boundaries", state="article", notes=["00-foundations/model-families/qwen.md"]},
+  {zh="Gated DeltaNet · 推导、状态更新与边界测试", en="Gated DeltaNet · derivation, state updates & boundary tests", state="article", notes=["00-foundations/deep-dives/gated-deltanet.md"], source="https://arxiv.org/abs/2412.06464"},
+]
+
+[[chapter]]
+zh = "7–8 · 分布式与应用"
+en = "7–8 · Distributed training & applications"
+topics = [
+  {zh="分布式训练", en="Distributed training", state="article", notes=["06-systems/distributed-training.md"]},
+  {zh="PS / Ring、PipeDream、SP / CP / EP、Offload · 通信、版本与恢复", en="PS / Ring, PipeDream, SP / CP / EP, offload · communication, versions & recovery", state="article", notes=["06-systems/distributed-training.md"]},
+  {zh="Prompt / ICL / CoT · 任务约定、示范与实验", en="Prompt / ICL / CoT · contracts, demonstrations & experiments", state="article", notes=["10-agents/prompting.md"]},
+  {zh="RAG · 分块、证据与评估", en="RAG · chunking, evidence & evaluation", state="article", notes=["04-search/rag-evidence.md", "04-search/hybrid-and-reranking.md"]},
+  {zh="Agent / ReAct / MCP · 执行过程与失败边界", en="Agent / ReAct / MCP · execution & failure boundaries", state="article", notes=["10-agents/patterns.md"]},
+  {zh="Deep Research · 证据状态、引用检查与评估", en="Deep research · evidence states, citation checks & evaluation", state="article", notes=["10-agents/deep-research.md"]},
+  {zh="向量检索 · IVF / PQ / ADC 与索引取舍", en="Vector search · IVF / PQ / ADC & index tradeoffs", state="article", notes=["04-search/vector-indexes.md"]},
+]
+
+[[chapter]]
+zh = "9 · 多模态模型"
+en = "9 · Multimodal models"
+topics = [
+  {zh="ViT · patch、位置与微调协议", en="ViT · patches, positions & transfer protocols", state="article", notes=["03-multimodal-learning/vit.md"]},
+  {zh="CLIP · 对比目标与候选概率", en="CLIP · contrastive objectives & candidate probabilities", state="article", notes=["03-multimodal-learning/clip.md"]},
+  {zh="BLIP-1 · 目标、CapFilt 与筛选审计", en="BLIP-1 · objectives, CapFilt & filtering audits", state="article", notes=["03-multimodal-learning/blip-and-q-former.md"]},
+  {zh="BLIP-2 · Q-Former、mask 与冻结梯度", en="BLIP-2 · Q-Former, masks & frozen-model gradients", state="article", notes=["03-multimodal-learning/blip-and-q-former.md"]},
+  {zh="InstructBLIP · 指令感知、采样与消融设计", en="InstructBLIP · instruction conditioning, sampling & ablation design", state="article", notes=["03-multimodal-learning/blip-and-q-former.md"]},
+  {zh="LLaVA 1 / 1.5 / NeXT · 版本与切块预算", en="LLaVA 1 / 1.5 / NeXT · versions & tiling budgets", state="article", notes=["03-multimodal-learning/vlm-designs.md"]},
+  {zh="DeepSeek-VL / VL2", en="DeepSeek-VL / VL2", state="article", notes=["03-multimodal-learning/vlm-designs.md"]},
+  {zh="Qwen-VL", en="Qwen-VL", state="article", notes=["03-multimodal-learning/qwen-vl.md"]},
+  {zh="Qwen2-VL", en="Qwen2-VL", state="article", notes=["03-multimodal-learning/qwen-vl.md"]},
+  {zh="Qwen2.5-VL · 动态分辨率", en="Qwen2.5-VL · dynamic resolution", state="article", notes=["03-multimodal-learning/qwen-vl.md"]},
+  {zh="Qwen2.5-Omni", en="Qwen2.5-Omni", state="article", notes=["03-multimodal-learning/omni-streaming.md"]},
+  {zh="Qwen3-VL · DeepStack 与 2026 后续路线", en="Qwen3-VL · DeepStack & the 2026 follow-up", state="article", notes=["03-multimodal-learning/qwen-vl.md"]},
+  {zh="Qwen3 / 3.5 / 3.8-Omni · 音视频与运行时", en="Qwen3 / 3.5 / 3.8-Omni · audiovisual models & runtime", state="article", notes=["03-multimodal-learning/omni-streaming.md"]},
+  {zh="DeepSeek-OCR / OCR 2 · 压缩与阅读顺序", en="DeepSeek-OCR / OCR 2 · compression & reading order", state="article", notes=["03-multimodal-learning/ocr-compression.md"]},
+  {zh="Qwen-Image · Flow matching、编辑与 2026 版本", en="Qwen-Image · flow matching, editing & 2026 releases", state="article", notes=["03-multimodal-learning/image-generation.md"]},
+  {zh="多模态微调 · 数据、mask、captioning 与实验记录", en="Multimodal fine-tuning · data, masks, captioning & experiment records", state="article", notes=["03-multimodal-learning/vlm-finetuning.md"]},
+]
+
+[[chapter]]
+zh = "附录 · 原创练习与复习"
+en = "Appendices · Original practice & review"
+topics = [
+  {zh="面试知识复习 · 不转载私人面试题", en="Interview preparation · no private interview questions", state="overview", notes=["learn/ml-exercises/README.md"]},
+  {zh="LeetCode 可迁移方法", en="Transferable algorithm patterns", state="article", notes=["interview/leetcode.md"]},
+  {zh="PyTorch 与深度学习入门", en="PyTorch & deep-learning practice", state="article", notes=["00-foundations/pytorch/README.md", "00-foundations/pytorch/tensors-and-storage.md", "00-foundations/pytorch/operations-and-shapes.md", "00-foundations/pytorch/autograd.md", "00-foundations/pytorch/training-loop.md"]},
+]

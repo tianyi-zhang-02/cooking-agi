@@ -23,27 +23,13 @@
 ## 从头到尾走一遍
 
 ```mermaid
-flowchart TD
-    subgraph O["观察并构建状态"]
-        A(["用户目标 · 任务 · 约束"]) --> B["交互与环境信号"]
-        B --> C["数据语义与 Feedback Model"]
-        C --> D[("记忆 · 表征 · 世界状态")]
-    end
-
-    subgraph A1["推理并行动"]
-        E["Search · 工具 · 上下文构建"] --> F["Foundation Model 与策略"]
-        F --> G["推理 · 生成 · 行动"]
-        G --> H["Runtime · Serving · 状态迁移"]
-    end
-
-    subgraph L["测量并学习"]
-        I(["用户与环境结果"]) --> J["Offline Eval · 在线指标 · 人工审计"]
-        J --> K[("版本化证据与更新 Candidate<br/>↺ 状态 · 检索 · 模型 · 策略")]
-    end
-
-    D --> E
-    H --> I
-    K -.-> C
+flowchart TB
+    change["用户：改成周五出发"] --> state["更新日期，替换旧行程状态"]
+    state --> search["按新日期查航班与价格"]
+    search --> confirm["展示具体航班、日期和费用<br/>用户确认后才订票"]
+    confirm --> tool["调用订票 API"]
+    tool --> order["查询实际订单：日期对吗？"]
+    order -. "失败时沿记录定位哪一步出错" .-> state
 ```
 
 ### 1. 用户目标：到底想解决什么
@@ -158,7 +144,7 @@ Tradeoff    改善了什么，又可能伤害什么？
 
 ### Agent Observability：先看见发生了什么
 
-它把模型、检索、工具、记忆和状态变化串成一条可以查询和复现的轨迹。
+它把模型、检索、工具、记忆和状态变化串成可查询的轨迹，再用这些记录构造受控回放测试。
 
 → [阅读 Agent Observability](agent-observability.md)
 
@@ -171,7 +157,9 @@ Tradeoff    改善了什么，又可能伤害什么？
 ```mermaid
 flowchart TB
     A["Agent 计划与待执行动作"] --> B[("Trace · Tool State · 权限 · Evidence")]
-    B --> C["确定性检查与已校准 Evaluator"]
+    B --> P{"权限和必要授权是否具备？"}
+    P -- "否" --> stop["停止或请求补充授权"]
+    P -- "是" --> C["确定性检查与已校准 Evaluator"]
     C --> D{"存在高风险、不确定性或不可逆影响？"}
     D -- "低" --> E["自动执行"]
     D -- "高" --> F["请求人工决策"]
@@ -183,6 +171,8 @@ flowchart TB
 ```
 
 ## 再往下一层：infra
+
+如果想先弄懂训练怎样分到几张卡上，可以读[多卡训练](distributed-training.md)：用同一个小模型比较 DDP、FSDP、TP 和 PP，算清全局 loss 分母，再看通信与显存。它是理解机制的入口，不是部署手册。
 
 这一章讲的是「一次请求经过哪些环节」，再往下——推理引擎怎么调度、显存怎么排、
 RL 的训练和 rollout 怎么拼——就不是我的强项了，也不是我最感兴趣的方向。

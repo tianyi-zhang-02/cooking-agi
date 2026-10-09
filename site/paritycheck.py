@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SKIP = {"templates"}                       # 模板不是给读者看的页面
 
 COUNTERS = {
-    "h2": r"(?m)^## ", "h3": r"(?m)^### ", "code": r"(?m)^```", "math": r"(?m)^\$\$",
+    "h2": r"(?m)^## ", "h3": r"(?m)^### ", "code": r"(?m)^```", "math": r"(?s)(?<!\\)\$\$.*?(?<!\\)\$\$",
     "table rows": r"(?m)^\|", "details": r"<details", "widgets": r"<!--\s*widget:", "images": r"!\[|<img ",
 }
 
@@ -46,16 +46,26 @@ def own_language(text: str) -> str:
 def shape(text: str) -> dict:
     text = own_language(text)
     fenced = re.sub(r"```.*?```", "```\n```", text, flags=re.S)     # headings inside code are not headings
-    out = {k: len(re.findall(rx, fenced if k in ("h2", "h3", "table rows") else text)) for k, rx in COUNTERS.items()}
+    out = {k: len(re.findall(rx, fenced if k in ("h2", "h3", "table rows", "math") else text)) for k, rx in COUNTERS.items()}
     out["code"] //= 2
-    out["math"] //= 2
     return out
+
+
+def source_issues(text: str) -> list[str]:
+    prose = re.sub(r"```.*?```|~~~.*?~~~", "", own_language(text), flags=re.S)
+    issues = []
+    if re.search(r"(?m)^\s*\$\s*$", prose):
+        issues.append("多行公式需要 $$，不能用单独一行的 $")
+    if len(re.findall(r"(?<!\\)\$\$", prose)) % 2:
+        issues.append("$$ 公式分隔符没有成对闭合")
+    return issues
 
 
 def main() -> int:
     nav = tomllib.loads((ROOT / "site" / "nav.toml").read_text(encoding="utf-8"))
     dirs = [s["dir"] for s in nav["section"]]
-    missing, drift = [], []
+    dirs += [str(Path(source).parent) for section in nav["section"] for source in section.get("include", [])]
+    missing, drift, invalid = [], [], []
     seen = set()
     for d in dirs:
         base = ROOT if d == "." else ROOT / d
@@ -72,7 +82,12 @@ def main() -> int:
             if not en.exists():
                 missing.append(rel)
                 continue
-            a, b = shape(zh.read_text(encoding="utf-8")), shape(en.read_text(encoding="utf-8"))
+            chinese = zh.read_text(encoding="utf-8")
+            english = en.read_text(encoding="utf-8")
+            for path, text in ((zh, chinese), (en, english)):
+                for issue in source_issues(text):
+                    invalid.append((path.relative_to(ROOT).as_posix(), issue))
+            a, b = shape(chinese), shape(english)
             diff = {k: (a[k], b[k]) for k in a if a[k] != b[k]}
             if diff:
                 drift.append((rel, diff))
@@ -84,9 +99,12 @@ def main() -> int:
     print(f"\n结构不一致：{len(drift)} 篇   （中文 → 英文）")
     for rel, diff in sorted(drift, key=lambda x: -sum(abs(a - b) for a, b in x[1].values())):
         print(f"  - {rel}: " + ", ".join(f"{k} {a}→{b}" for k, (a, b) in diff.items()))
-    if not missing and not drift:
+    print(f"\n公式分隔符问题：{len(invalid)} 处")
+    for rel, issue in invalid:
+        print(f"  - {rel}: {issue}")
+    if not missing and not drift and not invalid:
         print("\n✓ 中英两版结构一致")
-    return 1 if ("--strict" in sys.argv and (missing or drift)) else 0
+    return 1 if ("--strict" in sys.argv and (missing or drift or invalid)) else 0
 
 
 if __name__ == "__main__":

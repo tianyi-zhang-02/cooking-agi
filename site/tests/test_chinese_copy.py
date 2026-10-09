@@ -52,6 +52,31 @@ class ChineseCopyTests(unittest.TestCase):
             self.assertTrue(output.startswith(protected))
             self.assertEqual(output.count('class="term"'), 1)
 
+    def test_english_first_explanation_is_not_annotated_inside_parentheses(self):
+        terms = [("反事实", "counterfactual", "改变条件，检查结果")]
+        for label in ("counterfactual tests（反事实测试）", "Counterfactual tests (反事实测试)"):
+            with self.subTest(label=label):
+                source = f"<p>这些是 {label}。</p><p>反事实测试。</p>"
+                output, used = build.annotate(source, terms)
+                self.assertEqual(output, source)
+                self.assertEqual([term["zh"] for term in used], ["反事实"])
+
+    def test_chinese_phrase_extension_keeps_existing_english(self):
+        terms = [("反事实", "counterfactual", "改变条件，检查结果")]
+        source = "<p>反事实测试（counterfactual tests），然后是反事实分析。</p>"
+        output, used = build.annotate(source, terms)
+        self.assertEqual(output, source)
+        self.assertEqual(len(used), 1)
+
+    def test_unrelated_parentheses_do_not_hide_a_needed_annotation(self):
+        terms = [("反事实", "counterfactual", "改变条件，检查结果")]
+        for source in ("<p>用 API（可以先做反事实测试）。</p>",
+                       "<p>反事实测试结果（sample A）。</p>"):
+            with self.subTest(source=source):
+                output, used = build.annotate(source, terms)
+                self.assertEqual(output.count('class="term"'), 1)
+                self.assertEqual(len(used), 1)
+
     def test_annotation_is_escaped_and_idempotent(self):
         output, used = build.annotate("<p>词语 &amp; 文本</p>", [("词语", "<term>", 'a "quote" & b')])
         self.assertIn("（&lt;term&gt;）", output)

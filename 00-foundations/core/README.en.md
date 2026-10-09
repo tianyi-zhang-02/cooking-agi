@@ -25,5 +25,6 @@ Once the main line makes sense, go to the [deep dives](../deep-dives/README.en.m
 ## Fill in unfamiliar foundations
 
 - [Embeddings and similarity](embeddings-and-similarity.en.md): distinguish input embeddings, hidden states, and retrieval vectors; compare dot product with cosine.
+- [FFN and SwiGLU](ffn-and-gates.en.md): follow feature transformations after attention, gate gradients, and matched parameter budgets.
 - [One training step](../deep-dives/training-step.en.md): connect tokens, masks, loss, and parameter updates in one computation.
 - [CLIP alignment](../../03-multimodal-learning/clip.en.md): apply these ideas to images and text with a 3 × 3 example.

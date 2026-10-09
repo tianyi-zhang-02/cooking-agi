@@ -320,14 +320,16 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 
 ## 这个系列怎么读
 
-模型适配先回答两件事：**用什么信号教**，以及**允许哪些参数改变**。后训练再沿着示范、偏好和结果把行为塑造成可用的产品。这个系列按依赖顺序铺开——前面不读，后面读了也用不上。
+先分清两件事：**用什么信号教**，以及**允许哪些参数改变**。如果已经了解 SFT，可以直接去看偏好学习；遇到不熟的概念再回来补，不必从第一页重新读。
 
 **一、打地基：为什么还需要教**
 
 1. 为什么预训练完还不够（本页）—— SFT、偏好学习、RL 各自解决什么学习问题
 2. [模型适配：Full Fine-Tuning、LoRA、Prompt Tuning 与蒸馏](model-adaptation.md) —— 区分 learning objective 与 parameterization，并解释分类输出怎样被系统约束
-3. [SFT：模仿能到哪儿，到哪儿为止](sft-and-its-ceiling.md) —— 交叉熵为什么对关键 token 不敏感，以及为什么"永远给答案"的示范会把幻觉训进去
-4. [偏好从哪来：奖励模型与它学到的东西](where-preferences-come-from.md) —— Bradley-Terry 只学到序不学尺度，以及奖励模型会随策略漂移而**过期**
+3. [SFT](sft-and-its-ceiling.md) —— 为什么平均 token loss 不能代替任务成功率，以及示范怎样教会回答、澄清或拒答
+4. [偏好与奖励模型](where-preferences-come-from.md) —— Bradley–Terry 如何用分数差解释偏好，以及策略变化后奖励模型还是否可靠
+
+想把两种常用方法算清楚，可以接着读 [LoRA / QLoRA](lora-and-qlora.md)和[蒸馏](distillation.md)：前者算参数、梯度和显存，后者算软标签、KL 和 top-k 省略了什么。
 
 **二、用结果教：RL 那条线**
 
@@ -342,14 +344,17 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 
 **四、代价**
 
-10. [对齐税：变听话之后失去了什么](alignment-tax.md) —— 用分布的宽度换分布外的稳健。**pass@1 涨而 pass@k 掉，就是你把分布压成了点**
+10. [对齐的取舍](alignment-tax.md) —— 检查具体任务的退化、多样性与分布变化；不能仅凭总体 pass@1 和 pass@k 判断模式坍缩
 
-十篇连成一条线：**选监督与参数化 → 用示范教 → 用结果教 → 怎么真的跑起来 → 代价是什么。**
+这些文章可以连着读：先选监督信号和更新方式，再看如何训练、怎样验证，以及有什么代价。
 
-按顺序读一遍大约一小时。只想解决手头某个具体问题的话，每篇开头那句「先用一句话讲清楚」就是索引。
+想解决具体问题，也可以从目录直接进入，不必一次读完。
 
 ## 继续阅读
 
+- [DAPO：采样、长度和 clipping](dapo.md)：拿小 batch 检查权重与数据筛选。
+- [GSPO 与 ASPO](policy-ratios.md)：序列比值、token 权重与 stop-gradient。
+- [SAO 与异步训练](async-policy-learning.md)：采样还没完成，策略已经更新了怎么办。
 - [数据与反馈](../01-data-and-feedback/)
 - [Evaluation](../07-evaluation/)
 - [Model Experience](../08-model-experience/)

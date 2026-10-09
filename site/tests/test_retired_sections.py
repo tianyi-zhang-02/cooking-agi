@@ -31,9 +31,10 @@ class RetiredSectionsTests(unittest.TestCase):
             self.assertFalse(any(url.startswith("discussions/") for url in known))
             template = (build.SITE / "template.html").read_text()
             selected = {"learn/index.html", "learn/index.en.html",
-                        "quant/probability/continuous-calculus.html",
-                        "quant/probability/continuous-calculus.en.html"}
+                        "05-post-training/rlhf/ppo-clipping.html",
+                        "05-post-training/rlhf/ppo-clipping.en.html"}
             self.assertTrue(selected.issubset(known))
+            self.assertFalse(any(url.startswith("quant/") for url in known))
             for page in pages:
                 if page.url not in selected:
                     continue

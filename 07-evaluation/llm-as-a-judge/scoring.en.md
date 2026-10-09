@@ -57,12 +57,14 @@ QAG generally decomposes evaluation using questions and answers; a DAG represent
 ## Keep hard gates separate from quality scores
 
 ~~~text
-Unparseable JSON → evaluator error, not candidate task failure
+Unparseable judge JSON → evaluator error, not automatic candidate failure
 Necessary evidence absent → unknown / human review
 Confirmed permission violation or incorrect final state → criterion fail
 Otherwise → separate grounding, completeness, and expression judgments
 ~~~
 
 You can record every dimension while defining the release gate separately. An agent that placed an unauthorized order shouldn't pass because its wording was polite.
+
+The JSON above is **the judge's grading output**. If the candidate's task requires valid JSON and the candidate returns malformed output, its format criterion can fail directly. Identify whose output broke before assigning the error to the evaluation or task layer.
 
 Continue: [Probability scores](probability-scores.en.md) · [Task examples](case-studies.en.md)

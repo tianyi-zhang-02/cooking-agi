@@ -2,35 +2,19 @@
 
 [中文](normalization.md) · **English**
 
-> Reading time: ~12 min · Level: core · Last reviewed: 2026-09
+> Reading time: ~12 min · Level: core · Last reviewed: 2026-10-09
 
-<div class="lesson-recipe">
-  <div><span>The problem</span><strong>controlling numerical scale and gradient paths in deep networks</strong></div>
-  <div><span>Prerequisites</span><strong>residual connections · mean and variance · Jacobians</strong></div>
-  <div><span>Core mechanism</span><strong>the reduction axes and the Norm's position around the residual branch</strong></div>
-  <div><span>Common mistakes</span><strong>forgetting final LN or claiming that every BatchNorm necessarily leaks the future</strong></div>
-</div>
+Take `[1, 3]`, temporarily ignoring epsilon and learned parameters. LayerNorm subtracts the mean, 2, and divides by the standard deviation, 1, giving `[-1, 1]`. RMSNorm instead divides by the root mean square, √5, without centering. Both change scale, but they are different operations. Next we place them inside a batch of sequences and identify the reduction axes.
 
-## The 30-second mental model
-
-| Concept | One-line memory | Interview keywords |
-| --- | --- | --- |
-| Why normalize? | Give each sublayer predictably scaled inputs and reduce sensitivity to parameter scale | stable activations · conditioning · larger learning rate |
-| Why not BatchNorm? | One token should not depend on other batch members or future positions | variable length · padding · train/eval mismatch · causality |
-| Pre-LN vs Post-LN | Pre-LN moves Norm off the residual highway, preserving an identity gradient path | $I+J_fJ_{\mathrm{LN}}$ · final LN |
-| RMSNorm | Keep re-scaling and drop re-centering | RMS only · no mean subtraction · cheaper reduction |
-
-> **Normalization is not about keeping every representation permanently at mean zero and variance one. It is about controlling the numerical scale fed into each sublayer and making a deep network easier to optimize.**
-
-## The core difference: normalization axes
+## The core difference: normalization axes {#the-core-difference-normalization-axes}
 
 **BatchNorm takes its statistics across a batch of examples. LayerNorm takes them across one example's own features.**
 
-Everything else — variable length, batch size 1, autoregressive decoding, whether train and inference agree — follows from that one sentence.
+Start with the axes, then check running statistics and train / eval modes. Together they determine behavior with variable lengths, batch size 1, and autoregressive decoding. The axis alone is not the entire implementation contract.
 
 ![which axis each norm averages over](../assets/norm-axes.svg)
 
-## Three formulas
+## Three formulas {#three-formulas}
 
 **BatchNorm** (for each feature $j$, statistics over the batch dimension):
 
@@ -42,13 +26,19 @@ $$\hat{x}_{ij} = \frac{x_{ij}-\mu_j}{\sqrt{\sigma_j^2+\epsilon}}, \qquad y_{ij} 
 
 $$\mu_i = \frac{1}{d}\sum_{j=1}^{d} x_{ij}, \qquad y_{ij} = \gamma_j\,\frac{x_{ij}-\mu_i}{\sqrt{\sigma_i^2+\epsilon}} + \beta_j$$
 
-**RMSNorm** (LayerNorm without the mean subtraction, and without $\beta$):
+**RMSNorm** (root-mean-square scaling, commonly with learned gain $\gamma$ only):
 
 $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_{k} x_{ik}^2+\epsilon}}$$
 
-In all three, $\gamma$ and $\beta$ run **per feature**, with length $d$. Only one thing really changes: the axis along which the statistics are computed.
+The learned $\gamma$, and $\beta$ where present, run **per feature**, with length $d$. BatchNorm and LayerNorm differ in their reduction axes. LayerNorm and RMSNorm use the same feature axis but different statistics: variance versus the raw second moment. RMSNorm is not LayerNorm assuming that the mean is already zero.
 
-## Four concepts: answer first, then go deeper
+Add 10 to the opening example: `[1, 3]` becomes `[11, 13]`. Ignoring epsilon, LayerNorm still returns `[-1, 1]`; the RMSNorm denominator changes from $\sqrt{5}$ to $\sqrt{145}$, so its output changes too. It does not remove the shift. **Pre-Norm versus Post-Norm is a separate choice** about placement, not the normalization formula. The [RMSNorm paper](https://arxiv.org/abs/1910.07467) investigates scale normalization without re-centering.
+
+## Four concepts: answer first, then go deeper {#four-concepts-answer-first-then-go-deeper}
+
+The BatchNorm formula above uses a two-dimensional input. On `[N,C,L]`, `BatchNorm1d` reduces over `N,L` per channel. Training-forward variance uses `correction=0`, whereas the running-variance update uses a different estimator. Evaluation uses running statistics by default; with `track_running_stats=False`, it uses batch statistics too. Mean / variance are statistical state, not optimizer-trained parameters like gamma / beta. See the [PyTorch documentation](https://docs.pytorch.org/docs/main/generated/torch.nn.BatchNorm1d.html).
+
+For input-feature min–max and Z-score scaling, see [preprocessing versus network normalization](../deep-dives/generalization.en.md).
 
 <details class="interview" markdown="1">
 <summary>1. Why do deep networks need normalization?</summary>
@@ -219,7 +209,7 @@ $$
 \sqrt{\frac{1}{d}\sum_j(x_j-\mu)^2+\epsilon},
 $$
 
-while RMSNorm divides by the second moment,
+while RMSNorm divides by the square root of the second moment plus epsilon,
 
 $$
 \sqrt{\frac{1}{d}\sum_jx_j^2+\epsilon}.
@@ -233,20 +223,20 @@ RMSNorm's engineering gain is one fewer mean reduction and less associated synch
 
 </details>
 
-## How to choose a normalization method
+## How to choose a normalization method {#how-to-choose-a-normalization-method}
 
 | Situation | Use | Why |
 | --- | --- | --- |
-| CNN classification, large fixed batch | **BatchNorm** | stable batch statistics, a regularization effect on the side, and usually faster convergence |
-| Any Transformer or language model | **LayerNorm / RMSNorm** | variable length, batch can be 1, generation must be deterministic |
-| RNN / LSTM | **LayerNorm** | batch statistics aren't comparable across timesteps |
-| Small batches (detection, segmentation, large-model finetuning) | **GroupNorm / LayerNorm** | BatchNorm's estimates get too noisy |
-| RL and online learning | **LayerNorm** | the distribution moves with the policy; running averages always lag |
-| GAN discriminators | often **InstanceNorm / LayerNorm** | stops same-batch examples leaking into each other |
+| CNN classification, sufficient statistical samples | **BatchNorm** is a common baseline | Per-channel samples include spatial positions, not just batch members |
+| Autoregressive Transformers | Commonly **LayerNorm / RMSNorm** | Token-wise feature statistics do not mix future positions or other samples |
+| RNN / LSTM | Compare **LayerNorm** | Normalize within a timestep; placement relative to gates still matters |
+| Small-batch detection or segmentation | Compare **GroupNorm / LayerNorm** | No batch statistics, but groups and axes must fit the architecture |
+| RL and online learning | **LayerNorm** can be a baseline | No running batch mean; distribution shift does not rule out BatchNorm in every RL method |
+| Objectives that disallow cross-sample coupling | Use within-sample statistics | Choose LN, GN, or another method from the objective's constraints, not the task name alone |
 
 One rule: **whenever "the same input must produce the same output in different batches" is a hard requirement, do not let normalization use batch statistics.**
 
-Modern LLMs often go one step further to RMSNorm: one fewer mean reduction and simpler compute, synchronization, and memory traffic, usually with similar quality in practice.
+Modern LLMs often use RMSNorm. Removing mean centering can simplify computation, but actual speed and synchronization depend on kernel fusion and tensor partitioning, not just the number of sums in the formula.
 
 <details markdown="1">
 <summary><b>Supplement</b>: why internal covariate shift is not the full explanation</summary>
@@ -255,17 +245,17 @@ The original paper argued it reduces internal covariate shift. [How Does Batch N
 
 The safer account is that normalization reduces sensitivity to parameter scale and often makes the loss landscape and gradients smoother. This is not an unconditional guarantee on the global condition number of every network.
 
-An angle that often gets missed: normalization removes the weights' scale degree of freedom. $\text{Norm}(\alpha Wx) = \text{Norm}(Wx)$, so scaling weights changes nothing but the effective learning rate. That is why norm layers are usually excluded from weight decay.
+A useful property needs its conditions: ignoring epsilon, with nonzero statistics recomputed from the current input and $\alpha>0$, $\text{Norm}(\alpha Wx)=\text{Norm}(Wx)$. This is invariance to positive uniform input scaling, not arbitrary weight changes. BatchNorm evaluation with fixed running statistics does not meet that condition. Epsilon generally makes it approximate. Whether the normalization gain $\gamma$ receives weight decay is a separate optimization decision, not a consequence of this identity.
 
 </details>
 
-## Verify it
+## Verify it {#verify-it}
 
-[`../code/norm_compare.py`](../code/norm_compare.py) runs all three on the same activations, prints which axis each reduces over, and shows how BatchNorm collapses when the batch size drops to 1.
+[`../code/norm_compare.py`](../code/norm_compare.py) compares reduction axes and three distinct cases: BatchNorm training on `[1,C]` raises an error; evaluation with running statistics works; training on `[1,C,L]` also works when `L>1`, but its statistics span time. These are not all the same “small-batch problem.”
 
 The figure is generated by [`../code/make_norm_figures.py`](../code/make_norm_figures.py).
 
-## Self-check
+## Self-check {#self-check}
 
 <div class="taste-check">
   <strong>You understand this if you can explain:</strong>
@@ -278,6 +268,17 @@ The figure is generated by [`../code/make_norm_figures.py`](../code/make_norm_fi
   </ol>
 </div>
 
-## Next
+## Next {#next}
 
 Normalization makes the scale of each layer's input controllable, but depth only becomes truly feasible with the other half — the [residual connection](residual-connections.en.md).
+
+## The 30-second mental model {#the-30-second-mental-model}
+
+| Concept | One-line memory | Interview keywords |
+| --- | --- | --- |
+| Why normalize? | Give each sublayer predictably scaled inputs and reduce sensitivity to parameter scale | stable activations · conditioning · larger learning rate |
+| Why not BatchNorm? | One token should not depend on other batch members or future positions | variable length · padding · train/eval mismatch · causality |
+| Pre-LN vs Post-LN | Pre-LN moves Norm off the residual highway, preserving an identity gradient path | $I+J_fJ_{\mathrm{LN}}$ · final LN |
+| RMSNorm | Keep re-scaling and drop re-centering | RMS only · no mean subtraction · cheaper reduction |
+
+> **Normalization is not about keeping every representation permanently at mean zero and variance one. It is about controlling the numerical scale fed into each sublayer and making a deep network easier to optimize.**

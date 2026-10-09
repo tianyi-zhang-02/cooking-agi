@@ -2,42 +2,18 @@
 
 [中文](vanilla-transformer.md) · **English**
 
-> Reading time: ~15 min · Level: core · Last reviewed: 2026-08
+> Reading time: ~15 min · Level: core · Last reviewed: 2026-10-09
 
-<div class="lesson-recipe">
-  <div><span>Problem</span><strong>Exchange information across all positions in parallel, without recurrence</strong></div>
-  <div><span>Prerequisites</span><strong>token matrix · position · attention mask</strong></div>
-  <div><span>Core mechanisms</span><strong>self-attention · cross-attention · FFN · residual connection</strong></div>
-  <div><span>Common failure</span><strong>Mixing up the three attention sites or masking the wrong direction</strong></div>
-</div>
+For translation, an encoder can read the entire source sentence at once. A decoder predicting the next word cannot look ahead at the unwritten translation. The original Transformer uses different attention paths and masks for those two conditions. Following one sentence through the encoder and decoder gives each block a concrete role.
 
-## Quick learning: one 2017 Transformer layer from end to end
-
-<details class="interview" markdown="1">
-<summary>Encoder, decoder, and the boundary with modern decoder-only models</summary>
-
-**Quick memory**: an encoder is self-attention plus an FFN. A decoder adds masked self-attention and cross-attention. Residual paths and normalization wrap every sublayer.
-
-**Interview answer**
-
-> Source tokens enter the encoder after embedding and positional encoding. The decoder applies masked self-attention to the right-shifted target, reads the encoder states through cross-attention, and finally uses a linear vocabulary head plus softmax to predict the next token. Training parallelizes over all target positions; generation still has to be autoregressive.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why are both the target shift and the causal mask necessary?</summary>
-
-The shift decides that each position's input is the previous true token. The causal mask decides that this position cannot read labels farther to the right in self-attention. Shifting without masking still lets deeper attention layers peek at the future; masking without shifting hands the current position the embedding of the very token it has to predict.
-
-</details>
-</details>
-
-## Move information, then transform it
+## Move information, then transform it {#move-information-then-transform-it}
 
 Forget the arrow-heavy architecture diagram for a moment. A Transformer layer
 repeats only two operations: **attention goes to other positions to fetch
 information; the FFN stays at the current position and processes it.** The original
 architecture is still an encoder–decoder, but recurrence is removed completely.
 
-## A layer has only two jobs
+## A layer has only two jobs {#a-layer-has-only-two-jobs}
 
 1. **Attention mixing** exchanges information across token positions.
 2. **Channel mixing / FFN** transforms each token's channels independently.
@@ -46,7 +22,7 @@ Residual connections and normalization wrap those two operations. Stacking many
 layers still means repeating “go out and find information → come back and process
 it.” Remembering it this way is much lighter than memorizing the full block diagram.
 
-## The three attention sites ask different questions
+## The three attention sites ask different questions {#the-three-attention-sites-ask-different-questions}
 
 | Site | Query | Key / Value | Mask | Role |
 | --- | --- | --- | --- | --- |
@@ -60,32 +36,30 @@ $$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\rig
 
 $M$ is the mask: it adds 0 at allowed positions and $-\infty$ at forbidden positions.
 
-## Why the architecture scales
+## Why the architecture scales {#why-the-architecture-scales}
 
 - **Parallel training:** $Q/K/V$ for every position are computed at once.
-- **Shorter paths:** any two tokens can interact directly through one attention layer.
+- **Shorter paths:** positions allowed by the mask can communicate through one attention layer.
 - **One uniform structure:** self-attention and cross-attention differ only in where
   the tensors come from.
 
 The cost is a $T\times T$ self-attention score matrix, so the time and memory of a
 standard implementation grow approximately quadratically with sequence length.
 
-## The missing information: attention does not know order
+## The missing information: attention does not know order {#the-missing-information-attention-does-not-know-order}
 
-Attention by itself does not know order. The original Transformer adds a fixed
-sinusoidal positional encoding to each token embedding:
+Without positional information or an order-dependent mask, self-attention is permutation-equivariant: reordering inputs reorders outputs. The original Transformer adds fixed sinusoidal positions to scaled token embeddings, with the scale absorbed into E here:
 
 $$z_t = E[x_t] + PE_t$$
 
-Without positional encoding, the model sees only a bag of tokens: permuting the input
-merely permutes the output in the same way.
+This describes attention without order constraints, not a causal decoder with no sense of earlier and later. The causal mask already restricts visibility; positional encoding supplies more explicit position information.
 
-## From token IDs to the next token: the complete path
+## From token IDs to the next token: the complete path {#from-token-ids-to-the-next-token-the-complete-path}
 
 Use a tiny English-to-German example to connect the entire forward path of the 2017
 Transformer. Look only at shapes first, then at each module's job.
 
-### 1. How the source enters the encoder
+### 1. How the source enters the encoder {#1-how-the-source-enters-the-encoder}
 
 The English sentence first goes through the tokenizer:
 
@@ -114,7 +88,7 @@ receives a unique but regular set of phases, which is what lets the model tell
 `I love you` apart from a sentence with the same tokens in a different order. Dropout
 is applied after the sum.
 
-### Attention dimensions and edge cases
+### Attention dimensions and edge cases {#attention-dimensions-and-edge-cases}
 
 For a single attention head, the more general shapes are
 
@@ -145,10 +119,7 @@ scaling,
 
 $$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
 
-so the score does not push softmax into its saturated region merely because the head
-dimension got larger. Otherwise attention becomes nearly one-hot too early and the
-gradients at non-maximum positions are tiny. The dimension used here is the Q/K
-matching dimension $d_k$; it has nothing to do with $d_v$.
+Under those assumptions, scaling reduces the risk of early saturation as head width grows; it does not bound learned scores throughout training. Saturation depends on score differences, not just absolute magnitude. The relevant width is the Q/K matching dimension $d_k$, not $d_v$.
 
 The individual coordinates of $W_Q,W_K,W_V$ have no fixed human meaning, but the
 three projections play different roles: Q expresses “what I am looking for,” K
@@ -168,7 +139,7 @@ naturally express a directional relation in which “$i$ queries $j$” differs 
 “$j$ queries $i$.” Separate $W_Q,W_K$ remove this constraint; a separate $W_V$
 decouples “how the information is found” from “what is read once it is found.”
 
-### 2. What one encoder layer computes
+### 2. What one encoder layer computes {#2-what-one-encoder-layer-computes}
 
 The original model stacks 6 encoder layers with identical structure. Each layer is
 
@@ -196,7 +167,10 @@ O=AV.$$
 $S_{ij}$ is the match score between the query at source position $i$ and the key at
 position $j$; softmax is computed along the key dimension of each row. For example,
 when some head in some layer updates `love`, it might obtain
-$A_{\text{love}}=[0.4,\ 0.1,\ 0.5]$, and therefore
+
+$$A_{\text{love}}=[0.4,\ 0.1,\ 0.5],$$
+
+and therefore
 
 $$o_{\text{love}}=0.4v_I+0.1v_{\text{love}}+0.5v_{\text{you}}.$$
 
@@ -228,7 +202,7 @@ Repeating this for 6 layers gives the encoder memory:
 
 $$C=\operatorname{Encoder}(X)\in\mathbb{R}^{S\times512}.$$
 
-### 3. Why the target is shifted right
+### 3. Why the target is shifted right {#3-why-the-target-is-shifted-right}
 
 If the correct translation is
 
@@ -250,7 +224,7 @@ projection, while multiplying the embeddings by $\sqrt{d_{\text{model}}}$. So �
 translation model necessarily uses three different sets of weights” is not a fact
 about the original Transformer.
 
-### 4. Why one decoder layer has three sublayers
+### 4. Why one decoder layer has three sublayers {#4-why-one-decoder-layer-has-three-sublayers}
 
 The original also stacks 6 decoder layers; each has one more sublayer than an encoder
 layer, the cross-attention:
@@ -302,7 +276,7 @@ After 6 layers we have
 
 $$D\in\mathbb{R}^{T\times512}.$$
 
-### 5. From decoder states to vocabulary probabilities
+### 5. From decoder states to vocabulary probabilities {#5-from-decoder-states-to-vocabulary-probabilities}
 
 The 512-dimensional vector at each position is projected onto the target vocabulary.
 With vocabulary size $V=30{,}000$:
@@ -328,7 +302,7 @@ $$
 \text{masked self-attention reads the prefix; cross-attention reads the source}}
 $$
 
-## Do not conflate the 2017 architecture with a modern decoder-only LLM
+## Do not conflate the 2017 architecture with a modern decoder-only LLM {#do-not-conflate-the-2017-architecture-with-a-modern-decoder-only-llm}
 
 | | 2017 vanilla | Modern decoder-only |
 | --- | --- | --- |
@@ -350,13 +324,13 @@ During training the true target sequence is known, so it can be shifted right as
 
 </details>
 
-## Verify it: run the complete example
+## Verify it: run the complete example {#verify-it-run-the-complete-example}
 
 - Quick end-to-end run: [`../code/vanilla_demo.py`](../code/vanilla_demo.py)
 - Full math and modern components: [Transformer architecture deep dive](../transformer.en.md)
 - Attention forward pass without PyTorch: [`../code/sequence_numpy.py`](../code/sequence_numpy.py)
 
-## Self-check
+## Self-check {#self-check}
 
 <div class="taste-check">
   <strong>After drawing the architecture diagram, ask yourself:</strong>
@@ -370,6 +344,25 @@ During training the true target sequence is known, so it can be shifted right as
   </ol>
 </div>
 
-## Next
+## Next {#next}
 
-Continue to [Decoder-only](decoder-only.en.md) to see how conditional generation, dialogue, code, and many reasoning tasks are unified as autoregressive prediction over a single token stream.
+Continue to [Decoder-only](decoder-only.en.md) to see how conditional generation, dialogue, code, and many reasoning tasks are unified as autoregressive prediction over a single token stream. Original configurations and weight-sharing conventions here follow [Attention Is All You Need](https://arxiv.org/abs/1706.03762).
+
+## Quick learning: one 2017 Transformer layer from end to end {#quick-learning-one-2017-transformer-layer-from-end-to-end}
+
+<details class="interview" markdown="1">
+<summary>Encoder, decoder, and the boundary with modern decoder-only models</summary>
+
+**Quick memory**: an encoder is self-attention plus an FFN. A decoder adds masked self-attention and cross-attention. Residual paths and normalization wrap every sublayer.
+
+**Interview answer**
+
+> Source tokens enter the encoder after embedding and positional encoding. The decoder applies masked self-attention to the right-shifted target, reads the encoder states through cross-attention, and finally uses a linear vocabulary head plus softmax to predict the next token. Training parallelizes over all target positions; generation still has to be autoregressive.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are both the target shift and the causal mask necessary?</summary>
+
+The shift decides that each position's input is the previous true token. The causal mask decides that this position cannot read labels farther to the right in self-attention. Shifting without masking still lets deeper attention layers peek at the future; masking without shifting hands the current position the embedding of the very token it has to predict.
+
+</details>
+</details>

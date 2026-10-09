@@ -4,36 +4,19 @@
 
 > 阅读时间：约 7 分钟 · 类型：教学 · 最近审阅：2026-08
 
-## 快速学习：后训练为什么首先是 systems problem
+<span id="_1"></span>
 
-<details class="interview" markdown="1">
-<summary>Rollout throughput、logprob consistency 与 context lifecycle</summary>
-
-**快速记忆**：RL 成本常在 sampling；训练端与推理端 logprob 必须数值一致；长任务的 context、tool state 与 checkpoint 必须可恢复。
-
-**面试回答**
-
-> 后训练系统要让 rollout engine、trainer 和 evaluator 对同一 token 序列达成一致语义。吞吐决定可收集多少 online data，数值偏差会扭曲 importance ratio 和 KL，context truncation 或状态丢失则会把正确算法训练成错误任务。
-
-<details markdown="1">
-<summary><b>深挖</b>：为什么平均 logprob 差接近 0 仍可能很危险？</summary>
-
-正负误差可以在均值中抵消，但 PPO ratio 使用逐 token 的指数差。少量长尾误差会产生极端 ratio、触发 clipping 或主导梯度。因此要看分位数、最大值、按长度切片和 token-level alignment，而不只比较平均误差。
-
-</details>
-</details>
-
-## 基础设施决定算法是否按预期运行
+## 基础设施决定算法是否按预期运行 {#_2}
 
 关于后训练的公开讨论几乎都在算法上——用 PPO 还是 GRPO，要不要 Critic。但真正卡住一次后训练的，常常是另外两个问题：**一小时能采到多少经验**，以及**训练侧和推理侧算出来的是不是同一个数**。这两件事都不出现在任何损失函数里。
 
-## 为什么这一层被忽略
+## 为什么这一层被忽略 {#_3}
 
 因为它不出论文。换一个损失函数可以写成一个公式、画一条曲线、起一个名字；把 rollout 吞吐提高三倍写不成公式。
 
 但从投入产出看，顺序常常是反的：**算法换代带来的提升是百分之几十，而采样吞吐翻倍等于在同样的时间里把整个实验做两遍。**
 
-## 一、采样吞吐：RL 真正的成本中心
+## 一、采样吞吐：RL 真正的成本中心 {#rl}
 
 监督学习的数据是现成的。**RL 的数据要现场生成**，而且必须由当前策略生成——这是 on-policy 的定义。
 
@@ -58,7 +41,7 @@
 
 **判据不是"越异步越好"，是"重要性采样比率的分布还正常吗"。** 比率大量堆在裁剪边界上，说明你采的经验对当前策略已经太旧了——此时提高的吞吐并没有变成学习。
 
-## 二、数值一致：一道不报错的裂缝
+## 二、数值一致：一道不报错的裂缝 {#_4}
 
 采样跑在推理引擎上，训练跑在训练框架里。两边的 kernel 实现、精度、算子融合方式都不同，所以**同一段文本、同一份权重，两边算出来的 logprob 可以对不上**。
 
@@ -82,7 +65,7 @@ diff = logp_train - logp_rollout
 
 有一个真实系统把这个差异压到 $10^{-7}$ 量级之后取得了显著提升（见[同一个基座能走多远](same-base-different-posttraining.md)）。收益不体现在任何公式里，体现在**之前所有的更新终于名副其实**。
 
-## 三、上下文管理：让长任务能够完成
+## 三、上下文管理：让长任务能够完成 {#_5}
 
 多步 agent 任务的上下文是单调增长的：每一次工具调用、每一段环境返回，都往里加。跑够久必然撑爆。
 
@@ -92,7 +75,7 @@ diff = logp_train - logp_rollout
 
 一个容易忽略的连带影响：**压缩改变了状态。** 同一个任务，压缩策略变了，模型看到的上下文就不一样，于是它是一个不同的 MDP。**压缩策略必须和模型版本一起版本化**，否则你会拿两个不同环境下的结果做比较。
 
-## 三者的共同点
+## 三者的共同点 {#_6}
 
 它们都**不改变目标函数**，但都改变你能对目标函数做什么：
 
@@ -102,7 +85,7 @@ diff = logp_train - logp_rollout
 
 一个非常实际的推论：**当你的后训练效果不好时，先排查这三样，再考虑换算法。** 顺序反过来的代价是——你会用一个更复杂的算法，去修一个不是算法造成的问题，并且大概率修不好，然后得出"这个算法没用"的错误结论。
 
-## 检查训练基础设施
+## 检查训练基础设施 {#_7}
 
 1. 我的 GPU 在采样期间在干什么？我量过训练/采样的时间比例吗？
 2. 重要性采样比率的分布长什么样？有多大比例卡在裁剪边界上？
@@ -110,7 +93,26 @@ diff = logp_train - logp_rollout
 4. 长任务的上下文是怎么被截断或压缩的？截掉的是不是任务目标？
 5. 我的压缩策略版本化了吗？还是它悄悄变过，而我在比较两个不同的环境？
 
-## 继续阅读
+## 继续阅读 {#_8}
 
 - [同一个基座能走多远](same-base-different-posttraining.md)：这三件事在一个真实系统里的实证
 - [PPO 之后](after-ppo.md)：算法那一半
+
+## 快速学习：后训练为什么首先是 systems problem {#systems-problem}
+
+<details class="interview" markdown="1">
+<summary>Rollout throughput、logprob consistency 与 context lifecycle</summary>
+
+**快速记忆**：RL 成本常在 sampling；训练端与推理端 logprob 必须数值一致；长任务的 context、tool state 与 checkpoint 必须可恢复。
+
+**面试回答**
+
+> 后训练系统要让 rollout engine、trainer 和 evaluator 对同一 token 序列达成一致语义。吞吐决定可收集多少 online data，数值偏差会扭曲 importance ratio 和 KL，context truncation 或状态丢失则会把正确算法训练成错误任务。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么平均 logprob 差接近 0 仍可能很危险？</summary>
+
+正负误差可以在均值中抵消，但 PPO ratio 使用逐 token 的指数差。少量长尾误差会产生极端 ratio、触发 clipping 或主导梯度。因此要看分位数、最大值、按长度切片和 token-level alignment，而不只比较平均误差。
+
+</details>
+</details>

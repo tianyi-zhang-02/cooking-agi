@@ -104,11 +104,11 @@ python test_learning_path.py
 
 ## How to use this material
 
-Every note opens with the same card: what problem this section solves, which prerequisites it needs, what the core mechanism is, and where mistakes are most likely. After the body come a runnable experiment, a set of questions interviewers often ask, and a few self-checks. That way, when you reach a new architecture you don't have to readjust to a new way of telling it; you only compare: **which part did it swap out, why, and which problem of the previous version did that solve.**
+Follow the example first, then consult the equations or code where a step is unclear. You do not need to finish every part in one sitting. For a new architecture, ask which component changed, why it changed, and where the previous approach fell short.
 
 ### I just want to understand the main line first
 
-Read the core notes 01 → 05 and ignore every **deeper** collapsible block and all the code. In about an hour you can build the complete main line.
+Read core notes 01 → 05, leaving deeper derivations and code for later if useful. First understand how the methods connect, then return for details.
 
 ### I want to be able to explain it, not just to have "heard of it"
 

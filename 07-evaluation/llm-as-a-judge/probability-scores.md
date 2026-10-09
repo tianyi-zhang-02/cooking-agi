@@ -12,11 +12,23 @@
 
 ## 方法 A：读取评分标签的概率
 
-如果能够在同一个评分位置拿到允许标签的概率，可以做：
+先约定 $p(k)$ 是评分标签 1–5 上总和为 1 的分布。拿到同一个评分位置的完整标签概率后，可以做：
 
 $$\bar{s}=\sum_{k=1}^{5}k\,p(k).$$
 
 例如 \(p(3)=0.1,\ p(4)=0.7,\ p(5)=0.2\)，加权结果是 4.1。[G-Eval](https://arxiv.org/abs/2303.16634)使用评分 token 概率来细化离散分数，这是理解它的一条主线。
+
+如果拿到的是整个词表上的原始概率，评分标签的概率和不一定为 1。假设 1–5 五个标签都拿全了，其中 3、4、5 分分别占 0.08、0.56、0.16，1、2 分为 0，其余 0.20 属于其他 token。直接加权会得到 3.28；除以评分标签的总质量 0.80，才得到“已知输出属于 1–5”时的条件均分 4.1。要把 0.80 也记下来，不能把它和完整评分分布混为一谈。
+
+```python
+raw_rating_probabilities = {1: 0.0, 2: 0.0, 3: 0.08, 4: 0.56, 5: 0.16}
+rating_mass = sum(raw_rating_probabilities.values())
+weighted_sum = sum(score * probability for score, probability in raw_rating_probabilities.items())
+conditional_mean = weighted_sum / rating_mass
+assert abs(rating_mass - 0.80) < 1e-12
+assert abs(weighted_sum - 3.28) < 1e-12
+assert abs(conditional_mean - 4.1) < 1e-12
+```
 
 但不能简单说「API 有 logprobs 就行」：
 
@@ -35,6 +47,8 @@ $$\hat p(k)=\frac{n_k}{N},\qquad
 \bar{s}=\sum_k k\frac{n_k}{N}=\frac{1}{N}\sum_{i=1}^{N}s_i=4.$$
 
 这其实就是普通平均分，按频数整理后写成 weighted sum。不是先有了 20 个分数，再凭空给每次分数加一个不同权重。
+
+这也不是和 G-Eval 无关的另一个技巧：论文 [§3.1](https://arxiv.org/html/2303.16634v3#S3.SS1) 说明，当时的 GPT-4 接口不返回 token 概率，所以作者用 20 次采样估计评分分布。这里说的是论文当时的设置，不是今天所有接口的限制。20 个独立采样结果也不一定需要 20 个 HTTP 请求，要看接口是否支持批量生成。
 
 - 单次 prompt 要求「给我 20 个评分」，不等于 20 次独立调用。
 - 重复调用也要固定模型、rubric、上下文和采样设置；独立抽样只是建模前提，不是去除系统偏差的保证。

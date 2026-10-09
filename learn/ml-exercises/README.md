@@ -1,18 +1,21 @@
-# ML 问答与手写：会说，也能做
+# ML Coding：PyTorch 与手写实现
+
+<span id="pytorch-ml"></span>
 
 **中文** · [English](README.en.md)
 
-看答案觉得懂了，自己动手时却写不出来，这很常见。这里可以先不看题解，讲一个例子、写几行代码，再回来对照。
+这里有两条线：一条用 PyTorch 把数据、梯度和训练循环接起来；另一条把 attention、loss 和采样写成小函数。可以先跑通，再拆开核对，不必只靠白板记忆。
 
 ## 想练哪一块？
 
 | 练什么 | 入口 | 做完检查什么 |
 | --- | --- | --- |
-| 把基础讲清楚 | [基础问答](../../00-foundations/interview-basics.md) | 有没有说清假设，而不只是报术语 |
+| 写对训练代码 | [PyTorch：从张量到训练](../../00-foundations/pytorch/README.md) | 数据有没有别名，梯度是否累积，loss 分母是否正确 |
 | 从公式写到代码 | [白板手写](../../00-foundations/hand-write-kit.md) | shape、mask、边界条件和数值稳定性对不对 |
-| 算清概率与估计 | [ML 数学](../../00-foundations/ml-math-interview.md) | 分母是什么，估计量依赖什么样本 |
-| 解释架构取舍 | [Transformer 追问](../../interview/transformer-followups.md) | 改了哪个瓶颈，又多付了什么代价 |
-| 随机抽一题复习 | [站内问答集](../../interview/questions.md) | 换一个条件后，还能不能推下去 |
+| 排查 shape 和广播 | [张量运算](../../00-foundations/pytorch/operations-and-shapes.md) | 每个维度的含义，广播有没有改变原意 |
+| 确认梯度正确 | [自动求导](../../00-foundations/pytorch/autograd.md) | 计算图有没有被切断，梯度是否流向预期参数 |
+
+想练概念表达和数学推导，去 [ML / LLM 基础问答](../../interview/basics/README.md)。这里只专注实现，不把“能讲”和“能写”算成同一件事。
 
 ## 一道题练三次
 

@@ -9,11 +9,27 @@ def actor_loss(log_prob, advantage):
 
 def double_dqn_loss(online, target, states, actions, rewards,
                     next_states, terminated, gamma=0.99):
+    if rewards.ndim != 1 or rewards.numel() == 0:
+        raise ValueError("rewards must be a nonempty vector")
+    if not rewards.is_floating_point():
+        raise ValueError("rewards must be floating-point")
+    if actions.shape != rewards.shape or terminated.shape != rewards.shape:
+        raise ValueError("actions, rewards, and terminated must have shape [batch]")
+    if actions.dtype != torch.long or terminated.dtype != torch.bool:
+        raise ValueError("actions must be int64 and terminated must be boolean")
+    if states.ndim != 2 or states.shape != next_states.shape or states.shape[0] != rewards.numel():
+        raise ValueError("states and next_states must have matching [batch, state_dim] shapes")
+    if not 0 <= gamma <= 1:
+        raise ValueError("gamma must be in [0, 1]")
     prediction = online(states).gather(1, actions[:, None]).squeeze(1)
     with torch.no_grad():
-        next_actions = online(next_states).argmax(dim=1, keepdim=True)
-        next_q = target(next_states).gather(1, next_actions).squeeze(1)
-        expected = rewards + gamma * (~terminated).float() * next_q
+        next_q = torch.zeros_like(rewards)
+        continuing = ~terminated
+        if gamma > 0 and continuing.any():
+            successors = next_states[continuing]
+            next_actions = online(successors).argmax(dim=1, keepdim=True)
+            next_q[continuing] = target(successors).gather(1, next_actions).squeeze(1)
+        expected = rewards + gamma * next_q
     return torch.nn.functional.smooth_l1_loss(prediction, expected)
 
 

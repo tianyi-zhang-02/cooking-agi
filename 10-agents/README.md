@@ -4,12 +4,7 @@
 
 > 阅读时间：约 5 分钟 · 难度：进阶 · 最近审阅：2026-09
 
-<div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>什么时候该让模型自己决定下一步，什么时候不该</strong></div>
-  <div><span>前置知识</span><strong>LLM 调用 · 工具调用 · 评估</strong></div>
-  <div><span>核心机制</span><strong>模型 + 工具 + 循环 + 停止条件</strong></div>
-  <div><span>常见错误</span><strong>什么都做成 agent；没有停止条件，也没有验证信号</strong></div>
-</div>
+让模型解释一段报错，只需要一次回答；让它打开文件、修改代码、运行测试，再根据新报错继续改，就需要一个循环。每一步读到的结果会影响下一步做什么。我们从这个差别开始，看看哪些任务值得交给 agent，哪些写成固定流程更简单。
 
 ## 先说一句：这个词一直在变
 
@@ -64,6 +59,7 @@ ReAct（Yao 等，2022）让推理和行动交替进行：模型先写下这一�
 ## 这一组怎么读
 
 1. [几种常见结构](patterns.md)：从单次调用到 orchestrator-workers，各适合什么
+   先读 [Prompt、ICL 与 CoT](prompting.md)，再用 [Deep Research](deep-research.md) 的证据流程练习多步任务。
 2. [不同场景怎么用](scenarios.md)：写代码、搜索研究、客服、数据分析、操作电脑、个人助理
 3. [用 frontier API 还是自己 serve](model-choice.md)：怎么选模型，以及一个可以自己填数字的成本模型
 4. [复习题](review.md)：面试题和自检

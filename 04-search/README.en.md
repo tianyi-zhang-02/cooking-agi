@@ -2,7 +2,16 @@
 
 [中文](README.md) · **English**
 
-This overview follows the complete path. For how vectors are learned, continue with [dual encoders](dual-encoder.en.md): computation, contrastive updates, and model–index compatibility. For combining sources, read [hybrid retrieval and reranking](hybrid-and-reranking.en.md): calculate RRF and compare designs under a fixed budget.
+This overview follows the complete path. You do not need to finish the whole section before building a search system; start with your current question.
+
+| What do you want to understand? | Start here | What you should be able to explain |
+| --- | --- | --- |
+| Why can keyword matches rank poorly? | [TF-IDF and BM25](tfidf-and-bm25.en.md) | How repetition and document length affect scores |
+| How does text become a searchable vector? | [Dual encoders](dual-encoder.en.md) | What can be precomputed and how training uses positives and negatives |
+| Qwen Embedding or BGE? | [Specific model comparison](embedding-models.en.md) | Why inputs, pooling, and indexes must remain compatible |
+| How do retrieval paths work together? | [Hybrid retrieval and reranking](hybrid-and-reranking.en.md) | Fusion and comparisons under equal budgets |
+
+The notes begin with intuition and small examples, then develop the arithmetic and implementation. Stop after the mechanism if that is what you need; return to the code and debugging when you are ready to build.
 
 ## Start here: search is a decision process
 
@@ -20,29 +29,25 @@ The system may need to:
 4. disambiguate among several similar results;
 5. ask the user a follow-up question first if the evidence is still not enough.
 
-This is no longer a nearest-neighbor lookup. It is a small reasoning process.
+A single nearest-neighbor lookup may not settle this: the system first needs to choose where to search, then check what it found.
 
 ## The basic search pipeline
 
 ```mermaid
 flowchart TB
-    A(["User task and constraints"]) --> B["Understand intent · decompose task · rewrite query"]
-    B --> C["Multi-channel retrieval: sparse · dense · graph · tool"]
-    C --> D["Permission filter · dedup · rerank · freshness"]
-    D --> E[("Evidence pack with sources and versions")]
-    E --> F{"Is the evidence sufficient, relevant, and fresh?"}
-    F -- "sufficient" --> G["Answer · act · cite"]
-    F -- "insufficient" --> H["Retrieve more or adjust the plan"]
-    H -. "new query / tool call" .-> C
-    G -. "outcome and failure signals" .-> I["Evaluation and index improvement"]
-    I -.-> B
+    query["Find the agent-memory paper I mentioned"] --> history["Search conversations the user can access"]
+    history --> matches["Find two messages mentioning papers"]
+    matches --> check["Check dates, titles, and source links"]
+    check --> found["Identified: return paper and message"]
+    check --> unclear["Still ambiguous: ask which conversation"]
+    unclear -. "Narrow the date range" .-> history
 ```
 
-Every step can become the bottleneck. If a candidate is never retrieved, no model downstream can make up for it, however strong; if the evidence is ranked wrongly, the model may be led astray by irrelevant content; and if the context is too long, the important information may be buried.
+Each step can fail. Missing a relevant candidate leaves the downstream model without that evidence; poor ranking can introduce distracting material; and a crowded context can make important information harder to use.
 
 ## Why one vector is often not enough
 
-Dual-encoder retrieval usually compresses the query and the item into one vector each and then computes a similarity. This is cheap and suits large-scale candidate retrieval, but compressing too early loses detail.
+Dual-encoder retrieval usually encodes the query and item into one vector each, then computes a similarity. This supports efficient retrieval over a large collection. But with a fixed dimension and similarity function, the representation may miss distinctions the task needs. That is a hypothesis to test, not proof that single-vector retrieval cannot work.
 
 For example, “an Italy itinerary suitable for bringing my parents, with lots of natural scenery and not too tiring” contains several conditions at once. One vector may emphasize “Italy travel” while weakening “parents” and “not too tiring.”
 
@@ -53,6 +58,8 @@ Common improvements include:
 - encoding the profile, the history, and the current query separately;
 - hybrid search that combines sparse, dense, and structured retrieval;
 - a reranker that makes finer interaction-based judgments over a small candidate set.
+
+Each extra retrieval path can add compute, storage, and deduplication costs. Hold the total candidate budget fixed and test whether the new path recovers relevant items the original missed. Simply retrieving more candidates does not show that the representation is better.
 
 ## Relevance is not the only objective
 
@@ -91,6 +98,8 @@ Beyond Recall / NDCG, you can also check:
 
 ## Continue reading
 
+- [Vector indexes: IVF and PQ](vector-indexes.en.md): memory accounting, distance examples, and index tradeoffs.
+- [RAG: evidence and evaluation](rag-evidence.en.md): why finding the document can still produce a wrong answer.
 - [Representation and memory](../02-memory/README.en.md)
 - [Data and feedback](../01-data-and-feedback/README.en.md)
 - [Evaluation](../07-evaluation/README.en.md)

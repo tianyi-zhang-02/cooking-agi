@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 244" width="460" height="244" role="img" aria-labelledby="title desc">
+  <title id="title">Order changes a decayed state</title>
+  <desc id="desc">Starting at zero, multiplying the state by one half before each input gives 2.5 for 1 then 2, and 2 for 2 then 1. Their ordinary sums are equal.</desc>
+  <style>
+    :root { --ink:#262a31; --muted:#707783; --line:#cdd2d9; --panel:#f5f6f7; --blue:#2f5d7c; --orange:#b95629; }
+    @media(prefers-color-scheme:dark) { :root { --ink:#e5e7eb; --muted:#a0a8b4; --line:#46505d; --panel:#1c2026; --blue:#82b6dc; --orange:#eea276; } }
+    text { font-family:ui-monospace,Menlo,monospace; fill:var(--ink); font-size:22px; text-anchor:middle; }
+    .small { font-size:16px; fill:var(--muted); }
+    .box { fill:var(--panel); stroke:var(--line); }
+    .arrow { stroke:var(--muted); stroke-width:1.5; fill:none; marker-end:url(#arrow); }
+    .blue { fill:var(--blue); }
+    .orange { fill:var(--orange); }
+  </style>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--muted)"/></marker></defs>
+  <rect x="16" y="42" width="52" height="48" rx="8" class="box"/><text x="42" y="74">0</text>
+  <path d="M76 66 H171" class="arrow"/><text x="123" y="43" class="small">× 0.5 + 1</text>
+  <rect x="180" y="42" width="52" height="48" rx="8" class="box"/><text x="206" y="74">1</text>
+  <path d="M240 66 H335" class="arrow"/><text x="287" y="43" class="small">× 0.5 + 2</text>
+  <rect x="344" y="42" width="60" height="48" rx="8" class="box"/><text x="374" y="74" class="blue">2.5</text>
+  <rect x="16" y="134" width="52" height="48" rx="8" class="box"/><text x="42" y="166">0</text>
+  <path d="M76 158 H171" class="arrow"/><text x="123" y="135" class="small">× 0.5 + 2</text>
+  <rect x="180" y="134" width="52" height="48" rx="8" class="box"/><text x="206" y="166">2</text>
+  <path d="M240 158 H335" class="arrow"/><text x="287" y="135" class="small">× 0.5 + 1</text>
+  <rect x="344" y="134" width="60" height="48" rx="8" class="box"/><text x="374" y="166" class="orange">2.0</text>
+  <path d="M418 66 H429 V158 H418" fill="none" stroke="var(--line)"/><text x="447" y="119">≠</text>
+  <text x="230" y="224" class="small">1 + 2 = 2 + 1 = 3</text>
+</svg>

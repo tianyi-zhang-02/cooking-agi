@@ -66,6 +66,21 @@ When the environment is partially observed, maintain history or learn a memory s
 
 Tool trajectories also distinguish task failure, service timeout, cancellation, and budget exhaustion. Each can stop a rollout without implying identical training masks, credit assignment, or retry behavior. Define failure semantics before increasing concurrency.
 
+## Does a long trajectory require replacing GRPO with PPO?
+
+Not necessarily. GRPO can compare whole-trajectory rewards for the same task without requiring the fifth action in each trajectory to mean the same thing or trajectories to have equal length. Ask whether terminal rewards are informative enough, how expensive repeated rollouts are, and how rewards and token weights survive training on segments.
+
+Suppose a state has estimated value 0.4 and the next state 0.7. With zero immediate reward and $\gamma=1$ for this example, the TD residual is $0+0.7-0.4=0.3$. A Critic supplies state-dependent information, but this does not establish a causal contribution of 0.3: both estimates may be wrong, and the Critic still needs training from observed returns.
+
+| Situation | Design to consider | New risk |
+| --- | --- | --- |
+| Several complete outcomes per task are affordable | Group-relative outcome advantage | Equal rewards, expensive rollouts, coarse attribution |
+| Long trajectories need intermediate estimates | Critic with TD / GAE | Value bias, extra training and memory |
+| A training segment ends but the task continues | Bootstrap from the next state, or process completed returns later | Don't label a segment boundary as a failed terminal |
+| History is compacted | Preserve the resulting observation and policy version | Summaries may discard relevant state |
+
+Context compaction does not itself terminate a task. Setting an intermediate bootstrap value to zero changes the learning target; bootstrapping beyond a true terminal invents a future that doesn't exist. See [TD, termination, and truncation](returns-and-td.en.md) and [Actor–Critic / GAE](actor-critic-gae.en.md). Compare estimator quality, complete-rollout cost, and final task performance rather than selecting an algorithm from the phrase “long horizon.”
+
 ## Multiple agents make the environment nonstationary
 
 If other agents learn too, your transition and reward distributions change with them. Centralized training with decentralized execution can give a Critic joint information during training while each Actor uses only permitted local information at execution.

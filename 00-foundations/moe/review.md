@@ -2,56 +2,56 @@
 
 **中文** · [English](review.en.md)
 
-> 阅读时间：约 3 分钟 · 难度：进阶 · 最近审阅：2026-09
+> 阅读时间：约 4 分钟 · 难度：进阶 · 最近审阅：2026-10-09
 
 ## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>总参数和激活参数分别由什么决定？Mixtral 8x7B 为什么不是 56B？</summary>
 
-总参数随 expert 数 $N$ 增长，每个 token 的计算只随 $k$ 增长。Mixtral 8x7B 每层 8 个 expert、每个 token 走 2 个：只有 FFN 被复制，attention 和 embedding 只有一份，所以总参数是 46.7B，每个 token 激活 12.9B。
+固定 expert 大小时，总 expert 参数随 N 增长，每个 token 的主要 expert 计算随 k 增长；router 仍需为 N 个 experts 打分。Mixtral 8x7B 复制的是 FFN，不是 8 个完整模型，因此总参数为 46.7B、每 token 激活 12.9B，而不是直接算 8×7B。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Router 怎么算门控权重？top-k 选择不可导，router 怎么学？</summary>
 
-router 是一个线性层，给每个 expert 一个分数；留下最高的 $k$ 个，在这 $k$ 个里做 softmax 得到权重（DeepSeek-V3 用 sigmoid 再归一化）。「选谁」没有梯度，梯度通过被选中 expert 的门控权重 $g_i$ 传回 router；没被选中的 expert 从这个 token 拿不到梯度。
+常见 router 用线性层打分，再按 top-k 选择。Mixtral 在选中集合里归一化；Switch 的 top-1 则保留全体 softmax 中的概率，不把唯一门值改成 1。普通 autograd 不对离散索引求导，任务梯度通过连续门值回传。未选中的 expert 参数没有该 token 的任务梯度，但对应 router logit 可能通过全体 softmax 或辅助目标得到梯度，两者要分开说。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>为什么需要负载均衡？Switch 的辅助 loss 为什么是 f_i 乘 P_i？</summary>
 
-不均衡会自我强化：多拿 token 的 expert 被训练得更好，拿到更多 token，最后少数 expert 干了所有活。Switch 的辅助 loss 是 $\alpha N \sum f_i P_i$：$f_i$ 是真实负载比例但不可导，$P_i$ 是平均 router 概率、可导；两者相乘，梯度通过 $P_i$ 回传，力度由 $f_i$ 决定，完全均匀时取到最小值。
+更多 token 带来更多训练机会，可能形成自我强化的不均衡，也可能让部分设备等待。Switch 的辅助 loss 是 $\alpha N \sum f_i P_i$：$f_i$ 是不可导的分配比例，$P_i$ 是可导的平均 router 概率。梯度通过 $P_i$ 回传；完全均匀时值为 $\alpha$，但这不是所有路由分布下的严格下界。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Capacity factor 是什么？超出容量的 token 去哪了？</summary>
 
-每个 expert 最多收 $\frac{\text{token 数}}{N} \times \text{CF}$ 个 token，让每张卡的计算量固定。超出的 token 不会被删掉，而是跳过这层 expert，只走残差连接。Switch 发现 CF 在 1.0 到 1.25 效果更好；DeepSeek-V3 则不丢 token。
+在 Switch 的 top-1 设定里，上限按 $\frac{\text{token 数}}{N}\times\text{CF}$ 设置，再按实现取整。它限制每个 expert 的容量，不保证每张卡实际耗时一样。溢出的 expert 分支可被跳过，但 token 仍沿残差传播；top-k 或 dropless 实现的处理方式可能不同，不能把一个 capacity 公式套到所有模型。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>DeepSeek-V3 的 auxiliary-loss-free 是怎么做的？真的完全没有 balance loss 吗？</summary>
 
-每个 expert 一个 bias，只在挑 top-k 时加到分数上，门控权重仍用原始分数；每步之后超载的减 $\gamma$、空闲的加 $\gamma$。这样没有额外梯度干扰语言模型 loss。但它仍保留一项很小的序列级 balance loss（$\alpha = 0.0001$），所以不是「完全没有」。
+Bias 只用于挑 top-k，门值仍来自原始 affinity；超载的 expert 降低 bias，负载偏低的提高。这个更新不靠辅助 loss 的梯度，但会改变选中集合，因而也可能改变输出与任务梯度。V3 仍保留很小的序列级 balance loss（$\alpha=0.0001$），所以不是完全没有辅助目标。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>细粒度专家和共享专家各解决什么问题？</summary>
 
-细粒度：把 expert 切小、多选几个，计算不变但组合数暴涨，专长分得更开。共享专家：所有 token 都经过，放通用知识，减少 routed expert 之间的重复。DeepSeek 两个都用；Qwen3 的 MoE 没有 shared expert。
+细粒度专家允许在相近的 expert 矩阵计算预算下，组合更多小专家；组合更多不保证分工更好，通信也未必不变。共享专家为所有 token 提供共同的计算路径，减少重复学习是设计目的，不是预先指定知识归属。DeepSeek-V3 两者都有；Qwen3-235B-A22B / 30B-A3B 没有 shared expert。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>MoE 省显存吗？部署时主要的代价是什么？</summary>
 
-不省。任何 token 都可能用到任何 expert，全部参数都要放在显存里（或分片放在多卡上）。主要代价是显存、两次 all-to-all 通信，以及大 batch 下几乎所有 expert 都会被读到。省的是每个 token 的计算。
+稀疏激活不会自动按 k/N 缩减模型权重存储。全部参数仍需存放在某处，常驻 GPU、跨卡分片或 offload 都有不同代价。Expert parallelism 通常还要派发与回收 token；大 batch 可能用到很多专家。是否比某个 dense baseline 更省显存或更快，要说明质量、精度、batch 与部署方式。
 
 </details>
 

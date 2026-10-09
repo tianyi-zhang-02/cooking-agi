@@ -1,91 +1,82 @@
-# RLHF：PPO clipping 的四种更新情况
+# PPO clipping：为什么不能一直往上加？
 
 **中文** · [English](ppo-clipping.en.md)
 
-> 阅读时间：约 2 分钟 · 难度：必修 · 最近审阅：2026-09
+> 阅读时间：约 4 分钟 · 难度：必修 · 最近审阅：2026-10
 
-<details class="interview" markdown="1">
-<summary>快速记忆：$t$、$\rho_t$、$A_t$ 分别是什么？</summary>
+模型生成一个回答，得到不错的反馈，于是我们提高它生成这个回答的概率。这很合理。
 
-- $t$ 是 **time step**；在语言模型里通常就是第 $t$ 个生成 token 的位置，不是第 $t$ 次 optimizer update。
-- $s_t=(x,y_{<t})$ 是 prompt 加已生成前缀，$a_t=y_t$ 是这一位置实际采样出的 token。
-- $\rho_t$（有些材料写 $r_t$）是新旧策略给**同一个已采样 token**的 probability ratio，不是 reward。
-- $A_t$ 决定应该提高还是降低这个 token 的概率；$\rho_t$ 表示概率已经改变了多少。
+但 PPO 会拿同一批回答训练好几轮。如果一份好结果每轮都推动模型大幅改变，旧样本很快就可能不再适合指导现在的模型。Clipping 的做法是：当某个方向已经改了不少，这一项就不再鼓励它继续沿同一方向变化。
 
-> **$A_t$ 决定方向，$\rho_t$ 报告步幅，clip 只阻止正确方向走得过头。**
+先看它对一次更新做了什么。
 
-</details>
+## 答对以后，概率怎么改？ {#worked-update}
 
-GRPO 改变了 advantage 的来源，但常继续使用 PPO-style clipped surrogate。对 rollout
-中第 $t$ 个已采样 token，定义当前策略与 rollout policy 的 token-level probability ratio：
+把任务缩小到一个 token：问“2 + 3 等于几？”，只允许回答“5”或“6”。答对得 1 分，答错得 0 分。
 
-$$
-\rho_t(\theta)=
-\frac{\pi_\theta(a_t\mid s_t)}
-{\pi_{\text{old}}(a_t\mid s_t)}.
-$$
+假设采样时，模型有 40% 的概率答对，Critic 也估计能拿 0.4 分。这次答了“5”，拿到 1 分，比预期好 $1-0.4=0.6$。这个差就是本例的 advantage。
 
-其中 $\rho_t>1$ 表示当前 Actor 提高了该 token 的概率，$\rho_t<1$ 表示降低了概率；
-$\rho_t$ 始终为正，所以不能直接比较「ratio 和 advantage 的正负」。应该比较的是
-$\rho_t-1$ 与 $A_t$ 的方向。
+训练了几步后，回答“5”的概率变成 60%。相对采样时的 40%，概率比值是 $0.6/0.4=1.5$。如果继续直接用“比值 × advantage”，这一项是 $1.5\times0.6=0.9$，概率越高，值还会越大。
 
-PPO 最大化下面的 clipped surrogate（代码里通常最小化它的负数）：
+PPO 加了一条裁剪分支。设 $\epsilon=0.2$，正 advantage 对应的这条分支最多使用比值 1.2，然后取两者较小值：
 
 $$
-\min\left(
-\rho_t\hat A_t,
-\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\hat A_t
-\right).
+\min(1.5\times0.6,\;1.2\times0.6)=0.72.
 $$
 
-括号顺序很重要：先把 $\rho_t$ 裁到 $[1-\epsilon,1+\epsilon]$，再乘 $A_t$，最后与
-未裁剪的 $\rho_tA_t$ 取 `min`。例如 $\epsilon=0.2$ 时，裁剪区间是 $[0.8,1.2]$。
-但这**不等于**把实际 ratio 永远硬限制在这个区间。
+现在再把“5”的概率推高，这一项也不增加了。不过，**实际概率仍然可以是 60%**。Clipping 不是把它强制降回 48%，只是停止追加这份激励。
+
+反过来，如果采到的是“6”，它低于预期，advantage 为 $0-0.4=-0.4$。这时训练希望降低它的概率，而不是提高。下面会看到，裁剪方向也跟着反过来。
+
+## 放回语言模型里
+
+上面只看了一个 token，并暂时省去 KL 奖励项。长回答的处理仍然是逐个生成位置计算：状态 $s_t$ 是问题加已生成前缀，动作 $a_t$ 是当前位置采样出的 token。
+
+$$
+\rho_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)},\qquad
+\ell_t=\min\left(\rho_t\hat A_t,\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\hat A_t\right).
+$$
+
+这里 $t$ 是生成位置，不是第几轮训练。分母来自**生成这批回答时的旧策略**；同一批数据更新期间，它保持不变。Reference 是另一份训练参照，不放在这个分母里。
+
+PPO 最大化这些采样项组成的目标，代码通常最小化它的负数。上一节的 0.72 只是一个采样项，并不是整批训练的平均得分。
+
+## 看正负两个方向
+
+图中用 $A=1$ 和 $A=-1$ 展示方向。可以切换正负，再拖动 $\rho$；纵轴数值因此不直接对应刚才的 $A=0.6$。
 
 <!-- widget:tx-ppo-clip -->
 
-| Advantage | Ratio 相对 1 | 当前策略做了什么 | 方向与 clipping |
-| --- | --- | --- | --- |
-| $A_t>0$ | $\rho_t>1$ | 提高了好 token 的概率 | 方向正确；超过 $1+\epsilon$ 后停止继续奖励 |
-| $A_t>0$ | $\rho_t<1$ | 降低了好 token 的概率 | 方向错误；不做下界 clipping，保留梯度把概率拉高 |
-| $A_t<0$ | $\rho_t<1$ | 降低了坏 token 的概率 | 方向正确；低于 $1-\epsilon$ 后停止继续奖励 |
-| $A_t<0$ | $\rho_t>1$ | 提高了坏 token 的概率 | 方向错误；不做上界 clipping，保留梯度把概率压低 |
+| Advantage | 概率怎么变 | 裁剪后的效果 |
+|---|---|---|
+| $A_t>0$ | 概率提高 | 比值超过 $1+\epsilon$，停止追加激励 |
+| $A_t>0$ | 概率降低 | 保留把概率往上拉的梯度 |
+| $A_t<0$ | 概率降低 | 比值低于 $1-\epsilon$，停止追加激励 |
+| $A_t<0$ | 概率提高 | 保留把概率往下压的梯度 |
 
-因此可以用一个符号判断方向：
+所以它并不是把上下两端一律截平。**沿 advantage 指示的方向改得太多，才停止继续鼓励；往反方向走，仍然要纠正。**
 
-$$
-(\rho_t-1)A_t
-\begin{cases}
->0, & \text{更新方向正确，越过对应边界才 clip},\\
-<0, & \text{更新方向错误，不 clip，让梯度纠正。}
-\end{cases}
-$$
+<details markdown="1">
+<summary>为什么一个 min 就能得到这两种裁剪方向？</summary>
 
-`min` 之所以能产生这种单边效果，是因为 $A_t$ 的符号会改变大小关系：
+当 $A_t$ 为负，乘法会反转大小关系。把式子分开写就能看出来：
 
 $$
 \ell_t=
 \begin{cases}
-\min(\rho_t,1+\epsilon)A_t, & A_t>0,\\
-\max(\rho_t,1-\epsilon)A_t, & A_t<0.
+\min(\rho_t,1+\epsilon)A_t,& A_t>0,\\
+\max(\rho_t,1-\epsilon)A_t,& A_t<0.
 \end{cases}
 $$
 
-正 advantage 只裁上界，负 advantage 只裁下界。进入 clipped plateau 后，这一项的
-局部梯度为零；它只是停止鼓励策略继续走远，**不会主动把已经越界的 ratio 拉回区间**。
-这也不是 gradient clipping：被裁的是 policy objective 中的 probability ratio。
-
-<details markdown="1">
-<summary><b>深挖</b>：old policy、Reference 与 Reward Model 为什么不是一回事？</summary>
-
-- **Old / rollout policy** 提供 $\rho_t$ 的分母；一批 rollout 收集完后，它的 log-probability 在这批 PPO 更新中固定，用来限制局部更新。
-- **Reference Model** 是长期冻结的 SFT 副本，用 KL 约束 Actor 在整个训练过程中不要累计漂移太远。
-- **Reward Model** 在 PPO 阶段通常冻结，负责给完整回答打分；它训练时用的是 chosen/rejected 的 Bradley–Terry loss，不使用这套四象限 clipping。
-
-所以 PPO clipping 和 reference KL 是两把不同的尺子，Reward Model training 又是前一个阶段的另一种目标。
+正 advantage 只裁上界，负 advantage 只裁下界。$A_t=0$ 时，这个采样项为零。进入平坦区后，这一项对 ratio 的局部梯度为零；边界处则涉及分段函数的不可导点。
 
 </details>
 
-标准 GRPO 常把同一 response 的 group-normalized sequence-level advantage 应用到它的
-生成 token；实现会在 token aggregation、KL placement 和 clipping 范围上有所变化。
-上表描述的是经典 PPO-style clipped objective 的局部行为。
+## Clipping 没有替我们解决什么？
+
+它不知道评分标准是否合理。如果奖励模型偏爱啰嗦的答案，advantage 也可能鼓励模型变啰嗦。这里的“好方向”只是相对当前估计而言，不保证对用户真的更好。
+
+它也没有给整次参数更新设下严格的 KL 上限：其他样本会共享参数，多轮更新还会累积影响。[Spinning Up 的 PPO 说明](https://spinningup.openai.com/en/latest/algorithms/ppo.html)因此还介绍了按 KL 提前停止更新的办法。PPO clipping 和 gradient clipping 也不同，后者直接处理梯度。
+
+GRPO 经常沿用这类裁剪目标，只是 advantage 的来源不同。想继续看这条区别，读 [GRPO、DPO、RLVR](after-rlhf.md)；如果不清楚旧策略和 Reference 的关系，回到 [Reference 与 Critic](reference-and-critic.md)。

@@ -151,8 +151,8 @@
 <rect class="frame" x="473" y="107" width="124" height="104" rx="3"/>
 <text class="lbl-s" x="34" y="160.0" text-anchor="end">tokens</text>
 <text class="lbl-s" x="100.0" y="226" text-anchor="middle">features &#8594;</text>
-<text class="sub" x="24" y="252" text-anchor="start">BatchNorm's statistics depend on the other examples in the batch. LayerNorm's depend only on the token itself —</text>
-<text class="sub" x="24" y="268" text-anchor="start">which is why variable-length sequences, batch size 1, and autoregressive decoding all leave BatchNorm without a usable</text>
-<text class="sub" x="24" y="284" text-anchor="start">estimate, and LayerNorm completely unbothered.</text>
-<text class="sub" x="24" y="306" text-anchor="start">RMSNorm keeps LayerNorm's axis and drops the mean subtraction: one fewer reduction, no measurable loss.</text>
+<text class="sub" x="24" y="252" text-anchor="start">Training BatchNorm uses batch statistics; default evaluation uses stored running statistics.</text>
+<text class="sub" x="24" y="268" text-anchor="start">One training value per channel is invalid; [1, C, L] can work when L &gt; 1, but mixes time.</text>
+<text class="sub" x="24" y="284" text-anchor="start">LayerNorm reduces within each token. Its statistics do not depend on neighboring tokens.</text>
+<text class="sub" x="24" y="306" text-anchor="start">RMSNorm uses the same feature axis without centering. Speed and quality need measurement.</text>
 </svg>

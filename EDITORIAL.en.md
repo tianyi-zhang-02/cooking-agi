@@ -53,6 +53,10 @@ Build each lesson around a question the reader should be able to work through af
 
 Order the material by how understanding develops, not by labels for beginners and experts. Someone looking for intuition can read the example and diagram; someone exploring the mechanism can follow the derivation; someone building it can find code and experimental conditions. A few in-page links can locate these parts. Do not add rows of proficiency badges or hide essential reasoning inside collapsed panels.
 
+Place examples where a reader is likely to get stuck, rather than inventing a story for every paragraph. For candidate softmax, ask what happens when a fourth equally scored candidate joins three others. Seeing the probability fall from $1/3$ to $1/4$ makes dependence on the comparison pool tangible before the formula. Change one important condition at a time and keep the numbers checkable. A constructed example explains a mechanism; it does not establish model performance.
+
+Review with three questions: without the derivation, can readers explain the problem being solved? If they continue, can they see why the result holds and where it fails? If they want to build it, can they find an implementation and checks? Stopping early should still be useful, without making the rest of the article shallow.
+
 Split long topics by question, not word count. Guides explain the reading order; lessons develop the subject. Reuse examples and terminology across adjacent notes instead of introducing the whole system again. Career reflections and section landing pages do not need to follow a technical-lesson template.
 
 ## Keep practice close to the explanation
@@ -84,7 +88,9 @@ is not ready, do not publish a permanently drifting pair.
 
 ## Diagram standard
 
-A diagram must explain a relationship that prose would make harder to scan. Keep one visual question per diagram, use short labels, and preserve a consistent grammar: rounded nodes for outcomes, cylinders for versioned state or evidence, diamonds for gates, solid arrows for the forward path, and dotted arrows for feedback or control. Group by phase only when it improves the reading order, and render-check every Mermaid block before publishing.
+A diagram should show something concrete: how a vector changes, where a request goes, or how two settings differ. Reuse the example in the text where possible and label arrows with what they carry. Boxes containing abstract nouns do not explain a mechanism. Use shapes and colors for meaningful roles, with a short legend when needed; do not force every topic into the same flowchart.
+
+The default view should be informative without interaction. Controls support comparisons and exploration, not access to essential explanations. Label illustrative numbers and cite measured results. Check narrow screens, both languages, and the rendered output of every Mermaid block. Captions should explain what the figure does and does not show, rather than offer a slogan.
 
 ## Freshness
 
@@ -97,6 +103,10 @@ A diagram must explain a relationship that prose would make harder to scan. Keep
 
 Fast-moving pages carry `Last reviewed: YYYY-MM`. A current fact that cannot be verified should not be written as a permanent conclusion.
 
+Name the version and verification date; changing the year on an old report is not an update. Explain new releases when they change architecture, interfaces, or evaluation. An announcement supports only what it discloses. State missing architecture and training details directly rather than inferring them from a family name.
+
+Reference notes identify gaps; each topic still needs primary-source, example, and scope checks. Track reading, drafting, integration, tests, and release acceptance separately. Site-wide revisions follow `CONTENT_RELEASE_CHECKLIST.md` and are not pushed before acceptance.
+
 ## Source order
 
 1. official documentation and specifications;
@@ -105,6 +115,10 @@ Fast-moving pages carry `Last reviewed: YYYY-MM`. A current fact that cannot be 
 4. high-quality secondary explanations.
 
 Facts, measured results, and inference must remain distinct. Benchmarks include model, data, hardware, version, configuration, and workload.
+
+For a specific method, read the relevant paper sections, experimental setup, and limitations—not only the abstract or reference notes. When background helps, explain the practices and bottlenecks at the time and what the authors actually compared. A paper's baselines do not describe the entire industry; later results are not evidence that was available then.
+
+Place paper links beside the explanations they support, preferably with year, version, and relevant sections. Add official code or model cards when available. Mark only material actually read as checked. State missing public details rather than guessing, and keep these links within lessons instead of adding a separate Papers section.
 
 ## Modern does not mean chasing novelty
 

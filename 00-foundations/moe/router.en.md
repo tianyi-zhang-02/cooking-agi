@@ -2,26 +2,30 @@
 
 [中文](router.md) · **English**
 
-> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-09
+> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-10-09
 
-## The router is one linear layer
+<span id="the-router-is-one-linear-layer"></span>
 
-The router multiplies the token's hidden state $x$ by an $N \times d$ matrix to get $N$ scores: $s = W_r x$. It keeps the $k$ highest and normalises over just those $k$ to get the gate weights:
+## A common router starts with a linear layer
+
+A common router multiplies hidden state $x$ by an $N \times d$ matrix, giving $N$ scores: $s = W_r x$. It keeps the $k$ highest and normalizes over them for gate weights. Other routers can add grouping, biases, or different scoring rules:
 
 $$g_i = \frac{e^{s_i}}{\sum_{j \in \mathrm{TopK}} e^{s_j}}, \qquad i \in \mathrm{TopK}$$
 
 This is the same as a softmax over all $N$ followed by renormalising over the ones kept. Mixtral and gpt-oss do exactly this; DeepSeek-V3 scores with a sigmoid instead and normalises over the selected experts.
 
+For scores `[2, 1, 0]`, keeping and renormalizing the top two gives weights about `[0.731, 0.269]`. This is not universal: top-1 in [Switch Transformer](https://www.jmlr.org/papers/v23/21-0998.html) keeps the selected probability from the full softmax rather than renormalizing it to 1. That gate preserves a task-gradient path to the router. The figure illustrates renormalization over selected experts.
+
 <!-- widget:tx-moe-router -->
 
 ## Top-1, top-2, or top-8
 
-- **Top-1**: Switch Transformer. One expert per token, the cheapest in compute and communication.
-- **Top-2**: GShard, Mixtral. A pair of experts is steadier than one.
+- **Top-1**: Switch Transformer. One expert per token, using less expert compute when other factors are equal.
+- **Top-2**: GShard, Mixtral. Two expert outputs can contribute, providing another path at additional cost.
 - **Top-4**: gpt-oss.
 - **Top-8**: DeepSeek-V3, Qwen3. Their experts are cut finer (next-but-one note), so each token picks more of them.
 
-A larger $k$ means more compute and more cross-device traffic per token, but more combinations of expertise.
+At fixed expert width, larger $k$ usually means more expert compute; cross-device traffic also depends on placement. Across models, top-8 with small experts need not cost more than top-2 with wide experts, or be more stable.
 
 ## Why early MoE added noise
 
@@ -29,14 +33,16 @@ The first sparsely-gated MoE (Shazeer et al., 2017) added Gaussian noise with a 
 
 $$H_i = (xW_g)_i + \mathcal N(0,1)\cdot \mathrm{Softplus}\big((xW_{\text{noise}})_i\big)$$
 
-Experts with close scores take turns being chosen, so load spreads out and every expert gets some training. In the figure above, one dose of noise on a function word like "the" is enough to change which experts run.
+[Noise](https://arxiv.org/abs/1701.06538) gives experts near the selection boundary a chance to run. It supports exploration, but a single perturbation need not change the selection, and balanced training is not guaranteed. The figure uses synthetic scores to show how noise changes decisions near a boundary; it does not identify actual word-to-expert assignments.
 
 ## Top-k has no gradient: how does the router learn?
 
-Choosing which experts run is discrete and has no gradient. The gradient flows through the gate weights instead: the output is a sum of $g_i E_i(x)$, so how much a chosen expert helped reaches the router through $g_i$. An expert that was not chosen gets no gradient at all from this token.
+Ordinary top-k implementations do not backpropagate through the selected indices. Gradients reach the router through selected gate weights $g_i$. Unselected expert **parameters** usually receive no task gradient from that token; unselected router logits may still receive gradients through normalization or auxiliary objectives. Full-softmax denominators involve other logits, whereas renormalizing over selected experts changes that relationship.
 
-That plants a problem: an expert that happens to get a few more tokens early gets trained a bit better, and then gets more tokens. Load balancing, the next note, is about exactly that.
+One possible feedback loop is that experts receiving more tokens early get more training and then get selected more often. The next note covers detecting and mitigating that imbalance, rather than assuming it must occur.
 
 ## Tokens choose experts, or experts choose tokens
 
-Everything above has each token choose its own top k. Expert Choice (Zhou et al., 2022) turns it around: each expert picks a fixed number of tokens it wants most from the batch. Load is balanced by construction; a token may be picked by several experts or by none; the paper reports training converging more than twice as fast as Switch and GShard. The cost is that whether a token is picked depends on the other tokens in the batch, which sits awkwardly with token-by-token autoregressive decoding.
+Everything above has tokens choose experts. [Expert Choice](https://arxiv.org/abs/2202.09368) reverses that: each expert selects a fixed number of tokens from the batch. With enough candidates, assignment counts can balance by construction, though device runtimes need not. A token can be selected several times or not at all. Reported convergence gains apply to the paper's training settings, not arbitrary serving workloads.
+
+For autoregressive tasks, ask whether the candidate set contains future tokens. If later tokens can change whether an earlier token is selected, selection itself can leak future information. Restrict candidate scope during training, and check whether batching changes a single request's behavior at deployment.

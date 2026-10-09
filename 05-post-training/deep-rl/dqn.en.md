@@ -45,15 +45,33 @@ import torch
 
 def double_dqn_loss(online, target, states, actions, rewards,
                     next_states, terminated, gamma=0.99):
+    if rewards.ndim != 1 or rewards.numel() == 0:
+        raise ValueError("rewards must be a nonempty vector")
+    if not rewards.is_floating_point():
+        raise ValueError("rewards must be floating-point")
+    if actions.shape != rewards.shape or terminated.shape != rewards.shape:
+        raise ValueError("actions, rewards, and terminated must have shape [batch]")
+    if actions.dtype != torch.long or terminated.dtype != torch.bool:
+        raise ValueError("actions must be int64 and terminated must be boolean")
+    if states.ndim != 2 or states.shape != next_states.shape or states.shape[0] != rewards.numel():
+        raise ValueError("states and next_states must have matching [batch, state_dim] shapes")
+    if not 0 <= gamma <= 1:
+        raise ValueError("gamma must be in [0, 1]")
     prediction = online(states).gather(1, actions[:, None]).squeeze(1)
     with torch.no_grad():
-        next_actions = online(next_states).argmax(dim=1, keepdim=True)
-        next_q = target(next_states).gather(1, next_actions).squeeze(1)
-        expected = rewards + gamma * (~terminated).float() * next_q
+        next_q = torch.zeros_like(rewards)
+        continuing = ~terminated
+        if gamma > 0 and continuing.any():
+            successors = next_states[continuing]
+            next_actions = online(successors).argmax(dim=1, keepdim=True)
+            next_q[continuing] = target(successors).gather(1, next_actions).squeeze(1)
+        expected = rewards + gamma * next_q
     return torch.nn.functional.smooth_l1_loss(prediction, expected)
 ```
 
-states has shape [batch, state_dim], actions is integer [batch], and terminated is boolean [batch]. Do not accidentally broadcast a [batch, 1] prediction against a [batch] target into [batch, batch]. With dropout or batch normalization, no_grad does not automatically select evaluation mode; explicitly define the target network's mode.
+Here `states` is `[batch, state_dim]`, `actions` is int64 `[batch]`, `rewards` is floating-point `[batch]`, and `terminated` is boolean `[batch]`. The example uses a plain MLP with one device and matching floating-point precision. Shape checks reject `[batch, 1]` rewards rather than silently broadcasting them with `[batch]` Q values into a `[batch, batch]` table.
+
+True terminal successors never enter the network: their target is the reward. Computing NaN and then multiplying by zero still produces NaN. External truncation is different and requires the valid final observation before reset. Networks with dropout or BatchNorm need explicit mode handling: `no_grad` is not `eval()`, and changing the valid batch affects BatchNorm statistics. This small implementation does not manage those training states for you.
 
 ## Similar names, different changes
 

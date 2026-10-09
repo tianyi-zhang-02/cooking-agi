@@ -2,7 +2,7 @@
 
 **中文** · [English](transformer-lab.en.md)
 
-> 阅读时间：约 12 分钟，动手玩会更久 · 难度：入门到进阶 · 最近审阅：2026-09
+> 阅读时间：约 15 分钟，动手玩会更久 · 难度：入门到进阶 · 最近审阅：2026-10-09
 >
 > 这一页是 [Transformer 架构](transformer.md) 的动手版：公式和推导在那边，这里只做一件事——让每个机制都能拖、能点、能看到数字怎么变。图里的数字都在浏览器里实时计算；模型家族的具体配置变化很快，以文末的论文和公开 config 为准。
 
@@ -17,9 +17,9 @@
 
 ## 结构图：一个 block，很多家族
 
-所有现代 LLM 跑的都是同一个循环：把 token 变成向量，经过 $N$ 个相同的 block，预测下一个 token。每个 block 有两个子层：attention 在 token **之间**搬运信息，FFN 对每个 token **单独**做变换，外面都包着残差连接。
+先看最常见的自回归 Transformer：把 token 变成向量，经过多层 block，预测下一个 token。这里的“重复”指结构相似，不是每层共用同一组参数。标准 block 里，attention 在 token **之间**传递信息，FFN 对每个 token **单独**做变换，两条分支都有残差连接。混合架构也可能把部分 attention 换成循环状态更新，不能把这张图当成所有 LLM 的统一结构。
 
-家族之间真正的差别只是一张很短的清单：norm 放在哪、位置怎么编码、K/V head 怎么共享、FFN 是 dense 还是 MoE。选一个家族，看哪里动了；右侧带圆点的行，就是相对上一个选择发生变化的地方。
+先比较几处最容易看见的差别：norm 放在哪、位置怎么编码、K/V head 怎么共享、FFN 是 dense 还是 MoE。选一个家族，看哪里动了；右侧带圆点的行，就是相对上一个选择发生变化的地方。数据、训练目标和推理配置不在这张结构图里，却同样影响效果。
 
 <!-- widget:tx-arch -->
 
@@ -31,33 +31,33 @@
 
 <!-- widget:tx-attention -->
 
-这是一个玩具例子：6 个 token、$d_k=4$，权重是手工设定的（不是训练出来的），目的是让每一步的数字都能心算验证。把鼠标放到某一行，可以跟着这个 token 走完整个计算；关掉 causal mask，就得到 BERT 式的 encoder。为什么要除以 $\sqrt{d_k}$、三个投影矩阵各自的含义，见 [Transformer 架构](transformer.md)。
+这是一个玩具例子：6 个 token、$d_k=4$，权重是手工设定的（不是训练出来的），方便逐步核对。把鼠标放到某一行，可以跟着这个 token 走完整个计算；关掉 causal mask，就能看到双向 attention，但这还不是完整的 BERT：训练目标和其他层也不同。为什么要除以 $\sqrt{d_k}$、三个投影矩阵各自的含义，见 [Transformer 架构](transformer.md)。
 
 ## 为什么解码离不开 KV cache
 
-生成是一个 token 一个 token 来的。没有 cache 的话，每一步都要对整个前缀重算一遍 attention：第 $t$ 步要重算 $t$ 个 key、$t$ 个 value 和约 $t^2/2$ 个分数。但在 causal mask 下，过去的 key 和 value 永远不会变，所以把它们存起来：第 $t$ 步只算一对新的 K/V 和一行分数。
+生成是一个 token 一个 token 来的。如果每次都完整重算长度为 $t$ 的前缀，单层每个 head 要重算 $t$ 个 key、$t$ 个 value，以及 $t(t+1)/2$ 个有效 causal 分数。模型权重、前缀和位置配置不变，且关闭 dropout 时，过去的 K/V 可以复用；每步只需算新 token 的 K/V 和一行 attention 分数。修改前缀、权重或位置处理后，旧 cache 不一定还能用。
 
 <!-- widget:tx-kv-cache -->
 
-切到“没有 cache”再看一遍，注意下面两条累计柱的差距。代价是显存随 token 数线性增长——单步计算从 $O(t^2)$ 降到 $O(t)$，解码却因此变成了访存受限（memory-bound）：每一步都要把整个 cache 读一遍。下一节解决的就是这个问题。
+切到“没有 cache”再看一遍，注意两条累计柱的差距。在层数和维度固定时，attention 的单步工作量从 $O(t^2)$ 降到 $O(t)$，代价是 cache 随长度增长。小 batch 解码常受读取权重和 KV 的带宽限制；大 batch、不同 kernel 或硬件下，瓶颈可能不同。下一节只比较 KV 存储，不据此保证吞吐量。
 
 ## 压缩 cache：MHA → GQA → MQA → MLA
 
 每层每个 token 的 cache 大小是
 
 $$
-2 \times n_{\text{kv heads}} \times d_{\text{head}},
+2 \times n_{\text{kv heads}} \times d_{\text{head}}
 $$
 
-再乘上层数、token 数和每个数的字节数。query head 的数量不影响 cache，所以可以只在 K/V 这一侧动手：
+个数值，假设 K/V 维度相同、每层配置一致。再乘层数、token 数和每个数的字节数，才是存储字节数。固定 KV head 数和维度后，query head 数不会额外进入这个公式：
 
-- **MQA**（2019）：保留所有 query head，只用一个共享的 K/V head。cache 最小，质量有损失。
-- **GQA**（2023）：一组 query head 共享一个 K/V head，是 MHA 和 MQA 之间的折中。Llama 3、Mistral、Qwen、Gemma 都在用。
-- **MLA**（DeepSeek-V2，2024）：每个 token 只缓存一个很小的 latent 向量，用的时候再展开成每个 head 自己的 K 和 V。cache 大小是 $4.5\,d_{\text{head}}$，和 head 数无关，相当于 GQA 只用 2.25 个 KV head。
+- **MQA**（2019）：所有 query head 共享一个 K/V head。相同维度下，它在这类 head 共享方案中缓存最小；质量是否下降要看训练和任务。
+- **GQA**（2023）：一组 query head 共享一个 K/V head，在存储和表达能力之间折中。下表中的 Llama 3、Mistral、Qwen3 和 Gemma 3 都采用了它。
+- **MLA**（DeepSeek-V2，2024）：缓存压缩后的 KV latent，再单独存 RoPE key。每层每 token 是 $d_c+d_r$ 个数值，不是通用的 $4.5\,d_{\text{head}}$。DeepSeek-V3 的配置是 $512+64=576$；矩阵吸收（weight absorption）还能避免在解码时显式还原全部 K/V，细节见 [MLA 推导](deep-dives/latent-and-sparse-attention.md)。
 
 <!-- widget:tx-kv-heads -->
 
-下半部分是计算器：选一个模型形状，拖动上下文长度和并发数，看四种方案各要多少显存。把形状切到 DeepSeek-V3（128 个 head），再对比 MHA 和 MLA 两行。
+下半部分是控制变量计算器，不是实际部署配置：固定层数、长度与存储精度，再替换 attention 方案。MLA 行固定使用 512 维 latent + 64 维 RoPE key。它不包含权重、临时激活、KV 分页碎片或跨卡副本，也不表示每个模型原生支持这四种方案。
 
 ## 不是每个 token 都要看到所有 token
 
@@ -65,19 +65,19 @@ $$
 
 <!-- widget:tx-windows -->
 
-拖动“堆叠层数”看浅色区域怎么扩张。另外三种模式对应真实模型：Gemma 3 用 5 层 local 配 1 层 global，只有 global 层需要完整长度的 cache；gpt-oss 让窗口层和全局层交替；StreamingLLM 永久保留最开头几个 sink token，因为 softmax 的权重总得放在某处，模型学会了把多余的权重丢在那里。
+拖动“堆叠层数”看浅色区域怎么扩张。这里的范围是信息可能经过的路径，不保证远处内容一定被记住。Gemma 3 采用 5 层 local 配 1 层 global；gpt-oss 交替使用窗口层与全局层。StreamingLLM 则保留开头的 sink token 和最近窗口，减少直接丢掉开头 KV 带来的失稳；已经移出窗口的细节并不会因此完整保留。
 
 ## RoPE：把位置变成旋转
 
-RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维度旋转一个与位置成正比的角度，每一对的转速各不相同。两个旋转后向量的点积只取决于角度之**差**，所以分数只依赖相对距离 $m-n$。
+RoPE 不往 embedding 上加位置向量，而是旋转 $q$ 和 $k$ 的成对维度，每对使用不同频率。**固定内容向量**后，位置对点积的影响取决于相对距离 $m-n$；真实 attention 分数仍然依赖内容，不是只看距离。
 
 <!-- widget:tx-rope -->
 
-点播放：两个向量一起转，分数纹丝不动——这就是“相对位置”的含义。再拖动距离 $\Delta$，或者直接在右侧曲线上滑动，看分数随距离衰减。base $\theta$ 越大转得越慢，曲线衰减得也越慢，这就是 Llama 3（$\theta=500\text{k}$）和 Gemma 3（global 层 $\theta=1\text{M}$）撑起长上下文的办法。推导见 [Transformer 架构 · RoPE](transformer.md)。
+点播放：同时移动两个位置，分数不变。再拖动距离 $\Delta$，会看到曲线起伏，**不是逐点单调下降**。单个旋转平面就能说明：把两个内容向量都设为 $(1,0)$，点积随相位差是 $\cos\Delta$；从 $\pi$ 到 $2\pi$，它反而从 -1 升到 1。调大 base 会减慢部分维度的旋转，但仅改这个数不保证长上下文好用，还要结合训练和评估。推导见 [Transformer 架构 · RoPE](transformer.md)。
 
-## MoE：参数更多，单个 token 的计算量不变
+## MoE：参数更多，不必每次都算完 {#moe-token}
 
-在 dense block 里，FFN 大约占三分之二的参数。MoE 层把它换成 $N$ 个 expert FFN，再加一个 router，只把每个 token 送到得分最高的 $k$ 个 expert：总参数量随 $N$ 增长，计算量只随 $k$ 增长。
+MoE 把一个 FFN 换成多个 expert，再由 router 为每个 token 选其中 $k$ 个。固定每个 expert 的大小和 $k$ 时，增加 expert 总数不增加被选中 FFN 的算术量。但 router、通信和负载不均仍有成本；选 2 个同样大的 expert，也不能说和原来 1 个 dense FFN 一样便宜。
 
 <!-- widget:tx-moe -->
 
@@ -85,7 +85,7 @@ RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维
 
 ## FlashAttention：数学不变，少搬显存
 
-在 GPU 上，attention 的瓶颈是访存而不是算术：标准实现会把完整的 $n\times n$ 分数矩阵写进较慢的 HBM，再读回来。FlashAttention 把 Q、K、V 切成能放进片上 SRAM 的小块，一块一块地算，每行只维护一个 running max 和归一化因子（online softmax），最后只写回 $n\times d$ 的输出。结果是**精确的**，不是近似，额外显存对 $n$ 线性。
+朴素 attention 会把完整的 $n\times n$ 分数和概率矩阵写到 HBM，来回读写可能很贵。FlashAttention 用分块和 online softmax 累积输出，不需要把这两张完整矩阵存到 HBM。它不靠稀疏化来近似 attention，但浮点计算顺序不同，结果不保证逐位相同。省下多少时间仍取决于形状、硬件和 kernel，不能一概说 attention 总是访存瓶颈。
 
 <!-- widget:tx-flash -->
 
@@ -93,7 +93,7 @@ RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维
 
 ## 模型家族速览
 
-同一张选择清单，并排对比。数字来自各自的论文、技术报告和公开 config。
+下面保留的是这些**具体历史版本**，不是各家最新型号的排行榜。数字来自对应报告和 config；后续版本见[模型家族精读](model-families/README.md)。
 
 | 家族 | 整体结构 | Norm | 位置编码 | Attention | FFN | 上下文 | 规模 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -113,7 +113,7 @@ RoPE 不往 embedding 上加位置向量，而是把 $q$ 和 $k$ 里每一对维
   <strong>完成这一页后，至少要能解释六个问题：</strong>
   <ol>
     <li>从原版 Transformer 到 Llama 3，block 里改了哪四处？各自解决什么问题？</li>
-    <li>KV cache 把单步计算从 $O(t^2)$ 降到 $O(t)$，为什么解码反而变成了 memory-bound？</li>
+    <li>KV cache 在什么条件下可以复用？为什么减少计算后，仍可能卡在内存带宽？</li>
     <li>GQA、MQA、MLA 各自缓存的是什么？MLA 的 cache 为什么和 head 数无关？</li>
     <li>Sliding window 每层只看 $w$ 个 token，信息是怎么传到更远的地方的？</li>
     <li>FlashAttention 为什么是精确的？它省掉的是哪一类开销？</li>

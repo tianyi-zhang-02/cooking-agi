@@ -22,6 +22,19 @@ Each note has small sections: when to use it → a hand-worked example → Pytho
 | 6 | [Backtracking and dynamic programming](algorithms/backtracking-and-dp.en.md) | Paths vs states, memoization vs loops |
 | 7 | [Sorting, intervals, and greedy choices](algorithms/sorting-and-greedy.en.md) | What sorting removes and why a local choice is safe |
 
+Don't memorize every pattern at once. Once the basics feel familiar, choose the next note by the question you still can't explain:
+
+| Where you get stuck | Read next | The extra step in the reasoning |
+| --- | --- | --- |
+| String matching keeps restarting | [String matching · KMP](algorithms/string-matching.en.md) | Which matched information survives a mismatch |
+| The window maximum expires | [Monotonic queues](algorithms/monotonic-queue.en.md) | Why a candidate can be discarded permanently |
+| BSTs feel like a recursion template | [Binary search trees](algorithms/binary-search-trees.en.md) | Ancestor bounds, inorder rank, and tree height |
+| DP loop direction keeps going wrong | [Knapsack and coin change](algorithms/knapsack.en.md) | Reading the previous layer versus reusing this layer |
+| LCS, LIS, and substrings blur together | [Sequence DP](algorithms/sequence-dp.en.md) | What prefixes, endpoints, and contiguity constrain |
+| One best value loses a rule | [State-machine DP](algorithms/state-machine-dp.en.md) | Which history changes the next legal actions |
+
+For an optional number-theory topic, [primality and sieves](algorithms/primes-and-sieves.en.md) compares testing one number with preprocessing a range, including the square-root boundary. It is not part of the first-pass essentials.
+
 For syntax, start with our contributor's [Python notes](python.en.md). These pages focus on what each line does for the algorithm; use both together.
 
 ## 2. Ask 5 questions before coding
@@ -60,6 +73,8 @@ The core templates live in [patterns.py](code/patterns.py), require Python 3.10+
 ```bash
 python interview/code/patterns.py
 python -m unittest discover -s site/tests -p 'test_algorithm_patterns.py'
+python interview/code/deeper_patterns.py
+python -m unittest discover -s site/tests -p 'test_deeper_algorithm_patterns.py'
 ```
 
 Tests compare templates against small exhaustive examples, and check that note templates match the tested code. These are learning examples, not a claim to match every LeetCode contract. Adapt the `Solution` wrapper, zero- vs one-based indices, and mutation rules when submitting.

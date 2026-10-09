@@ -4,57 +4,17 @@
 
 > Reading time: about 16 minutes · Level: core · Last reviewed: 2026-09
 
-<div class="lesson-recipe">
-  <div><span>Problem</span><strong>adapt an existing model to a target task at an acceptable cost</strong></div>
-  <div><span>Separate first</span><strong>the learning signal · the parameters allowed to change</strong></div>
-  <div><span>Core methods</span><strong>Full FT · LoRA · Prompt / Prefix Tuning · Distillation</strong></div>
-  <div><span>Common mistake</span><strong>treating SFT, LoRA, Prompt Tuning, and distillation as peer algorithms</strong></div>
-</div>
+To make a model reliably produce a required JSON format, you might update all parameters or train LoRA adapters. The signal might come from demonstrations or preference comparisons. Which parameters change and which objective trains them are separate decisions: LoRA and SFT can be used together.
 
-## Quick learning: separate the two axes
+This page compares the methods. For worked calculations, continue with:
 
-<details class="interview" markdown="1">
-<summary>Explain the whole map in two minutes</summary>
+- [Prompt / Prefix / Adapter](parameter-efficient-tuning.en.md): update locations, parameter counts, and serving costs on the same small model.
+- [LoRA / QLoRA](lora-and-qlora.en.md): low-rank gradients, initialization, memory, and quantization.
+- [Distillation](distillation.en.md): soft targets, top-k tail mass, and on-policy prefixes.
 
-The first axis is the **learning objective**: demonstrations produce SFT, teacher
-distributions produce distillation, chosen/rejected pairs produce DPO, and rewards
-produce RL.
+## Four parameter-adaptation mechanisms {#four-parameter-adaptation-mechanisms}
 
-The second axis is **parameterization**: update all weights, train LoRA / Adapters, or
-train only an input-side soft prompt. The axes can be combined: LoRA-SFT, LoRA-DPO, or
-a LoRA-parameterized student trained by distillation.
-
-> **Distillation determines that supervision comes from a teacher. LoRA and Prompt Tuning determine which parameters gradients may change.**
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why does the distinction matter?</summary>
-
-“LoRA beats SFT” is an incomplete experiment: LoRA is an update mechanism while SFT is
-a data-and-loss choice. Compare full-parameter SFT with LoRA-SFT, or compare SFT with
-distillation under the same parameterization. Otherwise two variables changed at once.
-
-</details>
-</details>
-
-```mermaid
-flowchart LR
-    B["Pretrained / SFT model"] --> O{"Learning objective"}
-    O --> S["Demonstrations · SFT"]
-    O --> D["Teacher outputs · Distillation"]
-    O --> P["Preferences · DPO"]
-    O --> R["Reward · RL"]
-    S --> U{"Parameterization"}
-    D --> U
-    P --> U
-    R --> U
-    U --> F["Full fine-tuning"]
-    U --> L["LoRA / Adapter"]
-    U --> T["Prompt / Prefix tuning"]
-```
-
-## Four parameter-adaptation mechanisms
-
-### Full fine-tuning: every model weight may move
+### Full fine-tuning: every model weight may move {#full-fine-tuning-every-model-weight-may-move}
 
 Full-parameter fine-tuning computes gradients for all parameters:
 
@@ -67,7 +27,7 @@ optimizer state, and checkpoint storage. With limited data or poor learning-rate
 control, it can also overfit or damage existing capability. It fits settings with
 enough data, substantial task shift, and a real need to change internal representations.
 
-### LoRA: learn a weight update rather than retraining the full matrix
+### LoRA: learn a weight update rather than retraining the full matrix {#lora-learn-a-weight-update-rather-than-retraining-the-full-matrix}
 
 For a frozen linear layer $W_0\in\mathbb R^{d_{out}\times d_{in}}$, LoRA learns a
 low-rank update:
@@ -82,7 +42,7 @@ LoRA changes internal linear maps and
 therefore has more freedom than an input-only soft prompt. Adapters can be loaded
 dynamically or merged for serving.
 
-### Prompt Tuning: learn virtual tokens before the input
+### Prompt Tuning: learn virtual tokens before the input {#prompt-tuning-learn-virtual-tokens-before-the-input}
 
 Prompt Tuning freezes the model and prepends $m$ learned vectors to ordinary token
 embeddings:
@@ -99,8 +59,10 @@ indices). It generally cannot be translated into readable words. Gradients pass 
 the Transformer, but only $P$ updates:
 
 $$
-\nabla_\theta\mathcal L=0,\qquad \nabla_P\mathcal L\neq0.
+\Delta\theta=0,\qquad P\leftarrow P-\eta\nabla_P\mathcal L.
 $$
+
+Freezing means not updating $\theta$, not that its mathematical loss derivative must be zero. Gradients still pass through the model to reach $P$ at the input.
 
 Its direct parameter count is
 
@@ -156,7 +118,7 @@ is more appropriate.
 
 </details>
 
-### Prefix Tuning: parameters enter every layer
+### Prefix Tuning: parameters enter every layer {#prefix-tuning-parameters-enter-every-layer}
 
 Prompt Tuning usually adds virtual tokens only at the embedding layer. Prefix Tuning
 directly provides learned prefix keys and values to attention at every layer:
@@ -200,13 +162,13 @@ signal.
 
 </details>
 
-## Guaranteeing valid classification output
+## Guaranteeing valid classification output {#guaranteeing-valid-classification-output}
 
 A soft prompt can make the right label more probable, but **cannot by itself guarantee
 the output schema**. A reliable system separates predictive accuracy from output
 validity.
 
-### Score a fixed label set
+### Score a fixed label set {#score-a-fixed-label-set}
 
 Avoid free generation and compare candidate sequence log-probabilities:
 
@@ -219,13 +181,13 @@ $$
 Production systems often use single-token, equal-length labels such as `A/B/C` and map
 them to business classes, avoiding tokenization and label-length bias.
 
-### Constrained decoding
+### Constrained decoding {#constrained-decoding}
 
 Mask every token outside the legal label set to $-\infty$ before softmax. This guarantees
 that the output belongs to the enum; it does not guarantee that the classification is
 correct.
 
-### Add a classification head
+### Add a classification head {#add-a-classification-head}
 
 Take a hidden state $h$ and train a fixed-width classifier:
 
@@ -238,19 +200,19 @@ generation. The backbone can remain frozen while a soft prompt and small head tr
 
 > **The model or soft prompt improves accuracy; a serving constraint guarantees the schema.** Do not rely on a natural-language instruction saying “output only the label.”
 
-## Distillation: supervision comes from a Teacher
+## Distillation: supervision comes from a Teacher {#distillation-supervision-comes-from-a-teacher}
 
 Knowledge Distillation normally has a capable or expensive Teacher and a Student that
 will be deployed. It is not one fixed parameter-update method; it is a family of
 supervision sources.
 
-### Response distillation
+### Response distillation {#response-distillation}
 
 The Teacher generates answers and the Student treats them as SFT demonstrations. This
 is simple but keeps only one sampled output and loses the Teacher's relative preference
 over alternative tokens.
 
-### Logit / distribution distillation
+### Logit / distribution distillation {#logit-distribution-distillation}
 
 The Student matches the Teacher's token distribution, for example by minimizing
 
@@ -268,7 +230,7 @@ become supervision. Storing full-vocabulary logits is expensive, so systems ofte
 only Teacher top-$k$ logits. That creates obligations around residual probability mass,
 cross-tokenizer projection, masking, and normalization.
 
-### On-policy distillation
+### On-policy distillation {#on-policy-distillation}
 
 The Student samples from its current policy, then the Teacher scores token distributions
 on those same prefixes. Supervision now follows states the Student actually visits, but
@@ -278,7 +240,7 @@ an online training loop.
 Distillation combines with any parameterization: the Student may full fine-tune or train
 only LoRA. The Teacher is normally frozen; the Student is optimized and deployed.
 
-## Choosing a method
+## Choosing a method {#choosing-a-method}
 
 | Goal | Natural starting point | Why |
 | --- | --- | --- |
@@ -289,13 +251,13 @@ only LoRA. The Teacher is normally frozen; the Student is optimized and deployed
 | fixed enum classification | Label scoring or classification head | avoid free-generation uncertainty |
 | missing, changing external facts | Retrieval / tool use | model parameters should not act as a live database |
 
-## Three interview-ready sentences
+## Three interview-ready sentences {#three-interview-ready-sentences}
 
 1. Prompt Tuning learns continuous virtual-token embeddings, not a natural-language prompt; the model is frozen and the prompt remains prepended at inference.
 2. LoRA, Prompt Tuning, and full fine-tuning specify which parameters update; SFT, DPO, and distillation specify supervision and objective, so the two sets compose.
 3. For classification, training improves accuracy while fixed-label scoring, constrained decoding, or a classification head guarantees output validity.
 
-## Self-check
+## Self-check {#self-check}
 
 <div class="taste-check">
   <strong>If you understand the page, you can explain:</strong>
@@ -308,14 +270,55 @@ only LoRA. The Teacher is normally frozen; the Student is optimized and deployed
   </ol>
 </div>
 
-## Continue reading
+## Continue reading {#continue-reading}
 
 - [SFT: how far imitation goes](sft-and-its-ceiling.en.md)
 - [Post-training infrastructure](post-training-infrastructure.en.md)
 
-## Papers
+## Papers {#papers}
 
 - [The Power of Scale for Parameter-Efficient Prompt Tuning](https://arxiv.org/abs/2104.08691)
 - [Prefix-Tuning](https://arxiv.org/abs/2101.00190)
 - [LoRA](https://arxiv.org/abs/2106.09685)
 - [Distilling the Knowledge in a Neural Network](https://arxiv.org/abs/1503.02531)
+
+## Quick learning: separate the two axes {#quick-learning-separate-the-two-axes}
+
+<details class="interview" markdown="1">
+<summary>Explain the whole map in two minutes</summary>
+
+The first axis is the **learning objective**: demonstrations produce SFT, teacher
+distributions produce distillation, chosen/rejected pairs produce DPO, and rewards
+produce RL.
+
+The second axis is **parameterization**: update all weights, train LoRA / Adapters, or
+train only an input-side soft prompt. The axes can be combined: LoRA-SFT, LoRA-DPO, or
+a LoRA-parameterized student trained by distillation.
+
+> **Distillation determines that supervision comes from a teacher. LoRA and Prompt Tuning determine which parameters gradients may change.**
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does the distinction matter?</summary>
+
+“LoRA beats SFT” is an incomplete experiment: LoRA is an update mechanism while SFT is
+a data-and-loss choice. Compare full-parameter SFT with LoRA-SFT, or compare SFT with
+distillation under the same parameterization. Otherwise two variables changed at once.
+
+</details>
+</details>
+
+```mermaid
+flowchart LR
+    B["Pretrained / SFT model"] --> O{"Learning objective"}
+    O --> S["Demonstrations · SFT"]
+    O --> D["Teacher outputs · Distillation"]
+    O --> P["Preferences · DPO"]
+    O --> R["Reward · RL"]
+    S --> U{"Parameterization"}
+    D --> U
+    P --> U
+    R --> U
+    U --> F["Full fine-tuning"]
+    U --> L["LoRA / Adapter"]
+    U --> T["Prompt / Prefix tuning"]
+```

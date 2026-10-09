@@ -119,7 +119,9 @@ $$
 \mathbb E[\delta_t\mid s,a]=A^\pi(s,a)+\gamma\mathbb E[e(s')\mid s,a]-e(s).
 $$
 
-假设当前状态高估 2，下一状态平均低估 3，$\gamma=0.9$，advantage 的误差就是 $0.9(-3)-2=-4.7$。一个本来不错的动作可能因此被压低。这是估值误差进入策略更新的具体路径。
+假设当前状态高估 2，某个动作到达的下一状态平均低估 3，$\gamma=0.9$，这个动作的 advantage 估计就差了 $0.9(-3)-2=-4.7$。单次更新的方向可能因此改变。
+
+但这两个误差在**期望策略梯度**里并不等价：固定的 $-e(s)$ 是动作无关基线，按当前策略对动作求平均后，它的梯度贡献为零；下一状态的误差则可能随动作改变，通常不能抵消。不要把“advantage 估错了多少”直接当作“梯度偏了多少”。这个区别沿用上一篇 baseline 的推导；PPO clipping 等非线性处理还要另看。
 
 加大 $\lambda$ 可以减少对沿途短期估值的依赖，但会带进更长段实际回报的噪声；片段截断时，尾部 bootstrap 仍有误差。不能简单说“$\lambda=1$ 总是无偏”，先问有没有走到真正终点、样本是否来自被评价的策略。
 
@@ -139,6 +141,8 @@ $$
 ## Actor 与 Critic 怎样各改各的
 
 Actor 最小化 $-\log\pi_\theta(a_t\mid s_t)\,\mathrm{stopgrad}(\hat A_t)$；Critic 常拟合 $\mathrm{stopgrad}(\hat A_t+V_{\rm old}(s_t))$。这个 target 要在更新前固定，不能每次随着正在训练的 value 偷偷漂移。
+
+这里加回旧 value 的必须是**尚未标准化的 GAE**。比如旧 value 为 $[10,10]$、原始 advantage 为 $[1,3]$，value target 是 $[11,13]$。若先把 advantage 变成 $[-1,1]$ 再加，得到 $[9,11]$，已经把回报单位改掉了。Actor 可以另用标准化副本，Critic 的 target 不要跟着改。
 
 PPO 再在 Actor 上加入新旧概率比与 clipping；不是把 GAE 当成 PPO 本身。移步[四种 PPO clipping 情况](../rlhf/ppo-clipping.md)看已有交互。
 
