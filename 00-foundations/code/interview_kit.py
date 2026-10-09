@@ -1,4 +1,4 @@
-"""白板上可能让你手写的那几个东西。纯 numpy，无依赖，自带自检。
+"""7 个 ML 模块的 NumPy 教学实现，附带数值自检。
 
     python3 interview_kit.py        # 跑全部自检
 
@@ -35,7 +35,7 @@ def bce_with_logits(z, y):
 
 def bce_with_logits_grad(z, y):
     # 这就是那道题的答案：sigmoid 的导数被约掉了，只剩 p - y。
-    return 1.0 / (1.0 + np.exp(-z)) - y
+    return np.exp(-np.logaddexp(0, -z)) - y
 
 
 # --------------------------------------------------------------------------- #
@@ -72,12 +72,11 @@ def attention(q, k, v, mask=None):
 def decode_with_kv_cache(steps, d, seed=0):
     """演示 cache 的形状与增长。返回每步的输出。
 
-    最大的坑：**解码时不需要因果掩码。** q 只有一个位置（当前 token），
-    而 cache 里全部是过去的 k/v——「只能看过去」由构造保证，不需要再掩。
-    很多人手写时会习惯性把 mask 加上，那是训练时的事。
+    此例的 q 只有一个位置，cache 只有合法的过去和当前位置，没有 padding，
+    因而不需要额外的 causal mask。多 token 解码、padding 或滑窗需另行处理。
 
     复杂度：不带 cache 生成 T 个 token 是 O(T³)（每步重算整个前缀），
-    带 cache 是 O(T²)。cache 的显存是 O(T·d·层数·2)——推理的真正瓶颈。
+    带 cache 是 O(T²)。这里只比较固定维度下的 attention 工作量，不预测吞吐。
     """
     rng = np.random.default_rng(seed)
     k_cache = np.zeros((0, d))
@@ -127,14 +126,14 @@ def mlp_forward(x, W1, b1, W2, b2):
 
 
 def mlp_backward(z2, y, cache, W2):
-    """返回各参数的梯度。这题是「懂链式法则」和「会调 API」的分界线。"""
+    """返回 batch 平均 BCE 对各参数的梯度。"""
     x, z1, a1 = cache
     n = x.shape[0]
     dz2 = bce_with_logits_grad(z2, y) / n          # (N,) —— σ' 约掉了
     dW2 = a1.T @ dz2[:, None]                      # (H,1)
     db2 = dz2.sum()
     da1 = dz2[:, None] @ W2.T                      # (N,H)
-    dz1 = da1 * (z1 > 0)                           # ReLU 的导数：坑在 z1>0 不是 a1>0
+    dz1 = da1 * (z1 > 0)
     dW1 = x.T @ dz1
     db1 = dz1.sum(axis=0)
     return dW1, db1, dW2, db2

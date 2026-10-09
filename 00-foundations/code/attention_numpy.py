@@ -17,6 +17,8 @@ def softmax(x, axis=-1):
     equals exp(a)/sum(exp(a)) for any c) but keeps exp() from overflowing when
     the scores are large. Forgetting this is the classic interview slip.
     """
+    if np.any(np.all(np.isneginf(x), axis=axis)):
+        raise ValueError("Each query must have at least one allowed key")
     x = x - np.max(x, axis=axis, keepdims=True)
     e = np.exp(x)
     return e / np.sum(e, axis=axis, keepdims=True)

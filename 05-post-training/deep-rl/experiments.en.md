@@ -45,6 +45,39 @@ Environment interactions, gradient updates, wall-clock time, and hardware are di
 
 Tune on validation tasks or splits and limit final-test reuse. Retain raw data when smoothing and disclose the window. Count failed runs. Across tasks, explain normalization rather than letting large reward scales dominate the aggregate.
 
+## Same mean, same conclusion?
+
+Suppose five independent training runs each produce a mean return over separate evaluation episodes:
+
+| Method | Five training-run evaluation means | Overall mean | Median |
+| --- | --- | --- | --- |
+| A | 10, 10, 10, 10, 50 | 18 | 10 |
+| B | 16, 17, 18, 19, 20 | 18 | 18 |
+
+Means tie, the best run favors A, and repeatability favors B. There is no context-free correct aggregation: state whether you care about typical performance, failure risk, or the best result after tuning, and report corresponding uncertainty. Five seeds here illustrate arithmetic, not sufficient statistical power.
+
+One hundred evaluation episodes per seed help estimate that trained model’s performance; they do not turn five models into 500 independent training runs. Respect the hierarchy of tasks, training seeds, and evaluation episodes when estimating intervals or resampling.
+
+## Design an ablation someone else can inspect
+
+To study GAE’s $\lambda$, fix environment, reward, networks, collected data budget, optimizer settings, and evaluation rules. Compare Critic capacity or rollout length separately afterward.
+
+| Record | Concrete convention |
+| --- | --- |
+| Question | Does estimator length improve stability at a fixed interaction budget? |
+| Comparison | $\lambda=0$, an intermediate value, and $\lambda=1$, without also changing three networks |
+| Primary result | Independent evaluation at a prespecified budget and variation across training seeds |
+| Diagnostics | Advantage distribution, Critic error, KL, gradient scale |
+| Exceptions | Keep failed runs and specify stopping or exclusion rules |
+
+If loss falls while task performance worsens, inspect saved rollouts. Numbers locate problems but do not replace observing behavior: a robot may stand still for a small reliable reward, or a language model may lengthen answers to please a judge.
+
+## Why is resume testing part of algorithm correctness?
+
+In a small environment, compare continuous training with a run saved and restored at the same step. Inspect subsequent samples, targets, parameters, and counters. Deterministic configurations can match exactly; nondeterministic devices or parallel environments need defined tolerances, not a promise of universal bitwise equality.
+
+Saving only Actor weights can omit optimizer momentum, Critic, targets, replay, random-number state, and exploration schedules. Producing actions after loading does not establish continuation from the same training state. Test loading separately from restoring the intended training semantics.
+
 ## Debug in a useful order
 
 Start with random behavior and a simple baseline, calculate one transition by hand, overfit a small fixed batch, inspect randomness and boundaries, then scale to full training. Change one factor at a time.

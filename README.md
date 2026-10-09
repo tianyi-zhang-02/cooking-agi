@@ -15,26 +15,26 @@
 | --- | --- |
 | 系统补基础 | [学习与复习导读](00-foundations/study-guide.md) → [大模型学习地图](00-foundations/README.md) |
 | 先动手看看 | [Transformer 交互图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html) · [CLIP 图文对齐](03-multimodal-learning/clip.md) |
-| 准备 ML 实习或 new-grad | [代码与题解](interview/README.md) · [求职记录](career/README.md) |
-| 读论文或补一篇笔记 | [论文](papers/README.md) · [写作规范](EDITORIAL.md) · [内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
+| 准备 ML 实习或 new-grad | [面试准备](interview/README.md) · [求职记录](career/README.md) |
+| 练系统设计或看项目实现 | [工程实践](practice/README.md)：设计题、推荐系统、RAG 与后训练 |
+| 补一篇笔记 | [写作规范](EDITORIAL.md) · [内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
 
 **建议在网站阅读。** 可以随时切换中英文，也能直接操作交互图；这个仓库保存正文、实验代码与站点源码。
 
+只想看某个方向，不必从头读。先看该板块的导读，再选你需要的章节。已经写到哪里、还在补什么，放在[内容覆盖与待办](learn/coverage.md)，不把待补的内容藏起来。
+
 ## 内容地图
 
-学习笔记分成 **基础与模型、训练与应用、代码与题解、系统设计**。想看找工作的经历和心态，可以去“求职”；想读公开项目、了解实际实现，可以去“工程实践”。
+网站按你想做的事分成四个板块：学原理、准备技术面、做项目，以及读求职经历。每篇文章有一个主要位置，相关内容互相链接，不用在几个目录里找重复的文章。
 
 | 板块 | 内容与入口 |
 | --- | --- |
-| 01 · 基础与模型 | [概率与统计](quant/probability/README.md) · [大模型基础](00-foundations/README.md) · [模型家族](00-foundations/model-families/README.md) |
-| 02 · 训练与应用 | [Post-training](05-post-training/README.md) · [评估](07-evaluation/README.md) · [多模态](03-multimodal-learning/README.md) · [数据、记忆、检索与 Agents](learn/README.md) |
-| 03 · 代码与题解 | [Python](interview/python.md) · [LeetCode 方法](interview/leetcode.md) · [ML 问答与手写](learn/ml-exercises/README.md) |
-| 04 · 系统设计 | [推荐 Feed、RAG 和带记忆的助手](learn/system-design/README.md)：带约束的设计练习 |
-| 工程实践 | [Twitter / X 推荐系统](practice/recommender-systems/README.md)：先看架构，再拆召回、排序、评估和工程实现 |
-| 求职 | [经历、心态和准备节奏](career/README.md)：与技术题解分开 |
-| 论文 | [论文笔记](papers/README.md)：回到原文看方法、证据与限制 |
+| [基础与原理](learn/README.md) | 模型与多模态、训练与评估、推理与应用；从入门到进阶按需阅读 |
+| [面试准备](interview/README.md) | [ML / LLM 基础问答](interview/basics/README.md) · [ML Coding](learn/ml-exercises/README.md) · [Python](interview/python.md) · [LeetCode 方法](interview/leetcode.md) |
+| [工程实践](practice/README.md) | [系统设计](learn/system-design/README.md) · [推荐系统](practice/recommender-systems/README.md) · [RAG](practice/rag/README.md) · [后训练项目](practice/post-training/README.md) |
+| [求职](career/README.md) | 实习和 new-grad 的经历、心态与准备节奏，不混入技术题解 |
 
-每篇尽量按 **问题 → 例子与图解 → 原理 → 验证 → 取舍 → 复习** 来讲。不用一开始就吃透所有公式，先跟着例子走，再回来补不明白的地方。
+笔记里会穿插小例子、推导和代码，帮你看清每一步发生了什么。不用一开始就吃透所有公式；先跟着一个例子走，再回来补不明白的地方。
 
 ## 加入我们！
 
@@ -54,7 +54,7 @@
 静态站点使用 Python 构建，无需数据库。以下命令在仓库根目录运行，建议 Python 3.12：
 
 ```bash
-python3 -m pip install markdown pygments
+python3 -m pip install markdown pygments numpy
 python3 site/build.py --serve
 ```
 
@@ -67,11 +67,11 @@ python3 site/build.py --serve
 python3 site/collaboration.py
 python3 -m unittest discover -s site/tests
 python3 site/leakcheck.py
-python3 site/paritycheck.py
+python3 site/paritycheck.py --strict
 python3 site/build.py
 ```
 
-部分教学实验另外需要 NumPy 或 PyTorch，依赖写在对应章节。复习进度只保存在当前浏览器，不上传到服务器。
+部分教学实验另外需要 PyTorch，依赖写在对应章节；未安装时，相关测试会明确跳过。收藏、最近阅读和阅读位置只保存在当前浏览器，不上传到服务器。
 
 </details>
 

@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,19 @@ SCRIPT = ROOT / "site/static/judge-lab.js"
 
 
 class JudgeLabTests(unittest.TestCase):
+    def test_probability_example_distinguishes_mass_from_conditional_mean(self):
+        snippets = []
+        for suffix in ('.md', '.en.md'):
+            source = (ROOT / ('07-evaluation/llm-as-a-judge/probability-scores' + suffix)).read_text()
+            snippets.append(re.findall(r'```python\n(.*?)```', source, re.S))
+        self.assertEqual(snippets[0], snippets[1])
+        self.assertEqual(len(snippets[0]), 1)
+        namespace = {}
+        exec(compile(snippets[0][0], 'probability-scores', 'exec'), namespace)
+        self.assertAlmostEqual(namespace['rating_mass'], 0.8)
+        self.assertAlmostEqual(namespace['weighted_sum'], 3.28)
+        self.assertAlmostEqual(namespace['conditional_mean'], 4.1)
+
     def run_js(self, script):
         if not shutil.which("node"):
             self.skipTest("Node.js required")

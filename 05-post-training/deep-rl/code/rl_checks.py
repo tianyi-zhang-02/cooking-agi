@@ -39,10 +39,12 @@ def double_targets(online, target, reward=1.0, gamma=0.9):
 def effective_sample_size(weights):
     if not weights or any(not math.isfinite(weight) or weight < 0 for weight in weights):
         raise ValueError("weights must be finite and nonnegative")
-    total = sum(weights)
-    if total == 0:
+    scale = max(weights)
+    if scale == 0:
         raise ValueError("at least one weight must be positive")
-    return total ** 2 / sum(weight ** 2 for weight in weights)
+    scaled = [weight / scale for weight in weights]
+    total = math.fsum(scaled)
+    return total ** 2 / math.fsum(weight ** 2 for weight in scaled)
 
 
 def projected_value_step(parameter, gamma=0.9):

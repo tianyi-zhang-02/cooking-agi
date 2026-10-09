@@ -4,8 +4,8 @@
 ## 为什么这份清单和私有仓库那份不一样
 
 私有仓库的 forbidden.txt 里写着具体要挡的值——真实百分比、真实卡数。
-那份清单**本身就是机密**：一份公开的、写着 `98\\.8|17\\.9` 的正则表，
-等于告诉所有人你在藏哪两个数字。
+那份清单**本身就是机密**：公开写出真实比例或集群规模的正则表，
+也可能泄露原本要保护的信息。
 
 所以这里只放**类别级**的模式：形如超参的东西、形如内部代码路径的东西。
 它认不出某个具体数值，但认得出"这看起来像是不该出现在这儿的配置"。
@@ -34,6 +34,18 @@ EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--",
           # career/journey: the owner's own list of companies that interviewed them, all
           # already public on their homepage. Scoped to that one line, not to the name.
           r"HRT Algo Dev"]
+
+PUBLIC_REFERENCE_URLS = {
+    "https://huggingface.co/ByteDance/Ouro-1.4B/blob/7ea635ba1575ae9ab4ae1d83d83e16a6e47fe696/modeling_ouro.py":
+        "Public model implementation, pinned for the looped-model code audit; surrounding text remains scanned.",
+}
+
+
+def redact_public_reference_urls(line):
+    for url in PUBLIC_REFERENCE_URLS:
+        line = re.sub(re.escape(url) + r'(?=[\s)<>]|$)', '[public source]', line)
+    return line
+
 
 SCAN = ["00-foundations", "quant", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
@@ -68,7 +80,7 @@ def main():
             for label, scope, rx in rules:
                 if scope and not scope.search(rel):
                     continue
-                m = rx.search(line)
+                m = rx.search(redact_public_reference_urls(line))
                 if m:
                     hits.append((rel, i, label, m.group(0), line.strip()[:88]))
 

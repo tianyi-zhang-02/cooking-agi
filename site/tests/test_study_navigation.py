@@ -35,7 +35,7 @@ class StudyNavigationTests(unittest.TestCase):
         build.BY_SRC.clear()
         build.BY_SRC.update(self.old_sources)
 
-    def test_technical_notes_are_learning_not_career(self):
+    def test_technical_preparation_is_separate_from_foundations_and_career(self):
         technical = [page for source, page in self.chinese.items()
                      if source.startswith("interview/") or source in {
                          "00-foundations/interview-basics.md",
@@ -43,7 +43,8 @@ class StudyNavigationTests(unittest.TestCase):
                          "00-foundations/ml-math-interview.md"}]
         self.assertGreater(len(technical), 10)
         for page in technical:
-            self.assertEqual(build.page_category(page), "learn", str(page.src))
+            category = "practice" if page.src.name == "system-design.md" else "interview"
+            self.assertEqual(build.page_category(page), category, str(page.src))
         career = [page for page in self.pages if build.page_category(page) == "career"]
         self.assertTrue(career)
         self.assertTrue(all(page.src.relative_to(ROOT).as_posix().startswith("career/")
@@ -66,8 +67,43 @@ class StudyNavigationTests(unittest.TestCase):
         self.assertNotIn("{{subtabs}}", template)
         self.assertNotIn("search-launch", template)
         markup = build.tabs_html(self.chinese["interview/leetcode.md"])
-        self.assertIn('href="../learn/index.html" class="active"', markup)
+        self.assertIn('href="../interview/index.html" class="active"', markup)
         self.assertIn('href="../practice/index.html"', markup)
+
+    def test_four_categories_separate_learning_preparation_and_design(self):
+        self.assertEqual([category['id'] for category in self.nav['category']],
+                         ['learn', 'interview', 'practice', 'career'])
+        expected = {
+            '00-foundations/core/multi-head-attention.md': 'learn',
+            '04-search/tfidf-and-bm25.md': 'learn',
+            'interview/algorithms/primes-and-sieves.md': 'interview',
+            '00-foundations/pytorch/README.md': 'interview',
+            'interview/basics/README.md': 'interview',
+            'learn/ml-exercises/README.md': 'interview',
+            'learn/system-design/README.md': 'practice',
+            'learn/system-design/feed.md': 'practice',
+            'practice/post-training/README.md': 'practice',
+            'career/README.md': 'career',
+        }
+        for source, category in expected.items():
+            page = self.chinese[source]
+            self.assertEqual(build.page_category(page), category, source)
+            self.assertEqual(build.page_category(page.sibling), category, source)
+
+    def test_papers_leave_primary_navigation_without_breaking_old_urls(self):
+        for source in ('papers/README.md', 'EDITORIAL.md'):
+            page = self.chinese[source]
+            self.assertIsNone(build.page_category(page))
+            self.assertIsNotNone(page.sibling)
+        self.assertEqual(self.chinese['papers/README.md'].url, 'papers/index.html')
+        for page in (self.chinese['interview/README.md'],
+                     self.chinese['interview/README.md'].sibling):
+            markup = build.tabs_html(page)
+            self.assertNotIn('/papers/', markup)
+            self.assertEqual(markup.count('class="active"'), 1)
+            sidebar = build.sidebar_html(page, self.sections, self.nav['group'])
+            self.assertNotIn('data-grp="reference"', sidebar)
+            self.assertIn('data-grp="interview-basics"', sidebar)
 
     def test_new_series_and_exercises_are_bilingual(self):
         additions = [page for source, page in self.chinese.items()

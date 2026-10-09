@@ -56,6 +56,16 @@ The output is `4 ['D']`. This is a set demonstration, not a retrieval experiment
 
 When reading SimClusters, notice how it narrows the pool before more precise similarity work. **Approximation saves computation and access cost; it doesn't establish that missed items are irrelevant.**
 
+## Does a new source earn one of four slots?
+
+Construct another example: the baseline selects `[A,B,C,D]`, while a second source ranks `[C,E,F]`. Fixed human relevance labels identify `{B,E}` as relevant, with a budget of four. Appending the new source creates six unique candidates; recovering E under a larger budget doesn't establish a better fusion method.
+
+Allocate two slots to each source and obtain `[A,B,C,E]`: hits rise from one to two because E is a uniquely relevant addition. Allocate one plus three instead, obtaining `[A,C,E,F]`, and B is lost; hits return to one.
+
+Establish complementarity, then test allocation. Different sources do not automatically justify a complex router. Compare fixed quotas, simple rules, and learned routing; a router relying on thin user histories may make unstable decisions.
+
+Overlap also consumes nominal slots. Refill fewer than four unique results from later candidates in a deterministic order and record extra work. Don't mix raw scores such as 0.8 and 12 without calibration. The [RAG RRF example](../rag/data-and-retrieval.en.md) shows a rank-based baseline, which still needs evaluation on this task.
+
 ## Self-check
 
 <details><summary>If two sources have equal Recall, is the second redundant?</summary><p>Not necessarily. They may recover different relevant items. Check overlap, unique relevant candidates, and the union under a fixed budget.</p></details>

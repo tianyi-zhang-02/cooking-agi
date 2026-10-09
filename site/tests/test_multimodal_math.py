@@ -13,6 +13,23 @@ SPEC.loader.exec_module(LAB)
 
 
 class MultimodalMathTests(unittest.TestCase):
+    def test_cosine_survives_independent_extreme_scales(self):
+        for first_scale in (1e-300, 1e-200, 1, 1e200, 1e300):
+            for second_scale in (1e-300, 1e-200, 1, 1e200, 1e300):
+                for sign in (-1, 1):
+                    with self.subTest(first_scale=first_scale, second_scale=second_scale, sign=sign):
+                        actual = LAB.cosine([sign * first_scale, sign * first_scale], [second_scale, 0])
+                        self.assertAlmostEqual(actual, sign / math.sqrt(2), places=14)
+
+    def test_cosine_validates_domain_and_preserves_geometry(self):
+        for first, second in (([], []), ([1], [1, 2]), ([0, 0], [1, 1]),
+                              ([1, 1], [0, 0]), ([math.inf], [1]), ([1], [math.nan])):
+            with self.subTest(first=first, second=second), self.assertRaises(ValueError):
+                LAB.cosine(first, second)
+        self.assertAlmostEqual(LAB.cosine([1, 1], [1, -1]), 0)
+        self.assertAlmostEqual(LAB.cosine([1e300, 1e300], [1e300, 1e300]), 1)
+        self.assertAlmostEqual(LAB.cosine([1e-300, 1e-300], [-1e-300, -1e-300]), -1)
+
     def test_dot_and_cosine_differ(self):
         self.assertEqual(LAB.dot([1, 0], [2, 2]), 2)
         self.assertAlmostEqual(LAB.cosine([1, 0], [2, 2]), 1 / math.sqrt(2))

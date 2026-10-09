@@ -26,7 +26,7 @@ If you're preparing for an ML internship or a new-grad role, take whatever is us
 
 ### Technical practice
 
-Python, LeetCode, ML fundamentals, and system design are in [Study notes](../learn/README.en.md). This section is for the experience of preparing and applying.
+ML / LLM questions, ML coding, Python, and LeetCode are in [Interview preparation](../interview/README.en.md). System design lives in [Engineering practice](../learn/system-design/README.en.md). This section is for the experience of preparing and applying.
 
 ## A little context
 

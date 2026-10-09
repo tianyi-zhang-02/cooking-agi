@@ -1,0 +1,73 @@
+.study-atlas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0 3rem;
+}
+.atlas-subject {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ember);
+  padding: 1.15rem 1.2rem;
+  background: var(--panel);
+  border-radius: 3px 3px 12px 12px;
+}
+.atlas-subject > header { display: flex; align-items: baseline; gap: .7rem; }
+.atlas-number { font: 500 .75rem/1.5 var(--mono); color: var(--ember); flex-shrink: 0; }
+.prose .atlas-subject :is(h3,h4) { margin: 0; font: 600 1rem/1.5 var(--body); border: 0; letter-spacing: normal; }
+.atlas-subject :is(h3,h4) a { color: var(--ink); text-decoration: none; }
+.atlas-subject :is(h3,h4) a:hover { color: var(--ember); }
+.atlas-count { margin-left: auto; font: .7rem/1.5 var(--sans); color: var(--muted); white-space: nowrap; }
+.prose .atlas-description { font-size: .85rem; line-height: 1.85; margin: .85rem 0 1rem; color: var(--ink-soft); }
+.prose details.atlas-chapter { margin: 0; border: 0; border-top: 1px solid var(--rule-soft); border-radius: 0; background: transparent; }
+.prose .atlas-chapter summary { display: flex; align-items: baseline; gap: .65rem; padding: .8rem 0; font: 550 .82rem/1.65 var(--body); cursor: pointer; }
+.atlas-chapter summary::before { content: '+'; font: .85rem/1.5 var(--mono); color: var(--ember); }
+.atlas-chapter[open] summary::before { content: '−'; }
+.prose .atlas-chapter summary::after { display: none; }
+.atlas-chapter summary small { margin-left: auto; color: var(--muted); font-weight: 400; }
+.prose .atlas-chapter-intro { margin: 0 0 .7rem; font-size: .79rem; color: var(--muted); line-height: 1.8; }
+.prose .atlas-chapter ol { margin: 0 0 .85rem; padding-left: 1.3rem; font-size: .83rem; }
+.prose .atlas-chapter li { margin: .2rem 0; padding-left: .15rem; }
+.atlas-chapter li::marker { color: var(--faint); font-size: .72rem; }
+.atlas-chapter a { display: inline-block; padding: .18rem 0; line-height: 1.6; overflow-wrap: anywhere; }
+.atlas-chapter :is(summary,a):focus-visible, .atlas-subject :is(h3,h4) a:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+.atlas-area { margin: 2.5rem 0; scroll-margin-top: 6rem; }
+.prose .atlas-area > header h3 { font: 600 1rem/1.6 var(--body); margin: 0; }
+.prose .atlas-area > header p { margin: .45rem 0 0; font-size: .88rem; color: var(--ink-soft); }
+.atlas-area .study-atlas { margin: 1rem 0 0; }
+.worked-update { margin: 1.5rem 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--panel); }
+.prose .worked-update ol { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); list-style: none; padding: 0; margin: 0; }
+.prose .worked-update li { min-width: 0; padding: 1rem; margin: 0; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); }
+.worked-update small { display: block; font: .72rem/1.5 var(--mono); color: var(--ember); }
+.worked-update strong { display: block; margin: .3rem 0; font-size: .9rem; }
+.worked-update span { display: block; font: .81rem/1.75 var(--body); color: var(--ink-soft); }
+.worked-update figcaption { padding: .8rem 1rem; font: .78rem/1.8 var(--body); color: var(--muted); }
+.prose .worked-table table { min-width: 0; }
+.prose .worked-table th { white-space: normal; text-transform: none; letter-spacing: normal; }
+.chapter-context { margin: 0 0 1.8rem; padding: .9rem 1.1rem; border-left: 2px solid var(--rule); background: var(--panel); }
+.chapter-context strong { font: 600 .73rem/1.5 var(--body); color: var(--muted); }
+.prose .appendix-topics { list-style: none; padding: 0 1rem; margin: 0; }
+.prose .appendix-topics li { padding: 1rem 0; margin: 0; border-bottom: 1px solid var(--rule-soft); scroll-margin-top: 7rem; }
+.prose .appendix-topics li:last-child { border-bottom: 0; }
+.prose .appendix-topics p { margin: .45rem 0; font-size: .86rem; }
+.appendix-topics .coverage-status, .appendix-topics small { display: block; color: var(--muted); font: .75rem/1.8 var(--body); }
+.prose .chapter-context p { margin: .3rem 0 0; font-size: .86rem; line-height: 1.8; }
+.study-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 1.7rem 0 2rem; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.study-route a { display: block; padding: 1rem; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule-soft); border-right: 1px solid var(--rule-soft); background: var(--panel); }
+.study-route a:hover { background: var(--ember-bg); }
+.study-route small { display: block; font: .7rem/1.5 var(--mono); color: var(--ember); margin-bottom: .3rem; }
+.study-route strong { font: 600 .88rem/1.6 var(--body); }
+.study-route span { display: block; font: .78rem/1.7 var(--body); color: var(--muted); margin-top: .35rem; }
+.page-index:has(.study-atlas) .article-head h1 { max-width: 24ch; }
+@media (max-width: 760px) {
+  .prose .worked-table :is(th,td) { padding: .6rem .35rem; }
+  .study-atlas { grid-template-columns: 1fr; }
+  .study-route { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .study-route.prep-route { grid-template-columns: 1fr; }
+  .atlas-subject { padding: 1rem; }
+  .atlas-chapter summary { min-height: 44px; }
+  .prose .worked-update ol { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .study-atlas *, .study-route * { scroll-behavior: auto; transition: none; }
+}

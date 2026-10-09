@@ -26,20 +26,22 @@ Confidence: the interest may be shifting; do not draw a permanent conclusion yet
 Evidence: three searches + one explicit question
 ```
 
-This is why Personal AGI needs a **revisable user state** rather than a static personal profile.
+For an assistant used over time, **user state needs to be revisable**. An old judgment should not become a permanent fact.
 
 ## How representation and memory differ
 
 - **Representation**: how information is encoded, right now, into a form the model can use.
 - **Memory**: which information persists across time, and how it is later read, updated, and forgotten.
 
-Representation answers “how do we describe it now.” Memory answers “should we still believe it later.”
+Representation concerns how information is encoded. Memory also concerns what to keep, when to retrieve it, and how to update it later.
 
 ## Memory can be split into layers
 
+These categories separate uses, not necessarily storage systems: they can overlap, and do not require five databases. [CoALA §4.1](https://arxiv.org/html/2309.02427v3#S4.SS1) discusses working, episodic, semantic, and procedural memory. We also list preferences and goals separately to examine personal assistants.
+
 ### Working memory
 
-The context the current task is using: the conversation so far, the open files, and this turn's tool results. Its capacity is small, but it needs to be very precise.
+The context the current task is using: the conversation so far, open files, and this turn's tool results. Context-window and inference-cost limits make it important to prioritize information that this task can actually use.
 
 ### Episodic memory
 
@@ -47,7 +49,7 @@ What specifically happened in the past, for example that the user planned a Toky
 
 ### Semantic memory
 
-Relatively stable facts distilled from many events, for example that the user usually works in Python or has long lived in a particular time zone.
+Relatively stable facts, drawn from explicit statements or summarized across events: for example, that the user mainly works in Python. Inferred facts still need provenance; storing an inference does not make it certain.
 
 ### Preference and goal state
 
@@ -55,7 +57,7 @@ What the user likes, what they are pursuing, and the evidence and confidence beh
 
 ### Procedural memory
 
-The system learns how to work with this user, for example whether they prefer the conclusion first or the full derivation.
+Reusable procedures or skills: for expense reports, extract dates and amounts, check for duplicates, then ask the user to confirm. This differs from “the user likes conclusions first”: one is how to perform a task; the other is a preference. Procedural knowledge may also reside in model parameters or code, not just stored text.
 
 ## The four operations a memory system really has to solve
 
@@ -69,11 +71,11 @@ Once there is a lot of memory, the key question becomes “which part should the
 
 ### Update
 
-New evidence does not necessarily overwrite old information. The system needs to keep the history of change, the source, and the confidence, rather than storing only the last value.
+New evidence does not necessarily overwrite old information. Where retention is permitted, keep change history, provenance, and confidence. But keeping history is not a reason to retain information the user asked to delete.
 
 ### Forget
 
-Stale, wrong, sensitive, or no-longer-useful information should be deleted, downweighted, or no longer retrieved. A system that never forgets is not necessarily smarter.
+Stale information can be downweighted or excluded from retrieval; incorrect information needs correction or removal. **Downweighting is not deletion.** A deletion request also needs to address derived summaries, vector indexes, and caches, with explicit backup-retention limits and a record of which copies have been handled or remain pending. See the [memory lifecycle](memory-lifecycle.en.md).
 
 ## Why one vector may not be enough
 
@@ -95,7 +97,7 @@ Testing “did it recall past information” is not enough. Also check:
 - whether the retrieved memory really helps the current task;
 - whether a wrong memory keeps contaminating later answers;
 - whether the system really updates after the user corrects it;
-- whether, after many sessions, it becomes more helpful rather than narrower and narrower;
+- whether it becomes more helpful across sessions rather than merely repeating known preferences;
 - whether the system can explain which evidence a judgment came from.
 
 ## How it connects to other topics

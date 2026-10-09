@@ -2,49 +2,49 @@
 
 **中文** · [English](review.en.md)
 
-> 阅读时间：约 3 分钟 · 难度：进阶 · 最近审阅：2026-09
+> 阅读时间：约 3 分钟 · 难度：进阶 · 最近审阅：2026-10-09
 
 ## 面试常见问题
 
 <details class="interview" markdown="1">
 <summary>Looped Transformer 和 ALBERT 的参数共享有什么区别？</summary>
 
-两者都在层之间共享权重。ALBERT 的目的是减少参数，推理计算量和原来一样，层数也是固定的。Looped Transformer 的目的是把深度和计算变成可以调的：同一个 block 转更多圈，就得到更深的计算，参数不变。
+两者都共享参数。ALBERT 还结合 embedding 因式分解来压缩模型，不能把总参数变化全归于共享。Looped 模型研究在共享权重下调整执行深度；参数不变，不代表计算量、KV 或延迟不变，也不保证深度外推有效。
 
 </details>
 
 <details class="interview" markdown="1">
-<summary>为什么循环能提升推理，却不能提升知识容量？</summary>
+<summary>循环给模型增加了什么，又没有增加什么？</summary>
 
-推理需要串行步数，而每个 token 的串行步数由深度决定，循环正好增加深度。知识存在参数里，循环不增加参数：Ouro 测得循不循环都是每参数约 2 bit；Saunshi 等也发现同样计算量下 looped 模型的 perplexity 和记忆更差，但推理几乎追平更深的模型。
+增加共享参数上的计算深度，不新增外部事实，也不新增每圈独立的权重。能否利用好这些计算是实验问题。约 2 bit/parameter 是合成知识实验的结果，不是容量定理；“多圈一定更准”也不成立。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Input injection 是什么？为什么需要？</summary>
 
-每一圈都把原始输入的 embedding $e$ 重新喂给循环块，比如 Huginn 用 adapter 把当前状态和 $e$ 拼起来。不这样做，输入只在开头出现一次，要靠隐藏状态一圈圈保存下来；圈数一多就容易丢，训练也更不稳定。
+每圈重新提供输入表示 $e$，如 Huginn 将 prelude 输出和当前状态送入 adapter。这样不必完全依赖循环状态保存输入。它是一种设计选择，不是所有循环模型稳定训练的必要或充分条件。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>自适应深度有哪些做法？Ouro 的 early exit 在公开代码里省计算吗？</summary>
 
-ACT（累计停止概率过阈值就停）、PonderNet（停止概率分布加几何先验的 KL，梯度无偏）、Ouro 的退出 gate（第一阶段带熵正则，第二阶段用损失改善作标签）、Mixture-of-Recursions（router 给每个 token 分配深度）。Ouro 公开的 Hugging Face 代码里 4 圈总是全部跑完，early exit 只决定读哪一圈的输出，不省计算。
+ACT、PonderNet、退出 gate 和深度 router 采用不同目标。需要分清条件停止概率、实际退出概率、输出选择和实际跳过计算。[自适应深度](adaptive-depth.md)里的 3 步算例给出平均 2.2 步；Ouro 的 `7ea635b` 快照则先执行全部配置圈数再选择输出，不能把选择深度直接当计算量。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Looped 模型的 KV cache 为什么会变大？能不能各圈共享？</summary>
 
-每一圈都重新跑 attention，默认每个（圈，层）存一份 K/V，Ouro 1.4B 每个 token 有 96 个槽位，是不循环时的 4 倍。能不能共享取决于训练：Ouro 报告只在解码时复用最后一圈几乎无损，但两篇 2026 年的独立工作在 Ouro 上复现时掉得很厉害；Huginn 对共享就不敏感。不能默认它是免费的。
+各圈权重一样，收到的隐藏状态却不一样，所以完整缓存通常按（圈，层）区分。共享会改变计算，需要比较误差。不同论文的 checkpoint、prefill 规则和生成长度不完全相同；不能把协议差异当作严格复现失败。内存账与来源见[代价与局限](costs.md)。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Looping 和 chain-of-thought 是什么关系？</summary>
 
-两者都在增加串行计算步数。CoT 通过生成 token，每个 token 一轮前向，过程看得见；looping 在隐藏状态里多走几步，不产生 token，过程看不见。Saunshi 等证明 $m$ 步 CoT 可以用一个稍大的 block 循环 $m$ 次来模拟，所以 looped 模型也叫 latent reasoning。
+CoT 增加生成位置，looping 增加隐藏状态更新；两者能组合。带 KV cache 的逐 token 前向不重算全部前缀。模拟 CoT 的理论构造有额外结构与输入长度条件，不等于任意现成模型可以直接互换；可见文字也不保证解释忠实。
 
 </details>
 
@@ -54,7 +54,7 @@ ACT（累计停止概率过阈值就停）、PonderNet（停止概率分布加�
   <strong>如果真的理解了，你应该能解释：</strong>
   <ol>
     <li>为什么普通 Transformer 的深度和参数是绑在一起的，循环怎样把它们拆开？</li>
-    <li>一个 1 层模型循环 12 次能解加法，这说明了推理能力由什么决定？</li>
+    <li>同样执行 12 次层计算，共享与独立参数的模型在哪些预算上不同？</li>
     <li>ACT、PonderNet、Ouro 的退出 gate 分别怎样决定一个 token 什么时候停？</li>
     <li>循环 4 圈的模型，KV cache 为什么默认是不循环时的 4 倍？</li>
     <li>哪些任务适合用 looped 模型，哪些不适合？</li>

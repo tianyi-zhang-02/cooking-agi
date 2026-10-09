@@ -1,8 +1,9 @@
 """BatchNorm, LayerNorm and RMSNorm on the same activations.
 
-The point of the script is the last section: BatchNorm's output depends on the
-other rows in the batch, and at batch size 1 it collapses to zeros. Everything
-people say about "why Transformers use LayerNorm" follows from that.
+Training-mode BatchNorm couples samples through its reduction axes. With one
+value per channel PyTorch raises an error, whereas evaluation with running
+statistics still works. Temporal BatchNorm can train with one sequence but
+couples its timesteps; these are different constraints.
 
 Run: python norm_compare.py
 """
@@ -74,6 +75,14 @@ except ValueError as e:
     print(f"  BatchNorm -> ValueError: {e}")
     print("  PyTorch refuses outright rather than returning something wrong:")
     print("  with one sample the batch variance is 0 and x - mean is 0, so the")
-    print("  output would carry no information at all. This is exactly the")
-    print("  autoregressive decoding case.")
+    print("  normalized output would contain only the learned bias.")
+    print("  This is a training-mode [1, C] restriction, not an inference rule.")
 print(f"  LayerNorm -> {ln(x[:1]).detach().numpy().round(3)[0][:5]} ...  (unbothered)")
+
+sequence = torch.randn(1, D, T)
+temporal_bn = nn.BatchNorm1d(D)
+temporal_output = temporal_bn(sequence)
+print(f"\n  BatchNorm(train) [1, C, L] -> {tuple(temporal_output.shape)}")
+print("  There are L values per channel, but statistics now mix timesteps.")
+bn.eval()
+print(f"  BatchNorm(eval) [1, C] -> {tuple(bn(x[:1]).shape)} (running statistics)")

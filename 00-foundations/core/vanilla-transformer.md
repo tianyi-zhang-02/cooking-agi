@@ -2,26 +2,9 @@
 
 **中文** · [English](vanilla-transformer.en.md)
 
-> 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-08
+> 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10-09
 
-<div class="lesson-recipe">
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>解决什么问题</span><strong>让所有位置并行交换信息，不再排队递归</strong></div>
-    <div class="recipe-face" data-concept-en><span>Problem</span><strong>Exchange information across all positions in parallel, without recurrence</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>前置知识</span><strong>token matrix · position · attention mask</strong></div>
-    <div class="recipe-face" data-concept-en><span>Prerequisites</span><strong>token matrix · position · attention mask</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>核心机制</span><strong>自注意力 · 交叉注意力 · 前馈网络 · 残差连接</strong></div>
-    <div class="recipe-face" data-concept-en><span>Core mechanisms</span><strong>self-attention · cross-attention · FFN · residual connection</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>常见错误</span><strong>混淆三处注意力，以及把因果掩码遮反</strong></div>
-    <div class="recipe-face" data-concept-en><span>Common failure</span><strong>Mixing up the three attention sites or masking the wrong direction</strong></div>
-  </div>
-</div>
+仍然以翻译为例：encoder 可以同时读整句原文，decoder 生成下一个词时，却不能偷看尚未写出的译文。原始 Transformer 用不同的 attention 和 mask 处理这两种条件。沿着一句话走过 encoder、decoder，再回来看每个 block，结构就不只是几排重复的方框了。
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
@@ -32,26 +15,7 @@
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 快速学习：2017 Transformer 一层走一遍
-
-<details class="interview" markdown="1">
-<summary>Encoder、Decoder 与现代 Decoder-only 的分界</summary>
-
-**快速记忆**：Encoder 是 self-attention + FFN；Decoder 多 masked self-attention 与 cross-attention；每段外面都有 residual 与 norm。
-
-**面试回答**
-
-> Source tokens 经 embedding 与 position encoding 后进入 encoder；decoder 用右移后的 target 做 masked self-attention，再通过 cross-attention 读取 encoder states，最后由 linear vocabulary head 与 softmax 预测下一个 token。训练能并行所有 target positions，生成仍需自回归。
-
-<details markdown="1">
-<summary><b>深挖</b>：为什么 target 右移和 causal mask 两个都需要？</summary>
-
-右移决定每个位置的输入是前一个真实 token；causal mask 决定该位置不能在 self-attention 中读取更右侧标签。只右移不 mask，深层 attention 仍能偷看未来；只 mask 不右移，则当前位置直接拿到它要预测的 token embedding。
-
-</details>
-</details>
-
-## 先交换位置信息，再逐位置变换
+## 先交换位置信息，再逐位置变换 {#_1}
 
 先忘掉那张塞满箭头的大框图。Transformer 一层其实只反复做两件事：**attention 去别的位置拿信息，FFN 留在当前位置加工信息。** 原版仍然是 encoder–decoder，但 recurrence 被彻底拿掉了。
 
@@ -71,7 +35,7 @@ still an encoder–decoder, but recurrence is removed completely.
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 一层只有两类计算
+## 一层只有两类计算 {#_2}
 
 1. **Attention mixing**：不同 token 之间交换信息。
 2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
@@ -96,7 +60,7 @@ more useful than memorizing the full block diagram.
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 三处 attention 在问不同的问题
+## 三处 attention 在问不同的问题 {#attention}
 
 | 位置 | Query | Key / Value | mask | 作用 |
 | --- | --- | --- | --- | --- |
@@ -133,10 +97,10 @@ The mask $M$ adds 0 at allowed positions and $-\infty$ at forbidden positions.
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 为什么这套做法突然可以做大
+## 为什么这套做法突然可以做大 {#_3}
 
 - **训练并行**：所有位置的 $Q/K/V$ 可以一次算出；
-- **路径更短**：任意两个 token 一层 attention 就能直接交互；
+- **路径更短**：未被 mask 隔开的两个位置，可以在一层 attention 中直接传递信息；
 - **结构统一**：self-attention 与 cross-attention 只是张量来源不同。
 
 代价是 self-attention 的分数矩阵大小为 $T\times T$，标准实现的时间和显存随序列长度近似二次增长。
@@ -147,7 +111,7 @@ The mask $M$ adds 0 at allowed positions and $-\infty$ at forbidden positions.
 <div class="concept-title-en concept-title-h2" role="heading" aria-level="2">Why the architecture scales</div>
 
 - **Parallel training:** Q, K, and V for every position are computed at once.
-- **Short paths:** any two tokens can interact through one attention layer.
+- **Short paths:** positions allowed by the mask can communicate through one attention layer.
 - **One reusable structure:** self-attention and cross-attention differ mainly in
   where Q, K, and V come from.
 
@@ -160,32 +124,29 @@ approximately quadratically in time and memory with sequence length.
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 缺失的信息：Attention 本身不知道顺序
+## 缺失的信息：Attention 本身不知道顺序 {#attention_1}
 
-Attention 本身不知道顺序。原版把固定 sinusoidal position encoding 加到 token embedding：
+不加位置编码、也不加顺序相关 mask 的 self-attention 是置换等变的：输入换序，输出跟着换序。原版把固定 sinusoidal position encoding 加到缩放后的 token embedding；这里把缩放吸收进 E：
 
 $$z_t = E[x_t] + PE_t$$
 
-没有位置编码时，模型只能看到一袋 token；调换顺序只会让输出跟着调换。
+这个结论适用于上述无顺序约束的 attention，不是说 causal decoder 也完全不知道前后。Causal mask 已经限制了可见方向，位置编码再提供更明确的位置信号。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
 <div class="concept-title-en concept-title-h2" role="heading" aria-level="2">The missing information: attention does not know order</div>
 
-Attention alone is permutation-equivariant: reordering the input merely reorders the
-output. The original Transformer therefore adds fixed sinusoidal positional encoding
-to each token embedding:
+Without positional information or an order-dependent mask, self-attention is permutation-equivariant: reordering inputs reorders outputs. The original Transformer adds fixed sinusoidal positions to scaled token embeddings, with the scale absorbed into E here:
 
 $$z_t=E[x_t]+PE_t.$$
 
-Without position information, the model sees a bag of tokens rather than an ordered
-sequence.
+This describes attention without order constraints, not a causal decoder with no sense of earlier and later. The causal mask already restricts visibility; positional encoding supplies more explicit position information.
 
 </div>
 </section>
 
-## 从 token ID 到下一个 token：完整走一遍
+## 从 token ID 到下一个 token：完整走一遍 {#token-id-token}
 
 用英译中的小例子，把 2017 原版 Transformer 的整条前向路径串起来。先只看 shape，
 再看每个模块的职责。
@@ -193,7 +154,7 @@ sequence.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 1. Source 怎样进入 encoder
+### 1. Source 怎样进入 encoder {#1-source-encoder}
 
 英文句子先经过 tokenizer：
 
@@ -252,7 +213,7 @@ the same tokens. Dropout follows the embedding-plus-position sum.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### Attention 的维度与边界条件
+### Attention 的维度与边界条件 {#attention_2}
 
 对单个 attention head，更一般的 shape 是：
 
@@ -280,8 +241,7 @@ $$q^\top k=\sum_{i=1}^{d_k}q_ik_i,\qquad
 
 $$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
 
-score 不会仅仅因为 head dimension 变大就把 softmax 推到饱和区。否则注意力会过早接近
-one-hot，非最大位置的梯度很小。这里使用的是 Q/K 的匹配维度 $d_k$，与 $d_v$ 无关。
+在上述假设下，这降低了 head dimension 增大导致权重过早饱和的风险，不保证训练后的分数总处于某个范围。饱和取决于分数差，不只是绝对值。这里使用 Q/K 的匹配维度 $d_k$，与 $d_v$ 无关。
 
 $W_Q,W_K,W_V$ 的单个坐标没有固定的人类语义，但三套投影承担不同角色：Q 表达“我要找
 什么”，K 表达“我怎样被匹配”，V 表达“匹配后传递什么内容”。因此
@@ -329,10 +289,7 @@ The dot product's standard deviation grows like $\sqrt{d_k}$. Scaling gives
 
 $$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
 
-so increasing head width alone does not push softmax into saturation. Without the
-scaling, attention can become nearly one-hot too early and gradients at non-maximum
-positions become small. The relevant width is the Q/K matching dimension $d_k$, not
-$d_v$.
+Under those assumptions, scaling reduces the risk of early saturation as head width grows; it does not bound learned scores throughout training. Saturation depends on score differences, not just absolute magnitude. The relevant width is the Q/K matching dimension $d_k$, not $d_v$.
 
 The individual coordinates of $W_Q,W_K,W_V$ have no fixed human meaning, but their
 computational roles differ: Q represents what to look for, K how an item can be
@@ -357,7 +314,7 @@ located from what information is read.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 2. 一个 encoder layer 算什么
+### 2. 一个 encoder layer 算什么 {#2-encoder-layer}
 
 原版堆叠 6 个相同结构的 encoder layer。每层都是：
 
@@ -481,7 +438,7 @@ $$C=\operatorname{Encoder}(X)\in\mathbb{R}^{S\times512}.$$
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 3. Target 为什么要右移
+### 3. Target 为什么要右移 {#3-target}
 
 若正确译文是
 
@@ -527,7 +484,7 @@ original Transformer.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 4. 一个 decoder layer 为什么有三段
+### 4. 一个 decoder layer 为什么有三段 {#4-decoder-layer}
 
 原版也堆 6 个 decoder layer；每层比 encoder 多一个 cross-attention：
 
@@ -635,7 +592,7 @@ $$D\in\mathbb{R}^{T\times512}.$$
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 5. 从 decoder state 变成词表概率
+### 5. 从 decoder state 变成词表概率 {#5-decoder-state}
 
 每个位置的 512 维向量投影到目标词表。若词表大小 $V=30{,}000$：
 
@@ -694,7 +651,7 @@ $$
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-## 不要混淆：2017 原版不是现代 Decoder-only
+## 不要混淆：2017 原版不是现代 Decoder-only {#2017-decoder-only}
 
 | | 2017 vanilla | 现代 decoder-only |
 | --- | --- | --- |
@@ -740,13 +697,13 @@ predicted.
 </div>
 </section>
 
-## 动手验证：运行完整示例
+## 动手验证：运行完整示例 {#_4}
 
 - 快速跑通：[`../code/vanilla_demo.py`](../code/vanilla_demo.py)
 - 完整数学与现代组件：[Transformer 架构深拆](../transformer.md)
 - 无 PyTorch attention 前向：[`../code/sequence_numpy.py`](../code/sequence_numpy.py)
 
-## 自检
+## 自检 {#_5}
 
 <div class="taste-check">
   <strong>画完结构图后，再问自己：</strong>
@@ -760,6 +717,25 @@ predicted.
   </ol>
 </div>
 
-## 继续阅读
+## 继续阅读 {#_6}
 
-进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。
+进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。本文的原版配置与权重共享约定依据 [Attention Is All You Need](https://arxiv.org/abs/1706.03762)。
+
+## 快速学习：2017 Transformer 一层走一遍 {#2017-transformer}
+
+<details class="interview" markdown="1">
+<summary>Encoder、Decoder 与现代 Decoder-only 的分界</summary>
+
+**快速记忆**：Encoder 是 self-attention + FFN；Decoder 多 masked self-attention 与 cross-attention；每段外面都有 residual 与 norm。
+
+**面试回答**
+
+> Source tokens 经 embedding 与 position encoding 后进入 encoder；decoder 用右移后的 target 做 masked self-attention，再通过 cross-attention 读取 encoder states，最后由 linear vocabulary head 与 softmax 预测下一个 token。训练能并行所有 target positions，生成仍需自回归。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 target 右移和 causal mask 两个都需要？</summary>
+
+右移决定每个位置的输入是前一个真实 token；causal mask 决定该位置不能在 self-attention 中读取更右侧标签。只右移不 mask，深层 attention 仍能偷看未来；只 mask 不右移，则当前位置直接拿到它要预测的 token embedding。
+
+</details>
+</details>

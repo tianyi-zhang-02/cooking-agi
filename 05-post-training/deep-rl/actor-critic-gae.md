@@ -111,9 +111,38 @@ def gae(rewards, values, next_values, terminated, truncated,
 
 next_values 必须来自对应 transition 的 final observation，不是 reset 后的 observation。普通 rollout buffer 到尾但任务没结束，也可以用尾部 value bootstrap，递推在 buffer 边界停下。
 
+## Critic 的误差怎样进入 Actor？
+
+写成 $V_\phi(s)=V^\pi(s)+e(s)$，一步 residual 的期望就能拆开：
+
+$$
+\mathbb E[\delta_t\mid s,a]=A^\pi(s,a)+\gamma\mathbb E[e(s')\mid s,a]-e(s).
+$$
+
+假设当前状态高估 2，某个动作到达的下一状态平均低估 3，$\gamma=0.9$，这个动作的 advantage 估计就差了 $0.9(-3)-2=-4.7$。单次更新的方向可能因此改变。
+
+但这两个误差在**期望策略梯度**里并不等价：固定的 $-e(s)$ 是动作无关基线，按当前策略对动作求平均后，它的梯度贡献为零；下一状态的误差则可能随动作改变，通常不能抵消。不要把“advantage 估错了多少”直接当作“梯度偏了多少”。这个区别沿用上一篇 baseline 的推导；PPO clipping 等非线性处理还要另看。
+
+加大 $\lambda$ 可以减少对沿途短期估值的依赖，但会带进更长段实际回报的噪声；片段截断时，尾部 bootstrap 仍有误差。不能简单说“$\lambda=1$ 总是无偏”，先问有没有走到真正终点、样本是否来自被评价的策略。
+
+## Padding 和平均方式也会改变目标
+
+两条轨迹中，A 的有效 token loss 为 $[1,1,1]$，B 只有一个 loss 9。按 token 平均是 3，先按轨迹平均再平均是 5。两种都能定义，但给轨迹的权重不一样。
+
+| 实现细节 | 为什么不能略过 |
+| --- | --- |
+| Padding mask | 补齐位置不能影响均值、方差和分母 |
+| Advantage 标准化 | 改变尺度，减均值还可能改变单个样本的符号 |
+| 每卡独立标准化 | 不等于全局有效 batch 标准化 |
+| Rollout 时的旧 value | 应在更新前固定，不能随当前 Critic 偷偷改 target |
+
+比如 $[1,2]$ 减均值变成 $[-0.5,0.5]$。这是一种 batch 内的相对处理，标准化后的数不能再直接当成真实 $Q-V$。它可能帮助优化，但不是不需要解释的恒等变换。
+
 ## Actor 与 Critic 怎样各改各的
 
 Actor 最小化 $-\log\pi_\theta(a_t\mid s_t)\,\mathrm{stopgrad}(\hat A_t)$；Critic 常拟合 $\mathrm{stopgrad}(\hat A_t+V_{\rm old}(s_t))$。这个 target 要在更新前固定，不能每次随着正在训练的 value 偷偷漂移。
+
+这里加回旧 value 的必须是**尚未标准化的 GAE**。比如旧 value 为 $[10,10]$、原始 advantage 为 $[1,3]$，value target 是 $[11,13]$。若先把 advantage 变成 $[-1,1]$ 再加，得到 $[9,11]$，已经把回报单位改掉了。Actor 可以另用标准化副本，Critic 的 target 不要跟着改。
 
 PPO 再在 Actor 上加入新旧概率比与 clipping；不是把 GAE 当成 PPO 本身。移步[四种 PPO clipping 情况](../rlhf/ppo-clipping.md)看已有交互。
 

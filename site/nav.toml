@@ -3,8 +3,6 @@
 # Adding a note:   drop the .md into a section folder -- it appears automatically.
 # Pinning order:   list it in that section's `order`. Unlisted files sort after,
 #                  alphabetically, so you only name the ones you care about.
-# Adding a section: add a [[section]] block. Nothing else to touch.
-
 [site]
 repo        = "tianyi-zhang-02/cooking-agi"
 title_zh    = "AGI 学习笔记"
@@ -35,19 +33,27 @@ owner_url   = "https://tianyi-zhang-02.github.io/"
 # home 是这个大类的落地页；每个 [[group]] 用 category 指到这里的 id。
 [[category]]
 id = "learn"
-zh = "学习笔记"
-en = "Study notes"
+zh = "基础与原理"
+en = "Foundations"
 home = "learn/README.md"
-blurb_zh = "补基础、学模型、写代码、做设计，按你现在想学的内容开始。"
-blurb_en = "Foundations, training and applications, coding exercises, and system design."
+blurb_zh = "从模型怎样计算开始，逐步理解训练、评估、推理与应用。"
+blurb_en = "Understand how models compute, learn, get evaluated, and support applications."
+
+[[category]]
+id = "interview"
+zh = "面试准备"
+en = "Interview prep"
+home = "interview/README.md"
+blurb_zh = "ML / LLM 基础问答、ML Coding、Python 与 LeetCode，按需要选一条复习路线。"
+blurb_en = "Review ML / LLM concepts, practice ML coding, and work through Python and algorithm patterns."
 
 [[category]]
 id = "practice"
 zh = "工程实践"
-en = "Industry Practice"
+en = "Engineering practice"
 home = "practice/README.md"
-blurb_zh = "从 Twitter / X 等公开项目读起，看看每个模块为什么需要、代码里怎样实现。"
-blurb_en = "Read public systems end to end, starting with Twitter / X recommendations."
+blurb_zh = "从需求出发做系统设计，再用推荐、RAG 和后训练项目看实现与取舍。"
+blurb_en = "Work through system-design choices and implementations in recommendation, RAG, and post-training."
 
 [[category]]
 id = "career"
@@ -57,41 +63,34 @@ home = "career/README.md"
 blurb_zh = "找实习和应届岗位时的经历、心态与选择，也记录走过的弯路。"
 blurb_en = "Internship and new-grad journeys, decisions, setbacks, and reflections."
 
-[[category]]
-id = "reference"
-zh = "论文"
-en = "Papers"
-home = "papers/README.md"
-blurb_zh = "一起读论文：看方法和实验，也聊聊疑问和自己的理解。"
-blurb_en = "Papers read one at a time: what a paper actually claims, whether the evidence holds, and what it changes for us."
-
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
 # 顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id；home 是点这个板块时落到哪一页（不写就用第一页）。
 # 不带 category 的分组（开始）排在最前面，不属于任何大类。
+[[zone]]
+id = "basics"
+zh = "01 · 理解模型"
+en = "01 · Understand models"
+summary_zh = "先看输入与计算，再比较架构；图像、声音也沿着这条线接进来。"
+summary_en = "Start with inputs and computation, then compare architectures and add other modalities."
+
+[[zone]]
+id = "applications"
+zh = "02 · 训练与检验"
+en = "02 · Train & evaluate"
+summary_zh = "目标怎样变成更新，反馈怎样用，实验又能支持什么结论。"
+summary_en = "Connect objectives to updates, use feedback, and check what an experiment establishes."
+
+[[zone]]
+id = "design"
+zh = "03 · 推理与应用"
+en = "03 · Inference & applications"
+summary_zh = "从生成一个回答，到检索资料、使用工具和维持长期状态。"
+summary_en = "Move from generating an answer to retrieving evidence, using tools, and maintaining state."
+
 [[group]]
 id = "start"
 zh = "开始"
 en = "Start here"
-
-[[zone]]
-id = "basics"
-zh = "01 · 基础与模型"
-en = "01 · Foundations & models"
-
-[[zone]]
-id = "applications"
-zh = "02 · 训练与应用"
-en = "02 · Training & applications"
-
-[[zone]]
-id = "coding"
-zh = "03 · 代码与题解"
-en = "03 · Code & exercises"
-
-[[zone]]
-id = "design"
-zh = "04 · 系统设计"
-en = "04 · System design"
 
 [[group]]
 id = "study"
@@ -101,20 +100,44 @@ en = "Study map"
 home = "learn/README.md"
 
 [[group]]
-id = "quant"
-category = "learn"
-zone = "basics"
-zh = "数学与量化"
-en = "Math & quant"
-home = "quant/README.md"
-
-[[group]]
 id = "foundations"
 category = "learn"
 zone = "basics"
 zh = "大模型基础"
 en = "Foundations"
 home = "00-foundations/README.md"
+summary_zh = "先看文本怎样进入模型，再把 Attention、FFN 和整个 Transformer 接起来。"
+summary_en = "Follow text into a model, then connect attention, FFNs, and the full Transformer."
+
+[[group]]
+id = "architectures"
+category = "learn"
+zone = "basics"
+zh = "架构与模型家族"
+en = "Architectures & model families"
+home = "00-foundations/model-families/README.md"
+summary_zh = "带着基础读模型报告：哪些部件变了，为什么变，代价在哪里。"
+summary_en = "Read model reports by asking what changed, why it changed, and what it costs."
+
+[[group]]
+id = "multimodal"
+category = "learn"
+zone = "basics"
+zh = "多模态学习"
+en = "Multimodal learning"
+home = "03-multimodal-learning/README.md"
+summary_zh = "从 ViT 的图片输入、CLIP 图文配对，走到视觉特征怎样进入语言模型。"
+summary_en = "Follow images through ViT, CLIP alignment, and connectors into language models."
+
+[[group]]
+id = "pretraining"
+category = "learn"
+zone = "applications"
+zh = "预训练与训练工程"
+en = "Pretraining & training mechanics"
+home = "learn/pretraining/README.md"
+summary_zh = "从目标、数据和一个 batch 出发，算清精度、显存与多卡分工。"
+summary_en = "Connect the objective, data, and one batch to precision, memory, and distributed execution."
 
 [[group]]
 id = "deep-rl"
@@ -123,6 +146,8 @@ zone = "applications"
 zh = "强化学习"
 en = "Deep RL"
 home = "05-post-training/deep-rl/README.md"
+summary_zh = "先在小环境里理解回报、价值和策略，再看算法为什么稳定或失效。"
+summary_en = "Understand returns, values, and policies in small environments before comparing algorithms."
 
 [[group]]
 id = "posttrain"
@@ -131,6 +156,8 @@ zone = "applications"
 zh = "Post-training"
 en = "Post-training"
 home = "05-post-training/README.md"
+summary_zh = "先分清示范、偏好和奖励，再比较微调、蒸馏、PPO 与后续方法。"
+summary_en = "Separate demonstrations, preferences, and rewards before choosing fine-tuning, distillation, or RL."
 
 [[group]]
 id = "eval"
@@ -139,62 +166,84 @@ zone = "applications"
 zh = "评估"
 en = "Evaluation"
 home = "07-evaluation/README.md"
+summary_zh = "先确定比较是否公平，再看指标、切片、统计误差与模型裁判。"
+summary_en = "Make comparisons meaningful, then examine metrics, slices, uncertainty, and model judges."
+
+[[group]]
+id = "inference"
+category = "learn"
+zone = "design"
+zh = "生成、长上下文与推理"
+en = "Generation, context & inference"
+home = "learn/inference/README.md"
+summary_zh = "区分如何选下一个 token、如何缓存状态，以及怎样少搬数据或少算配对。"
+summary_en = "Separate token selection, cached state, memory traffic, and the number of attention pairs."
 
 [[group]]
 id = "data-retrieval"
 category = "learn"
-zone = "applications"
-zh = "数据与检索"
-en = "Data & retrieval"
+zone = "design"
+zh = "数据、记忆与检索"
+en = "Data, memory & retrieval"
 home = "01-data-and-feedback/README.md"
-
-[[group]]
-id = "systems"
-category = "learn"
-zone = "applications"
-zh = "系统与多模态"
-en = "Systems & multimodal"
-home = "06-systems/README.md"
+summary_zh = "日志不等于意图，召回不等于回答：顺着信号、记忆与检索结果往下看。"
+summary_en = "Logs are not intent, and retrieval is not an answer. Follow the signal through memory and search."
 
 [[group]]
 id = "agents"
 category = "learn"
-zone = "applications"
+zone = "design"
 zh = "Agents"
 en = "Agents"
 home = "10-agents/README.md"
+summary_zh = "模型怎样选择工具、保留状态、处理失败，并知道什么时候该停。"
+summary_en = "How models choose tools, maintain state, recover from failures, and decide when to stop."
+
+[[group]]
+id = "systems"
+category = "learn"
+zone = "design"
+zh = "AI 系统与体验"
+en = "AI systems & experience"
+home = "06-systems/README.md"
+summary_zh = "把一次请求放回完整产品：看可观测性、人工参与和长期使用体验。"
+summary_en = "Put a request back in its product context: observability, human oversight, and long-term use."
 
 [[group]]
 id = "coding"
-category = "learn"
-zone = "coding"
-zh = "Python 与练习"
-en = "Python & practice guide"
+category = "interview"
+zh = "复习导读与 Python"
+en = "Start here & Python"
 home = "interview/README.md"
+summary_zh = "先把容器、复杂度和常用写法用顺，再把公式写成可检查的小函数。"
+summary_en = "Get comfortable with containers and complexity, then turn formulas into testable functions."
 
 [[group]]
-id = "algorithms"
-category = "learn"
-zone = "coding"
-zh = "LeetCode 方法"
-en = "Algorithm patterns"
-home = "interview/leetcode.md"
+id = "interview-basics"
+category = "interview"
+zh = "ML / LLM 基础问答"
+en = "ML / LLM fundamentals"
+home = "interview/basics/README.md"
+summary_zh = "从问题检查理解：先讲机制，再说明假设、例子和取舍。"
+summary_en = "Use questions to check mechanisms, assumptions, examples, and tradeoffs."
 
 [[group]]
 id = "ml-exercises"
-category = "learn"
-zone = "coding"
-zh = "ML 问答与手写"
-en = "ML questions & implementations"
+category = "interview"
+zh = "ML Coding"
+en = "ML coding"
 home = "learn/ml-exercises/README.md"
+summary_zh = "检查 shape、梯度、mask 和数值稳定性，让会讲与会写接起来。"
+summary_en = "Connect explanations to implementations through shapes, gradients, masks, and numerical checks."
 
 [[group]]
-id = "system-design"
-category = "learn"
-zone = "design"
-zh = "设计题与推演"
-en = "Design exercises"
-home = "learn/system-design/README.md"
+id = "algorithms"
+category = "interview"
+zh = "LeetCode 方法"
+en = "Algorithm patterns"
+home = "interview/leetcode.md"
+summary_zh = "按能迁移的方法复习，不按题号背答案。重点是 Easy / Medium。"
+summary_en = "Review reusable patterns rather than memorized answers, mostly through Easy / Medium problems."
 
 [[group]]
 id = "practice"
@@ -204,11 +253,34 @@ en = "Start here"
 home = "practice/README.md"
 
 [[group]]
+id = "system-design"
+category = "practice"
+zh = "系统设计"
+en = "System design"
+home = "learn/system-design/README.md"
+summary_zh = "拿明确的需求和预算，推演 Feed、RAG 与长期记忆的取舍。"
+summary_en = "Work through Feed, RAG, and memory designs with explicit requirements and budgets."
+
+[[group]]
 id = "recsys"
 category = "practice"
 zh = "推荐系统拆解"
 en = "Inside recommender systems"
 home = "practice/recommender-systems/README.md"
+
+[[group]]
+id = "rag-practice"
+category = "practice"
+zh = "RAG 知识库"
+en = "A RAG knowledge assistant"
+home = "practice/rag/README.md"
+
+[[group]]
+id = "posttraining-practice"
+category = "practice"
+zh = "后训练实验"
+en = "Post-training experiments"
+home = "practice/post-training/README.md"
 
 [[group]]
 id = "career"
@@ -218,9 +290,8 @@ en = "Job search"
 
 [[group]]
 id = "reference"
-category = "reference"
-zh = "论文"
-en = "Papers"
+zh = "写作资料与存档"
+en = "Writing resources & archive"
 
 
 [[section]]
@@ -242,96 +313,142 @@ dir = "learn"
 group = "study"
 zh = "学习导航"
 en = "Study map"
-order = ["README.md"]
+order = ["README.md", "coverage.md"]
 
 [[section]]
 dir   = "00-foundations"
 group = "foundations"
 zh    = "学习路线"
 en    = "Learning path"
-order = ["study-guide.md", "README.md", "from-linear-to-neural.md", "transformer.md", "transformer-lab.md"]
-
-[[section]]
-dir   = "quant"
-group = "quant"
-zh    = "复习导航"
-en    = "Review map"
-order = ["README.md", "review.md"]
-
-[[section]]
-dir   = "quant/probability"
-group = "quant"
-zh    = "概率基础与证明"
-en    = "Probability"
-order = ["study-guide.md", "README.md", "distributions.md", "conditional.md",
-         "counting.md", "distribution-toolkit.md", "joint-and-order.md",
-         "event-proofs.md", "expectation-proofs.md", "conditioning-proofs.md",
-         "inequalities.md", "limits.md", "continuous-calculus.md",
-         "markov-chains.md", "proof-toolbox.md", "practice.md"]
-
-[[section]]
-dir   = "quant/methods"
-group = "quant"
-zh    = "数学、统计与计算"
-en    = "Math, statistics & computation"
-order = ["README.md", "calculus-optimization.md", "linear-algebra.md",
-         "statistics.md", "numerical-and-coding.md"]
-
-[[section]]
-dir   = "quant/processes"
-group = "quant"
-zh    = "随机过程与决策"
-en    = "Processes & decisions"
-order = ["README.md", "martingales.md", "dynamic-programming.md", "brownian-ito.md"]
-
-[[section]]
-dir   = "quant/finance"
-group = "quant"
-zh    = "金融数学"
-en    = "Financial mathematics"
-order = ["README.md", "options-and-greeks.md", "portfolio-and-market.md"]
+order = ["README.md", "study-guide.md", "transformer.md", "transformer-lab.md"]
+home = "00-foundations/README.md"
 
 [[section]]
 dir = "00-foundations/core"
 group = "foundations"
-zh  = "核心机制"
-en  = "Core mechanisms"
-order = ["README.md", "tokenization.md", "embeddings-and-similarity.md", "recurrent-models.md", "seq2seq.md",
-         "multi-head-attention.md", "normalization.md", "residual-connections.md",
-         "vanilla-transformer.md", "decoder-only.md", "decoding.md"]
+sequence = 2
+zh  = "02 · 搭起 Transformer"
+en  = "02 · Build a Transformer"
+home = "00-foundations/core/README.md"
+intro_zh = "前面已有 token 与向量，现在看模型怎样让不同位置交换信息，再组合成完整网络。"
+intro_en = "With tokens and vectors in place, examine how positions exchange information and form a complete network."
+order = ["README.md", "multi-head-attention.md", "residual-connections.md", "normalization.md", "ffn-and-gates.md", "vanilla-transformer.md", "decoder-only.md"]
+
+[[section]]
+dir = "learn/input-and-sequences"
+group = "foundations"
+sequence = 1
+zh = "01 · 输入与序列"
+en = "01 · Inputs & sequences"
+home = "00-foundations/core/README.md"
+intro_zh = "从函数、向量和 token 开始；RNN 与 Seq2Seq 用来解释 Attention 为什么出现。"
+intro_en = "Start with functions, vectors, and tokens; use RNNs and Seq2Seq to motivate attention."
+include = ["00-foundations/from-linear-to-neural.md", "00-foundations/core/tokenization.md", "00-foundations/deep-dives/tokenizer-algorithms.md", "00-foundations/core/embeddings-and-similarity.md", "00-foundations/core/recurrent-models.md", "00-foundations/core/seq2seq.md", "00-foundations/deep-dives/recurrent-dynamics.md"]
+order = ["from-linear-to-neural.md", "tokenization.md", "tokenizer-algorithms.md", "embeddings-and-similarity.md", "recurrent-models.md", "seq2seq.md", "recurrent-dynamics.md"]
 
 [[section]]
 dir = "00-foundations/code"
 group = "foundations"
+sequence = 3
 zh  = "从零实现"
 en  = "Build from scratch"
 
 [[section]]
 dir = "00-foundations/deep-dives"
 group = "foundations"
-zh  = "进阶 · 原理"
-en  = "Advanced · mechanisms"
-order = ["README.md", "recurrent-dynamics.md", "language-model-objective.md", "training-step.md"]
+sequence = 4
+zh  = "进阶阅读地图"
+en  = "Advanced reading map"
+order = ["README.md"]
+
+[[section]]
+dir = "learn/training-foundations"
+group = "pretraining"
+sequence = 0
+zh = "先补训练基础"
+en = "Training foundations"
+home = "00-foundations/deep-dives/generalization.md"
+intro_zh = "先判断模型为什么没学好，再看激活、初始化和优化器各自改变了什么。"
+intro_en = "Diagnose learning failures, then examine activations, initialization, and optimizer updates."
+include = ["00-foundations/deep-dives/generalization.md", "00-foundations/deep-dives/activation-and-initialization.md", "00-foundations/deep-dives/optimizers.md", "00-foundations/deep-dives/muon.md"]
+order = ["generalization.md", "activation-and-initialization.md", "optimizers.md", "muon.md"]
+
+[[section]]
+dir = "learn/pretraining"
+group = "pretraining"
+zh = "01 · 目标、数据与更新"
+en = "01 · Objectives, data & updates"
+home = "learn/pretraining/README.md"
+intro_zh = "先弄清模型在预测什么，再跟踪数据如何组成 batch，以及一次参数更新如何计算。"
+intro_en = "Establish the prediction target, then follow the data into a batch and a parameter update."
+include = ["00-foundations/deep-dives/language-model-objective.md", "00-foundations/deep-dives/pretraining-pipeline.md", "00-foundations/deep-dives/training-step.md", "00-foundations/deep-dives/multi-token-prediction.md"]
+order = ["README.md", "language-model-objective.md", "pretraining-pipeline.md", "training-step.md", "multi-token-prediction.md"]
+
+[[section]]
+dir = "learn/training-resources"
+group = "pretraining"
+sequence = 2
+zh = "02 · 精度、显存与并行"
+en = "02 · Precision, memory & parallelism"
+home = "learn/pretraining/README.md"
+intro_zh = "需要先懂一次训练。这里区分数值格式、保存的状态、重算和多卡切分，不把它们混作一种优化。"
+intro_en = "After one training step, separate numeric formats, stored state, recomputation, and multi-device partitioning."
+include = ["00-foundations/deep-dives/precision-and-memory.md", "06-systems/distributed-training.md"]
+order = ["precision-and-memory.md", "distributed-training.md"]
+
+[[section]]
+dir = "learn/inference"
+group = "inference"
+zh = "01 · 生成与缓存"
+en = "01 · Generation & caching"
+home = "learn/inference/README.md"
+intro_zh = "知道 decoder 怎样预测 token 后，再分开看采样策略和 prefill / decode 的计算。"
+intro_en = "Once decoder prediction is clear, separate sampling choices from prefill and decode computation."
+include = ["00-foundations/core/decoding.md", "00-foundations/deep-dives/kv-cache-and-inference.md", "00-foundations/deep-dives/dflash.md"]
+order = ["README.md", "decoding.md", "kv-cache-and-inference.md", "dflash.md"]
+
+[[section]]
+dir = "learn/attention-systems"
+group = "inference"
+sequence = 2
+zh = "02 · 长上下文与高效注意力"
+en = "02 · Long context & efficient attention"
+home = "learn/inference/README.md"
+intro_zh = "按改变了什么来比较：位置编码、数据搬运、缓存布局、状态压缩，还是读取哪些位置。"
+intro_en = "Compare changes to positions, memory traffic, cache layout, state compression, and selected positions."
+include = ["00-foundations/deep-dives/position-and-context.md", "00-foundations/deep-dives/nope-and-order.md", "00-foundations/deep-dives/attention-kernels.md", "00-foundations/deep-dives/latent-and-sparse-attention.md"]
+order = ["position-and-context.md", "nope-and-order.md", "attention-kernels.md", "latent-and-sparse-attention.md"]
 
 [[section]]
 dir = "00-foundations/model-families"
-group = "foundations"
-zh  = "进阶 · 模型家族"
-en  = "Advanced · model families"
-order = ["README.md", "how-to-read.md", "llama.md", "qwen.md", "deepseek.md", "gemma.md"]
+group = "architectures"
+zh  = "模型报告精读"
+en  = "Reading model reports"
+order = ["README.md", "how-to-read.md", "gpt.md", "llama.md", "qwen-early.md", "qwen.md", "deepseek.md", "deepseek-v4.md", "gemma.md"]
+
+[[section]]
+dir = "learn/architecture-components"
+group = "architectures"
+zh = "架构组件：门控、记忆与深度"
+en = "Components: gates, memory & depth"
+home = "00-foundations/deep-dives/README.md"
+intro_zh = "这里按改动位置比较组件：attention 输出、历史状态、局部查表和网络深度。先分清它改了哪一步，再看训练结果。"
+intro_en = "Compare changes to attention outputs, historical state, local lookup, and network depth before interpreting training results."
+include = ["00-foundations/deep-dives/gated-attention.md", "00-foundations/deep-dives/gated-deltanet.md", "00-foundations/deep-dives/engram.md", "00-foundations/deep-dives/attention-residuals.md"]
+order = ["gated-attention.md", "gated-deltanet.md", "engram.md", "attention-residuals.md"]
 
 [[section]]
 dir   = "00-foundations/moe"
-group = "foundations"
-zh    = "进阶 · MoE"
-en    = "Advanced · MoE"
+group = "architectures"
+zh    = "MoE：专家与路由"
+en    = "MoE: experts & routing"
 order = ["README.md", "router.md", "load-balancing.md", "fine-grained-and-shared.md", "systems.md", "review.md"]
 
 [[section]]
 dir   = "00-foundations/looped"
-group = "foundations"
-zh    = "进阶 · Looped"
-en    = "Advanced · Looped"
+group = "architectures"
+zh    = "Looped：深度与参数共享"
+en    = "Looped: depth & sharing"
 order = ["README.md", "why-loops-reason.md", "adaptive-depth.md", "models.md", "costs.md", "review.md"]
 
 [[section]]
@@ -350,23 +467,51 @@ en  = "Representation & memory"
 
 [[section]]
 dir = "03-multimodal-learning"
-order = ["README.md", "clip.md", "vision-to-language.md"]
-group = "systems"
+order = ["README.md", "vit.md", "clip.md", "vision-to-language.md", "blip-and-q-former.md", "vlm-designs.md", "qwen-vl.md", "omni-streaming.md", "ocr-compression.md", "image-generation.md", "vlm-finetuning.md"]
+group = "multimodal"
 zh  = "多模态学习"
 en  = "Multimodal learning"
 
 [[section]]
 dir = "04-search"
+order = ["README.md", "tfidf-and-bm25.md", "dual-encoder.md", "embedding-models.md", "vector-indexes.md", "hybrid-and-reranking.md", "rag-evidence.md"]
 group = "data-retrieval"
 zh  = "搜索与检索"
 en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
-order = ["README.md", "model-adaptation.md", "sft-and-its-ceiling.md", "where-preferences-come-from.md", "after-ppo.md", "verifiable-rewards.md", "post-training-infrastructure.md", "same-base-different-posttraining.md", "alignment-tax.md"]
+order = ["README.md", "sft-and-its-ceiling.md", "model-adaptation.md", "parameter-efficient-tuning.md", "lora-and-qlora.md", "distillation.md"]
 group = "posttrain"
-zh  = "方法与取舍"
-en  = "Methods & trade-offs"
+zh  = "01 · 示范、微调与蒸馏"
+en  = "01 · Demonstrations, adaptation & distillation"
+home = "05-post-training/README.md"
+intro_zh = "先看监督来自哪里，再看更新哪些参数；LoRA 不是另一种监督信号，蒸馏也不一定是缩小模型。"
+intro_en = "Separate the source of supervision from trainable parameters: LoRA is not a new signal, and distillation is not only model compression."
+
+[[section]]
+dir = "05-post-training/preference-objectives"
+group = "posttrain"
+sequence = 2
+zh = "02 · 偏好、奖励与目标"
+en = "02 · Preferences, rewards & objectives"
+home = "05-post-training/README.md"
+intro_zh = "理解示范学习之后，再分清偏好对、奖励模型和验证器分别提供了什么。"
+intro_en = "After demonstration learning, distinguish preference pairs, reward models, and verifiers."
+include = ["05-post-training/where-preferences-come-from.md", "05-post-training/after-ppo.md", "05-post-training/dapo.md", "05-post-training/policy-ratios.md", "05-post-training/async-policy-learning.md", "05-post-training/verifiable-rewards.md"]
+order = ["where-preferences-come-from.md", "after-ppo.md", "dapo.md", "policy-ratios.md", "async-policy-learning.md", "verifiable-rewards.md"]
+
+[[section]]
+dir = "05-post-training/experiments-and-tradeoffs"
+group = "posttrain"
+sequence = 4
+zh = "04 · 实验与能力保持"
+en = "04 · Experiments & capability retention"
+home = "05-post-training/README.md"
+intro_zh = "回到实际实验：采样与训练怎样对齐，怎样用同一个基座比较，并检查能力回退。"
+intro_en = "Return to experiments: align rollout and training, compare a shared base, and check regressions."
+include = ["05-post-training/post-training-infrastructure.md", "05-post-training/same-base-different-posttraining.md", "05-post-training/alignment-tax.md"]
+order = ["post-training-infrastructure.md", "same-base-different-posttraining.md", "alignment-tax.md"]
 
 [[section]]
 dir = "05-post-training/deep-rl"
@@ -402,10 +547,11 @@ order = ["imitation-and-rewards.md", "offline-and-ope.md", "exploration-and-hier
 [[section]]
 dir   = "05-post-training/rlhf"
 group = "posttrain"
-zh    = "RLHF"
-en    = "RLHF"
+sequence = 3
+zh    = "03 · RLHF 的训练过程"
+en    = "03 · The RLHF training process"
 order = ["README.md", "rl-for-language-models.md", "value-and-advantage.md", "on-off-policy.md",
-         "three-stages.md", "reference-and-critic.md", "after-rlhf.md", "ppo-clipping.md",
+         "three-stages.md", "reference-and-critic.md", "kl-estimators.md", "ppo-clipping.md", "after-rlhf.md",
          "evaluation-and-review.md"]
 
 [[section]]
@@ -413,14 +559,14 @@ dir   = "06-systems"
 group = "systems"
 zh    = "系统"
 en    = "Systems"
-order = ["README.md", "agent-observability.md", "human-in-the-loop.md"]
+order = ["README.md", "distributed-training.md", "agent-observability.md", "human-in-the-loop.md"]
 
 [[section]]
 dir   = "07-evaluation"
 group = "eval"
 zh    = "评估基础"
 en    = "Evaluation basics"
-order = ["README.md", "evaluation-stack.md", "ablation-and-slices.md", "metric-robustness.md"]
+order = ["README.md", "evaluation-stack.md", "text-metrics.md", "benchmark-protocols.md", "ablation-and-slices.md", "metric-robustness.md"]
 
 [[section]]
 dir   = "07-evaluation/llm-as-a-judge"
@@ -447,13 +593,13 @@ dir   = "10-agents"
 group = "agents"
 zh    = "Agents"
 en    = "Agents"
-order = ["README.md", "patterns.md", "scenarios.md", "model-choice.md", "review.md"]
+order = ["README.md", "prompting.md", "patterns.md", "deep-research.md", "scenarios.md", "model-choice.md", "review.md"]
 
 [[section]]
 dir   = "practice"
 group = "practice"
 zh    = "工程实践"
-en    = "Industry Practice"
+en    = "Engineering practice"
 order = ["README.md"]
 
 # --- 强化学习：训练那一侧的语义，和 post-training 直接相连
@@ -469,17 +615,34 @@ order = ["README.md", "mdp-and-policy-gradient.md", "baseline-and-advantage.md",
 [[section]]
 dir     = "interview"
 group   = "coding"
-zh      = "Python 与练习方法"
-en      = "Python & practice"
+zh      = "复习入口"
+en      = "Preparation guide"
 order   = ["README.md", "python.md"]
+
+[[section]]
+dir = "interview/basics"
+group = "interview-basics"
+zh = "基础问答与推导"
+en = "Concepts & derivations"
+order = ["README.md", "interview-basics.md", "ml-math-interview.md", "transformer-followups.md", "questions.md"]
+include = ["00-foundations/interview-basics.md", "00-foundations/ml-math-interview.md", "interview/transformer-followups.md", "interview/questions.md"]
+
+[[section]]
+dir = "00-foundations/pytorch"
+group = "ml-exercises"
+sequence = 1
+zh = "PyTorch：从张量到训练"
+en = "PyTorch: tensors to training"
+order = ["README.md", "tensors-and-storage.md", "operations-and-shapes.md", "autograd.md", "training-loop.md"]
 
 [[section]]
 dir = "learn/ml-exercises"
 group = "ml-exercises"
-zh = "ML 问答与手写"
-en = "ML questions & implementations"
-order = ["README.md", "interview-basics.md", "hand-write-kit.md", "ml-math-interview.md", "transformer-followups.md", "questions.md"]
-include = ["00-foundations/interview-basics.md", "00-foundations/hand-write-kit.md", "00-foundations/ml-math-interview.md", "interview/transformer-followups.md", "interview/questions.md"]
+sequence = 2
+zh = "从公式到代码"
+en = "From formulas to code"
+order = ["README.md", "hand-write-kit.md"]
+include = ["00-foundations/hand-write-kit.md"]
 
 [[section]]
 dir = "learn/system-design"
@@ -497,12 +660,28 @@ en = "Twitter / X & modern recommendation"
 order = ["README.md", "00-architecture.md", "01-feed-pipeline.md", "02-candidate-retrieval.md", "03-ranking-and-diversity.md", "04-modern-recsys.md", "05-evaluation-lab.md", "06-why-two-towers.md", "07-component-choices.md", "08-serving-lifecycle.md"]
 
 [[section]]
+dir = "practice/rag"
+group = "rag-practice"
+zh = "从文档到有依据的回答"
+en = "From documents to supported answers"
+order = ["README.md", "data-and-retrieval.md", "evidence-and-evaluation.md"]
+
+[[section]]
+dir = "practice/post-training"
+group = "posttraining-practice"
+zh = "后训练：选型、训练与交付"
+en = "Post-training: design to delivery"
+order = ["README.md", "training-plan.md", "data-pipeline.md", "data-and-objectives.md", "distributed-training.md", "checkpoint-and-resume.md", "experiments-and-release.md"]
+
+[[section]]
 dir     = "interview/algorithms"
 group   = "algorithms"
 zh      = "LeetCode · 方法复习"
 en      = "LeetCode · Patterns"
 order   = ["leetcode.md", "complexity-and-tools.md", "hash-and-prefix.md", "pointers-and-search.md",
-           "traversal.md", "stack-heap-links.md", "backtracking-and-dp.md", "sorting-and-greedy.md"]
+           "string-matching.md", "traversal.md", "binary-search-trees.md", "stack-heap-links.md",
+           "monotonic-queue.md", "backtracking-and-dp.md", "knapsack.md", "sequence-dp.md",
+           "state-machine-dp.md", "sorting-and-greedy.md", "primes-and-sieves.md"]
 include = ["interview/leetcode.md"]
 
 [[section]]
@@ -536,12 +715,41 @@ en  = "Templates"
 # ("Post-training" -> "RLHF"). The page title stays in full and shows on hover. A note
 # without a label falls back to its title up to the first colon.
 [label]
+"learn/coverage.md" = ["覆盖与待补", "Coverage & gaps"]
+"learn/pretraining/README.md" = ["训练路线导读", "Training route"]
+"learn/inference/README.md" = ["推理路线导读", "Inference route"]
+"00-foundations/core/ffn-and-gates.md" = ["FFN 与 SwiGLU", "FFN & SwiGLU"]
+"00-foundations/deep-dives/pretraining-pipeline.md" = ["预训练的数据与流程", "Pretraining pipeline"]
+"00-foundations/deep-dives/precision-and-memory.md" = ["精度与训练显存", "Precision & memory"]
+"00-foundations/deep-dives/position-and-context.md" = ["RoPE 与长上下文", "RoPE & long context"]
+"00-foundations/deep-dives/nope-and-order.md" = ["NoPE 与顺序信息", "NoPE & sequence order"]
+"00-foundations/deep-dives/attention-kernels.md" = ["FlashAttention 与分页", "FlashAttention & paging"]
+"00-foundations/deep-dives/latent-and-sparse-attention.md" = ["MLA 与稀疏注意力", "MLA & sparse attention"]
+"00-foundations/deep-dives/multi-token-prediction.md" = ["多 token 预测", "Multi-token prediction"]
+"05-post-training/parameter-efficient-tuning.md" = ["Prompt / Prefix / Adapter", "Prompt / Prefix / Adapter"]
+"06-systems/distributed-training.md" = ["多卡训练怎么分", "Distributed training"]
 "00-foundations/core/embeddings-and-similarity.md" = ["向量与相似度", "Embeddings & similarity"]
 "00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
+"00-foundations/deep-dives/generalization.md" = ["泛化与训练诊断", "Generalization & diagnosis"]
+"00-foundations/deep-dives/activation-and-initialization.md" = ["激活与初始化", "Activations & initialization"]
+"00-foundations/deep-dives/optimizers.md" = ["SGD 到 AdamW", "SGD to AdamW"]
+"00-foundations/deep-dives/tokenizer-algorithms.md" = ["分词算法详解", "Tokenizer algorithms"]
+"00-foundations/deep-dives/kv-cache-and-inference.md" = ["KV cache 与推理成本", "KV cache & inference"]
+"05-post-training/lora-and-qlora.md" = ["LoRA 与 QLoRA", "LoRA & QLoRA"]
+"05-post-training/distillation.md" = ["蒸馏：答案与分布", "Distillation: answers & distributions"]
 "03-multimodal-learning/clip.md" = ["CLIP 图文对齐", "CLIP alignment"]
+"03-multimodal-learning/vit.md" = ["ViT：图片变成 token", "ViT: images to tokens"]
+"03-multimodal-learning/blip-and-q-former.md" = ["BLIP 与 Q-Former", "BLIP & Q-Former"]
 "03-multimodal-learning/vision-to-language.md" = ["图片怎样进入 LLM", "Vision to language"]
+"03-multimodal-learning/vlm-designs.md" = ["LLaVA 与 DeepSeek-VL", "LLaVA & DeepSeek-VL"]
+"03-multimodal-learning/qwen-vl.md" = ["Qwen-VL：分辨率与位置", "Qwen-VL: resolution & position"]
+"03-multimodal-learning/omni-streaming.md" = ["Omni：流式音视频", "Omni: streaming audio & video"]
+"03-multimodal-learning/ocr-compression.md" = ["OCR 与上下文压缩", "OCR & context compression"]
+"03-multimodal-learning/image-generation.md" = ["Qwen-Image：生成与编辑", "Qwen-Image: generation & editing"]
+"03-multimodal-learning/vlm-finetuning.md" = ["VLM 微调与检查", "VLM fine-tuning & checks"]
 "00-foundations/study-guide.md" = ["怎么读与怎么复习", "Study & review guide"]
 "00-foundations/model-families/how-to-read.md" = ["带着问题读模型", "Reading a model report"]
+"00-foundations/model-families/deepseek-v4.md" = ["DeepSeek-V4：压缩与训练", "DeepSeek-V4: compression & training"]
 "01-data-and-feedback/feedback-to-objectives.md" = ["反馈怎么变成目标", "Feedback to objectives"]
 "02-memory/memory-lifecycle.md" = ["写入、更新与遗忘", "Memory lifecycle"]
 "07-evaluation/ablation-and-slices.md" = ["对照实验与切片", "Comparisons & slices"]
@@ -551,36 +759,6 @@ en  = "Templates"
 "00-foundations/from-linear-to-neural.md"               = ["从线性到神经网络", "Linear to neural"]
 "00-foundations/transformer.md"                         = ["Transformer 架构", "Transformer"]
 "00-foundations/transformer-lab.md"                     = ["Transformer 交互图解", "Transformer lab"]
-"quant/probability/study-guide.md" = ["复习路线", "Review guide"]
-"quant/README.md" = ["覆盖表与路线", "Coverage & routes"]
-"quant/review.md" = ["综合复习", "Mixed review"]
-"quant/probability/counting.md" = ["计数与抽样", "Counting & sampling"]
-"quant/probability/distribution-toolkit.md" = ["常用分布推导", "Distribution toolkit"]
-"quant/probability/joint-and-order.md" = ["联合分布与顺序统计", "Joint & order statistics"]
-"quant/methods/README.md" = ["逻辑与证明方法", "Logic & proof methods"]
-"quant/methods/calculus-optimization.md" = ["微积分与优化", "Calculus & optimization"]
-"quant/methods/linear-algebra.md" = ["线代与最小二乘", "Linear algebra"]
-"quant/methods/statistics.md" = ["统计推断", "Statistical inference"]
-"quant/methods/numerical-and-coding.md" = ["数值与编程", "Numerics & coding"]
-"quant/processes/README.md" = ["Poisson 与到达时间", "Poisson & arrivals"]
-"quant/processes/martingales.md" = ["随机游走与鞅", "Walks & martingales"]
-"quant/processes/dynamic-programming.md" = ["动态规划与最优停止", "DP & optimal stopping"]
-"quant/processes/brownian-ito.md" = ["Brownian motion 与 Itô", "Brownian motion & Itô"]
-"quant/finance/README.md" = ["无套利与复制", "No-arbitrage & replication"]
-"quant/finance/options-and-greeks.md" = ["Black–Scholes 与 Greeks", "Black–Scholes & Greeks"]
-"quant/finance/portfolio-and-market.md" = ["组合与风险", "Portfolios & risk"]
-"quant/probability/event-proofs.md" = ["事件与公理证明", "Event proofs"]
-"quant/probability/expectation-proofs.md" = ["期望与方差", "Expectation & variance"]
-"quant/probability/conditioning-proofs.md" = ["条件期望与全方差", "Conditional expectation"]
-"quant/probability/inequalities.md" = ["常用不等式", "Inequalities"]
-"quant/probability/limits.md" = ["大数定律与 CLT", "LLN & CLT"]
-"quant/probability/continuous-calculus.md" = ["连续概率与微积分", "Continuous probability"]
-"quant/probability/markov-chains.md" = ["Markov 链与等待时间", "Markov chains"]
-"quant/probability/proof-toolbox.md" = ["证明技巧", "Proof techniques"]
-"quant/probability/practice.md" = ["练习与反例", "Exercises"]
-"quant/probability/README.md"      = ["公理与随机变量", "Axioms"]
-"quant/probability/distributions.md" = ["把分布画出来", "Drawing distributions"]
-"quant/probability/conditional.md" = ["条件概率与独立", "Conditioning & independence"]
 "00-foundations/core/README.md"                         = ["总览", "Overview"]
 "00-foundations/core/tokenization.md"                   = ["Tokenization", "Tokenization"]
 "00-foundations/core/recurrent-models.md"               = ["RNN 与 LSTM", "RNN & LSTM"]
@@ -591,7 +769,7 @@ en  = "Templates"
 "00-foundations/core/vanilla-transformer.md"            = ["Vanilla Transformer", "Vanilla Transformer"]
 "00-foundations/core/decoder-only.md"                   = ["Decoder-only", "Decoder-only"]
 "00-foundations/core/decoding.md"                       = ["解码策略", "Decoding"]
-"00-foundations/deep-dives/README.md"                   = ["总览", "Overview"]
+"00-foundations/deep-dives/README.md"                   = ["组件阅读地图", "Component reading map"]
 "00-foundations/deep-dives/recurrent-dynamics.md"       = ["BPTT 与门控", "BPTT & gates"]
 "00-foundations/deep-dives/language-model-objective.md" = ["语言模型目标", "LM objective"]
 "00-foundations/code/README.md"                         = ["从零实现实验", "Labs from scratch"]
@@ -599,6 +777,12 @@ en  = "Templates"
 "02-memory/README.md"                                   = ["表征与记忆", "Representation & memory"]
 "03-multimodal-learning/README.md"                      = ["多模态学习", "Multimodal learning"]
 "04-search/README.md"                                   = ["搜索与检索", "Search & retrieval"]
+"04-search/dual-encoder.md" = ["双塔：表示与目标", "Dual encoders & objectives"]
+"04-search/tfidf-and-bm25.md" = ["TF-IDF 与 BM25", "TF-IDF & BM25"]
+"04-search/embedding-models.md" = ["Qwen Embedding 与 BGE-M3", "Qwen Embedding & BGE-M3"]
+"04-search/hybrid-and-reranking.md" = ["混合检索与重排", "Hybrid retrieval & reranking"]
+"04-search/vector-indexes.md" = ["向量索引：IVF 与 PQ", "Vector indexes: IVF & PQ"]
+"04-search/rag-evidence.md" = ["RAG：证据与评估", "RAG: evidence & evaluation"]
 "05-post-training/README.md"                            = ["总览", "Overview"]
 "05-post-training/deep-rl/README.md" = ["从这里开始", "Start here"]
 "05-post-training/deep-rl/mdp-bellman.md" = ["MDP 与 Bellman", "MDPs & Bellman"]
@@ -630,6 +814,9 @@ en  = "Templates"
 "05-post-training/rlhf/ppo-clipping.md" = ["PPO clipping", "PPO clipping"]
 "05-post-training/rlhf/evaluation-and-review.md" = ["评估与复习题", "Evaluation & review"]
 "05-post-training/after-ppo.md"                         = ["PPO 之后", "After PPO"]
+"05-post-training/dapo.md" = ["DAPO：采样与权重", "DAPO: sampling & weighting"]
+"05-post-training/policy-ratios.md" = ["GSPO 与 ASPO", "GSPO & ASPO"]
+"05-post-training/async-policy-learning.md" = ["SAO 与异步训练", "SAO & asynchronous training"]
 "05-post-training/verifiable-rewards.md"                = ["可验证奖励", "Verifiable rewards"]
 "05-post-training/post-training-infrastructure.md"      = ["训练基础设施", "Infrastructure"]
 "05-post-training/same-base-different-posttraining.md"  = ["同一个基座", "One base model"]
@@ -639,6 +826,8 @@ en  = "Templates"
 "06-systems/human-in-the-loop.md"                       = ["人工参与", "Human in the loop"]
 "07-evaluation/README.md"                               = ["总览", "Overview"]
 "07-evaluation/evaluation-stack.md" = ["分层评估", "Evaluation stack"]
+"07-evaluation/text-metrics.md" = ["BLEU、ROUGE 与编辑距离", "BLEU, ROUGE & edit distance"]
+"07-evaluation/benchmark-protocols.md" = ["Benchmark 与长上下文测试", "Benchmarks & long-context tests"]
 "07-evaluation/metric-robustness.md" = ["指标靠得住吗", "Is the metric robust?"]
 "07-evaluation/llm-as-a-judge/README.md" = ["总览", "Overview"]
 "07-evaluation/llm-as-a-judge/criteria.md" = ["评分标准怎么写", "Writing criteria"]
@@ -650,8 +839,11 @@ en  = "Templates"
 "07-evaluation/llm-as-a-judge/implementation.md" = ["跑一个最小流程", "A minimal workflow"]
 "08-model-experience/README.md"                         = ["模型体验", "Model experience"]
 "09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
+"10-agents/prompting.md" = ["Prompt、ICL 与 CoT", "Prompting, ICL & CoT"]
+"10-agents/deep-research.md" = ["Deep Research：问题与证据", "Deep Research: questions & evidence"]
 "contributors.md"                                      = ["幕后", "Behind the notes"]
-"interview/README.md"                                   = ["练习导读", "Practice guide"]
+"interview/README.md"                                   = ["面试准备导读", "Interview prep guide"]
+"interview/basics/README.md"                            = ["基础问答导读", "Fundamentals review guide"]
 "interview/leetcode.md"  = ["LeetCode 方法地图", "LeetCode pattern map"]
 "interview/algorithms/complexity-and-tools.md" = ["复杂度与工具", "Complexity & tools"]
 "interview/algorithms/hash-and-prefix.md" = ["Hash map 与前缀和", "Hash maps & prefix sums"]
@@ -659,7 +851,14 @@ en  = "Templates"
 "interview/algorithms/traversal.md" = ["DFS / BFS 图解", "DFS / BFS walkthrough"]
 "interview/algorithms/stack-heap-links.md" = ["栈、堆与链表", "Stacks, heaps & lists"]
 "interview/algorithms/backtracking-and-dp.md" = ["回溯与 DP", "Backtracking & DP"]
+"interview/algorithms/primes-and-sieves.md" = ["质数判断与筛法", "Primality & sieves"]
 "interview/algorithms/sorting-and-greedy.md" = ["排序、区间与贪心", "Sorting, intervals & greedy"]
+"interview/algorithms/string-matching.md" = ["字符串匹配 · KMP", "String matching · KMP"]
+"interview/algorithms/monotonic-queue.md" = ["单调队列", "Monotonic queues"]
+"interview/algorithms/binary-search-trees.md" = ["二叉搜索树 · BST", "Binary search trees · BST"]
+"interview/algorithms/knapsack.md" = ["背包与凑钱", "Knapsack & coin change"]
+"interview/algorithms/sequence-dp.md" = ["序列 DP · LCS / LIS", "Sequence DP · LCS / LIS"]
+"interview/algorithms/state-machine-dp.md" = ["状态机 DP", "State-machine DP"]
 "interview/python.md"    = ["Python 语法", "Python idioms"]
 "interview/system-design.md" = ["阅读与取舍", "Reading & trade-offs"]
 "interview/questions.md"                                = ["考前速查", "Question bank"]
@@ -695,7 +894,12 @@ en  = "Templates"
 "10-agents/model-choice.md"                                      = ["API 还是自己 serve", "API or self-hosted"]
 "10-agents/review.md"                                            = ["复习题", "Review"]
 "learn/README.md" = ["从这里选一条路线", "Choose a learning route"]
-"learn/ml-exercises/README.md" = ["练什么，怎么检查", "What to practise"]
+"learn/ml-exercises/README.md" = ["从代码开始", "Start with code"]
+"00-foundations/pytorch/README.md" = ["PyTorch 阅读路线", "PyTorch reading path"]
+"00-foundations/pytorch/tensors-and-storage.md" = ["张量与存储", "Tensors & storage"]
+"00-foundations/pytorch/operations-and-shapes.md" = ["运算与维度", "Operations & shapes"]
+"00-foundations/pytorch/autograd.md" = ["自动求导", "Autograd"]
+"00-foundations/pytorch/training-loop.md" = ["从 batch 到训练循环", "Batches to training loops"]
 "learn/system-design/README.md" = ["从需求到设计", "From needs to design"]
 "learn/system-design/feed.md" = ["信息流推荐", "A recommendation feed"]
 "learn/system-design/rag.md" = ["RAG 知识库", "A RAG knowledge base"]
@@ -710,3 +914,13 @@ en  = "Templates"
 "practice/recommender-systems/06-why-two-towers.md" = ["06 · 为什么是双塔", "06 · Why two towers"]
 "practice/recommender-systems/07-component-choices.md" = ["07 · 组件怎么选", "07 · Component choices"]
 "practice/recommender-systems/08-serving-lifecycle.md" = ["08 · 工程落地", "08 · Serving lifecycle"]
+"practice/rag/README.md" = ["项目导读", "Project introduction"]
+"practice/rag/data-and-retrieval.md" = ["文档与检索", "Documents & retrieval"]
+"practice/rag/evidence-and-evaluation.md" = ["证据与评估", "Evidence & evaluation"]
+"practice/post-training/README.md" = ["项目导读", "Project introduction"]
+"practice/post-training/training-plan.md" = ["1 · SFT 与框架选择", "1 · SFT & frameworks"]
+"practice/post-training/data-pipeline.md" = ["2 · 数据到 batch", "2 · Data to batches"]
+"practice/post-training/data-and-objectives.md" = ["3 · 数据与目标", "3 · Data & objectives"]
+"practice/post-training/distributed-training.md" = ["4 · 多卡与训练成本", "4 · GPUs & training cost"]
+"practice/post-training/checkpoint-and-resume.md" = ["5 · 保存与恢复", "5 · Save & resume"]
+"practice/post-training/experiments-and-release.md" = ["6 · 实验与发布", "6 · Experiments & release"]

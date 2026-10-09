@@ -2,7 +2,7 @@
 
 **中文** · [English](README.en.md)
 
-> 阅读时间：约 8 分钟 · 类型：阅读地图 · 最近审阅：2026-09
+> 阅读时间：约 8 分钟 · 类型：阅读地图 · 最近审阅：2026-10
 
 新模型发布时，大家通常先看参数量、上下文长度和 benchmark 分数。我更想弄明白：**它要解决什么问题，为什么选择这套架构，又是怎么训练出来的？**
 
@@ -42,10 +42,11 @@ flowchart LR
 | 系统 | KV cache、激活参数、通信和延迟的账怎么算？ | 只看总参数，不看每 token 实际成本 |
 | 证据 | 哪些结论有消融、外部评估或可复现结果？ | 用一张 leaderboard 代替机制证据 |
 
-## 四个入口
+## 五个入口
 
 <div class="curriculum-grid">
-  <a class="curriculum-card" href="llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>从较常见的 dense decoder 出发，分清架构、训练规模和 post-training 各自带来的提升。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="gpt.md"><span class="card-step">学习方式</span><h3>GPT</h3><p>从任务微调、上下文示范到偏好优化：分清参数在什么时候更新，再动手算一次 gpt-oss attention sink。</p><b>开始精读 →</b></a>
+  <a class="curriculum-card" href="llama.md"><span class="card-step">稠密模型基线</span><h3>Llama</h3><p>以 Llama 1–3.1 的文本模型为范围，拆 block、GQA 缓存和后训练；不把这一代配置套到整个家族。</p><b>开始精读 →</b></a>
   <a class="curriculum-card" href="qwen.md"><span class="card-step">Family design</span><h3>Qwen</h3><p>同一家族有 dense 和 MoE、大小不同的模型，也有 thinking 和 non-thinking 模式。可以对比不同预算下该怎么选。</p><b>开始精读 →</b></a>
   <a class="curriculum-card" href="deepseek.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>MLA、细粒度 MoE、训练系统和 reasoning post-training 需要放在一起看，才能理解它们如何配合。</p><b>开始精读 →</b></a>
   <a class="curriculum-card" href="gemma.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>看模型在支持长上下文和图像输入时，怎样通过 attention 和蒸馏控制部署开销。</p><b>开始精读 →</b></a>
@@ -53,20 +54,24 @@ flowchart LR
 
 ## 按你的问题选择读法
 
+- **想分清几种“学习”**：GPT → Llama。先看上下文、参数更新和训练信号的区别，再拆具体的 block 与缓存。
 - **想看架构**：Llama → DeepSeek。先熟悉稠密模型，再看 MLA 与 MoE 分别省下什么、增加什么开销。
 - **想看后训练**：Llama → Qwen → DeepSeek。比较通用对齐、推理模式切换，以及用强化学习训练推理能力，各自在解决什么问题。
 - **想补部署与多模态**：Gemma → Qwen。重点看模型大小、上下文长度和图像输入对显存、延迟及部署方式有什么影响。
 
-## 读完后的自检
+## 报告提到新组件时，去哪里补
 
-<div class="taste-check advanced">
-  <strong>不要背“谁用了什么”，试着回答：</strong>
-  <ol>
-    <li>如果把模型名遮住，你能从 attention、FFN 和 post-training 看出它在优化什么吗？</li>
-    <li>某个能力提升来自结构、数据、训练规模，还是 post-training？证据够不够把它们分开？</li>
-    <li>省下计算、显存或延迟之后，通信、路由或数据处理的开销有没有增加？</li>
-    <li>这套设计适合什么任务和负载？换个使用场景，哪里最可能先遇到瓶颈？</li>
-  </ol>
-</div>
+不用从头重学一个模型家族。先找到这项改动在计算里发生的位置，再回原报告看实验。
+
+| 报告在讲什么 | 对应的机制笔记 | 要分清的区别 |
+| --- | --- | --- |
+| Attention 输出加门 | [Gated Attention](../deep-dives/gated-attention.md) | 门控输出，不是跳过 attention 计算 |
+| 用循环状态代替一部分历史读取 | [Gated DeltaNet](../deep-dives/gated-deltanet.md) | 状态更新，不是把 gate 加在普通 attention 后面 |
+| 按局部 token 模式查表 | [Engram](../deep-dives/engram.md) | 模型内可学习记忆，不是用户聊天记录 |
+| 重选前层信息 | [Attention Residuals](../deep-dives/attention-residuals.md) | 网络深度上的混合，不是序列维度的 attention |
+| 只激活一部分专家 | [MoE](../moe/README.md) | 总参数、激活参数和通信量分开算 |
+| 用相同参数反复计算 | [Looped Transformer](../looped/README.md) | 参数共享不等于减少执行次数 |
+
+例如，同一任务上一个版本换了 attention，也换了数据和训练预算。总分涨了只能说明这个版本更好，不能直接证明是 attention 的功劳。先找有没有只改结构的消融；没有就保留这个不确定性，而不是替报告补原因。
 
 这里只讨论公开信息。模型更新很快，具体配置请对照每篇末尾的原始报告和公开配置文件。

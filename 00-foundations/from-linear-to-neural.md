@@ -2,45 +2,23 @@
 
 **中文** · [English](from-linear-to-neural.en.md)
 
-<div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>看懂神经网络如何把“切直线”变成复杂边界</strong></div>
-  <div><span>前置知识</span><strong>线性模型 · sigmoid · cross-entropy · ReLU</strong></div>
-  <div><span>核心机制</span><strong>特征映射 · 链式法则 · backpropagation</strong></div>
-  <div><span>常见错误</span><strong>误以为层数或 sigmoid 本身带来了非线性边界</strong></div>
-</div>
+平面上有四个点：两个对角上的点属于一类，另外两个属于另一类。一条直线分不开它们。把更多线性层接起来也没用，因为它们仍能合成一个线性变换。下面从这个 XOR 例子看起：加入非线性以后，隐藏层怎样把原来分不开的点重新表示。
 
-## 快速学习：从 linear readout 到 learned feature map
+## 线性模型的决策边界始终是超平面 {#_2}
 
-<details class="interview" markdown="1">
-<summary>一句话主线、标准回答与 function approximator 深挖</summary>
-
-**快速记忆**：线性模型在给定特征空间里画超平面；神经网络用 nonlinear layers 学习新的坐标 $\phi_\theta(x)$，再由 linear head 读出结果。
-
-**面试回答**
-
-> 多层 linear layers 没有 activation 时仍可合并成一个矩阵。加入 ReLU 等非线性后，网络可以学习 piecewise nonlinear feature map，使原空间中的复杂边界在 hidden space 里变得 linearly separable。最后一层线性不代表整个模型线性。
-
-<details markdown="1">
-<summary><b>深挖</b>：Universal approximation 为什么不是“肯定学得好”？</summary>
-
-它只说明足够大的函数族中**存在**参数可以在紧致域上逼近连续函数，不保证 gradient descent 找得到、有限数据能识别、参数量可承受、分布外能外推或最终能泛化。Expressivity、optimization 与 generalization 是三件不同的事。
-
-</details>
-</details>
-
-## 线性模型的决策边界始终是超平面
-
-神经网络 = **学出来的坐标变换** + **一个线性分类器**。最后那一层永远是逻辑回归，只是它长在了新坐标系上。
+先看一种常见的分类网络：**隐藏层学习特征，线性分类头读出结果**。二分类时再接 sigmoid，就像在学到的特征上做逻辑回归。这是理解本章的入口，不是所有神经网络都必须采用的输出结构。
 
 这一页从最小二乘推到反向传播，每一步都给出公式和一份不依赖框架的 Python 实现。
 
-## 线性回归：决策边界只能是超平面
+## 线性回归：决策边界只能是超平面 {#_3}
 
 $$\hat{y} = \mathbf{w}^\top \mathbf{x} + b = \sum_{i=1}^{n} w_i x_i + b, \qquad \mathbf{x}, \mathbf{w} \in \mathbb{R}^n$$
 
-配平方损失 $\mathcal{L} = \frac{1}{2}\sum_k (y_k - \hat y_k)^2$，把偏置吸收进 $\mathbf{w}$（给 $\mathbf{x}$ 补一维常数 1），令梯度为零可以直接解出闭式解：
+配平方损失 $\mathcal{L} = \frac{1}{2}\sum_k (y_k - \hat y_k)^2$，把偏置吸收进 $\mathbf{w}$（给 $\mathbf{x}$ 补一维常数 1）。当 $X$ 列满秩时，令梯度为零可以解出：
 
 $$\nabla_{\mathbf{w}}\mathcal{L} = X^\top(X\mathbf{w} - \mathbf{y}) = 0 \;\Longrightarrow\; \hat{\mathbf{w}} = (X^\top X)^{-1} X^\top \mathbf{y}$$
+
+如果特征线性相关，$X^\top X$ 可能不可逆，可以用伪逆求最小范数解。实际代码通常用 QR / SVD 最小二乘求解器，不显式计算逆矩阵。
 
 拿它做分类的话，判定面是
 
@@ -48,7 +26,7 @@ $$\{\mathbf{x} : \mathbf{w}^\top \mathbf{x} + b = 0\}$$
 
 一个超平面。二维是直线，三维是平面。这是**线性模型能画出的唯一形状**。
 
-## 加入交互项后还算线性吗？
+## 加入交互项后还算线性吗？ {#_4}
 
 这里容易绕晕，因为「线性」有两个意思。
 
@@ -65,7 +43,7 @@ $$\phi(x_1, x_2) = (x_1,\; x_2,\; x_1 x_2)$$
 
 问题是 $\phi$ 得你自己猜。
 
-## Sigmoid 改变输出形式，不增加表达能力
+## Sigmoid 改变输出形式，不增加表达能力 {#sigmoid}
 
 先算同一个线性分数，再压成概率：
 
@@ -73,7 +51,7 @@ $$z = \mathbf{w}^\top \mathbf{x} + b, \qquad \sigma(z) = \frac{1}{1 + e^{-z}}$$
 
 **决策边界还是超平面**：$\sigma(z) = 0.5 \iff z = 0 \iff \mathbf{w}^\top\mathbf{x} + b = 0$。sigmoid 单调，动不了那个面的形状，只是把「离面多远」翻译成概率。
 
-### 那 sigmoid 到底解决什么
+### 那 sigmoid 到底解决什么 {#sigmoid_1}
 
 一个**优化**问题。假设不加 sigmoid，直接拿分数配 MSE 拟合 0/1 标签。有个点 $\mathbf{w}^\top\mathbf{x} = 100$，标签是 1，已经分对得不能再对——但残差是 99，梯度巨大，它会拼命把决策面往自己这边拉。**已经分对的点在主导训练。**
 
@@ -95,27 +73,27 @@ $$\frac{\partial \mathcal{L}}{\partial z} = \frac{\partial \mathcal{L}}{\partial
 
 $$\nabla_{\mathbf{w}} \mathcal{L} = (\sigma(z) - y)\,\mathbf{x}, \qquad \frac{\partial \mathcal{L}}{\partial b} = \sigma(z) - y$$
 
-这就是为什么 sigmoid 必须和交叉熵配对：
+这就是二分类里常用 sigmoid 配交叉熵的一个原因：
 
 - 分对的远点 $\sigma(100) \approx 1$，$s - y \approx 0$ —— **自动闭嘴**。
 - 分错的点 $\sigma(-10) \approx 0$ 而 $y=1$，$s - y \approx -1$ —— 梯度饱和不了，优化器专心处理它。
 
-如果改用 MSE，梯度会多出一个 $\sigma'(z)$ 因子，在饱和区趋近 0，分错的点反而学不动。顺带一提，$\sigma$ 配交叉熵的损失曲面是**凸的**（唯一全局最优），配 MSE 则不是。
+如果改用 MSE，梯度会多出一个 $\sigma'(z)$ 因子，在饱和区趋近 0，分错的点反而很难更新。对这里的线性 logistic regression，交叉熵关于参数是**凸的**，但不自动保证唯一或有限的最优解：特征共线可能带来多解；完全可分的数据上，无正则的参数还可能越长越大。换成多层网络后，也不能沿用这个凸性结论。
 
 ![sigmoid 及其导数](assets/sigmoid.svg)
 
 $\sigma'$ 在 $z=0$ 处最大（$0.25$），两端趋近 $0$——这正是**梯度消失**的来源，也是后来 ReLU 取代 sigmoid 做隐藏层激活的原因。
 
-### Python：从零写一遍
+### Python：从零写一遍 {#python}
 
 只用 numpy，梯度是上面推出来的那一行。
 
 ```python
 import numpy as np
 
-def sigmoid(z):
-    return np.where(z >= 0, 1 / (1 + np.exp(-z)),           # 分支写法避免 exp 溢出
-                    np.exp(z) / (1 + np.exp(z)))
+def sigmoid(values):
+    values = np.asarray(values, dtype=float)
+    return np.exp(-np.logaddexp(0.0, -values))
 
 def fit_logistic(X, y, lr=0.1, steps=2000):
     """X: (N, d)   y: (N,) in {0, 1}"""
@@ -129,7 +107,7 @@ def fit_logistic(X, y, lr=0.1, steps=2000):
     return w, b
 ```
 
-## 四个常见函数：看起来都在“变数值”，角色完全不同
+## 四个常见函数：看起来都在“变数值”，角色完全不同 {#_5}
 
 $$
 \boxed{
@@ -214,7 +192,7 @@ $$
 
 </details>
 
-### Sigmoid 与 Softmax：独立标签还是互斥选择
+### Sigmoid 与 Softmax：独立标签还是互斥选择 {#sigmoid-softmax}
 
 | 问题 | 输出层 | 原因 |
 | --- | --- | --- |
@@ -222,7 +200,7 @@ $$
 | “图片的唯一主类别是什么？” | Softmax + categorical CE | 类别相互竞争，概率总和为 1 |
 | “是否为正类？” | 单 logit Sigmoid，或两个 logits 的 Softmax | 二分类时，两类 Softmax 等价于对 logit difference 做 Sigmoid |
 
-### 把四者放回模型
+### 把四者放回模型 {#_6}
 
 ```text
 LSTM gates                 → Sigmoid：每个通道通过多少
@@ -234,7 +212,7 @@ Vanilla Transformer FFN    → ReLU；现代模型多用 GELU / SiLU / SwiGLU
 
 一句话记忆：**Sigmoid 像独立阀门，Softmax 像在候选项之间分票，ReLU 像截断负半轴，Tanh 像把带方向的状态压进 $(-1,1)$。**
 
-## 神经网络真正多做的事：把 $\phi$ 学出来
+## 神经网络真正多做的事：把 $\phi$ 学出来 {#phi}
 
 $$\mathbf{h} = \phi(W_1 \mathbf{x} + \mathbf{b}_1), \qquad \hat{y} = \sigma(\mathbf{w}_2^\top \mathbf{h} + b_2)$$
 
@@ -246,7 +224,7 @@ $$W_2(W_1\mathbf{x}) = (W_2 W_1)\mathbf{x} = W'\mathbf{x}$$
 
 线性映射的复合还是线性映射。堆多少层都一样，整个网络塌回逻辑回归。
 
-### 反向传播就是链式法则
+### 反向传播就是链式法则 {#_7}
 
 沿用上面的结论 $\delta_2 \equiv \partial\mathcal{L}/\partial z_2 = \hat y - y$，往回推一层：
 
@@ -284,7 +262,7 @@ def step(p, X, y, lr=0.05):
 
 完整可运行版本在 [`code/why_nonlinear.py`](code/why_nonlinear.py)（PyTorch）和 [`code/make_figures.py`](code/make_figures.py)（生成本页所有图）。
 
-## 用 XOR 验证表达能力
+## 用 XOR 验证表达能力 {#xor}
 
 四团高斯点，对角同类。没有任何直线能分开——这就是 1969 年 Minsky & Papert 用来说明感知机做不到什么的例子。
 
@@ -302,7 +280,7 @@ def step(p, X, y, lr=0.05):
 
 50% 不是没训好：对称 XOR 上，任何直线的最优准确率就是 50%，损失卡在 $\ln 2 \approx 0.693$。
 
-### 隐藏层在几何上做了什么
+### 隐藏层在几何上做了什么 {#_8}
 
 把输入空间的方格网推过隐藏层，看它被揉成什么样：
 
@@ -312,7 +290,7 @@ def step(p, X, y, lr=0.05):
 
 <!-- widget:xor -->
 
-## 从线性模型一路接到 Transformer
+## 从线性模型一路接到 Transformer {#transformer}
 
 | | 特征映射 $\phi$ | 最后一步 | 边界形状 |
 | --- | --- | --- | --- |
@@ -323,7 +301,7 @@ def step(p, X, y, lr=0.05):
 | CNN | 学出来，受平移不变性约束 | 线性分类器 | 同上 |
 | Transformer | 学出来，$N$ 层注意力 + FFN | 线性分类器 | 同上 |
 
-## 接到 Transformer
+## 接到 Transformer {#transformer_1}
 
 $$\mathbf{h} = \text{TransformerBlocks}\big(\text{Embed}(\mathbf{x})\big), \qquad \text{logits} = W_{\text{head}}\, \mathbf{h}$$
 
@@ -335,7 +313,7 @@ $$\frac{\partial \mathcal{L}}{\partial z_i} = p_i - y_i$$
 
 还是**预测减真值**。`lm_head` 就是那个线性分类器，类别数换成 vocab_size；底下几十层注意力存在的唯一目的，是把空间弯折到「下一个 token 是什么」变得线性可读为止。
 
-## 最终都是 function approximator 吗？
+## 最终都是 function approximator 吗？ {#function-approximator}
 
 广义上是。监督学习模型都在一个参数化的函数族里，寻找一个函数 $f_\theta$，去逼近未知的真实映射 $f^*$，或真实的条件分布 $p^*$：
 
@@ -384,7 +362,51 @@ $$
 
 这条完整映射包含 attention、Softmax、MLP activation 和多层组合，所以整体是一个高度非线性的 conditional-distribution approximator。真正决定它是否有用的，不只是“能不能逼近”，还包括 **inductive bias、data、objective、optimization 与 evaluation**。
 
-## 自检
+## 能表示，不等于能学到，更不等于能泛化
+
+用折线逼近 $f(x)=x^2$。区间 $[a,b]$ 上的端点连线是 $s(x)=(a+b)x-ab$，所以
+
+$$s(x)-x^2=(x-a)(b-x)\leq (b-a)^2/4.$$
+
+在 $[0,1]$ 上均匀分成 $M$ 段，最大误差是 $1/(4M^2)$：4 段为 0.015625，10 段为 0.0025。折线也可以写成初始直线加上各拐点的斜率变化：
+
+$$s(x)=b_0+a_0x+\sum_j c_j\operatorname{ReLU}(x-t_j).$$
+
+$t_j$ 是拐点，$c_j$ 是斜率增量。这就给出了一个 ReLU 表示，**但还没证明训练会找到它**。
+
+```python
+def square_interpolant(value, segments):
+    if type(segments) is not int or segments < 1 or not 0 <= value <= 1:
+        raise ValueError("Expected x in [0, 1] and a positive segment count")
+    index = min(int(value * segments), segments - 1)
+    left, right = index / segments, (index + 1) / segments
+    return (left + right) * value - left * right
+
+for segments in (4, 10):
+    errors = [
+        square_interpolant((index + 0.5) / segments, segments)
+        - ((index + 0.5) / segments) ** 2
+        for index in range(segments)
+    ]
+    assert abs(max(errors) - 1 / (4 * segments ** 2)) < 1e-12
+```
+
+再看数据够不够：如果只观察 $x=0,1$，$x^2$ 与 $x^2+10x(1-x)$ 在训练点上完全相同，中间却差很多。零训练误差无法判断哪个正确。需要更多数据、合理的先验或约束，而不是只扩大网络。
+
+前面的经验损失最小化是在样本上选参数，不等于已经找到了真实规律。带噪声时，平方损失的总体最优预测在适当条件下是 $\mathbb E[Y\mid X=x]$，也不是逐次猜对所有随机波动。
+
+## 什么时候先试更简单的方法？
+
+| 场景 | 值得比较的 baseline | 主要检查 |
+| --- | --- | --- |
+| 特征少、关系近似线性、数据有限 | 带正则的线性 / logistic regression | 缩放、校准、解释性 |
+| 结构化表格，有非线性和交互 | 树与 boosting | 类别、缺失值、跨时间迁移 |
+| 有合适的相似性、样本量可控 | Kernel 方法 | 正则、kernel 和计算成本 |
+| 文本、图像、需要迁移表示 | 神经网络 / 预训练表示 | 数据量、迁移收益、算力 |
+
+这不是按数据类型选模型的死规则。公平比较要用相同切分、可比的调参预算，以及只在训练集拟合的预处理。时间序列随机打散不能证明未来泛化；同一个人的多条记录可能需要分组切分。结论应是“在这些数据和约束下更合适”，不是“函数族更强就一定赢”。
+
+## 自检 {#_9}
 
 <div class="taste-check">
   <strong>不看上面的表，试着回答：</strong>
@@ -399,13 +421,32 @@ $$
   </ol>
 </div>
 
-## 继续阅读
+## 继续阅读 {#_10}
 
 - [Transformer 架构](transformer.md) —— 那个 $\phi$ 具体长什么样
 - [Post-Training](../05-post-training/) —— 训练完之后还怎么改它
 - [表征与记忆](../02-memory/) —— $\mathbf{h}$ 里该留下什么
 
-## 参考论文
+## 快速学习：从 linear readout 到 learned feature map {#linear-readout-learned-feature-map}
+
+<details class="interview" markdown="1">
+<summary>一句话主线、标准回答与 function approximator 深挖</summary>
+
+**快速记忆**：线性模型在给定特征空间里画超平面；神经网络用 nonlinear layers 学习新的坐标 $\phi_\theta(x)$，再由 linear head 读出结果。
+
+**面试回答**
+
+> 多层 linear layers 没有 activation 时仍可合并成一个矩阵。加入 ReLU 等非线性后，网络可以学习 piecewise nonlinear feature map，使原空间中的复杂边界在 hidden space 里变得 linearly separable。最后一层线性不代表整个模型线性。
+
+<details markdown="1">
+<summary><b>深挖</b>：Universal approximation 为什么不是“肯定学得好”？</summary>
+
+它只说明足够大的函数族中**存在**参数可以在紧致域上逼近连续函数，不保证 gradient descent 找得到、有限数据能识别、参数量可承受、分布外能外推或最终能泛化。Expressivity、optimization 与 generalization 是三件不同的事。
+
+</details>
+</details>
+
+## 参考论文 {#_11}
 
 - [Learning representations by back-propagating errors](https://www.nature.com/articles/323533a0) — Rumelhart, Hinton & Williams, 1986
 - [Multilayer feedforward networks are universal approximators](https://www.sciencedirect.com/science/article/abs/pii/0893608089900208) — Hornik et al., 1989

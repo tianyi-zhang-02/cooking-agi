@@ -57,12 +57,14 @@ QAG 通常指用生成的问题和回答来分解评估；DAG 指有先后依赖
 ## 硬门槛放前面，分项保留下来
 
 ~~~text
-JSON 无法解析 → evaluator error，修评估流程，不算模型任务失败
+Judge 返回的 JSON 无法解析 → evaluator error，不自动判被测答案失败
 必要材料缺失 → unknown / 人工复核
 确认违反权限或最终状态错误 → 对应 criterion fail
 其余 → 分别评 groundedness、completeness、表达质量
 ~~~
 
 可以同时记录所有维度，但最终放行规则要独立写清。一个越权下单的 agent，不应该靠礼貌用语把平均分拉回及格。
+
+这里的 JSON 指 **judge 的评分输出**。如果任务本来要求被测模型返回合法 JSON，它却给了坏格式，那是被测模型的格式要求没完成，可以直接判该项 fail。先问清楚“是谁的输出坏了”，再决定把错误记在哪一层。
 
 接着读：[概率分数](probability-scores.md) · [具体场景](case-studies.md)

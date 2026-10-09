@@ -19,11 +19,21 @@
 | 数据与奖励从哪里来 | [Offline RL 与 OPE](offline-and-ope.md) · [探索与层级](exploration-and-hierarchy.md) · [模仿与奖励](imitation-and-rewards.md) | 说出各自增加的假设，而不只是记名字 |
 | 真正跑一个实验 | [实验与排错](experiments.md) → [接到 LLM](llm-bridge.md) | 检查实现，再判断 reward 是否代表任务进步 |
 
-基础推导与核心算法展开公式和算例；Offline RL、层级、IRL 与多智能体目前是**入门和取舍**，不是完整综述。遇到没展开的证明，会直接指出。
+这 16 篇不只介绍算法名字。我们会一起算 Bellman 残差界、TD target、梯度方向、PPO 裁剪和控制轨迹，再看 CQL、IQL 与 FQE 如何处理离线数据。层级、IRL 和多智能体目前只作引入，还不是完整的理论综述。
+
+## 不同读法，不需要不同一套笔记
+
+| 今天想读到哪一步 | 可以怎么读 | 应该留下什么 |
+| --- | --- | --- |
+| 先弄懂直觉 | 顺着开头的任务、图和手算表走，暂时跳过推导 | 能说出算法为什么需要这个部件 |
+| 想把原理弄扎实 | 回到公式，逐个确认条件期望、符号和假设 | 能算一个例子，也能指出保证何时不成立 |
+| 想动手实现 | 看数据来源、target、梯度路径、mask 和更新时机 | 用小环境查错，而不是只盯训练曲线 |
+
+所有关键算例都直接放在正文里，不要求点滑块或展开交互才知道答案。少量流程图会短暂强调阅读顺序；动画结束后内容仍完整，减少动态效果的系统设置也会被尊重。原有交互留给想改参数的人，不充当正文的替代品。
 
 ## 算法再多，先找这 3 件事
 
-<div class="drl-flow" aria-label="强化学习训练循环">
+<div class="drl-flow drl-sequence" aria-label="强化学习训练循环">
 <span>采样<br><small>谁产生轨迹？</small></span><b>→</b><span>估计<br><small>用什么 target？</small></span><b>→</b><span>更新<br><small>梯度流向谁？</small></span>
 </div>
 
@@ -39,7 +49,7 @@ On-policy / off-policy 比较的是**收集数据的行为策略，与正在评�
 
 ## 先补哪几块基础
 
-能读条件期望、链式法则和梯度就可以开始。不熟时回到[概率复习](../../quant/probability/study-guide.md)，尤其是条件期望与全期望；PyTorch 部分需要知道自动求导和张量形状。
+能读条件期望、链式法则和梯度就可以开始。需要补基础时，可以先看[ML 数学](../../00-foundations/ml-math-interview.md)里的概率与梯度；PyTorch 部分需要知道自动求导和张量形状。
 
 统一记号：$s_t$ 是状态，$a_t$ 是动作，$r_t$ 是执行该动作后收到的奖励，$\gamma$ 是折扣。有限时域写 $t=0,\ldots,T-1$，终止后的 value 为 0。概率策略用 $\pi_\theta$，value 参数用 $\phi$。不要把 reward、return 和 value 当成同一个数。
 

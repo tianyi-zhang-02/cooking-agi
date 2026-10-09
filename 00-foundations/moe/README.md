@@ -2,18 +2,13 @@
 
 **中文** · [English](README.en.md)
 
-> 阅读时间：约 2 分钟 · 难度：进阶 · 最近审阅：2026-09
+> 阅读时间：约 3 分钟 · 难度：进阶 · 最近审阅：2026-10-09
 
-<div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>参数想要更多，每个 token 的计算又不想跟着涨</strong></div>
-  <div><span>前置知识</span><strong>Transformer block · FFN · softmax</strong></div>
-  <div><span>核心机制</span><strong>把 FFN 换成 N 个 expert，router 只让每个 token 走其中 k 个</strong></div>
-  <div><span>常见错误</span><strong>以为 8×7B 就是 56B；以为激活参数少就省显存</strong></div>
-</div>
+假设一层存了 8 个同样大小的 FFN，每个 token 只使用其中 2 个。这能让不同 token 用到不同参数，而不必每次把 8 个都算一遍。不过，8 份参数仍然要存，token 也可能需要跨设备搬运。MoE 的收益和代价，都要从“存了多少”和“这次用了多少”分开算。
 
 ## 一个 dense block 的参数大多在 FFN
 
-一个 Transformer block 就两块：attention 和 FFN。FFN 占了其中大约三分之二的参数，而且**每个 token 都要把这些参数从头到尾算一遍**。前向一次，每个参数折合大约 2 次浮点运算——在 dense 模型里，参数量和每个 token 的计算量就这样绑在了一起：想多加参数，就得多付计算。
+以模型宽度 d、FFN 中间宽度 4d 的标准 MHA block 为例，忽略 bias 和 norm：attention 的投影约有 4d² 个参数，FFN 约有 8d²，占两者合计的三分之二。换成 GQA 或不同 FFN 宽度，这个比例也会变。Dense FFN 的矩阵通常对每个 token 都执行，每个矩阵权重约对应一次乘加，也就是按常见口径算的 2 FLOPs；扩宽 FFN 就会增加逐 token 计算。
 
 ## MoE 把 FFN 换成 N 个 expert
 
@@ -27,7 +22,7 @@ attention、embedding、norm 都不动，还是所有 token 共用一份。
 
 ## 总参数和激活参数
 
-总参数跟着 $N$ 涨，每个 token 的计算只跟着 $k$ 涨。几个公开模型的官方数字：
+固定 expert 宽度时，总 expert 参数随 N 增长，主要 expert 计算随 k 增长。Router 还要为 N 个专家打分，attention、共享部分与通信也不能漏算。下表是具体公开型号的参数口径，不是整个家族的统一配置：
 
 | 模型 | 每层 expert | 每个 token 走几个 | 总参数 | 激活参数 |
 | --- | --- | --- | --- | --- |
@@ -40,12 +35,14 @@ Mixtral 8x7B 不是 56B：复制成 8 份的只有 FFN，attention 和 embedding
 
 ## 稀疏省的是计算，不是显存
 
-哪个 token 去哪个 expert，事先并不知道，所以**全部 expert 都得待在显存里**（或者分片摊在多张卡上）。显存按总参数算，计算按激活参数算。这是 MoE 部署时最主要的代价，后面单独有一篇讲。
+少算几个 expert 不等于只存几个 expert。权重仍要完整保存在 GPU、CPU 或其他存储中；全 GPU 常驻按总参数分配存储，offload 可以减少 GPU 占用，却增加搬运和等待。与 dense 模型比较时，还要固定精度、目标质量与 batch，不能仅凭“稀疏”判断谁更省显存。
+
+参数来源见[复习页的模型报告](review.md)，系统取舍见[训练和推理的代价](systems.md)。
 
 ## 这一组怎么读
 
 1. [Router 怎样选 expert](router.md)：打分、top-k、归一化，以及早期为什么要加噪声（图能点）
-2. [负载均衡](load-balancing.md)：放着不管就会塌缩；辅助 loss、capacity，以及只调 bias 的办法（图能自己跑）
+2. [负载均衡](load-balancing.md)：为什么可能失衡；辅助 loss、capacity，以及调 bias 的办法（图能自己跑）
 3. [细粒度专家与共享专家](fine-grained-and-shared.md)：DeepSeekMoE 的两个改动，以及各家怎么选
 4. [训练和推理的系统代价](systems.md)：expert parallelism、all-to-all、显存和解码
 5. [复习题](review.md)：面试题和自检

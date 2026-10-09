@@ -4,49 +4,13 @@
 
 > 阅读时间：约 12 分钟 · 难度：必修 · 最近审阅：2026-08
 
-<div class="lesson-recipe">
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>解决什么问题 · PROBLEM</span><strong>把无限变化的字符串，装进一个有限词表</strong></div>
-    <div class="recipe-face" data-concept-en><span>Problem · 问题</span><strong>Fit infinitely variable strings into a finite vocabulary</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>前置知识 · PREREQUISITES</span><strong>原始文本 · vocabulary · merge rules</strong></div>
-    <div class="recipe-face" data-concept-en><span>Prerequisites · 前置知识</span><strong>Raw text · vocabulary · merge rules</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>最终输出 · OUTPUT</span><strong>token IDs · attention mask · embeddings</strong></div>
-    <div class="recipe-face" data-concept-en><span>Output · 输出</span><strong>Token IDs · attention mask · embeddings</strong></div>
-  </div>
-  <div class="recipe-flip" data-concept-card>
-    <div class="recipe-face" data-concept-zh><span>常见错误 · COMMON MISTAKE</span><strong>把 tokenizer 当成无关紧要的预处理</strong></div>
-    <div class="recipe-face" data-concept-en><span>Common mistake · 常见错误</span><strong>Treating the tokenizer as inconsequential preprocessing</strong></div>
-  </div>
-</div>
+同样一句话，换一个 tokenizer，可能就变成了不同长度的 ID 序列。比如把 `playing` 示意性地切成 `play` 和 `ing`，模型接收到的是两个编号，而不是一个英文单词。这种切法会影响序列长度、计算量，也会影响模型怎样处理没见过的词。下面从分词和查表开始，一步步走到模型的输入。
 
-## 快速学习：Tokenizer 在模型边界做什么
-
-<details class="interview" markdown="1">
-<summary>从 text 到 IDs 的标准回答与一个关键误区</summary>
-
-**快速记忆**：Chat Template 先按约定格式排列不同角色的消息，Tokenizer 再把文本切成 token，转成整数 ID。Special tokens 也是词表中的 token，只是用来标记角色、消息边界等特殊位置。
-
-**面试回答**
-
-> 完整路径是 messages 经 chat template 变成带角色边界的文本，再由 tokenizer 变成 token IDs，最后通过 embedding lookup 得到连续向量。Transformer 从未直接看到字符串，也没有在架构中写死 system、user 或 assistant。
-
-<details markdown="1">
-<summary><b>深挖</b>：为什么 tokenizer 与 chat template 不能跨模型乱换？</summary>
-
-特殊字符串是否是单独 token、对应哪个 ID、assistant 起止边界怎样写，都是模型训练分布的一部分。模板与词表不匹配会把结构标记拆碎或映射到错误 ID；即使张量形状没报错，输入的格式也可能已经和训练时不同了。
-
-</details>
-</details>
-
-## 模型接收的是 Token ID
+## 模型接收的是 Token ID {#token-id}
 
 我们天天说模型“读”了一句话，但它其实从没看见过文字。Tokenizer 先把字符串切成有限词表里的 token，再映射成整数 ID；模型真正收到的，从头到尾都只是这些数字。
 
-## 第一步：文本怎样被分成 Token
+## 第一步：文本怎样被分成 Token {#token}
 
 ```text
 "unbelievable!" → ["un", "believ", "able", "!"] → [431, 9821, 612, 5]
@@ -58,19 +22,20 @@ $$x_t = E[\text{token\_id}_t], \qquad E \in \mathbb{R}^{|V| \times d}$$
 
 $|V|$ 是词表大小，$d$ 是模型维度。Tokenizer 决定序列有多长，embedding 决定每个离散符号从哪个连续向量开始。
 
-## 第二步：为什么不直接按单词切分
+## 第二步：为什么不直接按单词切分 {#_1}
 
-这个直觉很好，但现实里的词表没有尽头：新名字、拼写变化、代码、emoji 和不同语言永远列不完。反过来，如果每个字符都是一个 token，未知词是没了，序列却会长得吓人。
+这个直觉很好，但现实里的词表没有尽头：新名字、拼写变化、代码、emoji 和不同语言永远列不完。反过来，如果每个字符都是一个 token，序列又会变长；没收进基础字符表的字符，仍然可能是未知输入。
 
 Subword tokenizer 在两者之间折中：高频片段保留为整体，低频词拆成更小单元。
 
 | 粒度 | 优点 | 代价 |
 | --- | --- | --- |
 | word | 序列短、语义直观 | 词表爆炸，未知词严重 |
-| character / byte | 几乎无未知输入 | 序列长，学习局部组合更难 |
+| character | 能组合已收录字符，不必列出所有词 | 未收录字符仍要处理；序列可能更长 |
+| byte | 完整字节表可以表示任意 UTF-8 文本 | 基础单位不等于一个字符，序列可能更长 |
 | subword | 词表与长度较平衡 | 切分依赖语料，边界不一定符合人类直觉 |
 
-## 第三步：BPE 怎样合并常见片段
+## 第三步：BPE 怎样合并常见片段 {#bpe}
 
 Byte Pair Encoding 不懂词根，也不知道语法。它只是反复问：**哪两个相邻符号最常一起出现？** 然后把它们粘起来。
 
@@ -84,6 +49,8 @@ l o w e r </w>
 
 训练阶段学到一份**有顺序的 merge rules**；编码阶段按同样顺序应用。它不是在查英语词根，而是在压缩当前语料里反复出现的字符串模式。
 
+想自己算两轮合并，或分清 BPE、WordPiece、Unigram 和 byte fallback，可以接着读[分词算法详解](../deep-dives/tokenizer-algorithms.md)。这页先把输入流程走完。
+
 <details markdown="1">
 <summary><b>进阶</b>：为什么 token 边界会影响模型行为</summary>
 
@@ -93,7 +60,7 @@ l o w e r </w>
 
 </details>
 
-## 四个容易混淆的对象
+## 四个容易混淆的对象 {#_2}
 
 1. **Vocabulary**：token 与 ID 的静态映射。
 2. **Merge rules / model**：怎样把原始符号组合成 token。
@@ -102,7 +69,7 @@ l o w e r </w>
 
 `decode(encode(text))` 通常应该复原文本，但 normalization 可能使它不是逐字节可逆。PAD 只负责批处理对齐，不应该被模型当作内容；EOS 则是真正的生成终止信号。
 
-## 对话怎样变成模型能读的一串 ID
+## 对话怎样变成模型能读的一串 ID {#id}
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
@@ -112,7 +79,7 @@ l o w e r </w>
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 1. Chat Template：把角色结构序列化
+### 1. Chat Template：把角色结构序列化 {#1-chat-template}
 
 应用层拿到的对话可能是：
 
@@ -174,7 +141,7 @@ than being copied across model families.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 2. 特殊 Token 仍然只是词表里的符号
+### 2. 特殊 Token 仍然只是词表里的符号 {#2-token}
 
 从模型角度看，system、user、assistant 和消息边界最终都只是 token IDs。若
 `<|im_start|>` 被 tokenizer 注册成 special token，它通常整体映射到一个 ID；若没有
@@ -210,7 +177,7 @@ when the model changes.
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 3. 完整边界：Messages → Template → IDs → Embeddings
+### 3. 完整边界：Messages → Template → IDs → Embeddings {#3-messages-template-ids-embeddings}
 
 整个输入管线是：
 
@@ -262,7 +229,7 @@ sequence a learnable grammatical structure.
 </div>
 </section>
 
-## 把输出形状接到神经网络
+## 把输出形状接到神经网络 {#_3}
 
 假设 batch 中有 4 条文本，padding 后长度 12，模型维度 768：
 
@@ -274,11 +241,11 @@ embeddings      (B, T, d) = (4, 12, 768)
 
 Tokenizer 结束于 `(B, T)`；神经网络从 `(B, T, d)` 开始。
 
-## 实验：比较不同分词结果
+## 实验：比较不同分词结果 {#_4}
 
 运行 [`../code/tokenizer_from_scratch.py`](../code/tokenizer_from_scratch.py)。它只用 Python 标准库训练一个迷你 BPE，不需要额外依赖。可以修改训练语料，直接观察同一句话为什么会在另一份语料上被切成完全不同的 token。
 
-## 自检
+## 自检 {#_5}
 
 <div class="taste-check">
   <strong>合上页面前，试着不用术语回答：</strong>
@@ -289,6 +256,25 @@ Tokenizer 结束于 `(B, T)`；神经网络从 `(B, T, d)` 开始。
   </ol>
 </div>
 
-## 继续阅读
+## 继续阅读 {#_6}
 
 现在文字终于变成了向量，但每个位置还互不认识。下一页看 [RNN 与 LSTM](recurrent-models.md)：如果只能从左往右读，过去到底该装在哪里？
+
+## 快速学习：Tokenizer 在模型边界做什么 {#tokenizer}
+
+<details class="interview" markdown="1">
+<summary>从 text 到 IDs 的标准回答与一个关键误区</summary>
+
+**快速记忆**：Chat Template 先按约定格式排列不同角色的消息，Tokenizer 再把文本切成 token，转成整数 ID。Special tokens 也是词表中的 token，只是用来标记角色、消息边界等特殊位置。
+
+**面试回答**
+
+> 完整路径是 messages 经 chat template 变成带角色边界的文本，再由 tokenizer 变成 token IDs，最后通过 embedding lookup 得到连续向量。Transformer 从未直接看到字符串，也没有在架构中写死 system、user 或 assistant。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 tokenizer 与 chat template 不能跨模型乱换？</summary>
+
+特殊字符串是否是单独 token、对应哪个 ID、assistant 起止边界怎样写，都是模型训练分布的一部分。模板与词表不匹配会把结构标记拆碎或映射到错误 ID；即使张量形状没报错，输入的格式也可能已经和训练时不同了。
+
+</details>
+</details>

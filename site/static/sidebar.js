@@ -70,7 +70,7 @@
   var active = directory.querySelector("a.active[data-note]");
   var current = active ? active.dataset.note : null;
   var readingKey = "cooking-agi:reading:v1";
-  var treeKey = "cooking-agi:navigation:v1";
+  var treeKey = "cooking-agi:navigation:v2";
   function load(key) {
     try { return JSON.parse(localStorage.getItem(key) || "null"); }
     catch (error) { return null; }
@@ -113,9 +113,25 @@
     requestAnimationFrame(function () {
       var bounds = scroll.getBoundingClientRect();
       var item = active.getBoundingClientRect();
-      if (item.top < bounds.top || item.bottom > bounds.bottom) {
+      var actionsHeight = directoryActions && !directoryActions.hidden ? directoryActions.offsetHeight || 0 : 0;
+      if (item.top < bounds.top + actionsHeight || item.bottom > bounds.bottom) {
         scroll.scrollTop += item.top - bounds.top - bounds.height / 3;
       }
+    });
+  }
+
+  var directoryActions = directory.querySelector('.side-directory-actions');
+  if (directoryActions && active) {
+    directoryActions.hidden = false;
+    directoryActions.querySelector('[data-side-current]').addEventListener('click', function () {
+      revealCurrent();
+      active.focus({ preventScroll: true });
+    });
+    directoryActions.querySelector('[data-side-collapse]').addEventListener('click', function () {
+      details.forEach(function (detail) {
+        detail.open = Boolean(detail.querySelector('a.active'));
+      });
+      revealCurrent();
     });
   }
 

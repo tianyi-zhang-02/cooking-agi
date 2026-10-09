@@ -19,11 +19,21 @@ Each chapter starts with an example before introducing equations and code. On a 
 | Understand data and rewards | [Offline RL and OPE](offline-and-ope.en.md) · [Exploration and hierarchy](exploration-and-hierarchy.en.md) · [Imitation and rewards](imitation-and-rewards.en.md) | State the added assumptions, not just the algorithm names |
 | Run a meaningful experiment | [Experiments and debugging](experiments.en.md) → [The LLM bridge](llm-bridge.en.md) | Check the implementation before interpreting reward as progress |
 
-The foundations and core algorithms develop equations and worked examples. Offline RL, hierarchy, IRL, and multi-agent learning are currently **introductions and trade-offs**, not comprehensive surveys. Proofs that are not developed here are explicitly identified.
+These 16 lessons go beyond algorithm names. We work through Bellman residual bounds, TD targets, gradient directions, PPO clipping, and control trajectories, then examine how CQL, IQL, and FQE handle offline data. Hierarchy, IRL, and multi-agent learning are introductions for now, not comprehensive theoretical treatments.
+
+## Different reading goals, not separate sets of notes
+
+| What you want today | How to read | What to take away |
+| --- | --- | --- |
+| Build intuition | Follow the opening task, diagrams, and calculation tables; skip derivations for now | Explain why a component is needed |
+| Understand the mechanism | Revisit equations, conditional expectations, symbols, and assumptions | Calculate an example and locate the limits of a guarantee |
+| Implement it | Inspect data sources, targets, gradients, masks, and update timing | Debug in a tiny environment rather than relying only on curves |
+
+Key calculations are visible in the text without moving sliders or opening an interactive panel. A few flows briefly highlight reading order; all content remains visible afterward, and reduced-motion settings are respected. Existing interactive experiments remain optional ways to change parameters, not substitutes for the lesson.
 
 ## Find these 3 parts in any algorithm
 
-<div class="drl-flow" aria-label="Reinforcement learning loop">
+<div class="drl-flow drl-sequence" aria-label="Reinforcement learning loop">
 <span>Sample<br><small>Which policy collects data?</small></span><b>→</b><span>Estimate<br><small>What is the target?</small></span><b>→</b><span>Update<br><small>Where do gradients go?</small></span>
 </div>
 
@@ -39,7 +49,7 @@ On-policy / off-policy compares **the behavior policy collecting data with the t
 
 ## Prerequisites and notation
 
-Conditional expectation, the chain rule, and gradients are enough to start. Revisit the [probability guide](../../quant/probability/study-guide.en.md) when needed, especially conditional and total expectation. The PyTorch examples assume familiarity with autograd and tensor shapes.
+Conditional expectation, the chain rule, and gradients are enough to start. For a refresher on probability and gradients, see [ML mathematics](../../00-foundations/ml-math-interview.en.md). The PyTorch examples assume familiarity with autograd and tensor shapes.
 
 Throughout, $s_t$ is the state, $a_t$ the action, $r_t$ the reward received after that action, and $\gamma$ the discount. Finite episodes use $t=0,\ldots,T-1$; terminal value is zero. We use $\pi_\theta$ for a stochastic policy and $\phi$ for value parameters. Reward, return, and value are not interchangeable.
 

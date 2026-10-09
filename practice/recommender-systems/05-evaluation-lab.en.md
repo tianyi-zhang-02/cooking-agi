@@ -1,4 +1,4 @@
-# 05 · Evaluation: check the ruler before celebrating
+# 05 · Recommender evaluation: why did the score change without a model change?
 
 [中文](05-evaluation-lab.md) · **English**
 
@@ -64,6 +64,23 @@ flowchart LR
 ```
 
 Logged behavior is not complete preference. A new policy changes exposure, and old logs usually cannot directly reveal reactions to those new exposures. Simulated users can stress-test protocols, edge cases, and feedback loops; they aren't independent evidence of real user benefit.
+
+## Why did the aggregate rise when neither group improved?
+
+Consider purely illustrative numbers. Group A has easier tasks and group B harder ones, with unchanged within-group scores:
+
+| Group | Mean score | Old sample count | New sample count |
+| --- | --- | --- | --- |
+| A | 0.8 | 20 | 80 |
+| B | 0.2 | 80 | 20 |
+
+The old aggregate is `(20×0.8 + 80×0.2)/100 = 0.32`; the new one is `0.68`. The apparent 36-percentage-point increase comes entirely from composition. Fixed 50/50 weights give 0.5 both times.
+
+Fixed weights aren't the only legitimate aggregate. Traffic weighting describes the current population; equal group weights expose smaller cohorts; paired users reduce changes in sample composition. State the question your summary answers and retain group counts and scores.
+
+When comparing representations, fix queries, the item tower/index, candidate budgets, and labels, then inspect per-query differences. Repeated training estimates training variation; appropriate paired resampling estimates evaluation-sample uncertainty. Neither substitutes for the other. Related requests from one user may require user-level grouping rather than treating every request as independent.
+
+Balancing counts does not repair missing labels or exposure bias. Higher Recall in one group may reflect a smaller, easier set of known positives rather than a better experience. Inspect coverage and topical diversity alongside relevance.
 
 ## Self-check
 

@@ -99,6 +99,18 @@ Cache keys often need model and data versions. TTL is a backstop, not a complete
 
 The tiny program covers only part of the first layer. Passing it doesn't mean production-ready. Define acceptance checks for each layer, then return to [episode 5](05-evaluation-lab.en.md) for task-level evidence.
 
+## Can a late update resurrect a deleted item?
+
+Follow a fictional event sequence: version 2 is published at 10:00, deleted at 10:01, and a retried “write v2 vector” arrives at 10:02. Blindly applying each arriving update can bring deleted content back.
+
+One possible contract assigns comparable monotonic versions to all changes for an item, including deletion. Consumers reject older writes and retain a tombstone. If v3 deletes the item, delayed v2 cannot revive it. Tombstone retention must cover retry/replay windows and reconcile with authoritative state, not rely on vector-cache TTL alone.
+
+That still doesn't establish that ANN deletion has completed. A final eligibility check must block the item. If that service is unavailable, a safety-sensitive path cannot interpret “check failed” as “allowed”; narrow to a safe fallback or fail explicitly.
+
+Count retries across layers. If a request passes through three layers, each making **at most three attempts including the first call**, independently exhausting those budgets can cause `3×3×3=27` calls at the lowest layer. “Retry three times after failure” instead permits four attempts per layer, for a worst case of `4×4×4=64` calls.
+
+Decide which layer owns retries, propagate the remaining request deadline, and cap total retry work. Google SRE's [overload chapter](https://sre.google/sre-book/handling-overload/) explains the amplification; the timestamp/version example here is an original teaching design.
+
 ## Self-check
 
 <details><summary>All retrieval services returned HTTP 200. Is the system correct?</summary><p>Not necessarily. Check release compatibility, eligibility, feature timestamps, degraded sources, and whether score semantics still match training.</p></details>

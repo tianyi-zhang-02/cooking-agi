@@ -47,15 +47,33 @@ import torch
 
 def double_dqn_loss(online, target, states, actions, rewards,
                     next_states, terminated, gamma=0.99):
+    if rewards.ndim != 1 or rewards.numel() == 0:
+        raise ValueError("rewards must be a nonempty vector")
+    if not rewards.is_floating_point():
+        raise ValueError("rewards must be floating-point")
+    if actions.shape != rewards.shape or terminated.shape != rewards.shape:
+        raise ValueError("actions, rewards, and terminated must have shape [batch]")
+    if actions.dtype != torch.long or terminated.dtype != torch.bool:
+        raise ValueError("actions must be int64 and terminated must be boolean")
+    if states.ndim != 2 or states.shape != next_states.shape or states.shape[0] != rewards.numel():
+        raise ValueError("states and next_states must have matching [batch, state_dim] shapes")
+    if not 0 <= gamma <= 1:
+        raise ValueError("gamma must be in [0, 1]")
     prediction = online(states).gather(1, actions[:, None]).squeeze(1)
     with torch.no_grad():
-        next_actions = online(next_states).argmax(dim=1, keepdim=True)
-        next_q = target(next_states).gather(1, next_actions).squeeze(1)
-        expected = rewards + gamma * (~terminated).float() * next_q
+        next_q = torch.zeros_like(rewards)
+        continuing = ~terminated
+        if gamma > 0 and continuing.any():
+            successors = next_states[continuing]
+            next_actions = online(successors).argmax(dim=1, keepdim=True)
+            next_q[continuing] = target(successors).gather(1, next_actions).squeeze(1)
+        expected = rewards + gamma * next_q
     return torch.nn.functional.smooth_l1_loss(prediction, expected)
 ```
 
-states 是 [batch, state_dim]，actions 是整型 [batch]，terminated 是布尔 [batch]。不要让 [batch, 1] 的 prediction 与 [batch] 的 target 广播成 [batch, batch]。若网络包含 dropout / batch norm，no_grad 并不会自动切到 eval 模式；target 的模式也要明确。
+这里 `states` 是 `[batch, state_dim]`，`actions` 是 int64 `[batch]`，`rewards` 是浮点 `[batch]`，`terminated` 是布尔 `[batch]`；示例使用同设备、同浮点精度的普通 MLP。形状检查会拒绝 `[batch, 1]` 的奖励，避免它与 `[batch]` 的 Q 广播出一张 `[batch, batch]` 的错误表。
+
+真实终止的后继状态不进入网络：target 就是 reward。若先算出 NaN 再乘零，仍会得到 NaN。外部截断不是终止，必须留下 reset 前的有效 final observation。网络若含 dropout / BatchNorm，还要另定模式；`no_grad` 不等于 `eval()`，改变有效 batch 也会影响 BatchNorm 统计。这个小实现不替你管理这些训练状态。
 
 ## 几个名字别混
 
@@ -66,6 +84,35 @@ states 是 [batch, state_dim]，actions 是整型 [batch]，terminated 是布尔
 | Prioritized replay | 更常抽取某些 transition | 会改变采样分布，需考虑校正与偏差 |
 
 探索通常用 $\epsilon$-greedy。训练时随机动作是为了收集信息，评估时是否关掉要明确记录。把探索噪声造成的低分和 policy 本身的低分混在一起，曲线会不好解释。
+
+## 为什么 max 会把零均值噪声变成高估？
+
+两个动作的真实价值都是 0，误差各自独立地以相同概率取 +1 或 −1：
+
+| 两个误差 | 最大值 |
+| --- | --- |
+| −1，−1 | −1 |
+| −1，+1 | +1 |
+| +1，−1 | +1 |
+| +1，+1 | +1 |
+
+每个动作的误差均值为 0，最大值的期望却是 0.5。选择过程留下了看起来最好的噪声。若换一组独立、零均值误差评价被选中的动作，这个例子里的估值期望会回到 0。
+
+Double DQN 的网络并不真正独立，所以这解释的是动机，不是无偏性证明。目标网络太接近在线网络，误差可能高度相关；太久不更新，又可能过时。
+
+## Replay 和 target 的“慢”，分别慢在哪里？
+
+Replay 存历史 transition，不是永久固定的 target。抽出 $(s,a,r,s')$ 后，再按当前约定的目标网络构造标签。随机打散减弱连续样本的相关性，却不保证旧数据覆盖新策略会去的状态。
+
+目标网络可以周期性硬复制，也可以软更新 $\bar\theta\leftarrow(1-\tau)\bar\theta+\tau\theta$。同步周期要说明按环境步还是梯度步计数：每次交互训练 10 次，与训练 1 次时的“1000 步”，不是同样节奏。
+
+| 增加什么 | 可能的帮助 | 额外风险 |
+| --- | --- | --- |
+| Replay 容量 | 历史更丰富 | 数据变旧，稀有成功被淹没 |
+| 每次交互的更新次数 | 更充分利用数据 | 过拟合有限 replay，放大 Q 误差 |
+| 同步间隔 | 目标暂时更稳 | 目标过时，信息传播变慢 |
+
+样本效率比较至少同时记录环境交互量和梯度更新量。只说“训练一小时”，分不清多用了数据还是计算。
 
 ## 检查这 4 件事，再调参
 

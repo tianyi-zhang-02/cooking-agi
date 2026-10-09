@@ -4,30 +4,13 @@
 
 > Reading time: ~12 min · Type: chapter · Last reviewed: 2026-08
 
-## Quick learning: what does SFT teach?
+## SFT learns a conditional distribution {#sft-learns-a-conditional-distribution}
 
-<details class="interview" markdown="1">
-<summary>Assistant-only CE, behavior cloning, and the capability ceiling</summary>
+Give a model support conversations that demonstrate citing a return policy and asking for an order number, and it can learn similar behavior. If every example answers immediately and none asks for missing information, it may learn that habit too.
 
-**Quick memory**: SFT remains next-token CE, but the loss is usually computed only on assistant tokens. It raises the probability of demonstrated behavior; it does not automatically discover strategies missing from the data.
+The question is not only how many examples SFT sees, but what they demonstrate. SFT can generalize and learn new knowledge; demonstration quality is not a strict capability ceiling. Those gains still need testing in unseen situations.
 
-**Interview answer**
-
-> SFT serializes a structured conversation, conditions on the system and user tokens, and supervises only the assistant answer and the end token. It is effective for format, tone, tool protocols, and known solutions, but it remains behavior cloning, constrained by demonstration coverage, demonstration quality, and a teacher-forced token objective.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why does low token CE not imply a better complete answer?</summary>
-
-CE decomposes sequence loss over tokens. One token that decides final correctness receives very little weight inside a long answer, while length, common phrasing, and template tokens contribute many positions. If the target is a verifiable whole-answer outcome or a multi-step strategy, only a sequence-level preference or RL signal can directly express whether the whole trajectory is good.
-
-</details>
-</details>
-
-## SFT learns a conditional distribution
-
-SFT teaches "do it like this," so its ceiling is the ceiling of the demonstrations. But the dangerous part isn't what it fails to learn — **it's how confidently it learns things you never meant to teach.**
-
-## What it does
+## What it does {#what-it-does}
 
 Given a batch of input → ideal-output demonstrations, maximize the likelihood that the model produces that output. Per-token cross-entropy:
 
@@ -37,9 +20,9 @@ That's all. No reward, no sampling, no environment. **It is imitation learning, 
 
 Being simple is exactly why it works well for these things: fixed task formats, basic instruction following, distilling an expert's process into the model, and giving downstream RL a sane starting point.
 
-## How one conversation sample actually enters SFT
+## How one conversation sample actually enters SFT {#how-one-conversation-sample-actually-enters-sft}
 
-### 1. Pre-training and SFT: similar equations, different supervision
+### 1. Pre-training and SFT: similar equations, different supervision {#1-pre-training-and-sft-similar-equations-different-supervision}
 
 Pre-training text supplies its own next-token targets. Given $x_1,\ldots,x_T$:
 
@@ -59,7 +42,7 @@ same.” Data provenance, sequence structure, loss masks, mixtures, and optimiza
 intent differ: pre-training learns a language distribution, while SFT shapes existing
 capability into selected behavior.
 
-### 2. Label shifting remains, but only selected targets contribute loss
+### 2. Label shifting remains, but only selected targets contribute loss {#2-label-shifting-remains-but-only-selected-targets-contribute-loss}
 
 The conversation passes through the
 [chat template and tokenizer](../00-foundations/core/tokenization.en.md) to produce
@@ -86,7 +69,7 @@ the final one, and some training setups score the full sequence. The most danger
 failure is not choosing one policy over another; it is misaligning template boundaries
 and masks so user text or padding accidentally becomes a target.
 
-### 3. The end token is behavioral supervision too
+### 3. The end token is behavioral supervision too {#3-the-end-token-is-behavioral-supervision-too}
 
 If a target contains only “I am fine.” but omits an end-of-message or EOS token, the
 model learns how to begin and continue the answer but receives no explicit supervision
@@ -106,41 +89,37 @@ A maximum-length limit remains a necessary safety fallback, but it is not the sa
 teaching natural termination. One forcibly truncates the system; the other makes the
 model assign high probability to “the answer is complete.”
 
-## Limit one: only what's in the data
+## Limit one: test beyond the demonstrated cases {#limit-one-only-whats-in-the-data}
 
-The most obvious limit, and the most underrated. For situations the demonstrations don't cover, the model has no basis for knowing what to do.
+Training covers routine returns, but evaluation includes cross-border orders and opened products. The model may generalize using prior knowledge and related examples, or apply the wrong rule. Missing coverage does not guarantee failure, but a lower training loss does not establish success.
 
-The trouble is **it won't tell you they weren't covered**. Faced with something unseen, it still produces fluent output — imitation learns what the answer should *look* like, not whether this is something it knows.
+Hold out different phrasings, combinations, and exceptions. These tests help distinguish learning a task rule from relying on familiar answers.
 
-## Limit two: cross-entropy barely notices individual tokens
+## Limit two: average loss is not task quality {#limit-two-cross-entropy-barely-notices-individual-tokens}
 
-The loss sums over all tokens. Change the negation inside a sentence and the total barely moves — one token's contribution is diluted by hundreds of others.
+“Refund allowed” and “refund not allowed” differ by one word but have opposite consequences. Cross-entropy does penalize the wrong token, potentially strongly. Ordinary token weighting just does not know which position matters most to the task.
 
-But in language, **one negation can invert the meaning of the whole sentence.**
+If the target-token probability falls from 0.9 to 0.1, its negative log-likelihood rises from about 0.105 to 2.303. Averaged over 200 tokens with other terms unchanged, the reported loss rises by only about 0.011. Check the refund decision as well as average loss.
 
-So there's a structural mismatch between SFT's objective and what you actually care about: **it is sensitive to "does this look right overall" and insensitive to "is the pivotal part correct."** That's one reason RL has a place here — reward is assigned over a whole output and can be made sensitive to exactly that kind of local flip.
+More targeted demonstrations, sample or token weighting, and task-level checks can help. RL is one option, not the only remedy.
 
-## Limit three: it forces an answer
+## Limit three: clarification and abstention need examples too {#limit-three-it-forces-an-answer}
 
-The subtlest one, and the one with the worst consequences.
+If every demonstration answers confidently, the model gets little practice asking questions, abstaining, or admitting uncertainty. SFT can teach those behaviors: include examples such as “Please provide the order number” or “There is not enough evidence to tell.”
 
-Demonstration data **always contains an answer**. Nobody writes "Q: what is X? A: I don't know" into an SFT set. So what the model learns from the overall shape of the data is: **when asked, produce an answer.**
+The challenge is matching behavior to available information. Answer when evidence is sufficient; ask when something essential is missing. Adding generic refusal templates can instead make the model avoid answerable questions.
 
-When the knowledge isn't inside the model, that learned regularity still fires — it states something it doesn't know in exactly the tone it uses when it is sure.
+Preference training or RL can compare the costs of different choices, but still depends on suitable rewards. No training label alone guarantees honesty.
 
-**Hallucination here isn't a bug; it's the faithful result of the training objective.** You taught it to imitate "looking like you have the answer," so it learned to look that way when it has none.
+## How do you check whether knowledge was learned? {#a-corollary-when-the-knowledge-in-the-demonstrations-isnt-in-the-model-sft-teaches-tone}
 
-RL can address this because a reward function can give "declining to answer" a middling score and "fabricating" a very low one. There is nowhere to put that score structure in SFT — **SFT has one correct answer and no notion of relative cost between options.**
+SFT can store new facts in model parameters, but does not guarantee reliable learning from one occurrence or successful recall under a different question. Fluent expert wording is not a substitute for fact checking.
 
-## A corollary: when the knowledge in the demonstrations isn't in the model, SFT teaches tone
+Suppose a return window changes from 30 days to 14. Fine-tuning is one option; if policies change often, retrieving the current document may be easier to update and audit. Both approaches need tests for stale rules, correct citations, and fabrication when evidence is missing.
 
-Put the three together and you get an uncomfortable conclusion.
+Choosing SFT, continued pretraining, or retrieval depends on knowledge volume, update frequency, and task structure—not a rule that SFT cannot learn facts.
 
-If the demonstrations go beyond what the model learned in pretraining, SFT cannot install the knowledge — gradients are enough to adjust phrasing, not to insert facts. What the model learns is **to discuss, in an expert's register, material it does not command.**
-
-The test: if a capability is entirely absent from the base, SFT typically improves **format and confidence**, not accuracy. The thing to do then is continued pretraining or retrieval, not more demonstrations.
-
-## So when is SFT enough
+## So when is SFT enough {#so-when-is-sft-enough}
 
 Don't flip the above into "SFT is useless." It is the best choice when:
 
@@ -148,30 +127,49 @@ Don't flip the above into "SFT is useless." It is the best choice when:
 - **You need a stable behavioral starting point** — exploring with RL from a random policy is too expensive. SFT first pushes the policy into a sensible region, and RL then refines inside it. That's why SFT comes first in the three stages of RLHF.
 - **The capability is already in the base and simply isn't being invoked** — here demonstrations act as a switch.
 
-## The division of labor between SFT and RL
+## The division of labor between SFT and RL {#the-division-of-labor-between-sft-and-rl}
 
-In one line: **SFT provides the starting point, RL provides the direction.**
+Start with the reliable signal you can obtain. If you can provide useful demonstrations, try SFT. If the desired process is hard to write down but attempted outcomes can be evaluated, RL may be useful. A workflow can also alternate the two.
 
-| | SFT | RL |
+| Question | SFT | RL |
 | --- | --- | --- |
-| Signal granularity | per token | whole output |
-| Data needed | demonstrations of ideal output | something that can score (a human, a model, or a program) |
-| Can express "I don't know"? | no | yes — different scores for different options |
-| Sensitive to local flips? | no | can be |
-| Exploration | none | yes, and therefore more expensive and harder to tune |
+| Direct signal | Selected target outputs | Rewards for sampled actions or outcomes |
+| Typical update granularity | Token-level cross-entropy, with masks and weights | Rewards assigned to actions through returns, advantages, and related estimators |
+| Can teach clarification or abstention? | Yes, with context-appropriate examples | Yes, if rewards distinguish useful questions from unnecessary avoidance |
+| Requires judging current-policy attempts? | Ordinary offline SFT does not | Usually needs rollouts, or recorded trajectories with appropriate estimators |
+| Main checks | Coverage, templates, masks, generalization | Reward validity, sampling distribution, update stability |
 
-They aren't two interchangeable buttons; they solve different learning problems.
+Compare under the same task and evaluation budget. More elaborate training does not automatically produce a better result.
 
-## What to check when designing SFT data
+## What to check when designing SFT data {#what-to-check-when-designing-sft-data}
 
 1. Which situations do my demonstrations cover? For the ones they don't, how does the model behave — have I tested it?
-2. Is the correctness I care about "does it look right overall" or "are these few pivotal tokens right"? If it's the latter, cross-entropy can't measure it.
-3. Does my SFT set contain any "decline to answer" samples? If not, I am in fact teaching the model to always produce an answer.
-4. Is the knowledge I want to teach actually in the base? If not, I may only be improving tone.
+2. Is the correctness I care about "does it look right overall" or "are these few pivotal tokens right"? For the latter, test the decision separately from mean loss.
+3. Does my SFT set contain context-appropriate abstention or clarification? Test what happens when essential evidence is missing.
+4. Can the model recall the correct facts under different phrasings, rather than just sound confident?
 5. Does this task really need RL? With a correct answer and a fixed format, SFT plus good data is usually the better deal.
 
-## Where to read next
+## Where to read next {#where-to-read-next}
 
 - [The three stages of RLHF](rlhf/three-stages.en.md): what the two stages after SFT do
 - [After PPO](after-ppo.en.md): the family tree of algorithms on the RL line
 - [Data and feedback](../01-data-and-feedback/README.en.md): the quality of demonstration and preference data itself
+
+## Quick learning: what does SFT teach? {#quick-learning-what-does-sft-teach}
+
+<details class="interview" markdown="1">
+<summary>Assistant-only CE, behavior cloning, and the capability ceiling</summary>
+
+**Quick memory**: SFT remains next-token CE, but the loss is usually computed only on assistant tokens. It raises the probability of demonstrated behavior; it does not automatically discover strategies missing from the data.
+
+**Interview answer**
+
+> SFT serializes a structured conversation, conditions on the system and user tokens, and supervises only the assistant answer and the end token. It is effective for format, tone, tool protocols, and known solutions, but it remains behavior cloning, constrained by demonstration coverage, demonstration quality, and a teacher-forced token objective.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why does low token CE not imply a better complete answer?</summary>
+
+CE penalizes errors at individual target tokens, but a mean over a long response can obscure the few decisions that determine success. Inspect those decisions separately. Task checks, targeted examples, weighting, and preference or reward signals offer different ways to emphasize them.
+
+</details>
+</details>

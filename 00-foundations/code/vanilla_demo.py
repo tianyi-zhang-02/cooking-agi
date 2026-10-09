@@ -1,9 +1,9 @@
 """Watch the vanilla Transformer work: shape trace -> train -> cross-attention map.
 
 Task: reverse a sequence. src = [a b c d], tgt = [d c b a]. It is a seq2seq task
-(so the encoder-decoder shape is justified) and the correct cross-attention is
-known in advance -- an anti-diagonal -- so you can literally look at the attention
-matrix and check the model learned to align the way it should.
+(so the encoder-decoder shape is justified). An anti-diagonal is an intuitive
+alignment, not the only valid attention pattern: encoder states already mix source
+context. Check generated outputs separately from the attention visualization.
 
 Run: python vanilla_demo.py
 """

@@ -293,7 +293,7 @@
         ffn: ['MoE · 1 shared + 256 routed experts, top-8', 'MoE · 1 个 shared + 256 个 routed expert，选 8 个'],
         ctx: ['128K'],
         size: ['671B total · 37B active · 61 layers', '总参数 671B · 激活 37B · 61 层'],
-        note: ['MLA caches one 576-number latent per token per layer instead of per-head keys and values. Load balancing uses a bias term rather than an auxiliary loss.', 'MLA 每层每个 token 只缓存一个 576 维的 latent，而不是每个 head 的 key 和 value。负载均衡靠 bias 项，而不是辅助 loss。']
+        note: ['MLA caches a 512-dimensional KV latent plus a 64-dimensional RoPE key per token and layer. Routing bias handles load balancing, with a small complementary sequence-wise auxiliary loss.', 'MLA 每层每个 token 缓存 512 维 KV latent 和 64 维 RoPE key。路由 bias 负责主要负载均衡，同时保留小权重的序列级辅助 loss。']
       }
     },
     {
@@ -900,9 +900,9 @@
   var MODES = {
     mha: { groups: 8, en: 'MHA', cache: ['8 × (K + V) = 16 head-vectors per token, per layer. The baseline.', '每层每个 token 缓存 8 ×（K + V）= 16 个 head 向量。这是基线。'] },
     gqa4: { groups: 4, en: 'GQA-4', cache: ['4 × (K + V): half the cache. Every pair of query heads shares one K/V head.', '4 ×（K + V）：cache 减半。每两个 query head 共享一个 K/V head。'] },
-    gqa2: { groups: 2, en: 'GQA-2', cache: ['2 × (K + V): a quarter of the cache, and quality stays close to MHA. This 4 : 1 ratio is what Llama 3 8B and Mistral 7B use (32 query heads, 8 KV heads).', '2 ×（K + V）：cache 只有四分之一，质量仍接近 MHA。Llama 3 8B 和 Mistral 7B 用的就是这个 4 : 1 的比例（32 个 query head，8 个 KV head）。'] },
-    mqa: { groups: 1, en: 'MQA', cache: ['1 × (K + V): the smallest per-head cache, 8× smaller here. All query heads read the same keys and values, which costs some quality. PaLM and Falcon-7B used it.', '1 ×（K + V）：按 head 共享能做到的最小 cache，这里小了 8 倍。所有 query head 读同一份 key 和 value，质量会有些损失。PaLM 和 Falcon-7B 用过它。'] },
-    mla: { groups: 8, en: 'MLA', cache: ['One latent of 4.5 × d_head numbers, however many heads there are: what GQA would need with 2.25 KV heads. Every head still gets its own K and V, rebuilt from the latent. DeepSeek-V2 reports quality above MHA.', '只缓存一个 4.5 × d_head 的 latent，不管有多少个 head：相当于 GQA 只用 2.25 个 KV head。每个 head 仍然有自己的 K 和 V，由 latent 现场还原。DeepSeek-V2 报告它的效果还优于 MHA。'] }
+    gqa2: { groups: 2, en: 'GQA-2', cache: ['2 × (K + V): a quarter of the cache. Llama 3 8B and Mistral 7B use this 4 : 1 ratio (32 query heads, 8 KV heads); quality must be checked after training.', '2 ×（K + V）：cache 只有四分之一。Llama 3 8B 和 Mistral 7B 采用这个 4 : 1 比例（32 个 query head，8 个 KV head）；质量仍需训练后评估。'] },
+    mqa: { groups: 1, en: 'MQA', cache: ['1 × (K + V): the smallest cache among these head-sharing schemes at fixed dimension, 8× smaller here. Sharing can affect quality; the result depends on training and task.', '1 ×（K + V）：固定维度时，按 head 共享能做到的最小 cache，这里小了 8 倍。共享可能影响质量，具体要看训练和任务。'] },
+    mla: { groups: 8, en: 'MLA', cache: ['Cache = KV latent + RoPE key. The illustrated 512 + 64 = 576 is a configuration, not a universal MLA size. Dashed K/V show the factorization; weight absorption can avoid explicitly rebuilding them during decoding.', '缓存 = KV latent + RoPE key。图中 512 + 64 = 576 是具体配置，不是 MLA 的固定大小。虚线 K/V 表示分解关系；矩阵吸收可以避免解码时显式还原它们。'] }
   };
   var mode = 'mha';
 
@@ -931,7 +931,7 @@
   latent.appendChild(TX.bi(s('text', { class: 's-title hd-kt', x: 380, y: LATY + 20, 'text-anchor': 'middle' }), 'latent c · 4 × d_head (512)', 'latent c · 4 × d_head（512）'));
   latent.appendChild(s('rect', { class: 'hd-k', x: 498, y: LATY, width: 92, height: 30, rx: 6 }));
   latent.appendChild(s('text', { class: 's-title hd-kt', x: 544, y: LATY + 20, 'text-anchor': 'middle', text: 'k_rope (64)' }));
-  latent.appendChild(TX.bi(s('text', { class: 's-sub', x: 430, y: LATY + 50, 'text-anchor': 'middle' }), 'this is all that is cached; the dashed K and V are rebuilt on the fly', '真正缓存的只有这一条；虚线的 K、V 都是用的时候再还原'));
+  latent.appendChild(TX.bi(s('text', { class: 's-sub', x: 430, y: LATY + 50, 'text-anchor': 'middle' }), 'cached state; dashed K/V illustrate the factorization, not required materialization', '缓存状态；虚线 K/V 表示分解关系，不要求显式还原'));
   svg.appendChild(latent);
   fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
 
@@ -970,7 +970,7 @@
   var note = h('p', { class: 'fig-caption' });
   function select(id) {
     mode = id;
-    TX.bi(kvLabel, id === 'mla' ? 'per-head K/V, reconstructed (not cached)' : 'K/V heads (cached)', id === 'mla' ? '每个 head 的 K/V，现场还原（不缓存）' : 'K/V head（需要缓存）');
+    TX.bi(kvLabel, id === 'mla' ? 'per-head K/V, conceptual (not cached)' : 'K/V heads (cached)', id === 'mla' ? '每个 head 的 K/V：概念示意，不缓存' : 'K/V head（需要缓存）');
     TX.bi(note, MODES[id].cache[0], MODES[id].cache[1]);
     to = target(id);
     if (TX.reduced || !state.x.length) { state = to; draw(); }
@@ -991,7 +991,7 @@
     { id: 'mha', label: 'MHA', perLayer: function (c) { return 2 * c.heads * c.d; } },
     { id: 'gqa', label: 'GQA · 8 KV heads', perLayer: function (c) { return 2 * 8 * c.d; } },
     { id: 'mqa', label: 'MQA · 1 KV head', perLayer: function (c) { return 2 * c.d; } },
-    { id: 'mla', label: 'MLA · 4.5 × d_head', perLayer: function (c) { return 4.5 * c.d; } }
+    { id: 'mla', label: 'MLA · 512 + 64', perLayer: function () { return 512 + 64; } }
   ];
   function fmtTokens(e) { var n = Math.pow(2, e); return n >= 1048576 ? (n / 1048576) + 'M' : (n / 1024) + 'K'; }
   var shapeSeg = TX.seg(Object.keys(SHAPES).map(function (id) { return { id: id, en: SHAPES[id].en, zh: SHAPES[id].en }; }), shape, function (id) { shape = id; renderBars(); }, 'Model shape');
@@ -1023,8 +1023,8 @@
       row.row.classList.toggle('on', mode.indexOf(variant.id) === 0);
     });
     TX.bi(shapeNote,
-      cfg.L + ' layers × ' + cfg.heads + ' query heads × d_head ' + cfg.d + '. For scale: one H100 has 80 GB, and the weights need room too.',
-      cfg.L + ' 层 × ' + cfg.heads + ' 个 query head × d_head ' + cfg.d + '。作为参照：一张 H100 是 80 GB，而且权重本身也要占显存。');
+      cfg.L + ' layers × ' + cfg.heads + ' query heads × d_head ' + cfg.d + '. Hypothetical comparison, not native model configs. MLA is fixed at 512 + 64 elements; weights, activations, KV fragmentation and replication are excluded.',
+      cfg.L + ' 层 × ' + cfg.heads + ' 个 query head × d_head ' + cfg.d + '。这是替换方案的估算，不是模型原生配置。MLA 固定为 512 + 64 个数值；不计权重、激活、KV 碎片和副本。');
   }
 
   select(mode);
@@ -1609,7 +1609,7 @@
   function obj(r) { return sign > 0 ? Math.min(r, 1 + eps) : -Math.max(r, 1 - eps); }
   function grad(r) { return sign > 0 ? (r < 1 + eps ? 1 : 0) : (r > 1 - eps ? -1 : 0); }
 
-  var segA = TX.seg([{ id: 1, en: 'A > 0 · a good token', zh: 'A > 0 · 好 token' }, { id: -1, en: 'A < 0 · a bad token', zh: 'A < 0 · 坏 token' }], 1,
+  var segA = TX.seg([{ id: 1, en: 'A = +1 · above baseline', zh: 'A = +1 · 高于基线' }, { id: -1, en: 'A = −1 · below baseline', zh: 'A = −1 · 低于基线' }], 1,
     function (v) { sign = v; render(); }, t('Sign of the advantage', 'advantage 的正负'));
   var sRho = TX.slider({ en: 'ratio ρ', zh: 'ratio ρ', min: 0.4, max: 1.6, step: 0.01, value: rho,
     format: function (v) { return v.toFixed(2); }, onInput: function (v) { rho = v; render(); } });
@@ -1620,7 +1620,7 @@
   var svg = s('svg', { viewBox: '0 0 640 280', role: 'img' });
   fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
   var caption = h('p', { class: 'fig-caption' });
-  var insight = h('p', { class: 'fig-insight', bi: ['A decides the direction, ρ reports how far the probability has moved, and the clip only stops a correct move from going too far.', 'A 决定方向，ρ 报告步幅，clip 只阻止正确方向走得过头。'] });
+  var insight = h('p', { class: 'fig-insight', bi: ['On the flat segment, this sample contributes no further incentive through the clipped objective. Other samples and losses can still change the same parameters; the probability ratio is not forcibly bounded.', '平坦段表示这个样本的裁剪目标不再提供进一步激励。其他样本和损失仍会更新同一组参数，概率比并没有被强制限制在区间内。'] });
   var roDir = TX.readout('ρ − 1 (what the new policy did)', 'ρ − 1（新策略做了什么）'), roSign = TX.readout('(ρ − 1) · A', '(ρ − 1) · A'),
       roGrad = TX.readout('∂ℓ / ∂ρ (still pushed?)', '∂ℓ / ∂ρ（还在推吗）'), roClip = TX.readout('Clipped?', '被裁了吗');
   fig.foot.appendChild(caption);
@@ -1673,13 +1673,13 @@
     roClip.set(clipped ? t('yes · on the plateau', '是 · 在平台上') : t('no', '否'));
     var c;
     if (sign > 0) {
-      if (rho > hi) c = ['It raised the probability of a good token, the right direction, and is already past 1+ε: this term stops rewarding it. It does not pull ρ back into the range, it just stops pushing.', '提高了好 token 的概率，方向正确；已经超过 1+ε，这一项停止继续奖励。它不会把 ρ 拉回区间，只是不再往外推。'];
-      else if (!flat && !up) c = ['It lowered the probability of a good token, the wrong direction. There is no lower clip for A > 0, so the gradient stays and pulls the probability back up.', '降低了好 token 的概率，方向错误；A > 0 时没有下界裁剪，梯度保留，把概率拉回来。'];
-      else c = ['It raised the probability of a good token (or has not moved yet), and is still inside the range: keep encouraging it.', '提高了好 token 的概率（或还没动），而且还在区间内：继续鼓励。'];
+      if (rho > hi) c = ['A is positive and ρ exceeds 1+ε. The objective stays flat rather than rewarding a further probability increase.', 'A 为正，ρ 已超过 1+ε。曲线变平，继续提高概率不再增加这一项的目标值。'];
+      else if (!flat && !up) c = ['A is positive, but the sampled action became less likely. This term still favors increasing its probability; the lower clip does not flatten it.', 'A 为正，采样动作的概率却降低了。这一项仍鼓励提高概率，不会在下界变平。'];
+      else c = ['A is positive and ρ has not exceeded 1+ε. Increasing the sampled action probability still raises this objective, up to the boundary.', 'A 为正，ρ 尚未超过 1+ε。在到达边界前，提高采样动作的概率仍会增加目标值。'];
     } else {
-      if (rho < lo) c = ['It lowered the probability of a bad token, the right direction, and is already below 1−ε: this term stops rewarding it.', '降低了坏 token 的概率，方向正确；已经低于 1−ε，这一项停止继续奖励。'];
-      else if (!flat && up) c = ['It raised the probability of a bad token, the wrong direction. There is no upper clip for A < 0, so the gradient stays and pushes the probability back down.', '提高了坏 token 的概率，方向错误；A < 0 时没有上界裁剪，梯度保留，把概率压下去。'];
-      else c = ['It lowered the probability of a bad token (or has not moved yet), and is still inside the range: keep encouraging it.', '降低了坏 token 的概率（或还没动），而且还在区间内：继续鼓励。'];
+      if (rho < lo) c = ['A is negative and ρ is below 1−ε. Lowering probability further no longer improves this term.', 'A 为负，ρ 已低于 1−ε。继续降低概率不再改善这一项。'];
+      else if (!flat && up) c = ['A is negative, but the sampled action became more likely. This term still favors lowering its probability; the upper clip does not flatten it.', 'A 为负，采样动作的概率却提高了。这一项仍鼓励降低概率，不会在上界变平。'];
+      else c = ['A is negative and ρ has not fallen below 1−ε. Reducing the sampled action probability still improves this objective, down to the boundary.', 'A 为负，ρ 尚未低于 1−ε。在到达边界前，降低采样动作的概率仍会改善目标值。'];
     }
     TX.bi(caption, c[0], c[1]);
     svg.setAttribute('aria-label', t(c[0], c[1]));
@@ -1946,8 +1946,8 @@
     roC.set('≈ ' + K * loops + t(' layers of FLOPs', ' 层的计算量'));
     roKV.set(K * loops + t(' layers of K/V', ' 层的 K/V'));
     TX.bi(caption,
-      'The stored model is ' + K + ' layers; running it ' + loops + ' times computes like a ' + K * loops + '-layer model. Depth and compute are now a dial you can turn after training; parameter count is not.' + (inject ? ' Re-feeding the embedding e into every loop keeps the original input in view no matter how many loops run.' : ' Without re-injection, the input is only seen at the start and has to survive every loop in the hidden state.'),
-      '存下的模型只有 ' + K + ' 层；跑 ' + loops + ' 圈，计算上相当于 ' + K * loops + ' 层。深度和计算量变成了训练后还能拧的旋钮，参数量不变。' + (inject ? '每圈都把 embedding e 重新喂进去，不管转多少圈，原始输入都还看得见。' : '不重新注入时，输入只在开头出现一次，要靠隐藏状态一圈一圈保存下来。'));
+      'The recurrent block stores ' + K + ' layers and executes ' + K * loops + ' layer evaluations. The readouts omit boundary stages and adapter costs; extra loops do not guarantee better answers.' + (inject ? ' Each loop can access input representation e again.' : ' Without re-injection, input information must be carried in the recurrent state.'),
+      '循环块存 ' + K + ' 层权重，执行 ' + K * loops + ' 次层计算。读数没算输入、输出和 adapter 的开销；多转几圈不保证答案更准。' + (inject ? '每圈都能再次访问输入表示 e。' : '不重新注入时，输入信息需要保存在循环状态里。'));
   }
   render();
 })();
@@ -1969,7 +1969,7 @@
   fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
   var roNeed = TX.readout('Hops needed', '需要的跳数'), roLoop = TX.readout('Looped block (1-layer params)', '循环 block（1 层的参数）'), roFixed = TX.readout('Fixed ' + FIXED + '-layer model (4× the params)', '固定 ' + FIXED + ' 层模型（4 倍参数）');
   var caption = h('p', { class: 'fig-caption' });
-  var note = h('p', { class: 'fig-note', bi: ['Idealised on purpose: it assumes one pass through the block can follow exactly one link, as in pointer chasing or composing facts. Real models are messier, but the dependence of reachable hops on depth is the point results on looped models build on.', '这是刻意理想化的：假设每过一遍 block 正好能多跟一条链接，像 pointer chasing 或者把事实一条条串起来。真实模型没这么整齐，但「能走多少跳取决于深度」正是 looped 模型相关结果的出发点。'] });
+  var note = h('p', { class: 'fig-note', bi: ['Toy rule: one pass follows one link. This visualizes execution budgets, not a depth lower bound for Transformers. Real attention can combine several links, and extra depth need not produce correct reasoning.', '这里只规定一遍跟一条链接，用来比较执行预算，不是 Transformer 的深度下界。真实 attention 可以组合多条关系，多算几层也未必推理正确。'] });
   fig.foot.appendChild(h('div', { class: 'readouts' }, [roNeed.el, roLoop.el, roFixed.el]));
   fig.foot.appendChild(caption);
   fig.foot.appendChild(note);
@@ -2021,9 +2021,9 @@
   fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sT.el]));
   var svg = s('svg', { viewBox: '0 0 640 300', role: 'img' });
   fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
-  var roAvg = TX.readout('Average loops per token', '平均每个 token 转几圈'), roSave = TX.readout('Compute vs always ' + MAXL, '相对固定转 ' + MAXL + ' 圈的计算量'), roCap = TX.readout('Tokens that hit the cap', '转满上限的 token');
+  var roAvg = TX.readout('Average loops per token', '平均每个 token 转几圈'), roSave = TX.readout('Ideal block work vs ' + MAXL + ' loops', '理想 block 工作量 / 固定 ' + MAXL + ' 圈'), roCap = TX.readout('Forced exits at the cap', '达到上限仍未过阈值');
   var caption = h('p', { class: 'fig-caption' });
-  var note = h('p', { class: 'fig-note', bi: ['Toy confidence curves, not a trained gate. Ouro trains its exit gate with an entropy-regularised objective; Mixture-of-Recursions trains a router that assigns each token a depth. Both aim at what this picture shows.', '置信度曲线是玩具，不是训练出来的 gate。Ouro 用带熵正则的目标训练退出 gate；Mixture-of-Recursions 训练一个 router 给每个 token 分配深度。两者想达到的就是这张图的效果。'] });
+  var note = h('p', { class: 'fig-note', bi: ['Synthetic exit scores, not calibrated correctness probabilities or a trained model. Work assumes skipped loops do not execute; gate, cache, and scheduling costs are omitted.', '这些是自拟退出分数，不是校准过的正确率，也不是模型测量。工作量假设退出后真的不再计算，没有计入 gate、缓存和调度开销。'] });
   fig.foot.appendChild(h('div', { class: 'readouts' }, [roAvg.el, roSave.el, roCap.el]));
   fig.foot.appendChild(caption);
   fig.foot.appendChild(note);
@@ -2047,8 +2047,8 @@
     roSave.set(Math.round(avg / MAXL * 100) + '%');
     roCap.set(String(capped));
     TX.bi(caption,
-      'Function words stop after a loop or two; "it", which has to be resolved to "the cat", keeps going. Raising the threshold buys accuracy with compute; lowering it saves compute and risks stopping before a hard token is settled.',
-      '功能词一两圈就停；“它”要回指到“猫”，会一直转下去。阈值调高，是用计算换准确；调低，省计算，但难的 token 可能还没想清楚就停了。');
+      'Raising the threshold keeps these synthetic tokens active longer. The word-specific curves were assigned by hand; no word class has a fixed depth, and this figure does not measure accuracy.',
+      '阈值调高，图中 token 会多转几圈。每个词的曲线都是手工设定，不表示某类词固定需要几圈；图里没有测量准确率。');
     svg.setAttribute('aria-label', t(caption.textContent, caption.textContent));
   }
   render();

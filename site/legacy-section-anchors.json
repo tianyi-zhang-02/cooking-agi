@@ -1,0 +1,245 @@
+[
+  {
+    "source": "00-foundations/core/multi-head-attention.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "00-foundations/core/residual-connections.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "00-foundations/deep-dives/language-model-objective.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "00-foundations/deep-dives/recurrent-dynamics.md",
+    "lost": [
+      "bptt"
+    ]
+  },
+  {
+    "source": "00-foundations/hand-write-kit.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "00-foundations/interview-basics.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "00-foundations/model-families/README.en.md",
+    "lost": [
+      "four-entrances",
+      "self-check"
+    ]
+  },
+  {
+    "source": "00-foundations/model-families/llama.en.md",
+    "lost": [
+      "follow-the-data-flow-first",
+      "how-i-would-use-the-family",
+      "one-sentence-position",
+      "primary-sources",
+      "self-check",
+      "three-ideas-worth-keeping",
+      "trade-offs"
+    ]
+  },
+  {
+    "source": "00-foundations/model-families/llama.md",
+    "lost": [
+      "_6",
+      "_7"
+    ]
+  },
+  {
+    "source": "00-foundations/moe/router.en.md",
+    "lost": [
+      "the-router-is-one-linear-layer"
+    ]
+  },
+  {
+    "source": "00-foundations/transformer.md",
+    "lost": [
+      "transformer"
+    ]
+  },
+  {
+    "source": "03-multimodal-learning/README.en.md",
+    "lost": [
+      "alignment",
+      "an-image-can-supply-what-the-text-cannot-show",
+      "common-training-approaches",
+      "continue-reading",
+      "how-to-evaluate",
+      "multimodality-and-personal-agi",
+      "multimodality-is-not-just-attaching-one-more-encoder",
+      "perception",
+      "reasoning",
+      "reference-papers",
+      "start-here-multimodality-adds-evidence",
+      "start-with-a-short-route",
+      "value-judgment"
+    ]
+  },
+  {
+    "source": "03-multimodal-learning/README.md",
+    "lost": [
+      "_10",
+      "_11",
+      "_12",
+      "_6",
+      "_7",
+      "_8",
+      "_9",
+      "personal-agi"
+    ]
+  },
+  {
+    "source": "05-post-training/after-ppo.md",
+    "lost": [
+      "ppo"
+    ]
+  },
+  {
+    "source": "05-post-training/alignment-tax.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "05-post-training/post-training-infrastructure.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/README.en.md",
+    "lost": [
+      "how-this-series-reads",
+      "quick-learning-actor-rm-critic-and-reference",
+      "why-the-detour-is-necessary"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/README.md",
+    "lost": [
+      "actorrmcriticreference"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/after-rlhf.en.md",
+    "lost": [
+      "what-happened-next"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/on-off-policy.en.md",
+    "lost": [
+      "a-reward-model-is-not-a-critic",
+      "on-policy-off-policy-and-offline-rl"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/on-off-policy.md",
+    "lost": [
+      "on-policyoff-policy-offline-rl",
+      "reward-model-critic"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/reference-and-critic.en.md",
+    "lost": [
+      "why-a-critic-as-well",
+      "why-the-reference-is-mandatory"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/reference-and-critic.md",
+    "lost": [
+      "critic",
+      "reference"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/three-stages.en.md",
+    "lost": [
+      "the-four-models-and-which-two-actually-train",
+      "the-three-stages"
+    ]
+  },
+  {
+    "source": "05-post-training/same-base-different-posttraining.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "05-post-training/sft-and-its-ceiling.md",
+    "lost": [
+      "sft"
+    ]
+  },
+  {
+    "source": "05-post-training/verifiable-rewards.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "05-post-training/where-preferences-come-from.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "06-systems/human-in-the-loop.md",
+    "lost": [
+      "_1"
+    ]
+  },
+  {
+    "source": "learn/README.en.md",
+    "lost": [
+      "01-foundations-models",
+      "02-training-applications",
+      "03-code-exercises",
+      "04-system-design",
+      "follow-a-question-across-chapters",
+      "how-the-sections-fit-together"
+    ]
+  },
+  {
+    "source": "learn/README.md",
+    "lost": [
+      "01",
+      "02",
+      "03",
+      "04"
+    ]
+  },
+  {
+    "source": "practice/README.en.md",
+    "lost": [
+      "beyond-the-architecture-diagram",
+      "start-with-recommendation-systems",
+      "want-to-try-a-design-yourself"
+    ]
+  },
+  {
+    "source": "practice/recommender-systems/README.en.md",
+    "lost": [
+      "start-with-the-whole-systemthen-select-a-stage",
+      "what-comes-from-public-code-and-what-is-a-teaching-design"
+    ]
+  }
+]

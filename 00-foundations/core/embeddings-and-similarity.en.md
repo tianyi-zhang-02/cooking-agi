@@ -2,7 +2,7 @@
 
 [中文](embeddings-and-similarity.md) · **English**
 
-> Reading time: about 6 minutes · Level: introductory · Last reviewed: 2026-09
+> Reading time: about 6 minutes · Level: introductory · Last reviewed: 2026-10-09
 
 “Turn text into a vector” skips an important question: why should a list of numbers mean anything? The answer lies in training—which things the model is rewarded for bringing together or separating.
 
@@ -37,6 +37,8 @@ Neither calculation is wrong. Dot product depends on direction and length; cosin
 $$\operatorname{cos}(q,x)=\frac{q^\top x}{\lVert q\rVert_2\lVert x\rVert_2}.$$
 
 For unit-length vectors, dot product equals cosine. A zero vector has no well-defined direction; numerical handling must be explicit rather than dividing by zero.
+
+A correct formula can still produce an incorrect numerical result. Scaling both vectors to around $10^{200}$ can overflow intermediate squares; scaling to $10^{-200}$ can underflow them to zero. The accompanying code first divides each vector by its own largest absolute component, then computes cosine. This positive rescaling preserves direction while avoiding extreme intermediate squares. Actual zero vectors still raise an error.
 
 **Should everything be normalized?** Not necessarily. Magnitude may carry information learned for a task. Match the retrieval score to the training score before choosing a metric on intuition alone.
 

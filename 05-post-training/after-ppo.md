@@ -1,31 +1,14 @@
-# PPO 之后：每个算法都在删掉它的一部分
+# PPO、GRPO 与 DPO：反馈怎样变成一次更新
 
 **中文** · [English](after-ppo.en.md)
 
-> 阅读时间：约 14 分钟 · 类型：教学 · 最近审阅：2026-09
+> 阅读时间：约 14 分钟 · 类型：教学 · 最近审阅：2026-10-08
 
-## 快速学习：PPO、GRPO、DPO 在删什么
+<span id="ppo"></span>
 
-<details class="interview" markdown="1">
-<summary>先看数据是否 online、奖励是否可验证，再选算法</summary>
+## 先看反馈怎样进入训练 {#_1}
 
-**快速记忆**：PPO 有 Actor + Critic + RM + Reference；GRPO 用同 prompt 的组相对 baseline 删 Critic；DPO 用静态 chosen/rejected pairs 连显式 RM 与 rollout loop 一起删。
-
-**面试回答**
-
-> DPO 便宜稳定，但主要学习离线偏好对，不能自动探索当前 policy 的新失败。GRPO 仍需 online rollout，只是用组内相对 reward 估 advantage。奖励可验证且需要多步探索时 online RL 更自然；只有静态偏好数据时 DPO 更合适。
-
-<details markdown="1">
-<summary><b>深挖</b>：GRPO 组内全对或全错为什么没有梯度信号？</summary>
-
-组标准化 advantage 使用 $(r_i-\bar r)/s_r$。若整组 reward 相同，去均值后全部为 0；实现即使给分母加 epsilon，也没有相对优劣可学。高比例的 homogeneous groups 说明 rollout 难度或采样多样性需要调整。
-
-</details>
-</details>
-
-## 先看这些算法在简化什么
-
-PPO 之后出现的一长串算法，看起来像各自独立的发明，其实是同一件事的不同程度：**把 PPO 的某个部件删掉，然后处理删掉之后冒出来的问题。** 搞清楚每个删了什么、代价是什么，这张表就不用背了。
+这些算法有的换了 advantage 的估计方式，有的换了数据来源或优化目标，并不都能理解成“删掉 PPO 的一个部件”。读它们时，先问：反馈从哪里来，要采多少回答，最后怎样计算梯度？
 
 PPO、GRPO 和 DPO 回答的是同一个问题：已经有了 SFT 模型，怎样利用回答质量或人类偏好，继续提高好回答的概率、降低差回答的概率？区别在于反馈怎样进入训练：
 
@@ -33,7 +16,7 @@ PPO、GRPO 和 DPO 回答的是同一个问题：已经有了 SFT 模型，怎�
 - **GRPO**：同一 prompt 采样一组回答，用组内相对奖励代替 Critic；
 - **DPO**：直接读取 chosen/rejected pair，用一个偏好分类损失更新 policy。
 
-### 先用同一道题建立直觉
+### 先用同一道题建立直觉 {#_2}
 
 Prompt 都是“计算 $17\times24$”：
 
@@ -45,7 +28,7 @@ Prompt 都是“计算 $17\times24$”：
 
 这三个方法可以各用一句话记住：PPO 问“实际结果比 Critic 预期高多少”；GRPO 问“这次结果比同题其他回答高多少”；DPO 不估 advantage，而是直接问“相对于 Reference，chosen 是否比 rejected 提升得更多”。
 
-## 先看 PPO 有什么可删的
+## 先看 PPO 有什么可删的 {#ppo_1}
 
 经典 PPO-RLHF 概念图里有四种角色，其中两个需要训练：
 
@@ -58,9 +41,9 @@ Prompt 都是“计算 $17\times24$”：
 
 **Critic 是额外成本最大的角色之一**：它跟随当前 policy 训练，还要保存优化器状态。工程上它可以是独立 value model，也可以和 Actor 共享 backbone、只增加 value head；这里的四项首先是概念角色，不保证是四个独立常驻显存的完整模型。后面的故事仍然大多围绕如何省掉 Critic 展开。
 
-## 主线：删掉 Critic
+## 主线：删掉 Critic {#critic}
 
-Critic 存在的唯一理由是**给优势函数提供一个基线**，用来降方差。既然只是要一个基线，那不一定非得学一个网络出来。
+Critic 估计状态价值，既可以提供降低方差的 baseline，也参与 TD / GAE 的 bootstrapping。若任务适合整条回答的终局评分，可以考虑用采样统计构造相对信号；多步、延迟奖励的情况则要重新考虑 credit assignment。
 
 | 算法 | 基线从哪来 | 代价 |
 | --- | --- | --- |
@@ -68,7 +51,7 @@ Critic 存在的唯一理由是**给优势函数提供一个基线**，用来降
 | **RLOO** | 留一法：某个样本的基线 = 其余样本奖励的均值 | 同样要多采样；且把整个回复当**一个动作**，放弃 token 级信用分配 |
 | **REINFORCE++** | 全局 batch 的统计量做优势归一化 | 基线更粗，但保留了 PPO 的剪切与 KL 稳定化 |
 
-三者的共同点是：**基线从"学出来的"变成"采样估出来的"。** 这一步省掉了一个在训的全尺寸模型，但也埋下了后面所有问题的种子。
+这些方法不再依赖独立训练的 value model，但并没有消除估计误差。省下的训练状态，要和额外采样、信号方差及任务结构一起比较。
 
 RLOO 的基线写出来是这样，$k$ 是同一提示下的采样数：
 
@@ -76,7 +59,7 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 
 它的立论是：RLHF 的起点是训好的 SFT 模型，不是随机初始化的网络，所以 PPO 里那些为不稳定训练准备的机制（GAE、逐 token 的价值估计）未必必要。
 
-### GRPO 的组相对 advantage
+### GRPO 的组相对 advantage {#grpo-advantage}
 
 对同一个 prompt 采样 $G$ 个回答，得到奖励 $R_1,\ldots,R_G$。常见的 response-level advantage 是：
 
@@ -114,7 +97,7 @@ $$
 | 主要成本 | 训练 value function | 每个 prompt 要做多次 rollout |
 | 典型风险 | Critic 拟合不准或训练不稳 | 组内缺少奖励差异，采样没有学习信号 |
 
-## 删掉 Critic 之后冒出来的问题
+## 删掉 Critic 之后冒出来的问题 {#critic_1}
 
 这一节才是重点。**采样基线和学出来的基线，失效方式不一样。**
 
@@ -122,17 +105,17 @@ $$
 一组回答全对或全错，例如 $R=[0,0,0,0]$，减去组内均值后 advantage 都是 0；带有 $\varepsilon$ 的实现避免了除零，但创造不出相对信号。这一组对 policy-gradient 项**不产生有效梯度**。任务偏简单或偏难时，这种组占比会很高。
 
 **问题二：归一化引入偏置。**
-除以组内标准差看着是标准化，其实给不同的组加了不同的权重；按序列长度归一化则会系统性地偏向某个长度方向。Dr. GRPO 的论点就是这个：这些归一化项让模型倾向于**产出越来越长但不一定更对**的回答。去掉它们，token 效率明显改善。
+除以组内标准差会改变不同 prompt 的相对权重；按回答长度平均又会改变不同长度的 token 权重。[Dr. GRPO](https://arxiv.org/abs/2503.20783)分析了这些偏置。是否改善你自己的任务，仍要按相同采样与评估预算比较，不能把去掉归一化当成普遍正确的修复。
 
 **问题三：剪切上下限对称，低概率 token 提不上来。**
-PPO 的剪切把概率比限制在 $[1-\epsilon, 1+\epsilon]$。对一个当前概率很低的 token，上限 $1+\epsilon$ 允许的绝对提升量非常小——它几乎没有翻身机会。长期后果是熵坍塌：模型越来越确定，多样性越来越低。
+PPO 在部分分支截平 surrogate 的收益，不是把实际概率比硬限制在区间里。相同乘法上界对低概率 token 对应的绝对增量更小；放宽上界可能改变探索，但熵下降有多种原因，不应只凭一条曲线归因。
 
 **问题四：序列级的损失稀释长回答。**
 损失在样本级平均时，一个 1000 token 的回答和一个 50 token 的回答权重一样，于是长回答里每个 token 拿到的梯度被摊薄了。推理任务恰恰依赖长回答。
 
-DAPO 的四条改进正好对着这四个问题：动态采样过滤掉全对全错的组、剪切上下限拆开（Clip-Higher）、损失改成 token 级、超长回答用柔性惩罚而不是硬截断。
+DAPO 围绕采样、clipping、token 权重和超长回答做了组合调整。柔性长度惩罚没有取消生成长度上限，也不等于去掉组内标准差。详细算例见 [DAPO：采样、长度和 clipping](dapo.md)。
 
-## 另一条线：连 RL 循环一起删
+## 另一条线：连 RL 循环一起删 {#rl}
 
 DPO 走得更远——在标准的离线训练阶段，**不需要显式 Reward Model、Critic 或在线 rollout loop**。
 
@@ -173,7 +156,7 @@ $$
 
 代回偏好概率后，$C(x)$ 在同一个 prompt 的 reward difference 中抵消，reward difference 就能直接用 policy/reference log-ratio 表示。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。完整推导见 [RLHF 的三个阶段](rlhf/after-rlhf.md)。
 
-### DPO 和 SFT 到底差在哪
+### DPO 和 SFT 到底差在哪 {#dpo-sft}
 
 如果 A 是 chosen、B 是 rejected：
 
@@ -189,10 +172,10 @@ $\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺�
 
 两个后续修补：
 
-- **IPO** — DPO 在偏好数据上过拟合得很快。IPO 加了一个正则项，让模型不靠"提前停止"这类技巧也能收敛。
-- **KTO** — 不要求成对偏好，只要求把样本标成"好"或"坏"。数据采集成本低一个档次，代价是信号更粗。
+- **IPO** — 使用不同的偏好目标，使相对 log-ratio 拟合有限的目标间隔；不是简单在 DPO 后面加一个通用正则项。[原论文](https://arxiv.org/abs/2310.12036)
+- **KTO** — 可以用非成对的 desirable / undesirable 标签；数据形式更灵活，但成本仍取决于实际标注流程，不能保证一定更便宜。
 
-## 还有一条：把奖励模型换成程序
+## 还有一条：把奖励模型换成程序 {#_3}
 
 数学题可以对答案，代码可以跑测试。这类任务的奖励**不需要学**，写个检查器就行。
 
@@ -200,7 +183,7 @@ $\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺�
 
 局限也明显：只适用于能写出检查器的任务。
 
-## 一张表收尾
+## 一张表收尾 {#_4}
 
 | | 典型训练数据 | 显式 Reward | Critic | 训练时 rollout | 核心取舍 |
 | --- | --- | --- | --- | --- | --- |
@@ -210,7 +193,7 @@ $\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺�
 
 扩展算法可以继续用“删掉什么”定位：RLOO 用 leave-one-out baseline 替代 Critic；REINFORCE++ 用 batch statistics；RLVR 用 verifier 替代 learned Reward Model；DAPO 则不再只删组件，而是针对 GRPO 的采样、clipping、token weighting 和超长回答逐项修补。
 
-## 怎么选
+## 怎么选 {#_5}
 
 <details class="interview" markdown="1">
 <summary>第一步：奖励能不能被自动验证？</summary>
@@ -235,7 +218,7 @@ Critic 的显存、计算或训练稳定性是瓶颈时，考虑 GRPO、RLOO 等
 
 顺序是：**先看 feedback 是否可靠，再看能否形成 online loop，最后看系统瓶颈。**
 
-## 选择算法时检查什么
+## 选择算法时检查什么 {#_6}
 
 <details class="interview" markdown="1">
 <summary>1. Reward 是 learned 还是 verified？分别监控什么？</summary>
@@ -279,7 +262,7 @@ Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以�
 
 </details>
 
-## 面试时能否两分钟讲清楚
+## 面试时能否两分钟讲清楚 {#_7}
 
 <details class="interview" markdown="1">
 <summary>请写出 PPO、GRPO 与 DPO 最关键的三个式子。</summary>
@@ -309,13 +292,32 @@ PPO 的核心方向是 $\hat A_t\approx G_t-V_\phi(s_t)$，再用 probability ra
 
 </details>
 
-## 继续阅读
+## 继续阅读 {#_8}
 
 - [RLHF 的三个阶段，和后来发生了什么](rlhf/)：四个模型各自在干嘛，DPO 的推导
 - [数据与反馈](../01-data-and-feedback/)：偏好标签本身的质量问题
 - [Evaluation](../07-evaluation/)：怎么判断对齐之后真的变好了
 
-## 参考论文
+## 快速学习：PPO、GRPO、DPO 在删什么 {#ppogrpodpo}
+
+<details class="interview" markdown="1">
+<summary>先看数据是否 online、奖励是否可验证，再选算法</summary>
+
+**快速记忆**：PPO 有 Actor + Critic + RM + Reference；GRPO 用同 prompt 的组相对 baseline 删 Critic；DPO 用静态 chosen/rejected pairs 连显式 RM 与 rollout loop 一起删。
+
+**面试回答**
+
+> DPO 便宜稳定，但主要学习离线偏好对，不能自动探索当前 policy 的新失败。GRPO 仍需 online rollout，只是用组内相对 reward 估 advantage。奖励可验证且需要多步探索时 online RL 更自然；只有静态偏好数据时 DPO 更合适。
+
+<details markdown="1">
+<summary><b>深挖</b>：GRPO 组内全对或全错为什么没有梯度信号？</summary>
+
+组标准化 advantage 使用 $(r_i-\bar r)/s_r$。若整组 reward 相同，去均值后全部为 0；实现即使给分母加 epsilon，也没有相对优劣可学。高比例的 homogeneous groups 说明 rollout 难度或采样多样性需要调整。
+
+</details>
+</details>
+
+## 参考论文 {#_9}
 
 - [PPO](https://arxiv.org/abs/1707.06347) — 剪切目标与信任域
 - [DeepSeekMath](https://arxiv.org/abs/2402.03300) — GRPO
@@ -325,6 +327,6 @@ PPO 的核心方向是 $\hat A_t\approx G_t-V_\phi(s_t)$，再用 probability ra
 - [REINFORCE++](https://arxiv.org/abs/2501.03262) — 去 Critic 但保留 PPO 的稳定化技巧
 - [DPO](https://arxiv.org/abs/2305.18290) · [IPO](https://arxiv.org/abs/2310.12036) · [KTO](https://arxiv.org/abs/2402.01306)
 
-## 中文导读
+## 中文导读 {#_10}
 
 - [大模型中的强化学习](https://zhuanlan.zhihu.com/p/693582342) — 知乎 @大家好我是爱因，专栏《机器学习小王子》。本章按「删掉了什么」这一条轴组织，只覆盖主干；那篇是百科式的全景，从 MDP 要素、贝尔曼方程、MC/TD/GAE 一路铺到各算法的细节，想要更全的地图从它开始。

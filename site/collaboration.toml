@@ -2,17 +2,10 @@ maintainers = ["tianyi-zhang-02"]
 acknowledgements = []
 
 [[area]]
-id = "quant"
-zh = "Quant：概率与统计"
-en = "Quant: probability & statistics"
-groups = ["quant"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
-
-[[area]]
 id = "foundations"
 zh = "大模型基础"
 en = "Foundations"
-groups = ["study", "foundations"]
+groups = ["study", "foundations", "architectures", "pretraining", "inference"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
@@ -40,14 +33,14 @@ reviewers = ["tianyi-zhang-02", "2pir2"]
 id = "systems-agents"
 zh = "系统、多模态与 Agents"
 en = "Systems, multimodal & agents"
-groups = ["systems", "agents"]
+groups = ["systems", "agents", "multimodal"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "practice"
 zh = "工程实践与开源"
 en = "Practice & open source"
-groups = ["practice", "recsys"]
+groups = ["practice", "system-design", "recsys", "rag-practice", "posttraining-practice"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
@@ -59,15 +52,15 @@ reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "exercises"
-zh = "代码题解与系统设计"
-en = "Coding exercises & system design"
-groups = ["coding", "algorithms", "ml-exercises", "system-design"]
+zh = "面试准备"
+en = "Interview preparation"
+groups = ["coding", "interview-basics", "algorithms", "ml-exercises"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 
 [[area]]
 id = "papers"
-zh = "论文"
-en = "Papers"
+zh = "写作资料与存档"
+en = "Writing resources & archive"
 groups = ["reference"]
 reviewers = ["tianyi-zhang-02", "2pir2"]
 

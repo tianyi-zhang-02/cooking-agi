@@ -76,12 +76,12 @@ class ProbabilityProofTests(unittest.TestCase):
                     ),
                 )
 
-    def test_all_chapters_are_navigable_and_bilingual(self):
+    def test_retained_sources_are_bilingual_but_not_published(self):
         nav = tomllib.loads((ROOT / "site/nav.toml").read_text())
-        section = next(item for item in nav["section"] if item["dir"] == "quant/probability")
-        self.assertEqual(len(section["order"]), 16)
-        self.assertEqual(section["order"][0], "study-guide.md")
-        for filename in section["order"]:
+        self.assertFalse(any(item["dir"].startswith("quant") for item in nav["section"]))
+        filenames = sorted(path.name for path in DIRECTORY.glob("*.md") if not path.name.endswith(".en.md"))
+        self.assertEqual(len(filenames), 16)
+        for filename in filenames:
             chinese = DIRECTORY / filename
             english = chinese.with_name(chinese.stem + ".en.md")
             self.assertTrue(english.exists(), filename)

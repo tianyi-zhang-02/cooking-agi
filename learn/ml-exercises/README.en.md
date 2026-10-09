@@ -1,18 +1,21 @@
-# ML questions & implementations: explain it, then build it
+# ML coding: PyTorch & implementations
+
+<span id="pytorch-ml-implementations"></span>
 
 [中文](README.md) · **English**
 
-An answer can feel obvious while you're reading it. Try closing the page, explaining an example, and writing a few lines before checking it again.
+There are two routes here: use PyTorch to connect data, gradients, and a training loop, or implement attention, losses, and sampling as small functions. Run them, then inspect each step rather than relying on whiteboard recall alone.
 
 ## Pick the skill you want to practice
 
 | Practice | Entry | What to check |
 | --- | --- | --- |
-| Explain a foundation | [Basic questions](../../00-foundations/interview-basics.en.md) | State assumptions, not just terminology |
+| Write a correct training loop | [PyTorch: tensors to training](../../00-foundations/pytorch/README.en.md) | Storage aliasing, gradient accumulation, and loss denominators |
 | Turn a formula into code | [Whiteboard implementations](../../00-foundations/hand-write-kit.en.md) | Shapes, masks, edge cases, numerical stability |
-| Reason about probability and estimation | [ML mathematics](../../00-foundations/ml-math-interview.en.md) | Identify the denominator and sampling assumptions |
-| Explain architectural choices | [Transformer follow-ups](../../interview/transformer-followups.en.md) | Name the bottleneck and the new cost |
-| Review a random question | [Site question bank](../../interview/questions.en.md) | Continue the reasoning after a condition changes |
+| Debug shapes and broadcasting | [Tensor operations](../../00-foundations/pytorch/operations-and-shapes.en.md) | What dimensions mean and whether broadcasting changes the intended operation |
+| Check gradients | [Autograd](../../00-foundations/pytorch/autograd.en.md) | Graph breaks and whether gradients reach the intended parameters |
+
+For conceptual explanations and derivations, use [ML / LLM fundamentals review](../../interview/basics/README.en.md). This route focuses on implementation rather than treating explanation and coding as the same skill.
 
 ## Practice one question three ways
 

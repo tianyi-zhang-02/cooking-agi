@@ -2,56 +2,56 @@
 
 [中文](review.md) · **English**
 
-> Reading time: ~4 min · Level: advanced · Last reviewed: 2026-09
+> Reading time: ~4 min · Level: advanced · Last reviewed: 2026-10-09
 
 ## Interview questions
 
 <details class="interview" markdown="1">
 <summary>What sets the total and the active parameter count? Why is Mixtral 8x7B not 56B?</summary>
 
-Total parameters grow with the number of experts $N$; compute per token grows only with $k$. Mixtral 8x7B has 8 experts per layer and sends each token to 2: only the FFNs are copied, attention and embeddings exist once, so the total is 46.7B with 12.9B active per token.
+At fixed expert size, total expert parameters grow with N and main expert compute per token grows with k; the router still scores N experts. Mixtral 8x7B duplicates FFNs, not eight complete models, yielding 46.7B total and 12.9B active parameters rather than 8×7B.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>How does the router compute gate weights? Top-k has no gradient, so how does the router learn?</summary>
 
-The router is a linear layer that scores every expert; it keeps the top $k$ and takes a softmax over those $k$ to get the weights (DeepSeek-V3 uses a sigmoid and then normalises). Choosing has no gradient; the gradient reaches the router through the gate weights $g_i$ of the chosen experts, and an expert that was not chosen gets no gradient from this token.
+A common router scores experts with a linear layer, then selects top-k. Mixtral renormalizes selected weights; Switch top-1 retains the selected full-softmax probability instead of turning its sole gate into one. Ordinary autograd does not differentiate discrete indices; task gradients flow through continuous gates. Unselected expert parameters receive no task gradient from that token, but their router logits may receive gradients through the full softmax or auxiliary objectives.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Why is load balancing needed? Why is the Switch auxiliary loss f_i times P_i?</summary>
 
-Imbalance reinforces itself: an expert that gets more tokens is trained better, gets more tokens, and eventually a few experts do all the work. Switch's auxiliary loss is $\alpha N \sum f_i P_i$: $f_i$ is the real load fraction but has no gradient, $P_i$ is the mean router probability and does; multiplied together, the gradient flows through $P_i$ with a strength set by $f_i$, and the loss is minimal at perfect balance.
+More tokens provide more training opportunities, potentially reinforcing imbalance and leaving devices waiting. Switch uses $\alpha N \sum f_i P_i$: assignment fraction $f_i$ is nondifferentiable, while mean router probability $P_i$ is differentiable. Gradients flow through $P_i$. The value is $\alpha$ at perfect balance, not a strict lower bound over all routing distributions.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>What is the capacity factor? Where do tokens over capacity go?</summary>
 
-Each expert takes at most $\frac{\text{tokens}}{N} \times \text{CF}$ tokens, which keeps compute per device fixed. Tokens over the cap are not deleted; they skip this layer's expert and pass on through the residual connection. Switch found CF between 1.0 and 1.25 worked better; DeepSeek-V3 drops no tokens.
+Switch top-1 sets capacity from $\frac{\text{tokens}}{N}\times\text{CF}$, rounded according to the implementation. This caps each expert's capacity rather than guaranteeing equal runtime per device. An overflowing expert branch can be skipped while the token continues through the residual path. Top-k and dropless implementations may behave differently; one capacity formula is not universal.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>How does DeepSeek-V3's auxiliary-loss-free balancing work? Is there really no balance loss?</summary>
 
-Each expert has a bias that is added to its score only when choosing the top k, while the gate weight still uses the original score; after every step an overloaded expert's bias goes down by $\gamma$ and an idle one's goes up by $\gamma$. No extra gradient interferes with the language-model loss. It still keeps a very small sequence-wise balance loss ($\alpha = 0.0001$), so it is not literally none.
+The bias affects top-k selection while gate weights use original affinities. Overloaded experts have their bias reduced; underloaded experts have it increased. This update needs no auxiliary-loss gradient, but can change the selected set, outputs, and task gradients. V3 still retains a small sequence-wise balance loss ($\alpha=0.0001$), so it is not entirely free of auxiliary objectives.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>What do fine-grained experts and shared experts each solve?</summary>
 
-Fine-grained: cut experts smaller and choose more of them; compute stays the same but the number of combinations explodes, so expertise separates more cleanly. Shared experts: every token passes through them, they hold common knowledge, and routed experts duplicate less. DeepSeek uses both; Qwen3's MoE has no shared expert.
+Fine-grained experts allow more combinations of smaller experts at comparable expert matmul cost. More combinations do not guarantee better specialization or unchanged communication. Shared experts provide a common computation path; reducing duplication is a design aim, not a predetermined division of knowledge. DeepSeek-V3 uses both; Qwen3-235B-A22B / 30B-A3B have no shared experts.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Does MoE save memory? What are the main costs in deployment?</summary>
 
-No. Any token may use any expert, so all parameters must be in memory (or sharded across GPUs). The main costs are memory, the two all-to-all exchanges, and, at large batch sizes, reading nearly every expert each step. What it saves is compute per token.
+Sparse activation does not automatically shrink weight storage by k/N. All parameters must live somewhere: GPU residency, device sharding, and offloading have different costs. Expert parallelism typically adds token dispatch and return traffic, while large batches may use many experts. Comparing memory or speed with a dense baseline requires matching quality, precision, batch, and deployment conditions.
 
 </details>
 

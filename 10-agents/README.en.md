@@ -4,12 +4,7 @@
 
 > Reading time: ~5 min · Level: advanced · Last reviewed: 2026-09
 
-<div class="lesson-recipe">
-  <div><span>The problem</span><strong>when to let the model choose its next step, and when not to</strong></div>
-  <div><span>Prerequisites</span><strong>LLM calls · tool calling · evaluation</strong></div>
-  <div><span>Core mechanism</span><strong>model + tools + loop + stopping condition</strong></div>
-  <div><span>Common mistakes</span><strong>making everything an agent; no stopping condition and no way to verify</strong></div>
-</div>
+Explaining an error message may take one response. Opening files, changing code, running tests, and reacting to the next failure needs a loop. The result of each action informs the next one. We start there to decide when an agent is useful and when a fixed workflow is simpler.
 
 ## First: the word keeps moving
 
@@ -71,6 +66,7 @@ ReAct (Yao et al., 2022) interleaves reasoning and acting: the model writes down
 ## How this series reads
 
 1. [Common building blocks](patterns.en.md): from a single call to orchestrator-workers, and what each suits
+   Start with [prompting, ICL, and CoT](prompting.en.md), then practice multi-step evidence handling with [Deep Research](deep-research.en.md).
 2. [How agents are used in different settings](scenarios.en.md): coding, search and research, customer support, data analysis, computer use, personal assistants
 3. [Frontier API or self-hosted](model-choice.en.md): choosing a model, with a cost model you can fill in yourself
 4. [Review questions](review.en.md): interview questions and a self-check

@@ -2,43 +2,21 @@
 
 **中文** · [English](residual-connections.en.md)
 
-> 阅读时间：约 7 分钟 · 难度：必修 · 最近审阅：2026-08
+> 阅读时间：约 10 分钟 · 难度：必修 · 最近审阅：2026-10-09
 
-<div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>让深度不再是训练的敌人</strong></div>
-  <div><span>前置知识</span><strong>一个子层 f · 一条恒等通路</strong></div>
-  <div><span>核心机制</span><strong>y = x + f(x)，加号是全部</strong></div>
-  <div><span>常见错误</span><strong>以为它是「防止过拟合」或者「加深就行」</strong></div>
-</div>
+输入是 `[2, 3]`，一个子层算出修正量 `[0.1, -0.2]`，残差相加后就是 `[2.1, 2.8]`。如果修正量为零，输入可以原样通过。这个简单的加法既改变了模型学习函数的方式，也给反向传播留了一条直接路径。
 
-## 快速学习：Residual Connection 为什么让深度可训练
+<span id="_1"></span>
 
-<details class="interview" markdown="1">
-<summary>Identity path、梯度与它没有解决的事</summary>
-
-**快速记忆**：$y=x+f(x)$ 让 block 只需学习相对输入的增量，并给前向信息与反向梯度都保留一条恒等通路。
-
-**面试回答**
-
-> Residual connection 的 Jacobian 是 $I+J_f$。即使分支的 Jacobian 很小，identity 项仍允许梯度直接回传；模型也可以令 $f(x)\approx0$，轻松实现不比浅层更差的恒等映射。
-
-<details markdown="1">
-<summary><b>深挖</b>：有 residual 就绝不会梯度消失吗？</summary>
-
-不会。跨层 Jacobian 仍是 $\prod_\ell(I+J_{f_\ell})$，其谱仍可能失控；Post-LN 还会把 $J_{\mathrm{LN}}$ 放回主路径。Residual 提供有利结构，不是无条件稳定性证明，因此初始化、normalization、residual scaling 与 optimizer 仍然重要。
-
-</details>
-</details>
-
-## 残差路径提供恒等映射
+## 残差路径提供恒等映射 {#_2}
 
 普通一层是「把输入换成新的东西」，残差一层是「在输入上**改一点**」：
 
 $$y = x + f(x)$$
 
-如果 $f$ 学到全 0，这层就是恒等映射，什么也没干。**默认行为从「必须学出有用的变换」变成了「不确定就别动」**——这是它全部威力的来源。
+如果 $f$ 为 0，这层就是恒等映射。多加一层时，不必重新学一遍怎样复制输入，只需学习需要修改的部分。但网络不会因为“不确定”就自动输出 0；初始化和训练仍会影响它实际学到什么。
 
-## 梯度为什么能穿过去
+## 梯度为什么能穿过去 {#_3}
 
 对残差层求导：
 
@@ -48,84 +26,86 @@ $$\frac{\partial y}{\partial x} = I + \frac{\partial f}{\partial x}$$
 
 $$\frac{\partial y_L}{\partial x_0} = \prod_{l=1}^{L}\left(I + \frac{\partial f_l}{\partial x_{l-1}}\right)$$
 
-展开后有一项是 $I \cdot I \cdots I = I$：**存在一条路径，梯度原封不动地从最后一层到达第一层**。
+这里的乘积按链式法则从最后一层往前排列，矩阵不能任意换序。展开后有一项是 $I\cdots I=I$，但**总梯度是所有项相加，不是只取这条通路**。[Identity Mappings](https://arxiv.org/abs/1603.05027)讨论了恒等路径为什么有利于传播。
 
-没有残差时是纯连乘 $\prod_l \frac{\partial f_l}{\partial x_{l-1}}$。每层稍微小于 1，$L$ 层之后就是指数级衰减；稍微大于 1 就指数级爆炸。你必须把初始化调到恰好临界，才能两边都不塌。
+没有残差时是纯连乘 $\prod_l J_{f_l}$。在一维例子里，每层导数为 0.8，40 层后就是 $0.8^{40}\approx0.000133$；高维还要看方向、奇异值和激活状态，不能给整个矩阵简单说“大于 1”。
 
-## 没有残差时梯度如何变化
+残差也有反例：若 $f(x)=-x$，则 $y=0$，导数是 $1-1=0$；若 $f(x)=x$，40 层的导数会是 $2^{40}$。因此残差让优化有更好的结构，却没有保证梯度永不消失或爆炸。
 
-40 层 MLP，tanh，初始化定在临界值下方 20%（也就是「没调到最好」的常见情况），同样的权重同样的输入，唯一区别是有没有那个加号：
+## 没有残差时梯度如何变化 {#_4}
+
+用 40 层、宽度 64 的 tanh MLP 做一个小检查。权重标准差设为 $0.8/\sqrt{64}$，两组使用同一随机种子、权重和输入，只改变残差相加。目标取末层激活的平均值，因此两组末层收到相同的上游梯度：
 
 ![有无残差时梯度随深度的变化](../assets/residual-gradient.svg)
 
-普通堆叠从第 40 层走回第 1 层，梯度掉了约 **10³ 倍**，到第 1 层只剩 $2\times10^{-9}$。残差那条基本水平，第 1 层还有 $2.1$。**同一个学习率下，前面那些层等于根本没在训练。**
+图里画的是每层激活的梯度范数，不是参数更新量。在这个设置下，普通堆叠往前传播时明显衰减，残差版本保留了较大的梯度。曲线不是一条水平线，也不表示梯度越大越好。
 
-注意这里没有训练，只是一次前向加一次反向——衰减是架构本身的性质，不是训练不充分。
+这里没有优化器更新，只做一次前向和反向。它检验的是这个输入、初始化和目标下的传播，不是训练收敛或泛化实验，也不能据此认定某个 gain 是所有 tanh 网络的“临界值”。
 
 数字来自 [`../code/make_norm_figures.py`](../code/make_norm_figures.py)，改参数重跑图会跟着变。
 
-## 常见误解
+## 常见误解 {#_5}
 
-**「残差是为了防止过拟合」** —— 不是。它解决的是**优化**问题，不是泛化问题。ResNet 论文里那个著名观察就是：56 层的普通网络**训练误差**比 20 层还高。不是过拟合，是优化不动。
+**「残差主要是为了防止过拟合」** —— 这不是最初的出发点。[ResNet](https://arxiv.org/abs/1512.03385)关注的现象是普通网络变深后，连训练误差都可能更高。它首先改善优化；是否改善泛化仍要看验证数据，二者并不互斥。
 
-**「加了残差就可以无限加深」** —— 不能。残差把「梯度消失」从主要瓶颈里移走了，但计算量、显存、数据量、以及深层的边际收益递减都还在。
+**「加了残差就可以无限加深」** —— 不能。梯度仍可能不稳定，计算量、显存、数据和深度收益也都有限制。
 
-**「$x + f(x)$ 里维度不一样怎么办」** —— 必须一样，否则加不起来。CNN 里降采样时用 $1\times1$ 卷积做投影；Transformer 里每层输入输出都是 $d_\text{model}$，所以从来不需要投影。
+**「$x + f(x)$ 里维度不一样怎么办」** —— 相加位置的 shape 必须兼容。可以用投影匹配 skip 分支；常见等宽 Transformer block 已保持 $d_\text{model}$，但换宽度或层级结构时仍要重新核对。
 
 <details markdown="1">
 <summary><b>进阶</b>：残差网络更像一个浅网络的集成</summary>
 
-[Residual Networks Behave Like Ensembles](https://arxiv.org/abs/1605.06431) 指出：把 $L$ 层残差网络展开，等于 $2^L$ 条长度不等的路径之和（每层要么走 $f$ 要么走恒等）。
+[Residual Networks Behave Like Ensembles](https://arxiv.org/abs/1605.06431)用长短不同的路径解释残差网络，并在论文设置里研究移除部分层的影响。这是理解传播的一种视角，不是说任意残差网络都能随意删层。
 
-而且实测有效路径**很短**——大部分梯度来自长度只有 10–30 的路径，尽管网络有 100+ 层。随机删掉几层，残差网络性能基本不掉；对普通网络这么干会直接崩。
+对于固定前向点的 Jacobian，$\prod_l(I+J_l)$ 可以展开成 $2^L$ 个矩阵乘积项。非线性前向函数本身却不能一般地拆成 $2^L$ 个彼此独立的网络输出，因为后层的输入已经依赖前层结果。
 
-这也解释了为什么残差网络的深度更像「宽度」：它不是在串行地做 $L$ 步推理，而是在并行地叠加许多条较短的变换。
+因此实际计算仍要依次经过各层，不能把这个解释当作“深度已经变成并行宽度”。
 
 </details>
 
-## 完整的子层还有一个 Dropout
+## 完整的子层还有一个 Dropout {#dropout}
 
 前面为了把残差讲透，式子是简化过的。2017 原版的子层实际长这样：
 
 $$\text{LayerNorm}\big(x + \text{Dropout}(f(x))\big)$$
 
-Dropout 训练时按概率 $p$ 随机把一部分激活置零，剩下的除以 $1-p$ 保持期望不变，推理时整个关掉。它逼着模型不能依赖某几个固定通道，**换来的是泛化能力**。原论文取 $p=0.1$，用在三处：每个子层的输出、embedding 和位置编码相加之后、以及注意力权重上。
+标准 inverted dropout 在训练时按概率 $p$ 置零，留下的激活除以 $1-p$，保持这一层输出的条件期望；eval 时关闭。它是一种正则化手段，不保证每个任务都获益。2017 Transformer 的 residual dropout 放在子层输出上，再与输入相加。
 
-**位置很关键：Dropout 作用在分支 $f(x)$ 的输出上，不作用在 $x$ 上。**
+**若想保留恒等 skip，就把这里的 dropout 放在分支 $f(x)$ 上，而不是直接丢弃 skip 的元素。**
 
 $$\underbrace{x + \text{Dropout}(f(x))}_{\text{恒等通路完好}} \qquad\text{vs}\qquad \underbrace{\text{Dropout}(x) + f(x)}_{\text{通路被打断}}$$
 
-要是 dropout 落在 $x$ 上，前面推的那条「梯度原样通过」的路每层都会被随机砍掉一部分，$I$ 这一项就不成立了，残差也就白加了。所以它只能待在分支里：**残差流必须保持干净。**
+Dropout 放到 $x$ 上时，直接通路的 Jacobian 从 $I$ 变成随机对角矩阵。这是另一种结构，不再满足前面的恒等路径推导；但不能仅凭这一点宣称它完全无法训练。
 
-还有一点值得知道：现在的大模型预训练基本把 dropout 设成 0。数据量足够大时过拟合不是主要矛盾，而 dropout 会拖慢收敛。它主要活在微调、小模型、数据量有限这些场景里。
+是否使用 dropout、放在哪一层、概率多大，都要以具体模型配置和验证结果为准。不要把某个大模型的零 dropout 配置当作所有预训练或微调任务的通用答案。
 
-## 和归一化怎么配合
+## 和归一化怎么配合 {#_6}
 
 三样东西解决的是不同问题，但它们的**相对位置**很要命：
 
 $$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm，2017 原版}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm，现在}}$$
 
-post-norm 把 norm 压在残差通路上，上面那条「梯度原样通过」的路径**被打断了**——每层都要穿一次 norm。这正是原版 Transformer 必须配 warmup 的原因。
+Post-norm 的 Jacobian 要再乘上 Norm 的 Jacobian，不再是纯恒等 skip。[On Layer Normalization](https://arxiv.org/abs/2002.04745)分析了这类结构与初始化时梯度、warmup 的关系；它不是所有配置都“必须 / 不必 warmup”的定理。
 
 pre-norm 把 norm 挪进分支里，恒等通路完整保留，代价是输出尺度随深度累积，所以最后要补一个 final norm。
 
 ![post-norm 与 pre-norm 的残差通路](../assets/transformer-block.svg)
 
-## 面试常见问题
+## 面试常见问题 {#_7}
 
 <details class="interview" markdown="1">
 <summary>残差连接解决了什么问题？</summary>
 
-深层网络的**优化**问题，不是泛化问题。纯连乘的雅可比会指数衰减或爆炸；加上恒等项后 $\partial y/\partial x = I + \partial f/\partial x$，存在一条梯度不衰减的通路。
+它让深层网络更容易学习相对输入的修正，并给 Jacobian 加上恒等项。总梯度仍可能发生抵消或放大，不能把一条通路的存在说成无条件稳定。
 
-证据是 ResNet 论文的观察：56 层普通网络的**训练**误差高于 20 层——如果是过拟合，训练误差应该更低。
+区分优化和过拟合时，先看训练误差，再看验证误差。训练误差变高，不能仅用“模型更大所以过拟合”解释。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>为什么是相加不是拼接？</summary>
 
-拼接（DenseNet 那样）也能保留信息，但维度会随深度增长，参数量和显存跟着涨。相加保持维度不变，可以无限堆叠且每层参数量相同。
+拼接（如 DenseNet）也能保留信息，但会增加后续层的输入宽度，需要管理参数和显存。相加保持当前宽度，便于堆叠；它不意味着能无限加深，也不要求各层参数量完全相同。
 
 另外相加让「什么都不做」成为一个**可达的解**（$f=0$ 即恒等），拼接则需要后续层专门学出「忽略新拼进来的部分」。
 
@@ -134,18 +114,22 @@ pre-norm 把 norm 挪进分支里，恒等通路完整保留，代价是输出�
 <details class="interview" markdown="1">
 <summary>$x + f(x)$ 中 $f$ 的输出方差会怎样？</summary>
 
-每层加一次，方差近似累加，所以残差流的方差随深度线性增长。两个常见对策：把残差分支的输出投影按 $1/\sqrt{2L}$ 缩放初始化（GPT-2 的做法），或者在最后补一个 final norm。
+先对一个坐标写完整：
 
-不管的话，深层的输出尺度会大到让 softmax 饱和。
+$$\operatorname{Var}(x+f)=\operatorname{Var}(x)+\operatorname{Var}(f)+2\operatorname{Cov}(x,f).$$
+
+只有协方差可忽略、各层更新方差相近时，才近似随深度线性增长。若 $f=-x$，输出方差反而为 0。分支缩放可以控制每层增量；final norm 只控制末端送入输出头的尺度，不能把中间传播问题都修好。
+
+检查实际激活和梯度分布，再决定初始化、残差缩放或归一化方案。
 
 </details>
 
 <details class="interview" markdown="1">
-<summary>pre-norm 和 post-norm 哪个好？为什么现在都用 pre-norm？</summary>
+<summary>Pre-Norm 和 Post-Norm 怎么取舍？</summary>
 
-pre-norm 更容易训——恒等通路上没有 norm，梯度有一条干净的路，可以不用精细的 warmup，深度也更容易堆上去。
+Pre-norm 通常更容易优化深层网络，因为 Norm 位于分支而非主 skip 上；它仍需要合适的学习率、初始化和训练预算。
 
-post-norm 在训得起来的前提下，最终效果有时略好（每层输出都被归一化，表示更规整），但它对学习率调度非常敏感。工程上稳定性压倒了那一点点效果差异。
+Post-norm 逐层归一化残差输出，训练条件和表示行为不同。质量结论要在可比预算下测，不能直接排出所有模型通用的优劣顺序。
 
 </details>
 
@@ -154,22 +138,22 @@ post-norm 在训得起来的前提下，最终效果有时略好（每层输出�
 
 加在分支输出上：$x + \text{Dropout}(f(x))$。
 
-不能加在 $x$ 上，因为那会把恒等通路打断——每层随机砍掉一部分，$\partial y/\partial x = I + \partial f/\partial x$ 里的 $I$ 就不再是稳定的了，残差解决梯度传播的作用被抵消掉。原论文还在 embedding+位置编码之后、以及注意力权重上各加了一次 dropout。
+若对 skip 的 $x$ 做 dropout，直接路径就变成随机掩码，不再是 $I$。这里解释的是为何标准残差分支这样放，不是证明任何其他 dropout 设计都无效。
 
-补一句：现在大模型预训练常把 dropout 设为 0，因为数据量足够时过拟合不是主要矛盾，而它会拖慢收敛。
+另外，embedding dropout、attention dropout 和 residual dropout 不是同一个位置，核对配置时要分开。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>残差和 LSTM 的 cell state 有什么关系？</summary>
 
-本质相同，都是给梯度开一条加法通路。LSTM 的 $c_t = f_t \odot c_{t-1} + i_t \odot \tilde c_t$ 在 $f_t \to 1$ 时就是沿时间的恒等通路；残差是沿深度的恒等通路。
+两者都提供加法通路。LSTM 的 $c_t = f_t \odot c_{t-1} + i_t \odot \tilde c_t$ 在固定门值时，沿 cell state 的直接导数是 forget gate；它接近 1 时有利于跨时间传播。总导数仍包含门对历史的依赖。
 
-一个解决「跨时间步太远」，一个解决「跨层太深」，用的是同一招。
+所以可以类比时间与深度上的传播，但不能说两种结构完全等价。
 
 </details>
 
-## 自检
+## 自检 {#_8}
 
 <div class="taste-check">
   <strong>如果真的理解了，你应该能解释：</strong>
@@ -181,6 +165,25 @@ post-norm 在训得起来的前提下，最终效果有时略好（每层输出�
   </ol>
 </div>
 
-## 继续阅读
+## 继续阅读 {#_9}
 
 注意力、归一化、残差都齐了，可以拼成一整块——[原版 Transformer](vanilla-transformer.md)。
+
+## 快速学习：Residual Connection 为什么让深度可训练 {#residual-connection}
+
+<details class="interview" markdown="1">
+<summary>Identity path、梯度与它没有解决的事</summary>
+
+**快速记忆**：$y=x+f(x)$ 让 block 只需学习相对输入的增量，并给前向信息与反向梯度都保留一条恒等通路。
+
+**面试回答**
+
+> Residual connection 的 Jacobian 是 $I+J_f$，保留了直接传播的项。$f(x)\approx0$ 时 block 接近恒等映射；这是容易表示的解，不保证训练一定找到，也不保证加深后指标一定更好。
+
+<details markdown="1">
+<summary><b>深挖</b>：有 residual 就绝不会梯度消失吗？</summary>
+
+不会。跨层 Jacobian 仍是 $\prod_\ell(I+J_{f_\ell})$，其谱仍可能失控；Post-LN 还会把 $J_{\mathrm{LN}}$ 放回主路径。Residual 提供有利结构，不是无条件稳定性证明，因此初始化、normalization、residual scaling 与 optimizer 仍然重要。
+
+</details>
+</details>

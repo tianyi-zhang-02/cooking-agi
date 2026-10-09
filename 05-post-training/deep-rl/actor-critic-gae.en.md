@@ -111,9 +111,38 @@ def gae(rewards, values, next_values, terminated, truncated,
 
 Each next_values entry must use that transition's final observation, not a reset observation. A rollout buffer that ends before the task does can also bootstrap its final value while stopping recurrence at the buffer boundary.
 
+## How does Critic error reach the Actor?
+
+Write $V_\phi(s)=V^\pi(s)+e(s)$. The expected one-step residual becomes:
+
+$$
+\mathbb E[\delta_t\mid s,a]=A^\pi(s,a)+\gamma\mathbb E[e(s')\mid s,a]-e(s).
+$$
+
+If the current state is overestimated by 2 and the successor of a particular action underestimated by 3 on average, with $\gamma=0.9$, that action's advantage estimate has error $0.9(-3)-2=-4.7$. This may change a single sampled update's direction.
+
+The errors do not play the same role in the **expected policy gradient**. Fixed $-e(s)$ is an action-independent baseline, whose expected gradient contribution cancels under the current policy. Successor error can depend on the action and generally does not cancel. Advantage-estimation error is not itself gradient bias. This follows the previous chapter's baseline argument; nonlinear operations such as PPO clipping need separate analysis.
+
+Increasing $\lambda$ reduces dependence on intermediate short-horizon estimates but adds noise from longer observed returns. Truncated segments still retain final bootstrap error. Do not call $\lambda=1$ always unbiased: check genuine termination and whether the data came from the policy being evaluated.
+
+## Padding and averaging change the objective too
+
+Suppose trajectory A contributes valid token losses $[1,1,1]$ and B contributes one loss of 9. Token averaging gives 3; averaging each trajectory and then trajectories gives 5. Both are definable, but weight trajectories differently.
+
+| Detail | Why inspect it? |
+| --- | --- |
+| Padding mask | Padding must not affect means, variances, or denominators |
+| Advantage normalization | Changes scale; centering may change individual signs |
+| Per-device normalization | Differs from normalization over the valid global batch |
+| Rollout-time values | Fix targets before updating; do not silently recompute them with the current Critic |
+
+Centering $[1,2]$ gives $[-0.5,0.5]$. This is a within-batch relative transformation, not the true $Q-V$ of each action. It may aid optimization, but is not an unexplained identity.
+
 ## Separate the Actor and Critic updates
 
 The Actor minimizes $-\log\pi_\theta(a_t\mid s_t)\,\mathrm{stopgrad}(\hat A_t)$. The Critic often fits $\mathrm{stopgrad}(\hat A_t+V_{\rm old}(s_t))$. Fix this target before optimization rather than letting it drift with the value being trained.
+
+Use **unnormalized GAE** when adding back the old value. Old values $[10,10]$ and raw advantages $[1,3]$ give value targets $[11,13]$. Standardizing advantages to $[-1,1]$ first gives $[9,11]$, changing the return units. The Actor may use a separately normalized copy; do not change the Critic target with it.
 
 PPO adds a new/old probability ratio and clipping to the Actor objective. GAE is not PPO itself. The existing [four-case PPO clipping interactive](../rlhf/ppo-clipping.en.md) shows that additional mechanism.
 

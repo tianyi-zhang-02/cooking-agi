@@ -72,7 +72,17 @@ class SidebarTests(unittest.TestCase):
         self.assertIn('href="../../career/example.html"', markup)
         self.assertNotIn('side-scope', markup)
         self.assertNotIn('data-side-locate', markup)
-        self.assertNotIn('data-side-collapse', markup)
+        self.assertIn('data-side-collapse', markup)
+        self.assertIn('data-side-current', markup)
+        self.assertIn('定位本章', markup)
+
+    def test_current_zone_is_distinct_and_counts_are_labeled(self):
+        build.NAV['zone'] = [{'id': 'models', 'zh': '模型与多模态', 'en': 'Models & multimodal'}]
+        build.NAV['group'][0]['zone'] = 'models'
+        markup = self.render()
+        self.assertIn('zone is-current', markup)
+        self.assertIn('<small>当前</small>', markup)
+        self.assertIn('4 篇', markup)
 
     def test_only_active_ancestors_start_open(self):
         elements = Elements(self.render()).elements

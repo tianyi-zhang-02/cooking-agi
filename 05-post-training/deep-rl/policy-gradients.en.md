@@ -71,6 +71,32 @@ $$
 
 Target trajectories must have support under the behavior distribution. Long products can have enormous variance. A ratio for only the current action does not automatically correct shifted state visitation. PPO's short reuse window and clipping are pragmatic compromises, not exact correction for arbitrarily old data.
 
+## Why can past rewards be removed?
+
+Condition on the history $h_t$ before the action. Past reward $R_{<t}$ is now constant. Averaging over the next sampled action gives:
+
+$$
+\mathbb E[\nabla\log\pi(a_t\mid s_t)R_{<t}\mid h_t]
+=R_{<t}\sum_a\pi(a\mid s_t)\nabla\log\pi(a\mid s_t)=0.
+$$
+
+Removing past rewards preserves the expected gradient while dropping randomness the current action cannot explain. This is credit assignment in concrete form: the final action should not receive credit for reward already collected at the first step.
+
+Now add 100 to both rewards in the $[1,3]$ bandit. The best action stays unchanged, but raw returns can produce large positive sample updates for either action. Subtract the equally shifted expected return and advantages remain $[-1,1]$. Relative quality is preserved while removing an unhelpful scale contribution. This does not mean every reward transformation preserves the optimal policy.
+
+## One rollout, several updates: when does the assumption change?
+
+Data comes from $\pi_{\rm old}$. After the first update, parameters have changed. Treating the same samples as fresh current-policy data is no longer the original on-policy estimator.
+
+| Operation | Required convention | Common mistake |
+| --- | --- | --- |
+| Collect trajectories | Save behavior-policy version, log-probabilities, and boundaries | Recompute old log-probabilities after updates, making ratios 1 |
+| Build returns and advantages | Align rewards, states, and sampled actions | Include rewards from the next episode |
+| Update Actor | Fix the scoring signal and use the right optimizer sign | Backpropagate through advantage to change the score |
+| Reuse data | Specify ratios, approximation scope, and stopping rules | Treat extra epochs as ordinary supervised learning |
+
+Begin debugging with a two-action bandit whose rewards are known. Fix seeds and data, compare the expected gradient direction with the hand calculation, then add a baseline, Critic, and multistep environment. A large environment’s return curve is a poor way to identify a reversed sign.
+
 ## Where this leads
 
 REINFORCE avoids learning an environment model and has a direct mechanism, but return variance and sample cost can be large. A Critic helps estimate the update direction. Continue with [Actor–Critic and GAE](actor-critic-gae.en.md).

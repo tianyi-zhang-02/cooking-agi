@@ -45,6 +45,8 @@ class MultiHeadAttention(nn.Module):
         att = (q @ k.transpose(-2, -1)) / math.sqrt(self.d_head)   # (B,H,T,T)
         if mask is not None:
             att = att.masked_fill(mask, float("-inf"))             # before softmax
+        if torch.isneginf(att).all(dim=-1).any():
+            raise ValueError("Each query must have at least one allowed key")
         att = att.softmax(dim=-1)
 
         y = att @ v                                                # (B,H,T,dh)
@@ -62,7 +64,9 @@ def sdpa_version(mha, x, mask):
     B, T, C = x.shape
     split = lambda p: p(x).view(B, T, mha.n_head, mha.d_head).transpose(1, 2)
     q, k, v = split(mha.wq), split(mha.wk), split(mha.wv)
-    y = F.scaled_dot_product_attention(q, k, v, attn_mask=~mask if mask is not None else None)
+    if mask is not None and torch.broadcast_to(mask, (B, mha.n_head, T, T)).all(dim=-1).any():
+        raise ValueError("Each query must have at least one allowed key")
+    y = F.scaled_dot_product_attention(q, k, v, attn_mask=~mask if mask is not None else None, dropout_p=0.0)
     return mha.wo(y.transpose(1, 2).contiguous().view(B, T, C))
 
 

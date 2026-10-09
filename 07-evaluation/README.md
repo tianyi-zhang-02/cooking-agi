@@ -41,6 +41,8 @@ Slice       哪些用户、任务和环境必须分别观察？
 ## 这一块怎么读
 
 - [分层评估](evaluation-stack.md)：规则检查、实际执行和用户反馈，各能告诉我们什么。
+- [BLEU、ROUGE 与编辑距离](text-metrics.md)：用短句算一次分数，再看它为什么会奖励一个错误答案。
+- [Benchmark 与长上下文测试](benchmark-protocols.md)：选测试、固定协议、移动证据位置，再解释分数差异。
 - [指标靠得住吗](metric-robustness.md)：平均值会掩盖什么，评分器本身稳不稳定。
 - [LLM-as-a-Judge](llm-as-a-judge/)：评分标准怎么写、分数怎么算，以及怎样发现评分偏差。
 

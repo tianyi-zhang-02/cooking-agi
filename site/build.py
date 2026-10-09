@@ -35,6 +35,7 @@ from pathlib import Path
 
 import markdown
 import collaboration
+import curriculum
 import next_stop
 from markdown.extensions.toc import TocExtension, slugify
 
@@ -53,6 +54,7 @@ PROTECTED = {"code", "pre", "a", "script", "style", "abbr",
 # inside one splits a word in half and breaks the grid, so they are skipped
 # wholesale -- the annotation belongs in running prose, not in a summary card.
 NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid",
+                   "study-atlas", "study-route", "chapter-context", "worked-update",
                    "home-block", "term", "curriculum-card", "curriculum-hero",
                    "learning-path", "lab-matrix", "bilingual-intro",
                    "drl-flow", "drl-paths", "drl-lab"}
@@ -341,8 +343,16 @@ class Annotator(HTMLParser):
                         continue
                     following = text[stop:]
                     existing = re.match(r"\s*[（(]([^()（）\n]{1,160})[)）]", following)
+                    extended = re.match(r"[\u3400-\u9fff]{1,6}\s*[（(]([^()（）\n]{1,160})[)）]", following)
+                    if not existing and extended and en.casefold() in extended.group(1).casefold():
+                        existing = extended
                     explained = bool(existing and re.search(r"[A-Za-z]", existing.group(1)))
-                    end = stop + (existing.end() if explained else 0)
+                    consumed = existing.end() if explained else 0
+                    leading = re.search(r"([A-Za-z][A-Za-z0-9 /_-]{0,160})\s*[（(][^()（）\n]*$", text[:start])
+                    if (leading and en.casefold() in leading.group(1).casefold()
+                            and re.match(r"[^()（）\n]*[)）]", following)):
+                        explained = True
+                    end = stop + consumed
                     taken.append((start, end))
                     if zh not in matched:
                         hits.append((start, zh, en, gloss, explained))
@@ -448,7 +458,7 @@ WIDGETS = {
     "xor": """
 <figure class="widget" data-widget="xor">
   <figcaption class="widget-head">
-    <span class="widget-kicker">live</span>
+    <span class="widget-kicker" data-zh="图解" data-en="Diagram"></span>
     <span class="widget-title" data-zh="自己训一遍：把激活函数关掉试试"
           data-en="Train it yourself: try switching the activation off"></span>
   </figcaption>
@@ -503,7 +513,7 @@ for _name, _zh, _en in TX_LAB:
     WIDGETS[_name] = f"""
 <figure class="widget tx-lab" id="{_name}" data-widget="{_name}">
   <figcaption class="widget-head">
-    <span class="widget-kicker">live</span>
+    <span class="widget-kicker" data-zh="图解" data-en="Diagram"></span>
     <span class="widget-title" data-zh="{_zh}" data-en="{_en}"></span>
   </figcaption>
   <div class="widget-body"><p class="tx-fallback" data-zh="这张交互图需要启用 JavaScript。" data-en="This interactive figure needs JavaScript."></p></div>
@@ -951,6 +961,9 @@ def about_head_html(page) -> str:
 
 
 DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
+                   "study-atlas": lambda page: curriculum.study_atlas(page, NAV, NAV.get('_sections', []), BY_SRC),
+                   "reference-coverage": lambda page: curriculum.reference_coverage(page, BY_SRC, SITE / 'reference-coverage.toml'),
+                   "appendix-coverage": lambda page: curriculum.appendix_coverage(page, BY_SRC, SITE / 'appendix-coverage.toml'),
                    "roadmap": roadmap_html, "blocks": blocks_html, "gallery": gallery_html,
                    "threads": threads_html, "categories": categories_html,
                    "about-head": about_head_html}
@@ -1048,6 +1061,8 @@ def discover(nav):
         files.sort(key=lambda p: (rank.get(p.name, len(order)), p.name))
         entry = {"zh": sec["zh"], "en": sec["en"], "dir": sec["dir"],
                  "group": sec.get("group", "reference"),
+                 "home": sec.get("home", ""), "sequence": sec.get("sequence", 0),
+                 "intro_zh": sec.get("intro_zh", ""), "intro_en": sec.get("intro_en", ""),
                  "pages": []}
         for f in files:
             zh = Page(f, entry, "zh")
@@ -1074,6 +1089,9 @@ def discover(nav):
                     item.previous = ordered[index - 1] if index else None
                     item.next = ordered[index + 1] if index + 1 < len(ordered) else None
             sections.append(entry)
+    group_order = {group['id']: position for position, group in enumerate(nav.get('group', []))}
+    sections.sort(key=lambda section: (group_order.get(section['group'], len(group_order)), section['sequence']))
+    curriculum.validate_catalog(nav, sections, BY_SRC)
     NAV.update(nav)
     NAV["_sections"] = sections
     return pages, sections
@@ -1354,7 +1372,10 @@ def sidebar_html(page, sections, groups):
         zone = g.get("zone")                # study notes split by what each role is tested on
         if zone in zones and zone != seen_zone:
             seen_zone = zone
-            out.append(f'<li class="zone"{category_attr}><span>{both(zones[zone], page.lang == "zh")[0]}</span></li>')
+            zone_active = any(group.get("zone") == zone and group["id"] == page.section.get("group") for group in groups)
+            out.append(f'<li class="zone{" is-current" if zone_active else ""}"{category_attr}>'
+                       f'<span>{both(zones[zone], page.lang == "zh")[0]}</span>'
+                       f'{"<small>当前</small>" if zone_active and page.lang == "zh" else "<small>Current</small>" if zone_active else ""}</li>')
         # a heading only where it adds something: several sections in the block, and
         # more than one note in this one (a lone note's label already names it)
         rendered = [section_html(page, s, len(secs) > 1 and len(s["pages"]) > 1) for s in secs]
@@ -1375,7 +1396,7 @@ def sidebar_html(page, sections, groups):
             f'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" '
             f'stroke-linejoin="round"/></svg>'
             f'<span class="grp-name">{label}</span>'
-            f'<span class="grp-count">{n_pages}</span></summary>'
+            f'<span class="grp-count">{n_pages} {"篇" if page.lang == "zh" else "notes"}</span></summary>'
             f'<ul class="grp-body">{body}</ul></details></li>')
     zh = page.lang == 'zh'
     context = cats[scope]["zh" if zh else "en"] if scope in cats else ("本页导航" if zh else "On this page")
@@ -1392,7 +1413,11 @@ def sidebar_html(page, sections, groups):
         f'<button type="button" data-side-view="reading" aria-pressed="false" aria-controls="side-reading">'
         f'{"我的阅读" if zh else "My reading"}</button></div>'
         '</div>'
-        f'<div class="side-scroll"><div id="side-directory">{local_toc}<ul class="nav">{"".join(out)}</ul></div>'
+        f'<div class="side-scroll"><div id="side-directory">{local_toc}'
+        f'<div class="side-directory-actions" hidden>'
+        f'<button type="button" data-side-current>{"定位本章" if zh else "Current chapter"}</button>'
+        f'<button type="button" data-side-collapse>{"收起其他" if zh else "Collapse others"}</button></div>'
+        f'<ul class="nav">{"".join(out)}</ul></div>'
         '<section id="side-reading" hidden>'
         f'<button type="button" class="side-save" data-side-save aria-pressed="false">'
         f'{"收藏本页" if zh else "Save this page"}</button>'
@@ -1488,6 +1513,9 @@ def glossary_html(page):
 
 
 def chapter_home(page):
+    source = page.section.get('home')
+    if source and source in BY_SRC:
+        return BY_SRC[source].get(page.lang) or BY_SRC[source].get('zh')
     for pair in page.section.get("pages", []):
         target = pair.get(page.lang) or pair.get("zh")
         if target and target.src.name in {"README.md", "README.en.md"}:
@@ -1867,7 +1895,7 @@ def assemble(page, sections, people, nav, built, template):
                     f'<meta name="twitter:image" content="{escaped_image}">')
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
-    content = page.body
+    content = curriculum.chapter_context(page, BY_SRC) + page.body
     if page.section.get("group") == "deep-rl":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/deep-rl-lab.css?v={built}">\n<script defer src="{prefix}static/deep-rl-lab.js?v={built}"></script>\n</head>')
     if page.section.get("dir") == "07-evaluation/llm-as-a-judge":

@@ -87,12 +87,16 @@ This shows geometry and budgeting, **not which candidates are more relevant**. T
 
 ## How do both towers learn a compatible notion of closeness?
 
-Architecture provides the container; the objective decides what should be close. One teaching example is a contrastive objective that places a known positive above sampled alternatives.
+Two towers separate the scoring computation, but don't yet specify which items should score well. One common training objective places a known positive above sampled alternatives:
 
 $$\mathcal L_u=-\log\frac{\exp(s(u,i^+)/\tau)}
 {\exp(s(u,i^+)/\tau)+\sum_{j\in\mathcal N_u}\exp(s(u,j)/\tau)}.$$
 
-$\mathcal N_u$ is the sampled comparison set, **not automatically a set of explicit user rejections**. Other batch members' positives are convenient negatives but may be false negatives. Duplicate items, multiple positives, and the sampling distribution change the optimization problem. Multiple positives require adjusting this single-positive formulation.
+Here $u$ is the user, $i^+$ a known positive, $s(u,i)$ the matching score, and $\tau>0$ the temperature. $\mathcal N_u$ is the sampled comparison set, **not necessarily items the user explicitly rejected**.
+
+With one comparison item, equal scores assign probability 1/2 to the positive, giving loss $-\ln(1/2)\approx0.693$. If the positive's score exceeds the other's by $\tau\ln3$, its probability becomes 3/4 and loss is about 0.288. Training favors relative ordering within this comparison set; that probability is not the user's true click probability.
+
+Other batch members' positives are convenient comparison items, but some may also interest this user: false negatives. Duplicate items, multiple positives, and the sampling distribution change the objective. Multiple positives require adjusting the single-positive formula above.
 
 A stronger tower may not fix missing label distinctions, coverage, or unsuitable negatives. Also distinguish contrastive retrieval training from generative next-token SFT: they don't have the same loss.
 
@@ -104,6 +108,20 @@ A stronger tower may not fix missing label distinctions, coverage, or unsuitable
 - Evidence for a complex model is weak: establish a measurable baseline and locate the bottleneck.
 
 **Two towers are a trade-off between expressiveness, reusable computation, and search cost—not a mandatory stage of building recommendations.**
+
+## How do multiple vectors stay affordable?
+
+Multiple interests don't automatically justify many queries per request. Keeping profile and history vectors permits at least three distinct implementations:
+
+| Design | Request-time work | What it preserves and gives up |
+| --- | --- | --- |
+| Fuse into one weighted vector | One ANN query | Simple interface, but minority interests may still be averaged away |
+| Query both, then merge | Two queries, deduplication, fixed total budget | Distinct neighborhoods at extra query and merge cost |
+| Select a view or allocate quotas from current evidence | Routing followed by bounded queries | Budget control, but routing mistakes remove candidates |
+
+Multi-tower training and multi-query serving are different choices. Two trained views may still produce one serving vector; simple separate-query experiments can test complementarity before complex training. Establishing that increment first is often more informative than building a full router immediately.
+
+With a budget of 100, one query returning 100 versus two queries returning 100 each is not a matched baseline. Fix merged capacity and record ANN query counts and overfetch. Even with 100 final candidates, two queries may cost more. Caching user vectors saves encoding, not index searches or freshness maintenance.
 
 ## Self-check
 

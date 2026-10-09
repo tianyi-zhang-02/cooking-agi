@@ -4,29 +4,7 @@
 
 > Reading time: ~10 min · Type: quick reference · Last reviewed: 2026-08
 
-## Quick learning: what are the standard questions really testing?
-
-<details class="interview" markdown="1">
-<summary>A one-minute framework and the boundary conditions people miss</summary>
-
-**Quick memory**
-
-Most Transformer fundamentals test four things: **shape closure, causal information flow, gradient flow, and train/inference equivalence.**
-
-**Interview answer**
-
-> I first write the input and output shapes and identify the reduction axis. Then I check causal masks and data boundaries for leakage, inspect residual paths and normalization for gradient flow, and finally verify that training, prefill, and decode implement equivalent computations.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why are invariants safer than memorized conclusions?</summary>
-
-Facts such as “Q and K dimensions must match,” “V may differ,” and “KV-cached decoding must equal a full forward pass” all follow from matrix shapes and semantic invariants. A memorized sentence breaks when notation or implementation changes; shape, causality, and equivalence let you derive the answer again.
-
-</details>
-
-</details>
-
-## What these questions have in common
+## What these questions have in common {#what-these-questions-have-in-common}
 
 These questions look scattered — losses, masks, normalization, RNNs, CNNs — but they fall into three groups: **does the gradient have an undamped path back**, **are training and inference the same thing**, and **is the invariance structural or paid for**. Recognize the group and you don't have to memorize the answer.
 
@@ -34,7 +12,7 @@ Each question below gets three layers: **what to say first** → **surviving the
 
 ---
 
-## The skeleton first: how attention is actually computed
+## The skeleton first: how attention is actually computed {#the-skeleton-first-how-attention-is-actually-computed}
 
 Three of the questions below hang on this diagram.
 
@@ -68,7 +46,7 @@ Reference implementation in [`00-foundations/code/attention_numpy.py`](code/).
 
 ---
 
-## Group one: does the gradient have an undamped path
+## Group one: does the gradient have an undamped path {#group-one-does-the-gradient-have-an-undamped-path}
 
 Three questions, one skeleton. **Whenever a *product* shows up, ask whether it can be an *addition*.**
 
@@ -92,7 +70,7 @@ $$\frac{\partial \mathcal{L}_{\text{BCE}}}{\partial p} = \frac{p-y}{p(1-p)} \;\L
 
 **One layer deeper**: for logistic regression BCE is convex in the weights; squared error with a sigmoid isn't.
 
-**A common misstatement to avoid**: don't say "MSE isn't a proper scoring rule so it isn't calibrated" — **squared error *is* the Brier score, and it *is* proper**. Both yield calibrated probabilities; the difference is optimization behavior, not properness. Volunteering that correction usually lands well.
+**Separate optimization from calibration**: squared error on binary probabilities corresponds to the Brier score, which is also a proper scoring rule. Both it and BCE favor the true conditional probability under the ideal population objective; finite data and restricted models do not guarantee calibration. The comparison here concerns gradients, not whether either loss is allowed to estimate probabilities.
 
 **In practice**: always `binary_cross_entropy_with_logits`. Computing $p$ then taking its log underflows to $-\infty$. The stable form:
 
@@ -103,42 +81,42 @@ $$\mathcal{L} = \max(z,0) - zy + \log\big(1+e^{-|z|}\big)$$
 <details class="interview" markdown="1">
 <summary>What's the difference between an RNN and an LSTM?</summary>
 
-**Say first**: a vanilla RNN's problem isn't memory, it's that **gradients are a product along the time axis**.
+**Say first**: one reason vanilla RNNs struggle with long-range relationships is repeated gradient propagation through time.
 
-$$\frac{\partial h_t}{\partial h_{t-k}} = \prod_{i=1}^{k} W_h^\top \operatorname{diag}\big(\tanh'(\cdot)\big)$$
+$$\frac{\partial h_t}{\partial h_{t-k}} = J_t J_{t-1}\cdots J_{t-k+1},\qquad J_t=\operatorname{diag}\big(\tanh'(a_t)\big)W_h$$
 
-$\tanh' \le 1$ and $\sigma' \le \tfrac14$ (at $z=0$). Multiply $k$ numbers below one and it decays exponentially in the distance. If the recurrent weight norm exceeds one you get explosion instead.
+This is the state-to-state Jacobian; backpropagation uses its transpose. The weights are shared, but activations change, so the Jacobians need not be identical. A common bound $\|J_t\|_2\le c<1$ guarantees decay along this path. A norm greater than one at one step does not guarantee explosion: directions and the remaining product matter too.
 
-**Clipping fixes explosion; it can't fix vanishing** — it only caps the upper end. So vanishing is the real disease.
+**Clipping limits an update; it cannot recover a signal that has already vanished**, or replace diagnosing the source of instability.
 
 **The fix**: a cell state with an **additive** update.
 
 $$c_t = f_t \odot c_{t-1} + i_t \odot g_t, \qquad h_t = o_t \odot \tanh(c_t)$$
 
-The key derivative is $\dfrac{\partial c_t}{\partial c_{t-1}} = f_t$ — **an elementwise gate, not a matrix multiply through a saturating nonlinearity**. With the forget gate near one, gradient flows back almost undamped: the constant error carousel.
+Holding the gates fixed, the direct cell-state path has derivative $\partial c_t/\partial c_{t-1}=\operatorname{diag}(f_t)$. This path only rescales elements, making long-range signal easier to preserve when the forget gate is near one. The total derivative also includes the gates' dependence on previous states; LSTMs do not eliminate vanishing gradients.
 
 One line: **LSTM replaces "multiply by a matrix at every step" with "gated additive accumulation."**
 
-**Detail**: the three gates use sigmoid because a gate needs a soft 0-to-1 switch; the candidate uses tanh because it's a value and needs a sign. **That's a semantic choice, not a gradient one.**
+**Detail**: sigmoid bounds a gate between zero and one; tanh allows signed candidate content. These choices fit the roles of gates and values and also affect optimization. Saturation has not disappeared.
 
 **Two connections that lift the answer:**
 
-- **The LSTM cell state and the Transformer residual stream are the same idea** — an additive identity path so gradients don't pass through a nonlinearity. One along time, one along depth.
-- **Transformers didn't replace RNNs because of gradients** — LSTM had solved that. **They won on parallelism.** An RNN is sequential along time; attention gives $O(1)$ path length between any two positions and computes the whole sequence at once.
+- **Cell states and residual streams are a useful analogy, not identical structures.** Both offer additive paths; an LSTM gates memory through time, while residual connections typically preserve an identity term through depth.
+- **Transformers offer several advantages.** They process positions in parallel during training, shorten paths between visible positions, and provide content-based access to history. LSTMs mitigate rather than solve long-range learning problems. Autoregressive Transformer generation still proceeds token by token.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Why LayerNorm? Why not BatchNorm? And where does it go?</summary>
 
-**Why normalize at all**: activation scale accumulates along the residual stream with depth. Without it, deep stacks explode or vanish and can't train; normalization also conditions the loss surface so you can use a sane learning rate.
+**Why normalize at all**: it helps control the scale seen by sublayers and often makes deep networks easier to train. It works alongside initialization, residual scaling, and the optimizer; networks without normalization are not universally untrainable.
 
-**Why Layer over Batch** — four reasons, and the third is the one most people can't produce:
+**Why do Transformers commonly use LayerNorm rather than BatchNorm?**
 
-1. Variable-length sequences with padding contaminate batch-dimension statistics;
-2. BN depends on batch size and composition, while autoregressive decoding runs at batch size one, token by token — you'd fall back on running statistics and get a train/inference mismatch;
-3. **BatchNorm would leak the future** — statistics computed across time put later tokens into earlier tokens' normalization, **walking straight around the causal mask you just added**;
-4. LayerNorm normalizes over the feature dimension per token — independent of the batch and of every other position, identical at train and inference.
+1. Padding affects BN statistics when it is included in the reduction without being excluded;
+2. BN depends on batch size and composition and defaults to running statistics during inference. Autoregressive decoding differs from training, so this requires care;
+3. Including the time axis in training BN statistics lets future tokens affect earlier positions. A causal attention mask does not prevent that leak;
+4. Token-wise LN over features mixes neither batch examples nor time positions and uses the same statistics rule in training and inference. That does not make every other part of the model identical across modes.
 
 **Where it goes** — be able to write both:
 
@@ -147,27 +125,27 @@ Post-LN (original, 2017)      Pre-LN (modern)
 x = LN(x + Attn(x))          x = x + Attn(LN(x))
 x = LN(x + FFN(x))           x = x + FFN(LN(x))
                              ...
-                             x = LN(x)   ← a final LN is required
+                             x = LN(x)   ← a common final LN
 ```
 
-**Why Pre-LN is more stable**: in Post-LN the **LayerNorm sits on the residual trunk**, so every backward pass goes through it at every layer. LN's Jacobian scales gradients down, and stacked dozens deep the signal reaching early layers is tiny — hence the original's warmup requirement. Pre-LN leaves a **clean identity trunk**, so $\partial x_{\text{out}}/\partial x_{\text{in}}$ carries an identity term and gradients flow straight back. No warmup needed, and it scales deeper.
+**Why Pre-LN is common**: it preserves an identity term along the residual trunk without routing that path through LN at every layer. Xiong et al. also found large expected gradients near the output at initialization in Post-LN; warmup helps prevent overly aggressive early updates. Their Pre-LN experiments trained without warmup, but that is not a guarantee for every model or training recipe.
 
-**The cost**: the residual stream is never normalized end to end and its scale grows with depth, **so you must add a final LN after the last block**. People forget this one; producing it scores.
+**Implementation check**: Pre-LN models commonly normalize the final residual output before the output head. This is a common recipe, not a mathematical necessity. Match the particular model when reproducing it.
 
-**One deeper**: RMSNorm drops mean-centering and the bias and only rescales by RMS — and it works, which tells you **the re-scaling was doing the work, not the re-centering**.
+**One deeper**: RMSNorm omits mean-centering and usually additive bias, rescaling by RMS with a learned gain. Its success shows that some models train well without centering, not that centering is universally irrelevant. See the [LayerNorm analysis](https://arxiv.org/abs/2002.04745) and [RMSNorm paper](https://arxiv.org/abs/1910.07467).
 
 </details>
 
 ---
 
-## Group two: training and inference must be the same thing
+## Group two: training and inference must be the same thing {#group-two-training-and-inference-must-be-the-same-thing}
 
 <details class="interview" markdown="1">
 <summary>Why a causal mask? Which step does it go in, and why there?</summary>
 
 **Say first**: it's what makes training all $T$ positions in one forward pass equivalent to training them one at a time.
 
-The autoregressive objective is $\prod_t p(x_t\mid x_{<t})$. Self-attention is fully visible by default, so position $t$ sees $x_t$ itself — **predicting the next token becomes copying the answer**, training loss collapses toward zero, and at inference the future doesn't exist, so generation falls apart.
+The autoregressive objective is $\prod_t p(x_t\mid x_{<t})$. In a common implementation, position $t$ receives $x_t$ and predicts $x_{t+1}$. Seeing itself is allowed; seeing the future token $x_{t+1}$ leaks the target. The causal mask allows the current and earlier positions, matching the information available during generation.
 
 **So the mask isn't there to make the model stronger. It's there so training and inference are the same model.** Without it you'd need $T$ separate forward passes.
 
@@ -182,7 +160,7 @@ scores = np.where(mask, -np.inf, scores)             # add -inf, don't zero
 
 Zeroing **after** the softmax **breaks normalization** — rows no longer sum to one, and unevenly: position 1 can only see itself, loses the most mass, and gets scaled down hardest. You've multiplied each position by an arbitrary, meaningless attenuation.
 
-**Engineering detail**: in practice use a large negative number (`-1e9` or `torch.finfo(dtype).min`) rather than true `-inf`, because in fp16 a fully masked row (which happens with padding) gives `0/0 = NaN` out of the softmax.
+**Engineering detail**: a fully masked row has no valid probability distribution. A plain softmax over all `-inf` produces NaNs; finite negative values may produce a uniform distribution, which is not a valid fix. `-1e9` also exceeds fp16's finite range. Explicitly handle queries without valid keys, check your attention API's all-masked behavior, and exclude padding from the loss. Masking after softmax and correctly renormalizing can be mathematically equivalent; merely zeroing entries is not.
 
 **Why BERT doesn't need it**: it isn't autoregressive. The objective is MLM, and bidirectional visibility is the design, not a leak.
 
@@ -190,7 +168,7 @@ Zeroing **after** the softmax **breaks normalization** — rows no longer sum to
 
 ---
 
-## Group three: is the invariance free or paid for
+## Group three: is the invariance free or paid for {#group-three-is-the-invariance-free-or-paid-for}
 
 <details class="interview" markdown="1">
 <summary>Does rotating an image affect a CNN's feature extraction?</summary>
@@ -218,7 +196,7 @@ Shift the input and the feature map shifts by the same amount. **Invariance** �
 
 ---
 
-## One more: Egg Drop gets easy when you reverse the state
+## One more: Egg Drop gets easy when you reverse the state {#one-more-egg-drop-gets-easy-when-you-reverse-the-state}
 
 With $k$ eggs and $n$ floors, find the threshold in the worst case. The direct formulation is
 indeed a two-dimensional DP:
@@ -256,7 +234,7 @@ $F(9,3)=129\ge100$.
 moves-by-eggs coverage DP that compresses to one dimension. “Shrinking the searchable space on
 every action” is exactly what this recurrence counts.
 
-## One more: Binary Tree Maximum Path Sum
+## One more: Binary Tree Maximum Path Sum {#one-more-binary-tree-maximum-path-sum}
 
 The central distinction is between a complete answer whose highest point is the current
 node and the state that can be returned to its parent.
@@ -299,7 +277,7 @@ markers or heap-indexed storage with `left=2i+1, right=2i+2`. They are not equiv
 for sparse trees. Defining unfamiliar serialization before coding protects correctness;
 it is not stalling.
 
-## Appendix: how to present the Transformer architecture
+## Appendix: how to present the Transformer architecture {#appendix-how-to-present-the-transformer-architecture}
 
 When asked to "walk through the architecture," don't recite the figure. **Go component → the problem it solves.**
 
@@ -321,9 +299,31 @@ When asked to "walk through the architecture," don't recite the figure. **Go com
 | ReLU FFN | SwiGLU | better at equal compute |
 | MHA | GQA / MQA | **the KV cache is the inference memory bottleneck** |
 
-## Where to read next
+## Where to read next {#where-to-read-next}
 
 - [Vanilla Transformer](core/vanilla-transformer.en.md) · [Multi-head attention](core/multi-head-attention.en.md) · [Decoder-only](core/decoder-only.en.md)
 - [Normalization](core/normalization.en.md) · [Residual connections](core/residual-connections.en.md)
 - [The language model objective](deep-dives/language-model-objective.en.md)
 - [Reference implementations](code/): `attention_numpy.py` from scratch, `attention_torch.py` alongside
+
+## Quick learning: what are the standard questions really testing? {#quick-learning-what-are-the-standard-questions-really-testing}
+
+<details class="interview" markdown="1">
+<summary>A one-minute framework and the boundary conditions people miss</summary>
+
+**Quick memory**
+
+Most Transformer fundamentals test four things: **shape closure, causal information flow, gradient flow, and train/inference equivalence.**
+
+**Interview answer**
+
+> I first write the input and output shapes and identify the reduction axis. Then I check causal masks and data boundaries for leakage, inspect residual paths and normalization for gradient flow, and finally verify that training, prefill, and decode implement equivalent computations.
+
+<details markdown="1">
+<summary><b>Deep dive</b>: why are invariants safer than memorized conclusions?</summary>
+
+Facts such as “Q and K dimensions must match,” “V may differ,” and “KV-cached decoding must equal a full forward pass” all follow from matrix shapes and semantic invariants. A memorized sentence breaks when notation or implementation changes; shape, causality, and equivalence let you derive the answer again.
+
+</details>
+
+</details>

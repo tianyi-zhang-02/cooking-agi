@@ -4,30 +4,13 @@
 
 > 阅读时间：约 6 分钟 · 类型：案例 · 最近审阅：2026-08
 
-## 快速学习：同基座对照能证明什么
+<span id="_1"></span>
 
-<details class="interview" markdown="1">
-<summary>Natural experiment、confounders 与 train–serve alignment</summary>
-
-**快速记忆**：固定 base model 后，差异更可能来自数据、目标和系统；但 post-training recipe 往往同时改变多项，仍不是严格单变量因果实验。
-
-**面试回答**
-
-> Same-base comparison 能隔离一部分 pretraining 能力差异，帮助观察 SFT data、preference optimization、verifier 与 inference stack 的贡献。解读时要检查 tokenizer、context length、tool protocol、sampling 和 evaluation harness 是否也改变。
-
-<details markdown="1">
-<summary><b>深挖</b>：为什么 train–serve alignment 可能比算法名字更重要？</summary>
-
-若训练模板、stop token、tool schema、sampling 或 logprob 实现与 serving 不同，模型在离线目标上学到的行为无法按同样条件被调用。算法提升可能被协议 skew 吞掉；反过来，修正一致性也可能看起来像“换算法”的收益。
-
-</details>
-</details>
-
-## 这组对照最值得观察什么
+## 这组对照最值得观察什么 {#_3}
 
 后训练很难被单独估价，因为它几乎总是和「更大的基座、更多的预训练数据」一起发布，你分不清收益来自哪一边。GLM-5.3 提供了一个少见的对照：**基座权重和 5.2 完全一样，改的只有后训练。** 这让"后训练值多少"第一次有了一个可读的数字——以及一个更值得看的结论：**收益的大头不在算法，在基础设施。**
 
-## 为什么这是一次自然实验
+## 为什么这是一次自然实验 {#_4}
 
 厂商公布的口径是：参数量、预训练语料、上下文长度、基座权重，全部与上一版一致。没有新架构，没有重新预训练。
 
@@ -35,7 +18,7 @@
 
 ⚠️ 一个必须先说的限定：下面的数字来自厂商自己的发布，不是独立复现。看这类数字要带着这个前提。
 
-## 数字
+## 数字 {#_5}
 
 | 基准 | 5.2 | 5.3 |
 | --- | --- | --- |
@@ -46,7 +29,7 @@
 
 同时，完成同类任务的 token 消耗从约 96k 降到约 50k——**准确率上升的同时输出变短了**，这条比准确率本身更有信息量：它说明变化不是"想得更久所以更对"，而是路径更干净。
 
-## 但第一行那个数字要小心读
+## 但第一行那个数字要小心读 {#_6}
 
 4.6% → 28.3%，相对提升五倍多。这个数看着最惊人，其实**信息量最低**。
 
@@ -56,7 +39,7 @@
 
 这个判据一般化之后是：**看相对提升之前先看绝对基线。** 基线越接近 0，相对提升越不能说明问题。
 
-## 真正值得看的是他们改了什么
+## 真正值得看的是他们改了什么 {#_7}
 
 公布的三项改动里，只有一项勉强算"训练方法"，另外两项都是基础设施：
 
@@ -68,7 +51,7 @@
 
 **没有一项是新的损失函数。** 对"后训练 = 挑一个更好的算法"这个直觉，这是个反例。
 
-## 训练-推理对齐：为什么它可能是最重要的一项
+## 训练-推理对齐：为什么它可能是最重要的一项 {#-}
 
 公布的说法是把训练侧和推理侧的对数概率差异压到 $10^{-7}$ 量级。这句话听起来像工程洁癖，其实动到了 RL 的地基。
 
@@ -86,7 +69,7 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 
 把它压到 $10^{-7}$，等于把这道裂缝关上。收益不体现在任何一个公式里，体现在**之前所有的更新终于名副其实**。
 
-## 这次实验告诉我们什么
+## 这次实验告诉我们什么 {#_8}
 
 **一、后训练的天花板比多数人以为的高。** 同一个基座，在特定任务族上能翻几倍。基座决定了能力的上界，但多数模型离自己的上界还很远。
 
@@ -94,7 +77,7 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 
 **三、瓶颈往往在采样和数值，不在损失函数。** 三项改动两项是基础设施。**这是后训练领域最被低估的一条：大部分公开讨论集中在算法谱系上，而实际收益常常来自「一小时能采多少经验」和「两边的数是不是同一个数」。**
 
-## 这次实验没告诉我们什么
+## 这次实验没告诉我们什么 {#_9}
 
 要诚实地划清边界：
 
@@ -103,7 +86,7 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 - **成本没有可比口径。** 十倍的环境数量意味着后训练本身的算力开销大幅上升，"只改后训练"不等于"便宜"。
 - **不能反推「预训练不重要」。** 这次能走这么远，恰恰因为基座已经很强。同样的后训练放在弱基座上是什么结果，这个实验答不了。
 
-## 解读这类对照实验时检查什么
+## 解读这类对照实验时检查什么 {#_10}
 
 1. 我在看的这个提升，基线是多少？基线接近 0 的话，相对提升说明的是覆盖缺口。
 2. 变强的同时，输出是变长还是变短？变长要先排除"想得久所以蒙对"。
@@ -111,14 +94,33 @@ $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \m
 4. 我的瓶颈是"算法不够好"，还是"单位时间采不到足够经验"？这两个的解法完全不同。
 5. 发布材料里没提到的维度，我自己测了吗？
 
-## 继续阅读
+## 继续阅读 {#_11}
 
 - [PPO 之后：每个算法都在删掉它的一部分](after-ppo.md)：算法那一半
 - [RLHF 的三个阶段](rlhf/three-stages.md)：四个模型各自在干嘛
 
-## 资料来源
+## 资料来源 {#_12}
 
 数字与技术说明来自厂商发布及其转述报道，非独立复现：
 
 - [GLM-5.3 didn't change the base model — where did its coding gains come from?](https://thenewstack.io/glm-5-3-post-training-coding/) — The New Stack
 - [GLM-5.3 vs GLM-5.2: Complete Benchmark Comparison & Post-Training Analysis](https://codingfleet.com/blog/glm-5-3-vs-glm-5-2-complete-benchmark-comparison/) — CodingFleet
+
+## 快速学习：同基座对照能证明什么 {#_2}
+
+<details class="interview" markdown="1">
+<summary>Natural experiment、confounders 与 train–serve alignment</summary>
+
+**快速记忆**：固定 base model 后，差异更可能来自数据、目标和系统；但 post-training recipe 往往同时改变多项，仍不是严格单变量因果实验。
+
+**面试回答**
+
+> Same-base comparison 能隔离一部分 pretraining 能力差异，帮助观察 SFT data、preference optimization、verifier 与 inference stack 的贡献。解读时要检查 tokenizer、context length、tool protocol、sampling 和 evaluation harness 是否也改变。
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么 train–serve alignment 可能比算法名字更重要？</summary>
+
+若训练模板、stop token、tool schema、sampling 或 logprob 实现与 serving 不同，模型在离线目标上学到的行为无法按同样条件被调用。算法提升可能被协议 skew 吞掉；反过来，修正一致性也可能看起来像“换算法”的收益。
+
+</details>
+</details>

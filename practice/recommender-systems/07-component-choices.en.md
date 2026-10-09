@@ -2,7 +2,7 @@
 
 [中文](07-component-choices.md) · **English**
 
-> Last checked: 2026-09. Teaching choices, not a Twitter / X configuration list or tool benchmark.
+> Last checked: 2026-10-09. Teaching choices, not a Twitter / X configuration list or tool benchmark.
 
 ## Don't start by choosing a model
 
@@ -56,6 +56,10 @@ $$\cos(q,v)=\frac{q^\top v}{\|q\|\|v\|}.$$
 
 Inconsistent normalization can let vector norms change rankings. Shapes match and the request succeeds, but it computes a different score. [Faiss distance definitions](https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances)
 
+With $q=(1,0)$, $A=(2,0)$ and $B=(100,100)$, the dot products are 2 and 100, putting B first. Cosines are 1 and $1/\sqrt{2}\approx0.707$, putting A first. B is longer, not better aligned.
+
+Conversely, omitting normalization doesn't always change the order. With unit item vectors, positive rescaling of **one nonzero query** preserves exact dot-product rankings while scaling scores. That scale still matters for absolute thresholds or comparisons across queries. Normalize both sides when actual cosine values are required.
+
 Hand-calculate a few fixed vectors and compare offline and serving paths. Test zero vectors, NaNs, duplicate IDs, and deterministic tie-breaking too.
 
 </details>
@@ -97,6 +101,16 @@ Instead of “use an advanced multimodal recommendation architecture,” try:
 “We suspect text misses a particular visual signal. Compare image-enabled and text-only versions with a fixed pool and label protocol. Add the item-side path only if the relevant gains justify refresh and storage costs.”
 
 That gives an observation, intervention, control, and stopping condition. Someone else can challenge it or continue the experiment.
+
+## Work through a choice, not just a table
+
+Suppose a teaching service cannot retrieve new posts. Inspect failed cases: source text exists, encoding succeeded, but the index lacks the matching revision; old-item retrieval and ranking work. A stronger encoder won't repair this diagnosed update delay.
+
+Compare shorter batch intervals with event-driven updates. Batching changes less but repeats scans and retains scheduling delays. Event-driven work responds sooner to edits but must handle duplicates, reordering, backlogs, and recovery. A small team with modest freshness needs may reasonably choose batching; “nearline” isn't inherently the better answer.
+
+Hold content and encoding fixed, then measure publication-to-search delay, missed updates, idempotency after duplicate events, and encoding/index-write costs. Define a freshness target and test which design meets it. Also verify that more frequent writes do not worsen existing query latency.
+
+If the current revision is indexed but exact search ranks it poorly, investigate representation and training signals instead. If exact search ranks it highly but ANN misses it, investigate index settings. **“Can't find it” can require three entirely different changes.**
 
 ## Self-check
 

@@ -1,4 +1,4 @@
-# 00 · The whole system: 3 different timelines
+# 00 · Recommender architecture: requests, content updates, and training
 
 [中文](00-architecture.md) · **English**
 
@@ -51,7 +51,7 @@ Two components producing 256 numbers each are not automatically compatible. For 
 - **How long is it valid?** After an edit, how long can old features remain usable? Can deletion take effect promptly?
 - **What does failure mean?** A successful empty result, a timeout, and an incompatible release are not the same retrieval outcome.
 
-These are not merely operational details. If an interface changes meaning, a regression may have little to do with the model’s ability.
+For example, an old item index and a new user encoder can still produce dot products, but those scores may no longer mean what they did during training. Check version compatibility before retraining to fix an apparent regression.
 
 ## 5 · Ask where a change will propagate
 
@@ -65,6 +65,20 @@ Before drawing another box, trace one small change:
 | Change training labels | Objective meaning, data coverage, evaluation protocol | Can the old metric detect the added signal? |
 
 Understanding architecture means **tracing the information, cost, and risk that one decision passes downstream**. A bigger diagram is not necessarily a better explanation.
+
+## Diagnose one failure with three timestamps
+
+Consider a fictional trace: a post is published at 10:00, a user refreshes at 10:02, and the updated item vector becomes searchable at 10:05. Replaying the 10:02 request against today's latest features uses a vector unavailable to that request.
+
+| Timestamp | Meaning | This example |
+| --- | --- | --- |
+| Event time | When content or behavior occurred | Published at 10:00 |
+| Processing completion | When encoding completed | 10:04 |
+| Search availability | When the index could return it | 10:05 |
+
+“Not retrieved at 10:02” may indicate slow updates rather than weak semantic understanding. Inspect stage delays and retries before changing the encoder. The same applies to training features: use information available before the decision, not future information reconstructed afterward.
+
+One approach retains replayable feature/index snapshots and the version ID used by each request. Storage and maintenance increase, so this need not mean a full snapshot every second; periodic snapshots plus incremental events may suffice. Whatever the implementation, it should establish what the system could see then rather than explain yesterday with today's data.
 
 ## Try tracing it yourself
 

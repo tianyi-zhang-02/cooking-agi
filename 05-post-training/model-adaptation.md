@@ -4,56 +4,17 @@
 
 > 阅读时间：约 16 分钟 · 难度：必修 · 最近审阅：2026-09
 
-<div class="lesson-recipe">
-  <div><span>解决什么问题</span><strong>用多大代价，把一个已有模型变成适合目标任务的模型</strong></div>
-  <div><span>先分清</span><strong>训练信号是什么 · 哪些参数会更新</strong></div>
-  <div><span>核心方法</span><strong>Full FT · LoRA · Prompt / Prefix Tuning · Distillation</strong></div>
-  <div><span>常见错误</span><strong>把 SFT、LoRA、Prompt Tuning 和蒸馏当成同一层级的算法</strong></div>
-</div>
+要让一个模型稳定输出客服需要的 JSON，可以修改全部参数，也可以只训练 LoRA；训练信号则可以来自示范，也可以来自偏好比较。“改哪些参数”和“按什么目标训练”是两件事，LoRA 与 SFT 完全可以同时使用。把这两个问题分开，后面的选择就容易多了。
 
-## 快速学习：先把两条轴分开
+这页负责比较方法。想看具体计算，可以接着读：
 
-<details class="interview" markdown="1">
-<summary>两分钟讲清这些方法到底差在哪里</summary>
+- [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)：同一小模型里，更新位置、参数量和部署成本怎样不同。
+- [LoRA / QLoRA](lora-and-qlora.md)：低秩更新的梯度、初始化、显存与量化。
+- [蒸馏](distillation.md)：软标签、top-k 尾部概率与 on-policy 前缀。
 
-**第一条轴是 learning objective（学什么）**：可以用 demonstration 做 SFT，用 teacher
-distribution 做 distillation，用 chosen/rejected pair 做 DPO，也可以用 reward 做 RL。
+## 四种参数适配方式 {#_2}
 
-**第二条轴是 parameterization（改哪里）**：可以更新全部权重，训练 LoRA / Adapter，
-或者只训练输入侧的 soft prompt。两条轴可以组合，例如 LoRA-SFT、LoRA-DPO，或者用
-LoRA 参数化的 student 做 distillation。
-
-> **Distillation 决定监督从 teacher 来；LoRA 与 Prompt Tuning 决定梯度允许改哪些参数。**
-
-<details markdown="1">
-<summary><b>深挖</b>：为什么这个区分很重要？</summary>
-
-如果实验说“LoRA 比 SFT 好”，比较本身就不完整：LoRA 是更新参数的方式，SFT 是数据与
-损失。正确对照应当是 full-parameter SFT 与 LoRA-SFT，或者在相同 parameterization 下
-比较 SFT 与 distillation。否则改变了两件事，却不知道提升来自哪里。
-
-</details>
-</details>
-
-```mermaid
-flowchart LR
-    B["Pretrained / SFT model"] --> O{"训练信号<br/>Learning objective"}
-    O --> S["Demonstrations · SFT"]
-    O --> D["Teacher outputs · Distillation"]
-    O --> P["Preferences · DPO"]
-    O --> R["Reward · RL"]
-    S --> U{"更新哪些参数<br/>Parameterization"}
-    D --> U
-    P --> U
-    R --> U
-    U --> F["Full fine-tuning"]
-    U --> L["LoRA / Adapter"]
-    U --> T["Prompt / Prefix tuning"]
-```
-
-## 四种参数适配方式
-
-### Full Fine-Tuning：整个模型都能动
+### Full Fine-Tuning：整个模型都能动 {#full-fine-tuning}
 
 Full-parameter fine-tuning 对所有参数求梯度：
 
@@ -65,7 +26,7 @@ $$
 存储。数据少或学习率控制不好时，还更容易过拟合或破坏原有能力。它适合数据充分、
 任务变化大，而且确实需要改变模型内部表示的场景。
 
-### LoRA：学习权重更新，而不是重训整块权重
+### LoRA：学习权重更新，而不是重训整块权重 {#lora}
 
 对冻结的线性层 $W_0\in\mathbb R^{d_{out}\times d_{in}}$，LoRA 学习低秩增量：
 
@@ -78,7 +39,7 @@ $r\ll\min(d_{in},d_{out})$；$\alpha/r$ 控制增量尺度。基础权重冻结�
 它改的是模型内部线性变换，
 比只改输入的 Prompt Tuning 表达自由度更高；部署时也可以动态挂载或合并 adapter。
 
-### Prompt Tuning：只学习输入前的 virtual tokens
+### Prompt Tuning：只学习输入前的 virtual tokens {#prompt-tuning-virtual-tokens}
 
 Prompt Tuning 冻结整个模型，在正常 token embedding 前拼接 $m$ 个可学习向量：
 
@@ -93,8 +54,10 @@ $P$ 叫 **soft prompt**。它不是一句隐藏的自然语言，也不对应词
 Transformer，但只有 $P$ 更新：
 
 $$
-\nabla_\theta\mathcal L=0,\qquad \nabla_P\mathcal L\neq0.
+\Delta\theta=0,\qquad P\leftarrow P-\eta\nabla_P\mathcal L.
 $$
+
+冻结指不更新 $\theta$，不代表损失对这些参数的数学导数必然为零。梯度仍需经过模型，才能算到输入侧的 $P$。
 
 它的直接参数量就是：
 
@@ -146,7 +109,7 @@ pretraining、LoRA 或 full fine-tuning。
 
 </details>
 
-### Prefix Tuning：不只在输入层加向量
+### Prefix Tuning：不只在输入层加向量 {#prefix-tuning}
 
 Prompt Tuning 通常只在 embedding 层加 virtual tokens；Prefix Tuning 为每一层 attention
 直接提供可学习的 prefix key/value：
@@ -186,12 +149,12 @@ layer-specific prefix K/V，每层拥有独立控制信号。
 
 </details>
 
-## 分类输出怎么保证只落在合法标签里
+## 分类输出怎么保证只落在合法标签里 {#_3}
 
 Soft prompt 只能让正确标签更可能，**不能单独保证输出 schema**。可靠系统要把“模型学得
 准不准”和“输出是否合法”分开处理。
 
-### 方法一：直接给固定标签打分
+### 方法一：直接给固定标签打分 {#_4}
 
 不让模型自由生成，而是比较候选标签的 sequence log-probability：
 
@@ -204,12 +167,12 @@ $$
 工程上常用单 token、等长的 `A/B/C` 再映射到业务标签，避免不同 tokenization 与标签
 长度带来的偏差。
 
-### 方法二：Constrained Decoding
+### 方法二：Constrained Decoding {#constrained-decoding}
 
 在生成时把合法标签之外的 token logits mask 成 $-\infty$，只在允许集合上做 softmax。
 这样可以保证输出属于枚举集合，但不能保证分类一定正确。
 
-### 方法三：Classification Head
+### 方法三：Classification Head {#classification-head}
 
 取一个 hidden state $h$，训练固定输出维度的分类头：
 
@@ -223,17 +186,17 @@ $$
 > **模型或 soft prompt 提高 accuracy；serving constraint 保证 schema。** 不要把格式
 > 保证寄托在一句“请只输出标签”的自然语言指令上。
 
-## Distillation：监督来自 Teacher
+## Distillation：监督来自 Teacher {#distillation-teacher}
 
 Knowledge Distillation（知识蒸馏）通常有一个能力更强或成本更高的 Teacher，以及要部署的
 Student。它不是一种固定的参数更新方式，而是一类监督来源。
 
-### Response Distillation
+### Response Distillation {#response-distillation}
 
 Teacher 先生成答案，Student 把答案当 demonstration 做 SFT。实现简单，但只保留了一条
 采样结果，看不到 Teacher 对其他 token 的相对偏好。
 
-### Logit / Distribution Distillation
+### Logit / Distribution Distillation {#logit-distribution-distillation}
 
 Student 拟合 Teacher 的 token distribution，例如最小化：
 
@@ -250,7 +213,7 @@ $$
 贵，因此系统常只保存 Teacher top-$k$ logits；但这要求明确处理其余概率质量、不同
 tokenizer 的映射，以及 mask 和 normalization 的一致性。
 
-### On-policy Distillation
+### On-policy Distillation {#on-policy-distillation}
 
 Student 先从当前策略采样，Teacher 再给这些同一前缀上的 token distribution 打分。这样
 监督更贴近 Student 真正会访问的状态，但需要持续 rollout、Teacher inference 和权重版本
@@ -259,7 +222,7 @@ Student 先从当前策略采样，Teacher 再给这些同一前缀上的 token 
 Distillation 可以和任何 parameterization 组合：Student 可以 full fine-tune，也可以只训
 LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。
 
-## 怎么选
+## 怎么选 {#_5}
 
 | 目标 | 更自然的起点 | 原因 |
 | --- | --- | --- |
@@ -270,13 +233,13 @@ LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。
 | 固定枚举分类 | Label scoring 或 classification head | 不需要承担自由生成的不确定性 |
 | 缺少会变化的外部事实 | Retrieval / tool use | 不应指望微调参数充当实时数据库 |
 
-## 面试时最值得说清楚的三句话
+## 面试时最值得说清楚的三句话 {#_6}
 
 1. Prompt Tuning 学的是连续 virtual-token embeddings，不是自然语言 prompt；模型冻结，推理时仍要把它们拼到输入前。
 2. LoRA、Prompt Tuning 和 full fine-tuning 描述参数怎样更新；SFT、DPO 和 distillation 描述监督与 objective，两组概念可以交叉组合。
 3. 对分类任务，训练方法负责 accuracy，固定标签打分、constrained decoding 或 classification head 负责输出合法性。
 
-## 自检
+## 自检 {#_7}
 
 <div class="taste-check">
   <strong>如果真的理解了，你应该能解释：</strong>
@@ -289,12 +252,52 @@ LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。
   </ol>
 </div>
 
-## 继续阅读
+## 继续阅读 {#_8}
 
 - [SFT：模仿能到哪儿，到哪儿为止](sft-and-its-ceiling.md)
 - [后训练基础设施](post-training-infrastructure.md)
 
-## 参考论文
+## 快速学习：先把两条轴分开 {#_1}
+
+<details class="interview" markdown="1">
+<summary>两分钟讲清这些方法到底差在哪里</summary>
+
+**第一条轴是 learning objective（学什么）**：可以用 demonstration 做 SFT，用 teacher
+distribution 做 distillation，用 chosen/rejected pair 做 DPO，也可以用 reward 做 RL。
+
+**第二条轴是 parameterization（改哪里）**：可以更新全部权重，训练 LoRA / Adapter，
+或者只训练输入侧的 soft prompt。两条轴可以组合，例如 LoRA-SFT、LoRA-DPO，或者用
+LoRA 参数化的 student 做 distillation。
+
+> **Distillation 决定监督从 teacher 来；LoRA 与 Prompt Tuning 决定梯度允许改哪些参数。**
+
+<details markdown="1">
+<summary><b>深挖</b>：为什么这个区分很重要？</summary>
+
+如果实验说“LoRA 比 SFT 好”，比较本身就不完整：LoRA 是更新参数的方式，SFT 是数据与
+损失。正确对照应当是 full-parameter SFT 与 LoRA-SFT，或者在相同 parameterization 下
+比较 SFT 与 distillation。否则改变了两件事，却不知道提升来自哪里。
+
+</details>
+</details>
+
+```mermaid
+flowchart LR
+    B["Pretrained / SFT model"] --> O{"训练信号<br/>Learning objective"}
+    O --> S["Demonstrations · SFT"]
+    O --> D["Teacher outputs · Distillation"]
+    O --> P["Preferences · DPO"]
+    O --> R["Reward · RL"]
+    S --> U{"更新哪些参数<br/>Parameterization"}
+    D --> U
+    P --> U
+    R --> U
+    U --> F["Full fine-tuning"]
+    U --> L["LoRA / Adapter"]
+    U --> T["Prompt / Prefix tuning"]
+```
+
+## 参考论文 {#_9}
 
 - [The Power of Scale for Parameter-Efficient Prompt Tuning](https://arxiv.org/abs/2104.08691)
 - [Prefix-Tuning](https://arxiv.org/abs/2101.00190)

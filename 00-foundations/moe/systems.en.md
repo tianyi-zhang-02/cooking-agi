@@ -2,7 +2,7 @@
 
 [中文](systems.md) · **English**
 
-> Reading time: ~2 min · Level: advanced · Last reviewed: 2026-09
+> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-10-09
 
 ## Expert parallelism and two all-to-alls
 
@@ -12,7 +12,7 @@ In a large model the experts live on different GPUs. The forward pass of one MoE
 2. each GPU runs its own experts;
 3. **combine**: a second all-to-all sends the results back to where each token came from.
 
-That is two exchanges per layer, and the traffic grows with $k$ and with the number of tokens. Much of MoE's training and serving efficiency comes down to whether those exchanges can overlap with compute.
+This is a typical logical expert-parallel flow, not a requirement for two cross-device collectives in every deployment. Local experts need no remote dispatch. Traffic also depends on expert placement and coalescing sends to the same node. Profile dispatch, expert computation, return traffic, and overlap separately when diagnosing a slow step.
 
 ## Limit how many machines a token touches
 
@@ -20,14 +20,14 @@ Bandwidth between machines is far lower than inside one. DeepSeek-V3 uses node-l
 
 ## Memory: sparsity only helps once it fits
 
-Memory has to hold **all** the parameters. DeepSeek-V3 has 671B parameters (the 685B shown on Hugging Face includes a 14B multi-token prediction module), so the weights alone need many GPUs even though only 37B are active. gpt-oss stores its MoE weights in MXFP4, about 4.25 bits per parameter, precisely to fit the total into less memory.
+Full GPU residency needs storage for all weights, not just active parameters. DeepSeek-V3's main model has 671B parameters; released weights including MTP add roughly 14B. gpt-oss expert weights use MXFP4 at about 4.25 bits per parameter, but not all tensors use that precision. Offloading can move some weights to CPUs, putting bandwidth and cache hits into the latency calculation. Sources for these models are in the [report list](review.en.md).
 
 ## When decoding, batch size changes the arithmetic
 
-Decoding is usually memory-bound: every step reads the weights it uses from memory.
+Small-batch decoding is often bandwidth-limited, but long-context KV reads, cross-device communication, or larger matrix operations can dominate too. Confirm the bottleneck with a profiler.
 
-- **With a small batch**, only a few experts are used per step, so the weights read scale roughly with the active parameters; this is where MoE is fast;
-- **with a large batch**, different tokens pick different experts, almost every expert is used in each step, and the weights read approach the total, spread over more tokens.
+- **With a small batch**, a step may use few experts and read fewer weights, but small-matrix inefficiency and dispatch overhead can offset that gain.
+- **With a large batch**, dispersed routing touches more experts, potentially approaching all their weights, spread over more tokens. Skewed routing may still use only a few experts.
 
 So MoE's "each token computes only a small part" pays off differently at different batch sizes, and with the all-to-alls on top, real throughput depends on the deployment.
 

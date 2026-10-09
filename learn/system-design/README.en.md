@@ -22,6 +22,6 @@ More components don't necessarily mean a better design. Removing one while prese
 
 ## Design exercises versus implementation studies
 
-A design exercise lets you state assumptions and compare alternatives. [Industry Practice](../../practice/README.en.md) returns to public evidence: what does the code actually implement, and what remains unknown? The two connect, but a diagram you designed isn't evidence of someone else's production architecture.
+Both belong in [Engineering practice](../../practice/README.en.md). Design exercises start from requirements and let you state assumptions and compare alternatives. Implementation studies start from existing code: what does it actually do, and what remains unknown? Original teaching projects are labeled separately; a design we propose is not evidence of a company's production architecture.
 
-The [system-design reading guide](../../interview/system-design.en.md) keeps the resource list. Return to the [study map](../README.en.md) for foundations.
+The [system-design reading guide](../../interview/system-design.en.md) keeps the resource list. Return to [Foundations](../README.en.md) for the concepts, or to [Interview preparation](../../interview/README.en.md) for questions, ML coding, and algorithms.
