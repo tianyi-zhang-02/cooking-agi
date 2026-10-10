@@ -6,7 +6,11 @@
   }
 
   function safePath(value) {
-    return typeof value === "string" && /^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+(?:\.en)?\.html$/.test(value);
+    return value === "index.zh.html" || (typeof value === "string" && /^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+(?:\.en)?\.html$/.test(value));
+  }
+
+  function noteKey(url) {
+    return url === "index.zh.html" ? "index.html" : url.replace(/\.en\.html$/, ".html");
   }
 
   function prepareIndex(items) {
@@ -17,13 +21,13 @@
     });
     var titles = new Map();
     valid.forEach(function (item) {
-      var key = item.u.replace(/\.en\.html$/, ".html");
+      var key = noteKey(item.u);
       titles.set(key, (titles.get(key) || "") + " " + normalize(item.t));
     });
     return valid.map(function (item) {
       return { u: item.u, t: item.t, s: item.s, l: item.l, x: item.x,
         preview: typeof item.p === "string" ? item.p : item.x,
-        title: titles.get(item.u.replace(/\.en\.html$/, ".html")),
+        title: titles.get(noteKey(item.u)),
         section: normalize(item.s), body: normalize(item.x) };
     });
   }

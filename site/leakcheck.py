@@ -47,6 +47,13 @@ def redact_public_reference_urls(line):
     return line
 
 
+def redact_public_career_role(line, source):
+    approved = '<li><strong>LinkedIn</strong><span>Machine Learning Engineer</span></li>'
+    if source in {"career/journey.md", "career/journey.en.md"} and line.strip() == approved:
+        return line.replace("LinkedIn", "[public company]")
+    return line
+
+
 SCAN = ["00-foundations", "quant", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
         "07-evaluation", "08-model-experience", "09-personal-agi",
@@ -80,7 +87,7 @@ def main():
             for label, scope, rx in rules:
                 if scope and not scope.search(rel):
                     continue
-                m = rx.search(redact_public_reference_urls(line))
+                m = rx.search(redact_public_reference_urls(redact_public_career_role(line, rel)))
                 if m:
                     hits.append((rel, i, label, m.group(0), line.strip()[:88]))
 

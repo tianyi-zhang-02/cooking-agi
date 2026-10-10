@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="{{prefix}}static/language.js?v={{built}}" data-site-root="{{prefix}}"></script>
 <title>{{title}} · {{site_title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="canonical" href="{{canonical}}">
@@ -19,6 +20,7 @@
 <meta name="theme-color" content="#0C0A08">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 28 28%27%3E%3Cpath d=%27M4.5 6.5h6.8c1.5 0 2.7 1.2 2.7 2.7v12.3c0-1.5-1.2-2.7-2.7-2.7H4.5z%27 fill=%27none%27 stroke=%27%23E8A672%27 stroke-width=%271.8%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M23.5 6.5h-6.8c-1.5 0-2.7 1.2-2.7 2.7v12.3c0-1.5 1.2-2.7 2.7-2.7h6.8z%27 fill=%27none%27 stroke=%27%23E8A672%27 stroke-width=%271.8%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="{{prefix}}static/style.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/language.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/clip-lab.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/traversal-lab.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/recsys-lab.css?v={{built}}">
@@ -32,8 +34,10 @@
 <script>
   // set the theme before first paint so there is no flash
   (function () {
-    var t = localStorage.getItem("theme");
-    if (t) document.documentElement.dataset.theme = t;
+    try {
+      var t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (error) {}
   })();
 </script>
 </head>
@@ -87,6 +91,14 @@
     </button>
   </div>
 </header>
+
+<aside id="language-guide" class="language-guide" aria-labelledby="language-guide-title" hidden>
+  <span class="language-guide-label" aria-hidden="true">EN / 中</span>
+  <h2 id="language-guide-title">English or 中文</h2>
+  <p id="language-guide-description" lang="en">Use <strong>中文 / EN</strong> above to switch the same note.</p>
+  <p lang="zh-Hans">点上方的 <strong>中文 / EN</strong>，切换同一篇笔记。</p>
+  <button type="button" data-language-dismiss><span lang="en">Got it</span> / <span lang="zh-Hans">知道了</span></button>
+</aside>
 
 <canvas class="sky" aria-hidden="true"></canvas>
 

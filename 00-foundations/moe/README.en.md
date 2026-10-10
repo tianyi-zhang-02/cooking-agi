@@ -16,7 +16,7 @@ A Mixture-of-Experts (MoE) layer replaces that single FFN with $N$ expert FFNs o
 
 $$y = \sum_{i \in \mathrm{TopK}(x)} g_i(x)\, E_i(x)$$
 
-Attention, embeddings, and norms are unchanged and still shared by every token.
+In this replacement, attention, embeddings, and norms remain shared. Models need not replace every FFN with MoE, and MoE is not restricted to Transformers. This series focuses on the sparse FFNs commonly used in language models.
 
 <!-- widget:tx-moe -->
 
@@ -44,5 +44,6 @@ Parameter sources are linked in the [review page's model reports](review.en.md);
 1. [How the router picks experts](router.en.md): scores, top-k, renormalisation, and why early MoE added noise (interactive)
 2. [Load balancing](load-balancing.en.md): why imbalance can develop; auxiliary losses, capacity, and bias adjustment (interactive)
 3. [Fine-grained and shared experts](fine-grained-and-shared.en.md): DeepSeekMoE's two changes, and what different labs chose
-4. [What it costs to train and serve](systems.en.md): expert parallelism, all-to-all, memory, and decoding
-5. [Review questions](review.en.md): interview questions and a self-check
+4. [LatentMoE: must experts be as wide as the backbone?](latent-moe.en.md): distinguish three widths, work out parameter and communication costs, then examine Kimi K3
+5. [What it costs to train and serve](systems.en.md): expert parallelism, all-to-all, memory, and decoding
+6. [Review questions](review.en.md): interview questions and a self-check

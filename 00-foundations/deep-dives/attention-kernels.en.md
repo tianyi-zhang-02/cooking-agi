@@ -130,17 +130,29 @@ Unused slots inside allocated tail blocks are **internal fragmentation**. **Exte
 
 Separate a paper's sharing mechanisms from the features a framework currently implements. [vLLM's prefix-caching documentation](https://docs.vllm.ai/en/latest/design/prefix_caching/) describes reusing full blocks and including prefixes, token IDs, and adapter / multimodal information in cache keys. Do not assume arbitrary partially filled tails are reusable.
 
+<span id="cache-lifecycle"></span>
+
 ## Finishing a request does not immediately erase its cache
 
-In the vLLM V1 design checked on 2026-10-09, active requests hold references. After the last release, a block can enter the free queue yet remain reusable; overwriting it removes the old mapping. This is capacity-driven LRU eviction, not a fixed ten-minute TTL. [Cache lifecycle](https://docs.vllm.ai/en/latest/design/prefix_caching/)
+In the checked vLLM V1 commit `10cc2f6`, active requests hold references. After the last release, a cached block can enter the free queue yet remain reusable; allocating it for new content removes the old mapping. This is capacity-driven eviction, not a fixed ten-minute TTL. The [pinned block-pool implementation](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/core/block_pool.py#L729) handles cached and uncached blocks differently, so do not describe every free block as part of one undifferentiated LRU queue.
 
 Separate **releasing a request's reference, invalidating a cache hit, and returning GPU memory to the system**. A preallocated pool may retain memory for future requests.
 
-For a seven-token common prefix and four-token blocks, the full-block path can reuse at most four tokens, not seven. Changing token two breaks the first block; matching text later cannot be spliced back because its KV was computed under a different prefix.
+Follow one computed prefix block:
+
+| Event | Active references | Block state |
+| --- | ---: | --- |
+| Request A holds it | 1 | In use; unrelated content cannot overwrite it |
+| B matches the same prefix | 2 | Shared by two requests, not two copies of KV |
+| A finishes | 1 | B still uses it |
+| B finishes | 0 | Eligible for reclamation, but still a possible cache hit |
+| A new hit or allocation reuses it | 1 | A hit keeps old content; reassignment removes the old mapping first |
+
+For a seven-token common prefix and four-token blocks, the full-block path can reuse at most four tokens, not seven. Changing token two breaks the first block; matching text later cannot be spliced back because its KV was computed under a different prefix. This example uses ordinary full attention. Hybrid cache groups, hash granularity, and physical blocks need not map one-to-one; check the actual configuration.
 
 ## vLLM versus SGLang is not “finer means faster”
 
-vLLM uses prefix-aware block hashes; SGLang's RadixAttention organizes shared paths as a tree. Splittable tree nodes do not guarantee tokenwise reuse under every configuration. The [SGLang RadixCache implementation](https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/radix_cache.py), inspected on 2026-10-09, aligns relevant paths when `page_size > 1`. Record commit, cache backend, page size, and attention type—not just the framework name.
+vLLM uses prefix-aware block hashes; SGLang's RadixAttention organizes shared paths as a tree. Splittable nodes do not guarantee tokenwise reuse in every configuration. In [SGLang RadixCache at `436d73d`](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/radix_cache.py#L358), matching aligns to pages when `page_size > 1`. A seven-token common prefix can retain seven positions on the ordinary page-size-one path, but aligns down to four with page size four. Configuration changes reuse granularity; this is not a throughput comparison.
 
 | Check on the same request trace | Why |
 | --- | --- |

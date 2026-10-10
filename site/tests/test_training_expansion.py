@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 import random
 import re
+import runpy
 import tomllib
 import unittest
 from urllib.parse import unquote, urlsplit
@@ -31,9 +32,18 @@ def snippets(chapter, suffix=".md"):
     return re.findall(r"```python\n(.*?)```", (ROOT / (chapter + suffix)).read_text(), re.S)
 
 
-def namespace_for(chapter):
+def namespace_for(chapter, function_name=None):
     namespace = {}
     for snippet in snippets(chapter):
+        if function_name and not re.search(rf"^def {re.escape(function_name)}\(", snippet, re.M):
+            continue
+        if chapter.startswith("00-foundations/moe/") and "torch." in snippet:
+            try:
+                namespace.update(runpy.run_path(str(ROOT / "00-foundations/code/moe_routing.py")))
+            except ModuleNotFoundError as error:
+                if error.name != "torch":
+                    raise
+                raise unittest.SkipTest("PyTorch unavailable; MoE tensor examples not executed") from error
         with contextlib.redirect_stdout(io.StringIO()):
             exec(compile(snippet, chapter, "exec"), namespace)
     return namespace
@@ -193,7 +203,7 @@ class TrainingExpansionTests(unittest.TestCase):
             budget(128, 64, 4, 5)
 
     def test_selection_bias_does_not_become_gate_weight(self):
-        route = namespace_for("00-foundations/moe/load-balancing")["route_with_bias"]
+        route = namespace_for("00-foundations/moe/load-balancing", "route_with_bias")["route_with_bias"]
         self.assertEqual(route([0.8, 0.7, 0.2], [0, 0, 0], 2)[0], [0, 1])
         chosen, weights = route([0.8, 0.7, 0.2], [-0.2, 0, 0.5], 2)
         self.assertEqual(chosen, [1, 2])

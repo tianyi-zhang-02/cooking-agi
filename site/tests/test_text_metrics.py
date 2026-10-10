@@ -15,7 +15,8 @@ class TextMetricsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.namespace = {}
-        for snippet in snippets():
+        for function in ("bleu_example", "edit_distance"):
+            snippet = next(block for block in snippets() if f"def {function}(" in block)
             exec(compile(snippet, "text-metrics", "exec"), cls.namespace)
 
     def test_bilingual_snippets_match(self):

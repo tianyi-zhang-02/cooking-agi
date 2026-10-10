@@ -16,7 +16,7 @@ MoE 层把这一个 FFN 拆成 $N$ 个形状一样的 expert FFN，前面加一�
 
 $$y = \sum_{i \in \mathrm{TopK}(x)} g_i(x)\, E_i(x)$$
 
-attention、embedding、norm 都不动，还是所有 token 共用一份。
+在这个替换方式里，attention、embedding、norm 仍然共享。不是每个模型都把每层 FFN 换成 MoE，也不是所有 MoE 都必须用 Transformer；这里讨论的是语言模型中常见的 sparse FFN。
 
 <!-- widget:tx-moe -->
 
@@ -44,5 +44,6 @@ Mixtral 8x7B 不是 56B：复制成 8 份的只有 FFN，attention 和 embedding
 1. [Router 怎样选 expert](router.md)：打分、top-k、归一化，以及早期为什么要加噪声（图能点）
 2. [负载均衡](load-balancing.md)：为什么可能失衡；辅助 loss、capacity，以及调 bias 的办法（图能自己跑）
 3. [细粒度专家与共享专家](fine-grained-and-shared.md)：DeepSeekMoE 的两个改动，以及各家怎么选
-4. [训练和推理的系统代价](systems.md)：expert parallelism、all-to-all、显存和解码
-5. [复习题](review.md)：面试题和自检
+4. [LatentMoE：专家一定要和主干一样宽吗？](latent-moe.md)：分清 3 种宽度，算一笔参数和通信的账，再看 Kimi K3 的选择
+5. [训练和推理的系统代价](systems.md)：expert parallelism、all-to-all、显存和解码
+6. [复习题](review.md)：面试题和自检

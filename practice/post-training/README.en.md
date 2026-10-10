@@ -58,7 +58,7 @@ In order, these notes follow one experiment from method selection to delivery. F
 | [3 · Data and objectives](data-and-objectives.en.md) | Hand-check masked loss and token/example means | Supervised positions and length-dependent weighting |
 | [4 · Multi-GPU choices](distributed-training.en.md) | Separate capacity from speed; calculate batches and denominators | DDP/FSDP/ZeRO/TP/PP costs |
 | [5 · Save and resume](checkpoint-and-resume.en.md) | Compare interrupted recovery; separate resume and export | State, save timing, and changed-topology guarantees |
-| [6 · Experiments and release](experiments-and-release.en.md) | Paired evaluation and a rollback-ready bundle | Overall gains versus slice regressions; offline versus deployment evidence |
+| [6 · Experiments and release](experiments-and-release.en.md) | Compare runs, trace failures, and prepare rollback | Overall gains versus slice regressions; input, training, or evaluation fixes |
 
 For a first pass, read 1 → 2 → 6. Before implementation, work through 3 → 4 → 5 too. Two standard-library programs check objectives/evaluation and data/batches/toy recovery without downloading a model. Real trainer integration still needs tokenizer, forward-pass, gradient, and distributed-recovery checks. Passing the teaching programs is not a completed SFT run.
 

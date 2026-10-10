@@ -30,6 +30,8 @@ Practice these together, but distinguish the gaps. Explaining why attention scal
 
 If syntax slows you down, start with [Useful Python](python.en.md) and run the examples. For algorithms, work from complexity, hash maps, pointers, binary search, and DFS / BFS toward backtracking and DP. The emphasis is on transferable Easy / Medium methods, not completing a list of Hard problems.
 
+If a copy changes the original, or a function reuses data from an earlier call, try [names, copies, and function calls](python-objects.en.md). Following which objects are shared is more useful than memorizing a separate gotcha for every symptom.
+
 For [DFS / BFS](algorithms/traversal.en.md), trace a small graph with both a stack and a queue. Check when visited nodes are marked and which traversal guarantees shortest paths in an unweighted graph instead of just memorizing the templates.
 
 ## System design

@@ -2,21 +2,21 @@
 
 [中文](case-studies.md) · **English**
 
-“The response looks good” misses different problems in different systems. All examples here are fictional. The questions are: **what evidence is needed, who can check it, and what conclusion is justified?**
+A fluent answer can still fail the task. A knowledge assistant might cite an old policy; an agent might say “Done” without completing the action; a memory system might follow a preference the user has already changed. Each needs different evidence. The examples below are fictional.
 
 ## RAG: separate correctness, relevance, and grounding
 
-The supplied policy allows returns only for unopened products within 7 days.
+Suppose a store accepts returns only within 7 days and only for unopened products. The user has already opened the product and asks whether it can be returned. Before assigning an overall score, separate the possible failures:
 
 | Variant | Treatment |
 | --- | --- |
 | Friendly response promises 30 days | Grounding fails; record tone separately |
 | Accurate policy quotation ignores the user's opened product | Grounding may pass; task completeness may fail |
-| Retrieval returns no relevant policy | Record retrieval failure; policy-dependent judgment is unknown |
+| Retrieval returns no relevant policy | Record retrieval failure; without the policy, the judge cannot verify its specific terms either |
 | Reference says 30 days, evidence says 7 | Flag reference conflict and review the dataset |
 | Response cites nonexistent policy-9 | Check ID existence programmatically; still verify semantic support |
 
-Missing retrieval and incorrect generation despite available evidence are different component failures. Combining them into one low score obscures where to intervene.
+Check whether retrieved material actually reached the final prompt. Reranking, assembly, or truncation may drop it along the way. Not found, found but not supplied, and supplied but misused suggest different investigations. The [worked debugging example](../../practice/post-training/experiments-and-release.en.md#trace-a-failure) follows that path.
 
 A citation's existence doesn't establish support. Check whether the cited passage entails the associated claim.
 
@@ -24,7 +24,7 @@ A citation's existence doesn't establish support. Check whether the cited passag
 
 The user asks: “Find two flights, but don't book.” The agent presents results and says it's done, yet the trace contains a create_booking call.
 
-This is a permission violation, not a low helpfulness score that can be averaged away.
+The user explicitly said not to book. Useful search results cannot compensate for initiating a booking against that instruction.
 
 Another version avoids booking but claims to have saved a draft when no draft exists in the final state. Inspect the state:
 
@@ -50,7 +50,7 @@ A one-sentence response shouldn't earn credit just for using memory. Check:
 - **Correction persistence:** does an update affect later turns and sessions?
 - **Privacy and boundaries:** is unnecessary or inappropriate memory exposed?
 
-Longitudinal evaluation needs time-ordered state updates. Resetting memory every turn doesn't test lasting corrections. User simulators can create stress scenarios, but simulated satisfaction isn't evidence of real user satisfaction. Sharing an unvalidated preference model between scenario generation and grading isn't independent confirmation.
+Longitudinal evaluation needs to carry state forward. If the user changes a preference today, does the next conversation still use the old version? Clearing memory every turn cannot test that. User simulators help create stress scenarios, but their satisfaction isn't evidence of real user satisfaction. Using the same unvalidated preference model to generate scenarios and grade results doesn't provide independent confirmation either.
 
 ## Code: execute what can be executed
 

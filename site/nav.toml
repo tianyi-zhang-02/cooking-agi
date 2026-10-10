@@ -18,6 +18,7 @@ owner_url   = "https://tianyi-zhang-02.github.io/"
 
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]
+"index.en.html" = "index.html"
 # the AI Infra block (open-source/, NeMo RL) was removed on 2026-09-24
 "open-source/index.html" = "practice/index.html"
 "open-source/index.en.html" = "practice/index.en.html"
@@ -332,7 +333,7 @@ en  = "02 · Build a Transformer"
 home = "00-foundations/core/README.md"
 intro_zh = "前面已有 token 与向量，现在看模型怎样让不同位置交换信息，再组合成完整网络。"
 intro_en = "With tokens and vectors in place, examine how positions exchange information and form a complete network."
-order = ["README.md", "multi-head-attention.md", "residual-connections.md", "normalization.md", "ffn-and-gates.md", "vanilla-transformer.md", "decoder-only.md"]
+order = ["README.md", "multi-head-attention.md", "residual-connections.md", "normalization.md", "ffn-and-gates.md", "vanilla-transformer.md", "bert.md", "decoder-only.md"]
 
 [[section]]
 dir = "learn/input-and-sequences"
@@ -393,8 +394,8 @@ en = "02 · Precision, memory & parallelism"
 home = "learn/pretraining/README.md"
 intro_zh = "需要先懂一次训练。这里区分数值格式、保存的状态、重算和多卡切分，不把它们混作一种优化。"
 intro_en = "After one training step, separate numeric formats, stored state, recomputation, and multi-device partitioning."
-include = ["00-foundations/deep-dives/precision-and-memory.md", "06-systems/distributed-training.md"]
-order = ["precision-and-memory.md", "distributed-training.md"]
+include = ["00-foundations/deep-dives/precision-and-memory.md", "06-systems/distributed-training.md", "06-systems/tensor-parallel.md"]
+order = ["precision-and-memory.md", "distributed-training.md", "tensor-parallel.md"]
 
 [[section]]
 dir = "learn/inference"
@@ -404,8 +405,8 @@ en = "01 · Generation & caching"
 home = "learn/inference/README.md"
 intro_zh = "知道 decoder 怎样预测 token 后，再分开看采样策略和 prefill / decode 的计算。"
 intro_en = "Once decoder prediction is clear, separate sampling choices from prefill and decode computation."
-include = ["00-foundations/core/decoding.md", "00-foundations/deep-dives/kv-cache-and-inference.md", "00-foundations/deep-dives/dflash.md"]
-order = ["README.md", "decoding.md", "kv-cache-and-inference.md", "dflash.md"]
+include = ["00-foundations/core/decoding.md", "00-foundations/deep-dives/kv-cache-and-inference.md", "06-systems/llm-serving.md", "00-foundations/deep-dives/dflash.md"]
+order = ["README.md", "decoding.md", "kv-cache-and-inference.md", "llm-serving.md", "dflash.md"]
 
 [[section]]
 dir = "learn/attention-systems"
@@ -442,7 +443,7 @@ dir   = "00-foundations/moe"
 group = "architectures"
 zh    = "MoE：专家与路由"
 en    = "MoE: experts & routing"
-order = ["README.md", "router.md", "load-balancing.md", "fine-grained-and-shared.md", "systems.md", "review.md"]
+order = ["README.md", "router.md", "load-balancing.md", "fine-grained-and-shared.md", "latent-moe.md", "systems.md", "review.md"]
 
 [[section]]
 dir   = "00-foundations/looped"
@@ -481,7 +482,7 @@ en  = "Search & retrieval"
 
 [[section]]
 dir = "05-post-training"
-order = ["README.md", "sft-and-its-ceiling.md", "model-adaptation.md", "parameter-efficient-tuning.md", "lora-and-qlora.md", "distillation.md"]
+order = ["README.md", "sft-and-its-ceiling.md", "rejection-sampling.md", "model-adaptation.md", "parameter-efficient-tuning.md", "lora-and-qlora.md", "distillation.md"]
 group = "posttrain"
 zh  = "01 · 示范、微调与蒸馏"
 en  = "01 · Demonstrations, adaptation & distillation"
@@ -593,7 +594,7 @@ dir   = "10-agents"
 group = "agents"
 zh    = "Agents"
 en    = "Agents"
-order = ["README.md", "prompting.md", "patterns.md", "deep-research.md", "scenarios.md", "model-choice.md", "review.md"]
+order = ["README.md", "prompting.md", "patterns.md", "tools-and-skills.md", "deep-research.md", "scenarios.md", "model-choice.md", "review.md"]
 
 [[section]]
 dir   = "practice"
@@ -617,7 +618,7 @@ dir     = "interview"
 group   = "coding"
 zh      = "复习入口"
 en      = "Preparation guide"
-order   = ["README.md", "python.md"]
+order   = ["README.md", "python.md", "python-objects.md"]
 
 [[section]]
 dir = "interview/basics"
@@ -633,7 +634,7 @@ group = "ml-exercises"
 sequence = 1
 zh = "PyTorch：从张量到训练"
 en = "PyTorch: tensors to training"
-order = ["README.md", "tensors-and-storage.md", "operations-and-shapes.md", "autograd.md", "training-loop.md"]
+order = ["README.md", "tensors-and-storage.md", "operations-and-shapes.md", "cross-entropy.md", "autograd.md", "training-loop.md"]
 
 [[section]]
 dir = "learn/ml-exercises"
@@ -728,6 +729,8 @@ en  = "Templates"
 "00-foundations/deep-dives/multi-token-prediction.md" = ["多 token 预测", "Multi-token prediction"]
 "05-post-training/parameter-efficient-tuning.md" = ["Prompt / Prefix / Adapter", "Prompt / Prefix / Adapter"]
 "06-systems/distributed-training.md" = ["多卡训练怎么分", "Distributed training"]
+"06-systems/tensor-parallel.md" = ["张量并行：跟着算一层", "Tensor parallelism, worked through"]
+"06-systems/llm-serving.md" = ["一次请求怎样跑完", "A request through the service"]
 "00-foundations/core/embeddings-and-similarity.md" = ["向量与相似度", "Embeddings & similarity"]
 "00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
 "00-foundations/deep-dives/generalization.md" = ["泛化与训练诊断", "Generalization & diagnosis"]
@@ -803,6 +806,7 @@ en  = "Templates"
 "05-post-training/deep-rl/llm-bridge.md" = ["接到 LLM 与 Agents", "LLMs & agents"]
 "05-post-training/model-adaptation.md"                  = ["微调与 LoRA", "Fine-tuning & LoRA"]
 "05-post-training/sft-and-its-ceiling.md"               = ["SFT", "SFT"]
+"05-post-training/rejection-sampling.md"                 = ["拒绝采样与数据筛选", "Rejection sampling & filtering"]
 "05-post-training/where-preferences-come-from.md"       = ["偏好与奖励模型", "Reward models"]
 "05-post-training/rlhf/README.md"   = ["总览", "Overview"]
 "05-post-training/rlhf/rl-for-language-models.md" = ["RL 映射到语言模型", "RL for language models"]
@@ -860,6 +864,7 @@ en  = "Templates"
 "interview/algorithms/sequence-dp.md" = ["序列 DP · LCS / LIS", "Sequence DP · LCS / LIS"]
 "interview/algorithms/state-machine-dp.md" = ["状态机 DP", "State-machine DP"]
 "interview/python.md"    = ["Python 语法", "Python idioms"]
+"interview/python-objects.md" = ["变量、拷贝与函数", "Objects & calls"]
 "interview/system-design.md" = ["阅读与取舍", "Reading & trade-offs"]
 "interview/questions.md"                                = ["考前速查", "Question bank"]
 "interview/transformer-followups.md"                    = ["Transformer 追问", "Transformer follow-ups"]
@@ -880,6 +885,7 @@ en  = "Templates"
 "00-foundations/moe/router.md"                                   = ["Router 与 top-k", "Router & top-k"]
 "00-foundations/moe/load-balancing.md"                           = ["负载均衡", "Load balancing"]
 "00-foundations/moe/fine-grained-and-shared.md"                  = ["细粒度与共享专家", "Fine-grained & shared"]
+"00-foundations/moe/latent-moe.md"                              = ["LatentMoE：缩窄专家路径", "LatentMoE"]
 "00-foundations/moe/systems.md"                                  = ["系统代价", "System cost"]
 "00-foundations/moe/review.md"                                   = ["复习题", "Review"]
 "00-foundations/looped/README.md"                                = ["总览", "Overview"]
@@ -891,13 +897,15 @@ en  = "Templates"
 "10-agents/README.md"                                            = ["总览", "Overview"]
 "10-agents/patterns.md"                                          = ["常见结构", "Building blocks"]
 "10-agents/scenarios.md"                                         = ["不同场景", "Settings"]
-"10-agents/model-choice.md"                                      = ["API 还是自己 serve", "API or self-hosted"]
+"10-agents/model-choice.md"                                      = ["模型选择与路由", "Model selection & routing"]
+"10-agents/tools-and-skills.md" = ["工具、MCP 与 Skills", "Tools, MCP & skills"]
 "10-agents/review.md"                                            = ["复习题", "Review"]
 "learn/README.md" = ["从这里选一条路线", "Choose a learning route"]
 "learn/ml-exercises/README.md" = ["从代码开始", "Start with code"]
 "00-foundations/pytorch/README.md" = ["PyTorch 阅读路线", "PyTorch reading path"]
 "00-foundations/pytorch/tensors-and-storage.md" = ["张量与存储", "Tensors & storage"]
 "00-foundations/pytorch/operations-and-shapes.md" = ["运算与维度", "Operations & shapes"]
+"00-foundations/pytorch/cross-entropy.md" = ["交叉熵与 Loss", "Cross-entropy & loss"]
 "00-foundations/pytorch/autograd.md" = ["自动求导", "Autograd"]
 "00-foundations/pytorch/training-loop.md" = ["从 batch 到训练循环", "Batches to training loops"]
 "learn/system-design/README.md" = ["从需求到设计", "From needs to design"]

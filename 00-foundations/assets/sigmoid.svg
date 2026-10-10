@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 212" width="520" height="212" role="img">
+<svg lang="zh-CN" aria-labelledby="figure-title" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 212" width="520" height="212" role="img">
+<title id="figure-title">Sigmoid 函数及其导数</title>
 <style>
   :root {
     --ink: #1c1e22; --dim: #8a857e; --rule: #d9d5ce; --warp: #9aa0a6;
@@ -22,13 +23,16 @@
   .warp { fill: none; stroke: var(--warp); stroke-width: 0.55; opacity: 0.55; }
   .r0 { fill: var(--f0); } .r1 { fill: var(--f1); }
   .p0 { fill: var(--c0); } .p1 { fill: var(--c1); }
+
+text { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; }
+.sub { font-style: normal; }
 </style>
 <line x1="54" y1="176" x2="494" y2="176" stroke="var(--rule)"/>
 <line x1="274.0" y1="18" x2="274.0" y2="182" stroke="var(--rule)"/>
 <line x1="54" y1="24.0" x2="494" y2="24.0" stroke="var(--rule)" stroke-dasharray="2 4" opacity="0.7"/>
 <text class="tick" x="46" y="27.0" text-anchor="end">1</text>
 <line x1="54" y1="100.0" x2="494" y2="100.0" stroke="var(--rule)" stroke-dasharray="2 4" opacity="0.7"/>
-<text class="tick" x="46" y="103.0" text-anchor="end">&#189;</text>
+<text class="tick" x="46" y="103.0" text-anchor="end">½</text>
 <line x1="54" y1="176.0" x2="494" y2="176.0" stroke="var(--rule)" stroke-dasharray="2 4" opacity="0.7"/>
 <text class="tick" x="46" y="179.0" text-anchor="end">0</text>
 <rect x="54.0" y="24" width="104.5" height="152" fill="var(--dim)" opacity="0.07"/>
@@ -40,11 +44,11 @@
 <text class="tick" x="274.0" y="191" text-anchor="middle">0</text>
 <text class="tick" x="384.0" y="191" text-anchor="middle">4</text>
 <text class="tick" x="494.0" y="191" text-anchor="middle">8</text>
-<text class="ttl" x="54" y="15">the sigmoid, and the gradient it buys</text>
-<text class="tick" x="453" y="39" fill="var(--c1)">&#963;(z)</text>
-<text class="tick" x="299" y="130" fill="var(--c0)">&#963;&#8242;(z) = &#963;(1&#8722;&#963;)</text>
-<text class="tick" x="106" y="37" text-anchor="middle">saturated</text>
-<text class="tick" x="442" y="37" text-anchor="middle">saturated</text>
-<text class="sub" x="54" y="205">in the shaded zones the derivative is ~0: points far from the boundary, right or wrong, stop pulling on the weights</text>
+<text class="ttl" x="54" y="15">Sigmoid 函数及其导数</text>
+<text class="tick" x="453" y="39" fill="var(--c1)">σ(z)</text>
+<text class="tick" x="299" y="130" fill="var(--c0)">σ′(z) = σ(1−σ)</text>
+<text class="tick" x="106" y="37" text-anchor="middle">饱和区</text>
+<text class="tick" x="442" y="37" text-anchor="middle">饱和区</text>
+<text class="sub" x="54" y="205">阴影区域中 σ′ 接近 0；这不等于 loss 对参数的梯度也一定很小。</text>
 <text class="tick" x="500" y="179">z</text>
 </svg>

@@ -4,7 +4,25 @@
 
 > 阅读时间：约 3 分钟 · 最近审阅：2026-10
 
-这篇留给 2025–2026 那轮找实习的经历。现在我在找全职，新的记录放在 [26-27 new grad 求职 🚧](new-grad-2026-2027.md)，两轮分开记，免得过段时间连自己都看混了。
+## 那一轮面过的岗位 {#interview-experience}
+
+2025–26 那轮找实习，面过的岗位主要在 **ML / AI、Quant、软件开发和数据科学**这几个方向：
+
+<ul class="interview-roles">
+<li><strong>LinkedIn</strong><span>Machine Learning Engineer</span></li>
+<li><strong>Millennium</strong><span>AI Engineer</span></li>
+<li><strong>Tower Research Ventures</strong><span>Machine Learning Engineer</span></li>
+<li><strong>HRT</strong><span>Algorithm Developer</span></li>
+<li><strong>SIG</strong><span>Quantitative Research</span></li>
+<li><strong>Databricks</strong><span>Data Science</span></li>
+<li><strong>Amazon Bedrock</strong><span>AI Software Development Engineer</span></li>
+<li><strong>Apple</strong><span>AI / ML Software Development Engineer</span></li>
+<li><strong>Google</strong><span>Software Development Engineer</span></li>
+</ul>
+
+这里是**面试经历，不是 offer 列表**。下面聊我准备时走过的弯路和后来想明白的事，具体题目和各家的流程就不写了。
+
+现在我在找全职，新的记录放在 [26-27 new grad 求职 🚧](new-grad-2026-2027.md)。这篇还是留给那轮找实习的经历。
 
 ## 2025 年 8 月，从零开始
 
@@ -19,10 +37,6 @@
 不同岗位多少有些基础是通的，但真到准备时，差别比我想的大。SDE 的 coding、MLE 的模型和项目、quant 的概率统计，不是把同一套材料换个顺序就能用。
 
 我对 QR 尤其没概念。之前没认真了解，拿到面试才开始补，准备得很赶，也挤掉了其他方向的时间。问题倒不是不该试，而是我没给这个尝试留够时间。
-
-那一轮拿到过 HRT Algo Dev、SIG QR、LinkedIn MLE、Millennium AI Engineer、Amazon Bedrock AI SDE、Apple AI/ML SDE、Tower Research Ventures MLE、Google SDE、Databricks DS 等面试。
-
-名字放在这里只是交代我当时投得有多散，不是面经目录。具体题目和每家的流程不写。
 
 ## 一个月 120 道题，还是没过
 

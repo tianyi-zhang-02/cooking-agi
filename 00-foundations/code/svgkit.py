@@ -17,6 +17,8 @@ Colours are the site's own tokens: ink-blue #2f5d7c and ember #c8501e.
 
 import os
 
+from figure_languages import TITLES, write_localized
+
 # --------------------------------------------------------------------------- #
 STYLE = """
   :root {
@@ -78,6 +80,9 @@ def svg(w, h, body):
 
 
 def write(out_dir, name, content):
+    if name.removesuffix(".svg") in TITLES:
+        write_localized(out_dir, name, content)
+        return
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, name)
     with open(path, "w") as f:

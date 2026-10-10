@@ -2,7 +2,7 @@
 
 [中文](tfidf-and-bm25.md) · **English**
 
-> Reading time: about 12 minutes · Prerequisites: counts, logarithms, weighted sums · Reviewed: 2026-10-09
+> Reading time: about 12 minutes · Prerequisites: counts, logarithms, weighted sums · Reviewed: 2026-10-10
 
 When you search for an error message, an article on a similar topic may not be enough. An error code, function name, or version number can identify the exact problem. Keyword retrieval preserves these literal clues. But how should matching two different words compare with matching one word twice?
 
@@ -30,8 +30,10 @@ There are $N=4$ documents, with average length $\overline L=(3+2+4+2)/4=2.75$. A
 TF-IDF multiplies term frequency by inverse document frequency (IDF): one measures repetition within the document, the other measures rarity across the collection. Choose a simple convention with natural logarithms:
 
 $$
-\operatorname{idf}(t)=\ln\frac{N}{\operatorname{df}(t)},\qquad
-w(t,d)=f(t,d)\operatorname{idf}(t).
+\begin{aligned}
+\operatorname{idf}(t)&=\ln\frac{N}{\operatorname{df}(t)},\\
+w(t,d)&=f(t,d)\operatorname{idf}(t).
+\end{aligned}
 $$
 
 $f(t,d)$ is the count of term $t$ in document $d$. Sum document weights for distinct query terms, once per term. An absent term contributes zero; query terms outside the collection vocabulary are ignored. TF-IDF names a family of weighting conventions, not a unique scoring function. The [IR textbook definition](https://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html) gives this product form.
@@ -49,22 +51,35 @@ A beats B by repeating `cache`. That is not necessarily wrong, but should 20 rep
 
 One option replaces a positive frequency with $1+\ln f$, keeping absent terms at zero: [sublinear TF](https://nlp.stanford.edu/IR-book/html/htmledition/sublinear-tf-scaling-1.html). Another represents both query and document as weighted vectors and uses cosine normalization. **That is not the sum above**: if both vectors include IDF, each matching coordinate contributes an IDF-squared factor to the dot product, followed by division by vector norms. Compare formulas, not just the name “TF-IDF.”
 
+### Does repeating a document really double its score? {#tf-conventions}
+
+Duplicate `cache error` to get `cache error cache error`, holding IDF fixed. Raw counts change from `[1, 1]` to `[2, 2]`, doubling the weighted sum above. Relative frequencies stay at `[1/2, 1/2]`. With L2-normalized TF-IDF, the vectors also have the same direction, so their cosine scores against a fixed query are unchanged.
+
+“TF-IDF ignores length and rewards repetition without a limit” therefore describes only particular implementations. [Scikit-learn 1.7](https://scikit-learn.org/1.7/modules/feature_extraction.html#tfidf-term-weighting) uses L2 normalization by default, with smoothed IDF $1+\ln((N+1)/(\operatorname{df}+1))$, rather than this section's raw-count sum. Holding collection statistics fixed isolates repetition; adding a document and fitting again can change IDF as well.
+
 ## 3. BM25: repetition helps, but not proportionally forever {#bm25-score}
 
 Use this BM25 variant with positive IDF:
 
 $$
-\operatorname{idf}_{+}(t)=
-\ln\left(1+\frac{N-\operatorname{df}(t)+0.5}{\operatorname{df}(t)+0.5}\right),
+\begin{aligned}
+r_t&=\frac{N-\operatorname{df}(t)+0.5}{\operatorname{df}(t)+0.5},\\
+\operatorname{idf}_{+}(t)&=\ln(1+r_t).
+\end{aligned}
 $$
 
 $$
-\operatorname{score}(q,d)=\sum_{t\in\operatorname{unique}(q)}
-\operatorname{idf}_{+}(t)
-\frac{f(t,d)(k_1+1)}{f(t,d)+k_1\left(1-b+bL_d/\overline L\right)}.
+\begin{aligned}
+a_d&=1-b+bL_d/\overline L,\\
+g(t,d)&=\frac{f(t,d)(k_1+1)}{f(t,d)+k_1a_d},\\
+S(q,d)&=\sum_{t\in\operatorname{unique}(q)}
+\operatorname{idf}_{+}(t)g(t,d).
+\end{aligned}
 $$
 
 Set $k_1=1.2,b=0.75$. The IDF convention and parameter defaults can be checked against [Lucene 10.3.1](https://lucene.apache.org/core/10_3_1/core/org/apache/lucene/search/similarities/BM25Similarity.html). This is a teaching formula, not a bit-for-bit reproduction of Lucene's complete scorer, field statistics, or length encoding.
+
+Here $r_t$ is an intermediate ratio for IDF, $a_d$ adjusts for document length, and $g(t,d)$ is the adjusted frequency factor. Sum the query-term contributions to obtain $S(q,d)$. These intermediate values make the calculation easier to inspect; they are not extra parameters to tune.
 
 There are two separate effects:
 
@@ -82,10 +97,13 @@ Isolate frequency by fixing $L_d/\overline L=1$:
 
 With length fixed, this factor approaches $k_1+1=2.2$. This is a controlled comparison, not a claim that appending words leaves length unchanged. Actually adding repetitions changes both frequency and length.
 
-Back to our documents: the new IDFs are $0.3567$ for `cache` and $0.6931$ for `error`. A's length adjustment is $1-0.75+0.75\times3/2.75\approx1.0682$, so its `cache` contribution is:
+Back to our documents: the new IDFs are $0.3567$ for `cache` and $0.6931$ for `error`. A's length adjustment is $1-0.75+0.75\times3/2.75\approx1.0682$. First compute its frequency factor $g(\texttt{cache},A)$, then multiply by IDF:
 
 $$
-0.3567\times\frac{2\times2.2}{2+1.2\times1.0682}\approx0.4782.
+\begin{aligned}
+\frac{2\times2.2}{2+1.2\times1.0682}&\approx1.3408,\\
+0.3567\times1.3408&\approx0.4782.
+\end{aligned}
 $$
 
 | Document | `cache` contribution | `error` contribution | BM25 sum |
@@ -111,6 +129,18 @@ B now narrowly beats A: both cover the query, B is shorter, and A's extra occurr
 Some BM25 definitions omit the outer `1 +` in IDF. Under that convention, terms appearing in more than half the documents can receive negative IDF; `cache` would here. A difference in formula is not necessarily a bug. The [IR textbook's BM25 section](https://nlp.stanford.edu/IR-book/html/htmledition/okapi-bm25-a-non-binary-model-1.html) discusses these forms.
 
 BM25 scores are not relevance probabilities, and should not be blindly added to embedding cosine scores. [RRF](hybrid-and-reranking.en.md#rank-fusion) is one way to combine rankings without requiring comparable raw scores.
+
+### A higher score or just the first item in a tie? {#tied-scores}
+
+Consider a different collection: 6 documents, exactly 3 containing `cache`. Under the IDF convention without the outer `1 +`:
+
+$$
+\operatorname{idf}(\texttt{cache})=\ln\frac{6-3+0.5}{3+0.5}=0.
+$$
+
+For a query containing only `cache`, repetitions contribute nothing. An engine may break ties by document ID or input order, but **the first result did not earn a higher score**. Our positive-IDF convention gives $\ln 2$ instead, allowing frequency and length to affect this term's score.
+
+[BM25Okapi in rank_bm25 0.2.2](https://github.com/dorianbrown/rank_bm25/blob/0.2.2/rank_bm25.py#L79-L113) illustrates why conventions matter: it starts without the outer `1 +`, then replaces negative IDFs; a zero IDF is not made positive by that step. Inspect per-term contributions and ties before explaining a ranking. An experiment with $b=0$ also cannot demonstrate length normalization: it has switched that factor off.
 
 ## 5. Implement the calculation before optimizing retrieval {#implementation}
 

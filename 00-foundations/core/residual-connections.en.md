@@ -32,7 +32,7 @@ Residuals have counterexamples too: $f(x)=-x$ gives $y=0$ and derivative $1-1=0$
 
 A small check uses a 40-layer, width-64 tanh MLP with weight standard deviation $0.8/\sqrt{64}$. Both variants use the same seed, weights, and input; only residual addition changes. The objective is the mean final activation, so both variants receive the same upstream gradient at the last layer:
 
-![gradient norm by depth, with and without residual](../assets/residual-gradient.svg)
+![gradient norm by depth, with and without residual](../assets/residual-gradient.en.svg)
 
 The graph shows activation-gradient norms, not parameter updates. In this setting the plain stack's gradient decays toward the input, while the residual version retains a larger gradient. Its curve is not flat, and larger is not always better.
 
@@ -83,7 +83,7 @@ Post-norm multiplies the block Jacobian by the normalization Jacobian, so the sk
 
 pre-norm moves the norm into the branch and leaves the identity path intact, at the cost of output scale accumulating with depth — so a final norm is added at the end.
 
-![post-norm versus pre-norm residual paths](../assets/transformer-block.svg)
+![post-norm versus pre-norm residual paths](../assets/transformer-block.en.svg)
 
 ## Common interview questions {#common-interview-questions}
 

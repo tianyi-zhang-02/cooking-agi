@@ -1,67 +1,67 @@
-# AGI 学习笔记
-**AGI Study Notes · ML 基础、语言模型与工程实践**
+# AGI Study Notes
 
-[**在线阅读 →**](https://tianyi-zhang-02.github.io/cooking-agi/) · **中文** / [English](README.en.md) · [学习导航](learn/README.md) · [加入我们](CONTRIBUTING.md)
+**Understand the idea. Work through an example. Try the code.**
+
+[**Read the notes →**](https://tianyi-zhang-02.github.io/cooking-agi/) · [中文](README.zh.md) · [Behind the notes](contributors.en.md) · [Contribute](CONTRIBUTING.md#english)
 
 [![Build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
 
-学 AI 时，找资料往往就花掉不少时间。这里把读过的资料和自己的理解整理在一起，从具体问题讲起，配上图解和小实验，尽量说清楚模型怎么工作、为什么这样设计。
+ML and LLM notes in English and Chinese, with worked examples, diagrams, and small experiments. The aim is to spend less time hunting for explanations and more time understanding them—whether you're learning a topic, building something, or preparing for interviews.
 
-这份中英双语笔记由大家一起维护，还在慢慢补。希望能帮你少绕点路，准备起来更轻松些，也有时间做学习之外喜欢的事。
+The site opens in English on your first visit. **中文 / EN** at the top switches the same note in one click; Chinese notes include English technical terms. Your choice is remembered in this browser. Direct links to a particular language stay in that language.
 
-## 从哪里开始
+<span id="_1"></span>
 
-| 你想做什么 | 阅读入口 |
-| --- | --- |
-| 系统补基础 | [学习与复习导读](00-foundations/study-guide.md) → [大模型学习地图](00-foundations/README.md) |
-| 先动手看看 | [Transformer 交互图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html) · [CLIP 图文对齐](03-multimodal-learning/clip.md) |
-| 准备 ML 实习或 new-grad | [面试准备](interview/README.md) · [求职记录](career/README.md) |
-| 练系统设计或看项目实现 | [工程实践](practice/README.md)：设计题、推荐系统、RAG 与后训练 |
-| 补一篇笔记 | [写作规范](EDITORIAL.md) · [内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) |
+## Start here
 
-**建议在网站阅读。** 可以随时切换中英文，也能直接操作交互图；这个仓库保存正文、实验代码与站点源码。
+Pick what you need today. You don't have to read the whole site in order.
 
-只想看某个方向，不必从头读。先看该板块的导读，再选你需要的章节。已经写到哪里、还在补什么，放在[内容覆盖与待办](learn/coverage.md)，不把待补的内容藏起来。
+- **[Foundations](learn/README.en.md)** — Understand model components, training, evaluation, and inference. New to language models? Start with the [study guide](00-foundations/study-guide.en.md).
+- **[Interview prep](interview/README.en.md)** — Review ML / LLM concepts, practice ML coding and Python, and learn transferable algorithm patterns.
+- **[Engineering practice](practice/README.en.md)** — Work through recommendation, RAG, and post-training projects: data, evaluation, checkpoints, and design tradeoffs.
+- **[Career notes](career/README.en.md)** — Read about internship and new-grad preparation, decisions, and things I'd do differently.
 
-## 内容地图
+Follow a small example first. If you want the derivation or implementation details, keep reading or open the optional sections. Diagrams explain the main idea without requiring you to click through every step.
 
-网站按你想做的事分成四个板块：学原理、准备技术面、做项目，以及读求职经历。每篇文章有一个主要位置，相关内容互相链接，不用在几个目录里找重复的文章。
+<span id="_2"></span>
 
-| 板块 | 内容与入口 |
-| --- | --- |
-| [基础与原理](learn/README.md) | 模型与多模态、训练与评估、推理与应用；从入门到进阶按需阅读 |
-| [面试准备](interview/README.md) | [ML / LLM 基础问答](interview/basics/README.md) · [ML Coding](learn/ml-exercises/README.md) · [Python](interview/python.md) · [LeetCode 方法](interview/leetcode.md) |
-| [工程实践](practice/README.md) | [系统设计](learn/system-design/README.md) · [推荐系统](practice/recommender-systems/README.md) · [RAG](practice/rag/README.md) · [后训练项目](practice/post-training/README.md) |
-| [求职](career/README.md) | 实习和 new-grad 的经历、心态与准备节奏，不混入技术题解 |
+## Content map
 
-笔记里会穿插小例子、推导和代码，帮你看清每一步发生了什么。不用一开始就吃透所有公式；先跟着一个例子走，再回来补不明白的地方。
+Three routes through the foundations, depending on what you're curious about:
 
-## 加入我们！
+- **How models work:** [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [BERT](00-foundations/core/bert.en.md) · [CLIP and multimodal learning](03-multimodal-learning/clip.en.md).
+- **How models learn:** [Training basics](learn/pretraining/README.en.md) · [Deep RL](05-post-training/deep-rl/README.en.md) · [Post-training](05-post-training/README.en.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.en.md).
+- **How models get used:** [Inference](learn/inference/README.en.md) · [Search and retrieval](04-search/README.en.md) · [Agents and tools](10-agents/README.en.md).
 
-不用等到能写一整章才参与。改一个错误、补一张图，或者告诉我们“这里没看懂”，都很有帮助。
+For practice, head to [ML coding](learn/ml-exercises/README.en.md), [Python](interview/python.en.md), [algorithm patterns](interview/leetcode.en.md), or [system design](learn/system-design/README.en.md).
 
-- **提问或纠错**：[开 issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，附上页面和具体段落。
-- **补充内容**：小改动直接提 PR；新文章或目录调整先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，避免重复劳动。
-- **参与审核**：看[板块分工与审核约定](community/README.md)；常规合并需要非作者的相关 CODEOWNER 审核和自动检查。
-- **认识贡献者**：[幕后](contributors.md)记录一起参与的朋友；地图位置只收自愿提供的国家或地区。
+**Still being worked on:** some explanations and source comparisons need more review. The [coverage and backlog](learn/coverage.en.md) separates material that exists from material that has been checked. Small tested examples are not claims of full-model training or benchmark reproduction.
 
-[贡献指南](CONTRIBUTING.md) · [写作规范](EDITORIAL.md)
+<span id="_3"></span>
 
-只分享公开知识、可复现实验和公开项目笔记。不上传公司内部资料、未公开的面试题、凭据或他人隐私。AI 可以协助写作，但需要核对来源、验证内容，并在 PR 中说明使用方式。
+## Join us!
 
-## 本地阅读与检查
+Found a mistake or a passage that doesn't make sense? [Open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) with the page and what tripped you up. A clearer example is just as welcome as a new chapter.
 
-静态站点使用 Python 构建，无需数据库。以下命令在仓库根目录运行，建议 Python 3.12：
+Small fixes can go straight into a PR. For a new article or navigation change, start with a [content proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) so we don't duplicate work. See the [contributing guide](CONTRIBUTING.md#english), [editorial guide](EDITORIAL.en.md), and [area reviewers](community/README.en.md) for the process. Routine merges need a relevant non-author CODEOWNER review and passing checks.
+
+Please use public sources and your own explanations. No internal company material, non-public interview questions, credentials, or private information. AI-assisted contributions are welcome; check their sources and examples, and disclose the assistance in your PR. Contributors are listed in [Behind the notes](contributors.en.md); sharing a country or region for the map is optional.
+
+<span id="_4"></span>
+
+## Run locally
+
+This repository contains the notes, examples, and static-site source. No database is needed. From the repository root, with Python 3.12 recommended:
 
 ```bash
 python3 -m pip install markdown pygments numpy
 python3 site/build.py --serve
 ```
 
-打开 <http://localhost:8000>。仅构建时运行 `python3 site/build.py`，输出在 `_site/`。
+Open <http://localhost:8000>. To build without starting a server, run `python3 site/build.py`; output goes to `_site/`.
 
 <details markdown="1">
-<summary>提交前的检查</summary>
+<summary>Checks before submitting</summary>
 
 ```bash
 python3 site/collaboration.py
@@ -71,14 +71,16 @@ python3 site/paritycheck.py --strict
 python3 site/build.py
 ```
 
-部分教学实验另外需要 PyTorch，依赖写在对应章节；未安装时，相关测试会明确跳过。收藏、最近阅读和阅读位置只保存在当前浏览器，不上传到服务器。
+Some experiments also need PyTorch, as documented in their chapters; corresponding tests explicitly skip when it is unavailable. Bookmarks, recently opened notes, and reading positions stay in this browser and are not uploaded.
 
 </details>
 
-## 为什么整理这些
+<span id="_5"></span>
 
-最开始整理这些，是因为我想从学术研究走向企业里的 ML 工作。学过的东西不少，但要把它们串起来，在面试和项目里讲清楚，还是走了不少弯路。
+## Why this exists
 
-目前的内容更贴近机器学习、语言模型，以及 MLE / Research Scientist 岗位的准备，也欢迎只是想了解 AI 的朋友。这里的经验不一定适合所有人，也不会分享具体公司的面试原题。软件开发、前后端和 AI 基础设施等我不太熟悉的方向，会优先推荐更有经验的作者。
+These notes started while I was moving from academic research toward industry. My preparation materials were scattered across papers, lectures, documentation, and bookmarks. Putting them together helped me see what I understood and what I still needed to work on.
 
-内容还不完整，解释也会继续改。哪里不对、还想看什么，欢迎直接告诉我们。
+Much of the collection reflects preparation for MLE and research roles, especially language-model work. It isn't a universal recruiting roadmap or a collection of company-specific interview questions. For SDE, frontend/backend, and infrastructure topics outside our experience, we link to people who know them better.
+
+Hopefully this saves you a little searching—and leaves more time for things outside studying, too.

@@ -72,13 +72,94 @@ This scalar illustration is not elementwise clipping advice: `clip_grad_norm_` r
 ## Five parts of the training memory bill
 
 $$
-M_{\mathrm{peak}}\approx M_{\mathrm{weights}}+M_{\mathrm{grads}}
-+M_{\mathrm{optimizer}}+M_{\mathrm{activations}}+M_{\mathrm{temporary}}.
+\begin{aligned}
+M_{\mathrm{peak}}\approx{}& M_{\mathrm{weights}}+M_{\mathrm{grads}}\\
+&+M_{\mathrm{optimizer}}+M_{\mathrm{activations}}\\
+&+M_{\mathrm{temporary}}.
+\end{aligned}
 $$
 
 This is an accounting guide, not an exact claim that every component peaks simultaneously.
 
 Consider a **hypothetical mixed-precision Adam configuration**: 2 bytes per weight, 2 per gradient, a 4-byte FP32 master copy, and 8 bytes for two FP32 moments. That is 16 bytes per parameter, or about 16 GB for a billion parameters **before activations**. Other implementations keep parameters or gradients in FP32 or omit a separate master copy. Inspect actual tensors rather than applying 16 universally.
+
+### Work through one concrete estimate {#state-ledger}
+
+Keep those assumptions and count the resident training state for one billion parameters. List the master copy separately from the low-precision weights:
+
+<figure class="worked-update worked-update--pairs">
+<ol>
+<li><small>WEIGHTS</small><strong>2 GB</strong><span>One billion BF16 parameters at 2 bytes each.</span></li>
+<li><small>GRADIENTS</small><strong>2 GB</strong><span>One BF16 gradient per parameter, also 2 bytes each.</span></li>
+<li><small>FP32 MASTER COPY</small><strong>4 GB</strong><span>One extra FP32 copy per parameter at 4 bytes each.</span></li>
+<li><small>ADAM MOMENTS</small><strong>8 GB</strong><span>Two FP32 moment estimates per parameter, totaling 8 bytes.</span></li>
+</ol>
+<figcaption>Total: 16 GB of parameter-related state under these assumptions, before activations and workspace.</figcaption>
+</figure>
+
+The moments are Adam’s estimates of the gradient’s first and second raw moments: moving averages of gradients and squared gradients. They remain after the current batch finishes because the next update uses them.
+
+A GB is $10^9$ bytes; a GiB is $2^{30}$ bytes. The same 16 GB is about **14.90 GiB**, not a memory saving.
+
+<details markdown="1">
+<summary>Try another parameter count (Python)</summary>
+
+```python
+def state_bytes(total_parameters, trainable_parameters,
+                weight_bytes=2, gradient_bytes=2, master_bytes=4, moment_bytes=8):
+    counts = (total_parameters, trainable_parameters)
+    if any(not isinstance(count, int) or isinstance(count, bool) or count < 0 for count in counts):
+        raise ValueError("parameter counts must be nonnegative integers")
+    if trainable_parameters > total_parameters:
+        raise ValueError("trainable parameters exceed total parameters")
+    widths = (weight_bytes, gradient_bytes, master_bytes, moment_bytes)
+    if any(not isinstance(width, int) or isinstance(width, bool) or width < 0 for width in widths):
+        raise ValueError("storage widths must be nonnegative integers")
+    return {
+        "weights": total_parameters * weight_bytes,
+        "gradients": trainable_parameters * gradient_bytes,
+        "master": trainable_parameters * master_bytes,
+        "moments": trainable_parameters * moment_bytes,
+    }
+
+full_state = state_bytes(1_000_000_000, 1_000_000_000)
+assert sum(full_state.values()) == 16_000_000_000
+assert round(sum(full_state.values()) / 2**30, 2) == 14.90
+adapter_state = state_bytes(1_010_000_000, 10_000_000)
+assert sum(adapter_state.values()) == 2_160_000_000
+```
+
+</details>
+
+The final calculation assumes a billion-parameter base plus 10 million adapter parameters. All weights use 2 bytes, but only the adapter has gradients, master copies, and moments: 2.16 GB. **It is not 1% of 16 GB.** The base remains, and backward activations are still absent from the estimate. Real adapters may use another dtype; quantization also needs metadata such as scales.
+
+### Why does the first optimizer step allocate more? {#lazy-optimizer-state}
+
+Consider a CPU check with PyTorch 2.8.0: 100 FP32 parameters, ordinary AdamW with foreach disabled, no AMP, extra master copy, or shared storage. Counting `numel() * element_size()` gives:
+
+| Point in the run | Weights | Gradients | Optimizer tensors | Total |
+| --- | ---: | ---: | ---: | ---: |
+| Optimizer constructed | 400 B | 0 B | 0 B | 400 B |
+| First backward completed | 400 B | 400 B | 0 B | 800 B |
+| First step completed | 400 B | 400 B | 804 B | 1604 B |
+| After `zero_grad(set_to_none=True)` | 400 B | 0 B | 804 B | 1204 B |
+
+The 804 B consists of two 400 B moments and a 4 B step tensor in this implementation. These are logical tensor bytes—not Python-object overhead, allocator usage, temporary computation storage, or a GPU peak inferred from a CPU experiment. The [test file](../../site/tests/test_training_engineering.py) contains the executable check.
+
+The useful lesson is that **measurement immediately after loading misses state that does not yet exist**. Inspect at least one complete GPU update and representative long sequences. `element_size()` helps check dtypes, but naively summing views, tied weights, or flat-buffer slices can double-count storage.
+
+### Do eight GPUs divide the estimate by eight? {#sharded-state}
+
+Ordinary data parallelism keeps model replicas, so no. Under the same 16 GB assumptions, an ideal evenly sharded state estimate is:
+
+| Method | Ideal state per rank | GB per rank |
+| --- | --- | ---: |
+| Ordinary data parallelism | Weights 2 + gradients 2 + master / moments 12 | 16 |
+| ZeRO-1 | $2+2+12/8$ | 5.5 |
+| ZeRO-2 | $2+(2+12)/8$ | 3.75 |
+| ZeRO-3 | $(2+2+12)/8$ | 2 |
+
+Successively sharding those categories is the idea described in the [ZeRO paper](https://arxiv.org/html/1910.02054v3#S5). This table omits execution-time parameter gathering, communication buffers, activations, and fragmentation. The final 2 GB does not mean a 2 GB card can train this model; gathering a layer creates additional peak usage. Continue with [distributed training](../../06-systems/distributed-training.en.md) for partitioning, prefetch, and release choices.
 
 | Symptom | Inspect first |
 | --- | --- |
@@ -89,6 +170,8 @@ Consider a **hypothetical mixed-precision Adam configuration**: 2 bytes per weig
 | Reserved memory far exceeds allocated memory | Allocator behavior and fragmentation |
 
 Memory reported by `nvidia-smi` is not identical to live PyTorch tensor storage. The reserved/allocated gap alone does not diagnose a leak.
+
+Record allocated, reserved, and peak memory separately. After any needed warmup, reset peak counters, run the measured complete steps, and wait for GPU work to finish. Also retain a separate first-update peak: warmup can otherwise hide one-time allocations. [PyTorch's memory documentation](https://docs.pytorch.org/docs/2.8/notes/cuda.html#memory-management) explains these counters. `empty_cache()` releases unused cached memory, not tensors your program still references.
 
 ## Accumulation reduces concurrent microbatch activations
 

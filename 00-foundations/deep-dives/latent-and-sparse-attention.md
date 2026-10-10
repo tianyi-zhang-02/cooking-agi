@@ -21,8 +21,11 @@ $$
 例如 $c=[2,-1]$，设
 
 $$
-U_K=\begin{bmatrix}1&0\\0&2\\1&1\end{bmatrix},
-\quad k=[2,-2,1]^\top,\quad q=[1,2,-1]^\top.
+\begin{gathered}
+U_K=\begin{bmatrix}1&0\\0&2\\1&1\end{bmatrix},\\
+k=[2,-2,1]^\top,\\
+q=[1,2,-1]^\top.
+\end{gathered}
 $$
 
 直接点积 $q^\top k=-3$。另一种算法先算 $U_K^\top q=[0,3]^\top$，再与 $c$ 点积，还是 -3。没有必要为了这一项分数先还原出三维 key。
@@ -62,16 +65,65 @@ assert direct_score == latent_score == -3.0
 
 ## 为什么 RoPE 要单独处理？
 
-如果每个位置的 key 都经过不同的旋转，分数里会夹着依赖位置的矩阵，不能总把它吸收进一个固定投影。MLA 使用分离的位置分支处理这件事。
+<span id="rope-absorption"></span>
 
-可以把完整分数的组成理解为：
+不是“MLA 不能用 RoPE”，而是**给展开后的整个 key 做 RoPE，会妨碍刚才那种省计算的重排**。注意力照样能算，只是不一定还能只靠一条压缩后的 query 去读全部历史。
+
+先看矩阵的顺序。位置 $t$ 的 query 乘旋转矩阵 $R_t$，历史位置 $j$ 的 key 乘 $R_j$，分数变成
 
 $$
-\text{score}_{t,j}\propto
-(q_t^{C})^\top k_j^{C}+(q_t^{R})^\top k_j^{R}.
+(R_tq_t)^\top R_jU_Kc_j
+=q_t^\top R_t^\top R_jU_Kc_j.
 $$
 
-C 是内容分支，R 是位置分支；缩放应按具体架构的组合维度定义。内容部分走 latent 路径，位置部分保留所需的 RoPE 信息。
+没有旋转时，$U_K^\top q_t$ 算一次就够了。现在若把右侧全部挪到 query 上，得到的却是 $U_K^\top R_j^\top R_tq_t$：它随历史位置 $j$ 改变。我们失去的是“一次投影，复用到所有历史位置”的便利，不是位置编码本身失效。[DeepSeek-V2 §2.1](https://arxiv.org/html/2405.04434v5)据此把内容和位置分开处理。
+
+### 旋转和投影，为什么不能随便换顺序？ {#rotation-order}
+
+用一个两维例子就能看出来。向量是 `[1, 1]`，投影把第二维放大 2 倍，旋转则逆时针转 90°：
+
+| 计算顺序 | 第一步 | 第二步 |
+| --- | --- | --- |
+| 先投影，再旋转 | `[1, 2]` | `[-2, 1]` |
+| 先旋转，再投影 | `[-1, 1]` | `[-1, 2]` |
+
+结果不同。若 query 为 `[1, 0]`，连 attention 的点积分数都会从 -2 变成 -1。这只是展示矩阵顺序的反例；实际 RoPE 的角度由位置和频率决定，并非每个 token 都转 90°。
+
+<details markdown="1">
+<summary>用几行 Python 检查这个反例</summary>
+
+```python
+def project_two(vector):
+    first, second = vector
+    return [first, 2 * second]
+
+def quarter_turn(vector):
+    first, second = vector
+    return [-second, first]
+
+rotated_key = quarter_turn(project_two([1, 1]))
+swapped_key = project_two(quarter_turn([1, 1]))
+assert rotated_key == [-2, 1]
+assert swapped_key == [-1, 2]
+```
+
+这里刻意让投影是方阵，才能直接比较两种顺序。真正的 $U_K$ 往往还是长方形矩阵：latent 和 key 的维度不同，连“直接交换”都可能没有定义。特殊结构可以允许某些重排，但不能把它当成任意投影都满足的性质。
+
+</details>
+
+### 分开以后，完整分数怎么算？ {#decoupled-score}
+
+MLA 的内容 key 仍由 latent 线性投影得到；位置 key 走另一条较小的 RoPE 分支。对一个 head，设内容维度为 $d_C$，位置维度为 $d_R$：
+
+$$
+\text{score}_{t,j}=
+\frac{(U_K^\top q_t^{C})^\top c_j+(q_t^{R})^\top k_j^{R}}
+{\sqrt{d_C+d_R}}.
+$$
+
+这里的 $q_t^R$、$k_j^R$ 已经做过旋转。**两项先相加，再对可见的历史位置做一次 softmax**，不是内容和位置各算一套概率。比如两条历史的内容分数都是 1，位置分数分别为 0、2；若总维度为 4，缩放后的分数是 0.5、1.5，权重约为 0.269、0.731。位置分支改变了我们更关注哪一条历史。
+
+内容分支可以保留投影重排；缓存里额外留下较小的位置 key。也可以选择缓存完整旋转 key，计算仍然正确，但省缓存的收益会变。具体 kernel 如何处理，不能只看公式就宣布速度更快。
 
 一组**自拟配置**：8 个 heads、每 head 的 K/V 各 64 维，MHA 每 token 每层存 1024 个标量；若 latent 为 128 维、共享位置 key 为 32 维，则需存 160 个标量。这里不含其他缓存、对齐与并行复制。数字只比较状态大小，不代表速度或质量提升。
 
@@ -208,9 +260,11 @@ assert abs(0.2 * 2 + 0.7 * 6 + 0.4 * 4 - 6.2) < 1e-12
 代码只处理块对齐的情况。一般情况下，压缩长度 $l$、步幅 $d$ 和选择块长 $l'$ 不同。原论文在 $d$ 能整除两种块长时，把相关压缩块分数聚合为
 
 $$
-p^{\mathrm{sel}}_t[j]=
+\begin{gathered}
+p^{\mathrm{sel}}_t[j]=\\
 \sum_{u=0}^{l'/d-1}\sum_{v=0}^{l/d-1}
 p^{\mathrm{cmp}}_t[(l'/d)j+u+v],
+\end{gathered}
 $$
 
 然后再按共享 KV 的 query 组求和、选块。这里必须跟论文的块编号和边界一致；不能把重叠块的概率直接当作不重叠原始 token 的概率。[NSA §3.3](https://arxiv.org/html/2502.11089v1#S3.SS3)
@@ -226,8 +280,10 @@ DeepSeek-V3.2 的 [DeepSeek Sparse Attention](https://arxiv.org/abs/2512.02556) 
 简化记号下，query 位置 $t$ 对历史位置 $s$ 的 index 分数是：
 
 $$
-I_{t,s}=\sum_h w^I_{t,h}\operatorname{ReLU}\big((q^I_{t,h})^\top k^I_s\big),\qquad
+\begin{gathered}
+I_{t,s}=\sum_h w^I_{t,h}\operatorname{ReLU}\big((q^I_{t,h})^\top k^I_s\big),\\
 \mathcal S_t=\operatorname{TopK}_{s\le t}(I_{t,s}).
+\end{gathered}
 $$
 
 Indexer 和主 attention 各自有投影。小 head 数与低精度计算减少筛选成本；选中的 latent 条目由主 MLA 的 query heads 共享。$I$ 是选位置的分数，不直接代替主 attention 的 softmax 权重。

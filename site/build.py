@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import functools
+import hashlib
 import math
 import html
 import json
@@ -28,6 +29,7 @@ import subprocess
 import sys
 import tomllib
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
@@ -57,9 +59,10 @@ NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid",
                    "study-atlas", "study-route", "chapter-context", "worked-update",
                    "home-block", "term", "curriculum-card", "curriculum-hero",
                    "learning-path", "lab-matrix", "bilingual-intro",
-                   "drl-flow", "drl-paths", "drl-lab"}
+                   "drl-flow", "drl-paths", "drl-lab", "interview-roles", "method-map"}
 
 GLOSS_BLOCKS = {"p", "li", "td", "th", "dd"}
+GLOSSARY_COMPOUND_EXCLUSIONS = {"方差": ("平方差", "立方差")}
 
 # elements that never carry an end tag, so they must not push onto the stack
 VOID = {"br", "img", "hr", "input", "meta", "link", "source", "col", "wbr"}
@@ -339,6 +342,9 @@ class Annotator(HTMLParser):
             for zh, en, gloss in self.terms:
                 for occurrence in re.finditer(re.escape(zh), text):
                     start, stop = occurrence.span()
+                    if any(text[max(0, stop - len(compound)):stop] == compound
+                           for compound in GLOSSARY_COMPOUND_EXCLUSIONS.get(zh, ())):
+                        continue
                     if any(start < end and stop > begin for begin, end in taken):
                         continue
                     following = text[stop:]
@@ -422,8 +428,9 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
             asset_path = os.path.relpath(source_path[len("site/"):], str(here)).replace(os.sep, "/")
             return f'{attr}="{asset_path}{frag}"'
 
-        if source_path == "README.md":
-            path = os.path.relpath("index.html", str(here)).replace(os.sep, "/")
+        if source_path in {"README.md", "README.en.md", "README.zh.md"}:
+            home = "index.zh.html" if source_path == "README.zh.md" else "index.html"
+            path = os.path.relpath(home, str(here)).replace(os.sep, "/")
         elif path.endswith(".en.md"):
             path = path[:-6] + ".en.html"
         elif path.endswith(".md"):
@@ -431,9 +438,16 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
         elif path.endswith("/") or (path and "." not in Path(path).name):
             path = path.rstrip("/") + "/index" + suffix
         elif "assets/" in path:
+            asset_url, _, query = path.partition("?")
+            asset = (ROOT / here / asset_url).resolve()
+            if attr == "src" and asset.suffix == ".svg" and asset.is_relative_to(ROOT) and asset.is_file():
+                params = [(key, value) for key, value in urllib.parse.parse_qsl(html.unescape(query)) if key != "v"]
+                params.append(("v", hashlib.sha256(asset.read_bytes()).hexdigest()[:12]))
+                versioned = asset_url + "?" + urllib.parse.urlencode(params) + frag
+                return f'{attr}="{html.escape(versioned, quote=True)}"'
             return f'{attr}="{path}{frag}"'          # copied verbatim into _site
         else:
-            return f'{attr}="{gh(raw, "blob")}"'     # a real file, no page
+            return f'{attr}="{gh(raw, "blob")}{frag}"'
         for readme_suffix in (".en.html", ".html"):
             if path.endswith("README" + readme_suffix):
                 path = path[: -len("README" + readme_suffix)] + "index" + readme_suffix
@@ -445,7 +459,7 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
             if os.path.normpath(str(here / zh_path)).replace(os.sep, "/") in known:
                 return f'{attr}="{zh_path}{frag}"'
         if resolved not in known:
-            return f'{attr}="{gh(raw, "tree" if raw.endswith("/") else "blob")}"'
+            return f'{attr}="{gh(raw, "tree" if raw.endswith("/") else "blob")}{frag}"'
         return f'{attr}="{path}{frag}"'
 
     return re.sub(r'\b(href|src)="([^"]+)"', fix, html_text)
@@ -1010,9 +1024,12 @@ class Page:
         self.section = section
         self.lang = lang
         rel = src.relative_to(ROOT)
+        home = rel.as_posix() in {"README.md", "README.zh.md"}
         name = rel.name[:-6] if lang == "en" else rel.name[:-3]  # strip .en.md / .md
         stem = "index" if name == "README" else name
         self.out_rel = rel.parent / (stem + (".en.html" if lang == "en" else ".html"))
+        if home:
+            self.out_rel = Path("index.html" if lang == "en" else "index.zh.html")
         self.url = str(self.out_rel).replace(os.sep, "/")
         self.depth = len(self.out_rel.parts) - 1
         self.title = read_title(src)
@@ -1020,7 +1037,7 @@ class Page:
         self.body = ""
         self.text = ""
         self.updated = last_updated(str(rel))
-        if section["dir"] == "." and rel.name in {"README.md", "README.en.md"}:
+        if home:
             self.kind = "home"
         elif any(part in {"code", "projects", "modules"} for part in rel.parts):
             self.kind = "workshop"
@@ -1065,8 +1082,9 @@ def discover(nav):
                  "intro_zh": sec.get("intro_zh", ""), "intro_en": sec.get("intro_en", ""),
                  "pages": []}
         for f in files:
-            zh = Page(f, entry, "zh")
-            en_src = f.with_name(f.stem + ".en.md")
+            home = f == ROOT / "README.md"
+            zh = Page(ROOT / "README.zh.md" if home else f, entry, "zh")
+            en_src = f if home else f.with_name(f.stem + ".en.md")
             en = Page(en_src, entry, "en") if en_src.exists() else None
             zh.sibling, entry_pages = en, entry["pages"]
             if en:
@@ -1105,6 +1123,8 @@ def write_redirects(nav, known):
             raise ValueError(f"redirect target is not a generated page: {target_url}")
         old_path = Path(old_url)
         relative_target = os.path.relpath(target_url, old_path.parent).replace(os.sep, "/")
+        if old_url == "index.en.html" and target_url == "index.html":
+            relative_target += "?lang=en"
         escaped_target = html.escape(relative_target, quote=True)
         script_target = json.dumps(relative_target)
         page = f"""<!doctype html>
@@ -1318,6 +1338,8 @@ def nav_label(page) -> str:
     title up to the first colon ("Tokenization：从文本到 ID" -> "Tokenization")."""
     key = str(page.src.relative_to(ROOT)).replace(os.sep, "/")
     key = key[:-6] + ".md" if key.endswith(".en.md") else key
+    if key == "README.zh.md":
+        key = "README.md"
     pair = NAV.get("label", {}).get(key)
     if pair:
         return pair[0] if page.lang == "zh" else pair[1]
@@ -1335,6 +1357,8 @@ def section_html(page, sec, show_head=True):
         has_active = has_active or active
         cls = ' class="active" aria-current="page"' if active else ""
         note = target.src.relative_to(ROOT).as_posix().replace('.en.md', '.md')
+        if note == "README.zh.md":
+            note = "README.md"
         items.append(f'<li><a{cls} data-note="{html.escape(note, quote=True)}" '
                      f'href="{page.rel(target.url)}" title="{html.escape(target.title, quote=True)}">'
                      f'{html.escape(nav_label(target))}</a></li>')
@@ -1440,7 +1464,7 @@ def sidebar_html(page, sections, groups):
 
 def page_category(page):
     """Which top-level direction a page belongs to ("home" for the roadmap page)."""
-    if page.url in {"index.html", "index.en.html"}:
+    if page.url in {"index.html", "index.zh.html"}:
         return "home"
     groups = {g["id"]: g for g in NAV.get("group", [])}
     return groups.get(page.section.get("group"), {}).get("category")
@@ -1451,7 +1475,7 @@ def tabs_html(page):
     zh = page.lang == "zh"
     current = page_category(page)
     home = {"id": "home", "zh": "首页", "en": "Home"}
-    items = [(home, page.rel("index.html" if zh else "index.en.html"))]
+    items = [(home, page.rel("index.zh.html" if zh else "index.html"))]
     for cat in NAV.get("category", []):
         pair = category_home(cat)
         target = pair and (pair.get(page.lang) or pair["zh"])
@@ -1471,7 +1495,7 @@ def tabs_html(page):
 
 def hero_html(page) -> str:
     """The home page opens on the night sky with one line; other pages have no hero."""
-    if page.url not in {"index.html", "index.en.html"}:
+    if page.url not in {"index.html", "index.zh.html"}:
         return ""
     zh = page.lang == "zh"
     site = NAV.get("site", {})
@@ -1536,6 +1560,8 @@ def page_header_html(page):
         "guide": "参考资料" if zh else "Reference",
         "article": "概念笔记" if zh else "Concept note",
     }
+    if page.section.get("group") == "career":
+        labels["article"] = "求职记录" if zh else "Career journal"
     read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"
     position = ((f"本章 {page.position} / {page.section_count} 篇" if zh else f"Note {page.position} of {page.section_count}")
                 if page.kind != "home" and page.section_count > 1 else "")
@@ -1752,7 +1778,7 @@ def contributor_universe_html(people, page, site):
         for c in order)
     crew_issue = (f'https://github.com/{html.escape(site["repo"], quote=True)}'
                   f'/issues/new?template=add-me-to-the-crew.yml')
-    home = page.rel("index.html" if zh else "index.en.html")
+    home = page.rel("index.zh.html" if zh else "index.html")
     language = page.rel("contributors.en.html" if zh else "contributors.html")
     prefix = "../" * page.depth
     roles = [r for r in (("笔记与代码" if zh else "Notes & code"),
@@ -1767,7 +1793,7 @@ def contributor_universe_html(people, page, site):
     <div><a href="{page.rel('community/next-stop.html' if zh else 'community/next-stop.en.html')}">{'下一站' if zh else 'Next stop'}</a><a href="#crew-board">{'榜单' if zh else 'Board'}</a>
     <button class="crew-motion" type="button" aria-pressed="false" hidden
       data-pause="{'暂停' if zh else 'Pause'}" data-play="{'继续' if zh else 'Resume'}">{'暂停' if zh else 'Pause'}</button>
-    <a href="{language}">{'EN' if zh else '中文'}</a></div>
+    <a href="{language}" data-language-switch="{'en' if zh else 'zh'}">{'EN' if zh else '中文'}</a></div>
   </nav>
   <header class="orbit-title">
     <p>THE PEOPLE BEHIND THE NOTES</p>
@@ -1862,12 +1888,14 @@ def reading_controls_html(page):
     language = "en" if chinese else "zh-Hans"
     description = "切换到英文 / Read in English" if chinese else "切换到中文 / Read in Chinese"
     href = html.escape(page.rel(sibling.url), quote=True)
-    return (f'<a class="lang-btn" href="{href}" lang="{language}" hreflang="{language}" '
+    return (f'<a class="lang-btn" href="{href}" lang="{language}" hreflang="{language}" data-language-switch="{"en" if chinese else "zh"}" '
             f'aria-label="{description}" title="{description}">{label}</a>')
 
 
 def assemble(page, sections, people, nav, built, template):
     site = nav["site"]
+    if page.section.get("group") == "career":
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{page.rel("static/career.css")}?v={built}">\n</head>')
     zh = page.lang == "zh"
     sib = getattr(page, "sibling", None)
     lang_href = page.rel(sib.url) if sib else "#"
@@ -1896,6 +1924,12 @@ def assemble(page, sections, people, nav, built, template):
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     content = curriculum.chapter_context(page, BY_SRC) + page.body
+    if 'class="method-map"' in page.body:
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/method-map.css?v={built}">\n</head>')
+    if 'data-bert-story' in page.body:
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/bert-story.css?v={built}">\n<script defer src="{prefix}static/bert-story.js?v={built}"></script>\n</head>')
+    if 'data-encoder-lab' in page.body:
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/encoder-lab.css?v={built}">\n<script defer src="{prefix}static/encoder-lab.js?v={built}"></script>\n</head>')
     if page.section.get("group") == "deep-rl":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/deep-rl-lab.css?v={built}">\n<script defer src="{prefix}static/deep-rl-lab.js?v={built}"></script>\n</head>')
     if page.section.get("dir") == "07-evaluation/llm-as-a-judge":
@@ -1935,7 +1969,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{social_image}}", social_image)
             .replace("{{twitter_card}}", twitter_card)
             .replace("{{og_locale}}", "zh_CN" if zh else "en_US")
-            .replace("{{home}}", page.rel("index.html" if zh else "index.en.html"))
+            .replace("{{home}}", page.rel("index.zh.html" if zh else "index.html"))
             .replace("{{prefix}}", prefix)
             .replace("{{sidebar}}", sidebar_html(page, sections, nav.get("group", [])))
             .replace("{{sidebar_label}}", "笔记导航" if zh else "Note navigation")

@@ -14,6 +14,8 @@ RL 的 loss 很容易“正常下降”，行为却越来越差。因为采样�
 
 采样完成后先检查 shape、mask、reward scale，再更新。评估用独立环境和固定设置，不把评估轨迹偷偷塞回训练。Checkpoint 不只是网络权重：optimizer、target network、随机数状态、计数器，以及必要时 replay buffer 都影响能否续跑。
 
+如果还不确定 rollout 应该存什么，先看[一条训练记录](../post-training-infrastructure.md#rollout-record)：20 个输入位置里只有 9 个是策略动作，工具返回和 padding 不该混进 loss。那里也区分了任务终止与收集截断，再回来检查 target 会更容易。
+
 ## 先跑 2 个 CPU 小程序
 
 在仓库根目录运行；第一个只依赖 Python 标准库，第二个需要 PyTorch：

@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" height="300" role="img">
+<svg lang="zh-CN" aria-labelledby="figure-title" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" height="300" role="img">
+<title id="figure-title">三种注意力，Q、K、V 分别从哪来</title>
 <style>
   :root {
     --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
@@ -38,6 +39,9 @@
   .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
   .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
   .divider { stroke: var(--rule); stroke-width: 1; }
+
+text { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; }
+.sub { font-style: normal; }
 </style>
 <defs>
   <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
@@ -48,50 +52,50 @@
           orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
 </defs>
 
-<text class="ttl" x="24" y="22" text-anchor="start">One module, three wirings</text>
-<text class="sub" x="24" y="38" text-anchor="start">self-attention and cross-attention are the same class — only the three inputs differ</text>
+<text class="ttl" x="24" y="22" text-anchor="start">三种注意力，Q、K、V 分别从哪来</text>
+<text class="sub" x="24" y="38" text-anchor="start">注意力计算相同，输入来源和遮罩（mask）不同。</text>
 <rect class="frame" x="24" y="58" width="204" height="172" rx="9"/>
-<text class="lbl" x="126.0" y="78" text-anchor="middle">encoder self-attention</text>
+<text class="lbl" x="126.0" y="78" text-anchor="middle">编码器自注意力</text>
 <rect class="box-0" x="36" y="92" width="80" height="40" rx="6"/>
 <text class="lbl" x="76.0" y="109.0" text-anchor="middle">Q</text>
-<text class="lbl-s" x="76.0" y="123.0" text-anchor="middle">src</text>
+<text class="lbl-s" x="76.0" y="123.0" text-anchor="middle">源序列</text>
 <rect class="box-0" x="136" y="92" width="80" height="40" rx="6"/>
 <text class="lbl" x="176.0" y="109.0" text-anchor="middle">K, V</text>
-<text class="lbl-s" x="176.0" y="123.0" text-anchor="middle">src</text>
+<text class="lbl-s" x="176.0" y="123.0" text-anchor="middle">源序列</text>
 <rect class="box" x="64" y="154" width="124" height="28" rx="6"/>
-<text class="lbl" x="126.0" y="172.0" text-anchor="middle">attention</text>
+<text class="lbl" x="126.0" y="172.0" text-anchor="middle">注意力</text>
 <path class="arrow" d="M76 134 L88 152" marker-end="url(#a)"/>
 <path class="arrow" d="M176 134 L164 152" marker-end="url(#a)"/>
-<text class="lbl-s" x="126.0" y="200" text-anchor="middle">padding only &#183; bidirectional</text>
+<text class="lbl-s" x="126.0" y="200" text-anchor="middle">屏蔽填充位置，可双向读取</text>
 <text class="mono" x="126.0" y="215" text-anchor="middle">(B, h, S, S)</text>
 <rect class="frame" x="250" y="58" width="204" height="172" rx="9"/>
-<text class="lbl" x="352.0" y="78" text-anchor="middle">decoder self-attention</text>
+<text class="lbl" x="352.0" y="78" text-anchor="middle">解码器自注意力</text>
 <rect class="box-0" x="262" y="92" width="80" height="40" rx="6"/>
 <text class="lbl" x="302.0" y="109.0" text-anchor="middle">Q</text>
-<text class="lbl-s" x="302.0" y="123.0" text-anchor="middle">tgt</text>
+<text class="lbl-s" x="302.0" y="123.0" text-anchor="middle">目标序列</text>
 <rect class="box-0" x="362" y="92" width="80" height="40" rx="6"/>
 <text class="lbl" x="402.0" y="109.0" text-anchor="middle">K, V</text>
-<text class="lbl-s" x="402.0" y="123.0" text-anchor="middle">tgt</text>
+<text class="lbl-s" x="402.0" y="123.0" text-anchor="middle">目标序列</text>
 <rect class="box" x="290" y="154" width="124" height="28" rx="6"/>
-<text class="lbl" x="352.0" y="172.0" text-anchor="middle">attention</text>
+<text class="lbl" x="352.0" y="172.0" text-anchor="middle">注意力</text>
 <path class="arrow" d="M302 134 L314 152" marker-end="url(#a)"/>
 <path class="arrow" d="M402 134 L390 152" marker-end="url(#a)"/>
-<text class="lbl-s" x="352.0" y="200" text-anchor="middle">padding ∨ causal</text>
+<text class="lbl-s" x="352.0" y="200" text-anchor="middle">屏蔽填充位置与未来位置</text>
 <text class="mono" x="352.0" y="215" text-anchor="middle">(B, h, T, T)</text>
 <rect class="frame" x="476" y="58" width="204" height="172" rx="9"/>
-<text class="lbl" x="578.0" y="78" text-anchor="middle">cross-attention</text>
+<text class="lbl" x="578.0" y="78" text-anchor="middle">交叉注意力</text>
 <rect class="box-1" x="488" y="92" width="80" height="40" rx="6"/>
 <text class="lbl" x="528.0" y="109.0" text-anchor="middle">Q</text>
-<text class="lbl-s" x="528.0" y="123.0" text-anchor="middle">tgt</text>
+<text class="lbl-s" x="528.0" y="123.0" text-anchor="middle">目标序列</text>
 <rect class="box-1" x="588" y="92" width="80" height="40" rx="6"/>
 <text class="lbl" x="628.0" y="109.0" text-anchor="middle">K, V</text>
-<text class="lbl-s" x="628.0" y="123.0" text-anchor="middle">encoder output</text>
+<text class="lbl-s" x="628.0" y="123.0" text-anchor="middle">编码器输出</text>
 <rect class="box" x="516" y="154" width="124" height="28" rx="6"/>
-<text class="lbl" x="578.0" y="172.0" text-anchor="middle">attention</text>
+<text class="lbl" x="578.0" y="172.0" text-anchor="middle">注意力</text>
 <path class="arrow" d="M528 134 L540 152" marker-end="url(#a)"/>
 <path class="arrow" d="M628 134 L616 152" marker-end="url(#a)"/>
-<text class="lbl-s" x="578.0" y="200" text-anchor="middle">src padding</text>
-<text class="mono" x="578.0" y="215" text-anchor="middle">(B, h, T, S)  not square</text>
-<text class="sub" x="24" y="262" text-anchor="start">Cross-attention is the only place the two towers touch: the decoder asks, the encoder's output answers.</text>
-<text class="sub" x="24" y="280" text-anchor="start">It is also the only one whose attention matrix is not square — T queries against S keys.</text>
+<text class="lbl-s" x="578.0" y="200" text-anchor="middle">屏蔽源序列的填充位置</text>
+<text class="mono" x="578.0" y="215" text-anchor="middle">(B, h, T, S)</text>
+<text class="sub" x="24" y="262" text-anchor="start">交叉注意力把两边接起来：解码器提供 Q，编码器输出提供 K 和 V。</text>
+<text class="sub" x="24" y="280" text-anchor="start">T 个查询对应 S 个键；源序列与目标序列不等长时，得分矩阵就不是方阵。</text>
 </svg>

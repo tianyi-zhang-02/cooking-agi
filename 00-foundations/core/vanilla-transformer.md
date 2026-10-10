@@ -74,6 +74,10 @@ $$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\rig
 
 $M$ 是 mask：允许的位置加 0，禁止的位置加 $-\infty$。
 
+别把 padding 和 padding mask 混成一步。比如两条输入长度为 3 和 5，collator 可以先把它们补到 5；mask 再标记第一条最后两个位置不可作为 key 读取，不负责添加 token，也不必把所有输入都补到模型最大长度。
+
+对有效的 query 行，decoder self-attention 同时要求“key 不是 padding”且“key 不在未来”。按行是 query、列是 key 的约定，禁止的是**严格上三角**，对角线仍能读取：当前输入用来预测下一个 token，不会因此偷看答案。Cross-attention 则可以读取整句 source，无须按译文位置把 source 截成前缀。这里说的是原版结构；packed 样本、局部 attention 等还会增加别的可见性约束。[Transformer §3.2.3](https://arxiv.org/html/1706.03762v7#S3.SS2.SSS3)
+
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
@@ -91,8 +95,28 @@ $$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\rig
 
 The mask $M$ adds 0 at allowed positions and $-\infty$ at forbidden positions.
 
+Padding and a padding mask are different operations. For input lengths 3 and 5, a collator can pad both to 5; the mask then excludes the first input's two placeholder keys. The mask does not add tokens, and the batch need not use the model's maximum length.
+
+For valid decoder self-attention queries, a key must be both non-padding and not in the future. With query rows and key columns, the **strictly upper triangle** is blocked; the diagonal stays visible because the current input predicts the next token. Cross-attention can read the full source sentence, not just a source prefix matching the translation position. These are the original architecture's rules; packing and local attention can impose further restrictions. [Transformer §3.2.3](https://arxiv.org/html/1706.03762v7#S3.SS2.SSS3)
+
 </div>
 </section>
+
+<div class="encoder-lab" data-encoder-lab="attention" data-lang="zh" id="attention-lab" markdown="1">
+
+**这个 query 到底能读哪些位置？**
+
+把 `I like tea` 翻译成 `ich mag Tee`。Decoder 的输入是 `[BOS]、ich、mag`，对应的目标是 `ich、mag、Tee`。
+
+| Attention 位置与 query | 可以读取的 key |
+| --- | --- |
+| Encoder 的 `like` | `I`、`like`、`tea` |
+| Decoder 自注意力的 `ich` | `[BOS]`、`ich` |
+| Cross-attention 的 `ich` | source 中的 `I`、`like`、`tea` |
+
+输入为 `ich` 时，下一个目标是 `mag`：看自己没问题，偷看右边的 `mag` 才会泄漏答案。Cross-attention 读的是已经给出的原文。三种模式都不读 padding key。开启 JavaScript 可以切换矩阵、选择 query 行；格子表示能不能读，不是模型学到的权重。
+
+</div>
 
 <section class="concept-card concept-card-major" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
@@ -719,7 +743,7 @@ predicted.
 
 ## 继续阅读 {#_6}
 
-进入 [Decoder-only](decoder-only.md)，看怎样把条件生成、对话、代码与很多推理任务统一为一条 token stream 上的自回归预测。本文的原版配置与权重共享约定依据 [Attention Is All You Need](https://arxiv.org/abs/1706.03762)。
+接下来可以分两条走：[BERT](bert.md) 把 encoder 用于双向预训练和文本理解；[Decoder-only](decoder-only.md) 则将条件生成、对话与代码写成 token stream 上的自回归预测。不必按模型年代全部读完，先选你关心的任务。本文的原版配置与权重共享约定依据 [Attention Is All You Need](https://arxiv.org/abs/1706.03762)。
 
 ## 快速学习：2017 Transformer 一层走一遍 {#2017-transformer}
 

@@ -39,7 +39,7 @@ $$
 
 例如对 `[1, 2, 0]` 做全局均值，每个位置都得到 1。交换前两个数，结果仍然是 `[1, 1, 1]`。这可以看作 attention 分数全相同的极简情形。真实 attention 的分数会不同，但在上述条件下，同步重排输入与输出的性质仍成立。
 
-<details>
+<details markdown="1">
 <summary>想看推导：为什么只是跟着重排？</summary>
 
 把行置换矩阵记为 $\Pi$，$Q=XW_Q$、$K=XW_K$、$V=XW_V$。不加位置相关项时，重排后的投影就是 $\Pi Q,\Pi K,\Pi V$。行 softmax 与相应的行列置换满足：
@@ -91,7 +91,7 @@ Kimi K3 v1 把 KDA 与 Gated MLA 按 3:1 交替堆叠，末尾再加一层 MLA�
 
 报告仍使用长上下文数据与逐步扩长的训练流程。**不调整 RoPE 参数，不等于不需要长上下文训练。** 本站没有复现 K3 训练或长文本指标。[报告 §3.4](https://arxiv.org/html/2607.24653v1#S3.SS4)
 
-<details>
+<details markdown="1">
 <summary>继续推一层：矩阵状态里，顺序怎样留下来？</summary>
 
 KDA 将标量遗忘扩展为通道级门控，并在 Q/K/V 路径使用短卷积。下面采用 $S\in\mathbb R^{d_k\times d_v}$，与前篇 Gated DeltaNet 的存储方向互为转置；两种写法不要混用。[Kimi Linear](https://arxiv.org/abs/2510.26692)
@@ -135,7 +135,7 @@ $$
 
 </details>
 
-<details>
+<details markdown="1">
 <summary>实现上还有个坑：连续衰减的倒数可能太大</summary>
 
 K3 对单步 log-decay 设下界，服务于分块计算中的数值范围。[报告 §2.1.1](https://arxiv.org/html/2607.24653v1#S2.SS1.SSS1)

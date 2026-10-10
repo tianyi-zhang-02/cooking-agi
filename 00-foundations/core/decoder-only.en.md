@@ -2,7 +2,7 @@
 
 [中文](decoder-only.md) · **English**
 
-> Reading time: ~28 min · Level: core · Last reviewed: 2026-10-09
+> Reading time: ~32 min · Level: core · Last reviewed: 2026-10-10
 
 When generating “It is raining,” the model needs the prefix before choosing what follows it. During training, the complete sentence is available, so predictions at several positions can be computed together. During generation, future tokens do not exist yet. This distinction explains the decoder-only structure, causal mask, and KV cache.
 
@@ -14,7 +14,9 @@ Put the instruction, the context, and the answer into one token sequence, block 
 
 Given a token sequence $x_1,\ldots,x_T$:
 
-$$\mathcal{L}_{\text{LM}}=-\sum_{t=1}^{T-1}\log p_\theta(x_{t+1}\mid x_{\le t})$$
+$$
+\mathcal{L}_{\text{LM}}=-\sum_{t=1}^{T-1}\log p_\theta(x_{t+1}\mid x_{\le t})
+$$
 
 Inputs and labels are the same sequence, offset by one position:
 
@@ -84,9 +86,19 @@ which history deserves long-term retention.
 
 A typical pre-norm decoder block can be written as
 
-$$H=X+\operatorname{Attention}(\operatorname{RMSNorm}(X)),$$
+$$
+\begin{gathered}
+U=\operatorname{RMSNorm}(X),\\
+H=X+\operatorname{Attention}(U).
+\end{gathered}
+$$
 
-$$Y=H+\operatorname{SwiGLU}(\operatorname{RMSNorm}(H)).$$
+$$
+\begin{gathered}
+G=\operatorname{RMSNorm}(H),\\
+Y=H+\operatorname{SwiGLU}(G).
+\end{gathered}
+$$
 
 The full path is RMSNorm → Q/K/V projections → RoPE on Q and K → causal attention
 → output projection → residual addition → RMSNorm → SwiGLU → a second residual
@@ -103,17 +115,30 @@ The original Transformer adds positional encoding to input embeddings. RoPE firs
 forms Q and K, then rotates them according to token position. Here $Q_m,K_n$ denote
 single-head position vectors written as columns:
 
-$$Q=XW_Q,\quad K=XW_K,\qquad
-Q'_m=R_mQ_m,\quad K'_n=R_nK_n.$$
+$$
+\begin{gathered}
+Q=XW_Q\\
+K=XW_K\\
+Q'_m=R_mQ_m\\
+K'_n=R_nK_n.
+\end{gathered}
+$$
 
 The two-dimensional rotation matrix is
 
-$$R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.$$
+$$
+R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.
+$$
 
 Real implementations pair channels and use different frequencies across channel
 pairs. Their dot product obeys
 
-$$(R_mq_m)^\top(R_nk_n)=q_m^\top R_{n-m}k_n,$$
+$$
+\begin{gathered}
+(R_mq_m)^\top(R_nk_n)=\\
+q_m^\top R_{n-m}k_n,
+\end{gathered}
+$$
 
 so attention scores naturally depend on relative distance $n-m$. V is normally not
 rotated because position controls where to read rather than the content being read.
@@ -124,11 +149,15 @@ length may still require frequency adjustment or RoPE scaling.
 
 The original post-norm form is
 
-$$Y=\operatorname{LayerNorm}(X+F(X)).$$
+$$
+Y=\operatorname{LayerNorm}(X+F(X)).
+$$
 
 Modern pre-norm blocks commonly use
 
-$$Y=X+F(\operatorname{Norm}(X)).$$
+$$
+Y=X+F(\operatorname{Norm}(X)).
+$$
 
 Pre-norm preserves a more direct identity path for residual states and gradients,
 which usually makes very deep networks easier to train. A final norm is typically
@@ -136,11 +165,18 @@ applied after the full block stack.
 
 LayerNorm centers and scales:
 
-$$\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.$$
+$$
+\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.
+$$
 
 RMSNorm controls only root-mean-square magnitude:
 
-$$\operatorname{RMSNorm}(x)=\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.$$
+$$
+\begin{gathered}
+\operatorname{RMSNorm}(x)=\\
+\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
+\end{gathered}
+$$
 
 Thus LayerNorm adjusts center and scale; RMSNorm usually has no mean subtraction or
 bias and adjusts only scale. It is simpler to compute, but choosing RMSNorm does not
@@ -150,14 +186,23 @@ by itself guarantee a better model.
 
 This chapter represents each token as a row vector. The original FFN expands, applies ReLU, and projects back down:
 
-$$\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.$$
+$$
+\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.
+$$
 
 Modern models often use SwiGLU:
 
-$$\operatorname{SwiGLU}(x)=\left[
-\operatorname{SiLU}(xW_{\text{gate}})\odot(xW_{\text{up}})\right]W_{\text{down}},$$
+$$
+\begin{gathered}
+g=\operatorname{SiLU}(xW_{\text{gate}}),\\
+u=xW_{\text{up}},\\
+\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}.
+\end{gathered}
+$$
 
-$$\operatorname{SiLU}(z)=z\sigma(z).$$
+$$
+\operatorname{SiLU}(z)=z\sigma(z).
+$$
 
 $xW_{\text{up}}$ produces candidate content, while
 $\operatorname{SiLU}(xW_{\text{gate}})$ controls how much of each feature passes.
@@ -194,13 +239,21 @@ fewer total parameters.
 At generation step $t$, K and V for earlier tokens have already been computed and
 model parameters have not changed. Each layer therefore stores
 
-$$K_{\text{cache}}=[K_{\text{past}};k_t],\qquad
-V_{\text{cache}}=[V_{\text{past}};v_t],$$
+$$
+\begin{gathered}
+K_{\text{cache}}=[K_{\text{past}};k_t]\\
+V_{\text{cache}}=[V_{\text{past}};v_t],
+\end{gathered}
+$$
 
 computes only $q_t,k_t,v_t$ for the new token, and lets the query read the full cache:
 
-$$o_t=\operatorname{softmax}\!\left(
-\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right)V_{\text{cache}}.$$
+$$
+\begin{gathered}
+a_t=\operatorname{softmax}\!\left(\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right),\\
+o_t=a_tV_{\text{cache}}.
+\end{gathered}
+$$
 
 With identical weights, prefix, positions, and visibility, and dropout disabled,
 unquantized, unevicted KV caching is mathematically equivalent to recomputing the prefix;
@@ -212,7 +265,13 @@ state by reducing the number of KV heads.
 
 A naive implementation materializes and writes
 
-$$S=QK^\top,\qquad A=\operatorname{softmax}(S),\qquad S,A\in\mathbb{R}^{L\times L}.$$
+$$
+\begin{gathered}
+S=QK^\top\\
+A=\operatorname{softmax}(S)\\
+S,A\in\mathbb{R}^{L\times L}.
+\end{gathered}
+$$
 
 FlashAttention tiles Q, K, and V, computes blocks in fast on-chip memory, and uses an
 online softmax to maintain the exact normalization without writing the full
@@ -245,7 +304,9 @@ Diagnose the bottleneck first:
 Mixture-of-Experts usually replaces the FFN. A router selects a small number of
 experts for each token, for example top-2 routing:
 
-$$y=p_1E_1(x)+p_2E_2(x).$$
+$$
+y=p_1E_1(x)+p_2E_2(x).
+$$
 
 The model may contain many expert parameters while activating only a few per token,
 so total parameter capacity can grow much faster than per-token compute. The cost is
@@ -259,39 +320,70 @@ should not assume every expert has a clean, fixed, human-nameable semantic role.
 
 For layer-$l$ input $X_l$, first normalize and form Q, K, and V:
 
-$$U=\operatorname{RMSNorm}(X_l),$$
+$$
+U=\operatorname{RMSNorm}(X_l),
+$$
 
-$$Q=UW_Q,\qquad K=UW_K,\qquad V=UW_V.$$
+$$
+\begin{gathered}
+Q=UW_Q\\
+K=UW_K\\
+V=UW_V.
+\end{gathered}
+$$
 
 K and V may use GQA. The following attention equation is for one query head and its
 associated KV head; concatenate head outputs before the output projection.
 Next rotate only Q and K, then apply causal attention:
 
-$$Q'=\operatorname{RoPE}(Q),\qquad K'=\operatorname{RoPE}(K),$$
+$$
+\begin{gathered}
+Q'=\operatorname{RoPE}(Q)\\
+K'=\operatorname{RoPE}(K),
+\end{gathered}
+$$
 
-$$A=\operatorname{softmax}\!\left(
-\frac{Q'K'^\top}{\sqrt{d_k}}+M_{\text{causal}}
-\right),\qquad O=AV.$$
+$$
+\begin{gathered}
+S=Q'K'^\top/\sqrt{d_k},\\
+A=\operatorname{softmax}(S+M_{\text{causal}}),\\
+O=AV.
+\end{gathered}
+$$
 
 FlashAttention can implement this step efficiently without changing the formula.
 Apply the output projection and first residual connection:
 
-$$H=X_l+OW_O.$$
+$$
+H=X_l+OW_O.
+$$
 
 Then follow the second pre-norm branch:
 
-$$G=\operatorname{RMSNorm}(H),$$
+$$
+G=\operatorname{RMSNorm}(H),
+$$
 
-$$F=\left[
-\operatorname{SiLU}(GW_{\text{gate}})\odot(GW_{\text{up}})
-\right]W_{\text{down}},$$
+$$
+\begin{gathered}
+U_g=\operatorname{SiLU}(GW_{\text{gate}}),\\
+U_u=GW_{\text{up}},\\
+F=(U_g\odot U_u)W_{\text{down}}.
+\end{gathered}
+$$
 
-$$X_{l+1}=H+F.$$
+$$
+X_{l+1}=H+F.
+$$
 
 Some models replace this SwiGLU FFN with MoE. After repeating $N$ layers:
 
-$$H_{\text{final}}=\operatorname{RMSNorm}(X_N),\qquad
-\text{logits}=H_{\text{final}}W_{\text{vocab}}.$$
+$$
+\begin{gathered}
+H_{\text{final}}=\operatorname{RMSNorm}(X_N)\\
+\text{logits}=H_{\text{final}}W_{\text{vocab}}.
+\end{gathered}
+$$
 
 These terms therefore operate at different levels: RoPE changes positional relations
 in Q/K; GQA changes KV heads; KV cache stores historical state; FlashAttention
@@ -301,7 +393,7 @@ optimizes the attention kernel; and MoE replaces the FFN.
 
 ### Prefill {#prefill}
 
-The whole prompt is known, so all positions can be computed in parallel and each layer's K/V are saved.
+The whole prompt is known, so all positions can be computed in parallel and each layer's K/V are saved. The first generated token is selected from the logits at the last valid prompt position in this pass.
 
 ### Decode {#decode}
 
@@ -309,19 +401,97 @@ Each step takes only the new token as input, queries the historical KV cache, an
 
 ```mermaid
 flowchart LR
-    P["Prompt tokens"] --> F["Prefill<br/>parallel"]
-    F --> K[("KV cache")]
-    K --> D1["Decode token t"]
-    D1 --> K
-    D1 --> D2["sample next token"]
-    D2 --> D1
+    F["Prefill"] -->|final-position logits| S["Select next token"]
+    S -->|new token| D["Decode one step"]
+    D -->|new logits| S
+    F -->|save K/V| K[("KV cache")]
+    K -->|read history| D
+    D -->|append K/V| K
 ```
+
+## Why batched generation often uses left padding {#left-padding}
+
+Prompts of different lengths need padding to fit a rectangular tensor. Suppose one has 3 tokens and another has 5. Here `·` means padding, and the letters stand for tokens:
+
+<figure class="worked-update worked-update--pairs" aria-label="Final-position comparison for left and right padding">
+<figcaption><strong>Which position supplies the next-token logits?</strong> A common generation loop reads the final position of every row.</figcaption>
+<ol>
+<li><strong>Right padding</strong><br><code>A B C · ·</code><br><code>D E F G H</code><br>The shorter row ends in padding; the longer row ends in H.</li>
+<li><strong>Left padding</strong><br><code>· · A B C</code><br><code>D E F G H</code><br>The rows end in C and H: the actual ends of both prefixes.</li>
+</ol>
+</figure>
+
+A common decoder-only generation loop takes its next-token scores from `logits[:, -1, :]`. Left padding makes that index work for both prompts. With right padding, the shorter row instead supplies the output at a padding position, not the prediction following C.
+
+**An attention mask does not fix the readout index.** It controls which positions attention can read; it does not change `-1` to the index of the last valid token. Hiding padding in the decoded text cannot repair a prediction already taken from the wrong position.
+
+### Masks, positions, and readout do different jobs {#padding-controls}
+
+| Setting | For the shorter row `· · A B C` | What it controls |
+| --- | --- | --- |
+| Attention mask | `[0, 0, 1, 1, 1]` | Valid tokens do not read padded K/V; causal masking is still needed |
+| Position IDs | Ignore padding; number A/B/C as 0/1/2 | Give tokens the positions the model expects |
+| Logits index | Last position, C | Predict after the actual prefix |
+| Loss mask | Score only target positions | Exclude padding from training or evaluation loss |
+
+A common position-ID construction is `attention_mask.cumsum(-1) - 1`, with a legal placeholder assigned to padded positions. Valid tokens then start at zero. **This is not a universal model interface:** multimodal positions, cached prefixes, and specialized serving engines may require different handling.
+
+<details markdown="1">
+<summary>Check “last position” against “last valid token” in code</summary>
+
+This example only selects logits after a full prefill, assuming their first two dimensions match the input mask. It downloads no model and measures no generation quality. The three numbers at each position are made-up scores that are easy to inspect.
+
+```python
+import torch
+
+
+def last_valid_logits(logits, attention_mask):
+    if logits.ndim != 3 or attention_mask.ndim != 2:
+        raise ValueError("Expected [batch, length, vocab] and [batch, length]")
+    if logits.shape[:2] != attention_mask.shape or logits.shape[1] == 0:
+        raise ValueError("Logits and mask must align with a nonempty sequence")
+    if logits.device != attention_mask.device:
+        raise ValueError("Logits and mask must be on the same device")
+    if not torch.all((attention_mask == 0) | (attention_mask == 1)):
+        raise ValueError("Attention mask must contain only zero and one")
+    valid = attention_mask.bool()
+    if not valid.any(dim=-1).all():
+        raise ValueError("Every row needs a valid token")
+    positions = torch.arange(logits.shape[1], device=logits.device)
+    last_positions = positions.expand_as(valid).masked_fill(~valid, -1).amax(-1)
+    rows = torch.arange(logits.shape[0], device=logits.device)
+    return logits[rows, last_positions]
+
+
+scores = torch.arange(30).reshape(2, 5, 3)
+right_mask = torch.tensor([[1, 1, 1, 0, 0], [1, 1, 1, 1, 1]])
+left_mask = torch.tensor([[0, 0, 1, 1, 1], [1, 1, 1, 1, 1]])
+assert last_valid_logits(scores, right_mask).tolist() == [[6, 7, 8], [27, 28, 29]]
+assert torch.equal(last_valid_logits(scores, left_mask), scores[:, -1, :])
+```
+
+`mask.sum(-1) - 1` works only when valid tokens are contiguous and start at position zero. A left-padded row with three valid tokens ends at index 4, not 2. This helper finds the last nonzero position instead of assuming a padding direction.
+
+It fixes one readout, not an entire generation loop. Right-padded generation also needs correct positions, growing masks, and KV-cache handling at later steps. An API that already returns only the final step's logits does not fit this helper's contract.
+
+</details>
+
+Left padding is therefore **a convenient choice for a common batched generation interface**, not a requirement of every decoder-only model. Padding does not inherently break meaning. Training can often use right padding or packing without padding; causal visibility, sample boundaries, and loss masks still need to be correct. With left-padded training, check that label shifting does not accidentally train a padding position to predict the first real token.
+
+Some models without a dedicated pad token allow EOS as padding. Supply an explicit mask: the token ID alone cannot distinguish padding from an actual EOS. Default stopping usually checks a newly generated end token rather than EOS already in the prompt; custom stopping rules need their own check.
+
+See the [Transformers generation guide](https://huggingface.co/docs/transformers/llm_tutorial#padding-side). The [pinned implementation `536ecc0`](https://github.com/huggingface/transformers/blob/536ecc007387a50e77603bb5d92100e9b07514cc/src/transformers/generation/utils.py#L3226) reads the last position in its ordinary generation path and prepares positions from the mask. A serving engine with variable-length sequences can use a different layout and indexing scheme.
 
 ## The model gives scores; sampling decides how to choose {#the-model-gives-scores-sampling-decides-how-to-choose}
 
 The last layer's hidden state passes through a linear layer to give a logit for every token in the vocabulary:
 
-$$z_t=h_tW_{\text{vocab}}, \qquad p_t=\text{softmax}(z_t / \tau)$$
+$$
+\begin{gathered}
+z_t=h_tW_{\text{vocab}}\\
+p_t=\text{softmax}(z_t / \tau)
+\end{gathered}
+$$
 
 - temperature $\tau$ adjusts how sharp the distribution is;
 - top-$k$ keeps only the $k$ most probable candidates;

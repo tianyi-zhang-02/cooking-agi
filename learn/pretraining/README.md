@@ -32,6 +32,8 @@
 | 增加卡数后结果对不上 | 数据分片、有效 token 数、同步与随机性 | [多卡训练](../../06-systems/distributed-training.md) |
 | 利用率高，吞吐却不理想 | 有效 token 吞吐、重算、通信与等待 | [多卡训练](../../06-systems/distributed-training.md) |
 
+第一次看多卡，先在总览里分清 DDP、FSDP、TP、PP 就够了。想进一步弄懂“同一层到底怎么拆”，再读[两张卡算一层 FFN](../../06-systems/tensor-parallel.md)：从 `[2, −1]` 算到 `[9, 6]`，然后跟着输入梯度看通信在哪里发生。不需要先记住所有框架的参数名。
+
 ## 本章目录
 
 <!-- widget:study-atlas -->

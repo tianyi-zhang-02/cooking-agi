@@ -2,7 +2,7 @@
 
 **中文** · [English](tfidf-and-bm25.en.md)
 
-> 阅读时间：约 12 分钟 · 前置知识：频次、对数、加权求和 · 最近审阅：2026-10-09
+> 阅读时间：约 12 分钟 · 前置知识：频次、对数、加权求和 · 最近审阅：2026-10-10
 
 搜一段报错时，你大概不希望系统只返回一篇“主题很像”的文章。错误码、函数名、版本号，少一个字都可能是另一回事。关键词检索保留了这些字面线索；不过，命中两个词和重复命中同一个词，该怎么比较？
 
@@ -30,8 +30,10 @@
 TF-IDF 把词频和逆文档频率（inverse document frequency, IDF）相乘：前者看这篇提了多少次，后者看这个词在库里有多常见。先选一个简单版本，使用自然对数：
 
 $$
-\operatorname{idf}(t)=\ln\frac{N}{\operatorname{df}(t)},\qquad
-w(t,d)=f(t,d)\operatorname{idf}(t).
+\begin{aligned}
+\operatorname{idf}(t)&=\ln\frac{N}{\operatorname{df}(t)},\\
+w(t,d)&=f(t,d)\operatorname{idf}(t).
+\end{aligned}
 $$
 
 $f(t,d)$ 是词 $t$ 在文档 $d$ 的次数。查询中的不同词各算一次，把对应权重相加；不在文档中的词贡献 0，不在整个词表中的查询词也忽略。TF-IDF 是一类权重约定，不是唯一一种打分函数。[IR 教材的定义](https://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html)可以用来核对这里的乘积形式。
@@ -49,22 +51,35 @@ A 靠多写一次 `cache` 排在了 B 前面。这不一定错，但重复 20 �
 
 一种改法是把正词频换成 $1+\ln f$，未命中仍是 0；这是 [sublinear TF](https://nlp.stanford.edu/IR-book/html/htmledition/sublinear-tf-scaling-1.html)。另一种做法把查询和文档都转成权重向量，再做 cosine normalization。**后者不等于上面的权重求和**：如果两边都带 IDF，点积的单词贡献包含 IDF 的平方，还要除以向量范数。比较实现前，先对齐公式，别只核对“都叫 TF-IDF”。
 
+### “重复一遍，分数翻倍”要看用的是哪种 TF {#tf-conventions}
+
+把 `cache error` 整段复制一次，得到 `cache error cache error`。固定同一套 IDF：原始次数从 `[1, 1]` 变成 `[2, 2]`，上面的求和分数会翻倍；但按文档长度计算的相对词频，两者都是 `[1/2, 1/2]`。如果用 L2 归一化后的 TF-IDF 向量，两份向量的方向也一样，和同一查询的 cosine 分数不会变。
+
+所以，“TF-IDF 不管长度、重复就能无限加分”只适用于某些具体写法。比如 [scikit-learn 1.7 的 TF-IDF](https://scikit-learn.org/1.7/modules/feature_extraction.html#tfidf-term-weighting)默认做 L2 归一化，平滑 IDF 为 $1+\ln((N+1)/(\operatorname{df}+1))$，并不是本节的原始次数求和。这里固定语料统计，是为了只观察重复的影响；如果把新文档加入库里重新 fit，IDF 也可能变。
+
 ## 3. BM25：重复有用，但不会一直等比例加分 {#bm25-score}
 
 下面采用带正值 IDF 的 BM25：
 
 $$
-\operatorname{idf}_{+}(t)=
-\ln\left(1+\frac{N-\operatorname{df}(t)+0.5}{\operatorname{df}(t)+0.5}\right),
+\begin{aligned}
+r_t&=\frac{N-\operatorname{df}(t)+0.5}{\operatorname{df}(t)+0.5},\\
+\operatorname{idf}_{+}(t)&=\ln(1+r_t).
+\end{aligned}
 $$
 
 $$
-\operatorname{score}(q,d)=\sum_{t\in\operatorname{unique}(q)}
-\operatorname{idf}_{+}(t)
-\frac{f(t,d)(k_1+1)}{f(t,d)+k_1\left(1-b+bL_d/\overline L\right)}.
+\begin{aligned}
+a_d&=1-b+bL_d/\overline L,\\
+g(t,d)&=\frac{f(t,d)(k_1+1)}{f(t,d)+k_1a_d},\\
+S(q,d)&=\sum_{t\in\operatorname{unique}(q)}
+\operatorname{idf}_{+}(t)g(t,d).
+\end{aligned}
 $$
 
 取 $k_1=1.2,b=0.75$。IDF 约定与参数默认值可对照 [Lucene 10.3.1](https://lucene.apache.org/core/10_3_1/core/org/apache/lucene/search/similarities/BM25Similarity.html)；这里是教学公式，不承诺逐位复现 Lucene 的完整 scorer、字段统计或长度编码。
+
+这里 $r_t$ 只是计算 IDF 的中间比值；$a_d$ 是文档长度修正项，$g(t,d)$ 是修正后的词频因子，最后按查询词加总得到分数 $S(q,d)$。拆开写，是为了能逐项检查，不是又多了几个要调的参数。
 
 公式可以拆成两件事：
 
@@ -82,10 +97,13 @@ $$
 
 同一长度下，这一因子的极限是 $k_1+1=2.2$。这是把两个影响分开看的控制例子；真的往文档后面添词，还会同时改变文档长度，不能只改 $f$。
 
-回到那 4 篇文档：`cache` 的新 IDF 为 $0.3567$，`error` 为 $0.6931$。A 的长度修正项是 $1-0.75+0.75\times3/2.75\approx1.0682$，所以它的 `cache` 贡献为：
+回到那 4 篇文档：`cache` 的新 IDF 为 $0.3567$，`error` 为 $0.6931$。A 的长度修正项是 $1-0.75+0.75\times3/2.75\approx1.0682$。先算它的词频因子 $g(\texttt{cache},A)$，再乘 IDF：
 
 $$
-0.3567\times\frac{2\times2.2}{2+1.2\times1.0682}\approx0.4782.
+\begin{aligned}
+\frac{2\times2.2}{2+1.2\times1.0682}&\approx1.3408,\\
+0.3567\times1.3408&\approx0.4782.
+\end{aligned}
 $$
 
 | 文档 | `cache` 的贡献 | `error` 的贡献 | BM25 求和 |
@@ -111,6 +129,18 @@ $$
 还有一个容易踩的坑：有的 BM25 公式没有 IDF 外层的 `1 +`。在那个约定下，一个词出现在超过一半的文档里，IDF 可能为负；我们的 `cache` 就会遇到。这是公式约定不同，不一定是 bug。[IR 教材的 BM25 一节](https://nlp.stanford.edu/IR-book/html/htmledition/okapi-bm25-a-non-binary-model-1.html)同时讨论了这些形式。
 
 不要把 BM25 分数当相关性概率，也不要直接和 embedding 的余弦分数相加。下一篇的 [RRF](hybrid-and-reranking.md#rank-fusion)就是一种不要求原始分数同尺度的融合办法。
+
+### 排在前面，还是只是碰巧先输出？ {#tied-scores}
+
+假设另一个库有 6 篇文档，恰好 3 篇包含 `cache`。在不带外层 `1 +` 的 IDF 约定下：
+
+$$
+\operatorname{idf}(\texttt{cache})=\ln\frac{6-3+0.5}{3+0.5}=0.
+$$
+
+只搜 `cache` 时，无论重复几次，它的贡献都是 0。库可以按文档 ID 或输入顺序打破平局，但**先显示的那篇并没有得到更高分**。如果改用本页的正值 IDF，它变成 $\ln 2$；此时词频与长度才会影响这个词的得分。
+
+[rank_bm25 0.2.2 的 BM25Okapi](https://github.com/dorianbrown/rank_bm25/blob/0.2.2/rank_bm25.py#L79-L113)就是一个需要核对约定的实例：它计算不带外层 `1 +` 的 IDF，再替换负值；恰好为 0 的项不会因此变成正值。看演示输出时，先查逐词分数和是否打平，再解释排序。设了 $b=0$ 的实验，也不能用来证明长度归一化有效，因为它根本没启用这个因素。
 
 ## 5. 写出来：先验证计算，再考虑索引 {#implementation}
 

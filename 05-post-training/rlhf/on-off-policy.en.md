@@ -2,7 +2,7 @@
 
 [中文](on-off-policy.md) · **English**
 
-> Reading time: ~8 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~12 min · Level: core · Last reviewed: 2026-10-09
 
 Generating long answers is expensive. Throwing them away immediately feels wasteful, but reusing them indefinitely creates another problem: **the model that generated them is no longer the model being updated.**
 
@@ -42,6 +42,39 @@ PPO permits multiple minibatch updates on this batch, using its surrogate object
 
 Do not replace the denominator with the newest model's log-probabilities after each step. That would no longer measure change relative to the policy that generated this batch. This old policy is also not the Reference used as a KL anchor.
 
+## Why call GRPO on-policy if an older model generated the answers? {#grpo-data-lifecycle}
+
+After the first parameter update, even a freshly sampled batch comes from an “older model.” Forbidding all reuse of old parameters would rule out the second update on that very batch.
+
+What matters is **how far the generating policy has drifted, how long the batch is reused, and when fresh answers replace it**. Original GRPO samples a group of answers and performs a bounded set of updates; it does not require a new rollout after every gradient step. [Algorithm 1 in DeepSeekMath](https://arxiv.org/html/2402.03300v3) separates generation from the inner $\mu$ update iterations.
+
+| Step | What happens | What must not silently change |
+|---|---|---|
+| 1. Generate | Save policy v7; generate $G$ answers per prompt | Record the generating version, sampling settings, and corresponding log-probabilities |
+| 2. Score | Compute rewards, group means, and advantages within each prompt's group | Do not combine unrelated prompts into a group or assume the old mean remains zero after filtering |
+| 3. Update | Use these answers to update the model to v8 and v9 | The ratio denominator still corresponds to v7; keep the batch's advantages and training masks well defined |
+| 4. Refresh | Finish these updates and generate a new batch with the updated policy | Refreshing the old policy does not automatically refresh the Reference |
+
+If v7 assigned a sampled token probability 0.4 and the updated model assigns 0.6, the ratio is 1.5. Overwriting the stored probability with the current 0.6 would reset the ratio to 1. The code would run, but it would no longer measure change from the generating policy.
+
+The Reference has a separate schedule. The original algorithm sets it at an outer iteration, then performs multiple rounds of sampling and updates inside; it does not follow the actor after every optimizer step. That algorithm also mentions a replay buffer, but the buffer is used to **update the reward model**. It is not evidence that the actor normally samples arbitrary historical answers.
+
+Implementations offer further choices. The [TRL GRPO documentation](https://huggingface.co/docs/trl/grpo_trainer) exposes `num_iterations` for updates per generation alongside different loss and rollout settings, checked on 2026-10-09. A configuration named `GRPO` therefore does not tell you the complete data lifecycle.
+
+### Synchronous updates, batch reuse, or asynchronous rollouts? {#stale-rollout-checks}
+
+A synchronous loop is the simplest starting point to debug: generate a batch, update, synchronize parameters, and repeat. Generation and training may spend time waiting for each other. More updates per batch spread the generation cost; an asynchronous pipeline overlaps the work but can deliver answers from policies several updates behind.
+
+| Choice | What it aims to save | What to watch |
+|---|---|---|
+| Few updates, frequent fresh batches | Limit distribution drift and simplify debugging | Generation cost and GPU idle time |
+| Multiple updates on one batch | Reduce rollout cost per update | Ratio distribution, fraction on the actual flat branch, KL, and held-out quality |
+| Asynchronous generation and training | Overlap generation with updates | Policy-version lag, queue age, stale-sample handling, and sampler/trainer probability agreement |
+
+Updates per second is not enough to compare these options. Under the same compute or time budget, also measure final quality, valid training tokens, and answers discarded for staleness. There is no universally best reuse count.
+
+Importance weighting can correct specified distribution differences under assumptions. It does not change where the data came from or automatically make arbitrary old data on-policy. Nor do token-level PPO/GRPO ratios and clipping guarantee an exact correction of the full trajectory distribution. A small calculation makes the limits easier to see.
+
 ## A two-action example: why importance weighting matters {#reweighting}
 
 Forget language models for a moment. Make one decision: action A pays 1, B pays 3. The behavior policy $\mu$ chooses A/B with probabilities $0.9/0.1$; the target policy $\pi$ chooses each with probability $0.5$.
@@ -54,9 +87,11 @@ Forget language models for a moment. Make one decision: action A pays 1, B pays 
 Expected reward is $1.2$ under the behavior policy and $2$ under the target. Averaging old logs does not automatically estimate the new policy. If every action the target may select also has nonzero behavior probability—the support condition—we can change measure:
 
 $$
+\begin{aligned}
 \mathbb E_{a\sim\pi}[r(a)]
-=\sum_a\mu(a)\frac{\pi(a)}{\mu(a)}r(a)
-=\mathbb E_{a\sim\mu}\left[\frac{\pi(a)}{\mu(a)}r(a)\right].
+&=\sum_a\mu(a)\frac{\pi(a)}{\mu(a)}r(a)\\
+&=\mathbb E_{a\sim\mu}\left[\frac{\pi(a)}{\mu(a)}r(a)\right].
+\end{aligned}
 $$
 
 We also assume the reward mechanism conditional on the action has not changed. This is an exact expectation identity for a single stochastic decision; finite-sample estimates still have error.

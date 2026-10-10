@@ -88,6 +88,8 @@ is not ready, do not publish a permanently drifting pair.
 
 ## Diagram standard
 
+Localize titles, legends, explanations, and accessible descriptions, not just the caption below an English image. Share formulas, code, and familiar model names where appropriate, but write full sentences naturally in each language. Prefer responsive HTML for text-heavy comparisons rather than shrinking a desktop image on phones. Do not impose English uppercase, letter spacing, or italics on Chinese; do not force English into Chinese line breaks. Figure generators must preserve both language versions when rerun.
+
 A diagram should show something concrete: how a vector changes, where a request goes, or how two settings differ. Reuse the example in the text where possible and label arrows with what they carry. Boxes containing abstract nouns do not explain a mechanism. Use shapes and colors for meaningful roles, with a short legend when needed; do not force every topic into the same flowchart.
 
 The default view should be informative without interaction. Controls support comparisons and exploration, not access to essential explanations. Label illustrative numbers and cite measured results. Check narrow screens, both languages, and the rendered output of every Mermaid block. Captions should explain what the figure does and does not show, rather than offer a slogan.

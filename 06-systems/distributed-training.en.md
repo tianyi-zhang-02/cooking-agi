@@ -124,9 +124,9 @@ Suppose parameters, gradients, and optimizer states occupy 2, 2, and 12 GB. On f
 | Strategy | Per-device state |
 | --- | ---: |
 | Replicate all | $2+2+12=16$ GB |
-| Shard optimizer only | $2+2+12/4=7$ GB |
-| Shard optimizer and gradients | $2+2/4+12/4=5.5$ GB |
-| Shard all three | $(2+2+12)/4=4$ GB |
+| ZeRO Stage 1: shard optimizer only | $2+2+12/4=7$ GB |
+| ZeRO Stage 2: shard optimizer and gradients | $2+2/4+12/4=5.5$ GB |
+| ZeRO Stage 3: shard all three | $(2+2+12)/4=4$ GB |
 
 This excludes activations, communication buffers, and temporary gathers. Four GB is not a peak-memory promise, and the largest computational unit must still fit.
 
@@ -135,15 +135,20 @@ This excludes activations, communication buffers, and temporary gathers. Four GB
 Using row vectors, $Y=XW$ can be column-partitioned:
 
 $$
-W=[W_1\;W_2],\qquad Y=[XW_1\;XW_2].
+\begin{aligned}
+W&=[W_1\;W_2],\\
+Y&=[XW_1\;XW_2].
+\end{aligned}
 $$
 
 Partitioning the input dimension instead gives partial results to sum:
 
 $$
-X=[X_1\;X_2],\quad
-W=\begin{bmatrix}W_1\\W_2\end{bmatrix},\quad
-Y=X_1W_1+X_2W_2.
+\begin{aligned}
+X&=[X_1\;X_2],\\
+W&=\begin{bmatrix}W_1\\W_2\end{bmatrix},\\
+Y&=X_1W_1+X_2W_2.
+\end{aligned}
 $$
 
 For $X=[1,2]$ and $W=\begin{bmatrix}1&3\\2&4\end{bmatrix}$, the full output is $[5,11]$. Row partitioning produces $[1,3]$ and $[4,8]$, which must be summed, not averaged.
@@ -151,6 +156,8 @@ For $X=[1,2]$ and $W=\begin{bmatrix}1&3\\2&4\end{bmatrix}$, the full output is $
 [Megatron-LM](https://arxiv.org/abs/1909.08053) shows how complementary column and row partitions organize Transformer layers. Whether an intermediate remains sharded depends on the next operation; gathering everything after every layer wastes opportunities.
 
 Frequent TP communication benefits from fast interconnects. Splitting small matrices too finely can cost more in communication and scheduling than it saves.
+
+For the full calculation, read [Tensor parallelism: two GPUs, one layer](tensor-parallel.en.md). A two-layer FFN follows forward and backward, separates concatenation from summation and averaging, and explains the conditions behind “four collectives per Decoder layer.”
 
 ## PP divides layers and schedules microbatches
 
@@ -188,6 +195,25 @@ Split eight tokens across two GPUs, four each. If each device computes causal at
 
 EP solves a different problem. If a token selects two remote experts, send its activation, then return and combine the results at the original position. [Megatron's MoE parallelism guide](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md) describes composition with other strategies. The fraction of selected experts is not a communication-byte ratio or a guaranteed speedup. Hot experts can still leave other devices waiting.
 
+## Eight GPUs: TP8 or DP8? {#eight-gpus}
+
+Start with a dense model and no shared experts. **TP8 uses eight GPUs to run one model cooperatively; DP8 / TP1 runs eight replicas handling separate requests.** A TP8 group can batch many requests—it is not limited to one user. The difference is who cooperates on each computation.
+
+Suppose weights occupy exactly 16 GiB, each device has 24 GiB, and all weights can be partitioned evenly. Count only weights for now, excluding KV, workspace, and small replicated parameters:
+
+<figure class="worked-update">
+<ol>
+<li><small>TP8 · One cooperating group</small><strong>Ideally 2 GiB of weights per GPU</strong><span>Eight ranks cooperate on the same batch. Weight storage per GPU falls, but layer computations need frequent communication.</span></li>
+<li><small>DP8 / TP1 · Eight replicas</small><strong>16 GiB of weights per GPU</strong><span>Replicas share the incoming load without synchronizing dense forward computation. Each has its own cache and queue.</span></li>
+<li><small>DP2 / TP4 · Two cooperating groups</small><strong>Ideally 4 GiB of weights per GPU</strong><span>Each four-GPU group cooperates internally. Two groups share the load; this is not eight model replicas.</span></li>
+</ol>
+<figcaption>This is weight accounting, not measured throughput or supported concurrency. DP8 leaves 8 GiB per GPU for both caches and runtime—not 8 GiB of guaranteed KV capacity.</figcaption>
+</figure>
+
+If weights fit and aggregate throughput matters, replicas are a useful baseline. If capacity or per-request computation is the problem, compare TP / PP. Smaller TP matrix multiplications do not guarantee a proportional latency reduction: communication, kernel efficiency, and scheduling can absorb the gains. [vLLM's scaling guide](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) provides starting configurations; choose using your actual request distribution.
+
+Hold GPU count, arrival load, input/output lengths, and cache warmup fixed. Alongside offline tokens/s, measure time to first token (TTFT), output intervals, tail latency, rejected requests, and peak memory. Higher throughput with longer queues may be a poor trade for an interactive product.
+
 ## Serving DP does not always mean independent replicas
 
 Training DDP synchronizes gradients; serving data parallelism typically distributes requests. With MoE, check whether experts are shared across those replicas. In [vLLM's EP deployment documentation](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment/), checked on 2026-10-09, enabling EP forms an expert group of size TP × DP. Attention replication/sharding and expert placement are different decisions. This is a framework convention, not a universal definition.
@@ -217,6 +243,10 @@ Assume an ordinary decoder partitioned by layer, without cache offload or prefil
 Extra residual tensors, metadata, protocol costs, and synchronization are excluded. Chunking long prefill changes scheduling and pipeline behavior; a small decode message cannot describe every workload.
 
 [vLLM's scaling guide](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) recommends considering PP for certain configurations without NVLink to reduce communication. That is not proof of optimality on every PCIe machine. A single request still traverses stages sequentially; unequal stage work creates idle time. If the model fits on one GPU, compare independent replicas, quantized single-GPU serving, TP, and PP under the same workload. Disaggregated serving that transfers KV introduces a different communication path.
+
+For a transfer lower bound, assume effective boundary bandwidth of 12 GiB/s and ignore startup latency. The 48 KiB message takes about 3.8 microseconds; the 192 MiB message takes about 15.6 milliseconds. Startup and synchronization can dominate the first, while bytes already matter in the second. This is assumed bandwidth, not a measured PCIe link or GPU specification.
+
+PP can reduce the frequency of cross-device cooperation, but preserves sequential dependencies: with one request and one next token, later stages still wait for earlier results. More microbatches let different requests occupy different stages, provided there is enough traffic; queues and cache usage can also grow. Lack of NVLink is one input to the decision, alongside topology, prefill length, concurrency, and the latency budget.
 
 ## Offload moves state, but transfers still take time
 

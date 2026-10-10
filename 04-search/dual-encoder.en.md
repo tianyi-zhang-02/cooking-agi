@@ -40,10 +40,14 @@ Mean-pooling a language model does not automatically produce geometry suited to 
 A common single-positive contrastive loss is:
 
 $$
-L=-\log\frac{\exp(s^+/\tau)}{\exp(s^+/\tau)+\sum_{j=1}^{B-1}\exp(s_j^-/\tau)}.
+\begin{aligned}
+Z&=\exp(s^+/\tau)\\
+&\quad+\sum_{j=1}^{B-1}\exp(s_j^-/\tau),\\
+L&=-\log\frac{\exp(s^+/\tau)}{Z}.
+\end{aligned}
 $$
 
-Here $s^+$ is the positive score, $s_j^-$ are comparison scores in this batch, and $\tau>0$ is temperature. The denominator is not every irrelevant document in the world. It is the candidate set used for this training comparison.
+Here $s^+$ is the positive score, $s_j^-$ are comparison scores in this batch, and $\tau>0$ is temperature. Sum the exponentiated candidate scores into $Z$, then calculate the positive's share. The denominator is not every irrelevant document in the world. It is the candidate set used for this training comparison.
 
 ### Positive and negative examples do not imply pairwise binary classification {#infonce-and-ce}
 
@@ -61,6 +65,18 @@ The first loss is $\log 3\approx1.099$. Mean BCE over the 3 pairs is $\log 2\app
 One small change makes the distinction memorable. Keep the original scores fixed and add another zero-score candidate. The positive's softmax probability falls from $1/3$ to $1/4$. Each original pair's sigmoid remains $1/2$. **Candidate softmax depends on the comparison pool; it is not an absolute probability that a user likes a document.**
 
 Pass temperature-scaled logits directly into CE. Applying softmax and then passing its probabilities as logits adds another softmax and changes the objective. This is a useful stopping point if you only need the distinction; next, keep the same 3 candidates and calculate an update.
+
+### Cross-entropy does not require human labels {#where-labels-come-from}
+
+A loss receives targets and predictions. It does not know whether a person supplied the target, the text already contained it, or a pairing rule produced it.
+
+| Task | What is the choice set? | Where does the target come from? |
+| --- | --- | --- |
+| Topic classification | Predefined topics | Human or other labeling processes |
+| Next-token prediction | The model vocabulary | The next token in the text |
+| Single-positive retrieval | This sampled candidate set | Annotations, paired data, or another supervision rule |
+
+All three can use cross-entropy. Self-supervision still has targets; InfoNCE still needs a positive-pair rule. Sampling defines the comparison set, and CE computes the loss within it. A large vocabulary does not force a language model to use InfoNCE. Cost depends on the output layer, sampling, and implementation, not just the loss's name. See [cross-entropy step by step](../00-foundations/pytorch/cross-entropy.en.md).
 
 ## 3. Work through one training step {#training-step}
 
@@ -103,6 +119,30 @@ assert math.isclose(contrastive_step([1e20, 1e20])[0], math.log(2))
 The last check deliberately assigns two candidates the same enormous score. Each receives half the probability, so the loss must be $\log 2$, not zero. Subtract the maximum and compute the loss directly from the shifted scores. Adding the large number back and subtracting it again can erase a small loss through floating-point rounding.
 
 Now imagine the second document also explains vanishing gradients well, but remains labeled negative. The code runs correctly while pushing it away. That is a false negative: **correct numerical computation does not guarantee correct supervision.**
+
+### Is bringing positives together enough? {#contrastive-geometry}
+
+Encode every query and document as the same vector, and positive pairs are certainly close. Unfortunately, everything else is just as close: retrieval cannot distinguish candidates. Keep one positive, two comparisons, unit vectors, and temperature 1:
+
+<figure class="worked-update" lang="en" id="geometry-example">
+<figcaption>The positive stays in place; move only the comparison documents</figcaption>
+<ol>
+<li><strong>Everything at one point</strong><span>Query, positive, and both comparisons are (1, 0). Scores are [1, 1, 1], giving the positive probability 1/3.</span></li>
+<li><strong>Separate the comparisons</strong><span>Keep query and positive at (1, 0). Move the comparisons to (0, 1) and (−1, 0). Scores become [1, 0, −1].</span></li>
+<li><strong>Compare the losses</strong><span>The loss falls from about 1.099 to 0.408. This illustrates candidate discrimination, not measured retrieval quality.</span></li>
+</ol>
+</figure>
+
+Two common geometric ideas help explain this: alignment brings positive pairs together; uniformity discourages concentrating representations in a small region. Moving two comparisons does not prove that a uniform layout solves retrieval. Documents could be evenly spaced around a circle while every query points to the wrong one.
+
+<details markdown="1">
+<summary>What assumptions sit behind the uniformity result?</summary>
+
+[Wang and Isola (ICML 2020), §4](https://proceedings.mlr.press/v119/wang20k/wang20k.pdf) study unit-sphere representations under specified positive-pair and negative-sampling distributions. Their main decomposition takes an infinite-negative limit at fixed temperature; it does not guarantee uniform embeddings after finite-batch training. Perfect alignment and uniformity may not be jointly realizable.
+
+Positive-pair distances and representation concentration can help with diagnosis. They do not replace task evaluation when positive definitions or negative sampling are biased. Nor does uniformity require every semantic topic to contain the same number of documents.
+
+</details>
 
 ## 4. Multiple positives and hard negatives
 

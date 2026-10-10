@@ -22,6 +22,14 @@ class ChineseCopyTests(unittest.TestCase):
         self.assertIn("（multi-head attention）", output)
         self.assertEqual([term["zh"] for term in used], ["多头注意力"])
 
+    def test_compound_word_does_not_consume_variance_annotation(self):
+        terms = [("方差", "variance", "偏离均值的平方的期望")]
+        output, used = build.annotate("<p>平方差与立方差。</p><p>再看方差。</p>", terms)
+        self.assertTrue(output.startswith("<p>平方差与立方差。</p>"))
+        self.assertEqual(output.count('class="term"'), 1)
+        self.assertIn("（variance）", output)
+        self.assertEqual([term["zh"] for term in used], ["方差"])
+
     def test_paragraph_limit_survives_inline_markup(self):
         output, used = build.annotate(
             "<p><strong>预训练</strong>之后是<em>监督微调</em>和强化学习。</p>"

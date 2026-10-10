@@ -2,7 +2,7 @@
 
 [中文](multi-head-attention.md) · **English**
 
-> Reading time: ~12 min · Level: core · Last reviewed: 2026-10-09
+> Reading time: ~15 min · Level: core · Last reviewed: 2026-10-10
 
 Start with one weighted sum. Two positions supply values `[2, 0]` and `[0, 4]`. With attention weights `0.75` and `0.25`, the output is `[1.5, 1]`. The rest of attention explains where those weights come from, which positions are masked, and how several such computations are combined.
 
@@ -17,7 +17,11 @@ Each head uses its own projections to compute a weighted result, and the results
 Start with self-attention: $Q$, $K$, and $V$ are three learned linear projections of the same input $X$. Cross-attention can instead obtain K/V from another sequence; we return to that later.
 
 $$
-Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V
+\begin{gathered}
+Q=XW_Q\\
+K=XW_K\\
+V=XW_V
+\end{gathered}
 $$
 
 They are not three individual dimensions with assigned meanings. This example sets $d_v=d_k$: with $T$ tokens, $Q,K,V$ each have shape $(T,d_k)$, although V can have a different width in general. Their **computational roles** differ: Q/K compute the weights; V supplies the vectors to aggregate.
@@ -61,7 +65,9 @@ The mask does not restrict the model to the single previous token. It lets a pos
 ### 3. Apply softmax to every row {#3-apply-softmax-to-every-row}
 
 $$
+\begin{gathered}
 A=\operatorname{softmax}_{j}(S+M)
+\end{gathered}
 $$
 
 Softmax runs over the column index $j$, so every row satisfies
@@ -88,10 +94,11 @@ Each head has its own projections, score matrix, and attention weights, so heads
 The whole data flow compresses into one line:
 
 $$
-X\xrightarrow{W_Q,W_K,W_V}(Q,K,V)
-\xrightarrow{QK^\top/\sqrt{d_k}}S
-\xrightarrow{+M,\,\text{row-softmax}}A
-\xrightarrow{AV}O
+\begin{gathered}
+S=QK^\top/\sqrt{d_k},\\
+A=\operatorname{softmax}_{\rm row}(S+M),\\
+O=AV.
+\end{gathered}
 $$
 
 That is: **three projections produce Q/K/V; Q and K produce pairwise weights between tokens; the mask removes forbidden information paths; row-wise softmax normalizes; and those weights finally take a weighted sum of V.**
@@ -100,33 +107,94 @@ That is: **three projections produce Q/K/V; Q and K produce pairwise weights bet
 
 ## What a single head computes {#what-a-single-head-computes}
 
-$$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
+$$
+\begin{gathered}
+\text{Attention}(Q,K,V)\\
+= \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
+\end{gathered}
+$$
 
 Broken down to a single query $\mathbf{q}_i$:
 
-$$\alpha_{ij} = \frac{\exp(\mathbf{q}_i^\top \mathbf{k}_j / \sqrt{d_k})}{\sum_{j'}\exp(\mathbf{q}_i^\top \mathbf{k}_{j'}/\sqrt{d_k})}, \qquad \mathbf{o}_i = \sum_j \alpha_{ij}\mathbf{v}_j$$
+$$
+\begin{gathered}
+s_{ij}=\mathbf q_i^\top\mathbf k_j/\sqrt{d_k},\\
+\alpha_{ij}=\frac{\exp(s_{ij})}{\sum_{j\prime}\exp(s_{ij\prime})},\\
+\mathbf o_i=\sum_j\alpha_{ij}\mathbf v_j.
+\end{gathered}
+$$
 
 Without attention dropout, the weights are nonnegative and sum to one, so **one head's output before output projection** is a convex combination of its values. The opening `[1.5, 1]` example illustrates this. That does not describe the entire Transformer block: dropout, output projection, and residual connections change the result. The weights also depend on the input; this is not a fixed average.
 
 ## Why divide by $\sqrt{d_k}$ {#why-divide-by-sqrtd_k}
 
-It controls the scale of the dot products. A simplifying assumption makes the reason clear.
+Start with what scaling changes. Suppose a head has dimension 64 and one query gives dot-product scores `[8, −8]` for two keys:
 
-Let the components of $q, k$ be independent with mean 0 and variance 1. Then
+| Treatment | Input to softmax | Weights on the two positions |
+| --- | --- | --- |
+| No scaling | `[8, −8]` | About `[0.9999999, 0.0000001]` |
+| Divide by $\sqrt{64}=8$ | `[1, −1]` | About `[0.881, 0.119]` |
+| Subtract the maximum only | `[0, −16]` | Same as the first row |
 
-$$\text{Var}(\mathbf{q}^\top\mathbf{k}) = \sum_{i=1}^{d_k}\text{Var}(q_i k_i) = d_k$$
+Without scaling, almost all weight goes to the first position. After scaling, the second still contributes. **Uniform weights are not the goal. We want to avoid making attention extremely sharp simply by increasing the head dimension.**
 
-The standard deviation is $\sqrt{d_k}$, or 8 when $d_k=64$. But softmax responds to **score differences**: `[8, 8]` still produces `[0.5, 0.5]`, whereas `[8, -8]` is very close to `[1, 0]`. Large gaps can saturate the weights. The softmax Jacobian is
+Dividing by a positive constant changes the gaps between scores and therefore the weights. Subtracting a common constant preserves the gaps; it makes exponentiation safer without changing the mathematical result. Even `[1000, 1000]` should give `[0.5, 0.5]`. Large absolute values alone do not imply saturation.
 
-$$\frac{\partial\,\text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij}-\alpha_j)$$
+<details markdown="1">
+<summary>Why a square root? Work through the variance</summary>
 
-As one weight approaches one and the others approach zero, this Jacobian approaches zero. With bounded values and upstream gradients, gradients through the weights back to the scores become small. Dividing by $\sqrt{d_k}$ restores unit variance under the stated assumptions and reduces this saturation risk. Learned Q/K need not remain independent or unit-variance, so this is not a guarantee of stable gradients everywhere.
+Assume $q_1,\ldots,q_{d_k},k_1,\ldots,k_{d_k}$ are **all mutually independent**, each with mean zero and variance one. For one product:
 
-⚠️ The divisor is $\sqrt{d_k} = \sqrt{d_\text{head}}$, **not** $\sqrt{d_\text{model}}$. It is easy to write the latter out of habit when coding by hand.
+$$
+\begin{gathered}
+\mathbb E[q_i k_i]=0,\\
+\mathbb E[q_i^2]\mathbb E[k_i^2]=1,\\
+\operatorname{Var}(q_i k_i)=1.
+\end{gathered}
+$$
+
+The covariance between distinct products is zero, so:
+
+$$
+\begin{aligned}
+\operatorname{Var}(q^\top k)&=d_k,\\
+\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)&=1.
+\end{aligned}
+$$
+
+At dimension 64, the unscaled dot product has standard deviation 8. Dividing by 8 brings that to one. Dividing by 64 would instead give variance $1/64$. This is a scale adjustment, not an average of the 64 terms.
+
+That is the motivation in [Transformer §3.2.1](https://arxiv.org/html/1706.03762v7#S3.SS2.SSS1). Learned Q/K need not retain these properties. For a counterexample, set $q=k$: with zero-mean, unit-variance components, $q^\top k$ now has expectation $d_k$, not zero. Unit component variance alone is not enough.
+
+</details>
+
+<details markdown="1">
+<summary>What happens to gradients when the weights become sharp?</summary>
+
+For softmax weights $\alpha$ and input scores $z$:
+
+$$
+\frac{\partial\alpha_i}{\partial z_j}=\alpha_i(\delta_{ij}-\alpha_j).
+$$
+
+With two positions, $\partial\alpha_1/\partial z_1=\alpha_1(1-\alpha_1)$. It is 0.25 when the weight is 0.5 and approaches zero as the weight approaches one. For bounded values and upstream gradients, the gradient reaching the scores through the attention weights becomes small.
+
+This concerns **the gradient path through attention**, not every gradient in the network. It also differs from a classification head with softmax + cross-entropy, whose logit gradient is predicted probability minus the label. A confident wrong prediction can still produce a large gradient there.
+
+</details>
+
+Use the **head dimension $d_k$**, not the full model width $d_\text{model}$. If a model also uses QK normalization or a learned temperature, follow its actual formula. Scaling addresses one source of trouble; it does not guarantee stable training.
 
 ## Why use multiple heads: the goal is not more dimensions {#why-use-multiple-heads-the-goal-is-not-more-dimensions}
 
-$$\text{head}_i = \text{Attention}(XW_i^Q, XW_i^K, XW_i^V), \quad \text{MultiHead} = \text{Concat}(\text{head}_1..\text{head}_h)W^O$$
+$$
+\begin{gathered}
+\text{head}_i=\\
+\operatorname{Attention}(XW_i^Q,XW_i^K,XW_i^V),\\
+\operatorname{MultiHead}=\\
+\operatorname{Concat}(\text{head}_1,\ldots,\text{head}_h)W^O.
+\end{gathered}
+$$
 
 One head uses one set of attention weights for all value channels. Splitting a fixed width into $h$ heads gives several such relations at similar projection and matmul cost, although storing separate attention matrices and executing kernels can add overhead. The three points below explain the tradeoff.
 
@@ -134,7 +202,12 @@ One head uses one set of attention weights for all value channels. Splitting a f
 
 Suppose $d_{\text{model}}=512$. One full-width attention head computes
 
-$$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.$$
+$$
+\begin{gathered}
+A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right)\\
+O=AV.
+\end{gathered}
+$$
 
 The key limitation is not that “512 dimensions are not enough”. It is that every
 value channel shares the same attention matrix $A$. To resolve “she” in “Xiao Ming
@@ -144,9 +217,17 @@ time; a single head must compress all of these relations into one distribution.
 
 Multi-head lets head $i$ learn its own projections and weights:
 
-$$Q_i=XW_i^Q,\qquad K_i=XW_i^K,\qquad V_i=XW_i^V,$$
+$$
+\begin{gathered}
+Q_i=XW_i^Q\\
+K_i=XW_i^K\\
+V_i=XW_i^V,
+\end{gathered}
+$$
 
-$$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
+$$
+A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).
+$$
 
 The model therefore obtains $A_1,\ldots,A_h$: several ways to read the sequence.
 Some heads may lean toward coreference, others toward locality or syntax, but those
@@ -158,7 +239,9 @@ distribution.**
 
 The original model uses $d_{\text{model}}=512$ and $h=8$, usually with
 
-$$d_k=d_v=\frac{512}{8}=64,$$
+$$
+d_k=d_v=\frac{512}{8}=64,
+$$
 
 so $8\times64=512$. If all eight heads kept the full 512 dimensions, parameters and
 compute would grow substantially; splitting the total width is what yields eight
@@ -166,11 +249,15 @@ sets of relations at roughly the budget of a single head.
 
 A full-width single-head projection has
 
-$$W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.$$
+$$
+W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.
+$$
 
 Each multi-head projection is $512\times64$, and eight of them still total
 
-$$8\times(512\times64)=512\times512.$$
+$$
+8\times(512\times64)=512\times512.
+$$
 
 Standard MHA therefore has about $4d_{\text{model}}^2$ parameters across Q, K, V,
 and the output projection, independent of the head count itself. Code also usually
@@ -189,7 +276,7 @@ one another, parameters may be used inefficiently, and the model may even overfi
 In practice some heads can often be pruned with almost no loss in quality.
 Therefore:
 
-$$\boxed{\text{Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.}}$$
+**Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.**
 
 “Different representation subspaces” should not be over-interpreted either. Each
 head does have independent parameters and can therefore learn a different matching

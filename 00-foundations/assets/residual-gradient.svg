@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" width="700" height="350" role="img">
+<svg lang="zh-CN" aria-labelledby="figure-title" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" width="700" height="350" role="img">
+<title id="figure-title">40 层网络中的梯度传播示例</title>
 <style>
   :root {
     --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
@@ -38,6 +39,9 @@
   .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
   .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
   .divider { stroke: var(--rule); stroke-width: 1; }
+
+text { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; }
+.sub { font-style: normal; }
 </style>
 <defs>
   <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
@@ -48,8 +52,8 @@
           orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
 </defs>
 
-<text class="ttl" x="24" y="24" text-anchor="start">What depth does to the gradient</text>
-<text class="sub" x="24" y="41" text-anchor="start">40-layer tanh MLP, gain 0.8, width 64, seed 0; identical input, weights and final gradient.</text>
+<text class="ttl" x="24" y="24" text-anchor="start">梯度传到浅层时，大小变了多少</text>
+<text class="sub" x="24" y="41" text-anchor="start">40 层 tanh MLP，增益 0.8，宽度 64，种子 0；输入、权重和末端梯度相同。</text>
 <line class="divider" x1="66" y1="258.0" x2="550" y2="258.0" stroke-dasharray="2 4" opacity=".6"/>
 <text class="lbl-s" x="58" y="261.5" text-anchor="end">1e-7</text>
 <line class="divider" x1="66" y1="254.6" x2="550" y2="254.6" stroke-dasharray="2 4" opacity=".6"/>
@@ -70,12 +74,12 @@
 <text class="lbl-s" x="66.0" y="275" text-anchor="middle">1</text>
 <text class="lbl-s" x="314.2051282051282" y="275" text-anchor="middle">21</text>
 <text class="lbl-s" x="550.0" y="275" text-anchor="middle">40</text>
-<text class="lbl-s" x="308.0" y="292" text-anchor="middle">layer (1 = closest to the input)</text>
-<text class="lbl-s" x="66" y="67" text-anchor="start">&#8214;grad&#8214; reaching this layer</text>
+<text class="lbl-s" x="308.0" y="292" text-anchor="middle">层数（第 1 层最靠近输入）</text>
+<text class="lbl-s" x="66" y="67" text-anchor="start">传到这一层的梯度范数</text>
 <line x1="566" y1="85.60843305726326" x2="584" y2="85.60843305726326" class="arrow-1" stroke-width="2"/>
-<text class="lbl-s" x="590" y="89.60843305726326" text-anchor="start">with residual</text>
+<text class="lbl-s" x="590" y="89.60843305726326" text-anchor="start">有残差连接</text>
 <line x1="566" y1="248.39156694273674" x2="584" y2="248.39156694273674" class="arrow-0" stroke-width="2"/>
-<text class="lbl-s" x="590" y="252.39156694273674" text-anchor="start">plain stack</text>
-<text class="sub" x="24" y="324" text-anchor="start">This initialization: plain-stack gradient shrinks 1e+04&#215; from layer 40 to layer 1.</text>
-<text class="sub" x="24" y="340" text-anchor="start">Layer-1 norms differ by 1e+05&#215;. Larger is not always better; this is not a training experiment.</text>
+<text class="lbl-s" x="590" y="252.39156694273674" text-anchor="start">无残差连接</text>
+<text class="sub" x="24" y="324" text-anchor="start">这次初始化中，无残差网络的梯度从第 40 层传到第 1 层，缩小约 1e+04 倍。</text>
+<text class="sub" x="24" y="340" text-anchor="start">第 1 层的梯度范数相差约 1e+05 倍。不是越大越好；这里没有比较训练效果。</text>
 </svg>

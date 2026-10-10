@@ -39,7 +39,7 @@ Consider attention without positional encoding, a causal mask, or distance bias.
 
 For example, globally averaging `[1, 2, 0]` gives 1 at every position. Swap the first two inputs and the output is still `[1, 1, 1]`. This is a minimal equal-score attention example. Real scores differ, but the simultaneous input/output permutation property still holds under the stated assumptions.
 
-<details>
+<details markdown="1">
 <summary>The derivation: why does the output follow the permutation?</summary>
 
 Let $\Pi$ permute rows, with $Q=XW_Q$, $K=XW_K$, and $V=XW_V$. Without position-dependent operations, the permuted projections are $\Pi Q,\Pi K,\Pi V$. Row-wise softmax obeys
@@ -91,7 +91,7 @@ This is not deleting the rotation function from an existing RoPE model. Inspect 
 
 The report still uses long-context data and progressive context training. **No RoPE retuning does not mean no long-context training.** We have not reproduced K3 training or its long-context scores. [Report §3.4](https://arxiv.org/html/2607.24653v1#S3.SS4)
 
-<details>
+<details markdown="1">
 <summary>One level deeper: how does a matrix state retain order?</summary>
 
 KDA extends scalar forgetting to channel-wise gates and uses short convolutions in its Q/K/V paths. Here $S\in\mathbb R^{d_k\times d_v}$ is transposed relative to our Gated DeltaNet article; do not mix conventions. [Kimi Linear](https://arxiv.org/abs/2510.26692)
@@ -135,7 +135,7 @@ Both recurrence and RoPE can introduce distance through successive transformatio
 
 </details>
 
-<details>
+<details markdown="1">
 <summary>An implementation hazard: inverse cumulative decay can become huge</summary>
 
 K3 lower-bounds per-step log-decay to control numerical range in chunkwise computation. [Report §2.1.1](https://arxiv.org/html/2607.24653v1#S2.SS1.SSS1)

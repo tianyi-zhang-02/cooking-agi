@@ -2,7 +2,7 @@
 
 [中文](embedding-models.md) · **English**
 
-> Reading time: about 15 minutes · Prerequisites: vectors and dot products; attention masks in the second half · Reviewed: 2026-10-09
+> Reading time: about 15 minutes · Prerequisites: vectors and dot products; attention masks in the second half · Reviewed: 2026-10-10
 
 A user searches for “I forgot my password. How do I recover it?” Two passages say:
 
@@ -52,6 +52,22 @@ BGE-M3's 2024 motivation was broader than one benchmark score: languages, input 
 The 2025 Qwen3 Embedding report uses LLMs as both representation backbones and synthetic-data sources, followed by weak supervision, high-quality fine-tuning, and checkpoint merging. This is not merely an encoder-to-decoder swap; data and training recipes matter. [Original paper §3.2–3.3](https://arxiv.org/html/2506.05176v1#S3.SS2) · [Official code](https://github.com/QwenLM/Qwen3-Embedding)
 
 That background explains design choices, not why a newer model must suit your project better. Cross-paper scores also mix data, scale, output modes, and evaluation settings; they do not isolate architecture. Use the matched experiments in section 7 for an actual selection.
+
+### Where do the training signals come from? {#training-signals}
+
+“BGE predicts masked tokens; Qwen learns semantics” is not a useful distinction. Backbone pretraining and retrieval training are different steps. Both reports use contrastive learning and synthetic data, with different recipes.
+
+| Training step | Qwen3 Embedding | BGE-M3 |
+| --- | --- | --- |
+| Initial retrieval training | Large-scale synthetic pairs for weak supervision | Pairs extracted from multilingual corpora; dense training first |
+| Later training | High-quality supervision plus selected synthetic data | Labeled and synthetic data, hard negatives, and joint training of three paths |
+| Additional step | Merge fine-tuned checkpoints | Distill combined scores from the three paths back into each path |
+
+See [Qwen3 Embedding §3.1–3.3](https://arxiv.org/html/2506.05176v1#S3) and [BGE-M3 §3.1, §3.3](https://arxiv.org/html/2402.03216v3#S3.SS3). These are specific recipes, not family-wide rules. Qwen's embedding fine-tuning still uses a contrastive objective; its reranker predicts `yes/no`. Calling both fine-tuning does not make their training code interchangeable.
+
+For the password example, generating varied queries from a recovery document could supplement scarce real queries. But generated questions might reveal the answer or sound nothing like actual users. A million additional pairs would not fix that. Inspect pair quality, then evaluate on real queries held out from generation and filtering.
+
+Self-distillation adds supervision differently: combine three paths' judgments over the same candidates into a teacher distribution, then train each path toward those soft targets. **Learning from other paths does not give a deployed dense-only system three search paths.** The teacher can also share their mistakes; independent relevance evaluation is still needed.
 
 ## 3. Three M3 outputs are not three free retrieval systems
 

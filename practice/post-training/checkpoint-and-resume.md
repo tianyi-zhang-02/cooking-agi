@@ -4,9 +4,47 @@
 
 > 原创教学项目 · 核对：2026-10-09。附带 CPU 标准库恢复实验，不是分布式 checkpoint 后端的完整实现。
 
-训练跑到一半中断，权重文件还在。重新加载之后 loss 却跳了，数据也从头读。这不是“恢复成功，只是有点波动”：你可能只恢复了模型，没有恢复那次训练。
+训练跑到一半中断，幸好权重文件还在。加载后，同一道题的输出没变，下一步训练却和原来对不上。问题可能不在权重：优化器记住的更新方向、当前学习率，以及接下来该读哪条数据，也都影响下一步。
 
-先区分两个操作：**继续同一实验（resume）**，和**拿已有权重开始新实验（warm start）**。后者可以换数据或重置优化器，但要另记 run，不能冒充前者。
+这篇先用 2 步更新看看差别，再讨论该存什么、什么时候存，以及如何检查真的接上了。只想先弄懂原理，可以读到小例子；正在写训练脚本，再往下看恢复测试。
+
+## 先分清这里的 checkpoint 指什么 {#checkpoint-meaning}
+
+| 你可能听到的说法 | 实际做的事 | 能不能接着训练？ |
+| --- | --- | --- |
+| “下载一个模型 checkpoint” | 取得某个版本的模型权重及配套配置 | 可以拿来初始化；不一定包含上次训练的全部状态 |
+| “每隔 1000 步存 checkpoint” | 把当时的训练状态写下来 | 状态存全、版本兼容，才有条件继续同一次训练 |
+| “打开 activation checkpointing” | 少存一些中间激活，反向时重新计算 | 它解决显存问题，不负责中断恢复 |
+
+拿已有权重开始新实验叫 **warm start**；继续被打断的那次实验叫 **resume**。两者都有用，只是比较实验时要分清。比如换了数据、重置优化器后继续训练，可以另记一个 run，不必硬说成无缝恢复。
+
+## 权重一样，为什么下一步会不同？ {#momentum-restore}
+
+先不看大模型。只用 1 个权重，初值为 1；学习率为 0.1，动量系数（momentum）为 0.9。为了只观察动量的影响，假设每步梯度都为 1，没有 weight decay 或其他修正。
+
+每步先算动量 $v_{t+1}=0.9v_t+g_t$，再更新权重 $w_{t+1}=w_t-0.1v_{t+1}$。第一步后，动量是 1，权重是 0.9。此时中断：
+
+<figure class="worked-update worked-update--pairs">
+<ol>
+<li><small>完整恢复</small><strong>0.9 → 0.71</strong><span>动量也恢复为 1，下一步动量为 0.9 × 1 + 1 = 1.9。</span></li>
+<li><small>只恢复权重</small><strong>0.9 → 0.80</strong><span>新优化器从动量 0 开始，下一步动量只有 1。</span></li>
+</ol>
+<figcaption>两边从同一权重出发、收到同一梯度，更新仍然不同。这里的数字是手算示例。</figcaption>
+</figure>
+
+```python
+def momentum_step(weight, velocity, gradient, rate=0.1, momentum=0.9):
+    next_velocity = momentum * velocity + gradient
+    return weight - rate * next_velocity, next_velocity
+
+saved_weight, saved_velocity = momentum_step(1.0, 0.0, 1.0)
+resumed_weight, resumed_velocity = momentum_step(saved_weight, saved_velocity, 1.0)
+warm_weight, warm_velocity = momentum_step(saved_weight, 0.0, 1.0)
+assert abs(resumed_weight - 0.71) < 1e-12
+assert abs(warm_weight - 0.80) < 1e-12
+```
+
+这也解释了为什么“加载后的预测一致”还不够：预测主要检查模型状态，**接着更新一次**才会用到优化器、学习率和下一批数据。Adam 的状态更丰富，但检查思路一样。
 
 ## 两类产物，不要混成一个文件
 
@@ -18,6 +56,18 @@
 LoRA adapter 很小，也不能独立说明用了哪个基座。记录不可变 revision，不只写模型名。合并、量化或更换推理后端后，用同一组固定输入再测；训练进程里生成正常，不保证导出的产物也一致。
 
 训练恢复包可能保留数据路径和样本状态，不应原样当作公开模型包。只加载可信来源的文件；不要为了解决兼容性随意关闭反序列化安全限制。
+
+第一次实现时，可以按“漏存之后会发生什么”来检查：
+
+| 漏掉什么 | 可能看到什么 | 对照时看哪里 |
+| --- | --- | --- |
+| Optimizer state | 预测没变，下一步权重却不同 | 上面的 momentum 例子 |
+| Scheduler / step | 接上后学习率回到开头或错一拍 | 下一次更新实际使用的学习率 |
+| 随机数生成器状态（RNG state） | Dropout 或数据增强换了一次随机结果 | 重启后的随机数和梯度 |
+| 数据位置 / packing buffer | 已见样本重跑，或部分样本被跳过 | 下一批样本 ID、token 与 mask |
+| 数据或 tokenizer 版本 | 同一个 ID 读出来已不是原来的输入 | 版本、固定样本的编码结果 |
+
+不要因为 loss 有一点波动就断定恢复失败，也不要因为曲线接得平滑就认定成功。先固定环境和输入，核对下一步；跨硬件或版本时再区分数值误差与状态丢失。[PyTorch 的保存教程](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)也把用于继续训练的状态与单独模型权重分开。
 
 ## 恢复的是哪一个时刻
 

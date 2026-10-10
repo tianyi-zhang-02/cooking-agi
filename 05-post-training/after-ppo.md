@@ -2,7 +2,7 @@
 
 **中文** · [English](after-ppo.en.md)
 
-> 阅读时间：约 14 分钟 · 类型：教学 · 最近审阅：2026-10-08
+> 阅读时间：约 18 分钟 · 类型：教学 · 最近审阅：2026-10-09
 
 <span id="ppo"></span>
 
@@ -23,12 +23,12 @@ Prompt 都是“计算 $17\times24$”：
 | 方法 | 它看到了什么 | 它怎样得到更新方向 |
 | --- | --- | --- |
 | PPO | Actor 回答 388，reward $R=0$，Critic 预测 $V=0.6$ | $A=R-V=-0.6$，降低这次轨迹的概率 |
-| GRPO | 同题回答 `[408, 388, 408（含过程）, 428]`，reward `[1,0,1,0]` | 组内标准化后 $A=[1,-1,1,-1]$，提高相对好的回答、降低相对差的回答 |
+| GRPO | 同题回答 `[408, 388, 408（含过程）, 428]`，reward `[1,0,1,0]` | 组内标准化后约为 $A=[1,-1,1,-1]$，提高相对好的回答、降低相对差的回答 |
 | DPO | 固定数据中 `chosen=408, rejected=388` | 让当前 policy 相对于 Reference 更偏爱 chosen |
 
 这三个方法可以各用一句话记住：PPO 问“实际结果比 Critic 预期高多少”；GRPO 问“这次结果比同题其他回答高多少”；DPO 不估 advantage，而是直接问“相对于 Reference，chosen 是否比 rejected 提升得更多”。
 
-## 先看 PPO 有什么可删的 {#ppo_1}
+## PPO 里，谁在学习，谁在打分？ {#ppo_1}
 
 经典 PPO-RLHF 概念图里有四种角色，其中两个需要训练：
 
@@ -39,9 +39,9 @@ Prompt 都是“计算 $17\times24$”：
 | Reward | 冻 | 给回复打分 |
 | Reference | 冻 | KL 锚点，防止跑太远 |
 
-**Critic 是额外成本最大的角色之一**：它跟随当前 policy 训练，还要保存优化器状态。工程上它可以是独立 value model，也可以和 Actor 共享 backbone、只增加 value head；这里的四项首先是概念角色，不保证是四个独立常驻显存的完整模型。后面的故事仍然大多围绕如何省掉 Critic 展开。
+Critic 也要训练，除了前向和反向计算，还要保存优化器状态。它可以是独立的 value model，也可以和 Actor 共享 backbone、只增加 value head。所以表里列的是四种职责，不一定是四个常驻显存的完整模型。接下来的问题是：不用 Critic，能不能也得到有用的比较标准？
 
-## 主线：删掉 Critic {#critic}
+## 不用 Critic，baseline 从哪里来？ {#critic}
 
 Critic 估计状态价值，既可以提供降低方差的 baseline，也参与 TD / GAE 的 bootstrapping。若任务适合整条回答的终局评分，可以考虑用采样统计构造相对信号；多步、延迟奖励的情况则要重新考虑 credit assignment。
 
@@ -64,12 +64,14 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 对同一个 prompt 采样 $G$ 个回答，得到奖励 $R_1,\ldots,R_G$。常见的 response-level advantage 是：
 
 $$
-\mu_R=\frac{1}{G}\sum_{i=1}^{G}R_i,\qquad
-\sigma_R=\sqrt{\frac{1}{G}\sum_i(R_i-\mu_R)^2},\qquad
-\hat A_i=\frac{R_i-\mu_R}{\sigma_R+\varepsilon}.
+\begin{aligned}
+\mu_R&=\frac{1}{G}\sum_{i=1}^{G}R_i,\\
+\sigma_R&=\sqrt{\frac{1}{G}\sum_i(R_i-\mu_R)^2},\\
+\hat A_i&=\frac{R_i-\mu_R}{\sigma_R+\varepsilon}.
+\end{aligned}
 $$
 
-如果奖励为 $[1,0,1,0]$，那么 $\mu_R=0.5$、$\sigma_R=0.5$，优势就是 $[1,-1,1,-1]$。奖励可以来自 Reward Model、人类、数学 verifier、单元测试、代码执行或格式检查器。
+如果奖励为 $[1,0,1,0]$，那么 $\mu_R=0.5$、$\sigma_R=0.5$，忽略很小的 $\varepsilon$ 后，优势约为 $[1,-1,1,-1]$。这里用总体标准差；代码库若用样本标准差，数值尺度会不同。奖励可以来自 Reward Model、人类、数学 verifier、单元测试、代码执行或格式检查器。
 
 常见 GRPO 实现把同一回答的 sequence-level advantage 广播给该回答里的 token，再使用 PPO-style clipped objective：
 
@@ -80,15 +82,14 @@ $$
 $$
 
 $$
-L_{\mathrm{GRPO}}=
-\frac{1}{G}\sum_i\frac{1}{|o_i|}\sum_t
-\min\!\left(
-\rho_{i,t}\hat A_i,
-\operatorname{clip}(\rho_{i,t},1-\epsilon,1+\epsilon)\hat A_i
-\right),
+\begin{aligned}
+c_{i,t}&=\operatorname{clip}(\rho_{i,t},1-\epsilon,1+\epsilon),\\
+s_{i,t}&=\min(\rho_{i,t}\hat A_i,\;c_{i,t}\hat A_i),\\
+J_{\mathrm{GRPO}}&=\frac{1}{G}\sum_i\frac{1}{|o_i|}\sum_t s_{i,t}.
+\end{aligned}
 $$
 
-并通常加上相对于冻结 Reference 的 KL 约束。GRPO 因而没有删掉 rollout、reward、policy ratio 或稳定化约束；它主要删掉的是 learned value baseline。
+这里 $G$ 是同一 prompt 的回答数，$|o_i|$ 是第 $i$ 条回答的有效 token 数；$J$ 是要最大化的策略目标，代码通常最小化 $-J$。[DeepSeekMath 原论文 §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1)还加入相对于 Reference 的 KL 项，后来的配方也有设 $\beta=0$ 的。GRPO 主要省掉的是 learned value baseline，不是 rollout、reward 或 policy ratio。具体框架的 loss reduction、KL 系数和更新次数都要单独看，不能只读算法名。
 
 | | PPO baseline | GRPO baseline |
 | --- | --- | --- |
@@ -97,9 +98,64 @@ $$
 | 主要成本 | 训练 value function | 每个 prompt 要做多次 rollout |
 | 典型风险 | Critic 拟合不准或训练不稳 | 组内缺少奖励差异，采样没有学习信号 |
 
-## 删掉 Critic 之后冒出来的问题 {#critic_1}
+## Loss 是 0，为什么模型还能学？ {#zero-loss-gradient}
 
-这一节才是重点。**采样基线和学出来的基线，失效方式不一样。**
+一组回答有好有坏，训练日志里的 policy loss 却是 0，看起来像没有信号。先别急着改代码：**相互抵消的是几个数，不一定是它们对参数的梯度。**
+
+把问题缩到两个单 token 回答 A、B。采样时各有 50% 的概率，奖励分别是 1、0；为便于手算，使用优势 `[1,-1]`。只用一个参数 $\theta$ 控制概率：$p(A)=\sigma(\theta)$，$p(B)=1-p(A)$。旧概率固定为 0.5。
+
+刚开始 $\theta=0$，两个 ratio 都为 1，尚未进入裁剪的平坦区。要最小化的策略 loss 是：
+
+$$\begin{aligned}
+\mathcal L(\theta)&=-\tfrac12\big[2p(A)-2(1-p(A))\big]\\
+&=1-2\sigma(\theta),\\
+\mathcal L(0)&=0,\qquad \mathcal L'(0)=-0.5.
+\end{aligned}$$
+
+Loss 为 0，斜率却不是 0。用学习率 0.2 做一次普通梯度下降，$\theta$ 变成 0.1，A 的概率约为 **0.525**。这只是手工构造的两动作检查，不是一次语言模型训练实验。
+
+这里最容易写错的是分母。`logp - old_logp.detach()` 在刚采样后数值上可以为 0，但分子仍可导；写成 `logp - logp` 则把同一条计算路径减掉，梯度也一起消失。只做一次更新时可以用当前值的 detached 副本；如果复用这批数据多次，必须保留当初的副本，不能每次重算分母。
+
+<details markdown="1">
+<summary>用几行 PyTorch 看看这个零 loss</summary>
+
+```python
+import torch
+
+theta = torch.tensor(0.0, dtype=torch.float64, requires_grad=True)
+logits = torch.stack((theta, torch.zeros_like(theta)))
+logp = logits.log_softmax(dim=-1)
+old_logp = logp.detach().clone()
+advantages = torch.tensor([1.0, -1.0], dtype=torch.float64)
+loss = -((logp - old_logp).exp() * advantages).mean()
+loss.backward()
+assert abs(loss.item()) < 1e-12
+assert abs(theta.grad.item() + 0.5) < 1e-12
+```
+
+这段只检查第一次更新，省略尚未生效的 clipping。配套 [CPU 脚本](code/policy_gradient_checks.py)另用完整 `min + clamp` 目标验证相同结果，并检查梯度、mask 和归一化。没有调用模型、采样服务或 GPU。
+
+</details>
+
+### 哪些条件变了，初始 loss 就未必是 0？ {#zero-loss-assumptions}
+
+上面的抵消依赖于**完整组、组内中心化、相同 ratio 和所用的平均方式**，不是 GRPO 的运行断言：
+
+| 情况 | 会发生什么 |
+| --- | --- |
+| 同一组奖励完全相同 | 所有 advantage 都是 0，这次 policy-gradient 项确实没有信号；与“正负项抵消”不同 |
+| 把完整组拆到不同 minibatch / rank | 局部日志不一定均值为 0；不要要求每个小批次都显示 0 |
+| 两条回答长度分别为 1、3，优势为 `[1,-1]` | ratio 都为 1 时，先各自平均再平均得到 loss 0；按 4 个有效 token 平均得到 0.5 |
+| 当前策略等于 old，但不等于 Reference | 策略项可能是 0，KL 项不一定是 0；每轮刷新 old 并不会同时重置 Reference |
+| 换了采样温度、推理后端，或用了异步旧轨迹 | 权重文件相同也不保证保存的 log-prob 与训练端一致，先查 ratio 为什么偏离 1 |
+
+长度算例对应的是两种不同的目标，不能靠改日志把它们“修”成相同值。[Dr. GRPO](https://arxiv.org/html/2503.20783v1#S3)讨论了长度与组内标准差带来的权重变化；[TRL 的 loss types](https://huggingface.co/docs/trl/grpo_trainer#loss-types)也区分多种聚合方式。检查配置中的 `loss_type` 和实际 mask，比猜初始 loss 应该是多少更有用。
+
+日志至少把 policy loss、KL、有效 token 数、组内奖励方差和梯度范数分开看。Loss 接近 0 既不证明模型没学，也不证明已经收敛。接下来若想问“被 clip 的 token 还会动吗”，看[完整梯度算例](rlhf/ppo-clipping.md#clipped-token-gradients)；数据为何叫 old，则看[一组回答的生命周期](rlhf/on-off-policy.md#grpo-data-lifecycle)。
+
+## 换成组内比较以后，要注意什么？ {#critic_1}
+
+省去一个模型，不等于省去了判断好坏这件事。现在比较标准来自这一组回答，新的问题也就出在这里。
 
 **问题一：组内奖励没有差异时，基线不含信息。**
 一组回答全对或全错，例如 $R=[0,0,0,0]$，减去组内均值后 advantage 都是 0；带有 $\varepsilon$ 的实现避免了除零，但创造不出相对信号。这一组对 policy-gradient 项**不产生有效梯度**。任务偏简单或偏难时，这种组占比会很高。
@@ -107,26 +163,26 @@ $$
 **问题二：归一化引入偏置。**
 除以组内标准差会改变不同 prompt 的相对权重；按回答长度平均又会改变不同长度的 token 权重。[Dr. GRPO](https://arxiv.org/abs/2503.20783)分析了这些偏置。是否改善你自己的任务，仍要按相同采样与评估预算比较，不能把去掉归一化当成普遍正确的修复。
 
-**问题三：剪切上下限对称，低概率 token 提不上来。**
+**问题三：同样的 ratio 上界，对低概率 token 意味着什么？**
 PPO 在部分分支截平 surrogate 的收益，不是把实际概率比硬限制在区间里。相同乘法上界对低概率 token 对应的绝对增量更小；放宽上界可能改变探索，但熵下降有多种原因，不应只凭一条曲线归因。
 
 **问题四：序列级的损失稀释长回答。**
-损失在样本级平均时，一个 1000 token 的回答和一个 50 token 的回答权重一样，于是长回答里每个 token 拿到的梯度被摊薄了。推理任务恰恰依赖长回答。
+先在每条回答内部平均、再对回答平均时，一个 1000 token 的回答和一个 50 token 的回答总权重相同。前者每个 token 的 loss 权重只有后者的 1/20；实际梯度大小还取决于 advantage 和模型。若重要的推理步骤集中在长回答里，这种加权方式值得检查，但回答长本身不代表推理更好。
 
 DAPO 围绕采样、clipping、token 权重和超长回答做了组合调整。柔性长度惩罚没有取消生成长度上限，也不等于去掉组内标准差。详细算例见 [DAPO：采样、长度和 clipping](dapo.md)。
 
-## 另一条线：连 RL 循环一起删 {#rl}
+## DPO：直接用偏好对训练 {#rl}
 
-DPO 走得更远——在标准的离线训练阶段，**不需要显式 Reward Model、Critic 或在线 rollout loop**。
+DPO 换了一个做法：在标准的离线训练阶段，**不需要显式 Reward Model、Critic 或在线 rollout loop**。
 
 每条数据是 $(x,y_w,y_l)$：prompt、chosen 和 rejected。定义两条回答相对于冻结 Reference 的 log-probability 变化：
 
 $$
-\Delta_w=\log\pi_\theta(y_w\mid x)-\log\pi_{\mathrm{ref}}(y_w\mid x),
+\Delta_w=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)},
 $$
 
 $$
-\Delta_l=\log\pi_\theta(y_l\mid x)-\log\pi_{\mathrm{ref}}(y_l\mid x).
+\Delta_l=\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}.
 $$
 
 DPO 优化：
@@ -138,14 +194,15 @@ $$
 
 不用死记展开式。它只要求：
 
-$$
-\boxed{\text{相对于 Reference，chosen 的提升要大于 rejected 的提升。}}
-$$
+**相对于 Reference，让 chosen 的提升大于 rejected 的提升。**
 
 为什么不用单独训练 Reward Model？Bradley–Terry 偏好模型写成
 
 $$
-P(y_w\succ y_l\mid x)=\sigma\!\left(r(x,y_w)-r(x,y_l)\right).
+\begin{gathered}
+\Delta r=r(x,y_w)-r(x,y_l),\\
+P(y_w\succ y_l\mid x)=\sigma(\Delta r).
+\end{gathered}
 $$
 
 而带 KL 约束的奖励最大化，其最优 policy 与 reward 满足
@@ -175,7 +232,7 @@ $\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺�
 - **IPO** — 使用不同的偏好目标，使相对 log-ratio 拟合有限的目标间隔；不是简单在 DPO 后面加一个通用正则项。[原论文](https://arxiv.org/abs/2310.12036)
 - **KTO** — 可以用非成对的 desirable / undesirable 标签；数据形式更灵活，但成本仍取决于实际标注流程，不能保证一定更便宜。
 
-## 还有一条：把奖励模型换成程序 {#_3}
+## RLVR：让程序检查答案 {#_3}
 
 数学题可以对答案，代码可以跑测试。这类任务的奖励**不需要学**，写个检查器就行。
 
@@ -191,7 +248,7 @@ $\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺�
 | GRPO | prompt + 同题一组回答 | RM、verifier 或环境 | 不需要 | 需要，而且每题多次 | 省 Critic；依赖组内差异并增加生成成本 |
 | DPO | 固定 chosen/rejected pairs | 不显式调用，reward difference 隐含在 loss 中 | 不需要 | 标准离线训练不需要 | 简单稳定；受偏好数据覆盖和分布错配限制 |
 
-扩展算法可以继续用“删掉什么”定位：RLOO 用 leave-one-out baseline 替代 Critic；REINFORCE++ 用 batch statistics；RLVR 用 verifier 替代 learned Reward Model；DAPO 则不再只删组件，而是针对 GRPO 的采样、clipping、token weighting 和超长回答逐项修补。
+再看扩展方法，就不必只数“少了几个模型”：RLOO 改的是 baseline 的估计，REINFORCE++ 使用 batch statistics，RLVR 改的是奖励来源，DAPO 则调整了采样、clipping、token weighting 和超长回答的处理。这些选择不全在同一层，也不一定互斥。
 
 ## 怎么选 {#_5}
 

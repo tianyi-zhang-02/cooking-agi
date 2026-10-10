@@ -124,9 +124,9 @@ assert ring_traffic(120_000_000, 1)["rounds"] == 0
 | 策略 | 每卡状态量 |
 | --- | ---: |
 | 全复制 | $2+2+12=16$ GB |
-| 仅 optimizer 分片 | $2+2+12/4=7$ GB |
-| optimizer 与梯度分片 | $2+2/4+12/4=5.5$ GB |
-| 三者都分片 | $(2+2+12)/4=4$ GB |
+| ZeRO Stage 1：仅 optimizer 分片 | $2+2+12/4=7$ GB |
+| ZeRO Stage 2：optimizer 与梯度分片 | $2+2/4+12/4=5.5$ GB |
+| ZeRO Stage 3：三者都分片 | $(2+2+12)/4=4$ GB |
 
 这里没算激活、通信 buffer 和临时聚合。4 GB 不是训练峰值承诺，最大的计算单元也必须能放下。
 
@@ -135,22 +135,29 @@ assert ring_traffic(120_000_000, 1)["rounds"] == 0
 对行向量写法 $Y=XW$，可以按 W 的列切：
 
 $$
-W=[W_1\;W_2],\qquad Y=[XW_1\;XW_2].
+\begin{aligned}
+W&=[W_1\;W_2],\\
+Y&=[XW_1\;XW_2].
+\end{aligned}
 $$
 
 也可以沿输入维度切，得到需要相加的局部结果：
 
 $$
-X=[X_1\;X_2],\quad
-W=\begin{bmatrix}W_1\\W_2\end{bmatrix},\quad
-Y=X_1W_1+X_2W_2.
+\begin{aligned}
+X&=[X_1\;X_2],\\
+W&=\begin{bmatrix}W_1\\W_2\end{bmatrix},\\
+Y&=X_1W_1+X_2W_2.
+\end{aligned}
 $$
 
 取 $X=[1,2]$，$W=\begin{bmatrix}1&3\\2&4\end{bmatrix}$，完整输出为 $[5,11]$。按行切产生 $[1,3]$ 和 $[4,8]$，相加恢复结果；不是平均。
 
-[Megatron-LM](https://arxiv.org/abs/1909.08053)展示了怎样配合列切和行切组织 Transformer 层。中间结果是否保持分片、在哪里通信，取决于下一步算子；不能每层都无脑 gather。
+[Megatron-LM](https://arxiv.org/abs/1909.08053)展示了怎样配合列切和行切组织 Transformer 层。是否要拼回完整的中间结果，取决于下一步需要什么；每层都 gather，可能只是多传了一遍数据。
 
 TP 的通信频率可能很高，通常更依赖高速互联。小矩阵切得太碎时，通信和调度开销可能超过收益。
+
+如果想把这一步算透，读[张量并行：两张卡怎样算同一层？](tensor-parallel.md)。那里用一个两层 FFN 跟完前向与反向，区分拼接、求和与平均，再解释“一层 Decoder 四次通信”的适用条件。
 
 ## PP：分层之后，别让卡一直等着
 
@@ -188,6 +195,25 @@ $$
 
 EP 则是另一个问题：一条 token 选中两个专家，若专家在远端，就要发送激活，并把结果送回原位置后加权合并。[Megatron 的 MoE 并行说明](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md)展示了它怎样与其他并行方式组合。选中专家的比例不是通信字节比例，更不保证固定倍数加速；热点专家仍可能让别的卡等待。
 
+## 卡数相同，TP8 和 DP8 在忙什么？ {#eight-gpus}
+
+先看 dense 模型，不启用共享专家。**TP8 是 8 张卡合作跑一份模型；DP8 / TP1 是 8 份模型分别接请求。** 一组 TP8 也可以批量处理很多请求，不是“一组只能服务一个人”。差别在于一轮计算由谁合作完成。
+
+假设权重恰好占 16 GiB、每卡 24 GiB，并把全部权重视为可均匀切分。下面只算权重，暂不计 KV、工作区和小型复制参数：
+
+<figure class="worked-update">
+<ol>
+<li><small>TP8 · 1 个协作组</small><strong>理想每卡 2 GiB 权重</strong><span>同一批请求在 8 卡上协作。省下单卡权重空间，但层内需要频繁交换结果。</span></li>
+<li><small>DP8 / TP1 · 8 个副本</small><strong>每卡 16 GiB 权重</strong><span>各副本分担请求，dense 前向不需要副本之间同步。每份还有自己的缓存和队列。</span></li>
+<li><small>DP2 / TP4 · 2 个协作组</small><strong>理想每卡 4 GiB 权重</strong><span>每组 4 卡合作，两组分担流量。这不是同时用了 8 份模型。</span></li>
+</ol>
+<figcaption>纯权重估算，不是可服务并发或吞吐结果。DP8 的单卡剩余 8 GiB，还得容纳缓存和运行时；不能全算成 KV。</figcaption>
+</figure>
+
+权重放得下、目标是总吞吐时，可以先测副本方案；单卡容量不足，或者单请求计算太重时，再比较 TP / PP。TP 的矩阵变小不保证延迟线性下降：通信、kernel 效率和调度都可能抵消收益。[vLLM 扩展指南](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/)给出了单卡、TP 与 TP+PP 的部署起点；实际选择仍要测自己的请求分布。
+
+比较时固定总卡数、到达流量、输入/输出长度和缓存预热条件。不要只看离线 tokens/s：也看首 token 延迟（TTFT）、输出间隔、尾延迟、被拒请求和每卡显存峰值。一个吞吐更高、但排队更久的配置，不一定更适合交互产品。
+
 ## 部署时的 DP，不一定是互不相干的副本
 
 训练里的 DDP 同步梯度；推理里的 data parallelism 通常分配请求。对于 MoE，还要看专家是否跨副本共享。按 2026-10-09 核对的 [vLLM EP 部署说明](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment/)，启用 EP 时，专家组大小为 TP × DP；attention 的复制或切分与专家分布不是同一件事。这是该框架的组合方式，不是所有系统的定义。
@@ -217,6 +243,10 @@ EP 则是另一个问题：一条 token 选中两个专家，若专家在远端�
 这里尚未计额外 residual 张量、元数据、协议和同步。长 prefill 可以分块传，代价是调度与流水线行为随之变化；不能拿 decode 的小包去解释所有场景。
 
 [vLLM 的扩展指南](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/)建议无 NVLink 的某些配置优先考虑 PP，以减少通信；这不构成“PP 在所有 PCIe 机器上最优”的证明。单请求仍要依次经过各 stage，层间负载不均会让卡空等。若模型单卡已放得下，独立副本、量化后单卡、TP 和 PP 都应在相同流量下比较。分离式 serving 若迁移 KV，则又是不同的通信路径。
+
+再算一个传输下限：假设边界有效带宽为 12 GiB/s，且忽略启动延迟。上表的 48 KiB 至少约需 3.8 微秒，192 MiB 约需 15.6 毫秒。前者很可能由启动和同步开销主导；后者已经不能忽略字节量。这个带宽是算例假设，不是 PCIe 或某款显卡的实测值。
+
+PP 可以减少跨卡协作的频率，但也带来顺序依赖：只有一条请求、一个待生成 token 时，后面的 stage 仍要等前面的结果。增加 microbatch 能让不同请求同时占用不同 stage，却需要足够流量，也可能增加排队和缓存占用。因此“没有 NVLink”只是选型条件之一，还要看链路拓扑、prefill 长度、并发与延迟预算。
 
 ## Offload：把状态移出去，也要算回来要多久
 
