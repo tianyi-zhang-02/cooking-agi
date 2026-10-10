@@ -3,7 +3,12 @@ from pathlib import Path
 import re
 import unittest
 
-import torch
+try:
+    import torch
+except ModuleNotFoundError as error:
+    if error.name != "torch":
+        raise
+    torch = None
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -15,13 +20,7 @@ def blocks(language=""):
     return re.findall(r"```python\n(.*?)```", source, re.S)
 
 
-class TensorParallelTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.values = {}
-        for block in blocks():
-            exec(compile(block, CHAPTER, "exec"), cls.values)
-
+class TensorParallelDocumentationTests(unittest.TestCase):
     def test_bilingual_code(self):
         self.assertEqual(blocks(), blocks(".en"))
         for block in blocks():
@@ -42,6 +41,29 @@ class TensorParallelTests(unittest.TestCase):
                 self.assertIn("{#" + anchor + "}", source)
             self.assertIn("4603a836261fb39fd0050342d58dc66aecdf6f74", source)
             self.assertNotIn("Megatron-LM/blob/main/", source)
+
+    def test_eight_gpu_weight_budgets(self):
+        for tensor_ranks, data_ranks, expected in ((8, 1, 2), (1, 8, 16), (4, 2, 4)):
+            self.assertEqual(tensor_ranks * data_ranks, 8)
+            self.assertEqual(16 / tensor_ranks, expected)
+            self.assertEqual(8 * expected, 16 * data_ranks)
+
+    def test_pipeline_boundary_bytes_and_time(self):
+        decode_bytes = 8 * 3072 * 2
+        prefill_bytes = 8 * 4096 * 3072 * 2
+        self.assertEqual(decode_bytes, 48 * 2**10)
+        self.assertEqual(prefill_bytes, 192 * 2**20)
+        self.assertAlmostEqual(decode_bytes / (12 * 2**30) * 1e6, 3.814697265625)
+        self.assertAlmostEqual(prefill_bytes / (12 * 2**30) * 1e3, 15.625)
+
+
+@unittest.skipIf(torch is None, "PyTorch is unavailable; tensor-parallel examples were not verified")
+class TensorParallelTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.values = {}
+        for block in blocks():
+            exec(compile(block, CHAPTER, "exec"), cls.values)
 
     def test_worked_forward_and_input_gradient(self):
         torch.testing.assert_close(self.values["full"], torch.tensor([[9., 6.]], dtype=torch.float64))
@@ -126,20 +148,6 @@ class TensorParallelTests(unittest.TestCase):
         result_shards = sum(partials).chunk(2, 0)
         self.assertEqual(tuple(result_shards[0].shape), (2, 3))
         torch.testing.assert_close(torch.cat(result_shards), inputs * 5)
-
-    def test_eight_gpu_weight_budgets(self):
-        for tensor_ranks, data_ranks, expected in ((8, 1, 2), (1, 8, 16), (4, 2, 4)):
-            self.assertEqual(tensor_ranks * data_ranks, 8)
-            self.assertEqual(16 / tensor_ranks, expected)
-            self.assertEqual(8 * expected, 16 * data_ranks)
-
-    def test_pipeline_boundary_bytes_and_time(self):
-        decode_bytes = 8 * 3072 * 2
-        prefill_bytes = 8 * 4096 * 3072 * 2
-        self.assertEqual(decode_bytes, 48 * 2**10)
-        self.assertEqual(prefill_bytes, 192 * 2**20)
-        self.assertAlmostEqual(decode_bytes / (12 * 2**30) * 1e6, 3.814697265625)
-        self.assertAlmostEqual(prefill_bytes / (12 * 2**30) * 1e3, 15.625)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,13 @@ from pathlib import Path
 import re
 import unittest
 
-import torch
-import torch.nn.functional as functional
+try:
+    import torch
+    import torch.nn.functional as functional
+except ModuleNotFoundError as error:
+    if error.name != "torch":
+        raise
+    torch = None
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,13 +24,7 @@ def example(chapter, function, language=""):
                 if f"def {function}(" in block)
 
 
-class ScalePaddingPerplexityTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.namespace = {}
-        for chapter, function in ((DECODER, "last_valid_logits"), (METRICS, "causal_nll_totals")):
-            exec(compile(example(chapter, function), chapter, "exec"), cls.namespace)
-
+class ScalePaddingDocumentationTests(unittest.TestCase):
     def test_examples_match_across_languages(self):
         for chapter, function in ((DECODER, "last_valid_logits"), (METRICS, "causal_nll_totals")):
             self.assertEqual(example(chapter, function), example(chapter, function, ".en"))
@@ -41,6 +40,22 @@ class ScalePaddingPerplexityTests(unittest.TestCase):
             else:
                 self.assertRegex(figure, r"[\u4e00-\u9fff]")
             self.assertIn("536ecc007387a50e77603bb5d92100e9b07514cc", source)
+
+    def test_ppl_weighted_aggregation(self):
+        total = 2 * math.log(2) + 8 * math.log(8)
+        self.assertAlmostEqual(math.exp(total / 10), 6.06286626604159)
+        self.assertNotAlmostEqual(math.exp(total / 10), (2 + 8) / 2)
+        self.assertAlmostEqual(math.exp(-(math.log(0.5) + math.log(0.25)) / 2), math.sqrt(8))
+        self.assertAlmostEqual(2 ** (-(math.log2(0.5) + math.log2(0.25)) / 2), math.sqrt(8))
+
+
+@unittest.skipIf(torch is None, "PyTorch is unavailable; tensor examples were not verified")
+class ScalePaddingPerplexityTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.namespace = {}
+        for chapter, function in ((DECODER, "last_valid_logits"), (METRICS, "causal_nll_totals")):
+            exec(compile(example(chapter, function), chapter, "exec"), cls.namespace)
 
     def test_softmax_shift_and_scale(self):
         scores = torch.tensor([8., -8.], dtype=torch.float64)
@@ -110,13 +125,6 @@ class ScalePaddingPerplexityTests(unittest.TestCase):
         self.assertAlmostEqual(float(first_total + second_total), 5 * math.log(6))
         self.assertAlmostEqual(math.exp(float((first_total + second_total) / 5)), 6)
         self.assertEqual(len(set([1, 2, 3] + [4, 5])), first_count + second_count)
-
-    def test_ppl_weighted_aggregation(self):
-        total = 2 * math.log(2) + 8 * math.log(8)
-        self.assertAlmostEqual(math.exp(total / 10), 6.06286626604159)
-        self.assertNotAlmostEqual(math.exp(total / 10), (2 + 8) / 2)
-        self.assertAlmostEqual(math.exp(-(math.log(0.5) + math.log(0.25)) / 2), math.sqrt(8))
-        self.assertAlmostEqual(2 ** (-(math.log2(0.5) + math.log2(0.25)) / 2), math.sqrt(8))
 
     def test_ppl_masked_gradient_and_direct_calculation(self):
         generator = torch.Generator().manual_seed(614)
