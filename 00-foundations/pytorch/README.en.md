@@ -16,8 +16,9 @@ Run each chapter's code blocks in order in one Python session, then start a fres
 | --- | --- | --- |
 | [1 · Tensors and storage](tensors-and-storage.en.md) | Why did changing a slice also change the original? | Shape, dtype, indexing, views, and copies |
 | [2 · Operations and shapes](operations-and-shapes.en.md) | Why does valid code compute the wrong loss? | Broadcasting, reductions, matrix products, and stability |
-| [3 · Autograd](autograd.en.md) | Why is `.grad` None despite a computation graph? | Accumulation, leaves, detach, and VJPs |
-| [4 · From batches to training](training-loop.en.md) | How do we check learning rather than just a working forward pass? | Modules, loaders, validation, logging, and recovery |
+| [3 · Cross-entropy and loss](cross-entropy.en.md) | Why do two “mean losses” give different numbers? | LogSumExp, soft targets, masks, and denominators |
+| [4 · Autograd](autograd.en.md) | Why is `.grad` None despite a computation graph? | Accumulation, leaves, detach, and VJPs |
+| [5 · From batches to training](training-loop.en.md) | How do we check learning rather than just a working forward pass? | Modules, loaders, validation, logging, and recovery |
 
 ## Follow one small update
 
@@ -72,7 +73,7 @@ with torch.no_grad():
 assert math.isclose(loss_after.item(), 0.5787059562, abs_tol=1e-9)
 ```
 
-Chapter 1 explains storage; chapter 2 covers products and averages; chapter 3 traces gradients; chapter 4 adds loading, validation, and recovery. You do not need to know every function yet. First follow what each step produces, then study its implementation.
+Chapter 1 explains storage; chapter 2 covers operations and shapes; chapter 3 unpacks the loss; chapter 4 traces gradients; chapter 5 adds loading, validation, and recovery. You do not need to know every function yet. First follow what each step produces, then study its implementation.
 
 This example uses mean CE without class weights and SGD without momentum or weight decay. Changing those conditions changes the update. See the [PyTorch 2.8 CE](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html) and [SGD](https://docs.pytorch.org/docs/2.8/generated/torch.optim.SGD.html) contracts.
 

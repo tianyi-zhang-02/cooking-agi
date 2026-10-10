@@ -221,6 +221,92 @@ def write_tensorboard(history, log_dir):
 
 A TensorBoard graph depends on capture method and example inputs; it is not proof of all dynamic program branches. Use curves to raise questions, then check code and data. Visualization does not replace validation.
 
+## 7. Follow a batch onto the GPU {#gpu-data-flow}
+
+So far, everything has run on the CPU. Moving to a GPU does not mean moving the whole application: the CPU usually reads and assembles data, the device computes, and logging brings back selected results.
+
+<figure class="worked-update">
+<ol>
+<li><small>01 / CPU</small><strong>Assemble a batch</strong><span>The Dataset retrieves samples; collation assembles features and labels. Text also needs lengths, padding, and masks.</span></li>
+<li><small>02 / HOST MEMORY</small><strong>Prepare for transfer</strong><span>Optional pinned memory is still host memory, not GPU memory. It holds a batch ready to send.</span></li>
+<li><small>03 / TRANSFER</small><strong>Copy to the device</strong><span>Features, labels, and model must be on compatible devices. Computation follows preceding copies in the same CUDA stream.</span></li>
+<li><small>04 / GPU</small><strong>Forward, backward, update</strong><span>Weights stay on the device. Each batch produces activations and gradients; the update leaves new weights and optimizer state.</span></li>
+<li><small>05 / RESULTS</small><strong>Retrieve useful metrics</strong><span>You usually do not need every batch's logits on the CPU. Reading a GPU scalar can also make the host wait.</span></li>
+</ol>
+<figcaption>A typical single-GPU path. CPU offload, GPU preprocessing, and distributed communication add other paths.</figcaption>
+</figure>
+
+Inside the GPU, tensors usually reside in global memory. Kernels move working portions through caches, shared memory, or registers and leave outputs for later operations. The exact path depends on the kernel and fusion choices; a Python `matmul` does not mean the entire matrix fits into on-chip storage. The [attention-kernel chapter](../deep-dives/attention-kernels.en.md) follows that distinction further.
+
+### Get placement right before tuning throughput {#device-placement}
+
+This version changes device handling for one update. Move the model to its destination before creating the optimizer. Keep the loader simple until measurements point to a bottleneck.
+
+```python
+def device_step(model, optimizer, features, labels):
+    device = next(model.parameters()).device
+    features = features.to(device, non_blocking=True)
+    labels = labels.to(device, non_blocking=True)
+    model.train()
+    optimizer.zero_grad(set_to_none=True)
+    loss = nn.functional.cross_entropy(model(features), labels)
+    loss.backward()
+    optimizer.step()
+    return loss.detach()
+```
+
+This assumes a single-device model and the two input tensors used earlier, not an arbitrary nested or multi-device batch. Numerical tests cover its CPU path; **no CUDA throughput experiment was run for this note**. The returned loss is detached but stays on its device. Keeping every return value in a list still accumulates tensors.
+
+`non_blocking=True` avoids waiting at the host copy call where possible. It does not establish overlap between the next transfer and current computation. That also needs suitable pinned input, separate streams, available copy hardware, and correct dependencies. Start with the ordinary loop and inspect a profiler trace before building a prefetcher. [PyTorch's transfer tutorial](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html) compares the timelines.
+
+### Where does the time go? Try three batches {#pipeline-example}
+
+Suppose each batch needs 4 ms of preparation, 2 ms of transfer, and 8 ms of GPU computation. These are **illustrative times, not measurements**. Three serial batches take $3\times(4+2+8)=42$ ms.
+
+Now assume independent resources for the three stages, no contention, and enough buffering to prepare ahead. The first batch still takes 14 ms. After that, the slowest stage completes a batch every 8 ms, giving $14+2\times8=30$ ms:
+
+| Batch | CPU preparation | Transfer | GPU computation |
+| --- | --- | --- | --- |
+| 1 | 0–4 ms | 4–6 ms | 6–14 ms |
+| 2 | 4–8 ms | 8–10 ms | 14–22 ms |
+| 3 | 8–12 ms | 12–14 ms | 22–30 ms |
+
+<details markdown="1">
+<summary>Change the stage times (Python)</summary>
+
+```python
+def ideal_pipeline_ms(batch_count, prepare_ms, transfer_ms, compute_ms):
+    if not isinstance(batch_count, int) or isinstance(batch_count, bool) or batch_count < 1:
+        raise ValueError("batch_count must be a positive integer")
+    stages = (prepare_ms, transfer_ms, compute_ms)
+    if any(not isinstance(value, (int, float)) or isinstance(value, bool)
+           or not 0 < value < float("inf") for value in stages):
+        raise ValueError("stage times must be finite and positive")
+    serial = batch_count * sum(stages)
+    overlapped = sum(stages) + (batch_count - 1) * max(stages)
+    return serial, overlapped
+
+assert ideal_pipeline_ms(3, 4, 2, 8) == (42, 30)
+assert ideal_pipeline_ms(3, 12, 2, 8) == (66, 46)
+```
+
+</details>
+
+The second calculation raises preparation to 12 ms, making it the slowest stage. Faster GPU computation alone may then do little for sustained throughput. Real queues, variable-length samples, resource contention, and startup costs complicate this ideal calculation; it helps identify questions, not predict measured speed.
+
+### Low utilization: what should you check first? {#gpu-waiting}
+
+| Observation | Small diagnostic experiment | Premature conclusion |
+| --- | --- | --- |
+| GPU waits for batches | Compare normal loading with reusing one prepared batch | More GPUs must help |
+| Many small transfers | Look for per-sample copies and repeated `.cpu()` / `.item()` calls | `non_blocking=True` fixes it all |
+| Host memory grows with workers | Inspect prefetch queues, batch size, and per-process copies | More workers are always better |
+| Logging takes longer than computation | Retrieve synchronized metrics less often and compare traces | Remove all checks or retain all outputs |
+
+Reusing a batch diagnoses data overhead; it is not a realistic training-throughput benchmark. Timing must wait for the measured GPU work to finish, rather than just measuring Python enqueue time. Multiple streams also require dependency and lifetime handling; an extra `synchronize()` does not prove an efficient implementation. See [CUDA semantics](https://docs.pytorch.org/docs/2.8/notes/cuda.html#asynchronous-execution).
+
+The earlier save example only checks matching outputs. For interrupted training, continue with [checkpoints and recovery](../../practice/post-training/checkpoint-and-resume.en.md): it tests the difference between continuing a run and starting over from the same weights.
+
 ## Sources and next steps
 
 We deliberately avoid old torchtext data-loading tutorials: torchtext development has stopped, with 0.18 its final stable release. Learning PyTorch does not require installing every domain library, and an old screenshot is not a dependency specification.

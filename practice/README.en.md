@@ -57,6 +57,8 @@ The route also covers the engineering decisions between data and results: [SFT, 
 
 ## Run the small examples
 
+Once a model is trained, other people need to use it reliably. [A request through the service](../06-systems/llm-serving.en.md) connects inference mechanics to system design: queueing, long-prompt chunks, cancellation, and the choice between replicas and model partitioning. Use that flow to plan a representative load test rather than starting with a supposedly fastest framework.
+
 From the repository root, without a GPU or API key:
 
 ```bash

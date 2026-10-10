@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 670 270" width="670" height="270" role="img">
+<svg lang="zh-CN" aria-labelledby="figure-title" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 670 270" width="670" height="270" role="img">
+<title id="figure-title">加上 ReLU，决策边界有什么变化</title>
 <style>
   :root {
     --ink: #1c1e22; --dim: #8a857e; --rule: #d9d5ce; --warp: #9aa0a6;
@@ -22,10 +23,13 @@
   .warp { fill: none; stroke: var(--warp); stroke-width: 0.55; opacity: 0.55; }
   .r0 { fill: var(--f0); } .r1 { fill: var(--f1); }
   .p0 { fill: var(--c0); } .p1 { fill: var(--c1); }
+
+text { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; }
+.sub { font-style: normal; }
 </style>
 <defs><clipPath id="clip16_46"><rect x="16" y="46" width="190" height="190"/></clipPath></defs>
-<text class="ttl" x="16" y="25">A &#183; logistic regression</text>
-<text class="sub" x="16" y="38">3 params &#183; 50% accuracy</text>
+<text class="ttl" x="16" y="25">A · 逻辑回归</text>
+<text class="sub" x="16" y="38">3 个参数 · 准确率 50%</text>
 <g clip-path="url(#clip16_46)">
 <rect class="r0" x="16" y="46" width="190" height="190"/>
 <rect class="r1" x="191.5" y="121.7" width="16.1" height="3.2"/>
@@ -428,8 +432,8 @@
 </g>
 <rect class="frame" x="16" y="46" width="190" height="190"/>
 <defs><clipPath id="clip240_46"><rect x="240" y="46" width="190" height="190"/></clipPath></defs>
-<text class="ttl" x="240" y="25">B &#183; Linear &#8594; Linear</text>
-<text class="sub" x="240" y="38">33 params, no activation &#183; 50%</text>
+<text class="ttl" x="240" y="25">B · Linear → Linear</text>
+<text class="sub" x="240" y="38">33 个参数，无激活 · 50%</text>
 <g clip-path="url(#clip240_46)">
 <rect class="r0" x="240" y="46" width="190" height="190"/>
 <rect class="r1" x="415.5" y="121.7" width="16.1" height="3.2"/>
@@ -832,8 +836,8 @@
 </g>
 <rect class="frame" x="240" y="46" width="190" height="190"/>
 <defs><clipPath id="clip464_46"><rect x="464" y="46" width="190" height="190"/></clipPath></defs>
-<text class="ttl" x="464" y="25">C &#183; Linear &#8594; ReLU &#8594; Linear</text>
-<text class="sub" x="464" y="38">33 params &#183; 100% accuracy</text>
+<text class="ttl" x="464" y="25">C · Linear → ReLU → Linear</text>
+<text class="sub" x="464" y="38">33 个参数 · 准确率 100%</text>
 <g clip-path="url(#clip464_46)">
 <rect class="r0" x="464" y="46" width="190" height="190"/>
 <rect class="r1" x="552.6" y="44.4" width="103.1" height="3.2"/>
@@ -1263,5 +1267,5 @@
 <circle class="p0" cx="503.7" cy="95.0" r="2"/>
 </g>
 <rect class="frame" x="464" y="46" width="190" height="190"/>
-<text class="sub" x="16" y="258">black curve = decision boundary &#183; shading = predicted class &#183; B and C are the same architecture with the same 33 parameters, differing by one ReLU</text>
+<text class="sub" x="16" y="258">曲线是决策边界，底色是预测类别。B 与 C 都有 33 个参数，只差一个 ReLU。</text>
 </svg>

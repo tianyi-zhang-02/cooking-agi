@@ -147,7 +147,7 @@ def render(page, repo, data=None):
     guide = page.rel("community/next-stop-guide.html" if zh else "community/next-stop-guide.en.html")
     behind = page.rel("contributors.html" if zh else "contributors.en.html")
     sibling = page.rel("community/next-stop.en.html" if zh else "community/next-stop.html")
-    home = page.rel("index.html" if zh else "index.en.html")
+    home = page.rel("index.zh.html" if zh else "index.html")
     prefix = "../" * page.depth
     coordinates = []
     for index, record in enumerate(records[:24]):
@@ -206,7 +206,7 @@ def render(page, repo, data=None):
       <a href="{home}">← {choose('回到笔记', 'Notes')}</a>
       <div><a href="{behind}">{choose('幕后', 'Behind')}</a><a href="#departures">{choose('去向', 'Log')}</a>
         <button class="crew-motion" type="button" aria-pressed="false" hidden data-pause="{choose('暂停', 'Pause')}" data-play="{choose('继续', 'Resume')}">{choose('暂停', 'Pause')}</button>
-        <a href="{sibling}">{choose('EN', '中文')}</a></div>
+        <a href="{sibling}" data-language-switch="{choose('en', 'zh')}">{choose('EN', '中文')}</a></div>
     </nav>
     <header class="orbit-title"><p>WHERE WE GO NEXT</p><h1>{choose('大家的下一站。', 'Where readers go next.')}</h1></header>
     <div class="crew-field">{''.join(coordinates)}</div>

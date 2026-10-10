@@ -10,14 +10,15 @@
 2. [循环神经网络：RNN 与 LSTM](recurrent-models.md)：边读边更新一份状态；LSTM 用门控决定保留和忘掉哪些信息。
 3. [序列到序列（Seq2Seq）](seq2seq.md)：先理解输入，再逐步生成输出；注意力让模型每一步都能回看相关输入。
 4. [原始 Transformer](vanilla-transformer.md)：不再逐步传递一个状态，改用注意力让不同位置交换信息。
-5. [仅解码器模型（Decoder-only）](decoder-only.md)：根据前面的内容预测下一个单元，一步步生成完整文本。
+5. 理解 Transformer 后，按任务选一条：先看 [BERT](bert.md) 怎样利用前后文恢复被遮住的词、再微调做分类；或者直接看 [Decoder-only](decoder-only.md) 怎样从前缀一步步生成。
 
 ```mermaid
 flowchart LR
     A["离散输入<br/>Token"] --> B["递归状态<br/>RNN / LSTM"]
     B --> C["条件生成<br/>Seq2Seq"]
     C --> D["并行注意力<br/>Transformer"]
-    D --> E["统一生成目标<br/>Decoder-only"]
+    D --> E["理解已有文本<br/>BERT"]
+    D --> F["从前缀继续生成<br/>Decoder-only"]
 ```
 
 理解主线以后，可以去 [进阶拆解](../deep-dives/) 补数学；如果更喜欢先运行代码，也可以直接进入 [从零实现实验](../code/)。

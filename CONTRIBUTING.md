@@ -16,7 +16,7 @@
 ## 内容怎么写
 
 1. 从具体问题和小例子讲起，再讲原理、假设与局限。长推导可以放折叠块；不要把主线藏起来。
-2. `.md` 对应中文，`.en.md` 对应英文。尽量同 PR 更新；只写一种也欢迎，但标明缺哪部分、怎么补。结构检查只是提醒。
+2. 文章的 `.md` 对应中文，`.en.md` 对应英文；仓库首页例外，`README.md` 是英文，`README.zh.md` 是中文。尽量同 PR 更新；只写一种也可以先开 draft PR，说明怎么补齐。CI 会检查双语结构，合并前需要通过。
 3. 术语统一放在 `site/glossary.tsv`，不反复手写括号解释。公式用 `$...$` 或 `$$...$$`。
 4. 代码放在相应章节的 `code/`，写清运行方法；图尽量提供 SVG 或生成脚本，外部素材说明来源和使用许可。
 5. 给事实和关键结论附公开来源。实验写明条件，区分已验证、假设和计划；没有结果也可以记录。
@@ -25,14 +25,14 @@
 
 ## 目录和本地检查
 
-原理与教学演示放在现有学习章节；实践入口在 `practice/`；求职在 `career/` / `interview/`，论文在 `papers/`。只调整导航时不要搬文件，避免已有链接失效。
+站点分四个入口：`learn/` 组织基础知识，`interview/` 放 coding 和面试复习，`practice/` 讲系统设计与工程取舍，`career/` 留求职经历和准备方法。文章仍放在各自的主题目录；只调整导航时不要搬文件，避免已有链接失效。论文来源直接附在相关文章里，不再单设一级栏目。
 
 ```bash
-pip install markdown pygments
+pip install markdown pygments numpy
 python site/collaboration.py
 python -m unittest discover -s site/tests
 python site/leakcheck.py
-python site/paritycheck.py
+python site/paritycheck.py --strict
 python site/build.py --serve
 ```
 
@@ -70,7 +70,7 @@ Keep each PR focused and explain the change, evidence, and checks. Routine merge
 ## Writing notes
 
 1. Start with a concrete question and example, then explain the mechanism, assumptions, and limits. Fold long derivations, not the main argument.
-2. Pair Chinese `.md` with English `.en.md` where possible. One-language work is welcome with an explicit follow-up plan. Structure checks are advisory.
+2. Pair Chinese `.md` articles with English `.en.md` files. The repository homepage is the exception: `README.md` is English and `README.zh.md` is Chinese. A draft PR may start in one language with a plan to add the other; bilingual structure checks must pass before merge.
 3. Put recurring terminology in `site/glossary.tsv`. Use `$...$` or `$$...$$` for math.
 4. Put runnable examples in the section's `code/` directory with instructions. Prefer SVG or reproducible figures; credit external assets and check reuse permission.
 5. Cite public evidence, state experimental conditions, and distinguish verified findings, hypotheses, and plans. Negative results are useful too.
@@ -79,14 +79,14 @@ Keep each PR focused and explain the change, evidence, and checks. Routine merge
 
 ## Structure and local checks
 
-Concepts and teaching demos stay in the learning chapters. `practice/` is the practice entry, `career/` and `interview/` cover preparation, and `papers/` holds paper notes. Don't move files just to reorganize navigation; preserve existing URLs.
+The site has four entry points: `learn/` for foundations, `interview/` for coding and interview revision, `practice/` for system design and engineering decisions, and `career/` for job-search experiences and preparation. Articles stay in their topic directories. Don't move files just to reorganize navigation; preserve existing URLs. Link papers from the relevant articles rather than adding a separate top-level section.
 
 ```bash
-pip install markdown pygments
+pip install markdown pygments numpy
 python site/collaboration.py
 python -m unittest discover -s site/tests
 python site/leakcheck.py
-python site/paritycheck.py
+python site/paritycheck.py --strict
 python site/build.py --serve
 ```
 

@@ -331,11 +331,13 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 
 想把两种常用方法算清楚，可以接着读 [LoRA / QLoRA](lora-and-qlora.md)和[蒸馏](distillation.md)：前者算参数、梯度和显存，后者算软标签、KL 和 top-k 省略了什么。
 
+想知道 SFT 示范怎么从模型输出里筛出来，接着读[拒绝采样与数据筛选](rejection-sampling.md)：区分“挑一份交给用户”和“挑一批继续训练”，再检查筛选是否悄悄改变了题目比例。
+
 **二、用结果教：RL 那条线**
 
 5. [RLHF 的三个阶段，和后来发生了什么](rlhf/) —— 四个模型，谁在训谁被冻住
-6. [PPO 之后：每个算法都在删掉它的一部分](after-ppo.md) —— GRPO / RLOO / REINFORCE++ / DAPO / DPO 的统一读法
-7. [可验证奖励：当奖励不需要学](verifiable-rewards.md) —— 它收窄了 reward hacking，但没有消灭它；可验证性是连续谱不是二分
+6. [PPO 之后](after-ppo.md) —— GRPO / RLOO / REINFORCE++ / DAPO / DPO 怎样使用不同的信号和目标
+7. [可验证奖励](verifiable-rewards.md) —— 从排序测试看奖励漏洞，再看稀疏反馈与过程检查
 
 **三、怎么真的跑起来**
 

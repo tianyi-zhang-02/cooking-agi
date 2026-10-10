@@ -183,7 +183,7 @@ This is the part of the original paper's (2017) encoder-decoder structure most w
 | Decoder self-attention | tgt | tgt | padding **∨** causal | $(B,h,T,T)$ |
 | **Cross-attention** | **tgt** | **memory** | blocks src padding | $(B,h,T,S)$ ← not square |
 
-![where Q, K and V come from at each of the three attention sites](assets/attention-sites.svg)
+![where Q, K and V come from at each of the three attention sites](assets/attention-sites.en.svg)
 
 Cross-attention is the only place the two towers touch: at every generation step, the decoder takes its current state as the query and looks things up once in the encoder's output.
 
@@ -230,7 +230,7 @@ $$\mathbf{x} \leftarrow \text{LayerNorm}\big(\mathbf{x} + \text{Sublayer}(\mathb
 
 $$\mathbf{x} \leftarrow \mathbf{x} + \text{Sublayer}\big(\text{Norm}(\mathbf{x})\big)$$
 
-![the residual path under post-norm and pre-norm](assets/transformer-block.svg)
+![the residual path under post-norm and pre-norm](assets/transformer-block.en.svg)
 
 The change affects the gradient path, not just notation. [Research on LayerNorm placement](https://arxiv.org/abs/2002.04745) found large expected gradients near the output of Post-LN models under particular initialization assumptions; warmup can temper early updates. The original Noam schedule is
 
@@ -330,7 +330,7 @@ Neither of the two implementations in [`code/`](code/) calls `nn.MultiheadAttent
   init loss:     4.19  vs  ln(V) = 4.16
 ```
 
-![what prefill and a single decode step each compute](assets/kv-cache.svg)
+![what prefill and a single decode step each compute](assets/kv-cache.en.svg)
 
 With a cache, query positions start at `cache.pos + i`, while keys start at zero and end at `cache.pos + T - 1`. An existing prefix therefore gives a non-square mask $(T,S)$; RoPE is sliced from `cache.pos` too. In this implementation `cache.pos` advances once per model forward, after the entire layer loop. Equivalence checks require unchanged parameters, prefix, positions, and visibility, with dropout disabled; changed weights or truncated caches are not directly comparable to full forward passes.
 

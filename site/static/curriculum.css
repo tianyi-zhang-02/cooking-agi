@@ -37,6 +37,7 @@
 .atlas-area .study-atlas { margin: 1rem 0 0; }
 .worked-update { margin: 1.5rem 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--panel); }
 .prose .worked-update ol { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); list-style: none; padding: 0; margin: 0; }
+.prose .worked-update--pairs ol { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .prose .worked-update li { min-width: 0; padding: 1rem; margin: 0; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); }
 .worked-update small { display: block; font: .72rem/1.5 var(--mono); color: var(--ember); }
 .worked-update strong { display: block; margin: .3rem 0; font-size: .9rem; }

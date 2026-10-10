@@ -24,6 +24,11 @@ class CollaborationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             collaboration.validate(broken, self.nav)
 
+    def test_checked_in_codeowners_matches_navigation(self):
+        expected = collaboration.codeowners(self.config, self.nav)
+        actual = (collaboration.ROOT / ".github/CODEOWNERS").read_text()
+        self.assertEqual(actual, expected)
+
     def test_new_group_requires_contact(self):
         self.nav["group"].append({"id": "new-topic"})
         with self.assertRaises(ValueError):

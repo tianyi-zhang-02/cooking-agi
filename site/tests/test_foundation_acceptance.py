@@ -77,7 +77,9 @@ class ParityAcceptanceTests(unittest.TestCase):
     def test_decoder_projection_formulas_use_row_vectors(self):
         for suffix in ('.md', '.en.md'):
             source = (ROOT / ('00-foundations/core/decoder-only' + suffix)).read_text()
-            self.assertIn(r'\right]W_{\text{down}}', source)
+            self.assertIn(r'g=\operatorname{SiLU}(xW_{\text{gate}})', source)
+            self.assertIn(r'u=xW_{\text{up}}', source)
+            self.assertIn(r'\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}', source)
             self.assertNotIn(r'W_{\text{down}}\left[', source)
             self.assertIn(r'z_t=h_tW_{\text{vocab}}', source)
             self.assertIn(r'\operatorname{ReLU}(xW_1)W_2', source)

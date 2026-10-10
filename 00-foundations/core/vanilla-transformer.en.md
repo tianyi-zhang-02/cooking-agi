@@ -36,6 +36,26 @@ $$\text{Attention}(Q,K,V)=\text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\rig
 
 $M$ is the mask: it adds 0 at allowed positions and $-\infty$ at forbidden positions.
 
+Padding and a padding mask are different operations. For input lengths 3 and 5, a collator can pad both to 5; the mask then excludes the first input's two placeholder keys. The mask does not add tokens, and the batch need not use the model's maximum length.
+
+For valid decoder self-attention queries, a key must be both non-padding and not in the future. With query rows and key columns, the **strictly upper triangle** is blocked; the diagonal stays visible because the current input predicts the next token. Cross-attention can read the full source sentence, not just a source prefix matching the translation position. These are the original architecture's rules; packing and local attention can impose further restrictions. [Transformer §3.2.3](https://arxiv.org/html/1706.03762v7#S3.SS2.SSS3)
+
+<div class="encoder-lab" data-encoder-lab="attention" data-lang="en" id="attention-lab" markdown="1">
+
+**Which positions can this query read?**
+
+Translate `I like tea` → `ich mag Tee`. Decoder inputs are `[BOS], ich, mag`; the targets are `ich, mag, Tee`.
+
+| Site and query | Readable keys |
+| --- | --- |
+| Encoder, at `like` | `I`, `like`, `tea` |
+| Decoder self-attention, at `ich` | `[BOS]`, `ich` |
+| Cross-attention, at `ich` | source `I`, `like`, `tea` |
+
+Decoder input `ich` predicts `mag`: it may read itself, but not the future input `mag`. Cross-attention reads the already supplied source. Padding keys stay blocked in all three. Enable JavaScript to compare the visibility matrices and select other query rows. The cells show permissions, not learned weights.
+
+</div>
+
 ## Why the architecture scales {#why-the-architecture-scales}
 
 - **Parallel training:** $Q/K/V$ for every position are computed at once.
@@ -346,7 +366,7 @@ During training the true target sequence is known, so it can be shifted right as
 
 ## Next {#next}
 
-Continue to [Decoder-only](decoder-only.en.md) to see how conditional generation, dialogue, code, and many reasoning tasks are unified as autoregressive prediction over a single token stream. Original configurations and weight-sharing conventions here follow [Attention Is All You Need](https://arxiv.org/abs/1706.03762).
+Choose a task next: [BERT](bert.en.md) uses the encoder for bidirectional pretraining and text understanding; [Decoder-only](decoder-only.en.md) expresses conditional generation, dialogue, and code as autoregressive prediction over a token stream. You need not read every model in historical order. Original configurations and weight-sharing conventions here follow [Attention Is All You Need](https://arxiv.org/abs/1706.03762).
 
 ## Quick learning: one 2017 Transformer layer from end to end {#quick-learning-one-2017-transformer-layer-from-end-to-end}
 

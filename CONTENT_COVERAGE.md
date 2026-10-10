@@ -1,15 +1,178 @@
 # 内容扩展核对表
 
-维护记录，不加入站点导航。最后核对：2026-10-09。当前发布状态以 CONTENT_RELEASE_CHECKLIST.md 为准；下方带日期的记录保留当批状态，不作为最新完成率。
+维护记录，不加入站点导航。最后核对：2026-10-10。当前发布状态以 CONTENT_RELEASE_CHECKLIST.md 为准；下方带日期的记录保留当批状态，不作为最新完成率。
 
 目标是覆盖参考知识库的知识点，并用原创讲解、可核对的例子和原始来源把它们讲透。不是复制第三方全文、图片或代码，也不把“目录里有这个词”当作已完成。
 
-## 本轮整理后的状态（2026-10-09）
+## 当前交接：先开审阅 PR（2026-10-10）
 
-- 用户已同意先整理并推送已有内容，未完成的阅读、深化与逐篇审稿继续保留。下方带日期的“不推送”是先前批次的决定，不是当前发布约束。
-- 附录已登记 67 个入口，目前 24 项有专门讲解、43 项需补充或对照、0 项完全缺少相关专题；原参考附录 1 正文累计读完 8 篇。计数来自 `site/appendix-coverage.toml`，不把文章存在当成完整验收。
-- 最近新增的 NoPE / Kimi K3、Qwen3 Embedding / BGE-M3、BM25 与筛法均已接入各自阅读路线，保留原始论文、实现与教学算例的边界。BERT 的新稿尚未接入，本轮不发布。
+用户同意将已完成并落入工作区的内容整理为 Draft PR，方便集中审查；本轮不合并、不部署。下方记录中的“本地未发布”保留历史含义，不代表不能提交这次快照。入口、README 与内容变更一起交接，未安装的重算草稿不混入。
+
+参考附录 1 仍为 43 / 65 篇正文已读，另外 22 篇、部分图中公式和外链、全站双语语义审稿仍待完成。PR 是审阅入口，不是完成声明；独立审核与最终发布门槛不变。
+
+## 先整合入口与进度（2026-10-10，本地未发布）
+
+按用户最新顺序，暂不扩新章节：先把已有功能与内容整理回笔记，再继续逐篇核对。网站既有视觉设计、四个大板块与文章 URL 保持不变。
+
+- README 以英文为主，中文单独保留；去掉两张用途接近的入口表，改为四个按用途排列的入口、三条基础主题路线，再接参与与运行说明。不另做一份易过期的完整目录。手机验收发现表格需要横向滚动，改用普通链接列表，入口说明不用左右拖才能读完。
+- `learn/coverage.md` / `.en.md` 顶部补当前版本摘要，让读者看到语言入口、README 与正文图解分别改了什么；详细阅读状态仍以两份 TOML 为准。
+- 一键切换、首次英文、语言记忆、首次提示已在当前代码中实现；本轮重新验收，不把它们写成刚新增的功能。直接打开中文或英文文章不强制跳转。没有 JavaScript 时也能用普通链接切换。
+- 修复实际验收发现的英文入口问题：Markdown 链接转成 GitHub 源文件地址时，现在保留 `#english` 等小节锚点，不再把读者送回贡献说明的中文开头。
+- 导航维护说明修正旧的“论文 / 代码与练习”分区描述，与目前基础、面试、工程、求职四个入口对齐。
+- 附录正文阅读数仍为 43；主线 82 个主题和附录 67 个入口相互重叠，不能相加当作篇数。65 项有实质正文、2 项仍需扩充或对照，并不表示其余文章已全部审完。
+
+发布与验收证据集中在 `CONTENT_RELEASE_CHECKLIST.md`，本轮暂存于 `/private/tmp/cooking-entry-consolidation-20261010/`。最终全量 924 项测试通过，覆盖页稳定锚点补充后 14 项入口专项再次通过；232 对严格双语、链接、隐私和桌面 / 手机展示检查通过。历史批次保留，不用旧结果替代这轮最终状态；全站逐篇审核和完整 diff 仍未完成，不发布。
+
+## 检索：补信号与打分约定（2026-10-10，本地未发布）
+
+Chrome 读完 [Qwen3 Embedding / BGE](https://tcn6r3nlptym.feishu.cn/wiki/Ud7EwCgURiJLUXk92pGcuvLCnwc)、[InfoNCE / CE](https://tcn6r3nlptym.feishu.cn/wiki/Wp8ZwtaatiohmYkJM3hcV6Fan6b)、[BM25 / TF-IDF](https://tcn6r3nlptym.feishu.cn/wiki/FXHqwYenaiyT3KkvFsacwisun9c)正文至评论入口，核对 EOS 图、主要 loss 公式、TF-IDF 变体及 BM25 公式。BM25 参考代码与展示结果已读，未执行或转载。附录 1 累计 43 篇；专题覆盖仍为 65 / 2 / 0，不代表全站验收。
+
+本轮在原有三对章节内补内容，不另建重叠路线。BM25 补归一化后整段复制的反例，以及 IDF 为零时的平局；参考展示中三个相同分数不能支持“第一篇更合理”的结论，b=0 也不能证明长度修正有效。Embedding 补两份具体报告的训练配方：BGE-M3 不是仅靠 MLM，也使用合成数据与三路自蒸馏；Qwen 的 embedding 对比目标与 reranker 的 yes/no 目标分开。InfoNCE 保留候选 CE / 独立 BCE 区分，补 CE 目标来源、单位向量例子和 uniformity 的条件，不采纳“独立二分类”“CE 必须人工标签”或“有限训练保证均匀”的说法。
+
+一手依据为 Qwen3 Embedding v1 §3、BGE-M3 v3 §3、Wang & Isola ICML 2020 §4、scikit-learn 1.7 文档与 rank_bm25 0.2.2 源码。没有真实模型或 GPU 性能验证；原创算例、双语与页面检查结果见发布清单。
+
+## Python：用对象关系解释语言行为（2026-10-10，本地未发布）
+
+Chrome 完成 [Python 高频概念](https://tcn6r3nlptym.feishu.cn/wiki/JFAowrUGBiZAuyk1hWEcC1M8n3g)六组概念与代码的阅读；同时补完[自动思考参考](https://tcn6r3nlptym.feishu.cn/wiki/T5z5wVbGai0PklkCnric3t9vn9c)末尾第 3 阶段奖励公式和长度曲线，均读至评论入口。参考代码未运行、不转载，评论不是本章覆盖要求。正文阅读累计 40 篇；专题覆盖 65 / 2 / 0，依然不代表全站验收完成。
+
+新增 python-objects 中英文：变量重绑定、浅拷贝写入层次、deepcopy 的共享与循环、函数参数、默认值和闭包、any/all 短路、迭代器消耗、函数与类的状态管理。两语使用相同原创代码，图内说明分别写；额外展开内容不挡住主线。语法页补独立运行的输入与断言，修正 reverse、defaultdict.get、缓存、字符串拼接和生成器内存的过度概括。技术说明对照 Python 3.14 官方文档，运行验证使用 3.12，二者明确区分。测试与展示证据记入发布清单。
+
+## 工具与模型选择：补齐流程而不是堆术语（2026-10-10，本地未发布）
+
+新增工具、MCP 与 Skills 中英文笔记，用 review-only 场景讲调用、执行、按需加载、权限和失败。核对 MCP 2026-07-28、Skills 规范及已发布的 Skills over MCP 扩展；支持范围仍取决于 host / SDK，不把协议或文件摘要当安全保证。
+
+重写模型选择与路由：分开部署、thinking 控制、模型停止和外部路由；补 4 请求原创成本算例、历史输入累计、完整失败成本与验证设计。核对 AutoThink v2、RouteLLM v4、FrugalGPT 摘要和具体 Qwen3 checkpoint。无真实模型训练或性能实验。
+
+此前读完的 MCP / Skills 正文计入第 38 篇；自动思考参考只读到多阶段训练，后续图片公式因 Chrome 锁屏尚未读完，不计完整正文。当前主题覆盖 64 / 3 / 0，与阅读完成数分开。全量 891 项测试通过，最终 12 组响应式布局与站内链接检查通过；修正了 Skill 激活被自动注解成神经网络 activations 的问题。测试和页面证据见发布验收清单，未发布。
+
+## 错例分析：从请求追踪到回归测试（2026-10-10，本地未发布）
+
+Chrome 已读完[错例分析参考](https://tcn6r3nlptym.feishu.cn/wiki/TkkxwVS92iBRLAkl1mFcVnRFnke)，至评论入口；该页标注 2025-09-10 更新，正文无待执行代码。附录 1 阅读数升为 37，覆盖状态 62 / 5 / 0。不采用“提示或微调一定解决不了简单逻辑问题”“全参总优于 LoRA”等绝对建议。
+
+扩充既有 experiments-and-release 中英文，保留旧章节锚点。原创闭馆时间案例区分检索命中和最终输入，代码只重现证据预算，不伪造模型回答结果。补 oracle 对照、训练 targets、部署版本、拒答与偏好数据、工具权限、回归集与独立测试集的区别。RAG / Agent / Memory 评估篇同步改为自然表述，增加排错入口。核对 CheckList §2、Transformers 模板文档、TRL v0.29.0 assistant mask 和 LoRA 原论文摘要；不声称复现训练结果。
+
+页面验收同时发现“相关性”通用注解误用了 relevance。术语表不再为这个歧义词自动选含义，而是分别匹配检索、统计和组内相关性。最终 868 项测试与 18 组响应式状态通过，详细证据见发布清单；这不代表其余章节已全部验收。
+
+## 长任务：组内比较、Critic 与片段边界（2026-10-10，本地未发布）
+
+复读[长任务参考正文](https://tcn6r3nlptym.feishu.cn/wiki/EqjHw3mcGiqYx2kTbEJcPdTSnde)至末尾，正文阅读数仍为 36，不重复计数。参考中“不同动作无法对齐，所以 GRPO 失效”的推论不采用；本站区分完整任务与训练子片段。GLM-5.2 官方 2026-06-16 公告的长任务训练段落已在浏览器读取，另查 DeepSeekMath 的过程监督、GAE 原论文和 Gymnasium 截断说明。
+
+扩充原有 LLM bridge 两种语言，不另开重叠章节。新增 8 次采样的奖励差异概率、3 步 GAE、0.12 / −0.6 边界反例、2 / 2.5 loss 权重比较；图例默认可读，代码与推导可选。讲清 Critic 不提供因果证明，token-level loss 不自动消除长度偏差，异步训练中的行为策略与 old anchor 可能不同。数值是原创教学设定，没有真实模型训练。该主题转为 article，当前 61 / 6 / 0；验证状态见发布清单，全站审稿未完成。
+
+## 蒸馏与 rollout（2026-10-10，本地未发布）
+
+Chrome 新读完 [On-policy Distillation](https://tcn6r3nlptym.feishu.cn/wiki/XlY4wBs89i6ylkkB81zcqzxdnqg) 与 [Rollout](https://tcn6r3nlptym.feishu.cn/wiki/SShfwCel9imApiksYUxc8LMNnfg) 正文及公式，到评论入口；未运行参考代码。附录 1 正文累计 36 篇。加上此前已读的跨 tokenizer 主题，本批 3 项补为实质讲解，清单为 60 / 7 / 0；不代表全库或全站验收完成。
+
+既有蒸馏篇扩充前缀来源、监督接口与 loss 的区别；用两动作梯度、完整序列反例与字节边界代码讲机制。参考中“OPD 必须 reverse KL”“forward KL 不管坏 token”“只保留一个 teacher 模式就零 loss”等说法没有照搬。核对 GKD v3 §3.1、2026-06 跨 tokenizer OPD §4 和 2026-10 后续分析；采样路径与文本边缘概率、比例分配与真实条件概率分开讲。
+
+重写训练基础设施的中英文正文，区分 completion / turn / episode / fragment、模型动作与工具观察、未评分与零分、真实终止与外部截断。补 20 / 9 mask、0.2 / 0.92 bootstrap、65 / 35 秒理想流水线及温度改变 behavior ratio 的例子。依据 PPO 原论文、Gymnasium 时间限制文档、verl 2026-09-23 rollout correction 文档；不是模型训练、GPU 吞吐或框架配置复现。检查结果见发布清单。
+
+## MoE、LatentMoE 与 MLA / RoPE（2026-10-10，本地未发布）
+
+Chrome 读完 [MoE router](https://tcn6r3nlptym.feishu.cn/wiki/FAe7wFR63iseMWkFxADcl8PNn0d)、[MLA / RoPE](https://tcn6r3nlptym.feishu.cn/wiki/JtwJwdm8fib3R4kJvEucdhZwnbI)和 [MoE 结构变化](https://tcn6r3nlptym.feishu.cn/wiki/DDdWwf726iWR4wklZI9cNCeCnCc)，含结构图和公式。附录 1 正文累计 34 篇；覆盖清单 57 / 10 / 0。目录存在仍不等于全文验收。
+
+新增 LatentMoE 双语正文，原有 MoE 主线接入新课；对照 LatentMoE、Kimi K3、Nemotron 3 Super 原报告，区分专家内部宽度与输入宽度，注明 router 仍读取完整 hidden state。原创参数 / MAC / slot-byte 算例计算投影开销与增加 experts / top-k 的成本，不声称通信减半必然带来速度翻倍。RMSNorm 顺序、SiTU 边界和下一步 QB 更新分别讲清。
+
+原有 MLA 补位置矩阵推导、二维反例与合并分数的 softmax；不能将“不便做固定投影吸收”误写成“RoPE 无效”。Router 说明打分权重与专家 FFN 权重的区别，以及 top-k 和概率采样的区别。例子、图例与代码均为原创；没有执行模型训练或多卡性能测试。检查结果见发布清单。
+
+## Attention 缩放、生成填充与 PPL（2026-10-10，本地未发布）
+
+Chrome 读完 [attention 缩放](https://tcn6r3nlptym.feishu.cn/wiki/HvRQwgobBixYFYkXd5YcIHZBn7b)、[困惑度](https://tcn6r3nlptym.feishu.cn/wiki/OiEBwoRsjirrm4kABeecDifXn5f)及[左填充](https://tcn6r3nlptym.feishu.cn/wiki/SDCbw1KNniaJAbknIpWcvbS3nqf)全文，前两篇的公式也逐屏核对。累计附录 1 正文 31 篇，当前 54 / 13 / 0；不是全站验收完成。
+
+在既有 3 对笔记内补原创算例，不另开重复章节：缩放与减最大值的差别、完整独立假设及梯度路径；两种填充布局与最后有效 logits；PPL 的目标概率、加权 NLL、滑窗和 shift 后有效计数。参考中的“softmax 对绝对大小敏感”“所有大模型左填充”“PPL 低就性能好”不照搬。对照 Transformer §3.2.1、HF 文档、Masked Language Model Scoring 和 Transformers commit `536ecc007387a50e77603bb5d92100e9b07514cc`。未运行真实模型生成或评测；检查证据见发布清单。
+
+## 多卡并行补充（2026-10-09，本地未发布）
+
+Chrome 新读完 3 篇：[集体通信](https://tcn6r3nlptym.feishu.cn/wiki/QcXXw0PJliAIZlkxQCycFB7EnOY)表格、[列切接行切](https://tcn6r3nlptym.feishu.cn/wiki/VnyxwJWpjiOBlGkoqK5c6UVxn6d)正文与 2 张图、[Decoder 通信次数](https://tcn6r3nlptym.feishu.cn/wiki/HyKIwUWItiINdAkm2bDcBlvgn8g)正文与 2 张图。累计正文 28 篇；没有运行参考代码。
+
+新增 tensor-parallel 双语专题：原创两卡 FFN 算例、通信语义、反向输入梯度、MHA 的 2+2 基线与 SP 布局。核对 Megatron-LM §3、NCCL 文档及 Megatron commit `4603a836261fb39fd0050342d58dc66aecdf6f74`。总览补 dense TP8 / DP8 / DP2×TP4、PP 边界时延和 ZeRO Stage 标签。5 项从 related 转 article，当前 51 / 16 / 0；article 不代表全站验收完成。CPU 数值检查不是分布式性能测试。
+
+## 当前汇总（核对于 2026-10-10）
+
+- 已有内容快照按用户同意推送至 `b3df2f7`。当前继续完成全站发布验收；新增批次在全部门槛满足前不提交、推送、合并或部署。下方历史批次不代表当前完成状态。
+- 附录已登记 67 个入口，目前 65 项有专门讲解、2 项需补充或对照、0 项完全缺少相关专题；原参考附录 1 正文累计读完 43 篇。计数来自 `site/appendix-coverage.toml`，不把文章存在当成完整验收。
+- 最近新增的 NoPE / Kimi K3、Qwen3 Embedding / BGE-M3、BM25、筛法和 BERT 均已接入各自阅读路线，保留原始论文、实现与教学算例的边界；BERT 这批尚未发布。
 - 全站逐篇语义审稿、剩余参考问答、图片公式与未执行的参考代码仍不算完成。最新检查及 PR 状态记录在 `CONTENT_RELEASE_CHECKLIST.md`。
+
+## 推理请求、缓存与显存（2026-10-09）
+
+Chrome 新读完 2 篇：[推理显存](https://tcn6r3nlptym.feishu.cn/wiki/SbtRw2nhSiRx1rkMer9cVldpngb)的全文、表格及换算公式；[vLLM 请求](https://tcn6r3nlptym.feishu.cn/wiki/RYHXw9IdDipfyJkmsMrcSTXSnSe)的 9 步、架构与末尾性能分析。附录 1 累计 25 篇；没有运行参考代码。推理显存的旧参考主要统计权重，本站补上 KV、运行时和并发约束，不照搬其“装得下权重即可部署”的判断。
+
+新增双语请求流程篇，放在推理路线的 KV 之后；扩写已有 KV 和 attention-kernels 两篇。算例包括 24 GiB 的假设预算、变长分页、唯一物理块、每 rank 放置与 10-token prefill 的分块。vLLM `10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf`、SGLang `436d73ddda02d17d6d56e770a5362ebd5dd95ac0` 绑定公开实现；纠正把所有空闲块当纯 LRU、把树结构等同于单 token 复用等概括。
+
+5 项补成实质讲解，覆盖为 46 / 21 / 0。图例按各语言重写，辅助代码折叠。所有容量和调度数字为教学算例，不声称完整引擎运行或 GPU 性能复现。测试和展示检查记录在发布清单；全站验收仍未完成。
+
+## 训练恢复、数据路径与显存（2026-10-09）
+
+补强已有 3 对文章，不重复建 checkpoint 章节。恢复用动量的 0.71 / 0.80 反例，数据路径用 3 批的串行 / 理想重叠对照，显存逐项区分权重、梯度、master copy 和 moments，另有 CPU AdamW 状态检查。所有数值标清手算、CPU 实测或理想估算；不声称 CUDA 吞吐或显存峰值复现。
+
+这批核对 PyTorch 官方教程、2.8 文档与 ZeRO v3 的机制说明。Chrome 参考正文没有新增读完的文章，3 项保持 `read=title`，附录 1 正文仍累计 23 篇。内容覆盖变为 41 / 26 / 0，但全站语义与参考验收未完成。检查结果见发布清单。
+
+## SFT、loss mask 与交叉熵参考续读（2026-10-09）
+
+Chrome 已有会话读完 3 篇正文，附录 1 累计 23 篇。技术说明独立编写，不转载或运行参考代码。
+
+| 参考入口 | 阅读范围 | 本站补充 |
+| --- | --- | --- |
+| [SFT mask](https://tcn6r3nlptym.feishu.cn/wiki/VIPAwu7NVipheDkkZaPcOkwKnDb) | 全部正文与表格 | 逐位置 shift / mask、工具调用、EOS/PAD 与上下文梯度，不把 assistant-only 当普遍规定 |
+| [SFT 到 RL](https://tcn6r3nlptym.feishu.cn/wiki/Zsyrw2HQziO8aUkdEKfci4Edngb) | 全文到页尾，含 DFT 讨论 | checkpoint 对照与奖励质量试验；DFT 原论文 stop-gradient 核对及反例，不给通用 loss 门槛 |
+| [交叉熵实现](https://tcn6r3nlptym.feishu.cn/wiki/BuZQw44rEiQdZUkezIqcPnhLnJg) | 正文、两条公式与 35 行 BCE 代码 | 独立专题讲稳定 CE/BCE、soft target、mask、加权分母和梯度；纠正概率 clamp 的风险 |
+
+新增代码只验证 CPU 小张量，不声称真实模型训练或 GPU 性能复现。逐批测试与展示验收记录在发布清单中。
+
+## 拒绝采样、奖励漏洞与熵参考续读（2026-10-09）
+
+Chrome 已有会话读完 3 篇正文。累计附录 1 已读 20 篇：此前 17 篇加本批 3 篇。源代码不运行、不转载；原图和百分比不作为本站实验结果。
+
+| 参考入口 | 阅读范围与核查 | 本站处理 |
+| --- | --- | --- |
+| [拒绝采样](https://tcn6r3nlptym.feishu.cn/wiki/T3CMwfOxRikrjikQQEScK9X2nQb) | 两部分正文到评论区，查看接受概率与 LLM 流程；上方示意图未逐项审核 | 补全包络 / 支持集条件，区分 verifier filtering、best-of-N 和 SFT，独立枚举条件分布与题目偏移 |
+| [奖励漏洞与熵](https://tcn6r3nlptym.feishu.cn/wiki/BvtgwYCBmiCz1bk0ZxRcVK3EnFF) | 正文到评论区，查看末尾 ±1 奖励公式；性能曲线百分比未逐图复核 | 不沿用低熵必然导致 hacking、规则奖励能解决一切的结论；用排序规格与 4 种策略对照 |
+| [熵坍塌](https://tcn6r3nlptym.feishu.cn/wiki/XEsvwpfcJiHdIBkDbjycaPsYnZe) | 正文与 103 行代码读完，查看协方差及 KL 公式，其他图未全部核查 | 区分参数梯度协方差与熵变化近似；clipping 不是硬概率边界；KL-Cov 按论文 old/current 分布核对，abs(log-ratio) 不是 KL |
+
+一手来源：Llama 2 v2 §3.2.3、DeepSeek-R1 v1 §2.3.3、Entropy Mechanism v1 §2–4（包括非普适性讨论和式 14）、Reward Model Overoptimization 的合成实验设置，以及 CMU Monte Carlo 讲义。未做最新框架实现的逐行或 GPU 性能复现；用版本化来源说明方法，不把旧实验说成所有 2026 系统的规律。
+
+新增拒绝采样双语专题，扩写 alignment-tax 与 verifiable-rewards。标准库算例验证分布、熵、有限差分、masked NaN、组同分概率与排序反例；完整结果见发布验收记录。未提交或发布。
+
+## GRPO 损失、梯度与数据循环参考续读（2026-10-09）
+
+Chrome 已有会话新增读完 3 篇正文至评论区；零 loss 和 clipped-token 两篇的关键公式 / clamp 代码图片也已查看，on-policy 的嵌入公式未逐图审计。不复制或运行参考代码。
+
+| 参考入口 | 核对发现 | 本站处理 |
+| --- | --- | --- |
+| [GRPO 初始 loss](https://tcn6r3nlptym.feishu.cn/wiki/UFrQwznqeiGj4JkCNqwc8OFznHh) | 需区分 loss 数值与梯度；G 和回答长度说明不准确，old 与 Reference 混用 | 独立二选一例子算出 loss 0、梯度 −0.5 和下一步概率；补组完整性、长度聚合、局部批次与 KL 前提 |
+| [被 clip 的 token 梯度](https://tcn6r3nlptym.feishu.cn/wiki/VbxHwRjPriGaMskuNMHcB8lAnZf) | 单独 clamp 不能代替完整 min 目标；单项梯度为零也不等于 token 不受更新 | 4 组正负 advantage / ratio，另测 KL、entropy 与共享参数路径；不用参考例子 |
+| [GRPO 的 on-policy 分类](https://tcn6r3nlptym.feishu.cn/wiki/Yi2AwgIYhiAFUokiLmscDScjnNg) | “PPO 不复用”及“重要性采样自动使 replay 成为 on-policy”不准确 | 对照 DeepSeekMath Algorithm 1 区分组采样、内部多次更新、old / Reference；原算法 replay 用于 RM 更新，非 actor 任意历史 replay |
+
+原始来源核对 DeepSeekMath v3 §4.1 / Algorithm 1、Dr. GRPO v1 §3、Spinning Up PPO 及 TRL GRPO 文档（2026-10-09）。没有完成现行 TRL 源码逐行审计，也没有把某一配置当作所有 GRPO 实现的默认值。本站原创 CPU 例子通过有限差分、autograd、mask 与双语代码检查；不声称完整训练或异步系统复现。
+
+附录 1 累计 17 篇：早期 8 篇、BERT 4 篇、MoE 2 篇、GRPO 3 篇。剩余正文仍需逐项阅读。
+
+## MoE 路由与序列均衡参考续读（2026-10-09）
+
+通过 Chrome 已有登录会话新增阅读 2 篇，正文至评论区，公式及路由代码均查看；没有运行或复制参考代码，没有转载公司特定面试题。
+
+| 参考入口 | 核对发现 | 本站处理 |
+| --- | --- | --- |
+| [序列级负载均衡](https://tcn6r3nlptym.feishu.cn/wiki/GX9kwJTa6iexsHkuTWNc033UnFh) | 平方差作用于离散路由次数，却未说明梯度估计；“推理移除所以质量不受影响”也混淆训练和推理 | 回到 V3 式 17–20，用计数占比乘可导平均概率，补 KT 分母、单序列 / batch 的不同结果、解析梯度与 padding 测试 |
+| [MoE 路由实现](https://tcn6r3nlptym.feishu.cn/wiki/YXbUw87FQiyuhUkGrCuc2xpOn5e) | 实际重点是先选设备组再选专家；容量溢出不应说成整个样本退出训练 | 按 V2 / V3 原论文独立解释分组评分与通信取舍，另补完整 dispatch → FFN → 加权累加和 dense oracle，不照搬题目或代码 |
+
+本批原创教学代码在 PyTorch 2.8.0 / CPU 上验证。普通 top-k 索引没有反传路径、归一化后的 top-1 门值恒为 1、sigmoid affinity 与 softmax logits 不同，都分别做数值检查。没有验证真实训练质量、NPU / GPU kernel 或多卡吞吐；参考中的性能推断不作为本站结果。
+
+本批结束时附录 1 已读 14 篇：早期 8 篇、BERT 批次 4 篇、本批 2 篇。目录中另一篇“如何理解 MoE 网络？Router 怎么实现？”只确认完整标题，正文仍未读，不能重复计数。最新累计见页首。
+
+## BERT 与 attention mask 参考续读（2026-10-09）
+
+通过 Chrome 已有登录会话阅读，不绕过登录或访问控制。以下正文均读到结尾；只记录知识点和纠错，不复制参考库的表达或图：
+
+| 参考入口 | 实际读到什么 | 本站处理 |
+| --- | --- | --- |
+| [BERT 与 LSTM](https://tcn6r3nlptym.feishu.cn/wiki/VeP0w5ZaLi8C0rkKSAwcwzo1nUg) | 结构、建模、应用与总结 4 节 | BERT 中直接比较计算路径与训练目标；用 ULMFiT / ELMo 纠正 LSTM 没有预训练范式的说法，不沿用泛化与长序列能力的绝对判断 |
+| [BERT 的流程](https://tcn6r3nlptym.feishu.cn/wiki/JT6uwK7jZi56nBk8mYzcns2Invc) | Embedding / attention / residual-LN / FFN 的图、5 项说明与 attention 公式 | 补完整输入 → encoder stack → MLM / NSP → 微调任务路径；post-LN、embedding 位置与 head 按官方代码核对 |
+| [Encoder-only 与 Decoder-only](https://tcn6r3nlptym.feishu.cn/wiki/OU1LwCgAyiVooXk9ZpecAQkunPd) | 两段说明，BERT / ERNIE 遮盖图和自回归图 | 区分并行训练、一次输入的编码和常规逐步生成；补早期 ERNIE 短语 / 实体遮盖，不把 MLM 当作所有 encoder 的定义 |
+| [Encoder 与 Decoder 的 mask](https://tcn6r3nlptym.feishu.cn/wiki/PIKAwJNLQiBCCkkOUybc2nGunQh) | Padding / causal 文字及 2 张示意图 | 区分补齐与 mask，补有效 query 的严格上三角、可见对角线、source cross-attention 和 packing 限制 |
+
+一手核对包括 BERT 原论文与 `create_pretraining_data.py` / `run_pretraining.py` / `modeling.py`、Transformer §3–4、ULMFiT §3、ELMo §3、ERNIE 2019 §3.2 与 RoBERTa §4。本站新增原创输入、mask 与 loss 数值例子及测试；没有执行这些模型的预训练或参考库的部署实验。4 个条目的阅读状态更新为 body；其中 2 项从 related 转为 article，含义仍只是已有专门讲解，不是全站验收通过。
 
 ## 检索与算法基础补充（2026-10-09）
 
@@ -46,7 +209,7 @@
 
 阅读路线区分“先入门”“只读一个方向”“准备实现”，保留原有 4 类目录，不以附录问答的排列顺序组织教学。下一轮仍要逐题读参考正文，再按本站章节补齐；单纯通过构建或找到一个同名词不算完成。最新本地测试与发布阻塞见 `CONTENT_RELEASE_CHECKLIST.md`。
 
-## 目前实际读到哪里
+## 主线与附录阅读记录
 
 - 参考：[大模型学习地图 · AI有温度](https://tcn6r3nlptym.feishu.cn/wiki/TQpswAuJfiQX3lkcGfbcnHx5n9m)。已读取首页说明和顶层目录。
 - 基础篇 1.0–1.5：已通过浏览器读到各节正文末尾，记录了规则/传统模型、Embedding、分词、函数逼近、Encoder 与 Decoder 的讲解范围。图片内公式未全部逐图复核，代码未运行；不能据此标记为完整技术审计。
@@ -57,11 +220,11 @@
 - 模型家族：第 6 章目录及 6.1–6.4 正文已读至结尾，包括 DeepSeek 页的 V4 和 Qwen 页的 3.5；累计正文 49 篇。GPT 页的 sink / SwiGLU 展示代码只静态阅读，没有执行。参考图片不计为已全部审计。本站 GPT / Llama 已扩充；DeepSeek / Qwen 本批只补关键纠错与版本边界，仍不是完整家族精读。
 - [第 7 章分布式训练](https://tcn6r3nlptym.feishu.cn/wiki/WZ0KwamzhiPj89kEq5dcYdegnWg)：7.1–7.7 位于同一页面，已顺序读到总结和评论入口；按 1 篇计，累计正文 50 篇。图片推导未全部复核，没有运行分布式实验。
 - 第 8 章应用 8.1–8.5 已逐页读至正文末尾，累计 55 篇。RAG / Agent 可见代码只做静态阅读，未运行；图片公式与外链工程未全部审计。
-- 第 9 章 16 个页面的正文已全部读至末尾，主线累计正文 71 篇。附录 3 的 7 篇 ML 基础与 20 篇 PyTorch 正文均已读至末尾；附录 2 的算法分类页也已读完。附录 1 当前已读 8 篇独立问答正文，清单见下一节，其余还需继续。用户无法导出，继续通过浏览器阅读，不以导出作为前置条件。
+- 第 9 章 16 个页面的正文已全部读至末尾，主线累计正文 71 篇。附录 3 的 7 篇 ML 基础与 20 篇 PyTorch 正文均已读至末尾；附录 2 的算法分类页也已读完。附录 1 当前已读 20 篇独立问答正文：早期 8 篇、BERT 4 篇、MoE 2 篇、GRPO 3 篇和采样 / 奖励 / 熵 3 篇；其余还需继续。用户无法导出，继续通过浏览器阅读，不以导出作为前置条件。
 
-### 附录续读：2026-10-09
+### 附录续读：2026-10-09（BERT 批次前）
 
-附录 1 当前只完成下列 8 篇正文阅读，不能解读为整份问答集已覆盖。参考页是选题线索；本站独立讲解，技术结论以原论文和官方实现为准。未执行参考部署或训练代码，也未完成所有图片内推导审计。
+这一批记录下列 8 篇正文阅读；后续 BERT、MoE 和 GRPO 批次见页首，不能解读为整份问答集已覆盖。参考页是选题线索；本站独立讲解，技术结论以原论文和官方实现为准。未执行参考部署或训练代码，也未完成所有图片内推导审计。
 
 | 已读正文 | 参考入口 | 本站处理 |
 | --- | --- | --- |

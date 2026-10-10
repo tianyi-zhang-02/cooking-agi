@@ -2,7 +2,7 @@
 
 [中文](text-metrics.md) · **English**
 
-> Last reviewed: 2026-10-08 · Prerequisite: [The evaluation stack](evaluation-stack.en.md)
+> Last reviewed: 2026-10-10 · Prerequisite: [The evaluation stack](evaluation-stack.en.md)
 
 The reference says “the valve is open”; the model says “the valve is not open.” Almost every word matches, but the meaning is reversed. Text metrics remain useful when we know what they count: overlapping words, order, edits, or the probability assigned to a fixed text.
 
@@ -25,8 +25,11 @@ BLEU uses clipped counts: an n-gram cannot match more often than it occurs in th
 For one reference, candidate length $c$, reference length $r$, and clipped precision $p_n$:
 
 $$
-\operatorname{BLEU}_N=BP\exp\left(\frac1N\sum_{n=1}^N\log p_n\right),
-\qquad BP=\exp\left(\min(0,1-r/c)\right).
+\begin{gathered}
+\operatorname{BLEU}_N=\\
+BP\exp\left(\frac1N\sum_{n=1}^N\log p_n\right),\\
+BP=\exp\left(\min(0,1-r/c)\right).
+\end{gathered}
 $$
 
 An empty candidate is handled separately as zero. The brevity penalty discourages returning only an easy-to-match fragment.
@@ -120,15 +123,95 @@ WER normally divides by reference words; CER by reference characters. Many inser
 
 ## Perplexity evaluates a fixed text, not the model's own essay
 
-For a fixed test sequence, average the negative log-probabilities of valid target tokens and exponentiate:
+Suppose the next two tokens in a test text are `bus` and `leaves`. We give the model the actual preceding text and inspect the probabilities it assigns to the tokens that **really occur**. We do not ask it to write something and then score its own output.
+
+| Scored target | Probability of the actual token | Negative log-probability (NLL, natural log) |
+| --- | --- | --- |
+| `bus` | 0.5 | About 0.693 |
+| `leaves` | 0.25 | About 1.386 |
+
+The average NLL is about 1.040. Exponentiating gives **PPL ≈ 2.828**. Lower probabilities on the test text produce a higher score. For $T$ scored targets, those same two steps are:
 
 $$
-\operatorname{PPL}=\exp\left(-\frac1T\sum_{t=1}^T\log p(x_t\mid x_{<t})\right).
+\begin{gathered}
+\operatorname{PPL}=\\
+\exp\left(-\frac1T\sum_{t=1}^T\log p(x_t\mid x_{<t})\right).
+\end{gathered}
 $$
 
-If two targets receive probabilities 0.5 and 0.25, PPL is $\sqrt8\approx2.828$. This is not accuracy of 1/2.828, nor a literal claim of 2.828 equally likely choices at each position.
+Equivalently, PPL is the reciprocal of the geometric mean probability assigned to the actual tokens, not the reciprocal of accuracy. If every target receives probability $1/4$, PPL is 4. In general, 2.828 does not mean that each position literally has 2.828 equally likely choices. Natural logs go with `exp`; base-2 logs go with $2^{\text{average loss}}$.
 
-Fix data, tokenizer, context window, and valid targets. Different tokenizers change the counting unit, so their values are not directly comparable. Sliding windows provide more context, but overlapping targets must not be counted repeatedly. Aggregate batch losses by valid token count, not an unweighted average across unequal lengths. [Implementation guidance](https://huggingface.co/docs/transformers/perplexity)
+**Lower PPL means better prediction of this test text, not necessarily more useful answers.** Changing the data, tokenizer, context, or scored positions can invalidate a comparison. Two implementation details deserve particular care.
+
+### Unequal batches should not receive equal weight {#ppl-aggregation}
+
+Suppose batch A contains 2 scored targets with PPL 2, while batch B contains 8 with PPL 8. Averaging the scores gives 5, but B contains four times as many predictions.
+
+Instead, add the NLL totals and target counts, then exponentiate once:
+
+$$
+\begin{gathered}
+\operatorname{PPL}_{\text{all}}=\\
+\exp\!\left(\frac{2\ln2+8\ln8}{10}\right)\\
+\approx6.063.
+\end{gathered}
+$$
+
+The same rule applies across devices: sum **total NLL and scored-token count** separately, divide, and exponentiate. Do not average device-level perplexities.
+
+### Sliding windows can reuse context without scoring targets twice {#ppl-windows}
+
+Suppose the model accepts 4 tokens at a time and the test sequence has 6. There is no BOS in this example, so A has no preceding context and is not scored. Letters stand for tokens:
+
+| Input window | Context only | Scored targets | Target count |
+| --- | --- | --- | --- |
+| `A B C D` | A | B, C, D | 3 |
+| `C D E F` | C, D | E, F | 2 |
+
+The second window keeps C and D as context for E and F without scoring C or D again. There are 5 scored targets overall, not 6 or the sum of both window lengths. A smaller stride usually supplies more context but requires more forward passes. Record the window length, stride, BOS/EOS handling, and document boundaries as part of the evaluation protocol. [Context-window guidance](https://huggingface.co/docs/transformers/perplexity)
+
+<details markdown="1">
+<summary>Count the labels after shifting, not before</summary>
+
+This example uses the common causal-LM convention: inputs and labels are initially aligned, logits at position $t$ predict the label at $t+1$, and `-100` excludes a target from the loss. **Counting valid labels after the shift** avoids guessing whether to subtract one per row.
+
+```python
+import math
+import torch
+import torch.nn.functional as functional
+
+
+def causal_nll_totals(logits, labels):
+    if logits.ndim != 3 or labels.shape != logits.shape[:2]:
+        raise ValueError("Expected aligned [batch, length, vocab] logits and labels")
+    shifted_labels = labels[:, 1:]
+    count = int((shifted_labels != -100).sum())
+    if count == 0:
+        raise ValueError("No scored targets after the causal shift")
+    total = functional.cross_entropy(
+        logits[:, :-1, :].double().reshape(-1, logits.shape[-1]),
+        shifted_labels.reshape(-1), ignore_index=-100, reduction="sum",
+    )
+    return total, count
+
+
+uniform_logits = torch.zeros(1, 4, 6)
+first_labels = torch.tensor([[-100, 1, 2, 3]])
+second_labels = torch.tensor([[-100, -100, 4, 5]])
+first_total, first_count = causal_nll_totals(uniform_logits, first_labels)
+second_total, second_count = causal_nll_totals(uniform_logits, second_labels)
+assert (first_count, second_count) == (3, 2)
+average_nll = (first_total + second_total) / (first_count + second_count)
+assert math.isclose(math.exp(float(average_nll)), 6.0)
+```
+
+This is a scoring example, not a model evaluation result. Real evaluation also requires dropout to be disabled and correct causal/padding masks. A `-100` label affects the loss, not what the model can read. With left padding and no BOS or valid predecessor, also exclude the prediction of the first real token from a padding position. Packed samples need correct document boundaries.
+
+The second row already has just two valid labels, both retained after shifting. Subtracting the batch size from that count would incorrectly leave one. Inspect the labels actually passed to cross-entropy rather than assuming a denominator formula.
+
+</details>
+
+BERT's masked-token scores do not use this autoregressive probability factorization. Masking tokens individually can define [pseudo-perplexity](https://aclanthology.org/2020.acl-main.240/), but it uses different context and has different computational costs; it is not directly comparable with the PPL above. Use PPL to examine language modeling, and evaluate factuality, preferences, and task success separately.
 
 ## Are these metrics still useful in 2026?
 

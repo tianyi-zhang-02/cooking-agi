@@ -34,6 +34,8 @@ Start with generation and caching below, then move to context and efficient atte
 
 ## Chapter contents
 
+To follow a request through an actual service, read [a request through the system](../../06-systems/llm-serving.en.md). It connects input preparation, queues, caching, model execution, and output, then uses a chunking example to explain first-token versus streaming latency. If you already deploy models, jump to the [KV memory budget](../../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget) or [cache eviction](../../00-foundations/deep-dives/attention-kernels.en.md#cache-lifecycle).
+
 Once decode and caching are clear, [DFlash and MTP](../../00-foundations/deep-dives/dflash.en.md) examines reducing target-model rounds: follow drafting and verification, then rejection, cache rollback, and costs. Beginners do not need every acceleration method first.
 
 <!-- widget:study-atlas -->

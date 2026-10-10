@@ -27,7 +27,10 @@ In a standard causal decoder, A attends only to A; B attends only to A and B. Ap
 At one layer, for the new position $t$:
 
 $$
-K_{\le t}=[K_{<t};k_t],\qquad V_{\le t}=[V_{<t};v_t],
+\begin{aligned}
+K_{\le t}&=[K_{<t};k_t],\\
+V_{\le t}&=[V_{<t};v_t].
+\end{aligned}
 $$
 
 $$
@@ -80,6 +83,75 @@ print(one_sequence / 2**30, eight_sequences / 2**30)
 ```
 
 The results are **1 GiB and 8 GiB**. These are raw KV sizes, excluding weights, workspaces, and allocator headroom. With 32 KV heads, one sequence would require 4 GiB. For unequal lengths, sum over actual sequence lengths; preallocation, padding, sharding, or replication can change physical usage.
+
+## The weights fit. Why does the first batch run out of memory? {#inference-budget}
+
+“A 7B model in BF16 is about 14 GB. Shouldn't a 24 GiB device be enough?” It may be enough to load weights. Requests also need KV state, temporary tensors, and kernel workspaces. Longer inputs and higher concurrency expose that difference.
+
+Write a budget before choosing the GPU count. Suppose the model has exactly seven billion BF16 parameters and the device exposes 24 GiB. For this calculation, **assume** 2 GiB for runtime allocations and another 2 GiB of headroom:
+
+<figure class="worked-update worked-update--pairs">
+<ol>
+<li><small>Weights</small><strong>About 13.04 GiB</strong><span>Seven billion × 2 bytes = 14 GB. Keep GB and GiB conversions consistent.</span></li>
+<li><small>Runtime budget</small><strong>2 GiB</strong><span>A placeholder for activations, workspaces, graph capture, and related allocations. Measure the real value.</span></li>
+<li><small>Headroom</small><strong>2 GiB</strong><span>Capacity not promised to requests, rather than necessarily allocated tensors.</span></li>
+<li><small>Left for KV</small><strong>About 6.96 GiB</strong><span>24 − 13.04 − 2 − 2. Paging and the model's state layout still matter.</span></li>
+</ol>
+<figcaption>A hypothetical capacity budget, not a measured footprint for a particular 7B model or GPU.</figcaption>
+</figure>
+
+If its KV configuration is the earlier 32-layer, eight-KV-head example, each independent 8192-position cache takes 1 GiB. The budget accommodates at most six, not eight. At 16384 positions, each takes 2 GiB and only three fit. Length counts **prompt and generated positions already processed by the model**; prompt length alone understates the cost of a long answer.
+
+The 2 GiB runtime value is an input to this example, not a constant for every model. Measure with the intended model, batch, prefill chunks, and graph settings. Weight quantization need not quantize KV, and scales, zero-points, and unquantized modules can add storage. The [vLLM memory configuration guide](https://docs.vllm.ai/en/latest/configuration/conserving_memory/) is a useful deployment checklist.
+
+### Unequal lengths, pages, and shared prefixes {#paged-budget}
+
+The equal-length formula is convenient, but real requests differ. Round each cache length up to its allocation block, then sum. With four-token blocks and lengths 5, 3, and 8, allocation needs 2 + 1 + 2 = 5 blocks: 20 slots for 16 computed positions, leaving four unused slots.
+
+<details markdown="1">
+<summary>Try different lengths in a small KV calculator</summary>
+
+```python
+def paged_kv_bytes(lengths, layers=32, kv_heads=8, head_dim=128,
+                   bytes_per_value=2, block_tokens=16):
+    lengths = list(lengths)
+    dimensions = (layers, kv_heads, head_dim, bytes_per_value, block_tokens)
+    if any(type(value) is not int or value < 1 for value in dimensions):
+        raise ValueError("Dimensions must be positive integers")
+    if any(type(length) is not int or length < 0 for length in lengths):
+        raise ValueError("Lengths must be nonnegative integers")
+    blocks = sum((length + block_tokens - 1) // block_tokens for length in lengths)
+    per_token = 2 * layers * kv_heads * head_dim * bytes_per_value
+    return blocks * block_tokens * per_token
+
+kv_budget = 24 * 2**30 - 7_000_000_000 * 2 - 4 * 2**30
+assert paged_kv_bytes([8192] * 6) <= kv_budget
+assert paged_kv_bytes([8192] * 7) > kv_budget
+assert paged_kv_bytes([16384] * 3) <= kv_budget
+assert paged_kv_bytes([16384] * 4) > kv_budget
+```
+
+This counts KV for identical full-attention layers without sharing. It is not a complete GPU-memory predictor.
+
+</details>
+
+Sharing requires counting **unique physical blocks**, not adding logical request lengths. Two eight-position caches with four-token blocks can share the first block and have separate second blocks: 16 logical positions occupy three blocks, or 12 physical slots. Retained, unused prefixes also occupy the cache pool; they are not memory already returned to the system.
+
+Full-attention state commonly grows with sequence length. Sliding-window layers can retain only the state their windows require, while hybrid models need per-layer-type accounting. Do not apply one uniform $L\times T$ formula to every architecture. The [hybrid KV-cache design](https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/) addresses these distinctions.
+
+### Multiple GPUs do not divide every allocation equally {#kv-per-rank}
+
+Consider just the earlier 1 GiB cache. Assume even partitioning and omit communication buffers:
+
+| Placement | What each rank keeps | KV in this example |
+| --- | --- | ---: |
+| TP=2, evenly split eight KV heads | Four KV heads at every layer | 0.5 GiB per rank |
+| PP=2, evenly split 32 layers | All KV heads for 16 layers | 0.5 GiB per stage |
+| DP=2, each replica serves one request | Its own full 32-layer, eight-head cache | 1 GiB per replica, 2 GiB total |
+
+A less obvious case is an MQA model with one KV head. In a TP=8 implementation that replicates KV, each rank may retain that head rather than an eighth of it. Check the model implementation and backend; `tensor_parallel_size` alone does not determine cache placement.
+
+These calculations describe KV, not proportional reductions in every weight or workspace allocation. Deployment feasibility depends on the **most constrained rank**, not the sum of free memory across devices.
 
 ## MHA, GQA, MQA: what is shared?
 

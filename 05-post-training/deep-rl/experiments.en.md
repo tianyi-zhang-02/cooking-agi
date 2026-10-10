@@ -14,6 +14,8 @@ RL losses can decrease normally while behavior deteriorates. Sampling, targets, 
 
 Check shapes, masks, and reward scale before optimization. Evaluate in a separate environment with fixed settings; do not quietly recycle evaluation trajectories into training. A resumable checkpoint may require optimizer state, target networks, RNG state, counters, and replay—not just network weights.
 
+If you are unsure what a rollout should retain, start with [one training record](../post-training-infrastructure.en.md#rollout-record): only 9 of its 20 input positions are policy actions; tool results and padding should not enter policy loss. That section also separates task termination from collection truncation before you return to checking targets.
+
 ## Run 2 small CPU programs first
 
 From the repository root, run the standard-library checks and then the PyTorch checks:

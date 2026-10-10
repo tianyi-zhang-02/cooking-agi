@@ -80,7 +80,7 @@ This is one reason sigmoid and cross-entropy are a common binary-classification 
 
 With MSE instead, the gradient carries an extra $\sigma'(z)$ factor that approaches 0 in saturated regions, making misclassified points harder to update. For the linear logistic regression used here, cross-entropy is **convex** in the parameters. That does not automatically guarantee a unique or finite optimum: collinear features can produce multiple solutions, and unregularized parameters can grow without bound on completely separable data. The convexity claim does not extend to a multilayer network.
 
-![the sigmoid and its derivative](assets/sigmoid.svg)
+![the sigmoid and its derivative](assets/sigmoid.en.svg)
 
 $\sigma'$ is largest at $z=0$ ($0.25$) and goes to $0$ at both ends — this is the origin of **vanishing gradients**, and the reason ReLU later replaced sigmoid as the hidden-layer activation.
 
@@ -274,7 +274,7 @@ Three models, same data and same training configuration:
 | B `Linear(2,8) → Linear(8,1)`, **no activation** | 33 | 50.0% |
 | C `Linear(2,8) → ReLU → Linear(8,1)` | 33 | 100% |
 
-![three decision boundaries](assets/decision-boundaries.svg)
+![three decision boundaries](assets/decision-boundaries.en.svg)
 
 **B and C are the same architecture with the same 33 parameters, one ReLU apart.** B's two weight matrices multiply out to $(1,8)\times(8,2) = (1,2)$, just a single row, identical in form to A — so it is exactly as weak as the 3-parameter logistic regression.
 
@@ -284,7 +284,7 @@ Three models, same data and same training configuration:
 
 Push a square grid on the input space through the hidden layer and see what it gets kneaded into:
 
-![input space warped into hidden space](assets/hidden-space.svg)
+![input space warped into hidden space](assets/hidden-space.en.svg)
 
 (The figure uses the version with 2 hidden units, because only two dimensions can be drawn.) ReLU folds the plane along a crease, and the two classes land on opposite sides of one straight line — **the output layer is still just logistic regression**, only now it lives in this new coordinate system.
 

@@ -65,10 +65,11 @@ ReAct (Yao et al., 2022) interleaves reasoning and acting: the model writes down
 
 ## How this series reads
 
-1. [Common building blocks](patterns.en.md): from a single call to orchestrator-workers, and what each suits
-   Start with [prompting, ICL, and CoT](prompting.en.md), then practice multi-step evidence handling with [Deep Research](deep-research.en.md).
-2. [How agents are used in different settings](scenarios.en.md): coding, search and research, customer support, data analysis, computer use, personal assistants
-3. [Frontier API or self-hosted](model-choice.en.md): choosing a model, with a cost model you can fill in yourself
-4. [Review questions](review.en.md): interview questions and a self-check
+1. [Prompting, ICL, and CoT](prompting.en.md): specify inputs, examples, and the task.
+2. [Common building blocks](patterns.en.md): decide whether one call is enough or a loop is needed.
+3. [Tools, MCP, and skills](tools-and-skills.en.md): follow a review request through calls, execution, and permissions.
+4. [Deep Research](deep-research.en.md) and [different settings](scenarios.en.md): continue when evidence is missing or conflicting.
+5. [Model selection and routing](model-choice.en.md): compare quality, latency, and full costs for a concrete task.
+6. [Review questions](review.en.md): check which ideas you can explain independently.
 
 Related: [Agent Observability](../06-systems/agent-observability.en.md) on seeing what happened in a run, and [Human-in-the-Loop](../06-systems/human-in-the-loop.en.md) on when a person should step in.

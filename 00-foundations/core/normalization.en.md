@@ -12,7 +12,7 @@ Take `[1, 3]`, temporarily ignoring epsilon and learned parameters. LayerNorm su
 
 Start with the axes, then check running statistics and train / eval modes. Together they determine behavior with variable lengths, batch size 1, and autoregressive decoding. The axis alone is not the entire implementation contract.
 
-![which axis each norm averages over](../assets/norm-axes.svg)
+![which axis each norm averages over](../assets/norm-axes.en.svg)
 
 ## Three formulas {#three-formulas}
 

@@ -17,6 +17,8 @@ import os
 import torch
 import torch.nn as nn
 
+from figure_languages import write_localized
+
 torch.manual_seed(0)
 OUT = os.path.join(os.path.dirname(__file__), "..", "assets")
 
@@ -52,11 +54,7 @@ def svg(w, h, body):
 
 
 def write(name, content):
-    os.makedirs(OUT, exist_ok=True)
-    path = os.path.join(OUT, name)
-    with open(path, "w") as f:
-        f.write(content)
-    print(f"  wrote {os.path.basename(path):26s} {len(content) / 1024:5.1f} KB")
+    write_localized(OUT, name, content)
 
 
 # --------------------------------------------------------------------------- #

@@ -1,0 +1,35 @@
+.article-body > #interview-experience { margin-top: 1.4rem; }
+.prose .interview-roles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 22px 0 18px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+}
+.prose .interview-roles li {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--rule);
+  min-width: 0;
+}
+.prose .interview-roles li:nth-child(n + 7) { border-bottom: 0; }
+.prose .interview-roles li:not(:nth-child(3n)) { border-right: 1px solid var(--rule); }
+.prose .interview-roles strong { color: var(--ink); font-size: 14px; line-height: 1.45; }
+.prose .interview-roles span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+@media (max-width: 700px) {
+  .prose .interview-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .prose .interview-roles li:nth-child(n) { padding: 14px; border-right: 0; border-bottom: 1px solid var(--rule); }
+  .prose .interview-roles li:nth-child(odd) { border-right: 1px solid var(--rule); }
+  .prose .interview-roles li:last-child { border-bottom: 0; }
+}
+@media (max-width: 420px) {
+  .prose .interview-roles li:nth-child(n) { padding: 13px 11px; }
+  .prose .interview-roles strong { font-size: 13px; }
+}

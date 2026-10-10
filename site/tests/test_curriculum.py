@@ -44,7 +44,10 @@ class CurriculumTests(unittest.TestCase):
     def test_no_preexisting_published_url_is_removed_or_duplicated(self):
         expected = json.loads((build.SITE / 'catalog-baseline.json').read_text())
         urls = [page.url for page in self.pages]
-        self.assertFalse(set(expected) - set(urls))
+        redirects = self.navigation.get('redirects', {})
+        self.assertFalse(set(expected) - set(urls) - set(redirects))
+        self.assertFalse(set(redirects.values()) - set(urls))
+        self.assertFalse(set(redirects) & set(urls))
         self.assertEqual(len(urls), len(set(urls)))
 
     def test_included_notes_have_exactly_one_chapter(self):
@@ -77,7 +80,8 @@ class CurriculumTests(unittest.TestCase):
         self.assertEqual(self.catalog['05-post-training/sft-and-its-ceiling.md']['zh'].previous.src.name, 'README.md')
         self.assertEqual(self.catalog['05-post-training/rlhf/ppo-clipping.md']['zh'].next.src.name, 'after-rlhf.md')
         self.assertEqual(self.catalog['00-foundations/deep-dives/muon.md']['zh'].previous.src.name, 'optimizers.md')
-        self.assertEqual(self.catalog['00-foundations/deep-dives/dflash.md']['zh'].previous.src.name, 'kv-cache-and-inference.md')
+        self.assertEqual(self.catalog['06-systems/llm-serving.md']['zh'].previous.src.name, 'kv-cache-and-inference.md')
+        self.assertEqual(self.catalog['00-foundations/deep-dives/dflash.md']['zh'].previous.src.name, 'llm-serving.md')
 
     def test_atlas_groups_concepts_into_three_reading_areas(self):
         for language in ('zh', 'en'):
@@ -186,7 +190,7 @@ topics = [{zh="一个主题", en="A topic", state="pending", notes=[]}]
         self.assertEqual(len(topics), 67)
         self.assertEqual(len({topic['id'] for topic in topics}), 67)
         questions = [topic for topic in topics if topic['id'] not in {'algorithms', 'pytorch'}]
-        self.assertEqual(sum(topic['read'] == 'body' for topic in questions), 8)
+        self.assertEqual(sum(topic['read'] == 'body' for topic in questions), 43)
         for topic in topics:
             self.assertIn(topic['state'], {'article', 'related', 'missing'})
             self.assertTrue(topic['gap_zh'] and topic['gap_en'])
@@ -197,26 +201,39 @@ topics = [{zh="一个主题", en="A topic", state="pending", notes=[]}]
         k3 = next(topic for topic in topics if topic['id'] == 'k3-rope')
         self.assertEqual((k3['state'], k3['read']), ('article', 'body'))
         self.assertIn('00-foundations/deep-dives/nope-and-order.md', k3['notes'])
-        for identifier in ('muon', 'dflash-inference', 'mtp-dflash', 'bm25-tfidf', 'prime-sieve',
-                           'qwen-bge', 'infonce-cross-entropy'):
+        for identifier in ('muon', 'dflash-inference', 'mtp-dflash', 'prime-sieve',
+                           'checkpoint', 'training-memory', 'gpu-data-flow'):
             topic = next(topic for topic in topics if topic['id'] == identifier)
             self.assertEqual((topic['state'], topic['read']), ('article', 'title'))
+        for identifier in ('bert', 'bert-lstm', 'encoder-decoder-objectives', 'attention-masks',
+                           'moe-routing-code', 'sequence-moe-balance', 'grpo-initial-loss',
+                           'clipped-token-gradient', 'grpo-on-policy', 'rejection-sampling',
+                           'reward-hacking-entropy', 'entropy-collapse', 'cross-entropy-code',
+                           'sft-mask', 'sft-to-rl', 'tp-dp', 'pp-without-nvlink',
+                           'collectives', 'decoder-tp', 'tp-column-row',
+                           'moe-router', 'moe-changes', 'mla-rope',
+                           'cross-tokenizer', 'on-policy-distillation', 'rollout',
+                           'qwen-bge', 'bm25-tfidf', 'infonce-cross-entropy'):
+            topic = next(topic for topic in topics if topic['id'] == identifier)
+            self.assertEqual((topic['state'], topic['read']), ('article', 'body'))
         cache = next(topic for topic in topics if topic['id'] == 'kv-placement')
-        self.assertEqual((cache['state'], cache['read']), ('related', 'body'))
-        for identifier in ('softmax-implementations', 'sequence-moe-balance', 'rejection-sampling',
-                           'entropy-collapse', 'infonce-cross-entropy', 'grpo-on-policy'):
+        self.assertEqual((cache['state'], cache['read']), ('article', 'body'))
+        for identifier in ('softmax-implementations',):
             self.assertEqual(next(topic['read'] for topic in topics if topic['id'] == identifier), 'title')
 
     def test_appendix_widget_languages_and_links(self):
+        data = tomllib.loads((build.SITE / 'appendix-coverage.toml').read_text())
+        counts = Counter(topic['state'] for chapter in data['chapter'] for topic in chapter['topics'])
+        total = sum(counts.values())
         for language in ('zh', 'en'):
             page = self.catalog['learn/coverage.md'][language]
             markup = curriculum.appendix_coverage(page, self.catalog, build.SITE / 'appendix-coverage.toml')
             self.assertEqual(markup.count('<li id="coverage-'), 67)
             self.assertEqual(markup.count('<details'), 4)
             self.assertIn('参考正文已读' if language == 'zh' else 'Reference prose read', markup)
-            expected_counts = ('67 个入口：24 项已有专门讲解，43 项需补充或对照，0 项缺少专题讲解'
+            expected_counts = (f"{total} 个入口：{counts['article']} 项已有专门讲解，{counts['related']} 项需补充或对照，{counts['missing']} 项缺少专题讲解"
                                if language == 'zh' else
-                               '67 entries: 24 with dedicated explanations, 43 needing expansion or comparison, and 0 lacking dedicated coverage')
+                               f"{total} entries: {counts['article']} with dedicated explanations, {counts['related']} needing expansion or comparison, and {counts['missing']} lacking dedicated coverage")
             self.assertIn(expected_counts, markup)
             if language == 'en':
                 self.assertNotIn('待对照', markup)
@@ -225,6 +242,19 @@ topics = [{zh="一个主题", en="A topic", state="pending", notes=[]}]
                 target = os.path.normpath(str(page.out_rel.parent / link))
                 self.assertIn(target, {note.url for note in self.pages})
                 self.assertEqual('.en.html' in target, language == 'en')
+
+    def test_public_coverage_summary_matches_inventory(self):
+        data = tomllib.loads((build.SITE / 'appendix-coverage.toml').read_text())
+        topics = [topic for chapter in data['chapter'] for topic in chapter['topics']]
+        counts = Counter(topic['state'] for topic in topics)
+        root = build.SITE.parent
+        chinese = (root / 'learn/coverage.md').read_text()
+        english = (root / 'learn/coverage.en.md').read_text()
+        self.assertIn(f"当前 **{counts['article']} 项有专门讲解，{counts['related']} 项仍需补充或对照**", chinese)
+        self.assertIn(f"**{counts['article']} dedicated explanations and {counts['related']} entries still needing expansion or comparison**", english)
+        chapter = self.catalog['06-systems/tensor-parallel.md']
+        for language in ('zh', 'en'):
+            self.assertEqual(chapter[language].section['dir'], 'learn/training-resources')
 
     def test_appendix_rejects_duplicate_or_invalid_states(self):
         for second in ('id="one",state="article",read="title"', 'id="two",state="complete",read="title"'):

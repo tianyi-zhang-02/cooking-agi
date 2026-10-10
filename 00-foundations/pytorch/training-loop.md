@@ -221,6 +221,92 @@ def write_tensorboard(history, log_dir):
 
 TensorBoard 画出的网络图依赖捕获方式和示例输入，不能当作程序所有动态分支的完整证明。曲线用来提出问题，再回代码和数据验证，不能代替验证。
 
+## 7. 换到 GPU，数据要走哪些地方？ {#gpu-data-flow}
+
+前面的代码一直在 CPU 上。换到 GPU，不是把所有东西都搬过去：数据通常仍由 CPU 读取和整理，模型在设备上计算，日志再取回少量结果。
+
+<figure class="worked-update">
+<ol>
+<li><small>01 / CPU</small><strong>把样本拼成 batch</strong><span>Dataset 取样，collate 整理 features 和 labels。文本任务还要处理 padding、长度和 mask。</span></li>
+<li><small>02 / 主机内存</small><strong>准备传输</strong><span>可选的锁页内存（pinned memory）仍在 CPU 一侧，不是显存。这里装的是接下来要送出的 batch。</span></li>
+<li><small>03 / 传输</small><strong>把 batch 送到设备</strong><span>features、labels 和模型要在兼容设备上。同一条 CUDA stream 中，后面的计算等待前面的复制。</span></li>
+<li><small>04 / GPU</small><strong>前向、反向、更新</strong><span>权重留在设备上；每批产生激活和梯度。更新后留下新权重与优化器状态。</span></li>
+<li><small>05 / 取回结果</small><strong>记录必要的指标</strong><span>通常不必把每个 batch 的全部 logits 搬回 CPU。读取 GPU 标量也可能让主机等待。</span></li>
+</ol>
+<figcaption>这是常见的单 GPU 训练路径。CPU offload、GPU 数据预处理和多卡通信会增加其他路径。</figcaption>
+</figure>
+
+设备内部也不是所有数据都一直待在同一个地方：张量通常放在 GPU 的全局内存中，kernel 按需把一部分数据读到 cache、shared memory 或寄存器里运算。算完的结果再留给后续算子。具体经过哪层、是否融合，取决于 kernel；Python 里一个 `matmul` 不代表整块矩阵一次装进片上存储。想继续看这部分，可以接着读 [attention kernel](../deep-dives/attention-kernels.md)。
+
+### 先把设备放对，再谈加速 {#device-placement}
+
+下面只改一次更新的设备处理。实际迁移时，先把模型放到目标设备，再建立 optimizer；DataLoader 可以先保持简单，等测出瓶颈再调整。
+
+```python
+def device_step(model, optimizer, features, labels):
+    device = next(model.parameters()).device
+    features = features.to(device, non_blocking=True)
+    labels = labels.to(device, non_blocking=True)
+    model.train()
+    optimizer.zero_grad(set_to_none=True)
+    loss = nn.functional.cross_entropy(model(features), labels)
+    loss.backward()
+    optimizer.step()
+    return loss.detach()
+```
+
+这个函数假设模型参数在同一设备上，输入是前面的两个 tensor，不是通用多设备 batch 搬运器。CPU 版本会做数值测试；**这篇没有运行 CUDA 吞吐测试**。返回的 loss 已脱离计算图，但仍在原设备上；如果把每一步的返回值一直存进列表，还是会积累张量。
+
+`non_blocking=True` 的意思是尽可能不让主机在复制调用处等待，不等于“下一批传输已经和当前计算重叠”。真要重叠，还要有合适的 pinned 源数据、不同 stream、可用复制引擎和正确依赖。先用普通循环跑通，再看 profiler，通常比一开始手写预取器好排查。[PyTorch 的传输教程](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html)有对应的时间线对照。
+
+### 用 3 个 batch 看懂等待发生在哪儿 {#pipeline-example}
+
+假设每批准备数据需要 4 ms，传输 2 ms，GPU 计算 8 ms。数字仅用于算时间，**不是测量结果**。串行执行 3 批要 $3\times(4+2+8)=42$ ms。
+
+如果 3 个阶段各有独立资源、没有资源争用，并且能提前准备下一批，第一批仍需要 14 ms。之后最慢的计算阶段每 8 ms 才能完成一批，总共是 $14+2\times8=30$ ms：
+
+| Batch | CPU 准备 | 传输 | GPU 计算 |
+| --- | --- | --- | --- |
+| 1 | 0–4 ms | 4–6 ms | 6–14 ms |
+| 2 | 4–8 ms | 8–10 ms | 14–22 ms |
+| 3 | 8–12 ms | 12–14 ms | 22–30 ms |
+
+<details markdown="1">
+<summary>换一组耗时试试（Python）</summary>
+
+```python
+def ideal_pipeline_ms(batch_count, prepare_ms, transfer_ms, compute_ms):
+    if not isinstance(batch_count, int) or isinstance(batch_count, bool) or batch_count < 1:
+        raise ValueError("batch_count must be a positive integer")
+    stages = (prepare_ms, transfer_ms, compute_ms)
+    if any(not isinstance(value, (int, float)) or isinstance(value, bool)
+           or not 0 < value < float("inf") for value in stages):
+        raise ValueError("stage times must be finite and positive")
+    serial = batch_count * sum(stages)
+    overlapped = sum(stages) + (batch_count - 1) * max(stages)
+    return serial, overlapped
+
+assert ideal_pipeline_ms(3, 4, 2, 8) == (42, 30)
+assert ideal_pipeline_ms(3, 12, 2, 8) == (66, 46)
+```
+
+</details>
+
+第二个算例把 CPU 准备改成 12 ms，这时数据准备成了最慢一段。单纯让 GPU 算得更快，未必能显著提高长期吞吐。真实系统还有队列容量、变长样本、资源争用和启动开销，这个理想公式只帮我们找问题，不预测实际速度。
+
+### 卡利用率低，先查哪一段？ {#gpu-waiting}
+
+| 看到的现象 | 可以先做的小检查 | 别急着做什么 |
+| --- | --- | --- |
+| GPU 常等下一批 | 临时复用一个已准备好的 batch，与正常读取对比 | 不看磁盘、分词和 collate 就加卡 |
+| 复制次数特别多 | 检查是不是逐样本搬运，或反复 `.cpu()` / `.item()` | 只加 `non_blocking=True` 就算优化完 |
+| CPU 内存随 worker 数增加 | 看预取队列、每批大小和进程内副本 | 认为 `num_workers` 越多越好 |
+| 计算很快，记日志却慢 | 降低同步取指标的频率，再比较时间线 | 直接关掉所有检查或保留所有输出 |
+
+复用 batch 只是定位数据开销，不能拿来报告真实训练吞吐。计时也要等所测 GPU 工作完成；只量 Python 调用返回，可能只量到了排队。多 stream 还需处理依赖与张量生命周期，不能靠随手插一个 `synchronize()` 证明写法高效。[CUDA semantics](https://docs.pytorch.org/docs/2.8/notes/cuda.html#asynchronous-execution)说明了这些边界。
+
+前面的保存例子只检查输出一致。接下来若要处理被打断的训练，去看 [checkpoint 与恢复](../../practice/post-training/checkpoint-and-resume.md)：那里会让“接着跑”与“从同一权重重新开始”真正分出差别。
+
 ## 资料与下一步
 
 这一章没有用旧版 torchtext 加载数据：torchtext 已停止开发，0.18 是最后一个稳定版本。学习 PyTorch 不需要先装齐它的所有领域库，也不要照着老截图盲目补依赖。

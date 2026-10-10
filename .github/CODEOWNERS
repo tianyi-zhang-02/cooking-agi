@@ -81,10 +81,14 @@
 /00-foundations/deep-dives/precision-and-memory.en.md @tianyi-zhang-02 @2pir2
 /06-systems/distributed-training.md @tianyi-zhang-02 @2pir2
 /06-systems/distributed-training.en.md @tianyi-zhang-02 @2pir2
+/06-systems/tensor-parallel.md @tianyi-zhang-02 @2pir2
+/06-systems/tensor-parallel.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/core/decoding.md @tianyi-zhang-02 @2pir2
 /00-foundations/core/decoding.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/deep-dives/kv-cache-and-inference.md @tianyi-zhang-02 @2pir2
 /00-foundations/deep-dives/kv-cache-and-inference.en.md @tianyi-zhang-02 @2pir2
+/06-systems/llm-serving.md @tianyi-zhang-02 @2pir2
+/06-systems/llm-serving.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/deep-dives/dflash.md @tianyi-zhang-02 @2pir2
 /00-foundations/deep-dives/dflash.en.md @tianyi-zhang-02 @2pir2
 /00-foundations/deep-dives/position-and-context.md @tianyi-zhang-02 @2pir2

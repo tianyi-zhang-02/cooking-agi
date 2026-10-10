@@ -2,7 +2,7 @@
 
 [中文](after-ppo.md) · **English**
 
-> Reading time: ~14 min · Type: chapter · Last reviewed: 2026-10-08
+> Reading time: ~18 min · Type: chapter · Last reviewed: 2026-10-09
 
 ## Start with how feedback enters training {#start-with-what-each-algorithm-removes}
 
@@ -21,12 +21,12 @@ Use the same prompt, “calculate $17\times24$,” in all three cases:
 | Method | What it observes | Where the update direction comes from |
 | --- | --- | --- |
 | PPO | the Actor answers 388, reward $R=0$, and the Critic predicts $V=0.6$ | $A=R-V=-0.6$, so reduce the probability of this trajectory |
-| GRPO | answers `[408, 388, 408 with work, 428]` get rewards `[1,0,1,0]` | group normalization gives $A=[1,-1,1,-1]`; raise relatively good responses and lower relatively bad ones |
+| GRPO | answers `[408, 388, 408 with work, 428]` get rewards `[1,0,1,0]` | group normalization gives approximately $A=[1,-1,1,-1]$; raise relatively good responses and lower relatively bad ones |
 | DPO | a fixed record says `chosen=408, rejected=388` | make the current policy prefer chosen more than the Reference does |
 
 One sentence each: PPO asks “how much better was the result than the Critic expected?” GRPO asks “how much better was this result than the other answers to the same prompt?” DPO does not estimate an advantage; it directly asks whether chosen improved more than rejected relative to the Reference.
 
-## What PPO has available to delete {#what-ppo-has-available-to-delete}
+## In PPO, which models learn and which ones score? {#what-ppo-has-available-to-delete}
 
 A classic PPO-RLHF diagram has four conceptual roles, two of them training:
 
@@ -37,9 +37,9 @@ A classic PPO-RLHF diagram has four conceptual roles, two of them training:
 | Reward | frozen | scores responses |
 | Reference | frozen | KL anchor, keeps the policy from drifting |
 
-**The Critic is one of the most expensive extra roles**: it trains alongside the current policy and carries optimizer state. It may be a separate value model, or share an Actor backbone and add only a value head. These are conceptual roles, not a promise that four independent full models remain resident in memory. Much of the later story is still about removing the Critic.
+The Critic needs training too: forward and backward passes, plus optimizer state. It may be a separate value model or share an Actor backbone with an added value head. These are four responsibilities, not necessarily four complete models resident in memory. Could we obtain a useful comparison without training a Critic?
 
-## The main line: delete the Critic {#the-main-line-delete-the-critic}
+## Where does the baseline come from without a Critic? {#the-main-line-delete-the-critic}
 
 The Critic estimates state value, providing a variance-reducing baseline and participating in TD / GAE bootstrapping. For suitable whole-response outcome tasks, sampling statistics can construct a relative signal instead. Multi-step, delayed-reward tasks require another look at credit assignment.
 
@@ -62,12 +62,14 @@ Its argument is that RLHF starts from a trained SFT model rather than a randomly
 Sample $G$ responses for one prompt and score them $R_1,\ldots,R_G$. A common response-level advantage is
 
 $$
-\mu_R=\frac{1}{G}\sum_{i=1}^{G}R_i,\qquad
-\sigma_R=\sqrt{\frac{1}{G}\sum_i(R_i-\mu_R)^2},\qquad
-\hat A_i=\frac{R_i-\mu_R}{\sigma_R+\varepsilon}.
+\begin{aligned}
+\mu_R&=\frac{1}{G}\sum_{i=1}^{G}R_i,\\
+\sigma_R&=\sqrt{\frac{1}{G}\sum_i(R_i-\mu_R)^2},\\
+\hat A_i&=\frac{R_i-\mu_R}{\sigma_R+\varepsilon}.
+\end{aligned}
 $$
 
-For rewards $[1,0,1,0]$, $\mu_R=0.5$, $\sigma_R=0.5$, and the advantages are $[1,-1,1,-1]$. Rewards may come from a Reward Model, humans, a math verifier, unit tests, code execution, or a format checker.
+For rewards $[1,0,1,0]$, $\mu_R=0.5$ and $\sigma_R=0.5$, giving advantages approximately $[1,-1,1,-1]$ when the small $\varepsilon$ is ignored. This uses population standard deviation; a sample-standard-deviation convention changes the scale. Rewards may come from a Reward Model, humans, a math verifier, unit tests, code execution, or a format checker.
 
 A common GRPO implementation broadcasts one sequence-level advantage to the tokens in that response and then uses a PPO-style clipped objective:
 
@@ -78,15 +80,14 @@ $$
 $$
 
 $$
-L_{\mathrm{GRPO}}=
-\frac{1}{G}\sum_i\frac{1}{|o_i|}\sum_t
-\min\!\left(
-\rho_{i,t}\hat A_i,
-\operatorname{clip}(\rho_{i,t},1-\epsilon,1+\epsilon)\hat A_i
-\right),
+\begin{aligned}
+c_{i,t}&=\operatorname{clip}(\rho_{i,t},1-\epsilon,1+\epsilon),\\
+s_{i,t}&=\min(\rho_{i,t}\hat A_i,\;c_{i,t}\hat A_i),\\
+J_{\mathrm{GRPO}}&=\frac{1}{G}\sum_i\frac{1}{|o_i|}\sum_t s_{i,t}.
+\end{aligned}
 $$
 
-usually with a KL constraint against a frozen Reference. GRPO therefore does not remove rollout, reward, policy ratios, or stabilization; its main deletion is the learned value baseline.
+Here $G$ counts responses to one prompt, and $|o_i|$ counts valid tokens in response $i$. Training maximizes $J$, or minimizes $-J$ in code. [DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1) also includes a Reference KL term; later recipes sometimes set $\beta=0$. The main saving is the learned value baseline, not rollout, reward, or policy ratios. Check loss reduction, KL weight, and update count separately rather than inferring them from the algorithm's name.
 
 | | PPO baseline | GRPO baseline |
 | --- | --- | --- |
@@ -95,9 +96,64 @@ usually with a KL constraint against a frozen Reference. GRPO therefore does not
 | Main cost | train a value function | multiple rollouts per prompt |
 | Typical failure | Critic is inaccurate or unstable | no reward variation within the group, hence no learning signal |
 
-## What surfaces once the Critic is gone {#what-surfaces-once-the-critic-is-gone}
+## How can a zero loss still train the policy? {#zero-loss-gradient}
 
-This section is the point. **A sampled baseline fails differently than a learned one.**
+A group contains both good and bad answers, yet the logged policy loss is zero. That need not be a bug: **the values can cancel without their parameter gradients canceling.**
+
+Consider two one-token answers, A and B. Each had probability 0.5 when sampled; their rewards are 1 and 0. Use advantages `[1,-1]` for clean arithmetic. A single parameter sets $p(A)=\sigma(\theta)$ and $p(B)=1-p(A)$, while both old probabilities stay fixed at 0.5.
+
+At $\theta=0$, both ratios equal 1 and neither term is on a clipping plateau. The policy loss to minimize is:
+
+$$\begin{aligned}
+\mathcal L(\theta)&=-\tfrac12\big[2p(A)-2(1-p(A))\big]\\
+&=1-2\sigma(\theta),\\
+\mathcal L(0)&=0,\qquad \mathcal L'(0)=-0.5.
+\end{aligned}$$
+
+The value is zero, but the slope is not. One gradient-descent step with learning rate 0.2 moves $\theta$ to 0.1 and raises A's probability to about **0.525**. This is a constructed two-action check, not a language-model training experiment.
+
+The denominator is an easy place to lose that gradient. `logp - old_logp.detach()` can be numerically zero just after sampling while its numerator remains differentiable. `logp - logp` instead subtracts the same computational path and cancels the gradient. A detached copy of the current value works for a single fresh update; when reusing the batch, retain the original copy rather than refreshing it on every pass.
+
+<details markdown="1">
+<summary>Check the zero loss in a few lines of PyTorch</summary>
+
+```python
+import torch
+
+theta = torch.tensor(0.0, dtype=torch.float64, requires_grad=True)
+logits = torch.stack((theta, torch.zeros_like(theta)))
+logp = logits.log_softmax(dim=-1)
+old_logp = logp.detach().clone()
+advantages = torch.tensor([1.0, -1.0], dtype=torch.float64)
+loss = -((logp - old_logp).exp() * advantages).mean()
+loss.backward()
+assert abs(loss.item()) < 1e-12
+assert abs(theta.grad.item() + 0.5) < 1e-12
+```
+
+This checks the first update, omitting clipping before it takes effect. The accompanying [CPU script](code/policy_gradient_checks.py) verifies the same result with the full `min + clamp` objective and tests gradients, masking, and reductions. It does not call a model, sampling service, or GPU.
+
+</details>
+
+### When should the initial loss not be zero? {#zero-loss-assumptions}
+
+The cancellation depends on **a complete group, centered advantages, matching ratios, and the chosen reduction**. It is not a universal GRPO assertion:
+
+| Situation | Consequence |
+| --- | --- |
+| Every response has the same reward | Every advantage is zero, so this policy-gradient term really has no signal; that differs from positive and negative values canceling |
+| A group is split across minibatches or ranks | A local logged mean need not be zero |
+| Response lengths are 1 and 3, with advantages `[1,-1]` | At unit ratios, averaging within responses then across responses gives loss 0; averaging over all four valid tokens gives 0.5 |
+| The current policy matches old but not Reference | The policy term may vanish while the KL term does not; refreshing old does not also reset Reference |
+| Sampling temperature, inference backend, or asynchronous trajectory age differs | Identical weight files alone do not guarantee matching saved and recomputed log-probabilities; investigate ratios that differ from 1 |
+
+The length example represents two different objectives, not a logging discrepancy to patch away. [Dr. GRPO](https://arxiv.org/html/2503.20783v1#S3) studies weighting from length and within-group standard deviation; [TRL's loss types](https://huggingface.co/docs/trl/grpo_trainer#loss-types) distinguish several reductions. Inspecting `loss_type` and the actual mask is more useful than guessing what the initial scalar should be.
+
+Log policy loss, KL, valid-token count, group reward variance, and gradient norm separately. A near-zero loss proves neither stalled learning nor convergence. For the next question—whether a clipped token can still change—see the [gradient example](rlhf/ppo-clipping.en.md#clipped-token-gradients). For why the denominator is called old, follow the [response-group lifecycle](rlhf/on-off-policy.en.md#grpo-data-lifecycle).
+
+## What can go wrong with group-relative rewards? {#what-surfaces-once-the-critic-is-gone}
+
+Removing a model does not remove the need to judge an answer against something. The comparison now comes from the sampled group, so its weaknesses matter.
 
 **One: when a group's rewards don't differ, the baseline carries no information.**
 If every response is right or every one is wrong—for example, $R=[0,0,0,0]$—subtracting the mean leaves every advantage at zero. An $\varepsilon$ in the denominator prevents division by zero but cannot create a relative signal. The group contributes **no useful policy-gradient signal**. On tasks that are too easy or too hard, that share gets large.
@@ -105,26 +161,26 @@ If every response is right or every one is wrong—for example, $R=[0,0,0,0]$—
 **Two: normalization introduces bias.**
 Dividing by within-group standard deviation changes prompt weights; averaging within responses changes token weights across lengths. [Dr. GRPO](https://arxiv.org/abs/2503.20783) analyzes these biases. Whether removing a normalization helps your task still requires matched sampling and evaluation budgets; it is not a universally correct repair.
 
-**Three: symmetric clipping can't lift low-probability tokens.**
+**Three: what does the same ratio ceiling mean for a rare token?**
 PPO flattens surrogate gains on selected branches rather than hard-constraining actual ratios. The same multiplicative ceiling corresponds to a smaller absolute change for a low-probability token. Raising it may affect exploration, but entropy decline has multiple causes; one curve does not establish which one applies.
 
 **Four: sequence-level loss dilutes long answers.**
-Average the loss per sample and a 1000-token response carries the same weight as a 50-token one, so each token in the long answer receives a thinner share of gradient. Reasoning tasks are exactly the ones that need long answers.
+Averaging within each response and then across responses gives a 1000-token answer the same total weight as a 50-token answer. Each token in the longer answer gets 1/20 of the loss weight; actual gradients also depend on advantages and the model. This deserves inspection if important reasoning steps occur in longer answers, but length alone does not make reasoning better.
 
 DAPO combines changes to sampling, clipping, token weighting, and overlong responses. Soft length penalties do not remove the generation cap or within-group standardization. Work through [DAPO's sampling, length, and clipping examples](dapo.en.md).
 
-## Another line: delete the RL loop entirely {#another-line-delete-the-rl-loop-entirely}
+## DPO: train directly on preference pairs {#another-line-delete-the-rl-loop-entirely}
 
-DPO goes further: in its standard offline training phase, it needs **no explicit Reward Model, Critic, or online rollout loop**.
+DPO takes a different approach: its standard offline training phase needs **no explicit Reward Model, Critic, or online rollout loop**.
 
 Each record is $(x,y_w,y_l)$: a prompt, chosen response, and rejected response. Define how each response's log probability changes relative to a frozen Reference:
 
 $$
-\Delta_w=\log\pi_\theta(y_w\mid x)-\log\pi_{\mathrm{ref}}(y_w\mid x),
+\Delta_w=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)},
 $$
 
 $$
-\Delta_l=\log\pi_\theta(y_l\mid x)-\log\pi_{\mathrm{ref}}(y_l\mid x).
+\Delta_l=\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}.
 $$
 
 DPO minimizes
@@ -136,14 +192,15 @@ $$
 
 Do not memorize the expansion. It says only:
 
-$$
-\boxed{\text{Relative to the Reference, chosen should improve more than rejected.}}
-$$
+**Relative to the Reference, chosen should improve more than rejected.**
 
 Why is a separate Reward Model unnecessary? A Bradley–Terry preference model says
 
 $$
-P(y_w\succ y_l\mid x)=\sigma\!\left(r(x,y_w)-r(x,y_l)\right).
+\begin{gathered}
+\Delta r=r(x,y_w)-r(x,y_l),\\
+P(y_w\succ y_l\mid x)=\sigma(\Delta r).
+\end{gathered}
 $$
 
 At the optimum of KL-constrained reward maximization, policy and reward satisfy
@@ -173,7 +230,7 @@ Two follow-ups:
 - **IPO** — Uses a different preference objective with a finite target margin for relative log-ratios; it is not simply DPO plus a generic regularizer. [Paper](https://arxiv.org/abs/2310.12036)
 - **KTO** — Can use unpaired desirable / undesirable labels. This allows a different data format; actual labeling costs still depend on the collection process.
 
-## And one more: replace the reward model with a program {#and-one-more-replace-the-reward-model-with-a-program}
+## RLVR: let a program check the answer {#and-one-more-replace-the-reward-model-with-a-program}
 
 Math has answers to check. Code has tests to run. For these, the reward **doesn't need to be learned** — write a checker.
 
@@ -189,7 +246,7 @@ The limitation is obvious: it only applies where you can write the checker.
 | GRPO | prompts + a group of responses per prompt | RM, verifier, or environment | no | yes, multiple times per prompt | removes the Critic; needs within-group variation and spends more generation compute |
 | DPO | fixed chosen/rejected pairs | no explicit call; reward difference is implicit in the loss | no | not in standard offline training | simple and stable; limited by preference coverage and distribution mismatch |
 
-The extensions still fit the “what was removed?” lens: RLOO replaces the Critic with a leave-one-out baseline; REINFORCE++ uses batch statistics; RLVR replaces a learned Reward Model with a verifier; DAPO moves beyond deletion and repairs GRPO's sampling, clipping, token weighting, and overlong-response behavior one by one.
+The extensions change different parts of training: RLOO changes baseline estimation, REINFORCE++ uses batch statistics, RLVR changes the reward source, and DAPO adjusts sampling, clipping, token weighting, and overlong-response handling. These are not all competing choices at the same level, nor are they necessarily mutually exclusive.
 
 ## How to choose {#how-to-choose}
 

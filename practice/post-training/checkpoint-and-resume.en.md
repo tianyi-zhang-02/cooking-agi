@@ -4,9 +4,47 @@
 
 > Original teaching project · Checked: 2026-10-09. Includes a CPU standard-library recovery experiment, not a complete distributed checkpoint backend.
 
-A run is interrupted, but the weights survived. After loading them, loss jumps and data starts over. This may not be a slightly noisy recovery: you may have restored the model without restoring the experiment.
+A run stops halfway through, but you saved the weights. After loading them, predictions match—yet the next training update does not. The missing piece may be the optimizer's history, the learning rate, or which batch comes next.
 
-Distinguish **resuming the same run** from **warm-starting a new experiment**. A warm start may change data or reset the optimizer, but should receive a new run identity.
+We will start with two updates you can calculate by hand, then work through what to save and how to test recovery. The first example explains the idea; the later sections are for building a training loop that can actually resume.
+
+## Three uses of the word checkpoint {#checkpoint-meaning}
+
+| Phrase | What it means | Does it resume a run? |
+| --- | --- | --- |
+| “Download a model checkpoint” | Obtain a version of the weights and supporting configuration | It can initialize training; full training state may be absent |
+| “Save a checkpoint every 1,000 steps” | Persist the training state at that point | Only if required state is complete and compatible |
+| “Enable activation checkpointing” | Retain fewer intermediate activations and recompute them during backward | This saves memory, not interrupted progress |
+
+A **warm start** begins a new experiment from existing weights. A **resume** continues an interrupted one. Both are useful. Changing the data or resetting the optimizer is fine as a new run; it just should not be mistaken for uninterrupted continuation.
+
+## Same weights, different next update {#momentum-restore}
+
+Use one weight initialized to 1, a learning rate of 0.1, and momentum of 0.9. Keep the gradient at 1 on each step, with no weight decay or other corrections, so momentum is the only difference.
+
+Each step computes $v_{t+1}=0.9v_t+g_t$, then $w_{t+1}=w_t-0.1v_{t+1}$. After the first step, velocity is 1 and weight is 0.9. Now stop and reload:
+
+<figure class="worked-update worked-update--pairs">
+<ol>
+<li><small>RESTORE BOTH</small><strong>0.9 → 0.71</strong><span>Restored velocity is 1. The next velocity is 0.9 × 1 + 1 = 1.9.</span></li>
+<li><small>RESTORE WEIGHTS ONLY</small><strong>0.9 → 0.80</strong><span>The new optimizer starts with zero velocity. Its next velocity is just 1.</span></li>
+</ol>
+<figcaption>Identical starting weights and gradients produce different updates. These are illustrative calculations.</figcaption>
+</figure>
+
+```python
+def momentum_step(weight, velocity, gradient, rate=0.1, momentum=0.9):
+    next_velocity = momentum * velocity + gradient
+    return weight - rate * next_velocity, next_velocity
+
+saved_weight, saved_velocity = momentum_step(1.0, 0.0, 1.0)
+resumed_weight, resumed_velocity = momentum_step(saved_weight, saved_velocity, 1.0)
+warm_weight, warm_velocity = momentum_step(saved_weight, 0.0, 1.0)
+assert abs(resumed_weight - 0.71) < 1e-12
+assert abs(warm_weight - 0.80) < 1e-12
+```
+
+Matching predictions mostly checks model state. **Taking the next update** also exercises the optimizer, learning rate, and next batch. Adam has more state to restore, but the test has the same purpose.
 
 ## Separate recovery and inference artifacts
 
@@ -18,6 +56,18 @@ Distinguish **resuming the same run** from **warm-starting a new experiment**. A
 A small LoRA adapter does not identify its base by itself. Record an immutable revision, not only a model name. After merging, quantization, or a backend change, rerun fixed-input checks. Generation inside the training process does not validate the exported artifact.
 
 Recovery bundles can contain data paths and sample state; do not publish them as model exports without inspection. Load trusted artifacts only, rather than disabling deserialization safeguards to bypass compatibility errors.
+
+For a first implementation, ask what changes if each piece is missing:
+
+| Missing state | Possible symptom | What to compare |
+| --- | --- | --- |
+| Optimizer | Predictions match; the next weights do not | The momentum example above |
+| Scheduler / step | Learning rate restarts or is shifted by one update | Rate actually used for the next update |
+| RNG | Dropout or augmentation draws different randomness | Post-restart random values and gradients |
+| Data position / packing buffer | Samples repeat or disappear | Next batch IDs, tokens, and masks |
+| Data or tokenizer version | The same ID now produces different input | Versions and a fixed sample's encoding |
+
+A small loss jump does not prove a bad restore, and a smooth curve does not prove a good one. First compare the next step under fixed conditions; across hardware or versions, distinguish numerical variation from missing state. [PyTorch's saving tutorial](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html) likewise separates continued-training state from model weights alone.
 
 ## Which instant does the checkpoint represent?
 

@@ -2,7 +2,7 @@
 
 **中文** · [English](multi-head-attention.en.md)
 
-> 阅读时间：约 12 分钟 · 难度：必修 · 最近审阅：2026-10-09
+> 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10-10
 
 先只看一次加权求和：两个位置提供的 value 是 `[2, 0]` 和 `[0, 4]`，注意力权重是 `0.75` 和 `0.25`，读出的结果就是 `[1.5, 1]`。Attention 的计算从这里展开：权重怎么由 Q、K 得到，哪些位置要被遮住，多组这样的计算又怎样拼起来。
 
@@ -19,7 +19,11 @@
 这里先讲 self-attention：$Q$、$K$、$V$ 来自同一个输入 $X$ 的三组可学习线性投影。Cross-attention 则可以从另一条序列取 K/V，后面再展开。
 
 $$
-Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V
+\begin{gathered}
+Q=XW_Q\\
+K=XW_K\\
+V=XW_V
+\end{gathered}
 $$
 
 它们不是三个单独的维度，也没有人为规定好的语义。本例令 $d_v=d_k$：序列有 $T$ 个 token 时，$Q,K,V$ 都是 $(T,d_k)$；一般情况下 V 的宽度可以不同。公式赋予了它们不同的**计算角色**：Q/K 用来算权重，V 是之后被加权汇总的向量。
@@ -63,7 +67,9 @@ mask 不是让模型只看前一个 token，而是让它看到**自己和之前�
 ### 3. 对每一行做 softmax {#3-softmax}
 
 $$
+\begin{gathered}
 A=\operatorname{softmax}_{j}(S+M)
+\end{gathered}
 $$
 
 Softmax 沿列索引 $j$ 进行，因此每一行满足：
@@ -90,10 +96,11 @@ $$
 整条数据流可以压缩成一句：
 
 $$
-X\xrightarrow{W_Q,W_K,W_V}(Q,K,V)
-\xrightarrow{QK^\top/\sqrt{d_k}}S
-\xrightarrow{+M,\,\text{row-softmax}}A
-\xrightarrow{AV}O
+\begin{gathered}
+S=QK^\top/\sqrt{d_k},\\
+A=\operatorname{softmax}_{\rm row}(S+M),\\
+O=AV.
+\end{gathered}
 $$
 
 也就是：**三个投影产生 Q/K/V；Q 和 K 生成 token 两两之间的权重；mask 删除不允许的信息路径；每行 softmax 归一化；最后用这些权重对 V 求加权和。**
@@ -102,33 +109,94 @@ $$
 
 ## 单个头在算什么 {#_3}
 
-$$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
+$$
+\begin{gathered}
+\text{Attention}(Q,K,V)\\
+= \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
+\end{gathered}
+$$
 
 拆到单个 query $\mathbf{q}_i$ 看：
 
-$$\alpha_{ij} = \frac{\exp(\mathbf{q}_i^\top \mathbf{k}_j / \sqrt{d_k})}{\sum_{j'}\exp(\mathbf{q}_i^\top \mathbf{k}_{j'}/\sqrt{d_k})}, \qquad \mathbf{o}_i = \sum_j \alpha_{ij}\mathbf{v}_j$$
+$$
+\begin{gathered}
+s_{ij}=\mathbf q_i^\top\mathbf k_j/\sqrt{d_k},\\
+\alpha_{ij}=\frac{\exp(s_{ij})}{\sum_{j\prime}\exp(s_{ij\prime})},\\
+\mathbf o_i=\sum_j\alpha_{ij}\mathbf v_j.
+\end{gathered}
+$$
 
 在没有 attention dropout 时，每行权重非负且和为 1，所以**单个头投影前的输出**是 value 的凸组合。开头的 `[1.5, 1]` 就是一个例子。别把这个结论套到整个 Transformer block：dropout、输出投影和残差连接都会改变它；权重本身也随输入变化，并不是固定的平均。
 
 ## 为什么除以 $\sqrt{d_k}$ {#sqrtd_k}
 
-它主要是在控制点积的尺度，可以用一个简化假设看清楚。
+先看它改变了什么。假设一个头的维度为 64，某个 query 对两个 key 的点积分数是 `[8, −8]`：
 
-设 $q, k$ 各分量独立、均值 0、方差 1，那么
+| 怎么处理分数 | 送进 softmax 的值 | 两个位置分到的权重 |
+| --- | --- | --- |
+| 不缩放 | `[8, −8]` | 约 `[0.9999999, 0.0000001]` |
+| 除以 $\sqrt{64}=8$ | `[1, −1]` | 约 `[0.881, 0.119]` |
+| 只减去最大值 | `[0, −16]` | 与第一行相同 |
 
-$$\text{Var}(\mathbf{q}^\top\mathbf{k}) = \sum_{i=1}^{d_k}\text{Var}(q_i k_i) = d_k$$
+不缩放时，几乎全部权重都落在第一个位置上。缩放以后，第二个位置还能参与输出。**这不是说权重越平均越好，而是不希望仅仅因为维度变大，softmax 就过早变得很尖。**
 
-标准差是 $\sqrt{d_k}$，因此 $d_k=64$ 时为 8。但 softmax 看的是**分数差**：`[8, 8]` 仍得到 `[0.5, 0.5]`，`[8, -8]` 才会非常接近 `[1, 0]`。分数差过大时，权重容易饱和。Softmax 的雅可比是
+这里要分清两件事：除以一个正数会改变分数差，也会改变权重；减去同一个数不改变分数差，只是让指数运算更稳。`[1000, 1000]` 仍然应该得到 `[0.5, 0.5]`，不能笼统地说“输入大就会饱和”。
 
-$$\frac{\partial\,\text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij}-\alpha_j)$$
+<details markdown="1">
+<summary>为什么恰好是平方根？把方差算一遍</summary>
 
-当一个权重趋近 1、其余趋近 0 时，雅可比趋近零矩阵。若后面的 value 和上游梯度有界，通过权重传回分数的梯度也会很小。除以 $\sqrt{d_k}$ 在上述假设下把方差拉回 1，降低这类饱和的风险；训练后的 Q/K 未必还满足独立、单位方差，不能据此保证所有梯度都稳定。
+用一个简化假设：$q_1,\ldots,q_{d_k},k_1,\ldots,k_{d_k}$ **全部相互独立**，每个分量均值为 0、方差为 1。先看一项：
 
-⚠️ 除的是 $\sqrt{d_k} = \sqrt{d_\text{head}}$，**不是** $\sqrt{d_\text{model}}$。手写时很容易顺手写成后者。
+$$
+\begin{gathered}
+\mathbb E[q_i k_i]=0,\\
+\mathbb E[q_i^2]\mathbb E[k_i^2]=1,\\
+\operatorname{Var}(q_i k_i)=1.
+\end{gathered}
+$$
+
+不同项之间的协方差为 0，所以相加后：
+
+$$
+\begin{aligned}
+\operatorname{Var}(q^\top k)&=d_k,\\
+\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)&=1.
+\end{aligned}
+$$
+
+维度为 64 时，未缩放点积的标准差是 8。除以 8，标准差回到 1；如果除以 64，方差反而变成 $1/64$。我们是在调整随机波动的尺度，不是在对 64 项求平均。
+
+这也是 [Transformer 原论文 §3.2.1](https://arxiv.org/html/1706.03762v7#S3.SS2.SSS1) 中缩放的出发点。但真实模型的 Q/K 是学出来的，不保证一直满足这些假设。比如令 $q=k$，即使各分量均值为 0、方差为 1，$q^\top k$ 的期望也会变成 $d_k$，不再是 0。只说“每个分量方差为 1”还不够。
+
+</details>
+
+<details markdown="1">
+<summary>权重太尖，为什么会影响梯度？</summary>
+
+记 softmax 输出为 $\alpha$，对输入分数 $z$ 的导数是：
+
+$$
+\frac{\partial\alpha_i}{\partial z_j}=\alpha_i(\delta_{ij}-\alpha_j).
+$$
+
+只有两个位置时，$\partial\alpha_1/\partial z_1=\alpha_1(1-\alpha_1)$。权重为 0.5 时，这一项是 0.25；接近 1 时，它就接近 0。若 value 和后续传来的梯度有界，经由 attention 权重传回分数的梯度会变小。
+
+这里说的是 **attention 这条梯度路径**，不是“整个网络没有梯度了”。它也不能直接套到分类头的 softmax + cross-entropy：后者对 logits 的梯度是“预测概率减标签”，自信地预测错了，梯度未必小。
+
+</details>
+
+手写时用 **head dimension $d_k$**，不是整个模型的 $d_\text{model}$。如果模型还有 QK normalization 或可学习的温度，要以它的实际公式为准；缩放能缓解一个问题，不是训练稳定性的保证。
 
 ## 为什么使用多头：目的不是增加维度 {#_4}
 
-$$\text{head}_i = \text{Attention}(XW_i^Q, XW_i^K, XW_i^V), \quad \text{MultiHead} = \text{Concat}(\text{head}_1..\text{head}_h)W^O$$
+$$
+\begin{gathered}
+\text{head}_i=\\
+\operatorname{Attention}(XW_i^Q,XW_i^K,XW_i^V),\\
+\operatorname{MultiHead}=\\
+\operatorname{Concat}(\text{head}_1,\ldots,\text{head}_h)W^O.
+\end{gathered}
+$$
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
@@ -142,7 +210,12 @@ $$\text{head}_i = \text{Attention}(XW_i^Q, XW_i^K, XW_i^V), \quad \text{MultiHea
 
 假设 $d_{\text{model}}=512$。一个完整维度的单头会计算
 
-$$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.$$
+$$
+\begin{gathered}
+A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right)\\
+O=AV.
+\end{gathered}
+$$
 
 关键限制不是“512 维不够”，而是所有 value 通道共享同一套注意力矩阵 $A$。处理
 “小明把书送给小红，因为她很喜欢阅读”中的“她”时，模型可能同时需要追踪指代、
@@ -150,9 +223,17 @@ $$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.
 
 多头让第 $i$ 个头学习自己的投影和权重：
 
-$$Q_i=XW_i^Q,\qquad K_i=XW_i^K,\qquad V_i=XW_i^V,$$
+$$
+\begin{gathered}
+Q_i=XW_i^Q\\
+K_i=XW_i^K\\
+V_i=XW_i^V,
+\end{gathered}
+$$
 
-$$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
+$$
+A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).
+$$
 
 于是模型得到 $A_1,\ldots,A_h$ 多套读取方式。某些头可能偏向指代，另一些偏向
 邻近或语法，但这些职责不是人工指定的，也可能彼此重叠。更准确的结论是：
@@ -165,7 +246,12 @@ $$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
 
 Suppose $d_{\text{model}}=512$. One full-width attention head computes
 
-$$A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right),\qquad O=AV.$$
+$$
+\begin{gathered}
+A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{512}}\right)\\
+O=AV.
+\end{gathered}
+$$
 
 The main limitation is not that 512 dimensions are insufficient. It is that every
 value channel shares the same attention matrix $A$. Resolving a pronoun may require
@@ -174,9 +260,17 @@ the same time; one head must compress all of them into one distribution.
 
 Head $i$ instead learns its own projections and weights:
 
-$$Q_i=XW_i^Q,\qquad K_i=XW_i^K,\qquad V_i=XW_i^V,$$
+$$
+\begin{gathered}
+Q_i=XW_i^Q\\
+K_i=XW_i^K\\
+V_i=XW_i^V,
+\end{gathered}
+$$
 
-$$A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).$$
+$$
+A_i=\operatorname{softmax}\!\left(\frac{Q_iK_i^\top}{\sqrt{d_k}}\right).
+$$
 
 The model therefore obtains $A_1,\ldots,A_h$: several ways to read the sequence.
 Some heads may emphasize coreference, locality, or syntax, but those jobs are not
@@ -193,18 +287,24 @@ groups can use different attention weights instead of sharing one distribution.*
 
 原版使用 $d_{\text{model}}=512,h=8$，通常令
 
-$$d_k=d_v=\frac{512}{8}=64,$$
+$$
+d_k=d_v=\frac{512}{8}=64,
+$$
 
 所以 $8\times64=512$。如果 8 个头都保留完整 512 维，参数和计算会大幅增长；
 把总宽度拆开，才能在接近单头的预算下得到 8 套关系。
 
 单头完整投影有
 
-$$W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.$$
+$$
+W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.
+$$
 
 多头每组投影是 $512\times64$，8 组合计仍为
 
-$$8\times(512\times64)=512\times512.$$
+$$
+8\times(512\times64)=512\times512.
+$$
 
 因此标准 MHA 的 Q/K/V 和输出投影总参数量约为 $4d_{\text{model}}^2$，与头数本身
 无关。代码也通常只做一次大投影，再 reshape 成 `(B, H, T, d_head)`；不是顺序执行
@@ -217,7 +317,9 @@ $$8\times(512\times64)=512\times512.$$
 
 The original model uses $d_{\text{model}}=512$ and $h=8$, usually with
 
-$$d_k=d_v=\frac{512}{8}=64,$$
+$$
+d_k=d_v=\frac{512}{8}=64,
+$$
 
 so $8\times64=512$. Giving all eight heads the full 512 dimensions would multiply
 parameters and compute. Splitting a fixed total width yields eight attention
@@ -225,11 +327,15 @@ relations at roughly the budget of one full-width head.
 
 A full-width projection has
 
-$$W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.$$
+$$
+W_Q,W_K,W_V\in\mathbb{R}^{512\times512}.
+$$
 
 Eight $512\times64$ head projections contain the same total number of elements:
 
-$$8\times(512\times64)=512\times512.$$
+$$
+8\times(512\times64)=512\times512.
+$$
 
 Standard MHA therefore has about $4d_{\text{model}}^2$ parameters across Q, K, V,
 and the output projection, independent of head count. Implementations perform one
@@ -251,7 +357,7 @@ models sequentially.
 头数过多时可能出现每头维度太小、多个头功能重复、参数利用率低，甚至过拟合。
 实践中经常可以剪掉部分头而几乎不损失性能。所以：
 
-$$\boxed{\text{多头不是为了把维度做大，而是在相近成本下获得多套注意力关系。}}$$
+**多头不是为了把维度做大，而是在相近成本下获得多套注意力关系。**
 
 “不同表示子空间”也不要过度解释。每个头确实有独立参数，因此可以学习不同匹配
 函数；但“某个头一定负责公司语义、另一个一定负责水果语义”并不是预先设计或必然
@@ -271,7 +377,7 @@ Too many heads can make each head too narrow, create redundant attention pattern
 waste capacity, or contribute to overfitting. In practice, some heads can often be
 pruned with little quality loss. Therefore:
 
-$$\boxed{\text{Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.}}$$
+**Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.**
 
 “Different representation subspaces” should not be over-interpreted either. Separate
 parameters let heads learn different matching functions, but no head is guaranteed

@@ -32,6 +32,8 @@ These interventions act at different levels. BF16 changes number representation;
 | Results change with device count | Data partitioning, valid-token counts, synchronization, randomness | [Distributed training](../../06-systems/distributed-training.en.md) |
 | High utilization but poor throughput | Useful-token throughput, recomputation, communication, waiting | [Distributed training](../../06-systems/distributed-training.en.md) |
 
+On a first pass, the overview's distinction between DDP, FSDP, TP, and PP is enough. For the mechanics inside a layer, continue with [two GPUs computing one FFN](../../06-systems/tensor-parallel.en.md): calculate `[2, −1]` into `[9, 6]`, then follow the input gradient to see where communication happens. Framework configuration names can wait.
+
 ## Chapter contents
 
 <!-- widget:study-atlas -->

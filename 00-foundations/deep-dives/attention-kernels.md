@@ -130,17 +130,29 @@ A 再把 3 个新 tokens 送入模型、形成它们的 K/V 后，可填满已�
 
 还要分清论文里的共享机制与当前框架实际开放的功能。[vLLM 的 prefix caching 说明](https://docs.vllm.ai/en/latest/design/prefix_caching/)目前按完整块复用缓存，并把前缀、token IDs 及 adapter / 多模态信息等纳入缓存键。不能据此假定它会复用任意半满尾块。
 
+<span id="cache-lifecycle"></span>
+
 ## 请求结束，不代表缓存立刻消失
 
-截至 2026-10-09 核对的 vLLM V1 设计，活跃请求持有引用；最后一个引用释放后，块可进入空闲队列，但内容仍可能被再次命中。新分配覆盖该块时才需要移除旧映射。这里主要是容量驱动的 LRU 回收，不是“过 10 分钟自动失效”的 TTL。[缓存生命周期](https://docs.vllm.ai/en/latest/design/prefix_caching/)
+按本次核对的 vLLM V1 `10cc2f6`，活跃请求持有引用；最后一个引用释放后，缓存块可进入空闲队列，但内容仍可能被再次命中。新分配复用该块时会移除旧映射。这是容量驱动的回收，不是“过 10 分钟自动失效”的 TTL。[固定版本的 block pool](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/core/block_pool.py#L729)分别处理缓存块与未缓存块，不能把所有空闲块都理解成同一条纯 LRU 队列。
 
 区分这三件事：**请求不再持有、缓存不能再命中、GPU 内存归还给系统**。它们不是同一时刻，也不是同一个操作；预分配的池可以一直占着显存供后续使用。
 
-例如共用前缀有 7 个 token，块大小为 4，那么完整块路径至多复用前 4 个，不是 7 个。若第 2 个 token 改了，第一个块已经不匹配，后面的同样文字也不能单独拼上去：那些 KV 是在另一个前缀下算出来的。
+拿一个已计算好的前缀块看就更直观：
+
+| 发生的事 | 活跃引用数 | 这个块处于什么状态？ |
+| --- | ---: | --- |
+| 请求 A 持有它 | 1 | 仍在使用，不能给不相关内容覆盖 |
+| 请求 B 命中同一前缀 | 2 | 两个请求共享，不是复制两份 KV |
+| A 结束 | 1 | B 还在使用 |
+| B 也结束 | 0 | 可以被回收，但旧缓存仍可能命中 |
+| 新请求命中，或分配器复用它 | 1 | 前者复用旧内容；后者先撤销旧映射，再存新内容 |
+
+例如共用前缀有 7 个 token，块大小为 4，那么完整块路径至多复用前 4 个，不是 7 个。若第 2 个 token 改了，第一个块已经不匹配，后面的同样文字也不能单独拼上去：那些 KV 是在另一个前缀下算出来的。这里讲普通 full attention；混合 attention 的 cache group、hash 粒度与物理块可能不一一对应，要按实际配置检查。
 
 ## vLLM 和 SGLang，不是“谁更细就谁更快”
 
-vLLM 用带前缀信息的块哈希；SGLang 的 RadixAttention 用树组织共享路径。但树节点能拆分，不代表所有配置都按单 token 复用。2026-10-09 查看 [SGLang RadixCache 实现](https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/radix_cache.py)，`page_size > 1` 的路径会做页对齐。比较时需要记录 commit、cache backend、page size 和 attention 类型，不能只记框架名字。
+vLLM 用带前缀信息的块哈希；SGLang 的 RadixAttention 用树组织共享路径。但树节点能拆分，不代表所有配置都按单 token 复用。本次核对 [SGLang `436d73d` 的 RadixCache](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/radix_cache.py#L358)，`page_size > 1` 的匹配路径会做页对齐。仍用共同前缀 7 个 token 的例子：普通 page size=1 的匹配可以保留 7；page size=4 则向下对齐到 4。它说明配置会改变复用粒度，不说明哪个系统更快。
 
 | 同一批请求，要检查什么？ | 为什么 |
 | --- | --- |

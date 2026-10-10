@@ -1,0 +1,82 @@
+<svg lang="en" aria-labelledby="figure-title" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" width="700" height="350" role="img">
+<title id="figure-title">Gradient propagation in a 40-layer example</title>
+<style>
+  :root {
+    --ink: #1b1e23; --dim: #6c727b; --faint: #949aa2;
+    --rule: #dee1e5; --panel: #ffffff; --paper: #f5f6f7;
+    --c0: #2f5d7c; --c1: #c8501e;
+    --f0: rgba(47,93,124,0.09); --f1: rgba(200,80,30,0.10);
+    --f2: rgba(120,120,128,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e3e5e8; --dim: #8c9199; --faint: #6e747c;
+      --rule: #343941; --panel: #1c2026; --paper: #14161a;
+      --c0: #74a9d8; --c1: #e8794f;
+      --f0: rgba(116,169,216,0.13); --f1: rgba(232,121,79,0.14);
+      --f2: rgba(160,168,180,0.07);
+    }
+  }
+  text { font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+         fill: var(--ink); }
+  .ttl   { font-size: 13.5px; font-weight: 700; }
+  .sub   { font-size: 10.5px; fill: var(--dim); font-style: italic; }
+  .lbl   { font-size: 11.5px; }
+  .lbl-s { font-size: 10px; fill: var(--dim); }
+  .mono  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+           fill: var(--dim); }
+  .box   { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+  .box-0 { fill: var(--f0); stroke: var(--c0); stroke-width: 1.2; }
+  .box-1 { fill: var(--f1); stroke: var(--c1); stroke-width: 1.2; }
+  .box-q { fill: var(--f2); stroke: var(--rule); stroke-width: 1;
+           stroke-dasharray: 4 3; }
+  /* An outline-only rect. Needed as its own class: in SVG a CSS rule beats a
+     presentation attribute, so class="box" fill="none" still paints the fill
+     and would cover whatever it frames. */
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+  .arrow { stroke: var(--dim); stroke-width: 1.3; fill: none; }
+  .arrow-1 { stroke: var(--c1); stroke-width: 1.5; fill: none; }
+  .arrow-0 { stroke: var(--c0); stroke-width: 1.5; fill: none; }
+  .resid { stroke: var(--c1); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+  .divider { stroke: var(--rule); stroke-width: 1; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c1)"/></marker>
+  <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5"
+          orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c0)"/></marker>
+</defs>
+
+<text class="ttl" x="24" y="24" text-anchor="start">Gradient propagation across layers</text>
+<text class="sub" x="24" y="41" text-anchor="start">40-layer tanh MLP, gain 0.8, width 64, seed 0; identical input, weights and final gradient.</text>
+<line class="divider" x1="66" y1="258.0" x2="550" y2="258.0" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="261.5" text-anchor="end">1e-7</text>
+<line class="divider" x1="66" y1="254.6" x2="550" y2="254.6" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="258.10226532376606" text-anchor="end">1e-6</text>
+<line class="divider" x1="66" y1="222.7" x2="550" y2="222.7" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="226.1837416029988" text-anchor="end">1e-5</text>
+<line class="divider" x1="66" y1="190.8" x2="550" y2="190.8" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="194.26521788223152" text-anchor="end">1e-4</text>
+<line class="divider" x1="66" y1="158.8" x2="550" y2="158.8" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="162.34669416146426" text-anchor="end">1e-3</text>
+<line class="divider" x1="66" y1="126.9" x2="550" y2="126.9" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="130.428170440697" text-anchor="end">1e-2</text>
+<line class="divider" x1="66" y1="95.0" x2="550" y2="95.0" stroke-dasharray="2 4" opacity=".6"/>
+<text class="lbl-s" x="58" y="98.50964671992969" text-anchor="end">1e-1</text>
+<polyline class="arrow-0" points="66.0,248.4 78.4,244.2 90.8,239.1 103.2,236.0 115.6,232.6 128.1,228.3 140.5,223.7 152.9,220.3 165.3,218.3 177.7,217.7 190.1,216.5 202.5,213.1 214.9,208.3 227.3,205.3 239.7,199.7 252.2,197.5 264.6,193.6 277.0,191.8 289.4,189.2 301.8,186.9 314.2,183.5 326.6,181.9 339.0,178.5 351.4,175.5 363.8,170.2 376.3,167.1 388.7,163.3 401.1,159.8 413.5,157.7 425.9,152.6 438.3,148.4 450.7,142.9 463.1,139.5 475.5,139.2 487.9,136.8 500.4,132.2 512.8,128.4 525.2,125.4 537.6,123.4 550.0,120.7" fill="none" stroke-width="2"/>
+<polyline class="arrow-1" points="66.0,85.6 78.4,87.4 90.8,89.2 103.2,90.6 115.6,92.1 128.1,93.4 140.5,94.3 152.9,95.8 165.3,96.9 177.7,98.0 190.1,99.1 202.5,100.3 214.9,101.3 227.3,102.2 239.7,103.1 252.2,104.0 264.6,105.0 277.0,106.0 289.4,107.0 301.8,107.8 314.2,108.4 326.6,109.2 339.0,110.2 351.4,111.0 363.8,111.8 376.3,112.1 388.7,113.0 401.1,113.8 413.5,114.7 425.9,115.3 438.3,115.8 450.7,116.5 463.1,116.9 475.5,117.5 487.9,118.2 500.4,118.9 512.8,119.5 525.2,120.1 537.6,120.4 550.0,120.7" fill="none" stroke-width="2"/>
+<rect class="frame" x="66" y="76" width="484" height="182"/>
+<text class="lbl-s" x="66.0" y="275" text-anchor="middle">1</text>
+<text class="lbl-s" x="314.2051282051282" y="275" text-anchor="middle">21</text>
+<text class="lbl-s" x="550.0" y="275" text-anchor="middle">40</text>
+<text class="lbl-s" x="308.0" y="292" text-anchor="middle">Layer (1 is closest to input)</text>
+<text class="lbl-s" x="66" y="67" text-anchor="start">Gradient norm at this layer</text>
+<line x1="566" y1="85.60843305726326" x2="584" y2="85.60843305726326" class="arrow-1" stroke-width="2"/>
+<text class="lbl-s" x="590" y="89.60843305726326" text-anchor="start">with residual</text>
+<line x1="566" y1="248.39156694273674" x2="584" y2="248.39156694273674" class="arrow-0" stroke-width="2"/>
+<text class="lbl-s" x="590" y="252.39156694273674" text-anchor="start">without residual</text>
+<text class="sub" x="24" y="324" text-anchor="start">This initialization: plain-stack gradient shrinks 1e+04× from layer 40 to layer 1.</text>
+<text class="sub" x="24" y="340" text-anchor="start">Layer-1 norms differ by 1e+05×. Larger is not always better; this is not a training experiment.</text>
+</svg>

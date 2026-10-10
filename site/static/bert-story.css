@@ -1,0 +1,90 @@
+.bert-story { --bert-blue: #9bb9cf; --bert-warm: #d9b28d; margin: 1.7rem 0 2.5rem; padding: clamp(1rem, 3vw, 1.6rem); background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; }
+:root[data-theme="light"] .bert-story { --bert-blue: #386781; --bert-warm: #8a5328; }
+.bert-story-header > span { display: block; font: .65rem var(--mono); letter-spacing: .1em; color: var(--muted); }
+.bert-story[data-lang="zh"] .bert-story-header > span { font-family: var(--body); letter-spacing: normal; }
+.bert-story[data-lang="zh"] .bert-head > span { font-family: var(--body); }
+.bert-story-header > strong { display: block; font-size: 1.2rem; font-weight: 550; margin: .65rem 0 1.1rem; }
+.bert-story button { font: inherit; cursor: pointer; color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 5px; min-height: 42px; }
+.bert-story button:focus-visible { outline: 2px solid var(--bert-blue); outline-offset: 3px; }
+.bert-story button:disabled { opacity: .35; cursor: default; }
+.bert-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); margin-bottom: 1.4rem; }
+.bert-steps button { display: flex; gap: .45rem; align-items: baseline; padding: .5rem .3rem .7rem; border: 0; border-radius: 0; border-bottom: 2px solid transparent; color: var(--muted); text-align: left; font-size: .81rem; }
+.bert-steps button small { font: .65rem var(--mono); }
+.bert-steps button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--bert-warm); }
+.bert-story-body { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.bert-scene, .bert-story-aside { min-width: 0; }
+.bert-story-aside { border-left: 1px solid var(--rule); padding-left: 1rem; }
+.bert-row-label { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .35rem; color: var(--muted); font-size: .67rem; margin-bottom: .5rem; }
+.bert-inputs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .45rem; }
+.bert-inputs button { display: flex; flex-direction: column; justify-content: center; gap: .3rem; min-width: 0; padding: .7rem .15rem .5rem; font: .79rem var(--mono); background: var(--paper); }
+.bert-inputs button small { color: var(--muted); font-size: .6rem; }
+.bert-inputs .is-masked { color: var(--bert-warm); border-style: dashed; }
+.bert-story[data-step="2"] .bert-inputs button[aria-pressed="true"], .bert-story[data-step="1"] .bert-inputs button[aria-pressed="true"] { border-color: var(--bert-blue); background: color-mix(in srgb, var(--bert-blue) 12%, var(--paper)); }
+.bert-embedding { display: grid; justify-items: center; gap: .4rem; padding: .8rem .5rem; margin-top: .65rem; border: 1px solid var(--rule); border-radius: 5px; }
+.bert-embedding strong { font-size: .78rem; font-weight: 500; }
+.bert-embedding small { font-size: .67rem; color: var(--muted); text-align: center; }
+.bert-vector-glyph { display: flex; align-items: center; gap: 3px; height: 15px; }
+.bert-vector-glyph i, .bert-hidden i { display: inline-block; height: 9px; width: 5px; background: var(--muted); opacity: .65; }
+.bert-vector-glyph b { margin: 0 .3rem; font-size: .65rem; color: var(--muted); }
+.bert-story[data-step="1"] .bert-embedding { border-color: var(--bert-warm); background: color-mix(in srgb, var(--bert-warm) 6%, var(--paper)); }
+.bert-story[data-step="1"] .bert-vector-glyph i { background: var(--bert-warm); opacity: 1; }
+.bert-connections { position: relative; height: 54px; overflow: hidden; }
+.bert-connections svg { width: 100%; height: 100%; display: block; }
+.bert-connections path { fill: none; stroke: var(--rule); stroke-width: 1.4; }
+.bert-connections circle { fill: var(--muted); }
+.bert-connections > span { position: absolute; top: 18px; left: 5px; background: var(--panel); color: var(--bert-blue); font-size: .65rem; padding: .15rem .3rem; }
+.bert-connections > span:empty { display: none; }
+.bert-story[data-step="2"] .bert-connections path { stroke: var(--bert-blue); stroke-dasharray: 5 4; animation: bert-read 1.8s linear 2; }
+.bert-stack { position: relative; isolation: isolate; padding: .8rem 1rem; border: 1px solid var(--muted); border-radius: 6px; background: var(--paper); margin: 0 .55rem .85rem; }
+.bert-stack::before, .bert-stack::after { content: ""; position: absolute; inset: 3px -5px -5px; border: 1px solid var(--rule); border-radius: 6px; z-index: -1; pointer-events: none; }
+.bert-stack::after { inset: 7px -9px -9px; }
+.bert-stack > div { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.bert-stack strong { font-size: .95rem; font-weight: 550; }
+.bert-stack span { color: var(--muted); font: .65rem var(--mono); }
+.bert-stack small { display: block; margin-top: .4rem; color: var(--muted); font-size: .65rem; line-height: 1.7; }
+.bert-story[data-step="2"] .bert-stack { border-color: var(--bert-blue); background: color-mix(in srgb, var(--bert-blue) 8%, var(--paper)); }
+.bert-hidden-label { font-size: .67rem; text-align: center; color: var(--muted); margin-top: 1.2rem; }
+.bert-hidden { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .45rem; margin: .35rem 0 .7rem; }
+.bert-hidden > span { text-align: center; padding: .25rem 0; border-bottom: 1px solid transparent; }
+.bert-hidden small { display: block; font: .68rem var(--mono); color: var(--muted); margin-top: .25rem; }
+.bert-hidden .is-output i { background: var(--bert-warm); opacity: 1; }
+.bert-hidden .is-output { border-bottom-color: var(--bert-warm); }
+.bert-story[data-step="2"] .bert-hidden .is-output i { background: var(--bert-blue); }
+.bert-head { padding: .7rem .8rem; border-left: 2px solid var(--rule); background: var(--paper); }
+.bert-head > span { display: block; font: .65rem var(--mono); color: var(--muted); }
+.bert-head > strong { display: block; font-size: .79rem; line-height: 1.65; font-weight: 500; margin-top: .3rem; }
+.bert-story[data-step="3"] .bert-head { border-color: var(--bert-warm); background: color-mix(in srgb, var(--bert-warm) 6%, var(--paper)); }
+.bert-explanation { margin: 0; }
+.bert-explanation > span { display: block; margin-bottom: .65rem; font: .8rem var(--mono); color: var(--bert-warm); }
+.bert-explanation strong { font-size: .95rem; line-height: 1.6; font-weight: 550; }
+.prose .bert-explanation p { font-size: .85rem; line-height: 1.85; margin: .7rem 0 0; }
+.bert-vector-inspector { display: flex; gap: .4rem; align-items: center; margin-top: 1rem; font: .8rem var(--mono); }
+.bert-vector-inspector small { display: block; font: .65rem/1.6 var(--body); color: var(--muted); }
+.bert-task-switch { display: flex; flex-wrap: wrap; gap: .45rem; margin: .8rem 0 0; }
+.bert-task-switch button { padding: .45rem .65rem; font-size: .74rem; }
+.bert-task-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.bert-story [hidden] { display: none; }
+.bert-story-controls { display: flex; justify-content: space-between; gap: .5rem; margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--rule); }
+.bert-story-controls > div { display: flex; gap: .4rem; }
+.bert-story-controls button { padding: .4rem .65rem; font-size: .74rem; }
+.bert-story-controls [data-play] { border-color: transparent; padding-left: 0; color: var(--muted); }
+.prose .bert-story .bert-story-scope { margin: .7rem 0 0; font-size: .65rem; line-height: 1.7; color: var(--muted); }
+@keyframes bert-read { to { stroke-dashoffset: -36; } }
+@media (prefers-reduced-motion: reduce) { .bert-story[data-step="2"] .bert-connections path { animation: none; } }
+@media (max-width: 700px) {
+  .bert-story-body { grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
+  .bert-story-aside { border-left: 0; border-top: 1px solid var(--rule); padding: 1rem 0 0; }
+  .bert-explanation { display: grid; grid-template-columns: 1.8rem 1fr; gap: .4rem; }
+  .bert-explanation > span { margin: .25rem 0 0; }
+}
+@media (max-width: 430px) {
+  .bert-story { padding: .85rem; }
+  .bert-story-header > strong { font-size: 1.05rem; }
+  .bert-steps button { flex-direction: column; gap: .2rem; font-size: .74rem; }
+  .bert-inputs, .bert-hidden { gap: .2rem; }
+  .bert-inputs button { font-size: .62rem; }
+  .bert-stack { padding: .7rem .6rem; }
+  .bert-stack > div { flex-wrap: wrap; }
+  .bert-story-controls button { font-size: .69rem; padding: .4rem; }
+}
+@media print { .bert-story-controls { display: none; } .bert-connections path { animation: none !important; } }

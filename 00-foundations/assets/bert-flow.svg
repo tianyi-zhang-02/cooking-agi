@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 420" width="580" height="420" role="img" aria-labelledby="title desc">
+  <title id="title">一个 encoder，两个预训练任务</title>
+  <desc id="desc">扰动后的输入经 embedding 和双向 encoder 得到 hidden states。MLM head 读取选中的位置预测原 token；NSP head 读取 CLS 的 pooled 表示判断文本段是否相邻。两项 loss 相加，共同更新 encoder。</desc>
+  <style>
+    :root { --ink:#262a31; --muted:#707783; --line:#cdd2d9; --panel:#f5f6f7; --blue:#2f5d7c; --orange:#b95629; }
+    @media(prefers-color-scheme:dark) { :root { --ink:#e5e7eb; --muted:#a0a8b4; --line:#46505d; --panel:#1c2026; --blue:#82b6dc; --orange:#eea276; } }
+    text { font-family:system-ui,sans-serif; fill:var(--ink); font-size:25px; text-anchor:middle; }
+    .small { font-size:22px; fill:var(--muted); }
+    .box { fill:var(--panel); stroke:var(--line); stroke-width:1.5; }
+    .arrow { stroke:var(--muted); stroke-width:1.5; fill:none; marker-end:url(#arrow); }
+    .blue { fill:var(--blue); }
+    .orange { fill:var(--orange); }
+  </style>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--muted)"/></marker></defs>
+  <text x="290" y="32">扰动后的 token + segment / position</text>
+  <path d="M290 45 V69" class="arrow"/>
+  <rect x="44" y="77" width="492" height="104" rx="10" class="box"/>
+  <text x="290" y="115">Embedding → 双向 Encoder</text>
+  <text x="290" y="152" class="small">每个位置都有 hidden state</text>
+  <path d="M290 182 V205 H148 V236" class="arrow"/>
+  <path d="M290 205 H432 V236" class="arrow"/>
+  <rect x="18" y="244" width="260" height="108" rx="10" class="box"/>
+  <text x="148" y="277" class="blue">MLM · 选中位置</text>
+  <text x="148" y="309" class="small">词表 logits</text>
+  <text x="148" y="339" class="small">预测原 token</text>
+  <rect x="302" y="244" width="260" height="108" rx="10" class="box"/>
+  <text x="432" y="277" class="orange">NSP · [CLS]</text>
+  <text x="432" y="309" class="small">Pooled → 2 类 logits</text>
+  <text x="432" y="339" class="small">判断是否相邻</text>
+  <text x="290" y="400">MLM loss + NSP loss → 更新 encoder</text>
+</svg>

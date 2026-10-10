@@ -48,6 +48,8 @@ An MCP host manages client connections to servers. This is an integration layer,
 
 Read-only search and booking cancellation also carry different risks. One retrieves information; the other changes external state. A cancellation tool should require confirmation and use an idempotency key so a retry after a timeout does not duplicate the operation. Remembering an action mentioned in history does not authorize executing it.
 
+For a complete example, see [tools, MCP, and skills](tools-and-skills.en.md): follow a review-only request and separate task instructions, tool protocols, and execution permissions.
+
 ## Deep research adds more than report length
 
 Change the question to “How have these policies changed, and which exceptions still apply?” One retrieval may not suffice. Track unanswered questions, search for missing evidence, reconcile conflicts, then write conclusions. A small evidence table helps:

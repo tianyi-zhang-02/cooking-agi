@@ -21,8 +21,11 @@ If $c_j$ is smaller than the combined K/V state, caching it can save space. This
 For $c=[2,-1]$, let
 
 $$
-U_K=\begin{bmatrix}1&0\\0&2\\1&1\end{bmatrix},
-\quad k=[2,-2,1]^\top,\quad q=[1,2,-1]^\top.
+\begin{gathered}
+U_K=\begin{bmatrix}1&0\\0&2\\1&1\end{bmatrix},\\
+k=[2,-2,1]^\top,\\
+q=[1,2,-1]^\top.
+\end{gathered}
 $$
 
 The direct dot product is $q^\top k=-3$. Alternatively, compute $U_K^\top q=[0,3]^\top$ and dot it with $c$, again obtaining -3. This score does not require reconstructing the three-dimensional key first.
@@ -62,16 +65,65 @@ This verifies a linear identity, omitting softmax scaling and positional branche
 
 ## Why separate the RoPE branch?
 
-Position-dependent key rotations insert varying matrices into scores, preventing a straightforward absorption into one fixed projection. MLA handles this with a decoupled positional branch.
+<span id="rope-absorption"></span>
 
-The score composition can be understood as
+MLA can use RoPE. The problem is narrower: **rotating the entire expanded key gets in the way of the cheap reordering above**. Attention still works, but one compressed query may no longer suffice for every history position.
+
+Let $R_t$ rotate the query at position $t$ and $R_j$ rotate the key at history position $j$. Their dot product is
 
 $$
-\text{score}_{t,j}\propto
-(q_t^{C})^\top k_j^{C}+(q_t^{R})^\top k_j^{R}.
+(R_tq_t)^\top R_jU_Kc_j
+=q_t^\top R_t^\top R_jU_Kc_j.
 $$
 
-C denotes content and R the positional branch; scaling follows the architecture's combined dimensions. Content uses the latent path while the positional path retains needed RoPE information.
+Without rotation, we compute $U_K^\top q_t$ once. Moving the full expression onto the query now gives $U_K^\top R_j^\top R_tq_t$, which depends on $j$. We lose the convenience of reusing one projection across history, not the ability to encode position. [DeepSeek-V2 §2.1](https://arxiv.org/html/2405.04434v5) separates content and position to address this.
+
+### Why does the order matter? {#rotation-order}
+
+Start with `[1, 1]`. A projection doubles its second coordinate; a rotation turns the vector 90° counterclockwise.
+
+| Order | First result | Final result |
+| --- | --- | --- |
+| Project, then rotate | `[1, 2]` | `[-2, 1]` |
+| Rotate, then project | `[-1, 1]` | `[-1, 2]` |
+
+These are different vectors. With query `[1, 0]`, even the dot product changes from -2 to -1. This is a counterexample about matrix order, not a claim that RoPE rotates every token by 90°; actual angles depend on position and frequency.
+
+<details markdown="1">
+<summary>Check the counterexample in Python</summary>
+
+```python
+def project_two(vector):
+    first, second = vector
+    return [first, 2 * second]
+
+def quarter_turn(vector):
+    first, second = vector
+    return [-second, first]
+
+rotated_key = quarter_turn(project_two([1, 1]))
+swapped_key = project_two(quarter_turn([1, 1]))
+assert rotated_key == [-2, 1]
+assert swapped_key == [-1, 2]
+```
+
+The projection is deliberately square so both orders are defined. Real $U_K$ matrices can be rectangular: latent and key spaces need not have the same width. Special structure can permit some reorderings, but an arbitrary projection does not have that property.
+
+</details>
+
+### What does the separated score look like? {#decoupled-score}
+
+The content key remains a linear projection of the latent, while a smaller RoPE branch supplies position. For one head, with content width $d_C$ and positional width $d_R$,
+
+$$
+\text{score}_{t,j}=
+\frac{(U_K^\top q_t^{C})^\top c_j+(q_t^{R})^\top k_j^{R}}
+{\sqrt{d_C+d_R}}.
+$$
+
+Here $q_t^R$ and $k_j^R$ have already been rotated. **Add the two terms before taking one softmax over visible history**, rather than normalizing content and position separately. For example, let two history positions have content scores 1 and 1, positional scores 0 and 2, and a combined width of 4. The scaled scores are 0.5 and 1.5, giving weights about 0.269 and 0.731. The positional branch changes which history entry receives more attention.
+
+The content projection can still be reordered; the cache also retains the smaller positional key. Caching full rotated keys is another mathematically valid choice, but it changes the memory savings. The equations alone do not establish which kernel will be faster.
 
 In a **fictional configuration**, eight heads with 64-dimensional K and V require 1,024 cached scalars per token per layer for MHA. A 128-dimensional latent plus a 32-dimensional shared positional key requires 160. This excludes other caches, alignment, and parallel replication. It compares state sizes, not measured quality or speed.
 
@@ -208,9 +260,11 @@ assert abs(0.2 * 2 + 0.7 * 6 + 0.4 * 4 - 6.2) < 1e-12
 The code handles aligned blocks only. With compression length $l$, stride $d$, and selection length $l'$, the paper aggregates related compression scores, when $d$ divides both block sizes:
 
 $$
-p^{\mathrm{sel}}_t[j]=
+\begin{gathered}
+p^{\mathrm{sel}}_t[j]=\\
 \sum_{u=0}^{l'/d-1}\sum_{v=0}^{l/d-1}
 p^{\mathrm{cmp}}_t[(l'/d)j+u+v].
+\end{gathered}
 $$
 
 It then sums over query heads sharing KV and selects blocks. Match the paper's indexing and boundaries: overlapping compressed-block probabilities are not probabilities for disjoint raw tokens. [NSA §3.3](https://arxiv.org/html/2502.11089v1#S3.SS3)
@@ -226,8 +280,10 @@ DeepSeek-V3.2's [DeepSeek Sparse Attention](https://arxiv.org/abs/2512.02556) ad
 In simplified notation, query position $t$ scores historical position $s$ as:
 
 $$
-I_{t,s}=\sum_h w^I_{t,h}\operatorname{ReLU}\big((q^I_{t,h})^\top k^I_s\big),\qquad
+\begin{gathered}
+I_{t,s}=\sum_h w^I_{t,h}\operatorname{ReLU}\big((q^I_{t,h})^\top k^I_s\big),\\
 \mathcal S_t=\operatorname{TopK}_{s\le t}(I_{t,s}).
+\end{gathered}
 $$
 
 Indexer and main attention have separate projections. Few heads and low-precision computation reduce selection cost; MLA query heads share the selected latent entries. Index scores choose locations, rather than replacing the main attention's softmax weights.

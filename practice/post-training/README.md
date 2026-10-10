@@ -58,7 +58,7 @@ checkpoint 只是中间产物。若没保存 tokenizer、聊天模板和预处�
 | [3 · 数据与目标](data-and-objectives.md) | 手算 mask 后的 loss，比较 token / 样本平均 | 监督哪些位置，长短样本各占多少权重 |
 | [4 · 多卡选择](distributed-training.md) | 区分容量和速度问题，算 batch 与全局分母 | DDP / FSDP / ZeRO / TP / PP 的成本 |
 | [5 · 保存与恢复](checkpoint-and-resume.md) | 跑一次中断恢复对照，区分 resume 与导出 | 存什么、何时存、换卡数后还能保证什么 |
-| [6 · 实验与发布](experiments-and-release.md) | 配对比较新旧结果，准备可回滚的模型包 | 总体收益与分组回退，离线结论与上线证据 |
+| [6 · 实验与发布](experiments-and-release.md) | 比较新旧结果，沿请求排查错例，准备回滚 | 总体收益与分组回退；该改输入、训练还是评测 |
 
 先看思路，可以读 1 → 2 → 6；准备实际动手，把 3 → 4 → 5 也跑通。两个 Python 标准库程序分别检查目标 / 评估，以及数据 / batch / 玩具恢复，不需要下载模型。接上真正的训练器后，还要验证 tokenizer、前向、梯度与分布式恢复，不能把教学程序跑通当作完整 SFT 已完成。
 

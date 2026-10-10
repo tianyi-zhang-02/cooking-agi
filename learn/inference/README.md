@@ -34,6 +34,8 @@
 
 ## 本章目录
 
+想从头跟一次真实服务的处理过程，读[一次 LLM 请求怎样跑完](../../06-systems/llm-serving.md)。它把输入处理、排队、缓存、模型计算和输出放在同一条线上，再用一个分块算例解释首 token 延迟和持续输出之间的取舍。已有模型部署经验，也可以直接看 [KV 显存预算](../../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和[缓存回收](../../00-foundations/deep-dives/attention-kernels.md#cache-lifecycle)。
+
 已经理解 decode 与缓存，想看怎样减少目标模型的调用轮数，可以接着读 [DFlash 与 MTP](../../00-foundations/deep-dives/dflash.md)：先跟一轮草拟和验证，再看拒绝、缓存回滚与成本。初学时不用先读完所有加速方法。
 
 <!-- widget:study-atlas -->

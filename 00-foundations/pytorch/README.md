@@ -16,8 +16,9 @@
 | --- | --- | --- |
 | [1 · 张量与存储](tensors-and-storage.md) | 为什么我只改了切片，原数据也变了？ | shape、dtype、索引、view 与 copy |
 | [2 · 运算与维度](operations-and-shapes.md) | 代码没报错，为什么算的不是我要的 loss？ | broadcasting、归约、矩阵乘法、数值稳定性 |
-| [3 · 自动求导](autograd.md) | 有计算图，为什么 `.grad` 还是 None？ | 梯度累积、叶节点、detach、VJP |
-| [4 · 从 batch 到训练循环](training-loop.md) | 怎样确认参数真的学到了，而不只是前向能跑？ | Module、DataLoader、验证、日志与恢复 |
+| [3 · 交叉熵与 loss](cross-entropy.md) | 同样叫平均 loss，为什么算出来不一样？ | LogSumExp、软标签、loss mask 与分母 |
+| [4 · 自动求导](autograd.md) | 有计算图，为什么 `.grad` 还是 None？ | 梯度累积、叶节点、detach、VJP |
+| [5 · 从 batch 到训练循环](training-loop.md) | 怎样确认参数真的学到了，而不只是前向能跑？ | Module、DataLoader、验证、日志与恢复 |
 
 ## 先看一次完整的小更新
 
@@ -72,7 +73,7 @@ with torch.no_grad():
 assert math.isclose(loss_after.item(), 0.5787059562, abs_tol=1e-9)
 ```
 
-第 1 章解释输入如何存，第 2 章解释矩阵乘法和平均，第 3 章追踪梯度，第 4 章再加上数据加载、验证和恢复。你不必现在就懂每个函数；先知道每一步交出了什么，再到对应章节拆开看。
+第 1 章解释输入如何存，第 2 章解释运算和维度，第 3 章拆开 loss，第 4 章追踪梯度，第 5 章再加上数据加载、验证和恢复。你不必现在就懂每个函数；先知道每一步交出了什么，再到对应章节拆开看。
 
 这里使用无类别权重的平均 CE 和无 momentum、无 weight decay 的 SGD。换了这些条件，上面的更新数值也会变。接口约定见 [PyTorch 2.8 CE](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html) 和 [SGD](https://docs.pytorch.org/docs/2.8/generated/torch.optim.SGD.html)。
 

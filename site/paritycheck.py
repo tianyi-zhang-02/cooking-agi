@@ -77,7 +77,10 @@ def main() -> int:
             if d == "." and zh.name not in {"README.md", "EDITORIAL.md"}:
                 continue
             seen.add(zh)
-            en = zh.with_name(zh.stem + ".en.md")
+            if zh == ROOT / "README.md":
+                zh, en = ROOT / "README.zh.md", ROOT / "README.md"
+            else:
+                en = zh.with_name(zh.stem + ".en.md")
             rel = zh.relative_to(ROOT).as_posix()
             if not en.exists():
                 missing.append(rel)

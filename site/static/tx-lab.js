@@ -1815,7 +1815,7 @@
     if (!quiet) render();
   }
 
-  var segMode = TX.seg([{ id: 'none', en: 'No balancing', zh: '不做均衡' }, { id: 'aux', en: 'Auxiliary loss', zh: '辅助 loss' }, { id: 'bias', en: 'Bias only (aux-loss-free)', zh: '只调 bias（无辅助 loss）' }], 'none',
+  var segMode = TX.seg([{ id: 'none', en: 'No balancing', zh: '不做均衡' }, { id: 'aux', en: 'Score correction (illustration)', zh: '分数纠偏（示意）' }, { id: 'bias', en: 'Adjust a selection bias', zh: '调整选择偏置' }], 'none',
     function (v) { mode = v; reset(); render(); }, t('Balancing method', '均衡方式'));
   var play = TX.button('Play', '播放', function () { playing = !playing; if (step >= MAX_STEPS) { reset(); } sync(); });
   var again = TX.button('Reset', '重置', function () { reset(); render(); });
@@ -1825,9 +1825,9 @@
   fig.stage.appendChild(h('div', { class: 'ctl-row pc-sliders' }, [sCf.el]));
   var svg = s('svg', { viewBox: '0 0 640 270', role: 'img' });
   fig.stage.appendChild(h('div', { class: 'fig-scroll' }, [svg]));
-  var roStep = TX.readout('Training step', '训练步数'), roImb = TX.readout('Busiest expert ÷ average', '最忙 expert ÷ 平均'), roDrop = TX.readout('Tokens over capacity (dropped)', '超出容量被丢弃的 token');
+  var roStep = TX.readout('Simulation step', '模拟步数'), roImb = TX.readout('Busiest expert ÷ average', '最忙 expert ÷ 平均'), roDrop = TX.readout('Expert branches over capacity', '超出容量的专家分支');
   var caption = h('p', { class: 'fig-caption' });
-  var note = h('p', { class: 'fig-note', bi: ['A toy, not a trained model: 64 tokens per step from eight topics of unequal frequency, and a router that gets better at whatever it is already sent. The shapes are illustrative; the numbers are not measurements.', '这是玩具模拟，不是真实训练：每步 64 个 token，来自出现频率不同的 8 个主题；router 会越来越擅长它已经在处理的东西。曲线形状用来说明问题，数值不是测量结果。'] });
+  var note = h('p', { class: 'fig-note', bi: ['A hand-written simulation with 64 tokens and eight topics per step. Its score updates are illustrative rules, not gradients of the auxiliary loss below. Overflow skips an expert branch, not the whole example. These are not model measurements.', '每步用 64 个 token、8 个主题做手工模拟。分数按设定的规则更新，并没有计算下方辅助 loss 的梯度。超容量跳过的是专家分支，不是整个样本；图中数字不是模型实测。'] });
   fig.foot.appendChild(h('div', { class: 'readouts' }, [roStep.el, roImb.el, roDrop.el]));
   fig.foot.appendChild(caption);
   fig.foot.appendChild(note);
@@ -1864,9 +1864,9 @@
     roImb.set(imb.toFixed(2) + '×');
     roDrop.set(dropped + ' / ' + T + '  (' + Math.round(dropped / T * 100) + '%)');
     var msg = {
-      none: ['Nothing pushes back: an expert that happens to get a topic gets better at it and attracts more. A few experts end up doing almost everything, the rest barely train, and tokens past capacity are dropped.', '没有任何反向约束：碰巧拿到某个主题的 expert 越学越擅长，吸走更多 token。最后少数几个 expert 干了几乎所有的活，其余的几乎学不到东西，超出容量的 token 被丢掉。'],
-      aux: ['An auxiliary loss adds a penalty that grows with f_i · P_i, so overloaded experts lose router probability. Load evens out, but the penalty acts on the same router scores the language-model loss is trying to learn, and the two can pull against each other.', '辅助 loss 加了一个随 f_i · P_i 增大的惩罚，超载的 expert 会被压低 router 概率。负载会变均匀，但这个惩罚作用在语言模型 loss 想学的同一组 router 分数上，两者可能互相拉扯。'],
-      bias: ['Each expert gets a bias that is nudged down when it is overloaded and up when it is idle. The bias only decides which expert is selected; the gating weight still comes from the original score, so no extra gradient reaches the router.', '每个 expert 有一个 bias：超载就调低一点，空闲就调高一点。bias 只影响选谁，门控权重仍然来自原始分数，所以没有额外梯度打到 router 上。']
+      none: ['This simulation rewards already-busy experts, illustrating how an early imbalance can reinforce itself. That behavior is built into the toy rules; it does not show that every unregularized MoE collapses.', '这个模拟会继续提高热门专家的分数，用来展示早期偏斜怎样被放大。这是规则里设定的反馈，不代表所有不加均衡项的 MoE 都会塌缩。'],
+      aux: ['This mode lowers scores for overloaded experts directly. It illustrates the direction of a balancing correction, not an actual auxiliary-loss optimizer. The derivation below shows where a differentiable loss gets its gradient.', '这个模式直接调低过载专家的分数，演示纠偏的方向，不是一次真实的辅助 loss 优化。往下的推导会解释，可导损失的梯度究竟从哪里来。'],
+      bias: ['This mode adjusts a separate selection bias from load counts, without backpropagating a balance loss. Changing the selected experts can still change outputs and task gradients in a real model; this toy does not compute those outputs.', '这个模式根据分配次数单独调整选择偏置，不反传均衡 loss。真实模型里，换了专家仍可能改变输出和任务梯度；这里的模拟没有计算专家输出。']
     }[mode];
     TX.bi(caption, msg[0], msg[1]);
     svg.setAttribute('aria-label', t(msg[0], msg[1]));
@@ -2597,15 +2597,9 @@
     roR.set(Math.round(p.router.q * 100) + '% · ×' + p.router.c.toFixed(1));
     roF.set(Math.round(p.frontier.q * 100) + '% · ×' + p.frontier.c.toFixed(1));
     roL.set('×' + p.cascade.lat.toFixed(1) + ' · ×' + p.router.lat.toFixed(1));
-    var lead = p.cascade.q >= p.frontier.q - 0.015
-      ? ['With a judge this good, the cascade keeps frontier-level quality for a fraction of the spend: most requests are settled by the small model, and only the doubtful ones are paid for twice. What it cannot avoid is the wait — those requests run two models one after the other.',
-         '判断这么准的时候，级联能守住接近 frontier 的质量，只花一部分钱：多数请求小模型就结了，只有拿不准的付两遍。躲不掉的是等待——那些请求要串着跑两个模型。']
-      : p.judge < 55
-        ? ['The judge is close to guessing, and both middle plans fall apart: the cascade escalates the wrong things and pays twice for them, the router sends hard work to the small model. Below about this line, pick one model and keep the system simple.',
-           '判断准头接近瞎猜，中间两种就塌了：级联升级错了对象，还为它们付两遍钱；路由把难题派给小模型。低到这个程度，不如挑一个模型，把系统做简单。']
-        : ['The cascade trades some quality for a lot of cost; the router is cheaper still because nothing is paid for twice, but it commits before seeing the answer, so a wrong guess is never caught.',
-           '级联用一点质量换掉很多成本；路由更便宜，因为没有一条请求被付两次，但它在看到答案之前就下注，猜错了也没人接住。'];
-    TX.bi(note, lead[0], lead[1]);
+    TX.bi(note,
+      'Synthetic comparison: model success rates are assumed, and the cascade check is more accurate than the router by construction. Checking and routing overhead are omitted. The plot does not test a real model or include output recovery after routing.',
+      '这是按假设计算的对比：两类请求的成功率已给定，级联检查还被设得比路由分类更准。没有计入检查与路由开销，也没有模拟路由后的补救，不是真实模型测评。');
     svg.setAttribute('aria-label', t('Cost against quality for four ways to serve the same traffic.', '四种服务同一批流量的方式，在成本和质量上的位置。'));
   }
 

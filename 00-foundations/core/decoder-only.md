@@ -2,7 +2,7 @@
 
 **中文** · [English](decoder-only.en.md)
 
-> 阅读时间：约 28 分钟 · 难度：必修 · 最近审阅：2026-10-09
+> 阅读时间：约 32 分钟 · 难度：必修 · 最近审阅：2026-10-10
 
 模型生成“今天下雨”时，要先有“今天”，才能根据这个前缀决定接下来写什么。训练时完整句子已经给定，所以多个位置的预测可以一起算；生成时后面的字还不存在，只能逐步继续。Decoder-only 的结构、causal mask 和 KV cache，都可以沿着这个区别来理解。
 
@@ -14,7 +14,9 @@
 
 给定 token 序列 $x_1,\ldots,x_T$：
 
-$$\mathcal{L}_{\text{LM}}=-\sum_{t=1}^{T-1}\log p_\theta(x_{t+1}\mid x_{\le t})$$
+$$
+\mathcal{L}_{\text{LM}}=-\sum_{t=1}^{T-1}\log p_\theta(x_{t+1}\mid x_{\le t})
+$$
 
 输入与标签只是错开一位：
 
@@ -149,9 +151,19 @@ which history deserves long-term retention.
 
 典型的 pre-norm decoder block 可以写成：
 
-$$H=X+\operatorname{Attention}(\operatorname{RMSNorm}(X)),$$
+$$
+\begin{gathered}
+U=\operatorname{RMSNorm}(X),\\
+H=X+\operatorname{Attention}(U).
+\end{gathered}
+$$
 
-$$Y=H+\operatorname{SwiGLU}(\operatorname{RMSNorm}(H)).$$
+$$
+\begin{gathered}
+G=\operatorname{RMSNorm}(H),\\
+Y=H+\operatorname{SwiGLU}(G).
+\end{gathered}
+$$
 
 实际路径是：RMSNorm → Q/K/V projection → 对 Q/K 应用 RoPE → causal
 attention → output projection → residual addition → RMSNorm → SwiGLU → 第二次
@@ -169,9 +181,19 @@ MHA 变为 GQA 或 MQA。
 
 A typical pre-norm decoder block can be written as
 
-$$H=X+\operatorname{Attention}(\operatorname{RMSNorm}(X)),$$
+$$
+\begin{gathered}
+U=\operatorname{RMSNorm}(X),\\
+H=X+\operatorname{Attention}(U).
+\end{gathered}
+$$
 
-$$Y=H+\operatorname{SwiGLU}(\operatorname{RMSNorm}(H)).$$
+$$
+\begin{gathered}
+G=\operatorname{RMSNorm}(H),\\
+Y=H+\operatorname{SwiGLU}(G).
+\end{gathered}
+$$
 
 The full path is RMSNorm → Q/K/V projections → RoPE on Q and K → causal attention
 → output projection → residual addition → RMSNorm → SwiGLU → a second residual
@@ -193,16 +215,29 @@ FFN, and sometimes GQA or MQA instead of standard MHA.
 原版把 position encoding 加到输入 embedding。RoPE 则先产生 Q/K，再按 token
 位置旋转它们。下面 $Q_m,K_n$ 表示取出单个 head 后、转成列向量的位置表示：
 
-$$Q=XW_Q,\quad K=XW_K,\qquad
-Q'_m=R_mQ_m,\quad K'_n=R_nK_n.$$
+$$
+\begin{gathered}
+Q=XW_Q\\
+K=XW_K\\
+Q'_m=R_mQ_m\\
+K'_n=R_nK_n.
+\end{gathered}
+$$
 
 二维旋转矩阵是
 
-$$R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.$$
+$$
+R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.
+$$
 
 真实向量会把通道两两成对，并让不同通道对使用不同频率。注意力点积满足
 
-$$(R_mq_m)^\top(R_nk_n)=q_m^\top R_{n-m}k_n,$$
+$$
+\begin{gathered}
+(R_mq_m)^\top(R_nk_n)=\\
+q_m^\top R_{n-m}k_n,
+\end{gathered}
+$$
 
 所以分数自然依赖相对距离 $n-m$。通常不旋转 V，因为位置主要影响“从哪里读”，
 而不是被读取的内容。RoPE 也不意味着无限长度外推；远超训练长度后仍可能分布失配，
@@ -217,17 +252,30 @@ The original Transformer adds positional encoding to input embeddings. RoPE firs
 forms Q and K, then rotates them according to token position. Here $Q_m,K_n$ denote
 single-head position vectors written as columns:
 
-$$Q=XW_Q,\quad K=XW_K,\qquad
-Q'_m=R_mQ_m,\quad K'_n=R_nK_n.$$
+$$
+\begin{gathered}
+Q=XW_Q\\
+K=XW_K\\
+Q'_m=R_mQ_m\\
+K'_n=R_nK_n.
+\end{gathered}
+$$
 
 The two-dimensional rotation matrix is
 
-$$R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.$$
+$$
+R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.
+$$
 
 Real implementations pair channels and use different frequencies across channel
 pairs. Their dot product obeys
 
-$$(R_mq_m)^\top(R_nk_n)=q_m^\top R_{n-m}k_n,$$
+$$
+\begin{gathered}
+(R_mq_m)^\top(R_nk_n)=\\
+q_m^\top R_{n-m}k_n,
+\end{gathered}
+$$
 
 so attention scores naturally depend on relative distance $n-m$. V is normally not
 rotated because position controls where to read rather than the content being read.
@@ -244,22 +292,33 @@ length may still require frequency adjustment or RoPE scaling.
 
 原版 post-norm 是
 
-$$Y=\operatorname{LayerNorm}(X+F(X)).$$
+$$
+Y=\operatorname{LayerNorm}(X+F(X)).
+$$
 
 现代 pre-norm 常写成
 
-$$Y=X+F(\operatorname{Norm}(X)).$$
+$$
+Y=X+F(\operatorname{Norm}(X)).
+$$
 
 后者给残差状态和梯度保留了一条更直接的 identity path，通常更适合训练深层网络；
 所有 block 结束后一般再做 final norm。
 
 LayerNorm 会减均值并除以标准差：
 
-$$\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.$$
+$$
+\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.
+$$
 
 RMSNorm 只控制均方根尺度：
 
-$$\operatorname{RMSNorm}(x)=\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.$$
+$$
+\begin{gathered}
+\operatorname{RMSNorm}(x)=\\
+\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
+\end{gathered}
+$$
 
 所以 LayerNorm 调整中心与大小；RMSNorm 通常不减均值、没有 bias，只调整大小。
 它计算更简单，但“用了 RMSNorm”本身不代表模型必然更好。
@@ -271,11 +330,15 @@ $$\operatorname{RMSNorm}(x)=\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
 
 The original post-norm form is
 
-$$Y=\operatorname{LayerNorm}(X+F(X)).$$
+$$
+Y=\operatorname{LayerNorm}(X+F(X)).
+$$
 
 Modern pre-norm blocks commonly use
 
-$$Y=X+F(\operatorname{Norm}(X)).$$
+$$
+Y=X+F(\operatorname{Norm}(X)).
+$$
 
 Pre-norm preserves a more direct identity path for residual states and gradients,
 which usually makes very deep networks easier to train. A final norm is typically
@@ -283,11 +346,18 @@ applied after the full block stack.
 
 LayerNorm centers and scales:
 
-$$\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.$$
+$$
+\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.
+$$
 
 RMSNorm controls only root-mean-square magnitude:
 
-$$\operatorname{RMSNorm}(x)=\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.$$
+$$
+\begin{gathered}
+\operatorname{RMSNorm}(x)=\\
+\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
+\end{gathered}
+$$
 
 Thus LayerNorm adjusts center and scale; RMSNorm usually has no mean subtraction or
 bias and adjusts only scale. It is simpler to compute, but choosing RMSNorm does not
@@ -303,14 +373,23 @@ by itself guarantee a better model.
 
 本章把一个 token 写成行向量。原版 FFN 是升维 → ReLU → 降维：
 
-$$\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.$$
+$$
+\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.
+$$
 
 现代模型常使用 SwiGLU：
 
-$$\operatorname{SwiGLU}(x)=\left[
-\operatorname{SiLU}(xW_{\text{gate}})\odot(xW_{\text{up}})\right]W_{\text{down}},$$
+$$
+\begin{gathered}
+g=\operatorname{SiLU}(xW_{\text{gate}}),\\
+u=xW_{\text{up}},\\
+\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}.
+\end{gathered}
+$$
 
-$$\operatorname{SiLU}(z)=z\sigma(z).$$
+$$
+\operatorname{SiLU}(z)=z\sigma(z).
+$$
 
 $xW_{\text{up}}$ 产生候选内容，$\operatorname{SiLU}(xW_{\text{gate}})$ 决定每个
 特征怎样调制，二者逐元素相乘后再降维。SiLU 不是概率，可以为负，也可以大于 1。
@@ -324,14 +403,23 @@ $W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$，$W_{\text{down}}\in\ma
 
 This chapter represents each token as a row vector. The original FFN expands, applies ReLU, and projects back down:
 
-$$\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.$$
+$$
+\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.
+$$
 
 Modern models often use SwiGLU:
 
-$$\operatorname{SwiGLU}(x)=\left[
-\operatorname{SiLU}(xW_{\text{gate}})\odot(xW_{\text{up}})\right]W_{\text{down}},$$
+$$
+\begin{gathered}
+g=\operatorname{SiLU}(xW_{\text{gate}}),\\
+u=xW_{\text{up}},\\
+\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}.
+\end{gathered}
+$$
 
-$$\operatorname{SiLU}(z)=z\sigma(z).$$
+$$
+\operatorname{SiLU}(z)=z\sigma(z).
+$$
 
 $xW_{\text{up}}$ produces candidate content, while
 $\operatorname{SiLU}(xW_{\text{gate}})$ controls how much of each feature passes.
@@ -402,13 +490,21 @@ fewer total parameters.
 自回归生成到位置 $t$ 时，过去 token 的 K/V 已经算过，而且模型参数没有变化。
 因此每层保存
 
-$$K_{\text{cache}}=[K_{\text{past}};k_t],\qquad
-V_{\text{cache}}=[V_{\text{past}};v_t],$$
+$$
+\begin{gathered}
+K_{\text{cache}}=[K_{\text{past}};k_t]\\
+V_{\text{cache}}=[V_{\text{past}};v_t],
+\end{gathered}
+$$
 
 新一步只计算 $q_t,k_t,v_t$，再让 query 读取整个缓存：
 
-$$o_t=\operatorname{softmax}\!\left(
-\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right)V_{\text{cache}}.$$
+$$
+\begin{gathered}
+a_t=\operatorname{softmax}\!\left(\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right),\\
+o_t=a_tV_{\text{cache}}.
+\end{gathered}
+$$
 
 在权重、前缀、位置编码和可见范围相同、关闭 dropout 的条件下，未量化 / 未淘汰的 KV cache
 与重算前缀在数学上等价；浮点实现仍可能有小误差。代价是 cache 随
@@ -423,13 +519,21 @@ GQA/MQA 正是通过减少 KV heads 来缩小这块状态。
 At generation step $t$, K and V for earlier tokens have already been computed and
 model parameters have not changed. Each layer therefore stores
 
-$$K_{\text{cache}}=[K_{\text{past}};k_t],\qquad
-V_{\text{cache}}=[V_{\text{past}};v_t],$$
+$$
+\begin{gathered}
+K_{\text{cache}}=[K_{\text{past}};k_t]\\
+V_{\text{cache}}=[V_{\text{past}};v_t],
+\end{gathered}
+$$
 
 computes only $q_t,k_t,v_t$ for the new token, and lets the query read the full cache:
 
-$$o_t=\operatorname{softmax}\!\left(
-\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right)V_{\text{cache}}.$$
+$$
+\begin{gathered}
+a_t=\operatorname{softmax}\!\left(\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right),\\
+o_t=a_tV_{\text{cache}}.
+\end{gathered}
+$$
 
 With identical weights, prefix, positions, and visibility, and dropout disabled,
 unquantized, unevicted KV caching is mathematically equivalent to recomputing the prefix;
@@ -447,7 +551,13 @@ state by reducing the number of KV heads.
 
 朴素实现会显式生成并写回
 
-$$S=QK^\top,\qquad A=\operatorname{softmax}(S),\qquad S,A\in\mathbb{R}^{L\times L}.$$
+$$
+\begin{gathered}
+S=QK^\top\\
+A=\operatorname{softmax}(S)\\
+S,A\in\mathbb{R}^{L\times L}.
+\end{gathered}
+$$
 
 FlashAttention 把 Q/K/V 分块，在 GPU 片上高速存储中逐块计算，并用 online softmax
 维护正确的归一化结果，从而避免把完整 $L\times L$ 中间矩阵写回显存。
@@ -463,7 +573,13 @@ tiling、更少的高带宽显存访问和更小的中间状态。
 
 A naive implementation materializes and writes
 
-$$S=QK^\top,\qquad A=\operatorname{softmax}(S),\qquad S,A\in\mathbb{R}^{L\times L}.$$
+$$
+\begin{gathered}
+S=QK^\top\\
+A=\operatorname{softmax}(S)\\
+S,A\in\mathbb{R}^{L\times L}.
+\end{gathered}
+$$
 
 FlashAttention tiles Q, K, and V, computes blocks in fast on-chip memory, and uses an
 online softmax to maintain the exact normalization without writing the full
@@ -525,7 +641,9 @@ Diagnose the bottleneck first:
 
 Mixture-of-Experts 通常替换 FFN。Router 为每个 token 选择少数专家，例如 top-2：
 
-$$y=p_1E_1(x)+p_2E_2(x).$$
+$$
+y=p_1E_1(x)+p_2E_2(x).
+$$
 
 模型可以拥有很多 expert parameters，但单个 token 只激活少量专家，因此总参数容量
 可以远大于每 token 计算量。代价是 router quality、load balancing、expert capacity、
@@ -542,7 +660,9 @@ $$y=p_1E_1(x)+p_2E_2(x).$$
 Mixture-of-Experts usually replaces the FFN. A router selects a small number of
 experts for each token, for example top-2 routing:
 
-$$y=p_1E_1(x)+p_2E_2(x).$$
+$$
+y=p_1E_1(x)+p_2E_2(x).
+$$
 
 The model may contain many expert parameters while activating only a few per token,
 so total parameter capacity can grow much faster than per-token compute. The cost is
@@ -562,36 +682,67 @@ should not assume every expert has a clean, fixed, human-nameable semantic role.
 
 对于第 $l$ 层输入 $X_l$，先归一化并产生 Q、K、V：
 
-$$U=\operatorname{RMSNorm}(X_l),$$
+$$
+U=\operatorname{RMSNorm}(X_l),
+$$
 
-$$Q=UW_Q,\qquad K=UW_K,\qquad V=UW_V.$$
+$$
+\begin{gathered}
+Q=UW_Q\\
+K=UW_K\\
+V=UW_V.
+\end{gathered}
+$$
 
 K/V 可能使用 GQA。下面按一个 query head 及其对应的 KV head 写公式；多头结果拼接后再做输出投影。接着只旋转 Q/K，并做 causal attention：
 
-$$Q'=\operatorname{RoPE}(Q),\qquad K'=\operatorname{RoPE}(K),$$
+$$
+\begin{gathered}
+Q'=\operatorname{RoPE}(Q)\\
+K'=\operatorname{RoPE}(K),
+\end{gathered}
+$$
 
-$$A=\operatorname{softmax}\!\left(
-\frac{Q'K'^\top}{\sqrt{d_k}}+M_{\text{causal}}
-\right),\qquad O=AV.$$
+$$
+\begin{gathered}
+S=Q'K'^\top/\sqrt{d_k},\\
+A=\operatorname{softmax}(S+M_{\text{causal}}),\\
+O=AV.
+\end{gathered}
+$$
 
 这一步底层可以由 FlashAttention 高效实现，但公式不变。完成输出投影和第一次残差：
 
-$$H=X_l+OW_O.$$
+$$
+H=X_l+OW_O.
+$$
 
 然后走第二条 pre-norm 分支：
 
-$$G=\operatorname{RMSNorm}(H),$$
+$$
+G=\operatorname{RMSNorm}(H),
+$$
 
-$$F=\left[
-\operatorname{SiLU}(GW_{\text{gate}})\odot(GW_{\text{up}})
-\right]W_{\text{down}},$$
+$$
+\begin{gathered}
+U_g=\operatorname{SiLU}(GW_{\text{gate}}),\\
+U_u=GW_{\text{up}},\\
+F=(U_g\odot U_u)W_{\text{down}}.
+\end{gathered}
+$$
 
-$$X_{l+1}=H+F.$$
+$$
+X_{l+1}=H+F.
+$$
 
 有些模型会把这里的 SwiGLU FFN 换成 MoE。重复 $N$ 层后：
 
-$$H_{\text{final}}=\operatorname{RMSNorm}(X_N),\qquad
-\text{logits}=H_{\text{final}}W_{\text{vocab}}.$$
+$$
+\begin{gathered}
+H_{\text{final}}=\operatorname{RMSNorm}(X_N)\\
+\text{logits}=H_{\text{final}}W_{\text{vocab}}.
+\end{gathered}
+$$
 
 因此这些名词并不在同一层面：RoPE 改 Q/K 的位置关系；GQA 改 KV heads；KV cache
 保存历史状态；FlashAttention 优化 attention kernel；MoE 则替换 FFN。
@@ -603,39 +754,70 @@ $$H_{\text{final}}=\operatorname{RMSNorm}(X_N),\qquad
 
 For layer-$l$ input $X_l$, first normalize and form Q, K, and V:
 
-$$U=\operatorname{RMSNorm}(X_l),$$
+$$
+U=\operatorname{RMSNorm}(X_l),
+$$
 
-$$Q=UW_Q,\qquad K=UW_K,\qquad V=UW_V.$$
+$$
+\begin{gathered}
+Q=UW_Q\\
+K=UW_K\\
+V=UW_V.
+\end{gathered}
+$$
 
 K and V may use GQA. The following attention equation is for one query head and its
 associated KV head; concatenate head outputs before the output projection.
 Next rotate only Q and K, then apply causal attention:
 
-$$Q'=\operatorname{RoPE}(Q),\qquad K'=\operatorname{RoPE}(K),$$
+$$
+\begin{gathered}
+Q'=\operatorname{RoPE}(Q)\\
+K'=\operatorname{RoPE}(K),
+\end{gathered}
+$$
 
-$$A=\operatorname{softmax}\!\left(
-\frac{Q'K'^\top}{\sqrt{d_k}}+M_{\text{causal}}
-\right),\qquad O=AV.$$
+$$
+\begin{gathered}
+S=Q'K'^\top/\sqrt{d_k},\\
+A=\operatorname{softmax}(S+M_{\text{causal}}),\\
+O=AV.
+\end{gathered}
+$$
 
 FlashAttention can implement this step efficiently without changing the formula.
 Apply the output projection and first residual connection:
 
-$$H=X_l+OW_O.$$
+$$
+H=X_l+OW_O.
+$$
 
 Then follow the second pre-norm branch:
 
-$$G=\operatorname{RMSNorm}(H),$$
+$$
+G=\operatorname{RMSNorm}(H),
+$$
 
-$$F=\left[
-\operatorname{SiLU}(GW_{\text{gate}})\odot(GW_{\text{up}})
-\right]W_{\text{down}},$$
+$$
+\begin{gathered}
+U_g=\operatorname{SiLU}(GW_{\text{gate}}),\\
+U_u=GW_{\text{up}},\\
+F=(U_g\odot U_u)W_{\text{down}}.
+\end{gathered}
+$$
 
-$$X_{l+1}=H+F.$$
+$$
+X_{l+1}=H+F.
+$$
 
 Some models replace this SwiGLU FFN with MoE. After repeating $N$ layers:
 
-$$H_{\text{final}}=\operatorname{RMSNorm}(X_N),\qquad
-\text{logits}=H_{\text{final}}W_{\text{vocab}}.$$
+$$
+\begin{gathered}
+H_{\text{final}}=\operatorname{RMSNorm}(X_N)\\
+\text{logits}=H_{\text{final}}W_{\text{vocab}}.
+\end{gathered}
+$$
 
 These terms therefore operate at different levels: RoPE changes positional relations
 in Q/K; GQA changes KV heads; KV cache stores historical state; FlashAttention
@@ -648,7 +830,7 @@ optimizes the attention kernel; and MoE replaces the FFN.
 
 ### Prefill {#prefill}
 
-整段 prompt 已知，可以并行计算所有位置，并把每层的 K/V 保存起来。
+整段 prompt 已知，可以并行计算所有位置，并把每层的 K/V 保存起来。第一枚生成 token，就是从这一步最后有效位置的 logits 中选出的。
 
 ### Decode {#decode}
 
@@ -656,19 +838,97 @@ optimizes the attention kernel; and MoE replaces the FFN.
 
 ```mermaid
 flowchart LR
-    P["Prompt tokens"] --> F["Prefill<br/>parallel"]
-    F --> K[("KV cache")]
-    K --> D1["Decode token t"]
-    D1 --> K
-    D1 --> D2["sample next token"]
-    D2 --> D1
+    F["预填充<br/>Prefill"] -->|末位 logits| S["选择下一 token"]
+    S -->|新 token| D["解码一步<br/>Decode"]
+    D -->|新 logits| S
+    F -->|保存 K/V| K[("KV cache")]
+    K -->|读取历史| D
+    D -->|追加 K/V| K
 ```
+
+## 批量生成时，为什么常用左填充？ {#left-padding}
+
+两条 prompt 长度不同，要放进同一个矩形 tensor，就得把短的补齐。假设它们分别有 3 个和 5 个 token，`·` 表示 padding，字母只是 token 的占位符：
+
+<figure class="worked-update worked-update--pairs" aria-label="左填充与右填充的最后位置对照">
+<figcaption><strong>下一步读哪一格的 logits？</strong> 常见生成循环统一取每一行的最后一格。</figcaption>
+<ol>
+<li><strong>右填充（right padding）</strong><br><code>A B C · ·</code><br><code>D E F G H</code><br>短句最后一格是 padding；长句最后一格是 H。</li>
+<li><strong>左填充（left padding）</strong><br><code>· · A B C</code><br><code>D E F G H</code><br>最后一格分别是 C 和 H，都是实际前缀的末尾。</li>
+</ol>
+</figure>
+
+在常见的 decoder-only 生成循环里，下一 token 的分数取自 `logits[:, -1, :]`。左填充让不同长度的 prompt 都能使用这个索引。右填充时，短句会取到 padding 位置的输出，而不是 C 后面该接什么的分数。
+
+**传了 attention mask，也不等于取对了 logits。** Mask 控制哪些位置能被 attention 读取，不负责把 `-1` 改成最后一个有效 token 的下标。把解码结果中的 padding 隐藏掉，也修不好已经取错位置的预测。
+
+### Mask、位置编号和输出位置，各管一件事 {#padding-controls}
+
+| 设置 | 在短句 `· · A B C` 上 | 解决什么问题 |
+| --- | --- | --- |
+| Attention mask | `[0, 0, 1, 1, 1]` | 有效 token 不读取 padding 的 K/V；仍需 causal mask |
+| Position IDs | padding 忽略，A/B/C 编为 0/1/2 | 让 token 使用模型预期的位置编号 |
+| Logits 索引 | 最后一格，即 C | 从实际前缀末尾预测下一 token |
+| Loss mask | 只统计目标位置 | 训练或评估时，不把 padding 算进 loss |
+
+一种常见的位置编号方式是 `attention_mask.cumsum(-1) - 1`，再给 padding 位置填一个合法占位值。它让有效 token 从 0 开始编号，**但不要把这行公式当作所有模型的接口约定**：多模态位置、已缓存前缀和专用推理引擎可能有各自的处理方式。
+
+<details markdown="1">
+<summary>用几行代码，检查“最后一格”和“最后一个有效 token”的区别</summary>
+
+下面只演示一次完整 prefill 后的索引，假设 logits 的前两维和输入 mask 对齐。不下载模型，也不比较真实生成质量；每个位置的 3 个数只是便于核对的假分数。
+
+```python
+import torch
+
+
+def last_valid_logits(logits, attention_mask):
+    if logits.ndim != 3 or attention_mask.ndim != 2:
+        raise ValueError("Expected [batch, length, vocab] and [batch, length]")
+    if logits.shape[:2] != attention_mask.shape or logits.shape[1] == 0:
+        raise ValueError("Logits and mask must align with a nonempty sequence")
+    if logits.device != attention_mask.device:
+        raise ValueError("Logits and mask must be on the same device")
+    if not torch.all((attention_mask == 0) | (attention_mask == 1)):
+        raise ValueError("Attention mask must contain only zero and one")
+    valid = attention_mask.bool()
+    if not valid.any(dim=-1).all():
+        raise ValueError("Every row needs a valid token")
+    positions = torch.arange(logits.shape[1], device=logits.device)
+    last_positions = positions.expand_as(valid).masked_fill(~valid, -1).amax(-1)
+    rows = torch.arange(logits.shape[0], device=logits.device)
+    return logits[rows, last_positions]
+
+
+scores = torch.arange(30).reshape(2, 5, 3)
+right_mask = torch.tensor([[1, 1, 1, 0, 0], [1, 1, 1, 1, 1]])
+left_mask = torch.tensor([[0, 0, 1, 1, 1], [1, 1, 1, 1, 1]])
+assert last_valid_logits(scores, right_mask).tolist() == [[6, 7, 8], [27, 28, 29]]
+assert torch.equal(last_valid_logits(scores, left_mask), scores[:, -1, :])
+```
+
+注意，`mask.sum(-1) - 1` 只适合有效 token 从第 0 格开始、连续排放的情况。左填充短句有 3 个有效 token，但最后一个在下标 4，不在下标 2。这里直接找最后一个非零位置，不依赖填充方向。
+
+这个 helper 只修正一次读出。要让右填充下的完整生成也正确，还要一起处理后续 token 的位置、mask 扩展和 KV cache；已经只返回最后一步 logits 的接口，也不能套用这个函数。
+
+</details>
+
+所以不是“decoder-only 只能左填充”，也不是“padding 一出现，语义就被打断”。**左填充是在常见批量生成接口下，方便又不容易取错位置的选择。** 训练通常能用右填充，甚至通过 packing 去掉 padding；此时关键是 causal / sample boundary 与 loss mask 是否正确。若用左填充训练，还要检查 shift 后的首个有效标签是否意外由 padding 位置预测。
+
+没有独立 pad token 时，有些模型允许用 EOS 充当 padding；这时尤其要显式传入 mask，因为仅看 token ID 无法分清填充值和真实 EOS。默认停止条件通常看新生成的结束 token，不是看到 prompt 左侧已有 EOS 就停；自定义停止逻辑仍需另查。
+
+可对照 [Transformers 生成指南](https://huggingface.co/docs/transformers/llm_tutorial#padding-side)。本次核对的[固定实现 `536ecc0`](https://github.com/huggingface/transformers/blob/536ecc007387a50e77603bb5d92100e9b07514cc/src/transformers/generation/utils.py#L3226)在普通生成路径取最后一格，并按 mask 准备位置编号。专用 serving 引擎可以用变长序列和自己的索引，不必照搬这一布局。
 
 ## 模型给分数，Sampling 决定怎么选 {#sampling}
 
 最后一层 hidden state 经过线性层得到词表上每个 token 的 logits：
 
-$$z_t=h_tW_{\text{vocab}}, \qquad p_t=\text{softmax}(z_t / \tau)$$
+$$
+\begin{gathered}
+z_t=h_tW_{\text{vocab}}\\
+p_t=\text{softmax}(z_t / \tau)
+\end{gathered}
+$$
 
 - temperature $\tau$ 调整分布尖锐程度；
 - top-$k$ 只保留概率最高的 $k$ 个候选；

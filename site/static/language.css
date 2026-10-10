@@ -1,0 +1,45 @@
+.topbar-brand { white-space: nowrap; flex-shrink: 0; }
+.language-guide[hidden] { display: none; }
+.language-guide {
+  position: fixed;
+  z-index: 55;
+  top: 76px;
+  right: 18px;
+  width: min(310px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ember);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  font-family: var(--sans), var(--cjk);
+}
+.language-guide-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--ember);
+  font: 600 11px var(--mono);
+  letter-spacing: .08em;
+}
+.language-guide h2 { margin: 0 0 10px; font-size: 17px; line-height: 1.4; }
+.language-guide p { margin: 6px 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+.language-guide p[lang="zh-Hans"] { color: var(--muted); font-size: 12px; }
+.language-guide button {
+  margin-top: 12px;
+  padding: 7px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.language-guide button:hover { color: var(--ember); border-color: var(--ember); }
+.language-guide button:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+.lang-btn.language-cue { border-color: var(--ember); color: var(--ember); }
+@media (max-width: 620px) {
+  .language-guide { top: 68px; right: 16px; padding: 16px; }
+}
+@media print { .language-guide { display: none; } }

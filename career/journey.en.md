@@ -4,7 +4,25 @@
 
 > Reading time: ~3 min · Last reviewed: 2026-10
 
-This page is for the 2025–2026 internship search. I'm now looking for full-time roles and keeping those notes in [26-27 new-grad search 🚧](new-grad-2026-2027.en.md). Keeping the two rounds separate should make them easier to follow later, including for me.
+## Roles I interviewed for {#interview-experience}
+
+My 2025–26 search included interviews across **ML / AI, quant, software engineering, and data science**:
+
+<ul class="interview-roles">
+<li><strong>LinkedIn</strong><span>Machine Learning Engineer</span></li>
+<li><strong>Millennium</strong><span>AI Engineer</span></li>
+<li><strong>Tower Research Ventures</strong><span>Machine Learning Engineer</span></li>
+<li><strong>HRT</strong><span>Algorithm Developer</span></li>
+<li><strong>SIG</strong><span>Quantitative Research</span></li>
+<li><strong>Databricks</strong><span>Data Science</span></li>
+<li><strong>Amazon Bedrock</strong><span>AI Software Development Engineer</span></li>
+<li><strong>Apple</strong><span>AI / ML Software Development Engineer</span></li>
+<li><strong>Google</strong><span>Software Development Engineer</span></li>
+</ul>
+
+These are **interview experiences, not a list of offers**. Below is what I learned from preparing for them; I don't share company-specific questions or processes.
+
+I'm now looking for full-time roles and keeping those notes in [26-27 new-grad search 🚧](new-grad-2026-2027.en.md). This page is about that first internship search.
 
 ## August 2025: starting from scratch
 
@@ -19,10 +37,6 @@ More applications seemed like more chances. Once interviews arrived, I realized 
 Some fundamentals overlap, but the preparation differed more than I expected. SDE coding, MLE models and projects, and quant probability and statistics weren't the same material rearranged into a different order.
 
 I knew particularly little about QR interviews. I hadn't looked into them properly before applying, so I was rushing to prepare once I got one. That also took time away from other roles. Trying it wasn't necessarily the mistake; I hadn't allowed enough time for the attempt.
-
-Interviews that round included HRT Algo Dev, SIG QR, LinkedIn MLE, Millennium AI Engineer, Amazon Bedrock AI SDE, Apple AI/ML SDE, Tower Research Ventures MLE, Google SDE, Databricks DS, and others.
-
-The names are here to show how widely I was applying, not as an interview-question index. I won't describe the questions or each company's process.
 
 ## 120 problems in a month, and I still didn't pass
 

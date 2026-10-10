@@ -13,7 +13,7 @@ except ModuleNotFoundError as error:
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CHAPTERS = ("README", "tensors-and-storage", "operations-and-shapes", "autograd", "training-loop")
+CHAPTERS = ("README", "tensors-and-storage", "operations-and-shapes", "cross-entropy", "autograd", "training-loop")
 
 
 def code_blocks(chapter, language=""):

@@ -64,3 +64,5 @@ The [Qwen3 report](https://arxiv.org/abs/2505.09388) explicitly removes shared e
 For fine-grained experts, match total expert parameters and active compute before comparing validation loss, throughput, and load. For shared experts, state whether their budget replaces routed computation or adds to it.
 
 A larger combination count is not enough. Common tokens might improve while rare domains regress, or communication might slow every step. Architecture makes alternatives available; experiments establish whether they are useful.
+
+Another option narrows the vectors sent to experts, rather than only their internal FFN dimension. [The LatentMoE chapter](latent-moe.en.md) compares the costs with a small example, then explains why Kimi K3 also changes normalization and load balancing.

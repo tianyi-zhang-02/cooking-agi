@@ -209,11 +209,13 @@ First separate **what supplies supervision** from **which parameters may change*
 
 For worked calculations, continue to [LoRA / QLoRA](lora-and-qlora.en.md) and [distillation](distillation.en.md): parameters, gradients, and memory in the former; soft targets, KL, and what top-k leaves out in the latter.
 
+For demonstrations built from model outputs, read [rejection sampling and filtering](rejection-sampling.en.md): distinguish selecting an answer for a user from selecting data for another training round, then check how filtering changes the prompt mix.
+
 **II. Teaching by outcome: the RL line**
 
 5. [The three stages of RLHF, and what happened next](rlhf/README.en.md) — four models, which train and which are frozen
-6. [After PPO: every algorithm deletes one of its parts](after-ppo.en.md) — one reading that covers GRPO / RLOO / REINFORCE++ / DAPO / DPO
-7. [Verifiable rewards: when the reward doesn't need learning](verifiable-rewards.en.md) — it narrows reward hacking without eliminating it; verifiability is a spectrum, not a binary
+6. [After PPO](after-ppo.en.md) — how GRPO / RLOO / REINFORCE++ / DAPO / DPO use different signals and objectives
+7. [Verifiable rewards](verifiable-rewards.en.md) — sorting tests expose reward loopholes, followed by sparse feedback and process checks
 
 **III. Actually running it**
 

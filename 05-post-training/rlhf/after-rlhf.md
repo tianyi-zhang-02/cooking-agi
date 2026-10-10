@@ -2,11 +2,13 @@
 
 **中文** · [English](after-rlhf.en.md)
 
-> 阅读时间：约 10 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 12 分钟 · 难度：必修 · 最近审阅：2026-10
 
-这些名字经常挨着出现，很容易读成一条升级路线：PPO 太重，所以换 GRPO，再换 DPO，最后用 RLVR。其实不是。**它们有的在改更新方法，有的在改反馈来源，不在同一个层面。**
+模型已经能回答问题了，接下来怎么让它答得更好？先看你手里有什么：是已经整理好了回答对，并标出了更偏好哪一份；还是能让模型生成新回答，再逐一打分？
 
-先抓住一个问题：手里有一批 prompt，模型能生成回答。接下来，谁判断回答好不好？拿什么作比较？怎样把比较结果变成梯度？
+标准离线 DPO 对应前一种做法。PPO 和 GRPO 常用于后一种，只是把分数变成训练信号的方式不同。RLVR 则在回答另一个问题：**能不能用程序检查结果、给出奖励？** 所以它可以和 PPO 或 GRPO 搭配，不是排在它们后面的“下一代算法”。
+
+先看下面的对照图，就能分清它们解决的问题。想再往下理解，我们会跟着一组回答看 reward 怎样变成训练信号，再算一对偏好回答的 DPO loss。推导与代码可以按需展开。
 
 ## 先把三个问题分开
 
@@ -16,7 +18,21 @@
 | 怎么构造更新信号 | Critic 估计的 advantage、组内相对 reward、偏好对 | GRPO 和 DPO 的信号构造不同 |
 | 训练时怎么拿数据 | 当前策略生成新回答、复用旧 rollout、固定偏好数据 | 算法名字不能代替数据流程 |
 
-![更新方法和反馈来源是两组不同的选择，而不是固定的模型数量](../assets/rlhf-model-count.svg)
+<section class="method-map" lang="zh-CN" aria-labelledby="method-map-title" id="method-comparison">
+  <header class="method-map-header"><span>放在一起看</span><strong id="method-map-title">怎么更新，和谁来打分，是两回事</strong></header>
+  <p class="method-map-label"><span>01</span> 模型怎么学？</p>
+  <div class="method-map-methods">
+    <div class="method-map-card"><strong>PPO</strong><p>生成 → 打分 → 更新</p><dl><dt>比较什么</dt><dd>实际回报与价值估计的差别。</dd><dt>典型做法</dt><dd>训练一个价值模型（Critic），帮助估计优势。</dd></dl></div>
+    <div class="method-map-card"><strong>GRPO</strong><p>同一道题，生成一组回答</p><dl><dt>比较什么</dt><dd>每个回答相对组内其他回答的表现。</dd><dt>省掉什么</dt><dd>不再单独训练 Critic，但仍要生成回答和打分。</dd></dl></div>
+    <div class="method-map-card"><strong>离线 DPO</strong><p>已有回答对，知道更偏好哪一个</p><dl><dt>比较什么</dt><dd>两个回答相对参考模型的概率变化。</dd><dt>数据怎么来</dt><dd>用固定偏好数据训练，不在每次更新时重新采样回答。</dd></dl></div>
+  </div>
+  <p class="method-map-label"><span>02</span> 好不好，谁说了算？</p>
+  <div class="method-map-feedback">
+    <div><strong>PPO / GRPO</strong><p>可以由奖励模型打分，也可以用测试程序等验证结果。后者就是 RLVR 的思路，不限定必须用哪一种更新方法。</p></div>
+    <div><strong>离线 DPO</strong><p>使用回答之间的偏好标签。标签可以来自人工或其他评审，但质量仍要检查。</p></div>
+  </div>
+  <p class="method-map-note">显存不能只按“几个模型”来算，还要看权重是否共享、哪些结果能缓存、哪些部分能卸载。</p>
+</section>
 
 比如，「GRPO + 程序验证奖励」完全说得通。RLVR 也能用带 Critic 的方法，不能把它直接等同于「只剩两个模型」。权重共享、缓存和卸载还会改变实际显存占用。
 
@@ -31,9 +47,11 @@
 采用组内总体标准差（分母为组大小 $G$），暂时省略稳定项 $\epsilon$：
 
 $$
-\bar r = \frac{1}{G}\sum_i r_i,\qquad
-s = \sqrt{\frac{1}{G}\sum_i(r_i-\bar r)^2},\qquad
-\hat A_i = \frac{r_i-\bar r}{s+\epsilon}.
+\begin{aligned}
+\bar r &= \frac{1}{G}\sum_i r_i,\\
+s &= \sqrt{\frac{1}{G}\sum_i(r_i-\bar r)^2},\\
+\hat A_i &= \frac{r_i-\bar r}{s+\epsilon}.
+\end{aligned}
 $$
 
 均值是 $0.25$，标准差约为 $0.433$。通过测试的那份实现得到约 $1.732$ 的 advantage，其余各为 $-0.577$。这不是逐行认定哪些代码有用，而是**按当前评分标准，这一组里哪个结果比平均更好**。
@@ -52,6 +70,51 @@ print([round(advantage, 3) for advantage in advantages])
 ```
 
 若四份全错，或四份全对，减去均值后都为零。这一组没有提供区分回答的 policy-gradient 信号。加了 KL 等其他项时，总梯度不一定为零，不能把两件事混为一谈。
+
+### Reward、advantage、loss：三个数各管什么？ {#reward-to-update}
+
+刚才通过测试的回答拿到了 1 分，为什么训练时又出现了 `1.732`？前者记录测试结果，后者描述这份回答在当前组里的相对表现。真正更新参数时，还要看模型给这份回答的概率变了多少。
+
+<figure class="worked-update" lang="zh-CN" id="grpo-signal-path">
+  <figcaption>沿用刚才的四份回答 · 只看通过测试的那份。</figcaption>
+  <ol>
+    <li><small>1 · 奖励（reward）</small><strong>测试通过，得 1 分</strong><span>这是当前测试的评分，还没有和其他回答比较。</span></li>
+    <li><small>2 · 优势（advantage）</small><strong>组内比较：≈ 1.732</strong><span>在 [0, 1, 0, 0] 中高于平均。换一组回答，这个数也可能变。</span></li>
+    <li><small>3 · 进入更新</small><strong>还要看概率比</strong><span>用当前模型与采样时的旧策略比较，再结合 clipping 等设置计算目标。</span></li>
+  </ol>
+</figure>
+
+只挑这份回答中的一个 token 来算：给定同样的 prompt 和此前的回答前缀，旧策略给它 `0.20` 的概率，当前模型给 `0.26`，概率比就是 `1.3`。不是拿 reward 去除，也不是拿 Reference 的概率作分母。
+
+假设 clipping 范围是 `[0.8, 1.2]`。这里的 advantage 为正，裁剪目标取 `1.3 × 1.732` 与 `1.2 × 1.732` 中较小的一项，约为 **2.078**。这是要最大化的单 token policy 目标；改成最小化的 loss 时取负号。它不是整个 batch 的 loss，也没包括 KL 等其他项。[DeepSeekMath §4.1.1–4.1.2](https://arxiv.org/html/2402.03300v3#S4.SS1)
+
+<details markdown="1">
+<summary>算一下：继续提高概率，这个目标还会变大吗？</summary>
+
+```python
+import math
+
+def clipped_policy_term(ratio, advantage, epsilon=0.2):
+    clipped_ratio = min(max(ratio, 1 - epsilon), 1 + epsilon)
+    return min(ratio * advantage, clipped_ratio * advantage)
+
+advantage = math.sqrt(3)
+old_probability, current_probability = 0.20, 0.26
+ratio = current_probability / old_probability
+objective = clipped_policy_term(ratio, advantage)
+loss_term = -objective
+assert math.isclose(objective, 1.2 * math.sqrt(3))
+assert math.isclose(clipped_policy_term(1.6, advantage), objective)
+print(round(objective, 3), round(loss_term, 3))
+```
+
+把概率比从 `1.3` 提到 `1.6`，这一个正 advantage 项的值不再增加。但 clipping 不是把整个模型的变化锁死：其他 token、共享参数以及其他损失项仍然会影响更新。负 advantage 也不能照搬“超过上界就不动”的解释，见 [PPO clipping](ppo-clipping.md)。
+
+</details>
+
+这里有两个容易认错的角色。**旧策略（old policy）**生成这批回答，留下的 log-prob 用于概率比；**参考模型（Reference）**在启用 KL 约束时提供比较基准。两者可能在某个时刻权重相同，作用却不同。用 log-prob 实现时，概率比是 `exp(current_logp - old_logp)`，不是两个 log-prob 相除。采样设置若改变了生成分布，也要确认这些概率对应哪种分布。
+
+再回头看那 1 分：它只说明当前测试通过了。Advantage 给出相对信号，概率比与裁剪决定它如何进入目标；三者都不保证下一次生成一定答对。验证效果，仍要看没有用于训练的新题。
 
 ### 省了 Critic，不等于训练免费了
 
@@ -74,29 +137,60 @@ print([round(advantage, 3) for advantage in advantages])
 
 ### 为什么 loss 里会出现 Reference？
 
+这里的 Reference 是**冻结的参考模型，不是一条标准答案**。它会给数据里的两份回答分别算概率，作为比较的起点；并不需要再生成一份回答供我们模仿。哪份更好，仍由偏好标签决定，不由 Reference 决定。
+
+沿用上面的“解释过拟合”：把同一条 prompt 和同一份回答分别交给当前模型、参考模型，就能比较这份回答相对起点变得更可能还是更不可能。DPO 再比较 preferred 和 rejected 的这两个变化。[原论文 §4](https://arxiv.org/html/2305.18290v3#S4)
+
+<details markdown="1">
+<summary>这个比较为什么能写成 DPO loss？</summary>
+
 在 $\beta>0$ 的 KL 正则化奖励目标下，若把优化范围看成所有满足支持条件的策略分布，并假定配分函数 $Z(x)$ 有限，最优策略满足：
 
 $$
-\pi^*(y\mid x)=\frac{1}{Z(x)}\pi_{\mathrm{ref}}(y\mid x)
-\exp\!\left(\frac{r(x,y)}{\beta}\right).
+\begin{gathered}
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)}{Z(x)}\\
+{}\times\exp\!\left(\frac{r(x,y)}{\beta}\right).
+\end{gathered}
 $$
 
 把它反过来写，得到 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。再放入 Bradley–Terry 偏好模型：比较同一 prompt 的两个回答时，$\log Z(x)$ 抵消了。这就得到 DPO 的形式：
 
 $$
-\mathcal L_{\mathrm{DPO}}=
--\mathbb E_{(x,y_w,y_l)}\log\sigma\!\left(
-\beta\left[
-\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}
--\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}
-\right]\right).
+\begin{aligned}
+\delta_w&=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)},\\
+\delta_l&=\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}.
+\end{aligned}
+$$
+
+这里 $\delta_w,\delta_l$ 就是两份回答的相对 log-prob 变化。把缩放后的分差记为 $g$，对偏好数据集 $\mathcal D$ 取平均：
+
+$$
+\begin{aligned}
+g&=\beta(\delta_w-\delta_l),\\
+\mathcal L_{\mathrm{DPO}}&=-\mathbb E_{\mathcal D}\log\sigma(g).
+\end{aligned}
 $$
 
 这段推导来自 [DPO 原论文](https://arxiv.org/abs/2305.18290)。它依赖奖励目标、偏好模型和支持条件；并不是证明了「所有人的真实偏好都长这样」，也不保证有限神经网络和有限数据能找到全局最优。
 
+</details>
+
 ### 算一对回答的 loss {#dpo-example}
 
-设策略给 chosen / rejected 的序列 log-prob 分别为 $-2,-4$，Reference 都是 $-3$，$\beta=0.2$。相对分差为 $2$，送进 sigmoid 的值为 $0.4$，loss 约为 $0.513$。如果相对分差是零，loss 为 $\log 2\approx0.693$。
+假设当前模型给 preferred / rejected 的序列 log-prob 分别是 $-2,-4$，Reference 都是 $-3$。这些是假设数字，数值越大，表示模型给这份回答的概率越高：
+
+<figure class="worked-update worked-update--pairs" lang="zh-CN" id="dpo-score-changes">
+  <figcaption>同一份回答，在参考模型和当前模型下的 log-prob。</figcaption>
+  <ol>
+    <li><small>更受偏好的回答</small><strong>−3 → −2</strong><span>参考模型 → 当前模型<br>相对变化：+1</span></li>
+    <li><small>较差的回答</small><strong>−3 → −4</strong><span>参考模型 → 当前模型<br>相对变化：−1</span></li>
+  </ol>
+</figure>
+
+两种变化再相减，分差是 $1-(-1)=2$。取 $\beta=0.2$，送进 sigmoid 的值就是 $0.4$，loss 约为 $0.513$。如果当前模型和 Reference 相同，两边的变化都为零，loss 就是 $\log 2\approx0.693$；这不要求它原本给两份回答的概率相等。
+
+<details markdown="1">
+<summary>用 Python 核对这个数</summary>
 
 ```python
 import math
@@ -112,6 +206,8 @@ assert math.isclose(loss, 0.5130152523999526)
 assert loss < math.log(2)
 print(round(loss, 4))
 ```
+
+</details>
 
 这里用了温和的数值，便于手算；生产实现应使用数值稳定的 `logsigmoid` / `softplus`。标准序列 log-prob 是回答 token 的 log-prob 之和，要正确处理 prompt、padding 和 EOS。随意改成 token 均值，就不再是完全相同的目标。[TRL DPO 文档](https://huggingface.co/docs/trl/dpo_trainer)可用来对照实际的数据格式和损失实现。
 

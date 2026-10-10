@@ -58,10 +58,11 @@ ReAct（Yao 等，2022）让推理和行动交替进行：模型先写下这一�
 
 ## 这一组怎么读
 
-1. [几种常见结构](patterns.md)：从单次调用到 orchestrator-workers，各适合什么
-   先读 [Prompt、ICL 与 CoT](prompting.md)，再用 [Deep Research](deep-research.md) 的证据流程练习多步任务。
-2. [不同场景怎么用](scenarios.md)：写代码、搜索研究、客服、数据分析、操作电脑、个人助理
-3. [用 frontier API 还是自己 serve](model-choice.md)：怎么选模型，以及一个可以自己填数字的成本模型
-4. [复习题](review.md)：面试题和自检
+1. [Prompt、ICL 与 CoT](prompting.md)：先把输入、示例和任务要求写清楚。
+2. [常见结构](patterns.md)：什么时候单次调用就够了，什么时候需要循环。
+3. [工具、MCP 与 Skills](tools-and-skills.md)：跟着一次笔记检查，分清调用、执行和权限。
+4. [Deep Research](deep-research.md) 与[不同场景](scenarios.md)：资料不齐、结果冲突时怎样继续。
+5. [模型选择与路由](model-choice.md)：从具体任务出发，比较质量、延迟和完整成本。
+6. [复习题](review.md)：回头检查哪些概念能自己讲清楚。
 
 相关：[Agent Observability](../06-systems/agent-observability.md) 讲怎样看清一次运行，[Human-in-the-Loop](../06-systems/human-in-the-loop.md) 讲什么时候让人介入。

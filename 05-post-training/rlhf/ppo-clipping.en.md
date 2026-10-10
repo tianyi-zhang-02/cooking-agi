@@ -2,7 +2,7 @@
 
 [中文](ppo-clipping.md) · **English**
 
-> Reading time: ~4 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~9 min · Level: core · Last reviewed: 2026-10-09
 
 The model generates an answer, receives good feedback, and becomes more likely to produce that answer. So far, so reasonable.
 
@@ -33,8 +33,14 @@ If the sample had answered “6,” it would fall below expectation, with advant
 The example considered one token and omitted a KL reward term. For a longer answer, the calculation is still made at each generated position: state $s_t$ is the prompt plus prefix, and action $a_t$ is the sampled token.
 
 $$
-\rho_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)},\qquad
-\ell_t=\min\left(\rho_t\hat A_t,\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\hat A_t\right).
+\rho_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)}.
+$$
+
+$$
+\begin{aligned}
+c_t&=\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon),\\
+\ell_t&=\min(\rho_t\hat A_t,c_t\hat A_t).
+\end{aligned}
 $$
 
 Here $t$ is the generation position, not the training iteration. The denominator comes from **the policy that generated this batch** and stays fixed while the batch is reused. The Reference is a different training anchor; it does not supply this denominator.
@@ -62,16 +68,85 @@ This is not a flat cutoff at both ends. **A large move in the direction favored 
 A negative $A_t$ reverses the ordering under multiplication. Written separately:
 
 $$
-\ell_t=
-\begin{cases}
-\min(\rho_t,1+\epsilon)A_t,& A_t>0,\\
-\max(\rho_t,1-\epsilon)A_t,& A_t<0.
-\end{cases}
+\begin{aligned}
+A_t>0:\quad\\
+\ell_t=\min(\rho_t,1+\epsilon)A_t,\\[6pt]
+A_t<0:\quad\\
+\ell_t=\max(\rho_t,1-\epsilon)A_t.
+\end{aligned}
 $$
 
 Positive advantage clips only the upper side; negative advantage clips only the lower side. With $A_t=0$, this sampled term is zero. Inside the plateau, its local derivative with respect to the ratio is zero; the boundary itself is a nondifferentiable point of the piecewise function.
 
 </details>
+
+## Does a clipped token still have a gradient? {#clipped-token-gradients}
+
+Not every ratio outside the clipping interval loses its gradient. Computing `clamp` is only part of the objective: `min` must select that flat branch, and the advantage sign determines when it does.
+
+Fix the old probability at 0.5 and $\epsilon=0.2$. These are 4 separate sampled positions. Use the loss that code minimizes, $L_t=-\ell_t$:
+
+| Current probability | Ratio | Advantage | $L_t$ | Gradient with respect to current log-probability |
+|---|---|---|---|---|
+| 0.7 | 1.4 | +1 | −1.2 | **0**: enough movement in the favored direction |
+| 0.3 | 0.6 | +1 | −0.6 | **−0.6**: a favored token became less likely; correct it |
+| 0.3 | 0.6 | −1 | +0.8 | **0**: the unfavorable token is already much less likely |
+| 0.7 | 1.4 | −1 | +1.4 | **+1.4**: an unfavorable token became more likely; correct it |
+
+All 4 ratios lie outside the interval; only 2 terms have zero gradient. These derivatives are with respect to the **selected log-probability**, not directly to a logit or model parameter. Backpropagation through the rest of the model still follows. Old log-probabilities and advantages are fixed during this update.
+
+<details markdown="1">
+<summary>Check all 4 cases in PyTorch</summary>
+
+This runs on CPU. Treating selected log-probabilities as leaf variables isolates the loss calculation; in a real model they come from a log-softmax over the vocabulary.
+
+```python
+import math
+import torch
+
+current_log_probs = torch.tensor(
+    [0.7, 0.3, 0.3, 0.7], dtype=torch.float64
+).log().requires_grad_()
+old_log_probs = torch.full_like(current_log_probs, math.log(0.5))
+advantages = torch.tensor([1., 1., -1., -1.], dtype=torch.float64)
+ratios = (current_log_probs - old_log_probs).exp()
+direct = ratios * advantages
+clipped = ratios.clamp(0.8, 1.2) * advantages
+losses = -torch.minimum(direct, clipped)
+losses.sum().backward()
+torch.testing.assert_close(
+    current_log_probs.grad,
+    torch.tensor([0., -0.6, 0., 1.4], dtype=torch.float64),
+)
+print(losses.detach().tolist(), current_log_probs.grad.tolist())
+```
+
+Replacing `sum()` with `mean()` divides the gradients by 4 without changing which are zero. The examples avoid the nondifferentiable boundaries at 0.8 and 1.2 so finite differences can check the derivatives.
+
+</details>
+
+### A flat term does not freeze the model {#other-gradient-paths}
+
+Even when this token's policy-loss term is genuinely flat, its probability can still change.
+
+| What else can update? | Small example |
+|---|---|
+| Other losses, such as KL or entropy | The current two-action distribution is 0.7/0.3 and the Reference is 0.5/0.5. The policy term can be flat while KL still favors moving toward the Reference |
+| Other tokens and samples | Two different prompts share a parameter. The first sample contributes no gradient, but the second changes that parameter and therefore the first prompt's output |
+
+Not every implementation uses a KL penalty or entropy bonus; check the actual configuration. Expand the two-action examples below if you want to follow the numbers.
+
+<details markdown="1">
+<summary>How large can the other gradients be when the policy term is flat?</summary>
+
+The [CPU teaching script](../code/policy_gradient_checks.py) tests both mechanisms separately:
+
+- **Other losses:** current probabilities are 0.7/0.3, both old and Reference probabilities are 0.5/0.5, and the first action has advantage +1. Add $0.1\,\mathrm{KL}(\pi\|\pi_{\rm ref})$ to the policy loss and subtract $0.01H(\pi)$. With respect to the first action's logit, the policy gradient is 0 but the total gradient is about 0.0196. This toy uses **exact KL summed over both actions**, not a sampled KL estimator.
+- **Shared parameters:** two different prompts use the same scalar logit for their selected action. Both current probabilities are 0.7 and old probabilities are 0.5, with advantages +1 and −1. The first term is flat; the second is not. Their mean has gradient 0.21 with respect to the shared logit, so an update still lowers the first action's probability.
+
+</details>
+
+The precise claim is that **this term contributes no local gradient through this policy-loss branch once it is on the plateau**. It does not mean the token is frozen. If an implementation changes the objective or clipping rule, follow its computation graph rather than drawing conclusions from the presence of `clamp` alone.
 
 ## What clipping does not fix
 

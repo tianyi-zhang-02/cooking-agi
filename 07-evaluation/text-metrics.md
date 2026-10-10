@@ -2,7 +2,7 @@
 
 **中文** · [English](text-metrics.en.md)
 
-> 最近审阅：2026-10-08 · 先读：[分层评估](evaluation-stack.md)
+> 最近审阅：2026-10-10 · 先读：[分层评估](evaluation-stack.md)
 
 参考答案写“阀门已打开”，模型回答“阀门未打开”。大部分字都对上了，意思却反了。文本指标仍然有用，只是得先弄清它在数什么：重合的词、顺序、需要修改的次数，还是模型给原文的概率。
 
@@ -25,8 +25,11 @@ BLEU 使用截断计数（clipped counts）：一个 n-gram 的匹配次数不�
 单参考下，设候选长度为 $c$、参考长度为 $r$，$p_n$ 是第 $n$ 阶的截断精确率：
 
 $$
-\operatorname{BLEU}_N=BP\exp\left(\frac1N\sum_{n=1}^N\log p_n\right),
-\qquad BP=\exp\left(\min(0,1-r/c)\right).
+\begin{gathered}
+\operatorname{BLEU}_N=\\
+BP\exp\left(\frac1N\sum_{n=1}^N\log p_n\right),\\
+BP=\exp\left(\min(0,1-r/c)\right).
+\end{gathered}
 $$
 
 空候选另行定义为 0。长度惩罚（brevity penalty）是为了避免模型只说最容易匹配的几个词。
@@ -120,15 +123,95 @@ WER 通常除以参考词数，CER 除以参考字符数。插入很多内容时
 
 ## Perplexity：评的是测试原文，不是模型自己的作文
 
-给定固定测试序列，按每个有效目标 token 的负对数概率取平均，再取指数：
+假设测试文本里接下来的两个 token 是 `bus` 和 `leaves`。我们把真实前文交给模型，检查它给这两个**实际出现的 token** 分了多少概率；不是让它先写一段话，再评价自己的输出。
+
+| 有效目标 token | 给真实 token 的概率 | 负对数概率（NLL，自然对数） |
+| --- | --- | --- |
+| `bus` | 0.5 | 约 0.693 |
+| `leaves` | 0.25 | 约 1.386 |
+
+平均 NLL 约为 1.040，再取指数得到 **PPL ≈ 2.828**。模型给原文的概率越低，这个分数越高。公式只是把这两步推广到 $T$ 个有效目标：
 
 $$
-\operatorname{PPL}=\exp\left(-\frac1T\sum_{t=1}^T\log p(x_t\mid x_{<t})\right).
+\begin{gathered}
+\operatorname{PPL}=\\
+\exp\left(-\frac1T\sum_{t=1}^T\log p(x_t\mid x_{<t})\right).
+\end{gathered}
 $$
 
-假设 2 个目标的概率分别为 0.5 和 0.25，PPL 为 $\sqrt8\approx2.828$。它不是“准确率 1/2.828”，也不是字面上每个位置都存在 2.828 个同等可能选项。
+也可以把它看作“真实 token 概率的几何平均”的倒数，不是准确率的倒数。如果每个目标的概率都恰好为 $1/4$，PPL 就是 4；一般情况下，不要把 2.828 理解成每个位置真的有 2.828 个等可能选项。用自然对数就配 `exp`；用以 2 为底的对数，就配 $2^{\text{平均损失}}$。
 
-比较 PPL 时，固定数据、tokenizer、上下文窗口与有效目标。不同 tokenizer 改变计数单位，数值不能直接横比。滑动窗口可以给后面的 token 更多上下文，但重叠部分不能重复计入目标；不同长度 batch 的平均 loss 也应按有效 token 数加权。[实现说明](https://huggingface.co/docs/transformers/perplexity)
+**PPL 下降，说明模型更能预测这份测试文本，不等于回答一定更有用。** 数据、tokenizer、上下文和计分位置变了，数字就可能不可比。下面两个细节尤其容易让结果看起来合理、实际算错。
+
+### 长短 batch，不能各算一票 {#ppl-aggregation}
+
+假设 batch A 有 2 个有效目标，PPL 为 2；batch B 有 8 个有效目标，PPL 为 8。直接平均得到 5，但 B 明明包含更多要预测的 token。
+
+正确做法是先累计 NLL 和目标数，最后只取一次指数：
+
+$$
+\begin{gathered}
+\operatorname{PPL}_{\text{all}}=\\
+\exp\!\left(\frac{2\ln2+8\ln8}{10}\right)\\
+\approx6.063.
+\end{gathered}
+$$
+
+做分布式评估也是一样：各卡交回 **NLL 总和与有效 token 数**，分别求和，再相除、取指数。不要直接平均各卡的 PPL。
+
+### 滑动窗口：前文可以重复读，目标只计一次 {#ppl-windows}
+
+模型一次只能读 4 个 token，而测试序列有 6 个。下面不加 BOS，第一项 A 没有前文，不计分。字母只是 token 占位符：
+
+| 输入窗口 | 只作上下文、不计分 | 本次计分的目标 | 有效目标数 |
+| --- | --- | --- | --- |
+| `A B C D` | A | B、C、D | 3 |
+| `C D E F` | C、D | E、F | 2 |
+
+第二个窗口保留 C、D，让 E、F 有前文可读，但不再给 C、D 计分。整段总共计 5 个目标，而不是 6 个或两个窗口的长度之和。窗口步长变小，通常能给目标更多上下文，但会增加 forward 次数；因此评测时也要记下窗口长度、步长、BOS/EOS 和文档边界的处理方式。[上下文窗口说明](https://huggingface.co/docs/transformers/perplexity)
+
+<details markdown="1">
+<summary>代码里怎样避免 shift 后少算一个 token？</summary>
+
+下面采用常见的 causal LM 约定：输入和 labels 原本对齐，位置 $t$ 的 logits 预测位置 $t+1$ 的标签，`-100` 表示该目标不计分。**在 shift 之后数有效标签**，就不用猜“是不是每行都该减 1”。
+
+```python
+import math
+import torch
+import torch.nn.functional as functional
+
+
+def causal_nll_totals(logits, labels):
+    if logits.ndim != 3 or labels.shape != logits.shape[:2]:
+        raise ValueError("Expected aligned [batch, length, vocab] logits and labels")
+    shifted_labels = labels[:, 1:]
+    count = int((shifted_labels != -100).sum())
+    if count == 0:
+        raise ValueError("No scored targets after the causal shift")
+    total = functional.cross_entropy(
+        logits[:, :-1, :].double().reshape(-1, logits.shape[-1]),
+        shifted_labels.reshape(-1), ignore_index=-100, reduction="sum",
+    )
+    return total, count
+
+
+uniform_logits = torch.zeros(1, 4, 6)
+first_labels = torch.tensor([[-100, 1, 2, 3]])
+second_labels = torch.tensor([[-100, -100, 4, 5]])
+first_total, first_count = causal_nll_totals(uniform_logits, first_labels)
+second_total, second_count = causal_nll_totals(uniform_logits, second_labels)
+assert (first_count, second_count) == (3, 2)
+average_nll = (first_total + second_total) / (first_count + second_count)
+assert math.isclose(math.exp(float(average_nll)), 6.0)
+```
+
+这是计分逻辑的教学例子，不是模型评测结果。真实评测还需关闭 dropout、使用正确的 causal / padding mask。Labels 中的 `-100` 只影响 loss，不会阻止模型读取某个输入。若左侧有 padding，首个实际 token 又没有 BOS 或有效前驱，也要排除“padding 位置预测首个 token”这一项；packing 则需处理跨文档边界。
+
+第二行原本就只有 2 个有效标签，而且都在 shift 后保留。此时若再机械地“有效标签数减 batch size”，就会错算成 1。检查实际传进 cross-entropy 的 labels，比照抄分母公式可靠。
+
+</details>
+
+最后，BERT 的 masked-token 分数不是同一个自回归概率分解。逐个遮住 token 可以构造 [pseudo-perplexity](https://aclanthology.org/2020.acl-main.240/)，但左右文条件和计算成本不同，不应拿它与这里的 PPL 直接排名。PPL 适合检查语言建模拟合；事实、偏好和任务成功率还要各自评估。
 
 ## 到了 2026 年，还用这些指标吗？
 
