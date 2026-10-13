@@ -1,0 +1,25 @@
+# Anonymous counters for cooking-agi. Deploy with `npx wrangler@4 deploy`
+# from this directory; see README.md. Free plan: one Worker, one Durable Object.
+name = "cooking-agi-counter"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[vars]
+# Pages allowed to send counts (exact origins, comma-separated).
+ALLOWED_ORIGINS = "https://tianyi-zhang-02.github.io"
+# The public list of note IDs; unknown notes are refused.
+CATALOG_URL = "https://tianyi-zhang-02.github.io/cooking-agi/static/prep-progress-catalog.json"
+# TOKEN_PEPPER is a secret: `npx wrangler@4 secret put TOKEN_PEPPER`
+
+[[durable_objects.bindings]]
+name = "COUNTERS"
+class_name = "Counters"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Counters"]
+
+# No request logs: the service never needs them.
+[observability]
+enabled = false

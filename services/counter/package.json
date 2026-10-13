@@ -1,0 +1,10 @@
+{
+  "name": "cooking-agi-counter",
+  "private": true,
+  "type": "module",
+  "description": "Anonymous counters for cooking-agi on Cloudflare Workers (see README.md).",
+  "scripts": {
+    "test": "node --test test/",
+    "deploy": "npx wrangler@4 deploy"
+  }
+}

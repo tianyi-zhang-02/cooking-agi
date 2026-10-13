@@ -52,6 +52,9 @@ The server chooses the date, validates the note against the public catalog, hash
 
 ## 上线前 / Before production
 
+线上实现在 [`services/counter`](../../services/counter/README.md)：Cloudflare Worker + Durable Object，实现同一协议，另外提供学习小伙伴的在线人数；部署步骤和隐私、限流说明都在那里。
+The production implementation lives in [`services/counter`](../../services/counter/README.md) (Cloudflare Worker + Durable Object, same protocol, plus presence counts for the study buddy).
+
 主站仍可放在 GitHub Pages。另选统计服务，实现同一协议，再设置 `site/static/note-metrics-config.json` 的 HTTPS endpoint。线上响应的 `mode` 才能设为 `public`，不要把本地测试数据迁到线上。服务故障不能阻止站点和本地收藏使用。
 
 Before enabling a production endpoint, configure HTTPS, exact CORS origin allowlists, request-size limits, abuse/rate limits, persistent database backups, and hosting log retention. Do not put database credentials or admin keys in the client. Anonymous identifiers prevent casual duplicate clicks, not a determined bot creating many new identities. Production hosting, costs, retention, and abuse controls still require maintainer review; this preview is not a production deployment.
