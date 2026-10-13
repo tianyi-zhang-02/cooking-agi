@@ -5,9 +5,9 @@
    (Chinese festivals on Chinese pages, US holidays on English pages).
    Everything comes from this browser; nothing is sent.
 
-   A site-wide "studying now / today" count needs a counting service. Until one
-   is configured, nothing calls StudyBuddy.setLive() and that row stays hidden:
-   no placeholder numbers, ever. */
+   Site-wide "studying now / today" counts come from the anonymous counter
+   service (services/counter) once note-metrics-config.json names it. Until
+   then, and whenever it fails, that row stays hidden: no placeholder numbers. */
 (function (scope) {
   'use strict';
   const KEY = 'cooking-agi:study-buddy';
@@ -410,5 +410,38 @@
   scope.addEventListener('notes:prep-restored', render);
   scope.addEventListener('notes:reader-settings', render);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); });
+  /* site-wide counts: a heartbeat every two minutes while the page is in front */
+  const base = new URL((scope.SITE && scope.SITE.prefix) || './', location.href);
+  const quiet = () => navigator.globalPrivacyControl === true || navigator.doNotTrack === '1';
+  let presence = null;
+  let lastBeat = 0;
+  async function beat() {
+    if (!presence || root.hidden || document.visibilityState !== 'visible') return;
+    lastBeat = Date.now();
+    try {
+      // no body and no custom headers: a simple request, so no CORS preflight
+      const response = await fetch(presence, {method: quiet() ? 'GET' : 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store'});
+      if (!response.ok) throw Error('presence');
+      const value = await response.json();
+      liveData = value && value.version === 1 ? {now: value.now, today: value.today} : null;
+    } catch { liveData = null; }
+    render();
+  }
+  async function connect() {
+    try {
+      const response = await fetch(new URL('static/note-metrics-config.json', base), {credentials: 'omit', cache: 'no-store'});
+      const config = await response.json();
+      if (!config || config.version !== 1 || typeof config.endpoint !== 'string' || !config.endpoint) return;
+      const endpoint = new URL(config.endpoint, base);
+      const local = ['localhost', '127.0.0.1', '[::1]'].includes(endpoint.hostname) && endpoint.protocol === 'http:';
+      if ((endpoint.protocol !== 'https:' && !local) || endpoint.username || endpoint.password || endpoint.search || endpoint.hash) return;
+      endpoint.pathname = endpoint.pathname.replace(/\/+$/, '') + '/';
+      presence = new URL('../presence', endpoint);
+      void beat();
+    } catch {}
+  }
+  scope.setTimeout(connect, 2500);
+  scope.setInterval(() => { if (Date.now() - lastBeat >= 120000) void beat(); }, 15000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - lastBeat >= 120000) void beat(); });
   scope.StudyBuddy = {setLive(value) { liveData = value; render(); }};
 })(typeof window === 'undefined' ? globalThis : window);
