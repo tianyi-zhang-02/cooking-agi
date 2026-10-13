@@ -1,6 +1,6 @@
-/* Study buddy: a small companion in the corner that follows the reader's local
-   time of day (coffee in the morning, a doze after lunch, afternoon tea, a lamp
-   in the evening, a blanket late at night) and says how many notes the reader
+/* Study buddy: a small round window in the corner that follows the reader's
+   local time of day (sunrise and coffee, a clear noon and lunch, afternoon tea,
+   a lamp at dusk, the moon and warm milk late at night) and says how many notes the reader
    has opened today. Lines change from day to day; on holidays it dresses up
    (Chinese festivals on Chinese pages, US holidays on English pages).
    Everything comes from this browser; nothing is sent.
@@ -122,177 +122,185 @@
     return lang === 'zh' ? `此刻 ${live.now} 人在学，今天共 ${live.today} 人` : `${live.now} studying now · ${live.today} today`;
   }
 
-  /* ---------------------------------------------------------------- the drawing */
-  const SKIN = '#F6D3B5', EAR = '#EDBE9C', HAIR = '#3B2A22', HOOD = '#E8A672', HOOD_DARK = '#C9834F', INK = '#4A2E22';
-  const SKY = {morning: ['#FFE6BC', '#F4AE86'], noon: ['#D9E9F2', '#F5E6C6'], afternoon: ['#F8D6A2', '#E3955E'], evening: ['#283050', '#4C3A4D'], night: ['#10172F', '#231A3B']};
-  const steam = (x, y) => `<g class="sb-steam" transform="translate(${x} ${y})" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round">
-    <path d="M-5 0 C-8 -4 -2 -6 -5 -10"/><path d="M1 0 C-2 -4 4 -6 1 -10"/><path d="M7 0 C4 -4 10 -6 7 -10"/></g>`;
-  function mug(liquid) {
-    return `<g class="sb-sip"><g transform="translate(62 104)">
-      <path d="M10 -5 h3 a4.2 4.2 0 0 1 0 8.4 h-3" stroke="#EADBC6" stroke-width="2.6" fill="none"/>
-      <rect x="-10" y="-9" width="20" height="18" rx="4.5" fill="#FFF4E4"/>
-      <rect x="-10" y="-1" width="20" height="3" fill="#F2C48F" opacity=".7"/>
-      <ellipse cx="0" cy="-8.3" rx="8.4" ry="2" fill="${liquid}"/>
-      <ellipse cx="-11" cy="1" rx="4.6" ry="4" fill="${SKIN}"/><ellipse cx="11.5" cy="2.5" rx="4.4" ry="3.8" fill="${SKIN}"/>
-      ${steam(0, -12)}</g></g>`;
-  }
-  const teacup = `<g class="sb-sip"><g transform="translate(62 104)">
-      <ellipse cx="0" cy="7" rx="17" ry="3.6" fill="#F7EBDC"/>
-      <path d="M11 -4 a4 4 0 0 1 0 7" stroke="#F7EBDC" stroke-width="2.4" fill="none"/>
-      <path d="M-12 -6 h24 v2 a12 10 0 0 1 -24 0 Z" fill="#FFFFFF"/>
-      <path d="M-12 -4 h24" stroke="#E8B04A" stroke-width="1.2"/>
-      <ellipse cx="0" cy="-6" rx="11.4" ry="2.2" fill="#C8773C"/>
-      <ellipse cx="-16" cy="6" rx="4.4" ry="3.6" fill="${SKIN}"/><ellipse cx="16" cy="6" rx="4.4" ry="3.6" fill="${SKIN}"/>
-      ${steam(0, -10)}</g></g>`;
-  const bowl = `<g transform="translate(60 104)">
-      <path d="M-15 -5 C-11 -13 11 -13 15 -5 Z" fill="#FFFFFF"/>
-      <path d="M-16 -5 h32 a16 12 0 0 1 -32 0 Z" fill="#F3E4CF"/>
-      <path d="M-15 -1 h30" stroke="#7FA6C9" stroke-width="2"/>
-      <path d="M8 -9 L24 -24 M11 -8 L27 -22" stroke="#9B6B43" stroke-width="1.8" stroke-linecap="round"/>
-      <ellipse cx="-16" cy="2" rx="4.4" ry="3.8" fill="${SKIN}"/><ellipse cx="16" cy="2" rx="4.4" ry="3.8" fill="${SKIN}"/></g>`;
-  const book = `<g transform="translate(60 104)">
-      <path d="M0 -6 L-22 -10 L-22 8 L0 12 Z" fill="#FFF8EC"/><path d="M0 -6 L22 -10 L22 8 L0 12 Z" fill="#FBEFDC"/>
-      <path d="M-18 -5 L-4 -2.5 M-18 -1 L-4 1.5 M-18 3 L-8 4.8 M4 -2.5 L18 -5 M4 1.5 L18 -1" stroke="#D9C7AE" stroke-width="1"/>
-      <path class="sb-page" d="M0 -6 L20 -9.4 L20 7.6 L0 12 Z" fill="#FFFBF3"/>
-      <path d="M0 -6 V12" stroke="#C9A97F" stroke-width="1.2"/>
-      <ellipse cx="-23" cy="3" rx="4.2" ry="3.6" fill="${SKIN}"/><ellipse cx="23" cy="3" rx="4.2" ry="3.6" fill="${SKIN}"/></g>`;
-  const EYES = {
-    open: `<g class="sb-eyes"><ellipse cx="52" cy="67" rx="2.3" ry="2.9" fill="${INK}"/><ellipse cx="68" cy="67" rx="2.3" ry="2.9" fill="${INK}"/>
-      <circle cx="52.8" cy="66" r=".8" fill="#FFFFFF"/><circle cx="68.8" cy="66" r=".8" fill="#FFFFFF"/></g>`,
-    down: `<g class="sb-eyes"><path d="M49.5 68 Q52 70.2 54.5 68" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-      <path d="M65.5 68 Q68 70.2 70.5 68" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>`,
-    sleepy: `<g><path d="M49 67.5 Q52 69.5 55 67.5" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-      <path d="M65 67.5 Q68 69.5 71 67.5" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>`
+  /* ---------------------------------------------------------------- the drawing
+     A round window: the sky outside follows the time of day, and the sill holds
+     what you would have at hand. No character; holidays change the view and
+     the things on the sill. Coordinates: 120 x 120, sill top at y = 84. */
+  const FRAME = '#4A3326', INK = '#2A201C';
+  const VIEW = {
+    morning: {sky: ['#A9C9E6', '#FCD8B8'], hills: ['#8E9CC0', '#6E7EA6']},
+    noon: {sky: ['#7DB6E4', '#D8ECF7'], hills: ['#8DB496', '#6E9A7B']},
+    afternoon: {sky: ['#F1CF98', '#EDA67A'], hills: ['#C99474', '#AD755C']},
+    evening: {sky: ['#2A2F59', '#C9767C'], hills: ['#4A3A5C', '#30263F']},
+    night: {sky: ['#0B1130', '#1E2353'], hills: ['#1A1F40', '#11142C']}
   };
-  function head(eyes, cap) {
-    return `<g class="sb-head">
-      <circle cx="39" cy="67" r="4" fill="${EAR}"/><circle cx="81" cy="67" r="4" fill="${EAR}"/>
-      <circle cx="60" cy="64" r="22" fill="${SKIN}"/>
-      ${cap ? `<path d="M37 62 C36 44 48 37 61 37 C70 37 77 41 81 47 C86 53 90 61 92 70 L88 71 C85 62 82 57 78 54 C70 58 54 58 45 55 C41 57 39 59 37 62 Z" fill="#5C6CA6"/>
-        <path d="M37 61 C44 55 70 55 80 56" stroke="#7F8FC6" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="90" cy="72" r="3.6" fill="#FFF3DD"/>`
-        : `<path d="M38 64 C35 46 47 38 60 38 C73 38 85 46 82 64 C80 57 76 53 70 52 C66 57 57 58 49 55 C44 57 40 60 38 64 Z" fill="${HAIR}"/>
-          <path d="M60 39 C58 33 63 30 65 33" stroke="${HAIR}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`}
-      ${EYES[eyes]}
-      <ellipse cx="47" cy="73" rx="3.6" ry="2" fill="#F08F7E" opacity=".45"/><ellipse cx="73" cy="73" rx="3.6" ry="2" fill="#F08F7E" opacity=".45"/>
-      ${eyes === 'sleepy' ? `<ellipse class="sb-yawn" cx="60" cy="76" rx="2.2" ry="2.6" fill="#8A4A3A"/>` : `<path d="M57 74.5 Q60 77.5 63 74.5" stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`}
-    </g>`;
-  }
-  const hoodie = (color = HOOD, trim = HOOD_DARK) => `<path d="M22 122 C24 100 38 90 60 90 C82 90 96 100 98 122 Z" fill="${color}"/>
-    <path d="M48 91 Q60 100 72 91" stroke="${trim}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M55 97 v9 M65 97 v9" stroke="#FBE3C9" stroke-width="1.4" stroke-linecap="round"/>`;
-  const blanket = `<path d="M16 122 C16 99 33 86 60 86 C87 86 104 99 104 122 Z" fill="#6E7EB8"/>
-    <path d="M24 104 C44 97 76 97 96 104 M20 114 C44 107 76 107 100 114" stroke="#8C9AD0" stroke-width="3" fill="none"/>`;
-  const PROPS = {
-    morning: `<circle class="sb-sun" cx="94" cy="98" r="15" fill="#FFD27C"/><rect y="104" width="120" height="16" fill="#F2A274" opacity=".5"/>`,
-    noon: `<circle cx="95" cy="25" r="10" fill="#FFE39C"/><circle cx="95" cy="25" r="15" fill="#FFE39C" opacity=".25"/>`,
-    afternoon: `<circle cx="96" cy="36" r="12" fill="#FFD28A" opacity=".95"/><path d="M0 92 C30 86 60 90 120 84 V120 H0 Z" fill="#D88350" opacity=".35"/>`,
-    evening: `<circle class="sb-glow" cx="24" cy="46" r="44" fill="url(#ID-glow)"/>
-      <path d="M11 26 L35 26 L30 37 L16 37 Z" fill="#F5B83D"/><rect x="22" y="37" width="2" height="34" fill="#7A5E44"/>`,
-    night: `<path d="M99 15 a13 13 0 1 0 7 24 a10.5 10.5 0 1 1 -7 -24 Z" fill="#FFE6A6"/>
-      <circle class="sb-twinkle" cx="22" cy="24" r="1.4" fill="#FFF"/><circle class="sb-twinkle" cx="38" cy="14" r="1" fill="#FFF"/>
-      <circle class="sb-twinkle" cx="80" cy="46" r="1.1" fill="#FFF"/><circle class="sb-twinkle" cx="14" cy="50" r=".9" fill="#FFF"/>`
+  const steam = (x, y) => `<g class="sb-steam" transform="translate(${x} ${y})" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity=".9">
+    <path d="M-3.5 0 C-6 -3 -1 -5 -3.5 -8.5"/><path d="M1 0 C-1.5 -3 3.5 -5 1 -8.5"/><path d="M5.5 0 C3 -3 8 -5 5.5 -8.5"/></g>`;
+  const sun = (x, y, r, color) => `<circle class="sb-glow" cx="${x}" cy="${y}" r="${r * 2.6}" fill="url(#ID-glow)"/><circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
+  const cloud = (x, y, s) => `<g class="sb-drift" fill="#FFFFFF" opacity=".78"><ellipse cx="${x}" cy="${y}" rx="${10 * s}" ry="${3.8 * s}"/>
+    <ellipse cx="${x + 5 * s}" cy="${y - 2.6 * s}" rx="${6.4 * s}" ry="${4.4 * s}"/><ellipse cx="${x - 4 * s}" cy="${y - 1.4 * s}" rx="${4.6 * s}" ry="${3.2 * s}"/></g>`;
+  const stars = pts => pts.map(([x, y, r]) => `<circle class="sb-twinkle" cx="${x}" cy="${y}" r="${r}" fill="#FFFFFF"/>`).join('');
+  const CRESCENT = `<circle class="sb-glow" cx="86" cy="22" r="20" fill="url(#ID-glow)"/><path d="M86 11 a11 11 0 1 0 7 19.6 a9 9 0 1 1 -7 -19.6 Z" fill="#FFE9B0"/>`;
+  const SKYLIFE = {
+    morning: sun(30, 66, 8, '#FFE2A6') + cloud(84, 22, 1) + cloud(30, 34, .7),
+    noon: sun(86, 18, 7, '#FFF6D2') + cloud(30, 24, 1.1) + cloud(78, 54, .7),
+    afternoon: sun(88, 38, 8.5, '#FFE6AC') + cloud(28, 22, .9),
+    evening: `<circle cx="90" cy="73" r="7" fill="#FFC27A"/>` + stars([[22, 16, 1], [40, 30, .8], [74, 12, 1.1]]),
+    night: CRESCENT + stars([[20, 18, 1.2], [36, 8, .9], [48, 34, .8], [70, 30, 1], [104, 44, .9], [16, 46, .8]])
   };
-  const TEAPOT = `<g transform="translate(28 101)"><path d="M-8 -2 C-8 -11 8 -11 8 -2 C8 5 -8 5 -8 -2 Z" fill="#FFF6EA"/><path d="M8 -4 C13 -6 14 -10 16 -11" stroke="#FFF6EA" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        <path d="M-8 -5 C-12 -5 -12 1 -8 1" stroke="#FFF6EA" stroke-width="1.8" fill="none"/><ellipse cx="0" cy="-9.5" rx="3.4" ry="1.4" fill="#E8B04A"/><circle cx="0" cy="-11.4" r="1.4" fill="#E8B04A"/></g>`;
-  const ITEMS = {morning: mug('#6B3E26'), noon: bowl, afternoon: TEAPOT + teacup, evening: book, night: mug('#FFF8EE')};
-  const Z = `<g class="sb-zs" fill="#FFFFFF" font-family="ui-rounded, system-ui, sans-serif" font-size="9" font-weight="700">
-      <text class="sb-z" x="84" y="54">z</text><text class="sb-z" x="90" y="46">z</text></g>`;
 
-  /* holiday looks: a hat, something in hand, and the scene around */
-  const hands = (dx = 16, dy = 3) => `<ellipse cx="${-dx}" cy="${dy}" rx="4.4" ry="3.8" fill="${SKIN}"/><ellipse cx="${dx}" cy="${dy}" rx="4.4" ry="3.8" fill="${SKIN}"/>`;
-  const held = body => `<g transform="translate(60 104)">${body}</g>`;
+  /* things on the sill; each sits with its base on y = 89 */
+  const mug = (x, liquid, extra = '') => `<g><path d="M${x + 8} ${79} h2.6 a3.6 3.6 0 0 1 0 7.2 h-2.6" stroke="#C3D8E4" stroke-width="2.2" fill="none"/>
+    <rect x="${x - 8}" y="75" width="16" height="14" rx="3.4" fill="#E6EEF3"/><rect x="${x - 8}" y="81" width="16" height="2.4" fill="#9FC4DA"/>
+    <ellipse cx="${x}" cy="75.6" rx="6.8" ry="1.6" fill="${liquid}"/>${extra}${steam(x - 1, 72)}</g>`;
+  const teacup = x => `<g><ellipse cx="${x}" cy="89" rx="12" ry="2.4" fill="#F2ECE2"/><path d="M${x + 8} 80.6 a3.4 3.4 0 0 1 0 5.6" stroke="#E6DFD3" stroke-width="2" fill="none"/>
+    <path d="M${x - 9} 79.6 h18 v1.6 a9 7.2 0 0 1 -18 0 Z" fill="#FFFFFF"/><path d="M${x - 9} 81.2 h18" stroke="#E2B04E" stroke-width="1"/>
+    <ellipse cx="${x}" cy="79.6" rx="8.6" ry="1.7" fill="#C8773C"/>${steam(x - 1, 76)}</g>`;
+  const teapot = x => `<g><path d="M${x - 9} 80 C${x - 14} 79 ${x - 16} 75 ${x - 17} 72.6" stroke="#BFD9CB" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <path d="M${x + 8} 77 a5 5 0 0 1 0 8" stroke="#BFD9CB" stroke-width="2.4" fill="none"/>
+    <ellipse cx="${x}" cy="82" rx="10" ry="7.4" fill="#CFE5D8"/><ellipse cx="${x}" cy="75.4" rx="5" ry="1.6" fill="#B7D5C4"/><circle cx="${x}" cy="73.2" r="1.6" fill="#B7D5C4"/>
+    <ellipse cx="${x - 3.6}" cy="80" rx="2.6" ry="4" fill="#FFFFFF" opacity=".35"/><rect x="${x - 6}" y="88.2" width="12" height="1.2" rx=".6" fill="#B7D5C4"/></g>`;
+  const cookies = x => `<g><ellipse cx="${x}" cy="88.4" rx="9" ry="2" fill="#F2ECE2"/><ellipse cx="${x - 3}" cy="86.2" rx="4.4" ry="2" fill="#D9A15E"/>
+    <ellipse cx="${x + 3.4}" cy="85.4" rx="4.2" ry="1.9" fill="#E3B172"/><circle cx="${x - 4}" cy="85.8" r=".6" fill="#7A4E2D"/><circle cx="${x + 4}" cy="85" r=".6" fill="#7A4E2D"/></g>`;
+  const bowl = x => `<g><path d="M${x - 10} 80 C${x - 7} 73.6 ${x + 7} 73.6 ${x + 10} 80 Z" fill="#FFFFFF"/>
+    <path d="M${x - 11} 80 h22 a11 9 0 0 1 -22 0 Z" fill="#F3E4CF"/><path d="M${x - 10.4} 83 h20.8" stroke="#7FA6C9" stroke-width="1.6"/>
+    <path d="M${x + 2} 76 L${x + 16} 68 M${x + 4} 77 L${x + 18} 70" stroke="#9B6B43" stroke-width="1.4" stroke-linecap="round"/>${steam(x - 1, 72)}</g>`;
+  const glass = (x, fill = '#BFE2F2') => `<g><path d="M${x - 5} 73 L${x + 5} 73 L${x + 4} 89 L${x - 4} 89 Z" fill="#E4F3F9" opacity=".75"/>
+    <path d="M${x - 4.6} 78 L${x + 4.6} 78 L${x + 4} 89 L${x - 4} 89 Z" fill="${fill}"/><path d="M${x - 3} 75 L${x - 2.4} 87" stroke="#FFFFFF" stroke-width="1" opacity=".7"/></g>`;
+  const plant = x => `<g><path d="M${x} 80 C${x - 7} 75 ${x - 9} 68 ${x - 3} 65 C${x - 2} 71 ${x} 75 ${x} 80 Z" fill="#6FA36B"/>
+    <path d="M${x} 80 C${x + 7} 76 ${x + 9} 70 ${x + 4} 66.6 C${x + 2.6} 72 ${x + 1} 76 ${x} 80 Z" fill="#5C8F5A"/>
+    <path d="M${x} 80 C${x - 1} 74 ${x + 1} 69 ${x + .6} 63" stroke="#4E7F4C" stroke-width="1.2" fill="none"/>
+    <path d="M${x - 6} 80 L${x + 6} 80 L${x + 4.6} 89 L${x - 4.6} 89 Z" fill="#C9744A"/><rect x="${x - 6.6}" y="79" width="13.2" height="2.6" rx="1" fill="#B5643E"/></g>`;
+  const openBook = x => `<g><path d="M${x} 85 L${x - 15} 82 L${x - 15} 88.6 L${x} 90.6 Z" fill="#FFF8EC"/><path d="M${x} 85 L${x + 15} 82 L${x + 15} 88.6 L${x} 90.6 Z" fill="#F7EAD5"/>
+    <path class="sb-page" d="M${x} 85 L${x + 13} 82.6 L${x + 13} 88.4 L${x} 90.6 Z" fill="#FFFBF3"/>
+    <path d="M${x - 12} 84 L${x - 3} 85.6 M${x - 12} 86.2 L${x - 3} 87.8 M${x + 3} 85.6 L${x + 12} 84" stroke="#D9C7AE" stroke-width=".8"/></g>`;
+  const books = x => `<g><rect x="${x - 11}" y="84" width="22" height="5" rx="1" fill="#5B7DB1"/><rect x="${x - 9}" y="79" width="19" height="5" rx="1" fill="#D98C4A"/>
+    <rect x="${x - 10}" y="74.4" width="17" height="4.6" rx="1" fill="#7FAE84"/><path d="M${x + 9.4} 85 v3 M${x + 8.6} 80 v3 M${x + 5.6} 75.4 v2.6" stroke="#FFF7EA" stroke-width="1.2"/></g>`;
+  const lamp = x => `<g><circle class="sb-glow" cx="${x - 12}" cy="80" r="24" fill="url(#ID-lamp)"/>
+    <ellipse cx="${x}" cy="88.6" rx="6" ry="1.6" fill="#3D2E26"/><path d="M${x} 88 L${x + 3} 74 L${x - 6} 64" stroke="#3D2E26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M${x - 2} 60 L${x - 14} 64.6 L${x - 10} 70.6 Z" fill="#E8B04A"/><circle cx="${x - 11}" cy="68.6" r="1.6" fill="#FFF3C8"/></g>`;
+  function clock(x, date) {
+    const h = date.getHours() % 12 + date.getMinutes() / 60, m = date.getMinutes();
+    const hand = (len, turns) => { const a = turns * 2 * Math.PI - Math.PI / 2; return `L${(x + Math.cos(a) * len).toFixed(2)} ${(81 + Math.sin(a) * len).toFixed(2)}`; };
+    return `<g><circle cx="${x - 5}" cy="74.6" r="2.4" fill="#C9B79C"/><circle cx="${x + 5}" cy="74.6" r="2.4" fill="#C9B79C"/>
+      <path d="M${x - 5} 88 l-1.6 2 M${x + 5} 88 l1.6 2" stroke="#9E8B70" stroke-width="1.4" stroke-linecap="round"/>
+      <circle cx="${x}" cy="81" r="7.4" fill="#F1EBDD" stroke="#B9A58C" stroke-width="1.4"/>
+      <path d="M${x} 81 ${hand(3.6, h / 12)} M${x} 81 ${hand(5.4, m / 60)}" stroke="${INK}" stroke-width="1.2" stroke-linecap="round"/><circle cx="${x}" cy="81" r=".8" fill="${INK}"/></g>`;
+  }
+  const plate = (x, food) => `<g><ellipse cx="${x}" cy="88.4" rx="12" ry="2.4" fill="#F4EEE6"/>${food}</g>`;
+  const dumplings = x => plate(x, `<path d="M${x - 10} 87 Q${x - 6} 79.6 ${x - 2} 87 Z M${x - 3.6} 86.6 Q${x} 79 ${x + 3.6} 86.6 Z M${x + 2} 87 Q${x + 6} 79.6 ${x + 10} 87 Z" fill="#FFF8EC" stroke="#E6D3B9" stroke-width=".7"/>`);
+  const tangyuan = x => `<g><path d="M${x - 11} 80 h22 a11 9 0 0 1 -22 0 Z" fill="#F3E4CF"/><path d="M${x - 10.4} 83 h20.8" stroke="#D9473C" stroke-width="1.6"/>
+    <circle cx="${x - 5}" cy="79" r="3.6" fill="#FFFFFF"/><circle cx="${x + 1.6}" cy="78" r="3.6" fill="#FFF4F0"/><circle cx="${x + 7}" cy="79.4" r="3" fill="#FFFFFF"/>${steam(x - 1, 73)}</g>`;
+  const zongzi = x => plate(x, `<path d="M${x - 9} 87 L${x - 1} 72 L${x + 7} 87 Z" fill="#5FA05A"/><path d="M${x - 9} 87 L${x - 1} 72 L${x + 1.4} 77 L${x - 4.6} 87 Z" fill="#79B86E"/>
+    <path d="M${x - 6.4} 82 L${x + 4.4} 82 M${x - 4} 77.6 L${x + 2} 77.6" stroke="#EADBA6" stroke-width="1.3"/>`);
+  const apple = x => `<g><path d="M${x} 77 C${x - 5} 73 ${x - 10.6} 77 ${x - 10} 82.4 C${x - 9} 88 ${x - 4} 90.4 ${x} 88.8 C${x + 4} 90.4 ${x + 9} 88 ${x + 10} 82.4 C${x + 10.6} 77 ${x + 5} 73 ${x} 77 Z" fill="#E2483D"/>
+    <path d="M${x} 77 C${x} 74.6 ${x + .8} 73 ${x + 1.6} 72" stroke="#7A5E44" stroke-width="1.2" fill="none"/><path d="M${x + 1.6} 73.6 C${x + 5} 71 ${x + 7.4} 72.6 ${x + 7.4} 74.2 C${x + 5} 75 ${x + 3.4} 74.4 ${x + 1.6} 73.6 Z" fill="#79B86E"/>
+    <ellipse cx="${x - 4}" cy="80.6" rx="1.6" ry="2.4" fill="#FFFFFF" opacity=".35"/></g>`;
+  const mooncakes = x => plate(x, `<circle cx="${x - 4}" cy="83.4" r="5.6" fill="#D99A46"/><circle cx="${x - 4}" cy="83.4" r="4" fill="#E8B25E"/>
+    <circle cx="${x + 5}" cy="84.4" r="4.8" fill="#D99A46"/><circle cx="${x + 5}" cy="84.4" r="3.4" fill="#E8B25E"/>
+    <path d="M${x - 6} 83.4 h4 M${x - 4} 81.4 v4" stroke="#C7843A" stroke-width=".9" stroke-linecap="round"/>`);
+  const laptop = x => `<g><path d="M${x - 14} 70 h28 v15 h-28 Z" fill="#2B2F3A"/><rect class="sb-screen" x="${x - 12.4}" y="71.6" width="24.8" height="11.8" rx=".8" fill="#14202B"/>
+    <text x="${x}" y="80.2" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6.4" font-weight="700" fill="#7CF2B5">1024</text>
+    <path d="M${x - 17} 85 h34 l-2 4 h-30 Z" fill="#A3ABB9"/></g>`;
+  const pie = x => `<g><ellipse cx="${x}" cy="86" rx="12" ry="4" fill="#D9934A"/><ellipse cx="${x}" cy="84.6" rx="9.8" ry="3" fill="#B5462F"/>
+    <text x="${x}" y="87" text-anchor="middle" font-family="Georgia, serif" font-size="6.6" font-weight="700" fill="#FFE9C9">π</text></g>`;
+  const jack = x => `<g><ellipse cx="${x}" cy="82" rx="10.6" ry="7.6" fill="#F08A2C"/><path d="M${x - 4} 74.6 C${x - 5} 81 ${x - 5} 85 ${x - 4} 89 M${x + 4} 74.6 C${x + 5} 81 ${x + 5} 85 ${x + 4} 89" stroke="#D9731C" stroke-width="1" fill="none"/>
+    <path d="M${x} 74.6 C${x} 72.4 ${x + 1.6} 71 ${x + 3.4} 71" stroke="#5E8A3A" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path class="sb-flicker" d="M${x - 6} 80 L${x - 3.4} 77.4 L${x - .8} 80 Z M${x + .8} 80 L${x + 3.4} 77.4 L${x + 6} 80 Z M${x - 6} 84 Q${x} 88 ${x + 6} 84 Q${x} 85.8 ${x - 6} 84 Z" fill="#FFE27A"/></g>`;
+  const candle = x => `<g><rect x="${x - 2.6}" y="77" width="5.2" height="11" rx="1" fill="#F4EEE2"/><ellipse cx="${x}" cy="88.6" rx="5" ry="1.3" fill="#B9A58C"/>
+    <circle class="sb-glow" cx="${x}" cy="73" r="9" fill="url(#ID-lamp)"/><path class="sb-flicker" d="M${x} 70 C${x - 2} 73 ${x - 1.6} 75.6 ${x} 76 C${x + 1.6} 75.6 ${x + 2} 73 ${x} 70 Z" fill="#FFC75A"/></g>`;
+  const slice = x => plate(x, `<path d="M${x - 9} 87 L${x + 8} 81 L${x + 8} 87 Z" fill="#E08A3A"/><path d="M${x + 8} 81 L${x + 10} 81 L${x + 10} 87 L${x + 8} 87 Z" fill="#C9874A"/>
+    <ellipse cx="${x + 4}" cy="80.6" rx="2.6" ry="1.6" fill="#FFFFFF"/>`);
+  const gift = x => `<g><rect x="${x - 9}" y="77" width="18" height="12" rx="1.6" fill="#D9473C"/><rect x="${x - 1.6}" y="77" width="3.2" height="12" fill="#F2C14E"/>
+    <rect x="${x - 9}" y="81.4" width="18" height="3" fill="#F2C14E"/><path d="M${x} 77 C${x - 5} 71 ${x - 8.6} 76 ${x} 77 C${x + 8.6} 76 ${x + 5} 71 ${x} 77 Z" fill="#F2C14E"/></g>`;
+  const shades = x => `<g><rect x="${x - 10}" y="84" width="8.6" height="5" rx="2.2" fill="#22222A"/><rect x="${x + 1.4}" y="84" width="8.6" height="5" rx="2.2" fill="#22222A"/>
+    <path d="M${x - 1.4} 85.4 h2.8" stroke="#22222A" stroke-width="1.2"/><path d="M${x - 8} 85.4 l2 -.8" stroke="#FFFFFF" stroke-width=".8" opacity=".6"/></g>`;
+  const juice = x => `<g>${glass(x, '#FFB347')}<path d="M${x + 1} 73 L${x + 4} 66 L${x + 7} 66" stroke="#FF6F91" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <circle cx="${x - 4}" cy="73.4" r="2.6" fill="#FFE27A"/></g>`;
+  const partyHat = x => `<g><path d="M${x - 7} 89 L${x} 70 L${x + 7} 89 Z" fill="#7FB3E8"/><path d="M${x - 4.6} 83 L${x + 4.6} 83 M${x - 2.6} 77 L${x + 2.6} 77" stroke="#FFE08A" stroke-width="1.8"/>
+    <circle cx="${x}" cy="69.4" r="2.6" fill="#FF8FA3"/></g>`;
+  const cocoa = x => mug(x, '#6B3E26', `<circle cx="${x - 2}" cy="74.8" r="1.6" fill="#FFFFFF"/><circle cx="${x + 2}" cy="74.4" r="1.4" fill="#FFF4F0"/>`);
+
+  /* holiday views: what hangs in or happens outside the window */
   const burst = (cx, cy, r, color) => {
     let rays = '';
     for (let k = 0; k < 10; k++) {
-      const a = k * Math.PI / 5, x1 = (cx + Math.cos(a) * r * .35).toFixed(1), y1 = (cy + Math.sin(a) * r * .35).toFixed(1);
-      rays += `<path d="M${x1} ${y1} L${(cx + Math.cos(a) * r).toFixed(1)} ${(cy + Math.sin(a) * r).toFixed(1)}"/>`;
+      const a = k * Math.PI / 5;
+      rays += `<path d="M${(cx + Math.cos(a) * r * .35).toFixed(1)} ${(cy + Math.sin(a) * r * .35).toFixed(1)} L${(cx + Math.cos(a) * r).toFixed(1)} ${(cy + Math.sin(a) * r).toFixed(1)}"/>`;
     }
-    return `<g class="sb-burst" stroke="${color}" stroke-width="1.8" stroke-linecap="round">${rays}<circle cx="${cx}" cy="${cy}" r="1.6" fill="${color}" stroke="none"/></g>`;
+    return `<g class="sb-burst" stroke="${color}" stroke-width="1.6" stroke-linecap="round">${rays}<circle cx="${cx}" cy="${cy}" r="1.4" fill="${color}" stroke="none"/></g>`;
   };
-  const lanterns = ['24', '98'].map((x, i) => `<g class="sb-sway"><path d="M${x} 0 V${10 + i * 4}" stroke="#C9A14A" stroke-width="1.2"/>
-      <rect x="${x - 4}" y="${10 + i * 4}" width="8" height="2.6" rx="1" fill="#F2C14E"/><ellipse cx="${x}" cy="${20 + i * 4}" rx="9" ry="8" fill="#E2483D"/>
-      <path d="M${x - 5} ${20 + i * 4} h10" stroke="#B83229" stroke-width=".8" opacity=".6"/><rect x="${x - 4}" y="${27 + i * 4}" width="8" height="2.6" rx="1" fill="#F2C14E"/>
-      <path d="M${x} ${29.6 + i * 4} v6" stroke="#F2C14E" stroke-width="1.4"/></g>`).join('');
-  const falling = (colors, shape) => [[16, 12], [34, 4], [52, 16], [76, 8], [94, 18], [106, 6], [24, 30], [88, 32]]
+  const lanterns = [[30, 0], [92, 4]].map(([x, d]) => `<g class="sb-sway"><path d="M${x} 0 V${8 + d}" stroke="#C9A14A" stroke-width="1.1"/>
+    <rect x="${x - 3.6}" y="${8 + d}" width="7.2" height="2.4" rx="1" fill="#F2C14E"/><ellipse cx="${x}" cy="${17 + d}" rx="8" ry="7.2" fill="#E2483D"/>
+    <path d="M${x - 4.6} ${17 + d} h9.2" stroke="#B83229" stroke-width=".8" opacity=".6"/><rect x="${x - 3.6}" y="${23.4 + d}" width="7.2" height="2.4" rx="1" fill="#F2C14E"/>
+    <path d="M${x} ${25.8 + d} v5" stroke="#F2C14E" stroke-width="1.2"/></g>`).join('');
+  const falling = (colors, shape) => [[16, 10], [32, 2], [50, 14], [74, 6], [94, 16], [106, 4], [24, 28], [86, 30]]
     .map(([x, y], i) => shape(x, y, colors[i % colors.length])).join('');
-  const dot = (x, y, color) => `<circle class="sb-fall" cx="${x}" cy="${y}" r="1.6" fill="${color}"/>`;
-  const chip = (x, y, color) => `<rect class="sb-fall" x="${x}" y="${y}" width="4" height="2.4" rx=".6" fill="${color}"/>`;
-  const leaf = (x, y, color) => `<path class="sb-fall" d="M${x} ${y} c3 -3 7 -2 7 2 c-3 3 -7 2 -7 -2 Z" fill="${color}"/>`;
-  const HATS = {
-    party: `<path d="M49 47 L64 15 L74 44 Z" fill="#7FB3E8"/><path d="M53 38.5 L71 37 M57 29.5 L68 28.8 M60.5 22 L66 21.6" stroke="#FFE08A" stroke-width="2.2" stroke-linecap="round"/><circle cx="64" cy="14" r="3.6" fill="#FF8FA3"/>`,
-    santa: `<path d="M38 51 C38 37 50 30 62 30 C74 30 82 36 88 46 C91 51 93 57 94 62 L89 63 C86 55 82 50 76 47 C64 45 50 46 38 51 Z" fill="#D9473C"/>
-      <path d="M36 51 C48 44.5 70 43.5 80 46.5" stroke="#FFF7EE" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="92" cy="64" r="4.2" fill="#FFF7EE"/>`,
-    witch: `<path d="M33 51 C45 46 76 46 88 51 C76 55 45 55 33 51 Z" fill="#2B2238"/><path d="M46 49 C52 36 56 24 62 16 C64 14 67 15 66 18 C68 28 72 40 75 49 Z" fill="#3A2D4E"/>
-      <path d="M47 45.5 C56 43.5 66 43.5 74 45.5" stroke="#E8A672" stroke-width="2.6" fill="none"/>`
-  };
-  const SHADES = `<rect x="44.5" y="63" width="13" height="8" rx="3.5" fill="#2B2B35"/><rect x="62.5" y="63" width="13" height="8" rx="3.5" fill="#2B2B35"/>
-    <path d="M57.5 66 h5" stroke="#2B2B35" stroke-width="1.6"/><path d="M47 65.5 l3 -1.4 M65 65.5 l3 -1.4" stroke="#FFFFFF" stroke-width="1" opacity=".55"/>`;
-  const MOON = `<circle class="sb-glow" cx="88" cy="30" r="28" fill="url(#ID-glow)"/><circle cx="88" cy="30" r="13" fill="#FFF1C1"/>
-    <circle cx="84" cy="27" r="2.2" fill="#F1DFA3"/><circle cx="92" cy="34" r="1.6" fill="#F1DFA3"/><circle cx="91" cy="25" r="1.1" fill="#F1DFA3"/>`;
+  const dot = (x, y, color) => `<circle class="sb-fall" cx="${x}" cy="${y}" r="1.4" fill="${color}"/>`;
+  const chip = (x, y, color) => `<rect class="sb-fall" x="${x}" y="${y}" width="3.6" height="2.2" rx=".6" fill="${color}"/>`;
+  const leaf = (x, y, color) => `<path class="sb-fall" d="M${x} ${y} c2.6 -2.6 6.2 -1.8 6.2 1.8 c-2.6 2.6 -6.2 1.8 -6.2 -1.8 Z" fill="${color}"/>`;
+  const FULL_MOON = `<circle class="sb-glow" cx="84" cy="26" r="30" fill="url(#ID-glow)"/><circle cx="84" cy="26" r="12" fill="#FFF1C1"/>
+    <circle cx="80.4" cy="23" r="2" fill="#F1DFA3"/><circle cx="88" cy="30" r="1.5" fill="#F1DFA3"/><circle cx="87" cy="21.4" r="1" fill="#F1DFA3"/>`;
+  const LIGHTS = ['#FF6B5A', '#FFD36B', '#7CD6A6', '#6FA8FF'].flatMap((color, i) => [8 + i * 26, 21 + i * 26].map(x =>
+    `<circle class="sb-twinkle" cx="${x}" cy="${46.4 + (x % 3)}" r="1.6" fill="${color}"/>`)).join('');
+  const BATS = `<path class="sb-flap" d="M20 28 q3.4 -3.4 6.8 0 q1.7 -1.7 3.4 0 q3.4 -3.4 6.8 0 q-3.4 .9 -5.1 3.4 q-1.7 -1.7 -3.4 0 q-1.7 -2.6 -8.5 -3.4 Z" fill="#1A1424"/>
+    <path class="sb-flap" d="M58 14 q2.6 -2.6 5.2 0 q1.3 -1.3 2.6 0 q2.6 -2.6 5.2 0 q-2.6 .8 -3.9 2.6 q-1.3 -1.3 -2.6 0 q-1.3 -1.8 -6.5 -2.6 Z" fill="#1A1424"/>`;
+  // sky: a view key or [top, bottom]; window: drawn outside; sill: [object, x] pairs
   const LOOKS = {
-    party: {hat: HATS.party, props: falling(['#FF8FA3', '#FFE08A', '#7FB3E8', '#9BE3B8'], chip)},
-    spring: {hood: ['#D9473C', '#F2C14E'], props: lanterns, festiveNight: lanterns + burst(60, 18, 12, '#FFD36B') + burst(40, 34, 8, '#FF6B5A'),
-      item: held(`<ellipse cx="0" cy="5" rx="18" ry="4.6" fill="#FFFFFF"/><ellipse cx="0" cy="4.4" rx="14" ry="3" fill="#F0E6DA"/>
-        <path d="M-13 3 Q-8.5 -7 -4 3 Z M-4.5 2 Q0 -8 4.5 2 Z M4 3 Q8.5 -7 13 3 Z" fill="#FFF8EC" stroke="#E6D3B9" stroke-width=".8"/>${hands(18, 5)}`)},
-    lantern: {props: lanterns,
-      item: held(`<path d="M-16 -5 h32 a16 12 0 0 1 -32 0 Z" fill="#F3E4CF"/><path d="M-15 -1 h30" stroke="#D9473C" stroke-width="2"/>
-        <circle cx="-6" cy="-6" r="4.2" fill="#FFFFFF"/><circle cx="2" cy="-7" r="4.2" fill="#FFF6F2"/><circle cx="9" cy="-5.4" r="3.8" fill="#FFFFFF"/>${hands(16, 2)}`)},
-    rest: {face: SHADES,
-      item: held(`<path d="M-7 -13 L7 -13 L5 8 L-5 8 Z" fill="#DDF1F7" opacity=".85"/><path d="M-6.3 -6 L6.3 -6 L5 8 L-5 8 Z" fill="#FFB347"/>
-        <rect x="-4" y="-4" width="3.4" height="3.4" rx=".8" fill="#FFFFFF" opacity=".6"/><rect x="1" y="-1" width="3" height="3" rx=".8" fill="#FFFFFF" opacity=".5"/>
-        <path d="M2 -13 L6 -21 L10 -21" stroke="#FF6F91" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="-6" cy="-13" r="3" fill="#FFE27A"/>${hands(9, 4)}`)},
-    zongzi: {props: `<path d="M4 120 C12 96 26 84 44 78 C34 92 22 106 4 120 Z" fill="#5FA05A" opacity=".55"/><path d="M116 120 C108 96 94 84 76 78 C86 92 98 106 116 120 Z" fill="#5FA05A" opacity=".55"/>`,
-      item: held(`<path d="M-11 6 L0 -13 L11 6 Z" fill="#5FA05A"/><path d="M-11 6 L0 -13 L3 -7 L-5 6 Z" fill="#79B86E"/>
-        <path d="M-7.5 0 L7.5 0 M-4.5 -5 L4.5 -5" stroke="#EADBA6" stroke-width="1.5"/>${hands(14, 3)}`)},
-    apple: {item: held(`<path d="M0 -6 C-6 -11 -13 -6 -12 1 C-11 8 -5 11 0 9 C5 11 11 8 12 1 C13 -6 6 -11 0 -6 Z" fill="#E2483D"/>
-        <path d="M0 -6 C0 -9 1 -11 2 -12" stroke="#7A5E44" stroke-width="1.4" fill="none"/><path d="M2 -10 C6 -13 9 -11 9 -9 C6 -8 4 -9 2 -10 Z" fill="#79B86E"/>
-        <ellipse cx="-5" cy="-2" rx="2" ry="3" fill="#FFFFFF" opacity=".35"/>${hands(14, 4)}`)},
-    moon: {sky: 'evening', props: MOON + `<path d="M64 46 h28 a5 5 0 0 0 -8 -5 a6 6 0 0 0 -11 1 a4 4 0 0 0 -9 4 Z" fill="#FFFFFF" opacity=".22"/>
-        <circle class="sb-twinkle" cx="20" cy="22" r="1.2" fill="#FFF"/><circle class="sb-twinkle" cx="36" cy="12" r="1" fill="#FFF"/>`,
-      item: held(`<circle r="11.5" fill="#D99A46"/><circle r="8.6" fill="#E8B25E"/><circle r="8.6" fill="none" stroke="#C7843A" stroke-width="1" stroke-dasharray="2 1.6"/>
-        <path d="M-3 -2.5 h6 M0 -5.5 v6.5 M-3 2.5 h6" stroke="#C7843A" stroke-width="1.2" stroke-linecap="round"/>${hands(14, 3)}`)},
-    fireworks: {sky: 'evening', props: burst(26, 26, 13, '#FF6B5A') + burst(92, 22, 15, '#FFD36B') + burst(64, 12, 9, '#FF9F5A')},
-    'fireworks-us': {sky: 'evening', props: burst(26, 26, 13, '#FF5A5A') + burst(92, 22, 15, '#FFFFFF') + burst(64, 12, 9, '#6FA8FF')},
-    code: {props: `<text class="sb-float" x="18" y="34" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#FFFFFF" opacity=".55">{ }</text>
-        <text class="sb-float" x="86" y="30" font-family="ui-monospace, monospace" font-size="9" font-weight="700" fill="#FFFFFF" opacity=".5">&lt;/&gt;</text>`,
-      item: `<g transform="translate(60 106)"><path d="M-17 -18 h34 v19 h-34 Z" fill="#2B2F3A"/><rect class="sb-screen" x="-15" y="-16" width="30" height="15" rx="1" fill="#14202B"/>
-        <text x="0" y="-5.6" text-anchor="middle" font-family="ui-monospace, monospace" font-size="7.5" font-weight="700" fill="#7CF2B5">1024</text>
-        <path d="M-21 1 h42 l-3 5 h-36 Z" fill="#A3ABB9"/>${hands(19, 4)}</g>`},
-    pie: {item: held(`<ellipse cx="0" cy="3" rx="17" ry="6" fill="#D9934A"/><ellipse cx="0" cy="1" rx="14" ry="4.6" fill="#B5462F"/>
-        <text x="0" y="4" text-anchor="middle" font-family="Georgia, serif" font-size="8.5" font-weight="700" fill="#FFE9C9">π</text>${hands(18, 4)}`)},
-    pumpkin: {sky: ['#2A1E40', '#5B3A5C'], hat: HATS.witch,
-      props: `<circle cx="92" cy="26" r="11" fill="#FFD68A" opacity=".9"/>
-        <path class="sb-flap" d="M18 30 q4 -4 8 0 q2 -2 4 0 q4 -4 8 0 q-4 1 -6 4 q-2 -2 -4 0 q-2 -3 -10 -4 Z" fill="#1A1424"/>
-        <path class="sb-flap" d="M70 16 q3 -3 6 0 q1.5 -1.5 3 0 q3 -3 6 0 q-3 1 -4.5 3 q-1.5 -1.5 -3 0 q-1.5 -2 -7.5 -3 Z" fill="#1A1424"/>`,
-      item: held(`<ellipse rx="13" ry="10" fill="#F08A2C"/><path d="M-5 -10 C-6 0 -6 6 -5 10 M5 -10 C6 0 6 6 5 10" stroke="#D9731C" stroke-width="1.2" fill="none"/>
-        <path d="M0 -10 C0 -13 2 -15 4 -15" stroke="#5E8A3A" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        <path class="sb-glow" d="M-7 -3 L-4 -6 L-1 -3 Z M1 -3 L4 -6 L7 -3 Z M-7 3 Q0 8 7 3 Q0 5 -7 3 Z" fill="#FFE27A"/>${hands(15, 3)}`)},
-    autumn: {props: falling(['#E0752F', '#C9452B', '#E8A642'], leaf),
-      item: held(`<ellipse cx="0" cy="6" rx="16" ry="3.4" fill="#F7EBDC"/><path d="M-13 3 L12 -5 L12 3 Z" fill="#E08A3A"/>
-        <path d="M12 -5 L14.5 -5 L14.5 3 L12 3 Z" fill="#C9874A"/><ellipse cx="7" cy="-5.5" rx="3.4" ry="2.2" fill="#FFFFFF"/>${hands(17, 5)}`)},
-    christmas: {sky: ['#1F2E4C', '#45588A'], hat: HATS.santa, props: falling(['#FFFFFF', '#EAF2FF'], dot),
-      item: held(`<rect x="-11" y="-8" width="22" height="16" rx="2" fill="#D9473C"/><rect x="-2" y="-8" width="4" height="16" fill="#F2C14E"/>
-        <rect x="-11" y="-2" width="22" height="4" fill="#F2C14E"/><path d="M0 -8 C-6 -15 -10 -9 0 -8 C10 -9 6 -15 0 -8 Z" fill="#F2C14E"/>${hands(14, 3)}`)}
+    party: {window: falling(['#FF8FA3', '#FFE08A', '#7FB3E8', '#9BE3B8'], chip), sill: date => [mug(44, '#6B3E26'), partyHat(84)]},
+    spring: {window: lanterns, festiveNight: lanterns + burst(60, 22, 11, '#FFD36B') + burst(40, 34, 7, '#FF6B5A'), sill: () => [dumplings(44), teacup(84)]},
+    lantern: {window: lanterns, sill: () => [tangyuan(44), teacup(84)]},
+    rest: {sill: () => [juice(46), shades(82)]},
+    zongzi: {window: `<path d="M0 84 C6 70 16 62 28 58 C20 68 12 76 6 84 Z M120 84 C114 70 104 62 92 58 C100 68 108 76 114 84 Z" fill="#5FA05A" opacity=".7"/>`, sill: () => [zongzi(44), teacup(84)]},
+    apple: {sill: () => [books(42), apple(82)]},
+    moon: {sky: 'evening', window: FULL_MOON + stars([[22, 16, 1], [40, 8, .8], [52, 30, .7]]), sill: () => [mooncakes(44), teacup(84)]},
+    fireworks: {sky: 'evening', window: burst(28, 24, 12, '#FF6B5A') + burst(88, 20, 14, '#FFD36B') + burst(62, 10, 8, '#FF9F5A')},
+    'fireworks-us': {sky: 'evening', window: burst(28, 24, 12, '#FF5A5A') + burst(88, 20, 14, '#FFFFFF') + burst(62, 10, 8, '#6FA8FF')},
+    code: {window: `<text class="sb-float" x="16" y="34" font-family="ui-monospace, monospace" font-size="9" font-weight="700" fill="#FFFFFF" opacity=".55">{ }</text>
+        <text class="sb-float" x="84" y="62" font-family="ui-monospace, monospace" font-size="8" font-weight="700" fill="#FFFFFF" opacity=".5">&lt;/&gt;</text>`,
+      sill: () => [laptop(46), mug(86, '#6B3E26')]},
+    pie: {sill: () => [pie(44), mug(84, '#6B3E26')]},
+    pumpkin: {sky: ['#2A1E40', '#7A4A66'], window: `<circle cx="88" cy="24" r="10" fill="#FFD68A" opacity=".9"/>` + BATS, sill: () => [jack(44), candle(84)]},
+    autumn: {window: falling(['#E0752F', '#C9452B', '#E8A642'], leaf), sill: () => [slice(44), mug(84, '#6B3E26')]},
+    christmas: {sky: ['#1F2E4C', '#5A6C9C'], window: falling(['#FFFFFF', '#EAF2FF'], dot), lights: LIGHTS, sill: () => [gift(44), cocoa(84)]}
   };
-  function art(period, id, look = '') {
+  const SILL = {
+    morning: () => [mug(44, '#6B3E26'), plant(84)],
+    noon: () => [bowl(46), glass(84)],
+    afternoon: () => [teapot(37), teacup(64), cookies(89)],
+    evening: () => [openBook(48), lamp(92)],
+    night: date => [mug(44, '#FFF8EE'), clock(84, date)]
+  };
+  function art(period, id, look = '', date = new Date(2026, 9, 13, 1, 10)) {
     const spec = LOOKS[look] || null;
     const night = period === 'night';
-    const sky = night ? SKY.night : Array.isArray(spec?.sky) ? spec.sky : SKY[spec?.sky || period];
-    const eyes = night ? 'sleepy' : period === 'evening' && !spec ? 'down' : 'open';
-    const festive = night && spec?.festiveNight;   // New Year's Eve stays up in red
-    const body = night && !festive ? blanket : hoodie(...(spec?.hood || []));
-    const face = spec?.face && !night ? spec.face : '';
-    const props = (festive || (spec ? spec.props || PROPS[period] : PROPS[period])).replace(/url\(#ID-glow\)/g, `url(#${id}-glow)`);
+    const festive = night && spec?.festiveNight;
+    const viewKey = night ? 'night' : Array.isArray(spec?.sky) ? null : spec?.sky || period;
+    const sky = viewKey ? VIEW[viewKey].sky : spec.sky;
+    const hills = VIEW[viewKey || (night ? 'night' : 'evening')].hills;
+    const outside = festive || (spec?.window ? (night && !spec.sky ? SKYLIFE.night : '') + spec.window : SKYLIFE[night ? 'night' : viewKey || 'evening']);
+    const things = (spec?.sill || SILL[period])(date);
+    const warm = night || period === 'evening' || viewKey === 'evening';
     return `<svg class="sb-svg sb-${period}${spec ? ` sb-look-${look}` : ''}" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
       <defs><linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient>
-        <radialGradient id="${id}-glow"><stop offset="0" stop-color="#FFD9A0" stop-opacity=".55"/><stop offset="1" stop-color="#FFD9A0" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}-glow"><stop offset="0" stop-color="#FFE7B8" stop-opacity=".5"/><stop offset="1" stop-color="#FFE7B8" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}-lamp"><stop offset="0" stop-color="#FFD58A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD58A" stop-opacity="0"/></radialGradient>
         <clipPath id="${id}-clip"><circle cx="60" cy="60" r="58"/></clipPath></defs>
       <g clip-path="url(#${id}-clip)">
-        <rect width="120" height="120" fill="url(#${id}-sky)"/>
-        ${props}
-        <g class="sb-person">${body}${head(eyes, night && !spec?.hat && !festive)}${face}${spec?.hat || ''}${spec?.item || ITEMS[period]}</g>
-        ${night || (period === 'noon' && !spec) ? Z : ''}
+        <rect width="120" height="84" fill="url(#${id}-sky)"/>
+        ${outside.replace(/url\(#ID-(glow|lamp)\)/g, `url(#${id}-$1)`)}
+        <path d="M0 70 C16 63 32 65 48 69 C64 73 82 64 98 62.6 C108 62 115 64 120 66 V84 H0 Z" fill="${hills[0]}" opacity=".8"/>
+        <path d="M0 77 C20 72 38 74 56 77 C74 80 92 72 120 74 V84 H0 Z" fill="${hills[1]}"/>
+        <path d="M10 0 L30 0 L4 64 L-16 64 Z" fill="#FFFFFF" opacity=".07"/>
+        <path d="M60 0 V84 M0 46 H120" stroke="${FRAME}" stroke-width="2.6"/>
+        ${spec?.lights || ''}
+        <rect y="84" width="120" height="7" fill="#B07A50"/><rect y="84" width="120" height="1.3" fill="#D9A273" opacity=".85"/>
+        <rect y="91" width="120" height="29" fill="#7B5236"/><rect y="91" width="120" height="2.2" fill="#5A3B27" opacity=".75"/>
+        <path d="M10 99 h38 M62 104 h44 M16 110 h30 M70 114 h26" stroke="#68452E" stroke-width="1" stroke-linecap="round" opacity=".7"/>
+        ${warm ? `<rect y="84" width="120" height="36" fill="#FFB866" opacity=".07"/>` : ''}
+        <g class="sb-sill" transform="translate(60 89) scale(1.3) translate(-60 -89)">${things.join('').replace(/url\(#ID-(glow|lamp)\)/g, `url(#${id}-$1)`)}</g>
       </g>
+      <circle cx="60" cy="60" r="56.6" fill="none" stroke="${FRAME}" stroke-width="3.4"/>
       <circle cx="60" cy="60" r="58.6" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1.2"/>
     </svg>`;
   }
@@ -343,10 +351,12 @@
     const now = new Date();
     current = moment(now, lang);
     const look = current.holiday ? current.holiday.look : '';
-    if (`${current.period}:${look}` !== scene) {
-      scene = `${current.period}:${look}`;
-      cardArt.innerHTML = art(current.period, 'sb-card-art', look);
-      avatar.innerHTML = art(current.period, 'sb-avatar-art', look);
+    // late at night the clock on the sill shows the real time
+    const key = `${current.period}:${look}:${current.period === 'night' && !look ? now.getHours() * 60 + now.getMinutes() : ''}`;
+    if (key !== scene) {
+      scene = key;
+      cardArt.innerHTML = art(current.period, 'sb-card-art', look, now);
+      avatar.innerHTML = art(current.period, 'sb-avatar-art', look, now);
       root.dataset.period = current.period;
     }
     kicker.textContent = `${current.label} · ${pad(now.getHours())}:${pad(now.getMinutes())}`;

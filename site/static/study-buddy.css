@@ -41,41 +41,29 @@
 @keyframes sb-bubble { from { opacity: 0; transform: translateX(8px); } }
 .study-buddy button:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
 
-/* ------------------------------------------------------- the little person */
+/* ------------------------------------------------------- the window */
 .sb-svg * { transform-box: fill-box; transform-origin: center; }
-.sb-eyes { animation: sb-blink 4.8s infinite; }
-@keyframes sb-blink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.12); } }
+/* the sill scales from the page origin so things stay standing on it */
+.sb-svg .sb-sill { transform-box: view-box; transform-origin: 0 0; }
 .sb-steam path { opacity: 0; animation: sb-steam 2.6s ease-out infinite; }
 .sb-steam path:nth-child(2) { animation-delay: .8s; }
 .sb-steam path:nth-child(3) { animation-delay: 1.6s; }
-@keyframes sb-steam { 0% { opacity: 0; transform: translateY(2px); } 30% { opacity: .75; } 100% { opacity: 0; transform: translateY(-8px); } }
-/* a sip every few seconds: the cup comes up, then back down */
-.sb-sip { animation: sb-sip 7s ease-in-out infinite; }
-@keyframes sb-sip { 0%, 76%, 100% { transform: translateY(0) rotate(0); } 84%, 90% { transform: translateY(-8px) rotate(-7deg); } }
-.sb-afternoon .sb-sip { animation-duration: 8s; }
-/* after lunch the head drifts down and catches itself */
-.sb-noon .sb-head { transform-origin: 50% 100%; animation: sb-doze 6s ease-in-out infinite; }
-@keyframes sb-doze { 0%, 55%, 100% { transform: rotate(0) translateY(0); } 70%, 82% { transform: rotate(6deg) translateY(2px); } 88% { transform: rotate(-1deg); } }
-/* evening: a page turns now and then; the lamp breathes */
-.sb-page { transform-origin: 0% 50%; animation: sb-page 6.5s ease-in-out infinite; }
-@keyframes sb-page { 0%, 70% { transform: scaleX(1); opacity: 1; } 84% { transform: scaleX(-1); opacity: 1; } 85%, 99% { opacity: 0; transform: scaleX(1); } 100% { opacity: 1; } }
-.sb-glow { animation: sb-glow 4s ease-in-out infinite; }
-@keyframes sb-glow { 50% { opacity: .78; } }
-/* late night: slow breaths, a yawn, drifting z's, twinkling stars */
-.sb-night .sb-person { animation: sb-breathe 4.2s ease-in-out infinite; }
-@keyframes sb-breathe { 50% { transform: translateY(1px); } }
-.sb-yawn { transform: scale(.5); animation: sb-yawn 9s ease-in-out infinite; }
-@keyframes sb-yawn { 0%, 70%, 100% { transform: scale(.5); } 78%, 86% { transform: scale(1.35); } }
-.sb-z { opacity: 0; animation: sb-z 3.4s ease-out infinite; }
-.sb-z:nth-child(2) { animation-delay: 1.7s; }
-@keyframes sb-z { 0% { opacity: 0; transform: translate(0, 0) scale(.7); } 25% { opacity: .9; } 100% { opacity: 0; transform: translate(6px, -14px) scale(1.1); } }
+@keyframes sb-steam { 0% { opacity: 0; transform: translateY(2px); } 30% { opacity: .8; } 100% { opacity: 0; transform: translateY(-7px); } }
+/* clouds drift across and come back */
+.sb-drift { animation: sb-drift 24s ease-in-out infinite alternate; }
+.sb-drift + .sb-drift { animation-duration: 31s; animation-delay: -9s; }
+@keyframes sb-drift { from { transform: translateX(-6px); } to { transform: translateX(8px); } }
+.sb-glow { animation: sb-glow 4.2s ease-in-out infinite; }
+@keyframes sb-glow { 50% { opacity: .72; } }
 .sb-twinkle { animation: sb-twinkle 2.8s ease-in-out infinite; }
-.sb-twinkle:nth-child(3) { animation-delay: .9s; }
-.sb-twinkle:nth-child(4) { animation-delay: 1.6s; }
-.sb-twinkle:nth-child(5) { animation-delay: 2.2s; }
+.sb-twinkle:nth-of-type(2n) { animation-delay: .9s; }
+.sb-twinkle:nth-of-type(3n) { animation-delay: 1.7s; }
 @keyframes sb-twinkle { 50% { opacity: .25; } }
-.sb-morning .sb-sun { animation: sb-rise 12s ease-in-out infinite alternate; }
-@keyframes sb-rise { to { transform: translateY(-3px); } }
+/* a page of the open book turns now and then */
+.sb-page { transform-origin: 0% 50%; animation: sb-page 7s ease-in-out infinite; }
+@keyframes sb-page { 0%, 72% { transform: scaleX(1); opacity: 1; } 84% { transform: scaleX(-1); opacity: 1; } 85%, 99% { opacity: 0; transform: scaleX(1); } 100% { opacity: 1; } }
+.sb-flicker { animation: sb-flicker 1.8s ease-in-out infinite; }
+@keyframes sb-flicker { 30% { opacity: .75; } 55% { opacity: 1; } 70% { opacity: .85; } }
 
 /* holidays: confetti, snow and leaves fall; lanterns sway; fireworks bloom; bats flap */
 .sb-fall { opacity: 0; animation: sb-fall 4.2s linear infinite; }

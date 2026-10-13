@@ -42,6 +42,13 @@ test('site-wide counts appear only when they are real numbers', () => {
   assert.equal(buddy.liveLine({now: 3, today: 41}, 'en'), '3 studying now · 41 today');
 });
 
+test('late at night the clock on the sill shows the time', () => {
+  const svg = buddy.art('night', 'c', '', new Date(2026, 9, 13, 3, 0));
+  // at 3:00 the hour hand points right and the minute hand points up
+  assert.match(svg, /L87\.60 81\.00/);
+  assert.match(svg, /L84\.00 75\.60/);
+});
+
 test('drawings are plain SVG with ids scoped to their instance', () => {
   for (const period of ['morning', 'noon', 'afternoon', 'evening', 'night']) {
     const svg = buddy.art(period, 'x-test');
@@ -99,7 +106,8 @@ test('holiday words: greeting by day, rest reminder at night, red New Year’s E
   assert.equal(buddy.moment(day(2026, 2, 16, 23), 'zh').text, '守岁也别熬太晚，新年快乐！');
   assert.equal(buddy.moment(day(2026, 10, 31, 1), 'en').text, 'Happy Halloween! It’s late. Remember to rest.');
   assert.equal(buddy.moment(day(2026, 10, 24, 15), 'zh').label, '程序员节');
-  assert.match(buddy.art('night', 'x', 'spring'), /#D9473C/);
+  assert.match(buddy.art('night', 'x', 'spring'), /#E2483D/);   // lanterns stay up on New Year's Eve
+  assert.match(buddy.art('night', 'x', 'spring'), /sb-burst/);
   for (const list of Object.values(buddy.HOLIDAYS)) for (const item of list) assert.ok(buddy.LOOKS[item.look], item.id);
   for (const item of buddy.HOLIDAYS.en) assert.doesNotMatch(item.name + item.line + item.greet + (item.night || ''), /[㐀-鿿]/);
 });
