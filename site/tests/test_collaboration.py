@@ -1,5 +1,8 @@
 import copy
 import html
+import re
+import shutil
+import subprocess
 import sys
 import tomllib
 import unittest
@@ -63,7 +66,31 @@ class CollaborationTests(unittest.TestCase):
         url = collaboration.discussion_url(self.repo, "evaluation", "07-evaluation/README.md")
         self.assertTrue(all(url in panel for panel in panels))
         self.assertIn("community/index.en.html", panels[1])
-        self.assertIn("<details", panels[0])
+        self.assertIn("data-page-feedback", panels[0])
+        self.assertIn("这一页哪里可以更好", panels[0])
+        self.assertIn("How could this page be better", panels[1])
+
+    def test_feedback_kinds_prefill_title_and_question(self):
+        page = SimpleNamespace(src=collaboration.ROOT / "07-evaluation" / "README.en.md", title="Evaluation <basics>",
+                               section={"group": "eval"}, lang="en", rel=lambda value: "../" + value)
+        panel = collaboration.page_panel(page, self.config, self.repo)
+        self.assertNotIn("<basics>", panel)
+        urls = [html.unescape(match) for match in re.findall(r'class="pf-kind" href="([^"]+)"', panel)]
+        self.assertEqual(len(urls), len(collaboration.FEEDBACK_KINDS))
+        query = parse_qs(urlsplit(urls[0]).query)
+        self.assertEqual(query["template"], ["note-feedback.yml"])
+        self.assertEqual(query["source"], ["07-evaluation/README.md"])
+        self.assertEqual(query["title"], ["[Note] Outdated · Evaluation <basics>"])
+        self.assertTrue(query["question"][0].startswith("**Outdated**"))
+        self.assertNotIn("labels", query)  # readers without triage rights would get a 404
+        self.assertIn("/edit/main/07-evaluation/README.en.md", panel)
+        self.assertIn("template=proposal.yml", panel)
+
+    def test_english_feedback_has_no_chinese(self):
+        page = SimpleNamespace(src=collaboration.ROOT / "07-evaluation" / "README.en.md", title="Evaluation",
+                               section={"group": "eval"}, lang="en", rel=lambda value: "../" + value)
+        text = html.unescape(collaboration.page_panel(page, self.config, self.repo))
+        self.assertIsNone(re.search(r"[\u3400-\u9fff]", text))
 
     def test_issue_prefill_encodes_paths(self):
         url = html.unescape(collaboration.feedback_url(self.repo, "evaluation", "test & more.md"))
@@ -96,6 +123,13 @@ class CollaborationTests(unittest.TestCase):
     def test_no_fabricated_credits(self):
         self.config["acknowledgements"] = []
         self.assertIn("no extra commits needed", collaboration.acknowledgements_html(self.config, False))
+
+
+class PageFeedbackScriptTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("node"), "Node.js required")
+    def test_issue_url_builder(self):
+        subprocess.run([shutil.which("node"), "--test", str(collaboration.ROOT / "site/tests/page-feedback.test.cjs")],
+                       check=True, capture_output=True)
 
 
 if __name__ == "__main__":

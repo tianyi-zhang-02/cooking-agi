@@ -96,33 +96,103 @@ def discussion_url(repo, area_id, source=None):
     return github_link(repo, "issues", {"q": query})
 
 
-def feedback_url(repo, area_id, source=""):
+def feedback_url(repo, area_id, source="", **fields):
     return github_link(repo, "issues/new", {
-        "template": "note-feedback.yml", "area": f"Area: {area_id}", "source": source,
+        "template": "note-feedback.yml", "area": f"Area: {area_id}", "source": source, **fields,
     })
+
+
+# Reader feedback opens GitHub's own issue form, prefilled. Nothing is sent from the
+# site: no token, no endpoint to abuse, and the reader confirms on GitHub before
+# anything becomes public. GitHub documents prefill for text fields only, so the
+# kind travels in the title and the first line instead of the dropdown.
+FEEDBACK_KINDS = (
+    ("outdated", "信息过时", "Outdated",
+     "哪里过时了？现在是什么情况？有来源就贴个链接。",
+     "What is out of date, and what is true now? A link helps."),
+    ("wrong", "概念有误", "Something's wrong",
+     "哪句话不对？应该怎么说？",
+     "Which statement is wrong, and what should it say?"),
+    ("unclear", "没讲清楚", "Unclear",
+     "读到哪里卡住了？想看什么样的例子？",
+     "Where did you get stuck? What example would help?"),
+    ("add", "建议补充", "Suggest an addition",
+     "想补充什么概念、论文或例子？",
+     "What concept, paper, or example is missing?"),
+    ("site", "页面问题", "Page problem",
+     "哪里显示不对或点不动？用的什么浏览器？",
+     "What looks broken or doesn't respond? Which browser?"),
+)
+
+
+def canonical_source(page, root=ROOT):
+    source = page.src.relative_to(root).as_posix()
+    if source in {"README.zh.md", "README.en.md"}:
+        return "README.md"
+    if source.endswith(".en.md"):
+        return source[:-6] + ".md"
+    return source
 
 
 def page_panel(page, config, repo, root=ROOT):
     area = area_for(config, page.section["group"])
     zh = page.lang == "zh"
-    source = page.src.relative_to(root).as_posix()
-    if source in {"README.zh.md", "README.en.md"}:
-        source = "README.md"
-    elif source.endswith(".en.md"):
-        source = source[:-6] + ".md"
+    source = canonical_source(page, root)
+    title = getattr(page, "title", "") or source
     label = area["zh" if zh else "en"]
     reviewer_label = ("审核联系" if area["reviewers"] else "临时接审") if zh else (
         "Review contact" if area["reviewers"] else "Interim review contact")
     home = page.rel("community/index.html" if zh else "community/index.en.html")
-    return f'''<details class="collab-panel">
-<summary>{"讨论与共建" if zh else "Discuss & contribute"}</summary>
-<p>{html.escape(label)} · {reviewer_label}: {profile_links(owners_for(config, area))}</p>
-<nav aria-label="{"本页协作" if zh else "Page collaboration"}">
-<a href="{feedback_url(repo, area['id'], source)}">{"提问 / 纠错" if zh else "Ask / correct"}</a>
+    edit = html.escape(f"https://github.com/{repo}/edit/main/{page.src.relative_to(root).as_posix()}", quote=True)
+    propose = github_link(repo, "issues/new", {"template": "proposal.yml", "area": f"Area: {area['id']}"})
+    kinds = []
+    for key, kind_zh, kind_en, hint_zh, hint_en in FEEDBACK_KINDS:
+        kind = kind_zh if zh else kind_en
+        url = feedback_url(repo, area["id"], source, title=f"[Note] {kind} · {title}", question=f"**{kind}**\n\n")
+        kinds.append(f'<a class="pf-kind" href="{url}" target="_blank" rel="noopener" data-kind="{key}" '
+                     f'data-label="{html.escape(kind, quote=True)}" '
+                     f'data-hint="{html.escape(hint_zh if zh else hint_en, quote=True)}">{kind}</a>')
+    words = {
+        "heading": "这一页哪里可以更好？" if zh else "How could this page be better?",
+        "kinds": "反馈类型" if zh else "Feedback type",
+        "details": "具体说说（可选）" if zh else "Details (optional)",
+        "quote": "引用" if zh else "Quoting",
+        "unquote": "去掉引用" if zh else "Remove quote",
+        "tip": "先在正文里选中一段，会自动带上引用。" if zh else "Select a passage first to quote it.",
+        "note": ("会在新标签页打开 GitHub 的 issue 表单，你在那边确认后才会公开。需要 GitHub 账号，别写个人信息。" if zh else
+                 "Opens a prefilled GitHub issue in a new tab. Nothing is public until you confirm there. "
+                 "Needs a GitHub account; leave out personal information."),
+        "submit": "去 GitHub 提交 ↗" if zh else "Continue on GitHub ↗",
+        "cancel": "取消" if zh else "Cancel",
+        "thanks": "已在新标签页打开 GitHub，在那边确认提交就好。谢谢！" if zh else
+                  "GitHub opened in a new tab. Confirm there to send it. Thank you!",
+        "more": "参与" if zh else "Contribute",
+    }
+    return f'''<section class="page-feedback" data-page-feedback data-repo="{html.escape(repo, quote=True)}" \
+data-area="Area: {area['id']}" data-source="{html.escape(source, quote=True)}" \
+data-title="{html.escape(title, quote=True)}" aria-label="{words["heading"]}">
+<p class="pf-heading">{words["heading"]}</p>
+<div class="pf-kinds" role="group" aria-label="{words["kinds"]}">{"".join(kinds)}</div>
+<form class="pf-form" hidden>
+<p class="pf-quote" hidden><span class="pf-quote-label">{words["quote"]}</span><q data-pf-quote></q>\
+<button type="button" class="pf-unquote" data-pf-unquote aria-label="{words["unquote"]}">×</button></p>
+<label class="pf-label" for="pf-text">{words["details"]}</label>
+<textarea id="pf-text" class="pf-text" rows="4" maxlength="600" data-pf-text></textarea>
+<p class="pf-tip" data-pf-tip>{words["tip"]}</p>
+<div class="pf-actions"><button type="submit" class="pf-submit">{words["submit"]}</button>\
+<button type="button" class="pf-cancel" data-pf-cancel>{words["cancel"]}</button>\
+<span class="pf-count" data-pf-count aria-live="polite"></span></div>
+<p class="pf-note">{words["note"]}</p>
+</form>
+<p class="pf-thanks" data-pf-thanks role="status" hidden>{words["thanks"]}</p>
+<nav class="pf-more" aria-label="{words["more"]}">
+<a href="{edit}">{"改这一页 ↗" if zh else "Edit this page ↗"}</a>
+<a href="{propose}">{"写一篇新笔记 ↗" if zh else "Write a new note ↗"}</a>
 <a href="{discussion_url(repo, area['id'], source)}">{"本页讨论" if zh else "Page discussions"}</a>
-<a href="{discussion_url(repo, area['id'])}">{"板块讨论" if zh else "Area discussions"}</a>
 <a href="{home}">{"怎么参与" if zh else "How to contribute"}</a>
-</nav></details>'''
+</nav>
+<p class="pf-review">{html.escape(label)} · {reviewer_label}: {profile_links(owners_for(config, area))}</p>
+</section>'''
 
 
 def areas_html(config, repo, zh):

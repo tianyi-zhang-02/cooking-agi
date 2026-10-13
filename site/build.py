@@ -1672,7 +1672,6 @@ def page_nav_html(page):
 def footer_html(page, people, repo, built):
     when = page.updated[:10] if page.updated else built[:10]
     src = f"https://github.com/{repo}/blob/main/{page.src.relative_to(ROOT)}"
-    edit = f"https://github.com/{repo}/edit/main/{page.src.relative_to(ROOT)}"
     zh = page.lang == "zh"
     portal = page.rel("contributors.html" if zh else "contributors.en.html")
     contributor_portal = "" if page.url in {"contributors.html", "contributors.en.html"} else f"""
@@ -1685,15 +1684,13 @@ def footer_html(page, people, repo, built):
   </div>"""
     return f"""
 <footer class="page-foot">
+  {collaboration.page_panel(page, collaboration.load_config(), repo)}
   <div class="foot-meta">
     <span class="updated">{'最后更新' if zh else 'Last updated'}
       <time datetime="{page.updated or built}">{when}</time></span>
     <span class="sep">·</span>
     <a href="{src}">{'查看源文件' if zh else 'View source'}</a>
-    <span class="sep">·</span>
-    <a href="{edit}">{'提交修改' if zh else 'Suggest an edit'}</a>
   </div>
-  {collaboration.page_panel(page, collaboration.load_config(), repo)}
   {contributor_portal}
 </footer>"""
 

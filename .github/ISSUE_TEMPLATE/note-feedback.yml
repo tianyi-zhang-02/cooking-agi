@@ -11,6 +11,7 @@ body:
     id: kind
     attributes:
       label: 反馈类型 · Type
+      description: 从页面上的反馈按钮进来时，类型已经写在标题里，这里可以不选。 / If you came from a page's feedback button, the type is already in the title; you can skip this.
       options:
         - 内容纠错 · Correction
         - 信息过时 · Outdated information
@@ -18,7 +19,7 @@ body:
         - 想加主题 · Topic request
         - 网站问题 · Site problem
     validations:
-      required: true
+      required: false
   - type: input
     id: area
     attributes:

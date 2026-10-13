@@ -585,12 +585,60 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 .foot-meta a { color: var(--muted); text-decoration: none; }
 .foot-meta a:hover { color: var(--ember); }
 .foot-meta .sep { color: var(--rule); }
-.collab-panel { margin-top: 1rem; font-family: var(--sans); font-size: .85rem; color: var(--muted); }
-.collab-panel summary { cursor: pointer; padding: .5rem 0; }
-.collab-panel p { line-height: 1.8; overflow-wrap: anywhere; }
-.collab-panel nav { display: flex; flex-wrap: wrap; gap: .65rem 1.2rem; }
-.collab-panel a { color: var(--ember); }
-.collab-panel a:focus-visible, .collab-panel summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
+/* Page feedback: a prefilled GitHub issue, confirmed by the reader on GitHub. */
+.page-feedback {
+  margin: 0 0 1.4rem; padding: 1.15rem 1.2rem 1rem; font-family: var(--sans);
+  border-radius: 16px 3px 16px 3px; background: color-mix(in srgb, var(--panel) 55%, transparent);
+}
+.pf-heading { margin: 0 0 .75rem; font: 650 .92rem/1.4 var(--sans); color: var(--ink); }
+.pf-kinds { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pf-kind {
+  display: inline-flex; align-items: center; min-height: 2.25rem; padding: 0 .95rem;
+  border: 1px solid var(--rule); border-radius: 999px; color: var(--ink-soft);
+  font-size: .82rem; text-decoration: none; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.pf-kind:hover { border-color: color-mix(in srgb, var(--ember) 55%, var(--rule)); color: var(--ink); }
+.pf-kind[aria-pressed="true"] { border-color: var(--ember); background: var(--ember-bg); color: var(--ember); }
+.pf-form { display: grid; gap: .55rem; margin-top: .9rem; }
+.pf-form[hidden], .pf-quote[hidden], .pf-tip[hidden], .pf-thanks[hidden] { display: none; }
+.pf-label { font-size: .78rem; color: var(--muted); }
+.pf-text {
+  box-sizing: border-box; width: 100%; min-height: 6.5rem; resize: vertical; padding: .7rem .8rem;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--ink);
+  font: .9rem/1.6 var(--sans);
+}
+.pf-text::placeholder { color: var(--faint); }
+.pf-text:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-bg); }
+.pf-quote {
+  display: flex; align-items: flex-start; gap: .55rem; margin: 0; padding: .55rem .7rem;
+  border-left: 2px solid var(--ember); border-radius: 0 8px 8px 0; background: var(--ember-bg);
+  font-size: .8rem; line-height: 1.6; color: var(--ink-soft);
+}
+.pf-quote q { flex: 1; quotes: none; overflow-wrap: anywhere; }
+.pf-quote-label { color: var(--muted); white-space: nowrap; }
+.pf-unquote { padding: 0 .2rem; border: 0; background: none; color: var(--muted); font-size: 1rem; line-height: 1.4; cursor: pointer; }
+.pf-tip, .pf-note { margin: 0; font-size: .74rem; line-height: 1.6; color: var(--muted); }
+.pf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.pf-submit {
+  min-height: 2.3rem; padding: 0 1.05rem; border: 0; border-radius: 999px;
+  background: var(--ember); color: var(--paper); font: 650 .82rem/1 var(--sans); cursor: pointer;
+}
+.pf-submit:hover { filter: brightness(1.07); }
+.pf-cancel { min-height: 2.3rem; padding: 0 .7rem; border: 0; background: none; color: var(--muted); font: .82rem/1 var(--sans); cursor: pointer; }
+.pf-cancel:hover { color: var(--ink); }
+.pf-count { margin-left: auto; font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pf-thanks { margin: .85rem 0 0; font-size: .82rem; color: var(--ember); }
+.pf-more {
+  display: flex; flex-wrap: wrap; gap: .4rem 1.15rem; margin-top: 1rem; padding-top: .8rem;
+  border-top: 1px solid var(--rule-soft); font-size: .8rem;
+}
+.pf-more a { color: var(--ember); text-decoration: none; }
+.pf-more a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pf-review { margin: .55rem 0 0; font-size: .74rem; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
+.pf-review a { color: var(--muted); }
+.page-feedback a:focus-visible, .page-feedback button:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+@media print { .page-feedback { display: none; } }
 .collab-table { overflow-x: auto; }
 .collab-table td { overflow-wrap: anywhere; }
 
