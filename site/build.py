@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import functools
 import hashlib
 import math
@@ -1932,11 +1933,65 @@ def reading_controls_html(page):
             f'aria-label="{description}" title="{description}">{label}</a>')
 
 
+# Content-Security-Policy as a <meta> tag: GitHub Pages cannot set response headers.
+# Only the template's own inline scripts (theme bootstrap, window.SITE) are hashed.
+# An inline script that reached a page any other way, e.g. raw HTML in a note, gets
+# no hash, so the browser refuses to run it and site/htmlcheck.py fails the build.
+KATEX = "https://cdn.jsdelivr.net/npm/katex@0.16.9/"
+MERMAID = "https://cdn.jsdelivr.net/npm/mermaid@10.9.8/"
+CSP = {
+    "default-src": "'self'",
+    "script-src": f"'self' {KATEX} {MERMAID}",
+    # Markdown tables, generated figures and Mermaid all set inline styles.
+    "style-src": f"'self' 'unsafe-inline' {KATEX}",
+    "font-src": f"'self' {KATEX}",
+    "img-src": "'self' data: https://avatars.githubusercontent.com https://github.com",
+    "connect-src": "'self'",
+    "object-src": "'none'",
+    "base-uri": "'self'",
+    "form-action": "'self'",
+    "frame-src": "'none'",
+    "worker-src": "'none'",
+}
+INLINE_SCRIPT = re.compile(r"<script>(.*?)</script>", re.S)
+
+
+def metrics_origin():
+    """The opt-in note-metrics endpoint, when one is configured, needs connect-src."""
+    try:
+        endpoint = json.loads((ROOT / "site/static/note-metrics-config.json").read_text())["endpoint"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return ""
+    parts = urllib.parse.urlsplit(endpoint or "")
+    return f"{parts.scheme}://{parts.netloc}" if parts.scheme == "https" and parts.netloc else ""
+
+
+def csp_content(hashes):
+    policy = dict(CSP)
+    policy["script-src"] += "".join(f" 'sha256-{value}'" for value in sorted(hashes))
+    if metrics_origin():
+        policy["connect-src"] += " " + metrics_origin()
+    return "; ".join(f"{key} {value}" for key, value in policy.items())
+
+
+def script_hash(text):
+    return base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode("ascii")
+
+
+def with_csp(output, template, prefix, lang, built):
+    trusted = {script.replace("{{prefix}}", prefix).replace("{{lang}}", lang).replace("{{built}}", built)
+               for script in INLINE_SCRIPT.findall(template)}
+    hashes = {script_hash(script) for script in INLINE_SCRIPT.findall(output) if script in trusted}
+    meta = f'<meta http-equiv="Content-Security-Policy" content="{html.escape(csp_content(hashes), quote=True)}">\n'
+    return output.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n' + meta, 1)
+
+
 def assemble(page, sections, people, nav, built, template):
     site = nav["site"]
     if page.section.get("group") == "career":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{page.rel("static/career.css")}?v={built}">\n</head>')
     zh = page.lang == "zh"
+    html_lang = "zh-Hans" if zh else "en"
     sib = getattr(page, "sibling", None)
     lang_href = page.rel(sib.url) if sib else "#"
     lang_cls = "" if sib else " disabled"
@@ -2034,8 +2089,8 @@ def assemble(page, sections, people, nav, built, template):
         page_class += " page-prep-workspace"
     if 'data-technology-tree' in page.body:
         page_class += " page-technology-tree"
-    return (template
-            .replace("{{lang}}", "zh-Hans" if zh else "en")
+    output = (template
+            .replace("{{lang}}", html_lang)
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
             .replace("{{page_class}}", page_class)
             .replace("{{title}}", html.escape(page.title))
@@ -2081,6 +2136,7 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, people, site["repo"], built))
             .replace("{{built}}", built))
+    return with_csp(output, template, prefix, html_lang, built)
 
 
 # --------------------------------------------------------------------------- #

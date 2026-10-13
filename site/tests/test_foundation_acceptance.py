@@ -55,7 +55,9 @@ class ParityAcceptanceTests(unittest.TestCase):
         workflow = (ROOT / '.github/workflows/site.yml').read_text()
         self.assertIn('run: python site/paritycheck.py --strict', workflow)
         self.assertNotIn('continue-on-error: true', workflow)
-        self.assertIn('pip install markdown pygments numpy', workflow)
+        # The deployed build installs exact versions of all three build dependencies.
+        self.assertRegex(workflow, r'pip install markdown==[\d.]+ pygments==[\d.]+ numpy==[\d.]+\n')
+        self.assertIn('run: python site/htmlcheck.py', workflow)
 
     def test_published_moe_anchors_survive_rewording(self):
         for suffix, anchor in (('.md', '{#moe-token}'), ('.en.md', '{#moe-more-parameters-same-compute-per-token}')):

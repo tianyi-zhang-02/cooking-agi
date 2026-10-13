@@ -428,14 +428,14 @@
   else addEventListener("load", typeset);
 
   if ($(".mermaid")) {
-    var s = document.createElement("script");
-    s.type = "module";
-    s.textContent =
-      'import m from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";' +
-      'var d=document.documentElement.dataset.theme==="dark"||' +
-      '(!document.documentElement.dataset.theme&&matchMedia("(prefers-color-scheme: dark)").matches);' +
-      'm.initialize({startOnLoad:true,theme:d?"dark":"neutral",fontFamily:"Charter, Georgia, serif"});';
-    document.body.appendChild(s);
+    // Exact version, imported directly: no inline module script for the CSP to allow.
+    import("https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.esm.min.mjs").then(function (module) {
+      var m = module.default;
+      var theme = document.documentElement.dataset.theme;
+      var dark = theme === "dark" || (!theme && matchMedia("(prefers-color-scheme: dark)").matches);
+      m.initialize({startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Charter, Georgia, serif"});
+      return m.run({querySelector: ".mermaid"});
+    }).catch(function () {});
   }
 
   /* ====================================================================== */
