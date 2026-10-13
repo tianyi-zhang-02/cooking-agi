@@ -59,6 +59,7 @@
             typeof record.since !== 'string' || (record.since !== '' && !civilDate(record.since)))) throw Error('invalid');
         if (key === 'reader-settings' && ((record.history !== undefined && typeof record.history !== 'boolean') ||
             (record.mascot !== undefined && !['open', 'collapsed', 'hidden'].includes(record.mascot)) ||
+            (record.buddy !== undefined && !['shown', 'hidden'].includes(record.buddy)) ||
             (record.starAskedOn !== undefined && record.starAskedOn !== '' && !civilDate(record.starAskedOn)) ||
             (record.starDone !== undefined && typeof record.starDone !== 'boolean') ||
             (record.snoozedUntil !== undefined && record.snoozedUntil !== '' && !timestamp(record.snoozedUntil)))) throw Error('invalid');

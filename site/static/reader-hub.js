@@ -4,7 +4,7 @@
    it travels with the existing JSON backup and never leaves the browser:
      reads-YYYYMMDD   {notes: {note-id: count}, updatedAt}   one record per local day
      reading-total    {total, since, updatedAt}               every counted read, all time
-     reader-settings  {history, mascot, starAskedOn, starDone, snoozedUntil, updatedAt}
+     reader-settings  {history, mascot, buddy, starAskedOn, starDone, snoozedUntil, updatedAt}
    A page counts as read once per load, after it has been visible for 15 seconds.
    Days older than 90 are emptied (not deleted), so merges stay timestamp-based;
    the all-time total keeps counting past that window.
@@ -42,6 +42,7 @@
     return {
       history: record.history !== false,
       mascot: MASCOT_STATES.includes(record.mascot) ? record.mascot : 'collapsed',
+      buddy: record.buddy === 'hidden' ? 'hidden' : 'shown',
       starAskedOn: typeof record.starAskedOn === 'string' ? record.starAskedOn : '',
       starDone: record.starDone === true,
       snoozedUntil: typeof record.snoozedUntil === 'string' ? record.snoozedUntil : ''
@@ -175,7 +176,10 @@
   }
   function saveSettings(patch) {
     const current = settings(records());
-    return write({[SETTINGS]: Object.assign({}, current, patch, {updatedAt: now()})});
+    const saved = write({[SETTINGS]: Object.assign({}, current, patch, {updatedAt: now()})});
+    // other widgets on this page (the study buddy) follow these settings
+    scope.dispatchEvent(new CustomEvent('notes:reader-settings'));
+    return saved;
   }
   function loadCatalog() {
     if (catalog) return Promise.resolve(catalog);
@@ -576,6 +580,8 @@
         renderMascot({show: value === 'collapsed'});
         render();
       });
+    const buddy = segment(say('学习小伙伴', 'Study buddy'), [['shown', say('显示', 'Show')], ['hidden', say('隐藏', 'Hide')]],
+      config.buddy, value => { saveSettings({buddy: value}); render(); });
     const chevron = el('span', {class: 'reader-hub-chevron', 'aria-hidden': 'true', text: '›'});
     const backup = row(say('导出 / 导入备份', 'Export or import a backup'), say('在学习台里，换设备时用。', 'In the study workspace, for moving devices.'), chevron, 'a',
       {href: new URL(say('interview/dashboard.html#progress', 'interview/dashboard.en.html#progress'), base).href});
@@ -596,7 +602,8 @@
       ...group(say('阅读', 'Reading'), [row(say('记录阅读次数', 'Count my reading'), say('一篇笔记在前台读满 15 秒记一次，只存在这个浏览器。', 'A note counts after 15 visible seconds; kept in this browser only.'), history)]),
       ...group(say('外观与提示', 'Look and notices'), [
         row(say('主题', 'Theme'), say('和顶栏的切换按钮是同一个设置。', 'Same as the toggle in the top bar.'), theme),
-        row(say('Star 提示', 'Star notice'), say('偶尔在右下角提醒一次。', 'An occasional notice in the corner.'), star)]),
+        row(say('Star 提示', 'Star notice'), say('偶尔在右下角提醒一次。', 'An occasional notice in the corner.'), star),
+        row(say('学习小伙伴', 'Study buddy'), say('右下角的小窗，跟着时间和节日变化。', 'The little window in the corner that follows the time of day.'), buddy)]),
       ...group(say('数据', 'Data'), [backup, wipe]));
   }
 

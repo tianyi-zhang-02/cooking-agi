@@ -126,7 +126,7 @@
      A round window: the sky outside follows the time of day, and the sill holds
      what you would have at hand. No character; holidays change the view and
      the things on the sill. Coordinates: 120 x 120, sill top at y = 84. */
-  const FRAME = '#4A3326', INK = '#2A201C';
+  const FRAME = '#5B3F2D', INK = '#2A201C';
   const VIEW = {
     morning: {sky: ['#A9C9E6', '#FCD8B8'], hills: ['#8E9CC0', '#6E7EA6']},
     noon: {sky: ['#7DB6E4', '#D8ECF7'], hills: ['#8DB496', '#6E9A7B']},
@@ -134,10 +134,10 @@
     evening: {sky: ['#2A2F59', '#C9767C'], hills: ['#4A3A5C', '#30263F']},
     night: {sky: ['#0B1130', '#1E2353'], hills: ['#1A1F40', '#11142C']}
   };
-  const steam = (x, y) => `<g class="sb-steam" transform="translate(${x} ${y})" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity=".9">
+  const steam = (x, y) => `<g class="sb-steam" transform="translate(${x} ${y})" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity=".75">
     <path d="M-3.5 0 C-6 -3 -1 -5 -3.5 -8.5"/><path d="M1 0 C-1.5 -3 3.5 -5 1 -8.5"/><path d="M5.5 0 C3 -3 8 -5 5.5 -8.5"/></g>`;
   const sun = (x, y, r, color) => `<circle class="sb-glow" cx="${x}" cy="${y}" r="${r * 2.6}" fill="url(#ID-glow)"/><circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
-  const cloud = (x, y, s) => `<g class="sb-drift" fill="#FFFFFF" opacity=".78"><ellipse cx="${x}" cy="${y}" rx="${10 * s}" ry="${3.8 * s}"/>
+  const cloud = (x, y, s) => `<g class="sb-drift" fill="url(#ID-cloud)" opacity=".92"><ellipse cx="${x}" cy="${y}" rx="${10 * s}" ry="${3.8 * s}"/>
     <ellipse cx="${x + 5 * s}" cy="${y - 2.6 * s}" rx="${6.4 * s}" ry="${4.4 * s}"/><ellipse cx="${x - 4 * s}" cy="${y - 1.4 * s}" rx="${4.6 * s}" ry="${3.2 * s}"/></g>`;
   const stars = pts => pts.map(([x, y, r]) => `<circle class="sb-twinkle" cx="${x}" cy="${y}" r="${r}" fill="#FFFFFF"/>`).join('');
   const CRESCENT = `<circle class="sb-glow" cx="86" cy="22" r="20" fill="url(#ID-glow)"/><path d="M86 11 a11 11 0 1 0 7 19.6 a9 9 0 1 1 -7 -19.6 Z" fill="#FFE9B0"/>`;
@@ -149,75 +149,77 @@
     night: CRESCENT + stars([[20, 18, 1.2], [36, 8, .9], [48, 34, .8], [70, 30, 1], [104, 44, .9], [16, 46, .8]])
   };
 
-  /* things on the sill; each sits with its base on y = 89 */
-  const mug = (x, liquid, extra = '') => `<g><path d="M${x + 8} ${79} h2.6 a3.6 3.6 0 0 1 0 7.2 h-2.6" stroke="#C3D8E4" stroke-width="2.2" fill="none"/>
-    <rect x="${x - 8}" y="75" width="16" height="14" rx="3.4" fill="#E6EEF3"/><rect x="${x - 8}" y="81" width="16" height="2.4" fill="#9FC4DA"/>
+  /* things on the sill; each sits with its base on y = 89 and casts a soft shadow */
+  const shade = (x, w) => `<ellipse cx="${x}" cy="89.3" rx="${w}" ry="1.7" fill="#1C120B" opacity=".32" filter="url(#ID-soft)"/>`;
+  const mug = (x, liquid, extra = '') => `<g>${shade(x, 9)}<path d="M${x + 8} ${79} h2.6 a3.6 3.6 0 0 1 0 7.2 h-2.6" stroke="#C3D8E4" stroke-width="2.2" fill="none"/>
+    <rect x="${x - 8}" y="75" width="16" height="14" rx="3.4" fill="#E6EEF3"/><rect x="${x - 8}" y="81" width="16" height="2.4" fill="#9FC4DA"/><rect x="${x - 6.6}" y="76.6" width="2.2" height="10.8" rx="1.1" fill="#FFFFFF" opacity=".5"/>
+    <rect x="${x + 4.6}" y="75" width="3.4" height="14" rx="1.6" fill="#1C2A33" opacity=".07"/>
     <ellipse cx="${x}" cy="75.6" rx="6.8" ry="1.6" fill="${liquid}"/>${extra}${steam(x - 1, 72)}</g>`;
-  const teacup = x => `<g><ellipse cx="${x}" cy="89" rx="12" ry="2.4" fill="#F2ECE2"/><path d="M${x + 8} 80.6 a3.4 3.4 0 0 1 0 5.6" stroke="#E6DFD3" stroke-width="2" fill="none"/>
-    <path d="M${x - 9} 79.6 h18 v1.6 a9 7.2 0 0 1 -18 0 Z" fill="#FFFFFF"/><path d="M${x - 9} 81.2 h18" stroke="#E2B04E" stroke-width="1"/>
+  const teacup = x => `<g>${shade(x, 12)}<ellipse cx="${x}" cy="89" rx="12" ry="2.4" fill="#F2ECE2"/><path d="M${x + 8} 80.6 a3.4 3.4 0 0 1 0 5.6" stroke="#E6DFD3" stroke-width="2" fill="none"/>
+    <path d="M${x - 9} 79.6 h18 v1.6 a9 7.2 0 0 1 -18 0 Z" fill="#FFFFFF"/><path d="M${x - 9} 81.2 h18" stroke="#E2B04E" stroke-width="1"/><path d="M${x - 7} 82.2 q1 2.6 3.2 4" stroke="#E9EEF2" stroke-width="1.3" fill="none" stroke-linecap="round"/>
     <ellipse cx="${x}" cy="79.6" rx="8.6" ry="1.7" fill="#C8773C"/>${steam(x - 1, 76)}</g>`;
-  const teapot = x => `<g><path d="M${x - 9} 80 C${x - 14} 79 ${x - 16} 75 ${x - 17} 72.6" stroke="#BFD9CB" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  const teapot = x => `<g>${shade(x, 10)}<path d="M${x - 9} 80 C${x - 14} 79 ${x - 16} 75 ${x - 17} 72.6" stroke="#BFD9CB" stroke-width="2.6" fill="none" stroke-linecap="round"/>
     <path d="M${x + 8} 77 a5 5 0 0 1 0 8" stroke="#BFD9CB" stroke-width="2.4" fill="none"/>
     <ellipse cx="${x}" cy="82" rx="10" ry="7.4" fill="#CFE5D8"/><ellipse cx="${x}" cy="75.4" rx="5" ry="1.6" fill="#B7D5C4"/><circle cx="${x}" cy="73.2" r="1.6" fill="#B7D5C4"/>
     <ellipse cx="${x - 3.6}" cy="80" rx="2.6" ry="4" fill="#FFFFFF" opacity=".35"/><rect x="${x - 6}" y="88.2" width="12" height="1.2" rx=".6" fill="#B7D5C4"/></g>`;
-  const cookies = x => `<g><ellipse cx="${x}" cy="88.4" rx="9" ry="2" fill="#F2ECE2"/><ellipse cx="${x - 3}" cy="86.2" rx="4.4" ry="2" fill="#D9A15E"/>
+  const cookies = x => `<g>${shade(x, 9)}<ellipse cx="${x}" cy="88.4" rx="9" ry="2" fill="#F2ECE2"/><ellipse cx="${x - 3}" cy="86.2" rx="4.4" ry="2" fill="#D9A15E"/>
     <ellipse cx="${x + 3.4}" cy="85.4" rx="4.2" ry="1.9" fill="#E3B172"/><circle cx="${x - 4}" cy="85.8" r=".6" fill="#7A4E2D"/><circle cx="${x + 4}" cy="85" r=".6" fill="#7A4E2D"/></g>`;
-  const bowl = x => `<g><path d="M${x - 10} 80 C${x - 7} 73.6 ${x + 7} 73.6 ${x + 10} 80 Z" fill="#FFFFFF"/>
+  const bowl = x => `<g>${shade(x, 9.5)}<path d="M${x - 10} 80 C${x - 7} 73.6 ${x + 7} 73.6 ${x + 10} 80 Z" fill="#FFFFFF"/>
     <path d="M${x - 11} 80 h22 a11 9 0 0 1 -22 0 Z" fill="#F3E4CF"/><path d="M${x - 10.4} 83 h20.8" stroke="#7FA6C9" stroke-width="1.6"/>
     <path d="M${x + 2} 76 L${x + 16} 68 M${x + 4} 77 L${x + 18} 70" stroke="#9B6B43" stroke-width="1.4" stroke-linecap="round"/>${steam(x - 1, 72)}</g>`;
-  const glass = (x, fill = '#BFE2F2') => `<g><path d="M${x - 5} 73 L${x + 5} 73 L${x + 4} 89 L${x - 4} 89 Z" fill="#E4F3F9" opacity=".75"/>
+  const glass = (x, fill = '#BFE2F2') => `<g>${shade(x, 5)}<path d="M${x - 5} 73 L${x + 5} 73 L${x + 4} 89 L${x - 4} 89 Z" fill="#E4F3F9" opacity=".75"/>
     <path d="M${x - 4.6} 78 L${x + 4.6} 78 L${x + 4} 89 L${x - 4} 89 Z" fill="${fill}"/><path d="M${x - 3} 75 L${x - 2.4} 87" stroke="#FFFFFF" stroke-width="1" opacity=".7"/></g>`;
-  const plant = x => `<g><path d="M${x} 80 C${x - 7} 75 ${x - 9} 68 ${x - 3} 65 C${x - 2} 71 ${x} 75 ${x} 80 Z" fill="#6FA36B"/>
+  const plant = x => `<g>${shade(x, 6)}<path d="M${x} 80 C${x - 7} 75 ${x - 9} 68 ${x - 3} 65 C${x - 2} 71 ${x} 75 ${x} 80 Z" fill="#6FA36B"/>
     <path d="M${x} 80 C${x + 7} 76 ${x + 9} 70 ${x + 4} 66.6 C${x + 2.6} 72 ${x + 1} 76 ${x} 80 Z" fill="#5C8F5A"/>
     <path d="M${x} 80 C${x - 1} 74 ${x + 1} 69 ${x + .6} 63" stroke="#4E7F4C" stroke-width="1.2" fill="none"/>
     <path d="M${x - 6} 80 L${x + 6} 80 L${x + 4.6} 89 L${x - 4.6} 89 Z" fill="#C9744A"/><rect x="${x - 6.6}" y="79" width="13.2" height="2.6" rx="1" fill="#B5643E"/></g>`;
-  const openBook = x => `<g><path d="M${x} 85 L${x - 15} 82 L${x - 15} 88.6 L${x} 90.6 Z" fill="#FFF8EC"/><path d="M${x} 85 L${x + 15} 82 L${x + 15} 88.6 L${x} 90.6 Z" fill="#F7EAD5"/>
+  const openBook = x => `<g>${shade(x, 15)}<path d="M${x} 85 L${x - 15} 82 L${x - 15} 88.6 L${x} 90.6 Z" fill="#FFF8EC"/><path d="M${x} 85 L${x + 15} 82 L${x + 15} 88.6 L${x} 90.6 Z" fill="#F7EAD5"/>
     <path class="sb-page" d="M${x} 85 L${x + 13} 82.6 L${x + 13} 88.4 L${x} 90.6 Z" fill="#FFFBF3"/>
     <path d="M${x - 12} 84 L${x - 3} 85.6 M${x - 12} 86.2 L${x - 3} 87.8 M${x + 3} 85.6 L${x + 12} 84" stroke="#D9C7AE" stroke-width=".8"/></g>`;
-  const books = x => `<g><rect x="${x - 11}" y="84" width="22" height="5" rx="1" fill="#5B7DB1"/><rect x="${x - 9}" y="79" width="19" height="5" rx="1" fill="#D98C4A"/>
+  const books = x => `<g>${shade(x, 11.5)}<rect x="${x - 11}" y="84" width="22" height="5" rx="1" fill="#5B7DB1"/><rect x="${x - 9}" y="79" width="19" height="5" rx="1" fill="#D98C4A"/>
     <rect x="${x - 10}" y="74.4" width="17" height="4.6" rx="1" fill="#7FAE84"/><path d="M${x + 9.4} 85 v3 M${x + 8.6} 80 v3 M${x + 5.6} 75.4 v2.6" stroke="#FFF7EA" stroke-width="1.2"/></g>`;
-  const lamp = x => `<g><circle class="sb-glow" cx="${x - 12}" cy="80" r="24" fill="url(#ID-lamp)"/>
+  const lamp = x => `<g>${shade(x, 6.5)}<circle class="sb-glow" cx="${x - 12}" cy="80" r="24" fill="url(#ID-lamp)"/>
     <ellipse cx="${x}" cy="88.6" rx="6" ry="1.6" fill="#3D2E26"/><path d="M${x} 88 L${x + 3} 74 L${x - 6} 64" stroke="#3D2E26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
     <path d="M${x - 2} 60 L${x - 14} 64.6 L${x - 10} 70.6 Z" fill="#E8B04A"/><circle cx="${x - 11}" cy="68.6" r="1.6" fill="#FFF3C8"/></g>`;
   function clock(x, date) {
     const h = date.getHours() % 12 + date.getMinutes() / 60, m = date.getMinutes();
     const hand = (len, turns) => { const a = turns * 2 * Math.PI - Math.PI / 2; return `L${(x + Math.cos(a) * len).toFixed(2)} ${(81 + Math.sin(a) * len).toFixed(2)}`; };
-    return `<g><circle cx="${x - 5}" cy="74.6" r="2.4" fill="#C9B79C"/><circle cx="${x + 5}" cy="74.6" r="2.4" fill="#C9B79C"/>
+    return `<g>${shade(x, 7.5)}<circle cx="${x - 5}" cy="74.6" r="2.4" fill="#C9B79C"/><circle cx="${x + 5}" cy="74.6" r="2.4" fill="#C9B79C"/>
       <path d="M${x - 5} 88 l-1.6 2 M${x + 5} 88 l1.6 2" stroke="#9E8B70" stroke-width="1.4" stroke-linecap="round"/>
       <circle cx="${x}" cy="81" r="7.4" fill="#F1EBDD" stroke="#B9A58C" stroke-width="1.4"/>
       <path d="M${x} 81 ${hand(3.6, h / 12)} M${x} 81 ${hand(5.4, m / 60)}" stroke="${INK}" stroke-width="1.2" stroke-linecap="round"/><circle cx="${x}" cy="81" r=".8" fill="${INK}"/></g>`;
   }
-  const plate = (x, food) => `<g><ellipse cx="${x}" cy="88.4" rx="12" ry="2.4" fill="#F4EEE6"/>${food}</g>`;
+  const plate = (x, food) => `<g>${shade(x, 12.5)}<ellipse cx="${x}" cy="88.4" rx="12" ry="2.4" fill="#F4EEE6"/>${food}</g>`;
   const dumplings = x => plate(x, `<path d="M${x - 10} 87 Q${x - 6} 79.6 ${x - 2} 87 Z M${x - 3.6} 86.6 Q${x} 79 ${x + 3.6} 86.6 Z M${x + 2} 87 Q${x + 6} 79.6 ${x + 10} 87 Z" fill="#FFF8EC" stroke="#E6D3B9" stroke-width=".7"/>`);
-  const tangyuan = x => `<g><path d="M${x - 11} 80 h22 a11 9 0 0 1 -22 0 Z" fill="#F3E4CF"/><path d="M${x - 10.4} 83 h20.8" stroke="#D9473C" stroke-width="1.6"/>
+  const tangyuan = x => `<g>${shade(x, 9.5)}<path d="M${x - 11} 80 h22 a11 9 0 0 1 -22 0 Z" fill="#F3E4CF"/><path d="M${x - 10.4} 83 h20.8" stroke="#D9473C" stroke-width="1.6"/>
     <circle cx="${x - 5}" cy="79" r="3.6" fill="#FFFFFF"/><circle cx="${x + 1.6}" cy="78" r="3.6" fill="#FFF4F0"/><circle cx="${x + 7}" cy="79.4" r="3" fill="#FFFFFF"/>${steam(x - 1, 73)}</g>`;
   const zongzi = x => plate(x, `<path d="M${x - 9} 87 L${x - 1} 72 L${x + 7} 87 Z" fill="#5FA05A"/><path d="M${x - 9} 87 L${x - 1} 72 L${x + 1.4} 77 L${x - 4.6} 87 Z" fill="#79B86E"/>
     <path d="M${x - 6.4} 82 L${x + 4.4} 82 M${x - 4} 77.6 L${x + 2} 77.6" stroke="#EADBA6" stroke-width="1.3"/>`);
-  const apple = x => `<g><path d="M${x} 77 C${x - 5} 73 ${x - 10.6} 77 ${x - 10} 82.4 C${x - 9} 88 ${x - 4} 90.4 ${x} 88.8 C${x + 4} 90.4 ${x + 9} 88 ${x + 10} 82.4 C${x + 10.6} 77 ${x + 5} 73 ${x} 77 Z" fill="#E2483D"/>
+  const apple = x => `<g>${shade(x, 9)}<path d="M${x} 77 C${x - 5} 73 ${x - 10.6} 77 ${x - 10} 82.4 C${x - 9} 88 ${x - 4} 90.4 ${x} 88.8 C${x + 4} 90.4 ${x + 9} 88 ${x + 10} 82.4 C${x + 10.6} 77 ${x + 5} 73 ${x} 77 Z" fill="#E2483D"/>
     <path d="M${x} 77 C${x} 74.6 ${x + .8} 73 ${x + 1.6} 72" stroke="#7A5E44" stroke-width="1.2" fill="none"/><path d="M${x + 1.6} 73.6 C${x + 5} 71 ${x + 7.4} 72.6 ${x + 7.4} 74.2 C${x + 5} 75 ${x + 3.4} 74.4 ${x + 1.6} 73.6 Z" fill="#79B86E"/>
     <ellipse cx="${x - 4}" cy="80.6" rx="1.6" ry="2.4" fill="#FFFFFF" opacity=".35"/></g>`;
   const mooncakes = x => plate(x, `<circle cx="${x - 4}" cy="83.4" r="5.6" fill="#D99A46"/><circle cx="${x - 4}" cy="83.4" r="4" fill="#E8B25E"/>
     <circle cx="${x + 5}" cy="84.4" r="4.8" fill="#D99A46"/><circle cx="${x + 5}" cy="84.4" r="3.4" fill="#E8B25E"/>
     <path d="M${x - 6} 83.4 h4 M${x - 4} 81.4 v4" stroke="#C7843A" stroke-width=".9" stroke-linecap="round"/>`);
-  const laptop = x => `<g><path d="M${x - 14} 70 h28 v15 h-28 Z" fill="#2B2F3A"/><rect class="sb-screen" x="${x - 12.4}" y="71.6" width="24.8" height="11.8" rx=".8" fill="#14202B"/>
+  const laptop = x => `<g>${shade(x, 16)}<path d="M${x - 14} 70 h28 v15 h-28 Z" fill="#2B2F3A"/><rect class="sb-screen" x="${x - 12.4}" y="71.6" width="24.8" height="11.8" rx=".8" fill="#14202B"/>
     <text x="${x}" y="80.2" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6.4" font-weight="700" fill="#7CF2B5">1024</text>
     <path d="M${x - 17} 85 h34 l-2 4 h-30 Z" fill="#A3ABB9"/></g>`;
-  const pie = x => `<g><ellipse cx="${x}" cy="86" rx="12" ry="4" fill="#D9934A"/><ellipse cx="${x}" cy="84.6" rx="9.8" ry="3" fill="#B5462F"/>
+  const pie = x => `<g>${shade(x, 12)}<ellipse cx="${x}" cy="86" rx="12" ry="4" fill="#D9934A"/><ellipse cx="${x}" cy="84.6" rx="9.8" ry="3" fill="#B5462F"/>
     <text x="${x}" y="87" text-anchor="middle" font-family="Georgia, serif" font-size="6.6" font-weight="700" fill="#FFE9C9">π</text></g>`;
-  const jack = x => `<g><ellipse cx="${x}" cy="82" rx="10.6" ry="7.6" fill="#F08A2C"/><path d="M${x - 4} 74.6 C${x - 5} 81 ${x - 5} 85 ${x - 4} 89 M${x + 4} 74.6 C${x + 5} 81 ${x + 5} 85 ${x + 4} 89" stroke="#D9731C" stroke-width="1" fill="none"/>
+  const jack = x => `<g>${shade(x, 10.5)}<ellipse cx="${x}" cy="82" rx="10.6" ry="7.6" fill="#F08A2C"/><path d="M${x - 4} 74.6 C${x - 5} 81 ${x - 5} 85 ${x - 4} 89 M${x + 4} 74.6 C${x + 5} 81 ${x + 5} 85 ${x + 4} 89" stroke="#D9731C" stroke-width="1" fill="none"/>
     <path d="M${x} 74.6 C${x} 72.4 ${x + 1.6} 71 ${x + 3.4} 71" stroke="#5E8A3A" stroke-width="2" fill="none" stroke-linecap="round"/>
     <path class="sb-flicker" d="M${x - 6} 80 L${x - 3.4} 77.4 L${x - .8} 80 Z M${x + .8} 80 L${x + 3.4} 77.4 L${x + 6} 80 Z M${x - 6} 84 Q${x} 88 ${x + 6} 84 Q${x} 85.8 ${x - 6} 84 Z" fill="#FFE27A"/></g>`;
-  const candle = x => `<g><rect x="${x - 2.6}" y="77" width="5.2" height="11" rx="1" fill="#F4EEE2"/><ellipse cx="${x}" cy="88.6" rx="5" ry="1.3" fill="#B9A58C"/>
+  const candle = x => `<g>${shade(x, 5)}<rect x="${x - 2.6}" y="77" width="5.2" height="11" rx="1" fill="#F4EEE2"/><ellipse cx="${x}" cy="88.6" rx="5" ry="1.3" fill="#B9A58C"/>
     <circle class="sb-glow" cx="${x}" cy="73" r="9" fill="url(#ID-lamp)"/><path class="sb-flicker" d="M${x} 70 C${x - 2} 73 ${x - 1.6} 75.6 ${x} 76 C${x + 1.6} 75.6 ${x + 2} 73 ${x} 70 Z" fill="#FFC75A"/></g>`;
   const slice = x => plate(x, `<path d="M${x - 9} 87 L${x + 8} 81 L${x + 8} 87 Z" fill="#E08A3A"/><path d="M${x + 8} 81 L${x + 10} 81 L${x + 10} 87 L${x + 8} 87 Z" fill="#C9874A"/>
     <ellipse cx="${x + 4}" cy="80.6" rx="2.6" ry="1.6" fill="#FFFFFF"/>`);
-  const gift = x => `<g><rect x="${x - 9}" y="77" width="18" height="12" rx="1.6" fill="#D9473C"/><rect x="${x - 1.6}" y="77" width="3.2" height="12" fill="#F2C14E"/>
+  const gift = x => `<g>${shade(x, 9.5)}<rect x="${x - 9}" y="77" width="18" height="12" rx="1.6" fill="#D9473C"/><rect x="${x - 1.6}" y="77" width="3.2" height="12" fill="#F2C14E"/>
     <rect x="${x - 9}" y="81.4" width="18" height="3" fill="#F2C14E"/><path d="M${x} 77 C${x - 5} 71 ${x - 8.6} 76 ${x} 77 C${x + 8.6} 76 ${x + 5} 71 ${x} 77 Z" fill="#F2C14E"/></g>`;
-  const shades = x => `<g><rect x="${x - 10}" y="84" width="8.6" height="5" rx="2.2" fill="#22222A"/><rect x="${x + 1.4}" y="84" width="8.6" height="5" rx="2.2" fill="#22222A"/>
+  const shades = x => `<g>${shade(x, 10.5)}<rect x="${x - 10}" y="84" width="8.6" height="5" rx="2.2" fill="#22222A"/><rect x="${x + 1.4}" y="84" width="8.6" height="5" rx="2.2" fill="#22222A"/>
     <path d="M${x - 1.4} 85.4 h2.8" stroke="#22222A" stroke-width="1.2"/><path d="M${x - 8} 85.4 l2 -.8" stroke="#FFFFFF" stroke-width=".8" opacity=".6"/></g>`;
   const juice = x => `<g>${glass(x, '#FFB347')}<path d="M${x + 1} 73 L${x + 4} 66 L${x + 7} 66" stroke="#FF6F91" stroke-width="1.5" fill="none" stroke-linecap="round"/>
     <circle cx="${x - 4}" cy="73.4" r="2.6" fill="#FFE27A"/></g>`;
-  const partyHat = x => `<g><path d="M${x - 7} 89 L${x} 70 L${x + 7} 89 Z" fill="#7FB3E8"/><path d="M${x - 4.6} 83 L${x + 4.6} 83 M${x - 2.6} 77 L${x + 2.6} 77" stroke="#FFE08A" stroke-width="1.8"/>
+  const partyHat = x => `<g>${shade(x, 7)}<path d="M${x - 7} 89 L${x} 70 L${x + 7} 89 Z" fill="#7FB3E8"/><path d="M${x - 4.6} 83 L${x + 4.6} 83 M${x - 2.6} 77 L${x + 2.6} 77" stroke="#FFE08A" stroke-width="1.8"/>
     <circle cx="${x}" cy="69.4" r="2.6" fill="#FF8FA3"/></g>`;
   const cocoa = x => mug(x, '#6B3E26', `<circle cx="${x - 2}" cy="74.8" r="1.6" fill="#FFFFFF"/><circle cx="${x + 2}" cy="74.4" r="1.4" fill="#FFF4F0"/>`);
 
@@ -285,22 +287,29 @@
       <defs><linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient>
         <radialGradient id="${id}-glow"><stop offset="0" stop-color="#FFE7B8" stop-opacity=".5"/><stop offset="1" stop-color="#FFE7B8" stop-opacity="0"/></radialGradient>
         <radialGradient id="${id}-lamp"><stop offset="0" stop-color="#FFD58A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD58A" stop-opacity="0"/></radialGradient>
+        <linearGradient id="${id}-sill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A26D45"/><stop offset="1" stop-color="#C48D5F"/></linearGradient>
+        <linearGradient id="${id}-front" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#80573A"/><stop offset="1" stop-color="#593A27"/></linearGradient>
+        <linearGradient id="${id}-cloud" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".62"/></linearGradient>
+        <filter id="${id}-soft" x="-50%" y="-200%" width="200%" height="500%"><feGaussianBlur stdDeviation="1.1"/></filter>
         <clipPath id="${id}-clip"><circle cx="60" cy="60" r="58"/></clipPath></defs>
       <g clip-path="url(#${id}-clip)">
         <rect width="120" height="84" fill="url(#${id}-sky)"/>
-        ${outside.replace(/url\(#ID-(glow|lamp)\)/g, `url(#${id}-$1)`)}
+        ${outside.replace(/url\(#ID-([a-z]+)\)/g, `url(#${id}-$1)`)}
+        <path d="M0 65 C20 59 40 60 60 63 C80 66 100 58 120 59 V84 H0 Z" fill="${hills[0]}" opacity=".42"/>
         <path d="M0 70 C16 63 32 65 48 69 C64 73 82 64 98 62.6 C108 62 115 64 120 66 V84 H0 Z" fill="${hills[0]}" opacity=".8"/>
         <path d="M0 77 C20 72 38 74 56 77 C74 80 92 72 120 74 V84 H0 Z" fill="${hills[1]}"/>
-        <path d="M10 0 L30 0 L4 64 L-16 64 Z" fill="#FFFFFF" opacity=".07"/>
-        <path d="M60 0 V84 M0 46 H120" stroke="${FRAME}" stroke-width="2.6"/>
+        ${warm ? `<circle cx="28" cy="76" r="36" fill="url(#${id}-lamp)" opacity=".45"/>` : ''}
+        <path d="M10 0 L30 0 L4 64 L-16 64 Z" fill="#FFFFFF" opacity=".07"/><path d="M38 0 L41.5 0 L15.5 64 L12 64 Z" fill="#FFFFFF" opacity=".06"/>
+        <path d="M60 0 V84 M0 46 H120" stroke="${FRAME}" stroke-width="1.9"/><path d="M60.9 0 V84 M0 46.9 H120" stroke="#A0755A" stroke-width=".6" opacity=".55"/>
         ${spec?.lights || ''}
-        <rect y="84" width="120" height="7" fill="#B07A50"/><rect y="84" width="120" height="1.3" fill="#D9A273" opacity=".85"/>
-        <rect y="91" width="120" height="29" fill="#7B5236"/><rect y="91" width="120" height="2.2" fill="#5A3B27" opacity=".75"/>
+        <rect y="84" width="120" height="7" fill="url(#${id}-sill)"/><rect y="84" width="120" height="1" fill="#5A3B27" opacity=".35"/>
+        <rect y="90.2" width="120" height="1" fill="#E6B587" opacity=".6"/>
+        <rect y="91.2" width="120" height="28.8" fill="url(#${id}-front)"/><rect y="91.2" width="120" height="2" fill="#4E3322" opacity=".55"/>
         <path d="M10 99 h38 M62 104 h44 M16 110 h30 M70 114 h26" stroke="#68452E" stroke-width="1" stroke-linecap="round" opacity=".7"/>
-        ${warm ? `<rect y="84" width="120" height="36" fill="#FFB866" opacity=".07"/>` : ''}
-        <g class="sb-sill" transform="translate(60 89) scale(1.3) translate(-60 -89)">${things.join('').replace(/url\(#ID-(glow|lamp)\)/g, `url(#${id}-$1)`)}</g>
+        ${warm ? `<rect y="84" width="120" height="36" fill="#FFB866" opacity=".08"/>` : ''}
+        <g class="sb-sill" transform="translate(60 89) scale(1.3) translate(-60 -89)">${things.join('').replace(/url\(#ID-([a-z]+)\)/g, `url(#${id}-$1)`)}</g>
       </g>
-      <circle cx="60" cy="60" r="56.6" fill="none" stroke="${FRAME}" stroke-width="3.4"/>
+      <circle cx="60" cy="60" r="56.8" fill="none" stroke="${FRAME}" stroke-width="3"/><circle cx="60" cy="60" r="55.1" fill="none" stroke="#A0755A" stroke-width=".7" opacity=".45"/>
       <circle cx="60" cy="60" r="58.6" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1.2"/>
     </svg>`;
   }
@@ -340,16 +349,20 @@
   let scene = '';
   let current = null;
   let liveData = null;
+  const records = () => scope.PreparationProgress?.getState?.()?.workspace?.records || {};
   function openNotes() {
-    const hub = scope.ReaderHub, progress = scope.PreparationProgress;
-    if (!hub || !progress || typeof progress.getState !== 'function') return null;
-    const records = progress.getState()?.workspace?.records || {};
-    if (hub.settings(records).history === false) return null;
-    return hub.summarize(records, new Date()).today.notes.length;
+    const hub = scope.ReaderHub;
+    if (!hub || !scope.PreparationProgress) return null;
+    if (hub.settings(records()).history === false) return null;
+    return hub.summarize(records(), new Date()).today.notes.length;
   }
+  // the reader can switch the buddy off in the reading settings drawer
+  const switchedOff = () => Boolean(scope.ReaderHub) && scope.ReaderHub.settings(records()).buddy === 'hidden';
   function render() {
     const now = new Date();
     current = moment(now, lang);
+    root.hidden = switchedOff();
+    if (root.hidden) return;
     const look = current.holiday ? current.holiday.look : '';
     // late at night the clock on the sill shows the real time
     const key = `${current.period}:${look}:${current.period === 'night' && !look ? now.getHours() * 60 + now.getMinutes() : ''}`;
@@ -383,9 +396,9 @@
   setOpen(typeof stored.open === 'boolean' ? stored.open : scope.matchMedia('(min-width: 900px)').matches, false);
   // Folded away, it still says hello once per part of the day (and holiday), so late at night it always does.
   const seen = `${civil(new Date())}:${current.period}:${current.holiday ? current.holiday.id : ''}`;
-  if (!root.classList.contains('is-open') && stored.seen !== seen) {
+  if (!root.hidden && !root.classList.contains('is-open') && stored.seen !== seen) {
     scope.setTimeout(() => {
-      if (root.classList.contains('is-open')) return;
+      if (root.hidden || root.classList.contains('is-open')) return;
       bubble.textContent = current.text;
       bubble.hidden = false;
       save({seen});
@@ -395,6 +408,7 @@
   scope.setInterval(render, 30000);
   scope.addEventListener('notes:prep-storage', render);
   scope.addEventListener('notes:prep-restored', render);
+  scope.addEventListener('notes:reader-settings', render);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); });
   scope.StudyBuddy = {setLive(value) { liveData = value; render(); }};
 })(typeof window === 'undefined' ? globalThis : window);

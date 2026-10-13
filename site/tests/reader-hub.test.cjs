@@ -194,7 +194,9 @@ test('clearing empties every reading day and leaves other records alone', () => 
 });
 
 test('settings default to counting on and the Star notice allowed', () => {
-  assert.deepEqual(hub.settings({}), {history: true, mascot: 'collapsed', starAskedOn: '', starDone: false, snoozedUntil: ''});
+  assert.deepEqual(hub.settings({}), {history: true, mascot: 'collapsed', buddy: 'shown', starAskedOn: '', starDone: false, snoozedUntil: ''});
+  assert.equal(hub.settings({'reader-settings': {buddy: 'hidden', updatedAt: AT}}).buddy, 'hidden');
+  assert.equal(hub.settings({'reader-settings': {buddy: 'gone', updatedAt: AT}}).buddy, 'shown');
   assert.equal(hub.settings({'reader-settings': {history: false, mascot: 'hidden', updatedAt: AT}}).mascot, 'hidden');
   assert.equal(hub.settings({'reader-settings': {mascot: 'dancing', updatedAt: AT}}).mascot, 'collapsed');
 });
@@ -204,7 +206,7 @@ test('the shared store accepts these records and rejects malformed ones', () => 
   const ok = Object.assign({}, base, {workspace: {version: 1, records: {
     'reads-20261012': {notes: {[NOTE_A]: 2}, updatedAt: AT},
     'reading-total': {total: 12, since: '2026-10-01', updatedAt: AT},
-    'reader-settings': {history: false, mascot: 'open', starAskedOn: '2026-10-12', starDone: true, snoozedUntil: AT, updatedAt: AT}}, history: []}});
+    'reader-settings': {history: false, mascot: 'open', buddy: 'hidden', starAskedOn: '2026-10-12', starDone: true, snoozedUntil: AT, updatedAt: AT}}, history: []}});
   assert.doesNotThrow(() => store.parse(JSON.stringify(ok)));
   for (const bad of [
     {'reads-2026-10-12': {notes: {}, updatedAt: AT}},
@@ -215,6 +217,7 @@ test('the shared store accepts these records and rejects malformed ones', () => 
     {'reading-total': {total: 3, since: '2026-02-30', updatedAt: AT}},
     {'reading-total': {total: 3, updatedAt: AT}},
     {'reader-settings': {mascot: 'dancing', updatedAt: AT}},
+    {'reader-settings': {buddy: 'gone', updatedAt: AT}},
     {'reader-settings': {starAskedOn: 'tomorrow', updatedAt: AT}},
     {'reader-settings': {starDone: 'yes', updatedAt: AT}},
     {'reader-settings': {snoozedUntil: 'later', updatedAt: AT}}

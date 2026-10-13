@@ -1,4 +1,5 @@
 /* Study buddy: a card in the bottom-right corner that folds into a round avatar. */
+.study-buddy[hidden] { display: none; }
 .study-buddy { position: fixed; z-index: 60; right: 20px; bottom: 20px; font-family: var(--sans); transition: bottom .3s ease; }
 /* make room while the Star notice is up */
 .star-toast:not([hidden]) ~ .study-buddy { bottom: 172px; }
