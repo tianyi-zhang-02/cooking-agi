@@ -36,7 +36,10 @@ class NoteMetricsTests(unittest.TestCase):
         self.assertEqual(values["saves"], 0)
         self.assertEqual(values["mode"], "local")
         config = json.loads((SITE / "static/note-metrics-config.json").read_text())
-        self.assertEqual(config, {"version": 1, "endpoint": ""})
+        # The only production endpoint is the reviewed counter service (services/counter).
+        self.assertEqual(set(config), {"version", "endpoint"})
+        self.assertEqual(config["version"], 1)
+        self.assertIn(config["endpoint"], {"", "https://cooking-agi-counter.cooking-agi-counter.workers.dev/api/note-metrics/"})
 
     def test_daily_deduplication_month_rollover_and_restart(self):
         event = {"kind": "view", "token": TOKEN}
