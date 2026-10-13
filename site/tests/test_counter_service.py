@@ -12,7 +12,7 @@ class CounterServiceTests(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("node"), "Node.js required")
     def test_counter_service(self):
-        result = subprocess.run([shutil.which("node"), "--test", "test/"], cwd=ROOT / "services/counter",
+        result = subprocess.run([shutil.which("node"), "--test", "test/core.test.mjs"], cwd=ROOT / "services/counter",
                                 capture_output=True, text=True, env={"PATH": str(Path(sys.executable).parent) + ":/usr/bin:/bin", "PYTHON": sys.executable})
         self.assertEqual(result.returncode, 0, result.stdout[-3000:] + result.stderr[-2000:])
         self.assertRegex(result.stdout, r"# pass [1-9]")

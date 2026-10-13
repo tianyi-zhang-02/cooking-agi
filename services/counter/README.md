@@ -55,7 +55,7 @@
 
 5. 把 `https://…workers.dev/api/note-metrics/` 写进 `site/static/note-metrics-config.json` 的 `endpoint`。这一步发个 PR 就行：学习小伙伴的人数和笔记计数会同时打开，页面的 CSP 也会自动放行这个地址。
 
-本地测试：`node --test test/`（用 Python 自带的 SQLite 跑真实的 SQL）。
+本地测试：`node --test test/core.test.mjs`（用 Python 自带的 SQLite 跑真实的 SQL）。
 
 ---
 
@@ -97,4 +97,4 @@ Everything fits the Workers Free plan, **$0**: 100,000 requests a day and 100,00
 4. Deploy and note the URL (`https://cooking-agi-counter.<subdomain>.workers.dev`): `npx wrangler@4 deploy`
 5. Put `https://…workers.dev/api/note-metrics/` in `site/static/note-metrics-config.json` as `endpoint`, in a PR. That turns on both the buddy's counts and the note counts; the page CSP picks up the origin automatically.
 
-Local tests: `node --test test/` (real SQL on Python's built-in SQLite).
+Local tests: `node --test test/core.test.mjs` (real SQL on Python's built-in SQLite).
