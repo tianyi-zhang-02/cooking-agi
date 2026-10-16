@@ -21,6 +21,8 @@ A small example: if each independent sample succeeds with probability $0.5$, fou
 
 For a preference judge, randomize A/B order and check whether it merely favors longer answers. Do not discard every disagreement with human labels: disagreement may reveal an unclear rubric. See [LLM-as-a-Judge](../../07-evaluation/llm-as-a-judge/README.en.md) for examples and [metric robustness](../../07-evaluation/metric-robustness.en.md) for paired comparisons and population mixtures.
 
+<span id="evaluation-closes-the-loop"></span>
+
 ## How evaluation feeds back into training {#closing-the-loop}
 
 The checks above cover one comparison. Across the whole training process, also evaluate several outcomes separately:

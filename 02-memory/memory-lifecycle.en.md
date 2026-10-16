@@ -135,6 +135,8 @@ A conservative starting rule: explicit new instructions take priority only withi
 
 Deletion must also account for derived summaries, caches, and index copies. If they reintroduce the same information, the system hasn't effectively forgotten it. Inventory storage locations and test deletion or invalidation propagation; logs follow their separately disclosed retention policy.
 
+<span id="why-can-a-summary-remember-something-that-was-deleted"></span>
+
 ## Why can a summary remember something that was deleted? {#deletion-propagation}
 
 Suppose original statement M1 contributes to summary S1, which produces vector V1. Deleting only M1 leaves retrieval able to find V1 and supply S1. Track derived records through their source relationships:
@@ -148,6 +150,8 @@ After deleting M1: invalidate, delete, or rebuild derived content without using 
 During asynchronous cleanup, first make affected versions unavailable to readers, then remove copies. Otherwise old content may be served while index deletion runs. Prevent delayed writes from restoring deleted information, too. That requires version checks and provenance, not merely a prompt saying “please forget.”
 
 This differs from unlearning training data from model parameters. We are discussing external memory storage and reads, not claiming that deleting a database record removes information from model weights.
+
+<span id="test-a-timeline-not-a-single-question"></span>
 
 ## Test a timeline, not a single question {#timeline-test}
 

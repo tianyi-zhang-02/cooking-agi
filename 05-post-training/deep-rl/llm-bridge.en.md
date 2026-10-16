@@ -42,6 +42,8 @@ For the sampled tokens, suppose old conditional probabilities are $[0.5,0.25,0.5
 
 A terminal score can provide learning signals to earlier actions. That does not mean each reasoning step was independently verified. Process rewards add intermediate feedback but can introduce their own bias; denser feedback is not automatically more accurate.
 
+<span id="when-does-grpos-within-group-signal-disappear"></span>
+
 ## When does GRPO’s within-group signal disappear? {#group-signal}
 
 Take four responses to the same prompt with rewards $[0,0,1,1]$. Under the population-standard-deviation convention, mean and standard deviation are both 0.5, giving normalized advantages $[-1,-1,1,1]$. Responses above the group mean are encouraged; those below are discouraged.

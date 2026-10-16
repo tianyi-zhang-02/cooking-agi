@@ -104,6 +104,8 @@ Both have three valid tokens, so `mask.sum() - 1` returns 2 for both: it only wo
 
 The [Qwen paper](https://arxiv.org/html/2506.05176v1#S2) describes pooling at a terminal EOS. Integration must also check the actual tokenizer, special tokens, and wrapper behavior. The lab below verifies selection of the final valid position; it does not validate real tokenization or recommend manually appending EOS.
 
+<span id="why-cant-two-1024-dimensional-models-share-an-index"></span>
+
 ### Why can't two 1024-dimensional models share an index? {#index-swap}
 
 Consider two dimensions. An old query is $(1,0)$, relevant document A is $(1,0)$, and document B is $(0,1)$. Their dot products are 1 and 0.
