@@ -113,6 +113,8 @@ repeat-contact rate all together. Fluent wording is only one part of the result.
 
 ## A more reliable evaluation stack
 
+<span id="when-using-an-llm-judge"></span>
+
 What deterministic rules, references or executors, an LLM judge, human review and online metrics can each answer, and what none of them establishes alone, is laid out in one table in [the evaluation stack](../07-evaluation/evaluation-stack.en.md#check-methods). The rule of thumb: do not hand a condition that a rule can decide exactly to a model. When a model does score, write the criterion first, then choose between scoring one output and comparing two; pairwise comparisons swap the display order and allow a tie or “both bad”, see [LLM judge output formats](../07-evaluation/llm-as-a-judge/scoring.en.md); how to calibrate against human labels and check agreement by slice is covered in [LLM-as-a-judge](../07-evaluation/llm-as-a-judge/README.en.md).
 
 ## Why look at the full chain

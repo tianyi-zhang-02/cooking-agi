@@ -23,7 +23,7 @@ Before a pretraining run starts, several things must be decided: how big the mod
 Suppose you have 64 H100 SXM5 GPUs for about 4.6 days; at a BF16 dense peak of 989.4 TFLOPS and 40% MFU that is about $C=10^{22}$ FLOPs (how MFU is counted is covered in [performance: roofline and MFU](../../12-infra/performance.en.md#mfu)). The three notes answer in turn:
 
 1. Looking only at training compute, the optimum is about 9B parameters and 180B tokens; how that answer is fitted from a few small runs, and how far it can be extrapolated.
-2. If the deployed model will process $10^{12}$ inference tokens, the optimum becomes about 4.6B parameters and 450B tokens; and if you have only 100B unique tokens, how much repeated training is still worth.
+2. If the deployed model will process $10^{12}$ inference tokens, we change the objective: hold the target loss fixed and minimize training plus inference cost, allowing the training budget to grow. The optimum is then about 4.6B parameters and 450B training tokens. That takes about 24% more training compute, or roughly 5.7 days on the same GPUs—not the original 4.6-day budget. We also ask how much repeated training is worth when only 100B unique tokens are available.
 3. What batch size and learning rate this run should use, which schedule to choose, and how to carry a learning rate swept on a width-512 proxy over to a width-4096 model.
 
 All hand-worked numbers are teaching examples, not measurements of any model.

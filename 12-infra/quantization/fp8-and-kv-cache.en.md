@@ -4,7 +4,7 @@
 
 > Reading time: ~11 min · Draft, pending review
 
-At 128K context, one sequence of this series' 8B teaching model has 16 GiB of BF16 KV, more than the BF16 weights themselves (16 GB, about 14.9 GiB); an 80 GB H100 holds only 3 such sequences. Store the KV in FP8 and it holds 6; with the same 3 sequences, the bytes read per step drop by 38%. **At long context the KV cache has more bytes than the weights, so compressing the KV decides more directly than compressing the weights how many requests you can serve at once and how many bytes each step reads. FP8 is today's most common 8-bit starting point, usable for weights, activations and KV, and whether it is stable depends mostly on how the scales are set; to push the KV further to 4 or 2 bits, keys must be quantized per channel and values per token, and only long-context tasks can tell you whether it worked.**
+At 128K context, one sequence of this series' 8B teaching model has 16 GiB of BF16 KV, more than the BF16 weights themselves (16 GB, about 14.9 GiB); an 80 GB H100 holds only 3 such sequences. Store the KV in FP8 and it holds 6; with the same 3 sequences, the bytes read per step drop by 38%. **At long context the KV cache has more bytes than the weights, so compressing the KV decides more directly than compressing the weights how many requests you can serve at once and how many bytes each step reads. FP8 is today's most common 8-bit starting point, usable for weights, activations and KV, and whether it is stable depends mostly on how the scales are set. At 4 or 2 bits, KIVI uses per-channel keys and per-token values; that is one method's choice, not a requirement for all KV quantization. Test the chosen layout on the target model and long-context workload.**
 
 > **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
@@ -75,6 +75,8 @@ At this length, compressing only the weights goes from 20.2 ms to 17.9 ms, while
 ### Why keys and values are quantized differently
 
 KIVI (2024-02, ICML 2024) measured the KV cache's distributions: the keys have a few fixed channels with very large magnitudes, the values have no clear outlier pattern, and the attention output is mainly a weighted sum of the values of a few important tokens, so quantizing values per token keeps each error within its own token. Their scheme is therefore **keys per channel, values per token**.
+
+The axes are not universal. [QuaRot, §5](https://arxiv.org/html/2404.00456v2#S5) rotates the keys before 4-bit quantization, then groups channels within each token and head rather than sharing a per-channel scale across tokens. The right layout depends on the distribution after any transforms, and on the kernel that will consume it. The example below explains KIVI's choice for keys with channel outliers; it does not establish a rule for every model.
 
 **Worked once.** A key with 4 tokens and 4 channels, channel 3 being the outlier channel (teaching numbers); the query is $q=[1,\ 1,\ 0.1,\ 1]$; asymmetric 2 bits, 4 grid points per group.
 

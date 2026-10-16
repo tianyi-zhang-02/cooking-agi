@@ -6,6 +6,8 @@
 
 A language model only predicts the next token each time, so why can it be trained with reinforcement learning? Because one generation can be read as a sequence of decisions: at each step the model sees the current prefix and picks a token, and at the end a reward model, a test, or an environment scores the whole result. Supervised learning usually supplies a target answer. Reinforcement learning (**RL**) instead evaluates the outcome of a sequence of behavior. The model can learn the score of a rollout without being told which individual step caused it or what the correct replacement action was.
 
+<span id="environment-layer-how-the-world-works"></span>
+
 ## Borrow a few RL terms first {#rl-vocabulary}
 
 In RL, an agent in **state** $s_t$ picks an **action** $a_t$ according to its **policy** $\pi_\theta$; the environment's dynamics then produce the next state $s_{t+1}$ and a **reward** $r_t$. One transition is written $(s_t,a_t,r_t,s_{t+1})$, and many steps in a row form a trajectory:
@@ -14,7 +16,7 @@ $$
 \tau=(s_0,a_0,r_0,s_1,a_1,r_1,\ldots).
 $$
 
-What the agent actually sees is an observation, which need not be the complete state; for states, observations, dynamics, and the Bellman recursion, see [MDPs and Bellman](../deep-rl/mdp-bellman.en.md). Return, value, Q, and advantage are quantities constructed or estimated for learning, not feedback the environment hands over; the [next note](value-and-advantage.en.md) defines each one.
+What the agent actually sees is an observation, which need not be the complete state; for states, observations, dynamics, and the Bellman recursion, see [MDPs and Bellman](../deep-rl/mdp-bellman.en.md). <span id="learning-layer-how-policy-behavior-is-judged"></span>Return, value, Q, and advantage are quantities constructed or estimated for learning, not feedback the environment hands over; the [next note](value-and-advantage.en.md) defines each one.
 
 ## Mapping the pieces onto a language model
 

@@ -13,6 +13,8 @@
 
 <span id="transformer"></span>
 
+<span id="_1"></span>
+
 ## Attention 汇聚上下文，FFN 逐位置变换 {#attention-ffn}
 
 Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐标变换 $\phi$」的一种具体做法：**注意力负责跨位置搬运信息，FFN 负责在单个位置上加工**，两者交替堆叠，最后仍然是一个线性分类器读出答案。
@@ -50,9 +52,11 @@ $$\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}}.$$
 
 例如 $[2,1,0]$ 会变成约 $[0.665,0.245,0.090]$。它不是只留下最高分，而是允许一个 query 同时读取多个位置。Attention 对 score 矩阵的**最后一维逐行**做 softmax：第 $i$ 行回答「query $i$ 应该把多少权重分给每个 key $j$」。一句话：$QK^\top$ 决定**从哪里读**，权重乘 $V$ 决定**按什么比例把读到的内容合起来**。
 
+<span id="python"></span>
+
 三个常被追问的细节都在[多头注意力](core/multi-head-attention.md)里算过一遍：
 
-- **为什么除以 $\sqrt{d_k}$**：在各分量独立、方差为 1 的简化假设下，点积的方差是 $d_k$；除以 $\sqrt{d_k}$ 把它拉回 1，避免 softmax 只因维度变大就过早变尖。方差推导、`[8, −8]` 的例子和梯度为什么变小，见[那一节](core/multi-head-attention.md#sqrtd_k)。
+- <span id="sqrtd_k"></span>**为什么除以 $\sqrt{d_k}$**：在各分量相互独立、均值为 0、方差为 1 的简化假设下，点积的方差是 $d_k$；除以 $\sqrt{d_k}$ 把它拉回 1，避免 softmax 只因维度变大就过早变尖。方差推导、`[8, −8]` 的例子和梯度为什么变小，见[那一节](core/multi-head-attention.md#sqrtd_k)。
 - **mask 放在哪**：softmax 之前把禁止位置设为 `-inf`；设成 0 仍会分到权重，softmax 之后只置零又不重新归一化，也不等价。两个分数的例子见[六个易错处](core/multi-head-attention.md#_5)。
 - **$Q=K$ 会怎样**：缩放前的分数 $QQ^\top$ 对称，逐行 softmax 之后一般不再对称，注意力也不会失效；见[面试常见问题](core/multi-head-attention.md#_7)。
 

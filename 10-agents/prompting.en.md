@@ -66,7 +66,7 @@ Freeze invented or authorized notices with normal, missing, conflicting, multi-d
 
 Ask **which errors decreased**, not whether answers became longer. Repeat sampling to assess generation variability; fix the model, version, decoding, budget, and test items. Items used to tune prompts are development data, no longer unseen tests.
 
-When the output must be JSON and the API or inference engine supports decoding constrained by a JSON Schema (structured outputs), use it to guarantee the format rather than relying on one sentence in the prompt (for enabling it in an engine, see [the vLLM and SGLang diagnosis table](../06-systems/inference-frameworks.en.md#bottlenecks)). Constrained decoding only governs the format. Code can validate schemas and check whether dates occur in the source. Semantic summaries still require human review or a calibrated judge. Successful parsing must not be the only pass condition. See [evaluation protocols](../07-evaluation/benchmark-protocols.en.md).
+When the output must be JSON and the API or inference engine supports decoding constrained by a JSON Schema (structured outputs), use it to guarantee the format rather than relying on one sentence in the prompt (for diagnosing format failures in an engine, see [the vLLM and SGLang diagnosis table](../06-systems/inference-frameworks.en.md#bottlenecks)). Constrained decoding only governs the format. Code can validate schemas and check whether dates occur in the source. Semantic summaries still require human review or a calibrated judge. Successful parsing must not be the only pass condition. See [evaluation protocols](../07-evaluation/benchmark-protocols.en.md).
 
 ## 5. What changes with longer inputs?
 

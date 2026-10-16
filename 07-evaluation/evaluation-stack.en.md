@@ -26,6 +26,8 @@ Task → Available data and memory → Candidates → Selected context → Answe
 
 One request can have multiple failures. Preserve multiple labels if useful; define an additional earliest-failure convention for funnel reporting rather than mixing the two counting rules.
 
+<span id="2-match-the-check-to-the-question"></span>
+
 ## 2. Match the check to the question {#check-methods}
 
 These methods are not ranked from basic to advanced, nor do they have a fixed cost order. An executor can be expensive; a human check can be quick. Choose based on what you need to establish.

@@ -53,7 +53,16 @@ $$
 \eta_{\rm opt}=0.3118\,C^{-0.1250},\qquad B_{\rm opt}=0.2920\,C^{0.3271}.
 $$
 
-这里的 $C=M\cdot D$，$M$ 是每个 token 不含 embedding 的 FLOPs（含 attention 的计算），$B$ 以 token 计。代入 $C=10^{22}$：$\eta_{\rm opt}=0.3118\times10^{-2.75}\approx5.5\times10^{-4}$，$B_{\rm opt}=0.2920\times10^{7.196}\approx4.6\text{M}$ token。论文自己强调：接近最优的区域很宽，所以这只是起点；同样的算力下，模型和数据分配不同，最优区域也会挪。Bergsma 等则认为按 $C$ 拟合 batch 有误导性，因为它实际主要取决于 $D$。他们还用 AdamW 的时间尺度 $\tau=B/(\eta\lambda D)$（$\lambda$ 是 weight decay）来定 weight decay：$N$、$D$ 固定时最优 $\lambda$ 和 $B$ 成正比，batch 加倍，weight decay 也该加倍；最优 $\tau$ 本身随每参数 token 数按幂律下降，约为 $(D/N)^{-0.5}$。Qwen3 报告（2025-05）也说为每个预训练阶段拟合了预测学习率 schedule 和 batch size 的 scaling law，但没有公开系数。
+这里的 $C=M\cdot D$，$M$ 是每个 token 不含 embedding 的 FLOPs（含 attention 的计算），$B$ 以 token 计。代入 $C=10^{22}$：$\eta_{\rm opt}=0.3118\times10^{-2.75}\approx5.5\times10^{-4}$，$B_{\rm opt}=0.2920\times10^{7.196}\approx4.6\text{M}$ token。论文自己强调：接近最优的区域很宽，所以这只是起点；同样的算力下，模型和数据分配不同，最优区域也会挪。Bergsma 等则认为按 $C$ 拟合 batch 有误导性，因为它实际主要取决于 $D$。
+
+[Power Lines 的 §2.4](https://arxiv.org/html/2505.13738v2) 用 AdamW 的时间尺度 $\tau=B/(\eta\lambda D)$ 来联系 batch 和 weight decay。这里 $\eta$ 是峰值学习率，$\lambda$ 是 weight decay。**“batch 加倍，weight decay 也加倍”的前提是峰值学习率不变**，同时固定 $N$、$D$，以及按训练进度定义的 schedule 形状。论文在所测的 batch 区间里发现这个关系有用；超过临界 batch 后，最优时间尺度也开始偏移。如果学习率也变了，要在固定 $D$ 时保持 $\tau$，应按下面的比例换算：
+
+$$
+\frac{\lambda_{\rm new}}{\lambda_{\rm old}}=
+\frac{B_{\rm new}/B_{\rm old}}{\eta_{\rm new}/\eta_{\rm old}}.
+$$
+
+接着上面的例子，batch ×4、学习率 ×2，weight decay 就应 ×2，而不是 ×4。这只是保持了公式中的时间尺度，不保证新配置就是最优。模型或数据规模改变时，论文把最优 $\tau$ 拟合为约 $(D/N)^{-0.5}$，并不是一直固定它。Qwen3 报告（2025-05）也说为每个预训练阶段拟合了预测学习率 schedule 和 batch size 的 scaling law，但没有公开系数。
 
 ## Schedule：cosine 要先定长度，WSD 可以最后再定
 

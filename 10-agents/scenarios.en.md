@@ -31,7 +31,7 @@ As soon as an agent reads uncontrolled content such as web pages, email, or docu
 
 ## How to evaluate
 
-- code: SWE-bench, now mostly SWE-bench Pro;
+- code: SWE-bench; consider SWE-bench Pro, which OpenAI recommended in its February 2026 post linked above;
 - web tasks: WebArena;
 - using a computer: OSWorld;
 - dialogue and tools under policy constraints: τ-bench and its successors τ²/τ³-bench.

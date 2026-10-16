@@ -76,6 +76,6 @@
 
 1. [格式与误差](formats-and-error.md)：scale 和 zero-point，per-tensor、per-channel、per-group，INT 与 FP 的格子，块缩放的 MXFP4 与 NVFP4，离群值为什么伤害大，哪代硬件能算哪种格式
 2. [只压权重，与训练后量化](weight-only-and-ptq.md)：W4A16 为什么让 decode 变快、batch 多大时失效，GPTQ 的误差补偿，AWQ 的通道放大，SmoothQuant 的 W8A8
-3. [FP8 推理与 KV cache 量化](fp8-and-kv-cache.md)：FP8 的 scale 怎么定，FP8 / MXFP8 / NVFP4 训练要处理什么，128K 上下文时 KV 量化省下多少，key 为什么要按通道量化
+3. [FP8 推理与 KV cache 量化](fp8-and-kv-cache.md)：FP8 的 scale 怎么定，FP8 / MXFP8 / NVFP4 训练要处理什么，128K 上下文时 KV 量化省下多少，KIVI 为什么选择按通道量化 key
 4. [怎样测出丢了多少](checking-quality.md)：困惑度（perplexity）、KL 散度、任务准确率和逐题翻转，配对比较，长上下文和多语言切片，每次量化要记下什么，常见故障
 5. [复习题](review.md)：面试题和自检

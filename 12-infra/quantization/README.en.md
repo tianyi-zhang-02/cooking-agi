@@ -76,6 +76,6 @@ These help first: [Precision and memory](../../00-foundations/deep-dives/precisi
 
 1. [Formats and error](formats-and-error.en.md): scale and zero-point, per-tensor, per-channel and per-group, INT versus FP grids, block-scaled MXFP4 and NVFP4, why outliers do so much damage, and which hardware generation computes which format
 2. [Weight-only quantization and post-training quantization](weight-only-and-ptq.en.md): why W4A16 speeds up decode and at what batch it stops helping, GPTQ's error compensation, AWQ's channel scaling, SmoothQuant's W8A8
-3. [FP8 inference and KV-cache quantization](fp8-and-kv-cache.en.md): how FP8 scales are set, what FP8 / MXFP8 / NVFP4 training has to handle, what KV quantization saves at 128K context, and why keys should be quantized per channel
+3. [FP8 inference and KV-cache quantization](fp8-and-kv-cache.en.md): how FP8 scales are set, what FP8 / MXFP8 / NVFP4 training has to handle, what KV quantization saves at 128K context, and why KIVI chooses per-channel key quantization
 4. [How to measure what was lost](checking-quality.en.md): perplexity, KL divergence, task accuracy and flipped answers, paired comparison, long-context and multilingual slices, what to record for every quantization, common failures
 5. [Review](review.en.md): interview questions and a self-check

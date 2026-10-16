@@ -106,6 +106,8 @@ h_t=(1-z_t)\odot n_t+z_t\odot h_{t-1}.$$
 
 <span id="_5"></span><span id="_1"></span>
 
+<span id="self-check"></span>
+
 ## 证据：怎么证明它真的在记，而不是碰巧猜对 {#_4}
 
 1. 把依赖距离从 8 增加到 64，准确率如何变化？

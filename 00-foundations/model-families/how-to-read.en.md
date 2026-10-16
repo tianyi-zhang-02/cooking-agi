@@ -36,7 +36,7 @@ For example, the FFN usually acts token by token, while attention aggregates inf
 
 Suppose there are 16 query heads, 4 KV heads, and head dimension 64. There are still 16 queries per position, with each KV head shared by 4 query heads. Take one request of 4,096 tokens, 24 layers and BF16, and compute the KV cache as $2BTLH_{\mathrm{KV}}d_hs$: 16 KV heads need 384 MiB and 4 need 96 MiB. [Original GQA paper](https://arxiv.org/abs/2305.13245)
 
-The skill to practise here is to find which cost a change reduces, then ask what other costs remain. The KV cache becomes one quarter of its previous size, **not the whole model's memory use or request latency**. The [GQA section of the Llama walkthrough](llama.en.md#gqa-cache) works through the full calculation: what each symbol means, code you can change, and the weights and activations that do not shrink. Sliding windows, quantization, or specialized caches need different accounting.
+The skill to practise here is to find which cost a change reduces, then ask what other costs remain. The KV cache becomes one quarter of its previous size, **not the whole model's memory use or request latency**. The [GQA section of the Llama walkthrough](llama.en.md#gqa-cache) works through the full calculation: what each symbol means, code you can change, and why weights and activations do not all shrink by the cache reduction factor. Sliding windows, quantization, or specialized caches need different accounting.
 
 ## Step 4: separate prefill and decode
 

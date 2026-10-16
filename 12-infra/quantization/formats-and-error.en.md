@@ -20,8 +20,10 @@ $$
 
 $s$ is the scale, the step between two neighboring grid points; $z$ is the zero-point, the integer that corresponds to the real value 0; $\hat x$ is the approximation you read back. [Jacob et al. (Google, 2017-12)](https://arxiv.org/abs/1712.05877) define $z$ this way so that 0 is represented exactly, because many operators pad with zeros at the borders. Two common choices:
 
-- **Symmetric**: $z=0$, INT4 uses $-7$ to $7$ (leaving out $-8$ to keep positive and negative symmetric), $s=\max|x|/7$.
-- **Asymmetric**: INT4 uses $0$ to $15$, $s=(\max x-\min x)/15$, $z=\operatorname{round}(-\min x/s)$.
+- **Symmetric**: $z=0$, INT4 uses $-7$ to $7$ (leaving out $-8$ to keep positive and negative symmetric), $s=\max|x|/7$ for a nonzero tensor.
+- **Asymmetric**: use unsigned 4-bit codes from $0$ to $15$. First include zero in the calibration interval: $a=\min(0,\min x)$, $b=\max(0,\max x)$. Then $s=(b-a)/15$, $z=\operatorname{clamp}(\operatorname{round}(-a/s),0,15)$. The zero-point is now a valid code, so real zero is reconstructed exactly.
+
+For an all-zero tensor, either scheme can use $s=1$, $z=0$, with all codes zero, avoiding division by zero. A constant nonzero tensor also works with the extended asymmetric interval. For example, calibration values $[1,2]$ need the interval $[0,2]$: $s=2/15$, $z=0$. Using $[1,2]$ directly would give $z=-15$; quantizing real zero would then clamp its code to 0 and reconstruct **1**, not 0.
 
 As long as $x$ is in range, the rounding error is at most $s/2$; if the error is uniform on $[-s/2,s/2]$, the MSE is about $s^2/12$. **Halve the step and the squared error drops to a quarter.**
 
@@ -49,7 +51,7 @@ The per-tensor MSE is 0.0042, the same order as $s^2/12=0.0033$; with groups it 
 
 ### Swap in one outlier
 
-Replace 1.40 with 14.0. The per-tensor scale becomes $14/7=2$; the other 7 values are all below 0.5 after dividing by 2 and all round to 0, so their MSE rises from 0.0042 to about 0.296, seventy times as much. With groups, the first group is unaffected, the other 3 values in the second group become 0, and the MSE over the 7 values is about 0.143. **Grouping does not remove an outlier; it only confines the damage to its own group.**
+Replace 1.40 with 14.0. The per-tensor scale becomes $14/7=2$; the other 7 values have magnitudes below 0.5 after dividing by 2 and all round to 0. Compare the **same seven unchanged values** before and after: their MSE rises from 0.0048 to about 0.29623, roughly 61.7 times as much. Averaging over all eight values instead gives 0.0042 → 0.2592, the same ratio: the maximum is reconstructed exactly in both cases. With groups, the first group is unaffected, the other 3 values in the second group become 0, and the MSE over the seven unchanged values is about 0.143. **Grouping does not remove an outlier; it only confines the damage to its own group.**
 
 [SmoothQuant (2022-11)](https://arxiv.org/abs/2211.10438) puts this into one number: with 8-bit per-tensor quantization, a channel whose maximum is $m_i$ gets only about $2^8\cdot m_i/m$ grid points, where $m$ is the maximum of the whole matrix. In the activations of OPT and similar models they saw outliers about 100 times larger than most values, leaving non-outlier channels with only two or three grid points. The outliers are not random either:
 
@@ -88,7 +90,9 @@ An INT grid is evenly spaced; an FP grid divides each power-of-two interval even
 | E5M2 | 1 / 5 / 2 | 15 | 57,344 | $2^{-14}$ | $2^{-2}$, i.e. 25% |
 | INT8 (symmetric, for comparison) | — | — | $127s$ | — | $s$ everywhere |
 
-E4M3 has no infinities and uses only one mantissa pattern for NaN, and the encodings saved push its maximum to 448; E5M2 keeps the IEEE 754 special values. E4M3 has a gap of 1 between 8 and 16 and a gap of 4 between 32 and 64: **the absolute error grows with the value while the relative error stays roughly constant**, at worst about half the gap, about 6.25% for E4M3.
+E4M3 has no infinities and uses only one mantissa pattern for NaN, and the encodings saved push its maximum to 448; E5M2 keeps the IEEE 754 special values. E4M3 has a gap of 1 between 8 and 16 and a gap of 4 between 32 and 64. **For scaled values in the normal range, without overflow or clipping**, round-to-nearest has a relative error bounded by about 6.25%; the absolute error grows with magnitude.
+
+That bound does not cover subnormal values or underflow. At scale 1, E4M3 rounds $0.001$ to $2^{-9}=0.001953125$, a relative error of 95.3125%. Smaller nonzero values can round to zero, giving 100% relative error. The scale determines which values land in this region.
 
 Compare by hand. Four numbers, $[0.02,\ -0.3,\ 1.7,\ 12.0]$, each with a per-tensor scale that maps the maximum to the top of the format: E4M3 uses $s=12/448\approx0.0268$, INT8 uses $s=12/127\approx0.0945$.
 
@@ -143,24 +147,48 @@ Being in the table does not mean being fast. As of October 2026, NVIDIA's [HGX p
 ```python
 def quantize_sym(values, bits=4):
     qmax = 2 ** (bits - 1) - 1
-    scale = max(abs(v) for v in values) / qmax
-    codes = [max(-qmax, min(qmax, round(v / scale))) for v in values]
-    return scale, codes, [c * scale for c in codes]
+    maximum = max(abs(value) for value in values)
+    scale = maximum / qmax if maximum else 1.0
+    codes = [max(-qmax, min(qmax, round(value / scale))) for value in values]
+    return scale, codes, [code * scale for code in codes]
 
-def mse(a, b):
-    return sum((x - y) ** 2 for x, y in zip(a, b)) / len(a)
+def quantize_asym(values, bits=4):
+    qmax = 2 ** bits - 1
+    lower = min(0.0, min(values))
+    upper = max(0.0, max(values))
+    scale = (upper - lower) / qmax if upper > lower else 1.0
+    zero_point = max(0, min(qmax, round(-lower / scale)))
+    codes = [max(0, min(qmax, round(value / scale) + zero_point)) for value in values]
+    return scale, zero_point, codes, [scale * (code - zero_point) for code in codes]
 
-w = [0.12, -0.53, 0.88, -0.07, 0.31, 1.40, -0.95, 0.02]
-scale, codes, restored = quantize_sym(w)
+def mse(expected, restored):
+    return sum((value - estimate) ** 2 for value, estimate in zip(expected, restored)) / len(expected)
+
+weights = [0.12, -0.53, 0.88, -0.07, 0.31, 1.40, -0.95, 0.02]
+scale, codes, restored = quantize_sym(weights)
 assert codes == [1, -3, 4, 0, 2, 7, -5, 0]
-assert abs(mse(w, restored) - 0.0042) < 1e-9
+assert abs(mse(weights, restored) - 0.0042) < 1e-9
 
-grouped = quantize_sym(w[:4])[2] + quantize_sym(w[4:])[2]
-assert abs(mse(w, grouped) - 0.0018592) < 1e-6
+grouped = quantize_sym(weights[:4])[2] + quantize_sym(weights[4:])[2]
+assert abs(mse(weights, grouped) - 0.0018592) < 1e-6
 
-w_out = w[:5] + [14.0] + w[6:]
-_, codes_out, restored_out = quantize_sym(w_out)
+outlier_weights = weights[:5] + [14.0] + weights[6:]
+_, codes_out, restored_out = quantize_sym(outlier_weights)
 assert codes_out == [0, 0, 0, 0, 0, 7, 0, 0]
+assert abs(mse(outlier_weights, restored_out) - 0.2592) < 1e-9
+
+unchanged_weights = weights[:5] + weights[6:]
+before = mse(unchanged_weights, restored[:5] + restored[6:])
+after = mse(unchanged_weights, restored_out[:5] + restored_out[6:])
+assert abs(before - 0.0048) < 1e-9
+assert abs(after - 0.2962285714) < 1e-9
+assert abs(after / before - 61.7142857143) < 1e-9
+
+scale, zero_point, codes, restored = quantize_asym([1.0, 2.0])
+assert abs(scale - 2.0 / 15) < 1e-12
+assert zero_point == 0
+assert scale * (zero_point - zero_point) == 0.0
+assert quantize_asym([0.0, 0.0]) == (1.0, 0, [0, 0], [0.0, 0.0])
 ```
 
 Change `bits` to 8, or change the group length to 2, and watch the MSE. Python's `round` rounds half to even, matching the default rounding of most hardware.

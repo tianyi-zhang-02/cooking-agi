@@ -53,7 +53,16 @@ $$
 \eta_{\rm opt}=0.3118\,C^{-0.1250},\qquad B_{\rm opt}=0.2920\,C^{0.3271}.
 $$
 
-Here $C=M\cdot D$, where $M$ is the non-embedding FLOPs per token (including the attention computation), and $B$ is in tokens. At $C=10^{22}$: $\eta_{\rm opt}=0.3118\times10^{-2.75}\approx5.5\times10^{-4}$ and $B_{\rm opt}=0.2920\times10^{7.196}\approx4.6\text{M}$ tokens. The paper itself stresses that the near-optimal region is wide, so this is only a starting point, and that at the same compute a different split between model and data moves the optimal region. Bergsma et al. argue that fitting batch size against $C$ is misleading because it mainly depends on $D$. They also use AdamW's timescale $\tau=B/(\eta\lambda D)$ ($\lambda$ is weight decay) to set weight decay: at fixed $N$ and $D$ the optimal $\lambda$ is proportional to $B$, so doubling the batch should double the weight decay; the optimal $\tau$ itself falls as a power law in tokens per parameter, roughly $(D/N)^{-0.5}$. The Qwen3 report (2025-05) also says it fitted scaling laws to predict the learning-rate schedule and batch size for each pretraining stage, without publishing the coefficients.
+Here $C=M\cdot D$, where $M$ is the non-embedding FLOPs per token (including the attention computation), and $B$ is in tokens. At $C=10^{22}$: $\eta_{\rm opt}=0.3118\times10^{-2.75}\approx5.5\times10^{-4}$ and $B_{\rm opt}=0.2920\times10^{7.196}\approx4.6\text{M}$ tokens. The paper itself stresses that the near-optimal region is wide, so this is only a starting point, and that at the same compute a different split between model and data moves the optimal region. Bergsma et al. argue that fitting batch size against $C$ is misleading because it mainly depends on $D$.
+
+[Power Lines, §2.4](https://arxiv.org/html/2505.13738v2) uses AdamW's timescale $\tau=B/(\eta\lambda D)$ to relate batch size and weight decay. Here $\eta$ is the peak learning rate and $\lambda$ is weight decay. **Doubling the batch implies doubling weight decay only when the peak learning rate stays fixed**, with the same $N$, $D$ and schedule shape as a function of training progress. The paper finds this useful over the tested batch range; beyond the critical batch, the optimal timescale begins to drift. If the learning rate changes too, preserving $\tau$ at fixed $D$ instead gives
+
+$$
+\frac{\lambda_{\rm new}}{\lambda_{\rm old}}=
+\frac{B_{\rm new}/B_{\rm old}}{\eta_{\rm new}/\eta_{\rm old}}.
+$$
+
+For the example above, batch ×4 and learning rate ×2 call for weight decay ×2, not ×4. This preserves the stated timescale; it does not prove that the new configuration is optimal. When changing model or data size, the paper fits the optimal $\tau$ roughly as $(D/N)^{-0.5}$, rather than keeping it fixed. The Qwen3 report (2025-05) also says it fitted scaling laws to predict the learning-rate schedule and batch size for each pretraining stage, without publishing the coefficients.
 
 ## Schedule: cosine needs the length up front, WSD can decide it last
 

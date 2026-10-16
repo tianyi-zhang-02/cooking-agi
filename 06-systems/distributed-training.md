@@ -211,6 +211,8 @@ $$
 
 EP 则是另一个问题：一条 token 选中两个专家，若专家在远端，就要发送激活，并把结果送回原位置后加权合并。[Megatron 的 MoE 并行说明](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md)展示了它怎样与其他并行方式组合。选中专家的比例不是通信字节比例，更不保证固定倍数加速；热点专家仍可能让别的卡等待。
 
+<span id="dp"></span><span id="pp-kv"></span>
+
 ## 推理部署时，卡怎么分？ {#eight-gpus}
 
 训练里的并行方式，到了推理部署要换个问法：同样是八张 GPU，是八张合作跑一份模型（TP8），还是八份模型各接各的请求（DP8）？MoE 的专家怎样跨副本分布？PP 的 KV 存在哪张卡、相邻 stage 每步传多少字节？这几笔账放在 [vLLM 与 SGLang：多张 GPU 的拼法](inference-frameworks.md#deployment-map)，和推理引擎的调度一起讲。

@@ -20,8 +20,10 @@ $$
 
 $s$ 是 scale，也就是相邻两个格子之间的步长；$z$ 是 zero-point，即实数 0 对应的那个整数；$\hat x$ 是读回来的近似值。[Jacob 等（Google，2017-12）](https://arxiv.org/abs/1712.05877)这样定义 $z$，理由是让 0 能被精确表示，因为很多算子要在边界补零。两种常见取法：
 
-- **对称**：$z=0$，INT4 取 $-7$ 到 $7$（为了正负对称，不用 $-8$），$s=\max|x|/7$。
-- **非对称**：INT4 取 $0$ 到 $15$，$s=(\max x-\min x)/15$，$z=\operatorname{round}(-\min x/s)$。
+- **对称**：$z=0$，INT4 取 $-7$ 到 $7$（为了正负对称，不用 $-8$），张量不全为零时 $s=\max|x|/7$。
+- **非对称**：用 $0$ 到 $15$ 的无符号 4 位码值。先把校准区间扩到包含 0：$a=\min(0,\min x)$，$b=\max(0,\max x)$。再取 $s=(b-a)/15$，$z=\operatorname{clamp}(\operatorname{round}(-a/s),0,15)$。这样 zero-point 落在合法码值范围里，实数 0 才能精确还原。
+
+全零张量可以统一取 $s=1$、$z=0$，码值全为 0，避免除零。所有值都相同但不为零时，扩过的非对称区间也能正常算。比如校准数据是 $[1,2]$，应该用 $[0,2]$，得到 $s=2/15$、$z=0$。若直接用 $[1,2]$，就会算出 $z=-15$；实数 0 的码值被截到 0 后，读回来反而是 **1**。
 
 只要 $x$ 在范围内，舍入误差不超过 $s/2$；如果误差在 $[-s/2,s/2]$ 上均匀分布，均方误差约为 $s^2/12$。**步长减半，误差平方降到四分之一。**
 
@@ -49,7 +51,7 @@ per-tensor 的 MSE 是 0.0042，和 $s^2/12=0.0033$ 同一量级；分组以后�
 
 ### 换进一个离群值
 
-把 1.40 换成 14.0。per-tensor 的 scale 变成 $14/7=2$，其余 7 个数除以 2 以后都小于 0.5，全部舍成 0，它们的 MSE 从 0.0042 涨到约 0.296，七十倍。分组时，前一组不受影响，后一组的另外 3 个数被压成 0，7 个数的 MSE 约 0.143。**分组不能消除离群值，只能把它的伤害关在自己那一组里。**
+把 1.40 换成 14.0。per-tensor 的 scale 变成 $14/7=2$，其余 7 个数除以 2 以后的绝对值都小于 0.5，全部舍成 0。前后都只看**同样的 7 个未改动的数**，MSE 从 0.0048 涨到约 0.29623，约 61.7 倍。如果都按 8 个数算，则是 0.0042 → 0.2592，倍数相同，因为最大值在两种情况下都能精确还原。分组时，前一组不受影响，后一组的另外 3 个数被压成 0，那 7 个未改动的数的 MSE 约 0.143。**分组不能消除离群值，只能把它的伤害关在自己那一组里。**
 
 [SmoothQuant（2022-11）](https://arxiv.org/abs/2211.10438)把这件事写成一个数：8 位 per-tensor 量化时，最大值为 $m_i$ 的通道只能用到约 $2^8\cdot m_i/m$ 个格子，$m$ 是整个矩阵的最大值。他们在 OPT 等模型的激活里看到离群值比多数值大约 100 倍，非离群通道只剩两三个格子可用。离群值也不是随机出现的：
 
@@ -88,7 +90,9 @@ INT 的格子等距，FP 的格子在每个 2 的幂区间里等分，越靠近 
 | E5M2 | 1 / 5 / 2 | 15 | 57,344 | $2^{-14}$ | $2^{-2}$，即 25% |
 | INT8（对称，对照） | — | — | $127s$ | — | 处处都是 $s$ |
 
-E4M3 不表示无穷大，NaN 只占一个尾数编码，省下的编码用来把最大值推到 448；E5M2 沿用 IEEE 754 的特殊值。E4M3 在 8 到 16 之间的间隔是 1，在 32 到 64 之间是 4：**绝对误差随数值变大，相对误差大致不变**，最坏约为间隔的一半，E4M3 约 6.25%。
+E4M3 不表示无穷大，NaN 只占一个尾数编码，省下的编码用来把最大值推到 448；E5M2 沿用 IEEE 754 的特殊值。E4M3 在 8 到 16 之间的间隔是 1，在 32 到 64 之间是 4。**缩放后的数落在正规数范围（normal range）内，且没有溢出或截断时**，就近舍入的相对误差上界约为 6.25%，绝对误差则随数值变大。
+
+次正规数（subnormal）和下溢不受这个界约束。scale 为 1 时，E4M3 把 $0.001$ 舍入成 $2^{-9}=0.001953125$，相对误差是 95.3125%；更小的非零数可能直接舍成 0，相对误差达到 100%。哪些数会落到这里，和 scale 的选择有关。
 
 手算对比。4 个数 $[0.02,\ -0.3,\ 1.7,\ 12.0]$，都用 per-tensor scale 把最大值对到格式的顶端：E4M3 取 $s=12/448\approx0.0268$，INT8 取 $s=12/127\approx0.0945$。
 
@@ -143,24 +147,48 @@ MX 两行出自 OCP MX 规范 v1.0 的表 1（同一张表还有 MXFP6 和 MXINT
 ```python
 def quantize_sym(values, bits=4):
     qmax = 2 ** (bits - 1) - 1
-    scale = max(abs(v) for v in values) / qmax
-    codes = [max(-qmax, min(qmax, round(v / scale))) for v in values]
-    return scale, codes, [c * scale for c in codes]
+    maximum = max(abs(value) for value in values)
+    scale = maximum / qmax if maximum else 1.0
+    codes = [max(-qmax, min(qmax, round(value / scale))) for value in values]
+    return scale, codes, [code * scale for code in codes]
 
-def mse(a, b):
-    return sum((x - y) ** 2 for x, y in zip(a, b)) / len(a)
+def quantize_asym(values, bits=4):
+    qmax = 2 ** bits - 1
+    lower = min(0.0, min(values))
+    upper = max(0.0, max(values))
+    scale = (upper - lower) / qmax if upper > lower else 1.0
+    zero_point = max(0, min(qmax, round(-lower / scale)))
+    codes = [max(0, min(qmax, round(value / scale) + zero_point)) for value in values]
+    return scale, zero_point, codes, [scale * (code - zero_point) for code in codes]
 
-w = [0.12, -0.53, 0.88, -0.07, 0.31, 1.40, -0.95, 0.02]
-scale, codes, restored = quantize_sym(w)
+def mse(expected, restored):
+    return sum((value - estimate) ** 2 for value, estimate in zip(expected, restored)) / len(expected)
+
+weights = [0.12, -0.53, 0.88, -0.07, 0.31, 1.40, -0.95, 0.02]
+scale, codes, restored = quantize_sym(weights)
 assert codes == [1, -3, 4, 0, 2, 7, -5, 0]
-assert abs(mse(w, restored) - 0.0042) < 1e-9
+assert abs(mse(weights, restored) - 0.0042) < 1e-9
 
-grouped = quantize_sym(w[:4])[2] + quantize_sym(w[4:])[2]
-assert abs(mse(w, grouped) - 0.0018592) < 1e-6
+grouped = quantize_sym(weights[:4])[2] + quantize_sym(weights[4:])[2]
+assert abs(mse(weights, grouped) - 0.0018592) < 1e-6
 
-w_out = w[:5] + [14.0] + w[6:]
-_, codes_out, restored_out = quantize_sym(w_out)
+outlier_weights = weights[:5] + [14.0] + weights[6:]
+_, codes_out, restored_out = quantize_sym(outlier_weights)
 assert codes_out == [0, 0, 0, 0, 0, 7, 0, 0]
+assert abs(mse(outlier_weights, restored_out) - 0.2592) < 1e-9
+
+unchanged_weights = weights[:5] + weights[6:]
+before = mse(unchanged_weights, restored[:5] + restored[6:])
+after = mse(unchanged_weights, restored_out[:5] + restored_out[6:])
+assert abs(before - 0.0048) < 1e-9
+assert abs(after - 0.2962285714) < 1e-9
+assert abs(after / before - 61.7142857143) < 1e-9
+
+scale, zero_point, codes, restored = quantize_asym([1.0, 2.0])
+assert abs(scale - 2.0 / 15) < 1e-12
+assert zero_point == 0
+assert scale * (zero_point - zero_point) == 0.0
+assert quantize_asym([0.0, 0.0]) == (1.0, 0, [0, 0], [0.0, 0.0])
 ```
 
 把 `bits` 改成 8，或者把组长改成 2，看 MSE 怎样变。Python 的 `round` 是就近取偶，和多数硬件的默认舍入一致。

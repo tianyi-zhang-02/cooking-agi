@@ -65,6 +65,8 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 <span id="_4"></span><span id="factorization"></span>
 
+<span id="self-check"></span>
+
 ## Post-Training 到底改变了什么 {#post-training}
 
 SFT、preference learning 与 RL 并没有换一种模型。它们在同一个自回归分布上改变：训练样本来自哪里、哪些 token 计入 loss、不同输出如何被比较、回报如何分配给整条 trajectory。
