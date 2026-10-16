@@ -276,6 +276,10 @@
     ]
   },
   {
+    "source": "05-post-training/README.md",
+    "lost": ["_2", "_3", "_4", "_5", "_6", "_7"]
+  },
+  {
     "source": "05-post-training/README.en.md",
     "lost": [
       "1-three-stages-use-three-different-kinds-of-supervision"
