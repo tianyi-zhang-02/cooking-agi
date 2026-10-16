@@ -2,9 +2,7 @@
 
 [中文](transformer.md) · **English**
 
-> Reading time: ~15 min · Level: intro → advanced · Last reviewed: 2026-10
->
-> The main line is enough on its own. Collapsed blocks marked **Deeper** hold derivations and edge cases; skipping them does not affect understanding.
+> Reading time: ~12 min · Level: intro → advanced · Last reviewed: 2026-10
 
 <div class="lesson-recipe advanced">
   <div><span>What we are dissecting</span><strong>the Transformer, from block diagram back down to matrix operations and properties you can check</strong></div>
@@ -17,31 +15,24 @@
 
 The Transformer is one concrete way to build the "learned coordinate transform $\phi$" from [the previous page](from-linear-to-neural.en.md): **attention moves information across positions; the FFN processes it at a single position.** The two alternate in a stack, and at the end it is still a linear classifier that reads out the answer.
 
-## How the two kinds of computation work together {#how-the-two-kinds-of-computation-work-together}
-
 - **Attention**: lets each position read information from other positions according to relevance.
 - **FFN**: transforms features independently inside each position.
 - **Residual connection**: keeps the original state and adds each sublayer's change on top of it.
 - **Stacking N layers**: repeats cross-position communication and per-position transformation, building up layer by layer a representation usable for prediction.
 
+This page connects the parts; each part's derivation has its own note: scaling, masks and Q/K/V in [multi-head attention](core/multi-head-attention.en.md), where the norm goes in [normalization](core/normalization.en.md), and SwiGLU in [FFN and gates](core/ffn-and-gates.en.md). What this page owns is the three uses of Q/K/V, the RoPE code, one Noam-schedule pitfall, and how to prove with tests that a from-scratch implementation is right.
+
 ## Scaled dot-product attention {#scaled-dot-product-attention}
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 
-Write out the full shapes first and the question "why must it be $d_k$" goes away:
+Write out the full shapes first:
 
 $$Q\in\mathbb{R}^{T_q\times d_k},\qquad
 K\in\mathbb{R}^{T_k\times d_k},\qquad
 V\in\mathbb{R}^{T_k\times d_v}.$$
 
-Every score in $QK^\top$ is a dot product of one query and one key over **$d_k$
-components**, so the standard scale uses $\sqrt{d_k}$; this is a scale choice, not a matrix-multiplication requirement. Matrix multiplication only
-requires $Q$ and $K$ to share their last dimension; $V$ only needs the same number of
-tokens $T_k$ as $K$, and its feature dimension $d_v$ may differ. Standard multi-head
-attention usually sets $d_v=d_k=d_{\text{model}}/h$ so that concatenation is convenient;
-that is a common design, not a mathematical requirement of the attention formula. For
-example, with $d_{\text{model}}=768$ and $h=12$, each head has $d_k=64$, and the divisor
-is $\sqrt{64}$, not $\sqrt{768}$.
+$Q$ and $K$ must share their last dimension for the dot product; $V$ only needs the same number of tokens $T_k$ as $K$, and its feature dimension $d_v$ may differ. Standard multi-head attention sets $d_v=d_k=d_{\text{model}}/h$ so that concatenation is convenient; that is a common design, not a requirement of the formula. The scale uses each head's $d_k$: with $d_{\text{model}}=768$ and $h=12$, $d_k=64$, and the divisor is $\sqrt{64}$, not $\sqrt{768}$.
 
 Broken down to a single query $\mathbf{q}_i$:
 
@@ -55,75 +46,13 @@ Softmax maps arbitrary real scores to positive weights that sum to one:
 
 $$\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}}.$$
 
-For example, $[2,1,0]$ becomes approximately $[0.665,0.245,0.090]$. It does not keep only
-the top score; it lets one query read several positions at once. Attention applies softmax
-**row by row over the last dimension** of the score matrix: row $i$ answers "how much weight
-should query $i$ give to each key $j$". Therefore
+For example, $[2,1,0]$ becomes approximately $[0.665,0.245,0.090]$. It does not keep only the top score; it lets one query read several positions at once. Attention applies softmax **row by row over the last dimension** of the score matrix: row $i$ answers "how much weight should query $i$ give to each key $j$". In one line: $QK^\top$ decides **where to read**; multiplying the weights by $V$ decides **in what proportions to combine what was read**.
 
-$$A=\operatorname{softmax}_{j}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right),
-\qquad O=AV,\qquad \mathbf{o}_i=\sum_j A_{ij}\mathbf{v}_j.$$
+Three common follow-ups are each worked through in [multi-head attention](core/multi-head-attention.en.md):
 
-In one line: $QK^\top$ decides **where to read**; $AV$ decides **in what proportions to combine what was read**.
-
-### Why divide by $\sqrt{d_k}$ {#why-divide-by-sqrtd_k}
-
-Assume the components of $q$ and $k$ are independent with mean 0 and variance 1. Then
-
-$$\mathbb{E}[\mathbf{q}^\top\mathbf{k}] = 0, \qquad \text{Var}(\mathbf{q}^\top\mathbf{k}) = \sum_{i=1}^{d_k}\text{Var}(q_i k_i) = d_k$$
-
-The standard deviation is $\sqrt{d_k}$, or 8 when $d_k=64$. Larger score gaps can drive softmax toward one-hot, but large absolute values alone do not: `[8, 8]` still gives `[0.5, 0.5]`. Dividing by $\sqrt{d_k}$ restores unit variance under this simplifying assumption, reducing the risk of early saturation.
-
-<details markdown="1">
-<summary><b>Deeper</b>: near one-hot, which gradient becomes small?</summary>
-
-The softmax Jacobian is
-
-$$\frac{\partial\, \text{softmax}(z)_i}{\partial z_j} = \alpha_i(\delta_{ij} - \alpha_j)$$
-
-As one weight approaches one and the others approach zero, both diagonal and off-diagonal entries approach zero. With bounded values and upstream gradients, gradients through attention weights back to scores become small. That is a limit, not a claim of exactly zero gradients at every finite score, nor a claim that the entire network has no gradient.
-
-Sigmoid also has $\sigma'(z)=\sigma(1-\sigma)$ tending to zero, but the downstream loss matters. With binary cross-entropy, the logit gradient is $\sigma(z)-y$, which can remain large for a confidently wrong prediction. One operator's derivative is not automatically the final loss gradient.
-
-</details>
-
-### Python: attention itself {#python-attention-itself}
-
-```python
-import torch, torch.nn.functional as F
-
-def attention(q, k, v, mask=None):
-    """q: (B,H,Tq,dk)  k: (B,H,Tk,dk)  v: (B,H,Tk,dv)"""
-    scores = q @ k.transpose(-2, -1) / q.size(-1) ** 0.5   # (B, H, Tq, Tk)
-    if mask is not None:
-        scores = scores.masked_fill(mask, float("-inf"))
-    if torch.isneginf(scores).all(dim=-1).any():
-        raise ValueError("Each query must have at least one allowed key")
-    attn = scores.softmax(dim=-1)                          # every row sums to 1
-    return attn @ v, attn
-```
-
-This code uses `True` for blocked positions and assumes finite scores at allowed positions. Set blocked scores to `-inf` before softmax; setting them to zero still assigns weight. Zeroing weights afterwards without renormalizing is also not equivalent. See the worked example in [multi-head attention](core/multi-head-attention.en.md).
-
-<details markdown="1">
-<summary><b>Follow-up</b>: what does attention become if $Q=K$?</summary>
-
-In that case the score matrix before scaling is the Gram matrix $QQ^\top$, so it is
-symmetric and positive semidefinite. After row-wise softmax, however, it is generally
-**no longer symmetric**, because each row has its own normalizing denominator.
-
-- All queries identical: every dot product is the same, and every attention row is a
-  uniform distribution.
-- Queries mutually orthogonal with equal norm: the diagonal score is largest; attention
-  approaches the identity matrix only when the norm is large enough relative to the
-  softmax temperature.
-- The general case: positions more similar to a position itself receive more weight, but
-  there is no guarantee that it attends only to itself.
-
-So $Q=K$ does not make attention fail; it only turns "matching between two projected
-spaces" into similarity inside one space. What really determines the output is still
-row-wise softmax and $V$.
-
-</details>
+- **Why divide by $\sqrt{d_k}$**: under the simplifying assumption of independent, unit-variance components, the dot product has variance $d_k$; dividing by $\sqrt{d_k}$ brings it back to 1, so the softmax does not sharpen early just because the width grew. The variance derivation, the `[8, −8]` example, and why the gradient shrinks are in [that section](core/multi-head-attention.en.md#why-divide-by-sqrtd_k).
+- **Where the mask goes**: set blocked positions to `-inf` before the softmax; setting them to 0 still assigns weight, and zeroing after the softmax without renormalizing is not equivalent either. The two-score example is in [the six common mistakes](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong).
+- **What $Q=K$ does**: the pre-scaling scores $QQ^\top$ are symmetric, the row-wise softmax is generally not, and attention does not stop working; see the [interview questions](core/multi-head-attention.en.md#common-interview-questions).
 
 ### Do the three projection matrices have any "actual meaning"? {#do-the-three-projection-matrices-have-any-actual-meaning}
 
@@ -133,45 +62,8 @@ $$Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V.$$
 
 The answer has two levels:
 
-- **A single parameter value or a single coordinate usually has no fixed human meaning.**
-  With a different random seed, the coordinate axes and weight values can be completely
-  different while the model still implements similar behavior.
-- **The computational roles carried by the three matrices are meaningful.** $W_Q$ produces
-  queries, $W_K$ produces the keys used for matching, and $W_V$ decides what content is
-  actually transmitted after a match.
-
-Why separate Q and K? Consider only self-attention over one sequence and force
-$W_Q=W_K=W$. Then
-
-$$S=XWW^\top X^\top$$
-
-is symmetric, and the raw compatibility score must satisfy $S_{ij}=S_{ji}$. Once they are
-separate,
-
-$$S=XW_QW_K^\top X^\top,$$
-
-$W_QW_K^\top$ need not be symmetric, so the raw score can express directional relations.
-Three things must be distinguished here:
-
-1. what is symmetric is the **raw score before the mask and softmax**;
-2. row-wise softmax has a different denominator in every row, so the resulting attention
-   weights are generally not symmetric;
-3. the causal mask itself also breaks symmetry.
-
-Why is V separate as well? Q/K are the addressing interface; V is the content being read.
-Two positions can match because of one kind of feature while what needs to be transmitted
-after the match is a different group of features; $W_V$ decouples "why it was found" from
-"what to take from it". The database analogy is usable, but do not read it as three
-manually named semantic fields.
-
-More strictly, these internal coordinates are not unique. For any invertible matrix $R$, let
-
-$$Q'=QR,\qquad K'=KR^{-\top},$$
-
-and $Q'K'^\top=QK^\top$ still holds. In other words, the internal basis can be swapped with
-the function completely unchanged. Interpreting an isolated entry such as $W_Q[17,42]$ is
-therefore usually meaningless; what is meaningful is the function implemented by the whole
-projection, its causal effect on the output, and the interface constraints among Q, K, and V.
+- **A single parameter value or a single coordinate usually has no fixed human meaning.** With a different random seed, the coordinate axes and weight values can be completely different while the model still implements similar behavior; for any invertible matrix $R$, replacing $Q,K$ with $QR$ and $KR^{-\top}$ leaves the scores unchanged.
+- **The computational roles carried by the three matrices are meaningful.** $W_Q$ produces queries, $W_K$ produces the keys used for matching, and $W_V$ decides what content is actually transmitted after a match. Only with separate $W_Q$ and $W_K$ can $W_QW_K^\top$ be asymmetric, so that "$i$ queries $j$" and "$j$ queries $i$" can differ; $W_V$ decouples "why it was found" from "what to take from it".
 
 ## One module, three uses: changing where Q/K/V come from {#one-module-three-uses-changing-where-qkv-come-from}
 
@@ -210,15 +102,7 @@ $$\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W
 
 This equation follows the original paper's interface notation: Q/K/V here are the three **pre-projection inputs**, all equal to X in self-attention. It does not project the already-projected tensors from the opening section a second time.
 
-One head shares one weight distribution across all its value channels. Splitting a fixed width into $h$ heads allows several such distributions. Projection and main matmul costs remain comparable, but attention-weight storage and kernel overhead can differ. Equal total width does not mean identical runtime.
-
-The implementation does not need $h$ groups of small matrices: use one $(d_{\text{model}}, d_{\text{model}})$ projection and **reshape** it into $h$ heads — mathematically equivalent, but only a single GEMM.
-
-```python
-q = self.w_q(x).view(B, T, h, d_k).transpose(1, 2)   # (B, T, C) -> (B, h, T, d_k)
-# ... attention ...
-y = out.transpose(1, 2).reshape(B, T, h * d_k)       # merge back
-```
+One head has one set of softmax weights; splitting a fixed width into $h$ heads gives $h$ sets of attention relations at a similar projection cost. The implementation does not need $h$ groups of small matrices: one $(d_{\text{model}}, d_{\text{model}})$ projection reshaped into $h$ heads needs only a single GEMM. The reshape order is the most common from-scratch mistake; it, and why multiple heads are not "a bigger width", are covered in [multi-head attention](core/multi-head-attention.en.md).
 
 ## Training stability: why post-norm depends on warmup {#training-stability-why-post-norm-depends-on-warmup}
 
@@ -232,11 +116,13 @@ $$\mathbf{x} \leftarrow \mathbf{x} + \text{Sublayer}\big(\text{Norm}(\mathbf{x})
 
 ![the residual path under post-norm and pre-norm](assets/transformer-block.en.svg)
 
-The change affects the gradient path, not just notation. [Research on LayerNorm placement](https://arxiv.org/abs/2002.04745) found large expected gradients near the output of Post-LN models under particular initialization assumptions; warmup can temper early updates. The original Noam schedule is
+The change affects the gradient path, not just notation: Pre-LN keeps an identity term on the residual trunk and is often easier to train, but initialization, depth, and learning rate still matter, and warmup does not automatically become unnecessary. The Jacobian derivation and the warmup result of [Xiong et al.](https://arxiv.org/abs/2002.04745) are in question 3 of [normalization](core/normalization.en.md#four-concepts-answer-first-then-go-deeper).
+
+The original Noam schedule is
 
 $$\text{lr}(t) = d_{\text{model}}^{-0.5} \cdot \min\big(t^{-0.5},\; t \cdot t_{\text{warmup}}^{-1.5}\big)$$
 
-It increases linearly, then decays with the inverse square root of the step. Neither “six layers inevitably explode” nor “training cannot start without this schedule” follows. Pre-LN preserves an identity term on the residual path and is often easier to train, but initialization, depth, and learning rate still matter. Warmup does not automatically become unnecessary.
+It increases linearly, then decays with the inverse square root of the step. Neither “six layers inevitably explode” nor “training cannot start without this schedule” follows.
 
 > Field note: `LambdaLR` **multiplies base_lr by** the lambda. Set Adam's `lr` to 0 and attach a Noam schedule, and the learning rate stays 0 forever, while dropout noise makes the loss look like it is still moving. This pitfall is common.
 
@@ -281,7 +167,7 @@ def apply_rope(x, cos, sin):
                       x1 * sin + x2 * cos], dim=-1)
 ```
 
-⚠️ There are two pairing conventions: split-half (channel $i$ pairs with $i + d/2$; GPT-NeoX and Llama after Hugging Face conversion) and adjacent pairs (channel $2i$ with $2i+1$; the RoFormer paper and [Meta's original Llama code](https://github.com/meta-llama/llama/blob/main/llama/model.py)). They differ by a channel permutation, so **weights are not interchangeable**: the Hugging Face converter permutes $W_Q$/$W_K$ to fit split-half. This is a classic pitfall when converting models; [position and context](deep-dives/position-and-context.en.md) works through the numbers.
+⚠️ There are two pairing conventions: split-half (channel $i$ pairs with $i + d/2$; GPT-NeoX and Llama after Hugging Face conversion) and adjacent pairs (channel $2i$ with $2i+1$; the RoFormer paper and [Meta's original Llama code](https://github.com/meta-llama/llama/blob/main/llama/model.py)). They differ by a channel permutation, so **weights are not interchangeable**: the Hugging Face converter permutes $W_Q$/$W_K$ to fit split-half. This is a classic pitfall when converting models; [RoPE and long context](deep-dives/position-and-context.en.md#rotary-layout) works through the numbers.
 
 ## What else the modern decoder-only model changed {#what-else-the-modern-decoder-only-model-changed}
 
@@ -296,17 +182,10 @@ This table describes the choices in the teaching implementation, not a universal
 | FFN | ReLU, $4d$ | SwiGLU, $\tfrac{8}{3}d$ |
 | Inference | autoregressive; self/cross-attention K/V can be cached | preallocated KV cache |
 
-**RMSNorm** drops the mean-subtraction step and has no bias:
+Newer models change a few more things beyond this table: QK-norm, MLA, and linear attention in some layers; see [decoder-only](core/decoder-only.en.md#1-the-modern-block-at-a-glance).
 
-$$\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_i x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}$$
-
-It omits centered variance; actual speed depends on kernels and hardware, and quality needs evaluation. This code computes the mean square in fp32 and casts back to the activation dtype to reduce low-precision reduction error. A mean square is not a variance.
-
-**SwiGLU** replaces ReLU with gating:
-
-$$\text{SwiGLU}(\mathbf{x}) = \big(\text{SiLU}(\mathbf{x}W_g) \odot \mathbf{x}W_u\big)W_d, \qquad \text{SiLU}(z) = z\cdot\sigma(z)$$
-
-Here x is a row vector, $W_g,W_u\in\mathbb R^{d\times h}$ and $W_d\in\mathbb R^{h\times d}$. The three matrices have about 3dh parameters. Choosing $h=\frac83d$ matches the roughly 8d² parameters of a two-matrix FFN with hidden width 4d, before hardware-oriented rounding.
+- **RMSNorm** drops mean subtraction and the bias and only rescales by the root mean square (formula, and whether its success proves centering useless, in [normalization](core/normalization.en.md)). This code computes the mean square in fp32 and casts back to the activation dtype to reduce low-precision reduction error; a mean square is not a variance.
+- **SwiGLU** replaces ReLU with a gated projection; the three matrices have about $3dh$ parameters, and choosing $h=\frac83d$ matches a two-matrix FFN of hidden width $4d$. The worked numbers are in the "matched budget" section of [FFN and gates](core/ffn-and-gates.en.md).
 
 **GQA** lets each group of $n_{\text{rep}}$ query heads share one set of K/V heads. For one sequence with the same configuration at every layer, raw KV-cache bytes are
 

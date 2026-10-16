@@ -38,8 +38,7 @@ $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M
 **为什么除 $\sqrt{d_k}$，不是 $\sqrt{d_v}$ 或 $\sqrt{d_{\text{model}}}$**：分数来自
 $QK^\top$，每个分数恰好加了 $d_k$ 个乘积。Q/K 最后一维必须相同，V 的特征维
 可以不同；只是在标准 MHA 中通常令 $d_v=d_k$。例如 768 维、12 个头，单头
-$d_k=64$，所以除 $\sqrt{64}$。完整推导与 $Q=K$ 的极端情况见
-[Transformer 架构深拆](transformer.md#_2)。
+$d_k=64$，所以除 $\sqrt{64}$。方差推导见[多头注意力](core/multi-head-attention.md#sqrtd_k)，$Q=K$ 的追问见同一篇的[面试常见问题](core/multi-head-attention.md#_7)。
 
 时间 $O(T^2 d)$、显存 $O(T^2)$。那个 $T\times T$ 矩阵就是长上下文的瓶颈，也是 FlashAttention 的动机：**根本不把它算出来存下**。
 
@@ -129,7 +128,7 @@ x = LN(x + FFN(x))           x = x + FFN(LN(x))
                              x = LN(x)   ← 常见的 final LN
 ```
 
-**为什么常用 Pre-LN**：它在残差主干保留恒等项，不需要每一层都先穿过 LN。Xiong 等人的分析还发现，Post-LN 在初始化时靠近输出层的期望梯度可能较大，warmup 有助于避免初期更新过猛。论文在自己的实验设置里让 Pre-LN 不用 warmup 也能训练；这不是所有模型都可以取消 warmup 的保证。
+**为什么常用 Pre-LN**：它在残差主干保留恒等项，梯度不必每层都先穿过 LN，所以对 warmup 的依赖更低；但这不保证所有模型都能取消 warmup。Jacobian 推导和 Xiong 等人的结论适用到哪里，见[归一化](core/normalization.md#_3)第 3 问。
 
 **实现时检查**：Pre-LN 的最终残差输出通常还会经过一次归一化，再进入输出头。这是常见训练配方，不是数学上唯一可行的做法；复现时要跟具体模型的配置一致。
 
@@ -159,7 +158,7 @@ scores = np.where(mask, -np.inf, scores)             # 加 -inf，不是置零
 
 **为什么必须在 softmax 之前**（追问重点）：加 $-\infty$ 后 $e^{-\infty}=0$，**softmax 在剩余位置上重新归一化**，数学上等价于「那些位置不存在」。
 
-在 softmax **之后**置零则**破坏归一化**——每行不再和为 1，而且破得不均匀：位置 1 只能看自己，被删掉的质量最多，输出被缩得最狠。等于给每个位置乘了一个意义不明的衰减系数。
+在 softmax **之后**置零则**破坏归一化**——每行不再和为 1，而且破得不均匀：位置 1 只能看自己，被删掉的质量最多，输出被缩得最狠。等于给每个位置乘了一个意义不明的衰减系数。用两个分数算一遍，见[多头注意力](core/multi-head-attention.md#_5)。
 
 **工程细节**：全被屏蔽的行没有合法的概率分布。直接对全 `-inf` 行做 softmax 会产生 NaN；换成有限负数可能得到均匀分布，也不是正确答案，而且 `-1e9` 超出了 fp16 的有限范围。应明确处理无有效 key 的 query，检查所用 attention API 的全掩码行为，并让 padding 不参与后续 loss。softmax 后屏蔽再正确归一化在数学上可以等价，但只置零不行。
 

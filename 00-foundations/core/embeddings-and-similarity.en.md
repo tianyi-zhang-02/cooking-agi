@@ -56,7 +56,7 @@ Subtract the largest logit before exponentiating to avoid overflow without chang
 
 Suppose training pairs an image with one caption among several candidates. A contrastive objective increases the paired caption's relative probability. Gradients update the encoders to produce vectors that help with this objective. [InfoNCE](https://arxiv.org/abs/1807.03748) is a classic contrastive formulation.
 
-“Semantic similarity” is not the only possible target: describing the same object, answering the same question, and appealing to the same person are different relationships. Different data and objectives can induce different useful distances.
+“Semantic similarity” is not the only possible target: describing the same object, answering the same question, and appealing to the same person are different relationships. Different data and objectives can induce different useful distances. The gap between CLIP, trained on image–text pairs, and self-supervised DINO on pixel-level tasks is one example (see [vision foundation models](../../13-embodied/perception/foundation-models.en.md)); whether a direction in the vector can be read as a concept is covered in [features and superposition](../../11-frontier/interpretability/features-and-superposition.en.md).
 
 ## Check it yourself
 

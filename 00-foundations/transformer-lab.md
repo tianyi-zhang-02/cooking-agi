@@ -41,7 +41,7 @@
 
 <!-- widget:tx-kv-cache -->
 
-切到“没有 cache”再看一遍，注意两条累计柱的差距。在层数和维度固定时，attention 的单步工作量从 $O(t^2)$ 降到 $O(t)$，代价是 cache 随长度增长。小 batch 解码常受读取权重和 KV 的带宽限制；大 batch、不同 kernel 或硬件下，瓶颈可能不同。下一节只比较 KV 存储，不据此保证吞吐量。
+切到“没有 cache”再看一遍，注意两条累计柱的差距。在层数和维度固定时，attention 的单步工作量从 $O(t^2)$ 降到 $O(t)$，代价是 cache 随长度增长。小 batch 解码常受读取权重和 KV 的带宽限制（batch 变大后怎样变化，见[推理性能](../12-infra/performance.md#decode-batching)）；大 batch、不同 kernel 或硬件下，瓶颈可能不同。下一节只比较 KV 存储，不据此保证吞吐量。
 
 ## 压缩 cache：MHA → GQA → MQA → MLA
 
@@ -134,7 +134,7 @@ MoE 把一个 FFN 换成多个 expert，再由 router 为每个 token 选其中 
 
 ## 继续阅读
 
-- [Transformer 架构](transformer.md) —— 这一页所有机制的公式、推导和从零实现
+- [Transformer 架构](transformer.md) —— 这一页所有机制的公式、从零实现，以及各个推导的入口
 - [Multi-head attention](core/multi-head-attention.md) 与 [Decoder-only](core/decoder-only.md) —— 必修章节里的逐步拆解
 
 ## 参考论文

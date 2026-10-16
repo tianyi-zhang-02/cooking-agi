@@ -4,7 +4,7 @@
 
 > Reading time: ~10 min · Level: core · Last reviewed: 2026-10
 
-Suppose the input is `[2, 3]` and a sublayer produces an update `[0.1, -0.2]`. Adding them gives `[2.1, 2.8]`. If the update is zero, the input passes through unchanged. This simple addition changes the function the layer learns and provides a direct path for backpropagation.
+Suppose the input is `[2, 3]` and a sublayer produces an update `[0.1, -0.2]`. Adding them gives `[2.1, 2.8]`. If the update is zero, the input passes through unchanged. **This simple addition lets each sublayer learn only how much to change the existing representation, and leaves gradients a path that bypasses the sublayer.**
 
 ## The residual path provides an identity map {#the-residual-path-provides-an-identity-map}
 
@@ -79,9 +79,9 @@ Residuals, dropout, and normalization solve different problems, but their **rela
 
 $$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm, 2017}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm, inside branch}}$$
 
-Post-norm multiplies the block Jacobian by the normalization Jacobian, so the skip is no longer a pure identity. [On Layer Normalization](https://arxiv.org/abs/2002.04745) analyzes the connection to gradients at initialization and warmup; it does not prove every configuration must—or need not—use warmup.
+Post-norm multiplies each layer's gradient by the normalization Jacobian, so the skip is no longer a pure identity. The Jacobian derivation, and how far the warmup result of [On Layer Normalization](https://arxiv.org/abs/2002.04745) carries, are in question 3 of [normalization](normalization.en.md#four-concepts-answer-first-then-go-deeper).
 
-Pre-norm moves normalization inside the branch and preserves the identity path. Layer updates still add to the residual stream, but whether its scale grows depends on their correlations and initialization. Implementations commonly add a final norm to control the scale entering the output head; that does not fix every intermediate-layer issue.
+Pre-norm moves normalization inside the branch and preserves the identity path. Layer updates still add to the residual stream, but whether its scale grows depends on their correlations and initialization. Some newer architectures stop adding every layer on equal terms: [Attention Residuals](../deep-dives/attention-residuals.en.md) let each layer weight the outputs of earlier layers, and [mHC in DeepSeek-V4](../model-families/deepseek-v4.en.md) splits the residual into several streams with a constrained mixing matrix. Implementations commonly add a final norm to control the scale entering the output head; that does not fix every intermediate-layer issue.
 
 ![post-norm versus pre-norm residual paths](../assets/transformer-block.en.svg)
 
@@ -123,7 +123,7 @@ Inspect activation and gradient distributions before choosing initialization, re
 
 Pre-norm often makes deep networks easier to optimize because normalization stays in the branch rather than the main skip. Suitable learning rates, initialization, and training budgets still matter.
 
-Post-norm normalizes each residual output and has different training and representation behavior. Compare quality at matched budgets rather than claiming one universally wins.
+Post-norm normalizes each residual output and has different training and representation behavior. Compare quality at matched budgets rather than claiming one universally wins. The gradient-path derivation is in [normalization](normalization.en.md#four-concepts-answer-first-then-go-deeper).
 
 </details>
 

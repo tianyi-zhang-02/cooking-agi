@@ -2,7 +2,7 @@
 
 [中文](normalization.md) · **English**
 
-> Reading time: ~16 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~17 min · Level: core · Last reviewed: 2026-10
 
 Take `[1, 3]`, temporarily ignoring epsilon and learned parameters. LayerNorm subtracts the mean, 2, and divides by the standard deviation, 1, giving `[-1, 1]`. RMSNorm instead divides by the root mean square, √5, without centering. Both change scale, but they are different operations. Next we place them inside a batch of sequences and identify the reduction axes.
 
@@ -219,7 +219,7 @@ $$
 I+J_{f_\ell}J_{\operatorname{LN}}.
 $$
 
-Even when the branch contribution is small, $I$ remains a direct gradient path. The more careful claim is that Pre-LN **significantly reduces** the dependence of deep training on warmup; it does not guarantee that every configuration needs no warmup at all.
+Even when the branch contribution is small, $I$ remains a direct gradient path. The more careful claim is that Pre-LN **significantly reduces** the dependence of deep training on warmup; it does not guarantee that every configuration needs no warmup at all. [Xiong et al. (2020)](https://arxiv.org/abs/2002.04745) used mean-field analysis to show that, at initialization, Post-LN has large expected gradients for parameters near the output layer, which warmup keeps from causing overly large early updates; Pre-LN gradients are well behaved at initialization, and their experiments trained it without warmup. That holds in the paper's setting; it is not a theorem that every configuration must, or need not, use warmup.
 
 Pre-LN has its own trade-off. Residual-stream scale can grow, and later-layer updates may become small relative to the main stream, reducing effective depth. Final LN repairs the output scale, not every expressivity issue.
 

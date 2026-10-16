@@ -4,7 +4,7 @@
 
 > 阅读时间：约 10 分钟 · 难度：必修 · 最近审阅：2026-10
 
-把“明天见”翻成 “See you tomorrow”，输入和输出既不等长，也不用逐字对应。Seq2Seq 用一个 encoder 读取输入，再让 decoder 逐步生成输出。问题是：写到 `tomorrow` 时，decoder 怎样找到输入里与时间有关的信息？这正是 attention 要解决的问题。
+把“明天见”翻成 “See you tomorrow”，输入和输出既不等长，也不用逐字对应。Seq2Seq 用一个 encoder 读取输入，再让 decoder 逐步生成输出。问题是：写到 `tomorrow` 时，decoder 怎样找到输入里与时间有关的信息？这正是 attention 要解决的问题。**Seq2Seq 把“读输入”和“逐步写输出”分给两个模块；只靠一个固定向量传递输入，decoder 生成时就不能再单独查某个输入位置，attention 让它每一步都能回头查。**
 
 ## 先建立整体结构 {#_1}
 
@@ -49,7 +49,7 @@ flowchart TB
 
 $$\mathcal{L} = -\sum_{t=1}^{T}\log p_\theta(y_t \mid y_{<t}, x)$$
 
-训练时可以知道完整正确前缀，推理时错误会进入后续上下文并继续传播。这种 train–inference mismatch 常被称为 exposure bias。
+训练时可以知道完整正确前缀，推理时错误会进入后续上下文并继续传播。这种 train–inference mismatch 常被称为 exposure bias。机器人模仿学习里也有同一个问题，误差会沿轨迹累积，见[模仿学习](../../13-embodied/robot-learning/imitation.md)。
 
 把目标设成 `9, 4, 7, EOS`，右移一位后，decoder 的输入和监督目标这样配对：
 

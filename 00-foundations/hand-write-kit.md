@@ -23,7 +23,7 @@ python3 00-foundations/code/interview_kit.py
 | **softmax** | 不减 max 会溢出 | 「减了为什么还对？」——softmax 对输入平移不变，分子分母同乘 $e^c$ 约掉，所以减 max 是免费的 |
 | **BCE from logits** | 先算 $p$ 再取 log，$p$ 下溢到 0 就 $-\infty$ | 「梯度是多少」——$p-y$，$\sigma'$ 被约掉了 |
 | **LayerNorm** | `eps` 在根号里面；方差除以 $N$ 而不是 $N-1$；这份实现只沿最后一维 | 换成 `normalized_shape=(T,d)` 就会跨时间归一化，不再是逐 token 的配置 |
-| **attention + causal mask** | 除 $\sqrt{d_k}$；掩码加在 softmax **之前** | 「softmax 之后置零行不行」——不行，破坏归一化 |
+| **attention + causal mask** | 除 $\sqrt{d_k}$；掩码加在 softmax **之前** | 「softmax 之后置零行不行」——不行，破坏归一化（两个分数的例子见[多头注意力](core/multi-head-attention.md#_5)） |
 | **KV cache 解码** | 单 token query，且 cache 只有合法的过去与当前位置时，可省 causal mask | padding、滑窗和多 token 解码仍可能需要 mask；不能一概省略 |
 | **top-k / top-p** | top-p 要保留**跨过阈值的那一个**，且至少留 1 个 | 「最大概率就超过 p 怎么办」——写成 `cum <= p` 会把 token 全删光 |
 | **MLP 前向 + 反向** | 先说明 loss 的 mean / sum，再沿链式法则传播 | 普通 ReLU 下 `z1 > 0` 和 `a1 > 0` 等价；其他激活函数不能照搬 |
@@ -43,7 +43,7 @@ $$
 | 输入或场景 | 会发生什么 | 这份实现怎么处理 |
 | --- | --- | --- |
 | `[1000, 1001, 1002]` | 直接取指数会溢出 | 先减最大值 |
-| FP16 的 65,536 个零 | 每个指数都是 1，但 FP16 的求和仍会溢出 | 至少用 FP32 计算，返回 FP32；不立即转回 FP16 |
+| FP16 的 65,536 个零 | 每个指数都是 1，但 FP16 求和装不下 65,536：NumPy 的成对求和会溢出成 `inf`，逐个累加则停在 2048，结果悄悄出错 | 至少用 FP32 计算，返回 FP32；不立即转回 FP16 |
 | `[0, -inf]` | 第二项被 mask | 返回 `[1, 0]` |
 | `[-inf, -inf]` | 没有可选位置，分布没有定义 | 报错；不擅自改成均匀分布 |
 | 包含 `NaN` 或 `+inf` | 通常要检查上游计算 | 报错；不能把它们当作 mask |

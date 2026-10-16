@@ -4,7 +4,7 @@
 
 > 阅读时间：约 10 分钟 · 难度：必修 · 最近审阅：2026-10
 
-输入是 `[2, 3]`，一个子层算出修正量 `[0.1, -0.2]`，残差相加后就是 `[2.1, 2.8]`。如果修正量为零，输入可以原样通过。这个简单的加法既改变了模型学习函数的方式，也给反向传播留了一条直接路径。
+输入是 `[2, 3]`，一个子层算出修正量 `[0.1, -0.2]`，残差相加后就是 `[2.1, 2.8]`。如果修正量为零，输入可以原样通过。**这个简单的加法让每个子层只学“在原表示上改多少”，并给梯度留一条绕过子层的直通路径。**
 
 <span id="_1"></span>
 
@@ -85,9 +85,9 @@ Dropout 放到 $x$ 上时，直接通路的 Jacobian 从 $I$ 变成随机对角�
 
 $$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm，2017 原版}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm，分支内归一化}}$$
 
-Post-norm 的 Jacobian 要再乘上 Norm 的 Jacobian，不再是纯恒等 skip。[On Layer Normalization](https://arxiv.org/abs/2002.04745)分析了这类结构与初始化时梯度、warmup 的关系；它不是所有配置都“必须 / 不必 warmup”的定理。
+Post-norm 的梯度每层都要再乘一次 Norm 的 Jacobian，不再是纯恒等 skip。Jacobian 推导，以及 [On Layer Normalization](https://arxiv.org/abs/2002.04745) 对 warmup 的结论适用到哪里，放在[归一化](normalization.md#_3)的第 3 问。
 
-pre-norm 把 norm 挪进分支里，保留恒等通路。各层更新仍会不断加到残差上，但尺度是否增大，还取决于更新之间的相关性和初始化。常见实现会在末尾加一个 final norm，控制送入输出头的尺度；它不负责解决所有中间层的问题。
+pre-norm 把 norm 挪进分支里，保留恒等通路。各层更新仍会不断加到残差上，但尺度是否增大，还取决于更新之间的相关性和初始化。有些新架构不再让每层平等地累加：[Attention Residuals](../deep-dives/attention-residuals.md) 让每层按权重组合前面各层的输出，[DeepSeek-V4 的 mHC](../model-families/deepseek-v4.md) 把残差拆成多条流并约束混合矩阵。常见实现会在末尾加一个 final norm，控制送入输出头的尺度；它不负责解决所有中间层的问题。
 
 ![post-norm 与 pre-norm 的残差通路](../assets/transformer-block.svg)
 
@@ -129,7 +129,7 @@ $$\operatorname{Var}(x+f)=\operatorname{Var}(x)+\operatorname{Var}(f)+2\operator
 
 Pre-norm 通常更容易优化深层网络，因为 Norm 位于分支而非主 skip 上；它仍需要合适的学习率、初始化和训练预算。
 
-Post-norm 逐层归一化残差输出，训练条件和表示行为不同。质量结论要在可比预算下测，不能直接排出所有模型通用的优劣顺序。
+Post-norm 逐层归一化残差输出，训练条件和表示行为不同。质量结论要在可比预算下测，不能直接排出所有模型通用的优劣顺序。梯度路径的推导见[归一化](normalization.md#_3)。
 
 </details>
 

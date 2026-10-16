@@ -430,7 +430,7 @@ These are comparisons to try, not fixed rules by data type. Use the same splits,
 ## Quick learning: from linear readout to learned feature map {#quick-learning-from-linear-readout-to-learned-feature-map}
 
 <details class="interview" markdown="1">
-<summary>The one-line spine, the standard answer, and a function-approximator deep dive</summary>
+<summary>The one-line spine and the standard answer</summary>
 
 **Quick memory**: a linear model draws a hyperplane in a given feature space. A neural network uses nonlinear layers to learn new coordinates $\phi_\theta(x)$, and a linear head reads the result out.
 
@@ -438,12 +438,8 @@ These are comparisons to try, not fixed rules by data type. Use the same splits,
 
 > Stacked linear layers without activations can still be merged into one matrix. With nonlinearities such as ReLU, the network can learn a piecewise nonlinear feature map that makes a complex boundary in the original space linearly separable in hidden space. A linear final layer does not make the whole model linear.
 
-<details markdown="1">
-<summary><b>Deep dive</b>: why does universal approximation not mean “it will certainly learn well”?</summary>
+If asked about universal approximation, go back to [the section above](#are-they-all-function-approximators-in-the-end): it is an existence result, not a promise that training will find or generalize the function.
 
-It only says that, in a sufficiently large function family, parameters **exist** that approximate a continuous function on a compact domain. It does not guarantee that gradient descent finds them, that finite data identifies them, that the parameter count is affordable, that the model extrapolates out of distribution, or that it generalizes in the end. Expressivity, optimization, and generalization are three different things.
-
-</details>
 </details>
 
 ## Reference papers {#reference-papers}

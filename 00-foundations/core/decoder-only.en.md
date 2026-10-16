@@ -2,7 +2,7 @@
 
 [中文](decoder-only.md) · **English**
 
-> Reading time: ~32 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~15 min · Level: core · Last reviewed: 2026-10
 
 When generating “It is raining,” the model needs the prefix before choosing what follows it. During training, the complete sentence is available, so predictions at several positions can be computed together. During generation, future tokens do not exist yet. This distinction explains the decoder-only structure, causal mask, and KV cache.
 
@@ -110,213 +110,42 @@ As of October 2026, open models show three more common changes: Qwen3 and Gemma 
 [Gated DeltaNet](../deep-dives/gated-deltanet.en.md) layers with a fixed-size recurrent state and only 15 are
 [Gated Attention](../deep-dives/gated-attention.en.md) layers, in a 3:1 pattern.
 
-### 2. RoPE: relative phase in Q and K {#2-rope-relative-phase-in-q-and-k}
+<span id="2-rope-relative-phase-in-q-and-k"></span><span id="3-pre-norm-and-rmsnorm-protecting-the-residual-stream"></span><span id="4-swiglu-content-and-a-learned-gate"></span><span id="5-mha-mqa-and-gqa-reducing-kv-width"></span><span id="6-kv-cache-trading-memory-for-historical-recomputation"></span><span id="7-flashattention-the-same-formula-with-less-memory-traffic"></span><span id="8-long-context-position-extrapolation-and-quadratic-cost-are-different-problems"></span><span id="9-moe-scaling-ffn-capacity-not-attention-heads"></span>
 
-The original Transformer adds positional encoding to input embeddings. RoPE first
-forms Q and K, then rotates them according to token position. Here $Q_m,K_n$ denote
-single-head position vectors written as columns:
+### 2. The other eight parts, and what each one changes {#2-the-other-eight-parts-and-what-each-one-changes}
 
-$$
-\begin{gathered}
-Q=XW_Q\\
-K=XW_K\\
-Q'_m=R_mQ_m\\
-K'_n=R_nK_n.
-\end{gathered}
-$$
+The changes listed in the previous card sit in different parts of the block. Each row records only what the part changes and the point most often stated wrong; the derivations live in the linked notes.
 
-The two-dimensional rotation matrix is
+| Part | What it changes | The point most often stated wrong | Where it is explained |
+| --- | --- | --- | --- |
+| RoPE | Rotates Q/K by position in every layer; V is not rotated | Position enters the dot product only as $n-m$, while the score still depends on content; far beyond the training length you still need RoPE scaling | [The Transformer architecture](../transformer.en.md#positional-encoding-from-sinusoids-to-rope), [RoPE and long context](../deep-dives/position-and-context.en.md) |
+| Pre-norm + RMSNorm | Moves the norm into the branch; divides by the root mean square without centering or bias | The trunk keeps an identity path and the stack still ends with a final norm; using RMSNorm does not by itself make a model better | [Normalization](normalization.en.md#four-concepts-answer-first-then-go-deeper) |
+| SwiGLU | Adds a gating projection to the FFN | The gate is SiLU, not a probability, and can be negative; with three matrices the hidden width is often about $\tfrac83d$ to keep the parameter budget | [FFN and gates](ffn-and-gates.en.md) |
+| GQA / MQA | Several query heads share one K/V head | Heads that share K/V still attend differently because their Q differs; the saving is in the KV cache, not total parameters | [KV cache and inference cost](../deep-dives/kv-cache-and-inference.en.md) |
+| KV cache | Stores past K/V; a new step computes only $q_t,k_t,v_t$ | It equals recomputing the prefix only with the same weights, prefix, positions, and visibility, and dropout off; it grows linearly with layers, length, and KV heads | [KV cache and inference cost](../deep-dives/kv-cache-and-inference.en.md) |
+| FlashAttention | Tiles Q/K/V, computes block by block in on-chip GPU memory, and keeps the normalization right with online softmax | It computes the same attention, not a sparse approximation; FLOPs stay about $O(L^2)$, and the saving is memory traffic | [Attention kernels](../deep-dives/attention-kernels.en.md), [GPU memory hierarchy](../../12-infra/gpu-architecture.en.md), [CUDA tiling](../../12-infra/cuda.en.md#tiling) |
+| Long context | RoPE scaling, sliding windows, sparse connectivity, or mixed local / global layers | Position extrapolation and quadratic cost are separate problems; identify the bottleneck first (below the table) | [RoPE and long context](../deep-dives/position-and-context.en.md), [MLA and sparse attention](../deep-dives/latent-and-sparse-attention.en.md) |
+| MoE | Replaces the FFN with several experts; a router picks a few per token | Total parameters can far exceed those active per token; the cost is load balancing, expert capacity, and cross-device all-to-all communication; experts need not learn a nameable division of labor | [MoE](../moe/README.en.md) |
 
-$$
-R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.
-$$
+For long context, first ask which bottleneck you face:
 
-Real implementations pair channels and use different frequencies across channel
-pairs: $R_m$ rotates channel pair $i$ by angle $m\theta_i$, applying $R(m\theta_i)$. Writing $q_m,k_n$ for the column vectors $Q_m,K_n$ above (the query at position $m$ and the key at position $n$), their dot product obeys
+- position distributions beyond the training length → RoPE scaling / frequency adjustment;
+- quadratic computation and intermediate state of full attention → windowed / sparse connectivity or an efficient kernel;
+- distant evidence cannot reach the query → global pathways, retrieval, or layer mixing.
 
-$$
-\begin{gathered}
-(R_mq_m)^\top(R_nk_n)=\\
-q_m^\top R_{n-m}k_n,
-\end{gathered}
-$$
-
-so attention scores naturally depend on relative distance $n-m$. V is normally not
-rotated because position controls where to read rather than the content being read.
-RoPE does not provide unlimited extrapolation: positions far beyond the training
-length may still require frequency adjustment or RoPE scaling.
-
-### 3. Pre-norm and RMSNorm: protecting the residual stream {#3-pre-norm-and-rmsnorm-protecting-the-residual-stream}
-
-The original post-norm form is
-
-$$
-Y=\operatorname{LayerNorm}(X+F(X)).
-$$
-
-Modern pre-norm blocks commonly use
-
-$$
-Y=X+F(\operatorname{Norm}(X)).
-$$
-
-Pre-norm preserves a more direct identity path for residual states and gradients,
-which usually makes very deep networks easier to train. A final norm is typically
-applied after the full block stack.
-
-LayerNorm centers and scales:
-
-$$
-\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.
-$$
-
-RMSNorm controls only root-mean-square magnitude:
-
-$$
-\begin{gathered}
-\operatorname{RMSNorm}(x)=\\
-\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
-\end{gathered}
-$$
-
-Thus LayerNorm adjusts center and scale; RMSNorm usually has no mean subtraction or
-bias and adjusts only scale. It is simpler to compute, but choosing RMSNorm does not
-by itself guarantee a better model.
-
-### 4. SwiGLU: content and a learned gate {#4-swiglu-content-and-a-learned-gate}
-
-This chapter represents each token as a row vector. The original FFN expands, applies ReLU, and projects back down (biases omitted here):
-
-$$
-\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.
-$$
-
-Modern models often use SwiGLU:
+The FFN row is where dimensions most often go wrong. This chapter writes a token as a row vector: the original FFN is $\operatorname{ReLU}(xW_1)W_2$ (bias omitted), and SwiGLU is
 
 $$
 \begin{gathered}
 g=\operatorname{SiLU}(xW_{\text{gate}}),\\
 u=xW_{\text{up}},\\
-\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}.
+\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}},
 \end{gathered}
 $$
 
-$$
-\operatorname{SiLU}(z)=z\sigma(z).
-$$
+with $W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$, $W_{\text{down}}\in\mathbb R^{h\times d}$, and $\operatorname{SiLU}(z)=z\sigma(z)$. The next card keeps this notation and walks through the whole block.
 
-$xW_{\text{up}}$ produces candidate content, while
-$\operatorname{SiLU}(xW_{\text{gate}})$ controls how much of each feature passes.
-SiLU is not a probability: it can be negative or exceed 1. With
-$W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$ and $W_{\text{down}}\in\mathbb R^{h\times d}$,
-the elementwise product is projected back to $d$ dimensions. Because SwiGLU uses three
-projections rather than two, its hidden width is usually adjusted to keep a similar
-parameter budget instead of blindly retaining $4d$.
-
-### 5. MHA, MQA, and GQA: reducing KV width {#5-mha-mqa-and-gqa-reducing-kv-width}
-
-Standard MHA gives every query head its own K and V head:
-
-```text
-Q heads: 32   K heads: 32   V heads: 32
-```
-
-MQA shares one K/V head across all query heads. GQA shares one K/V head within each
-group of query heads:
-
-```text
-MQA: Q=32, KV=1
-GQA: Q=32, KV=8   # four Q heads share each KV head
-```
-
-Query heads can still produce different attention distributions because their Q
-vectors differ even when K and V are shared. MQA saves the most memory bandwidth but
-may lose representational capacity; GQA trades between quality and inference
-efficiency. The primary motivation is narrower K/V state during inference, not merely
-fewer total parameters.
-
-### 6. KV cache: trading memory for historical recomputation {#6-kv-cache-trading-memory-for-historical-recomputation}
-
-At generation step $t$, K and V for earlier tokens have already been computed. Causal masking prevents those states from depending on later tokens, so they remain reusable when weights, prefix, and other conditions stay fixed. Each layer stores
-
-$$
-\begin{gathered}
-K_{\text{cache}}=[K_{\text{past}};k_t]\\
-V_{\text{cache}}=[V_{\text{past}};v_t],
-\end{gathered}
-$$
-
-computes only $q_t,k_t,v_t$ for the new token, and lets the query read the full cache:
-
-$$
-\begin{gathered}
-a_t=\operatorname{softmax}\!\left(\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right),\\
-o_t=a_tV_{\text{cache}}.
-\end{gathered}
-$$
-
-With identical weights, prefix, positions, and visibility, and dropout disabled,
-unquantized, unevicted KV caching is mathematically equivalent to recomputing the prefix;
-floating-point implementations may differ slightly. The cache grows linearly with layer count, context length, and KV-head
-count, so it can become a capacity and bandwidth bottleneck. GQA and MQA shrink this
-state by reducing the number of KV heads.
-
-### 7. FlashAttention: the same formula with less memory traffic {#7-flashattention-the-same-formula-with-less-memory-traffic}
-
-A naive implementation materializes and writes
-
-$$
-\begin{gathered}
-S=QK^\top/\sqrt{d_k}+M_{\text{causal}}\\
-A=\operatorname{softmax}(S)\\
-S,A\in\mathbb{R}^{L\times L}.
-\end{gathered}
-$$
-
-FlashAttention tiles Q, K, and V, computes blocks in fast on-chip memory, and uses an
-online softmax to maintain the exact normalization without writing the full
-$L\times L$ intermediates to high-bandwidth memory.
-
-It is not sparse attention and does not approximate the result by dropping token
-pairs. It evaluates the same mathematical attention, up to small floating-point
-reordering differences. FLOP complexity remains approximately $O(L^2)$; the main
-gain comes from IO-aware tiling, less memory traffic, and smaller intermediate state.
-
-### 8. Long context: position extrapolation and quadratic cost are different problems {#8-long-context-position-extrapolation-and-quadratic-cost-are-different-problems}
-
-RoPE scaling changes rotation frequencies to extend positional behavior to longer
-sequences. It does not remove the $O(L^2)$ cost of full attention.
-
-Sliding-window attention limits each token to the $w$ most recent tokens, approaching $O(Lw)$
-cost but potentially losing distant information. Sparse attention keeps only selected
-connections; some architectures mix local and global layers or special global tokens
-to restore long-range paths.
-
-Diagnose the bottleneck first:
-
-- distribution shift beyond trained positions → RoPE scaling or frequency adjustment;
-- quadratic full-attention compute and intermediates → windowed/sparse connectivity or
-  a more efficient kernel;
-- distant evidence cannot propagate → explicit global paths, retrieval, or layer mixing.
-
-### 9. MoE: scaling FFN capacity, not attention heads {#9-moe-scaling-ffn-capacity-not-attention-heads}
-
-Mixture-of-Experts usually replaces the FFN. A router selects a small number of
-experts for each token. With top-2 routing, $E_1,E_2$ are the two experts chosen for this token and $p_1,p_2$ are the router weights assigned to them:
-
-$$
-y=p_1E_1(x)+p_2E_2(x).
-$$
-
-The model may contain many expert parameters while activating only a few per token,
-so total parameter capacity can grow much faster than per-token compute. The cost is
-greater complexity in routing quality, load balancing, expert capacity, cross-device
-all-to-all communication, and training stability.
-
-Experts may develop some functional specialization, but—as with attention heads—one
-should not assume every expert has a clean, fixed, human-nameable semantic role.
-
-### 10. Walking through one modern block end to end {#10-walking-through-one-modern-block-end-to-end}
+### 3. Walking through one modern block end to end {#10-walking-through-one-modern-block-end-to-end}
 
 For layer-$l$ input $X_l$, first normalize and form Q, K, and V:
 
@@ -400,7 +229,7 @@ The whole prompt is known, so all positions can be computed in parallel and each
 
 ### Decode {#decode}
 
-Each step takes only the new token as input, queries the historical KV cache, and produces the next token. The compute per step is small, but the steps must run serially, and the phase is often limited by memory bandwidth and cache size.
+Each step takes only the new token as input, queries the historical KV cache, and produces the next token. The compute per step is small, but the steps must run serially, and the phase is often limited by memory bandwidth and cache size; how the bottleneck moves as the batch grows is in [inference performance](../../12-infra/performance.en.md#decode-batching).
 
 ```mermaid
 flowchart LR
@@ -510,7 +339,7 @@ Sampling decides how a token is chosen from the probability distribution the mod
 | pre-training | language, knowledge, and patterns | next-token cross-entropy |
 | SFT | which response should go with which input | cross-entropy on the target response tokens |
 | preference learning | which of two responses is better | pairwise / policy objective |
-| RL | which behavior earns higher return | trajectory-level objective |
+| RL | which behavior earns higher return | trajectory-level objective (for multi-step tool use, see [training agents with RL](../../11-frontier/agentic-rl/README.en.md)) |
 
 These stages usually leave the decoder-only backbone unchanged. What changes is the data distribution, the loss, and which positions contribute directly to that loss. Masked prompt positions can still receive gradients through attention from scored response positions.
 

@@ -41,7 +41,7 @@ Generation happens one token at a time. Recomputing a complete length-$t$ prefix
 
 <!-- widget:tx-kv-cache -->
 
-Switch to “No cache” and compare the cumulative bars. At fixed depth and dimensions, attention work per step falls from $O(t^2)$ to $O(t)$, while cache storage grows with length. Small-batch decoding is often limited by weight and KV reads; larger batches, different kernels, or other hardware can change the bottleneck. The next section compares KV storage, not guaranteed throughput.
+Switch to “No cache” and compare the cumulative bars. At fixed depth and dimensions, attention work per step falls from $O(t^2)$ to $O(t)$, while cache storage grows with length. Small-batch decoding is often limited by weight and KV reads (how that shifts as the batch grows is in [inference performance](../12-infra/performance.en.md#decode-batching)); larger batches, different kernels, or other hardware can change the bottleneck. The next section compares KV storage, not guaranteed throughput.
 
 ## Shrinking the cache: MHA → GQA → MQA → MLA
 
@@ -134,7 +134,7 @@ These are **specific historical versions**, not a ranking of each family's lates
 
 ## Keep reading
 
-- [The Transformer architecture](transformer.en.md): formulas, derivations and a from-scratch implementation of everything on this page
+- [The Transformer architecture](transformer.en.md): formulas and a from-scratch implementation of everything on this page, with links to each derivation
 - [Multi-head attention](core/multi-head-attention.en.md) and [Decoder-only](core/decoder-only.en.md): the step-by-step core chapters
 
 ## References

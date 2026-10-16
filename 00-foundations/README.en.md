@@ -8,13 +8,6 @@ I have never much liked tutorials that open with the big Transformer block diagr
 
 So this part follows the order you'd learn it in: first how text becomes numbers, then how RNNs and LSTMs handle a sequence and how Seq2Seq connects input to output, then attention and the Transformer, and finally today's decoder-only models. Examples first, then equations, then code you write yourself.
 
-<div class="curriculum-hero">
-  <div><span class="level-chip core">Core</span><strong>Understand the basic idea first</strong><p>Follow the main computation and the tensor shapes, then see what problem the method solves.</p></div>
-  <div><span class="level-chip deep">Advanced</span><strong>Go further with the derivations</strong><p>Derive gradients, take masks apart, and see how the training objective connects to the inference path.</p></div>
-  <div><span class="level-chip deep">Advanced</span><strong>Read model families side by side</strong><p>Don't memorize model names; compare architecture, training, inference cost, and behavior by the same criteria.</p></div>
-  <div><span class="level-chip lab">Lab</span><strong>Then try it yourself</strong><p>The same mechanism written once in pure Python / NumPy and once in PyTorch.</p></div>
-</div>
-
 To see how the whole collection fits together, start with the [study and review guide](study-guide.en.md). This page covers language-model foundations; you don't need to finish the other areas first.
 
 ## One path, end to end
@@ -85,7 +78,7 @@ Start with the [model-family map](model-families/README.en.md) for the reading m
 | [Whiteboard hand-writing kit](hand-write-kit.en.md) | stable implementations, gradients, and numerical checks |
 | [Interview basics](interview-basics.en.md) | attention, normalization, training vs. inference, Egg Drop, and tree DP |
 
-You can skip the advanced material at first. These chapters stay because, when a model misbehaves, these details are usually exactly what you need to locate: where the gradient broke, whom the mask wrongly hid, and why training and generation fail to line up.
+These chapters stay because, when a model misbehaves, these details are usually exactly what you need to locate: where the gradient broke, whom the mask wrongly hid, and why training and generation fail to line up.
 
 ## Build it yourself: make the understanding run
 
@@ -104,7 +97,7 @@ python test_learning_path.py
 
 ## How to use this material
 
-Follow the example first, then consult the equations or code where a step is unclear. You do not need to finish every part in one sitting. For a new architecture, ask which component changed, why it changed, and where the previous approach fell short.
+Follow the example first, then consult the equations or code where a step is unclear. For a new architecture, ask which component changed, why it changed, and where the previous approach fell short.
 
 ### I just want to understand the main line first
 
@@ -112,7 +105,7 @@ Read core notes 01 → 05, leaving deeper derivations and code for later if usef
 
 ### I want to be able to explain it, not just to have "heard of it"
 
-After each core node, read the matching deep-dive page and do three things: write out the central equation, label every tensor shape, and say which bottleneck of the previous generation the architecture removes.
+After each main-line note, read the matching deep-dive page and do three things: write out the central equation, label every tensor shape, and say which bottleneck of the previous generation the architecture removes.
 
 ### I want to understand a new model report
 

@@ -4,7 +4,7 @@
 
 > 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10
 
-仍然以翻译为例：encoder 可以同时读整句原文，decoder 生成下一个词时，却不能偷看尚未写出的译文。原始 Transformer 用不同的 attention 和 mask 处理这两种条件。沿着一句话走过 encoder、decoder，再回来看每个 block，结构就不只是几排重复的方框了。
+仍然以翻译为例：encoder 可以同时读整句原文，decoder 生成下一个词时，却不能偷看尚未写出的译文。原始 Transformer 用不同的 attention 和 mask 处理这两种条件。沿着一句话走过 encoder、decoder，再回来看每个 block，结构就不只是几排重复的方框了。**原版 Transformer 用 attention 在位置之间搬信息、用 FFN 在每个位置内部做变换；encoder 和 decoder 的区别，主要在 mask 和 attention 从哪里读。**
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
@@ -254,31 +254,14 @@ K 与 V 的序列长度都必须是 $L_{kv}$，因为每个 key 都要对应一�
 $d_v$ 不必等于 $d_k$，输出通道数由 $d_v$ 决定。原版每个头取
 $d_k=d_v=64$ 是设计选择，不是 attention 的数学要求。
 
-为什么 score 要除以 $\sqrt{d_k}$？若 $q_i,k_i$ 近似独立、均值为 0、方差为 1，
-那么
-
-$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,\qquad
-\operatorname{Var}(q^\top k)\approx d_k.$$
-
-点积的标准差因此随 $\sqrt{d_k}$ 增长。缩放后
-
-$$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
-
-在上述假设下，这降低了 head dimension 增大导致权重过早饱和的风险，不保证训练后的分数总处于某个范围。饱和取决于分数差，不只是绝对值。这里使用 Q/K 的匹配维度 $d_k$，与 $d_v$ 无关。
+score 除以 $\sqrt{d_k}$，用的是 Q/K 的匹配维度，与 $d_v$ 无关；方差推导和“饱和取决于分数差”的例子见[多头注意力](multi-head-attention.md#sqrtd_k)。
 
 $W_Q,W_K,W_V$ 的单个坐标没有固定的人类语义，但三套投影承担不同角色：Q 表达“我要找
 什么”，K 表达“我怎样被匹配”，V 表达“匹配后传递什么内容”。因此
 
 $$QK^\top=\text{addressing / routing},\qquad V=\text{retrieved content}.$$
 
-如果强制 $Q=K$，mask 和 softmax 之前的 score 变成
-
-$$S=QQ^\top,$$
-
-它是对称的 positive-semidefinite matrix，满足 $S_{ij}=S_{ji}$。逐行 softmax 后不一定
-仍对称，causal mask 也会破坏对称性，但底层匹配函数已经被限制成对称相似度，难以自然
-表达“$i$ 查询 $j$”与“$j$ 查询 $i$”不同的方向关系。分开的 $W_Q,W_K$ 解除这个约束；
-分开的 $W_V$ 则把“怎样找到信息”和“找到后读取什么”解耦。
+分开的 $W_Q,W_K$ 让“$i$ 查询 $j$”和“$j$ 查询 $i$”可以有不同分数，分开的 $W_V$ 把“怎样找到信息”和“找到后读取什么”解耦；强制 $Q=K$ 会怎样，见[多头注意力的面试常见问题](multi-head-attention.md#_7)。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -302,17 +285,7 @@ key indexes one value. The value width $d_v$ need not equal $d_k$; it determines
 output width. Setting both to 64 in the original model was a design choice, not a
 mathematical requirement of attention.
 
-Why divide the score by $\sqrt{d_k}$? If the components of q and k are approximately
-independent with zero mean and unit variance, then
-
-$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,\qquad
-\operatorname{Var}(q^\top k)\approx d_k.$$
-
-The dot product's standard deviation grows like $\sqrt{d_k}$. Scaling gives
-
-$$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
-
-Under those assumptions, scaling reduces the risk of early saturation as head width grows; it does not bound learned scores throughout training. Saturation depends on score differences, not just absolute magnitude. The relevant width is the Q/K matching dimension $d_k$, not $d_v$.
+The score is divided by $\sqrt{d_k}$, the Q/K matching width, not $d_v$; the variance derivation and the example showing that saturation depends on score differences are in [multi-head attention](multi-head-attention.md#sqrtd_k).
 
 The individual coordinates of $W_Q,W_K,W_V$ have no fixed human meaning, but their
 computational roles differ: Q represents what to look for, K how an item can be
@@ -320,16 +293,7 @@ matched, and V what content should be transmitted after a match. In short,
 
 $$QK^\top=\text{addressing / routing},\qquad V=\text{retrieved content}.$$
 
-If Q is forced to equal K, the pre-mask, pre-softmax score becomes
-
-$$S=QQ^\top,$$
-
-a symmetric positive-semidefinite matrix with $S_{ij}=S_{ji}$. Row-wise softmax need
-not preserve symmetry, and a causal mask also breaks it, but the underlying matching
-function has already been restricted to a symmetric similarity. It cannot naturally
-express different strengths for “i queries j” and “j queries i.” Separate
-$W_Q,W_K$ remove this constraint, while a separate $W_V$ decouples how information is
-located from what information is read.
+Separate $W_Q,W_K$ let “i queries j” and “j queries i” score differently, and a separate $W_V$ decouples how information is located from what is read; what forcing $Q=K$ does is covered in the [multi-head attention interview questions](multi-head-attention.md#_7).
 
 </div>
 </section>
@@ -723,7 +687,7 @@ predicted.
 ## 动手验证：运行完整示例 {#_4}
 
 - 快速跑通：[`../code/vanilla_demo.py`](../code/vanilla_demo.py)
-- 完整数学与现代组件：[Transformer 架构深拆](../transformer.md)
+- 零件怎样拼起来、RoPE 代码和从零实现的检查：[Transformer 架构](../transformer.md)
 - 无 PyTorch attention 前向：[`../code/sequence_numpy.py`](../code/sequence_numpy.py)
 
 ## 自检 {#_5}

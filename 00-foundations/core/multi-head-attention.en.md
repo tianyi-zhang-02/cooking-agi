@@ -314,7 +314,7 @@ Therefore:
 “Different representation subspaces” should not be over-interpreted either. Each
 head does have independent parameters and can therefore learn a different matching
 function; but for an ambiguous word like “apple,” “one head must handle the company sense and another must handle the
-fruit sense” is neither designed in advance nor guaranteed to be interpretable.
+fruit sense” is neither designed in advance nor guaranteed to be interpretable. A claim that a head performs a function needs a causal test, such as patching specific heads on the IOI task; see [circuits](../../11-frontier/interpretability/circuits.en.md).
 
 ## The six places a from-scratch implementation goes wrong {#the-six-places-a-from-scratch-implementation-goes-wrong}
 
@@ -550,6 +550,10 @@ For batch size B and model width d, time including projections is $O(BTd^2+BT^2d
 <summary>Why do Q and K use two different matrices? Can they be shared?</summary>
 
 They can be shared, but that restricts the matching function. In this self-attention example without extra positional transformations, Q=K makes the raw scores $QQ^\top$ symmetric. Row-wise softmax uses different denominators, so the final weights need not be symmetric. Separate projections let even the raw scores differ by direction; symmetric scores do not imply symmetric attention weights.
+
+$Q=K$ does not make attention fail either. Three cases: if all queries are identical, every row is uniform; if queries are mutually orthogonal with equal norm, the diagonal score is largest, but attention approaches the identity only when the norm is large relative to the softmax temperature; in general, positions more similar to a position itself get more weight, with no guarantee that it attends only to itself.
+
+These internal coordinates are also not unique. For any invertible $R$, setting $Q'=QR$ and $K'=KR^{-\top}$ still gives $Q'K'^\top=QK^\top$: a different internal basis, the same function. Interpreting a single entry of $W_Q$ in isolation is therefore usually meaningless; what matters is the function the projection implements and its causal effect on the output.
 
 </details>
 

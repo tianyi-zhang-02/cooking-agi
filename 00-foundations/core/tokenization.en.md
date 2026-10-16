@@ -4,7 +4,7 @@
 
 > Reading time: ~12 min · Level: core · Last reviewed: 2026-10
 
-The same sentence can become different ID sequences under different tokenizers. If a toy tokenizer splits `playing` into `play` and `ing`, the model receives two IDs, not one English word. That choice affects sequence length, compute, and how unfamiliar words are represented. We will follow the text through tokenization and the embedding lookup.
+The same sentence can become different ID sequences under different tokenizers. If a toy tokenizer splits `playing` into `play` and `ing`, the model receives two IDs, not one English word. That choice affects sequence length, compute, and how unfamiliar words are represented. We will follow the text through tokenization and the embedding lookup. **The model only ever sees token IDs; change the split, and the sequence length, the compute, and the units the model sees all change with it.**
 
 ## The model receives token IDs {#the-model-receives-token-ids}
 

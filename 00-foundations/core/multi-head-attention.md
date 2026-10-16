@@ -1,10 +1,10 @@
-# 多头注意力：从公式到实现
+# 多头注意力（MHA）：从公式到实现
 
 **中文** · [English](multi-head-attention.en.md)
 
 > 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10
 
-先只看一次加权求和：两个位置提供的 value 是 `[2, 0]` 和 `[0, 4]`，注意力权重是 `0.75` 和 `0.25`，读出的结果就是 `[1.5, 1]`。Attention 的计算从这里展开：权重怎么由 Q、K 得到，哪些位置要被遮住，多组这样的计算又怎样拼起来。
+先只看一次加权求和：两个位置提供的 value 是 `[2, 0]` 和 `[0, 4]`，注意力权重是 `0.75` 和 `0.25`，读出的结果就是 `[1.5, 1]`。Attention 的计算从这里展开：权重怎么由 Q、K 得到，哪些位置要被遮住，多组这样的计算又怎样拼成多头注意力（MHA）。
 
 <span id="_1"></span>
 
@@ -396,7 +396,7 @@ models sequentially.
 
 “不同表示子空间”也不要过度解释。每个头确实有独立参数，因此可以学习不同匹配
 函数；但拿多义词“苹果”来说，“某个头一定负责公司义、另一个一定负责水果义”并不是预先设计或必然
-可解释的事实。
+可解释的事实。要说某个头承担某项功能，得做因果干预，例如 IOI 任务里对具体头的激活修补，见[电路分析](../../11-frontier/interpretability/circuits.md)。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -416,7 +416,7 @@ pruned with little quality loss. Therefore:
 
 “Different representation subspaces” should not be over-interpreted either. Separate
 parameters let heads learn different matching functions, but no head is guaranteed
-to have one clean, human-assigned semantic job.
+to have one clean, human-assigned semantic job. A claim that a head performs a function needs a causal test, such as patching specific heads on the IOI task; see [circuits](../../11-frontier/interpretability/circuits.md).
 
 </div>
 </section>
@@ -655,6 +655,10 @@ print(aligned.flatten().tolist(), upper_left.flatten().tolist())
 <summary>Q 和 K 为什么用两个不同的矩阵，不能共享？</summary>
 
 可以共享，但会限制匹配函数。在本节没有额外位置变换的 self-attention 中，若 Q=K，原始分数 $QQ^\top$ 对称；逐行 softmax 的分母不同，最终权重却不一定对称。分开的投影允许两个方向连原始分数都不同；不要把“分数对称”说成“注意力权重对称”。
+
+$Q=K$ 也不会让注意力失效，看三种情况：所有 query 完全相同时，每行是均匀分布；query 两两正交且范数相同时，对角分数最大，但只有范数相对 softmax 温度足够大，注意力才接近单位矩阵；一般情况下，越像自己的位置分到越多权重，但不保证只看自己。
+
+还要注意，这些内部坐标并不唯一。对任意可逆矩阵 $R$，令 $Q'=QR$、$K'=KR^{-\top}$，仍有 $Q'K'^\top=QK^\top$：换一套内部基，功能完全不变。所以孤立地解释 $W_Q$ 的某个元素通常没有意义，有意义的是整个投影实现的函数和它对输出的因果作用。
 
 </details>
 

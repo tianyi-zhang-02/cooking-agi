@@ -4,7 +4,7 @@
 
 > Reading time: ~12 min · Level: core · Last reviewed: 2026-10
 
-Suppose the next-token probabilities are `0.6, 0.3, 0.1`. Greedy always chooses the first. Top-k with k=2 keeps the first two; top-p with p=0.8 also needs the first two to reach its probability-mass threshold. Sampling then uses the renormalized distribution. The model has not changed, but its selection rule has.
+Suppose the next-token probabilities are `0.6, 0.3, 0.1`. Greedy always chooses the first. Top-k with k=2 keeps the first two; top-p with p=0.8 also needs the first two to reach its probability-mass threshold. Sampling then uses the renormalized distribution. The model has not changed, but its selection rule has. **The model only supplies a distribution; truncate the same distribution differently and the candidate pool changes.**
 
 ## The model outputs a probability distribution; the decoding strategy does the choosing {#the-model-outputs-a-probability-distribution-the-decoding-strategy-does-the-choosing}
 
@@ -114,7 +114,7 @@ Consider two steps: A has probability 0.6 and B has 0.4. The best continuation a
 
 Translation and speech recognition often use beam search, not because answers are unique, but because searching by model score can be useful. Score, length handling, and task quality still need to agree. In open-ended generation, likelihood maximization can produce repetition; see [Neural Text Degeneration](https://arxiv.org/abs/1904.09751).
 
-Math does not require greedy decoding either. [Self-consistency](https://arxiv.org/abs/2203.11171) samples multiple reasoning paths and aggregates answers. Choose a strategy together with its candidate budget, verification method, and final metric.
+Math does not require greedy decoding either. [Self-consistency](https://arxiv.org/abs/2203.11171) samples multiple reasoning paths and aggregates answers; [parallel sampling and verification](../../11-frontier/test-time-compute/parallel-and-verify.en.md) covers how to split the budget and what to verify with. Choose a strategy together with its candidate budget, verification method, and final metric.
 
 ## How to set the parameters in practice {#how-to-set-the-parameters-in-practice}
 
@@ -252,7 +252,7 @@ Both also hit tokens that are supposed to repeat — punctuation, pronouns, code
 
 First identify the actual rollout distribution $\mu$. An untransformed old policy is an easy baseline to audit. Other sampling settings can be deliberate, but the target policy, recorded probabilities, and correction method must be explicit.
 
-In ordinary PPO, the denominator is the old policy that collected the batch, not the current updating policy. Treating samples from $\mu$ as samples from an untransformed old policy changes the estimator. Also check support: actions with zero probability under $\mu$ cannot be recovered from this batch.
+In ordinary PPO, the denominator is the old policy that collected the batch, not the current updating policy. Treating samples from $\mu$ as samples from an untransformed old policy changes the estimator. Also check support: actions with zero probability under $\mu$ cannot be recovered from this batch (the same issue in offline estimation is covered in [OPE estimators](../../05-post-training/deep-rl/ope-estimators.en.md)).
 
 </details>
 

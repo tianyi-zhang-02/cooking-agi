@@ -21,7 +21,7 @@ python3 00-foundations/code/interview_kit.py
 | **softmax** | overflows without subtracting the max | "why is subtracting still correct?" — softmax is shift-invariant; numerator and denominator both pick up $e^c$ and it cancels, so subtracting the max is free |
 | **BCE from logits** | computing $p$ then its log underflows to $-\infty$ | "what's the gradient?" — $p-y$; the $\sigma'$ cancels |
 | **LayerNorm** | `eps` goes inside the sqrt; variance divides by $N$, not $N-1$; this implementation normalizes the last dimension | `normalized_shape=(T,d)` also normalizes across time, unlike the per-token configuration |
-| **attention + causal mask** | the $\sqrt{d_k}$; mask added **before** the softmax | "could you zero it after the softmax instead?" — no, it breaks normalization |
+| **attention + causal mask** | the $\sqrt{d_k}$; mask added **before** the softmax | "could you zero it after the softmax instead?" — no, it breaks normalization (two-score example in [multi-head attention](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong)) |
 | **KV cache decode** | A single-token query can omit the causal mask when its cache contains only valid past and current positions | Padding, sliding windows, and multi-token decoding can still require masks |
 | **top-k / top-p** | top-p must keep **the token that crosses the threshold**, and at least one | "what if the top probability already exceeds p?" — writing `cum <= p` deletes every token |
 | **MLP forward + backward** | Define mean / sum reduction, then apply the chain rule | For ordinary ReLU, `z1 > 0` and `a1 > 0` are equivalent; do not assume this for other activations |
@@ -41,7 +41,7 @@ Dividing the numerator and denominator by $e^m$ leaves the mathematical result u
 | Input or situation | What happens | What this implementation does |
 | --- | --- | --- |
 | `[1000, 1001, 1002]` | Direct exponentiation overflows | Subtract the maximum first |
-| 65,536 zeros in FP16 | Every exponential is 1, but the FP16 sum still overflows | Compute and return at least FP32; do not immediately cast back to FP16 |
+| 65,536 zeros in FP16 | Every exponential is 1, but FP16 cannot hold 65,536: NumPy's pairwise sum overflows to `inf`, and one-by-one accumulation stalls at 2048, silently wrong | Compute and return at least FP32; do not immediately cast back to FP16 |
 | `[0, -inf]` | The second position is masked | Return `[1, 0]` |
 | `[-inf, -inf]` | No allowed position remains; the distribution is undefined | Raise an error, rather than invent a uniform distribution |
 | `NaN` or `+inf` | The upstream computation needs checking | Raise an error; these are not mask values |

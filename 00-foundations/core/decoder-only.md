@@ -2,7 +2,7 @@
 
 **中文** · [English](decoder-only.en.md)
 
-> 阅读时间：约 32 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10
 
 模型生成“今天下雨”时，要先有“今天”，才能根据这个前缀决定接下来写什么。训练时完整句子已经给定，所以多个位置的预测可以一起算；生成时后面的字还不存在，只能逐步继续。Decoder-only 的结构、causal mask 和 KV cache，都可以沿着这个区别来理解。
 
@@ -133,7 +133,7 @@ which history deserves long-term retention.
 
 <div class="bilingual-note bilingual-intro">
   <span>逐概念双语 · CONCEPT-BY-CONCEPT</span>
-  <p>下面十张卡默认中文；点 <strong>English ↻</strong> 可在当前位置查看等价英文。</p>
+  <p>下面三张卡默认中文；点 <strong>English ↻</strong> 可在当前位置查看等价英文。</p>
 </div>
 
 <section class="concept-card" data-concept-card markdown="1">
@@ -211,427 +211,79 @@ As of October 2026, open models show three more common changes: Qwen3 and Gemma 
 </div>
 </section>
 
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 2. RoPE：把位置放进 Q/K 的相对相位 {#2-rope-qk}
-
-原版把 position encoding 加到输入 embedding。RoPE 则先产生 Q/K，再按 token
-位置旋转它们。下面 $Q_m,K_n$ 表示取出单个 head 后、转成列向量的位置表示：
-
-$$
-\begin{gathered}
-Q=XW_Q\\
-K=XW_K\\
-Q'_m=R_mQ_m\\
-K'_n=R_nK_n.
-\end{gathered}
-$$
-
-二维旋转矩阵是
-
-$$
-R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.
-$$
-
-真实向量会把通道两两成对，第 $i$ 对使用自己的频率 $\theta_i$。$R_m$ 就是把位置 $m$ 的每对通道转过角度 $m\theta_i$，即对第 $i$ 对用 $R(m\theta_i)$。记 $q_m,k_n$ 为上面的列向量 $Q_m,K_n$（位置 $m$ 的 query、位置 $n$ 的 key），注意力点积满足
-
-$$
-\begin{gathered}
-(R_mq_m)^\top(R_nk_n)=\\
-q_m^\top R_{n-m}k_n,
-\end{gathered}
-$$
-
-所以分数自然依赖相对距离 $n-m$。通常不旋转 V，因为位置主要影响“从哪里读”，
-而不是被读取的内容。RoPE 也不意味着无限长度外推；远超训练长度后仍可能分布失配，
-因此长上下文模型会使用频率调整或 RoPE scaling。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">2. RoPE: relative phase in Q and K</div>
-
-The original Transformer adds positional encoding to input embeddings. RoPE first
-forms Q and K, then rotates them according to token position. Here $Q_m,K_n$ denote
-single-head position vectors written as columns:
-
-$$
-\begin{gathered}
-Q=XW_Q\\
-K=XW_K\\
-Q'_m=R_mQ_m\\
-K'_n=R_nK_n.
-\end{gathered}
-$$
-
-The two-dimensional rotation matrix is
-
-$$
-R(\theta)=\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}.
-$$
-
-Real implementations pair channels and use different frequencies across channel
-pairs: $R_m$ rotates channel pair $i$ by angle $m\theta_i$, applying $R(m\theta_i)$. Writing $q_m,k_n$ for the column vectors $Q_m,K_n$ above (the query at position $m$ and the key at position $n$), their dot product obeys
-
-$$
-\begin{gathered}
-(R_mq_m)^\top(R_nk_n)=\\
-q_m^\top R_{n-m}k_n,
-\end{gathered}
-$$
-
-so attention scores naturally depend on relative distance $n-m$. V is normally not
-rotated because position controls where to read rather than the content being read.
-RoPE does not provide unlimited extrapolation: positions far beyond the training
-length may still require frequency adjustment or RoPE scaling.
-
-</div>
-</section>
+<span id="2-rope-qk"></span><span id="3-pre-norm-rmsnorm"></span><span id="4-swiglu-ffn"></span><span id="5-mhamqa-gqa-kv"></span><span id="6-kv-cache"></span><span id="7-flashattention"></span><span id="8"></span><span id="9-moe-ffn"></span>
 
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 3. Pre-Norm 与 RMSNorm：保护残差主干 {#3-pre-norm-rmsnorm}
-
-原版 post-norm 是
-
-$$
-Y=\operatorname{LayerNorm}(X+F(X)).
-$$
-
-现代 pre-norm 常写成
-
-$$
-Y=X+F(\operatorname{Norm}(X)).
-$$
-
-后者给残差状态和梯度保留了一条更直接的 identity path，通常更适合训练深层网络；
-所有 block 结束后一般再做 final norm。
-
-LayerNorm 会减均值并除以标准差：
-
-$$
-\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.
-$$
-
-RMSNorm 只控制均方根尺度：
-
-$$
-\begin{gathered}
-\operatorname{RMSNorm}(x)=\\
-\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
-\end{gathered}
-$$
-
-所以 LayerNorm 调整中心与大小；RMSNorm 通常不减均值、没有 bias，只调整大小。
-它计算更简单，但“用了 RMSNorm”本身不代表模型必然更好。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">3. Pre-norm and RMSNorm: protecting the residual stream</div>
-
-The original post-norm form is
-
-$$
-Y=\operatorname{LayerNorm}(X+F(X)).
-$$
-
-Modern pre-norm blocks commonly use
-
-$$
-Y=X+F(\operatorname{Norm}(X)).
-$$
-
-Pre-norm preserves a more direct identity path for residual states and gradients,
-which usually makes very deep networks easier to train. A final norm is typically
-applied after the full block stack.
-
-LayerNorm centers and scales:
-
-$$
-\operatorname{LN}(x)=\gamma\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta.
-$$
-
-RMSNorm controls only root-mean-square magnitude:
-
-$$
-\begin{gathered}
-\operatorname{RMSNorm}(x)=\\
-\gamma\frac{x}{\sqrt{\frac1d\sum_i x_i^2+\epsilon}}.
-\end{gathered}
-$$
-
-Thus LayerNorm adjusts center and scale; RMSNorm usually has no mean subtraction or
-bias and adjusts only scale. It is simpler to compute, but choosing RMSNorm does not
-by itself guarantee a better model.
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 4. SwiGLU：让 FFN 同时生成内容和门 {#4-swiglu-ffn}
-
-本章把一个 token 写成行向量。原版 FFN 是升维 → ReLU → 降维（此处省略 bias）：
-
-$$
-\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.
-$$
-
-现代模型常使用 SwiGLU：
-
-$$
-\begin{gathered}
-g=\operatorname{SiLU}(xW_{\text{gate}}),\\
-u=xW_{\text{up}},\\
-\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}.
-\end{gathered}
-$$
-
-$$
-\operatorname{SiLU}(z)=z\sigma(z).
-$$
-
-$xW_{\text{up}}$ 产生候选内容，$\operatorname{SiLU}(xW_{\text{gate}})$ 决定每个
-特征怎样调制，二者逐元素相乘后再降维。SiLU 不是概率，可以为负，也可以大于 1。
-$W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$，$W_{\text{down}}\in\mathbb R^{h\times d}$，所以输出仍是 $d$ 维。它比两矩阵 ReLU FFN 多一个投影，因此为了
-保持参数预算，隐藏维通常不会继续照搬 $4d$。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">4. SwiGLU: content and a learned gate</div>
-
-This chapter represents each token as a row vector. The original FFN expands, applies ReLU, and projects back down (biases omitted here):
-
-$$
-\operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2.
-$$
-
-Modern models often use SwiGLU:
-
-$$
-\begin{gathered}
-g=\operatorname{SiLU}(xW_{\text{gate}}),\\
-u=xW_{\text{up}},\\
-\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}}.
-\end{gathered}
-$$
-
-$$
-\operatorname{SiLU}(z)=z\sigma(z).
-$$
-
-$xW_{\text{up}}$ produces candidate content, while
-$\operatorname{SiLU}(xW_{\text{gate}})$ controls how much of each feature passes.
-SiLU is not a probability: it can be negative or exceed 1. With
-$W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$ and $W_{\text{down}}\in\mathbb R^{h\times d}$,
-the elementwise product is projected back to $d$ dimensions. Because SwiGLU uses three
-projections rather than two, its hidden width is usually adjusted to keep a similar
-parameter budget instead of blindly retaining $4d$.
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 5. MHA、MQA 与 GQA：省的是 KV 宽度 {#5-mhamqa-gqa-kv}
-
-传统 MHA 为每个 query head 保留自己的 K/V head，例如
-
-```text
-Q heads: 32   K heads: 32   V heads: 32
-```
-
-MQA 让所有 query heads 共享一组 K/V；GQA 则让一组 query heads 共享一组 K/V：
-
-```text
-MQA: Q=32, KV=1
-GQA: Q=32, KV=8   # 每 4 个 Q heads 共享一组 KV
-```
-
-不同 query heads 即使共享 K/V，仍能因 Q 不同而得到不同的注意力分布。
-MQA 最省内存带宽，但可能损失表示能力；GQA 在质量和推理效率之间折中。主要动机是
-缩小推理时需要读取的 K/V 状态，而不是单纯减少总参数。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">5. MHA, MQA, and GQA: reducing KV width</div>
-
-Standard MHA gives every query head its own K and V head:
-
-```text
-Q heads: 32   K heads: 32   V heads: 32
-```
-
-MQA shares one K/V head across all query heads. GQA shares one K/V head within each
-group of query heads:
-
-```text
-MQA: Q=32, KV=1
-GQA: Q=32, KV=8   # four Q heads share each KV head
-```
-
-Query heads can still produce different attention distributions because their Q
-vectors differ even when K and V are shared. MQA saves the most memory bandwidth but
-may lose representational capacity; GQA trades between quality and inference
-efficiency. The primary motivation is narrower K/V state during inference, not merely
-fewer total parameters.
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 6. KV Cache：用显存换掉历史重复计算 {#6-kv-cache}
-
-自回归生成到位置 $t$ 时，过去 token 的 K/V 已经算过。Causal mask 保证过去位置不依赖后来的 token；权重与前缀等条件保持不变时，这些状态才可以复用。因此每层保存
-
-$$
-\begin{gathered}
-K_{\text{cache}}=[K_{\text{past}};k_t]\\
-V_{\text{cache}}=[V_{\text{past}};v_t],
-\end{gathered}
-$$
-
-新一步只计算 $q_t,k_t,v_t$，再让 query 读取整个缓存：
-
-$$
-\begin{gathered}
-a_t=\operatorname{softmax}\!\left(\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right),\\
-o_t=a_tV_{\text{cache}}.
-\end{gathered}
-$$
-
-在权重、前缀、位置编码和可见范围相同、关闭 dropout 的条件下，未量化 / 未淘汰的 KV cache
-与重算前缀在数学上等价；浮点实现仍可能有小误差。代价是 cache 随
-层数、上下文长度和 KV heads 线性增长，长上下文时可能成为显存容量与读取带宽瓶颈。
-GQA/MQA 正是通过减少 KV heads 来缩小这块状态。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">6. KV cache: trading memory for historical recomputation</div>
-
-At generation step $t$, K and V for earlier tokens have already been computed. Causal masking prevents those states from depending on later tokens, so they remain reusable when weights, prefix, and other conditions stay fixed. Each layer stores
-
-$$
-\begin{gathered}
-K_{\text{cache}}=[K_{\text{past}};k_t]\\
-V_{\text{cache}}=[V_{\text{past}};v_t],
-\end{gathered}
-$$
-
-computes only $q_t,k_t,v_t$ for the new token, and lets the query read the full cache:
-
-$$
-\begin{gathered}
-a_t=\operatorname{softmax}\!\left(\frac{q_tK_{\text{cache}}^\top}{\sqrt{d_k}}\right),\\
-o_t=a_tV_{\text{cache}}.
-\end{gathered}
-$$
-
-With identical weights, prefix, positions, and visibility, and dropout disabled,
-unquantized, unevicted KV caching is mathematically equivalent to recomputing the prefix;
-floating-point implementations may differ slightly. The cache grows linearly with layer count, context length, and KV-head
-count, so it can become a capacity and bandwidth bottleneck. GQA and MQA shrink this
-state by reducing the number of KV heads.
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 7. FlashAttention：同一公式，更少显存读写 {#7-flashattention}
-
-朴素实现会显式生成并写回
-
-$$
-\begin{gathered}
-S=QK^\top/\sqrt{d_k}+M_{\text{causal}}\\
-A=\operatorname{softmax}(S)\\
-S,A\in\mathbb{R}^{L\times L}.
-\end{gathered}
-$$
-
-FlashAttention 把 Q/K/V 分块，在 GPU 片上高速存储中逐块计算，并用 online softmax
-维护正确的归一化结果，从而避免把完整 $L\times L$ 中间矩阵写回显存。
-
-它不是稀疏注意力，也不是通过删 token pair 做近似；数学上计算的是同一 attention
-（浮点重排会有微小数值差）。FLOP 复杂度仍约为 $O(L^2)$，主要收益来自 IO-aware
-tiling、更少的高带宽显存访问和更小的中间状态。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">7. FlashAttention: the same formula with less memory traffic</div>
-
-A naive implementation materializes and writes
-
-$$
-\begin{gathered}
-S=QK^\top/\sqrt{d_k}+M_{\text{causal}}\\
-A=\operatorname{softmax}(S)\\
-S,A\in\mathbb{R}^{L\times L}.
-\end{gathered}
-$$
-
-FlashAttention tiles Q, K, and V, computes blocks in fast on-chip memory, and uses an
-online softmax to maintain the exact normalization without writing the full
-$L\times L$ intermediates to high-bandwidth memory.
-
-It is not sparse attention and does not approximate the result by dropping token
-pairs. It evaluates the same mathematical attention, up to small floating-point
-reordering differences. FLOP complexity remains approximately $O(L^2)$; the main
-gain comes from IO-aware tiling, less memory traffic, and smaller intermediate state.
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 8. 长上下文：位置外推与平方成本是两件事 {#8}
-
-RoPE scaling 调整旋转频率，解决“位置编码怎样延伸到更长序列”；它并不会消除
-full attention 的 $O(L^2)$ 计算。
-
-Sliding-window attention 让每个 token 只看自己前面最近的 $w$ 个 token，成本接近 $O(Lw)$，但可能丢失
-远距离信息。Sparse attention 只保留部分连接；一些架构混合局部层、全局层或特殊
-global tokens 来恢复长距离通路。
-
-所以要先问瓶颈是哪一种：
+### 2. 其余八个零件，各改了哪一处 {#2-parts}
+
+上一张卡列出的变化分散在 block 的不同位置。下面每行只记它改了哪里、最容易说错的一点；推导去对应的笔记看。
+
+| 零件 | 改了哪里 | 最容易说错的一点 | 详细讲解 |
+| --- | --- | --- | --- |
+| RoPE | 每层把 Q/K 按位置旋转，V 不转 | 位置只以 $n-m$ 进入点积，分数仍取决于内容；远超训练长度仍要 RoPE scaling | [Transformer 架构](../transformer.md#rope)、[RoPE 与长上下文](../deep-dives/position-and-context.md) |
+| Pre-norm + RMSNorm | norm 移进分支；只除以均方根，不减均值、没有 bias | 主干留下 identity path，堆完所有 block 还要 final norm；“用了 RMSNorm”不等于模型更好 | [归一化](normalization.md#_3) |
+| SwiGLU | FFN 多一个门控投影 | 门是 SiLU，不是概率，可以为负；三个矩阵时隐藏宽度常取约 $\tfrac83d$，保持参数预算 | [FFN 与门控](ffn-and-gates.md) |
+| GQA / MQA | 多个 query head 共享一组 K/V head | 共享 K/V 的头仍因 Q 不同而有不同的注意力分布；省的是 KV cache，不是总参数 | [KV cache 与推理成本](../deep-dives/kv-cache-and-inference.md) |
+| KV cache | 保存历史 K/V，新一步只算 $q_t,k_t,v_t$ | 权重、前缀、位置和可见范围相同且关闭 dropout 时，才与重算前缀等价；随层数、长度和 KV head 数线性增长 | [KV cache 与推理成本](../deep-dives/kv-cache-and-inference.md) |
+| FlashAttention | Q/K/V 分块，在 GPU 片上存储里逐块计算，用 online softmax 维护归一化 | 算的是同一个 attention，不是稀疏近似；FLOP 仍约 $O(L^2)$，省的是显存读写 | [Attention kernel](../deep-dives/attention-kernels.md)、[GPU 内存层级](../../12-infra/gpu-architecture.md)、[CUDA tiling](../../12-infra/cuda.md#tiling) |
+| 长上下文 | RoPE scaling、滑动窗口、稀疏连接或局部 / 全局混合层 | 位置外推和平方成本是两件事，先判断瓶颈（见表下） | [RoPE 与长上下文](../deep-dives/position-and-context.md)、[MLA 与稀疏注意力](../deep-dives/latent-and-sparse-attention.md) |
+| MoE | 用多个专家替换 FFN，router 给每个 token 选少数几个 | 总参数可以远大于每个 token 激活的参数；代价是负载均衡、专家容量和跨设备 all-to-all 通信；专家也不一定学出能叫得出名字的分工 | [MoE](../moe/README.md) |
+
+长上下文要先问瓶颈是哪一种：
 
 - 训练长度外的位置分布失配 → RoPE scaling / frequency adjustment；
 - 完整 attention 的平方计算与中间状态 → windowed / sparse connectivity 或高效 kernel；
 - 长距离证据无法到达 → 设计全局通路、检索或层间混合。
 
+FFN 一行最容易把维度写错。本章把 token 写成行向量：原版 FFN 是 $\operatorname{ReLU}(xW_1)W_2$（省略 bias），SwiGLU 是
+
+$$
+\begin{gathered}
+g=\operatorname{SiLU}(xW_{\text{gate}}),\\
+u=xW_{\text{up}},\\
+\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}},
+\end{gathered}
+$$
+
+其中 $W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$，$W_{\text{down}}\in\mathbb R^{h\times d}$，$\operatorname{SiLU}(z)=z\sigma(z)$。下一张卡沿用这套写法，把整个 block 走一遍。
+
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
-<div class="concept-title-en" role="heading" aria-level="3">8. Long context: position extrapolation and quadratic cost are different problems</div>
+<div class="concept-title-en" role="heading" aria-level="3">2. The other eight parts, and what each one changes</div>
 
-RoPE scaling changes rotation frequencies to extend positional behavior to longer
-sequences. It does not remove the $O(L^2)$ cost of full attention.
+The changes listed in the previous card sit in different parts of the block. Each row records only what the part changes and the point most often stated wrong; the derivations live in the linked notes.
 
-Sliding-window attention limits each token to the $w$ most recent tokens, approaching $O(Lw)$
-cost but potentially losing distant information. Sparse attention keeps only selected
-connections; some architectures mix local and global layers or special global tokens
-to restore long-range paths.
+| Part | What it changes | The point most often stated wrong | Where it is explained |
+| --- | --- | --- | --- |
+| RoPE | Rotates Q/K by position in every layer; V is not rotated | Position enters the dot product only as $n-m$, while the score still depends on content; far beyond the training length you still need RoPE scaling | [The Transformer architecture](../transformer.md#rope), [RoPE and long context](../deep-dives/position-and-context.md) |
+| Pre-norm + RMSNorm | Moves the norm into the branch; divides by the root mean square without centering or bias | The trunk keeps an identity path and the stack still ends with a final norm; using RMSNorm does not by itself make a model better | [Normalization](normalization.md#_3) |
+| SwiGLU | Adds a gating projection to the FFN | The gate is SiLU, not a probability, and can be negative; with three matrices the hidden width is often about $\tfrac83d$ to keep the parameter budget | [FFN and gates](ffn-and-gates.md) |
+| GQA / MQA | Several query heads share one K/V head | Heads that share K/V still attend differently because their Q differs; the saving is in the KV cache, not total parameters | [KV cache and inference cost](../deep-dives/kv-cache-and-inference.md) |
+| KV cache | Stores past K/V; a new step computes only $q_t,k_t,v_t$ | It equals recomputing the prefix only with the same weights, prefix, positions, and visibility, and dropout off; it grows linearly with layers, length, and KV heads | [KV cache and inference cost](../deep-dives/kv-cache-and-inference.md) |
+| FlashAttention | Tiles Q/K/V, computes block by block in on-chip GPU memory, and keeps the normalization right with online softmax | It computes the same attention, not a sparse approximation; FLOPs stay about $O(L^2)$, and the saving is memory traffic | [Attention kernels](../deep-dives/attention-kernels.md), [GPU memory hierarchy](../../12-infra/gpu-architecture.md), [CUDA tiling](../../12-infra/cuda.md#tiling) |
+| Long context | RoPE scaling, sliding windows, sparse connectivity, or mixed local / global layers | Position extrapolation and quadratic cost are separate problems; identify the bottleneck first (below the table) | [RoPE and long context](../deep-dives/position-and-context.md), [MLA and sparse attention](../deep-dives/latent-and-sparse-attention.md) |
+| MoE | Replaces the FFN with several experts; a router picks a few per token | Total parameters can far exceed those active per token; the cost is load balancing, expert capacity, and cross-device all-to-all communication; experts need not learn a nameable division of labor | [MoE](../moe/README.md) |
 
-Diagnose the bottleneck first:
+For long context, first ask which bottleneck you face:
 
-- distribution shift beyond trained positions → RoPE scaling or frequency adjustment;
-- quadratic full-attention compute and intermediates → windowed/sparse connectivity or
-  a more efficient kernel;
-- distant evidence cannot propagate → explicit global paths, retrieval, or layer mixing.
+- position distributions beyond the training length → RoPE scaling / frequency adjustment;
+- quadratic computation and intermediate state of full attention → windowed / sparse connectivity or an efficient kernel;
+- distant evidence cannot reach the query → global pathways, retrieval, or layer mixing.
+
+The FFN row is where dimensions most often go wrong. This chapter writes a token as a row vector: the original FFN is $\operatorname{ReLU}(xW_1)W_2$ (bias omitted), and SwiGLU is
+
+$$
+\begin{gathered}
+g=\operatorname{SiLU}(xW_{\text{gate}}),\\
+u=xW_{\text{up}},\\
+\operatorname{SwiGLU}(x)=(g\odot u)W_{\text{down}},
+\end{gathered}
+$$
+
+with $W_{\text{gate}},W_{\text{up}}\in\mathbb R^{d\times h}$, $W_{\text{down}}\in\mathbb R^{h\times d}$, and $\operatorname{SiLU}(z)=z\sigma(z)$. The next card keeps this notation and walks through the whole block.
 
 </div>
 </section>
@@ -639,48 +291,7 @@ Diagnose the bottleneck first:
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 9. MoE：扩大 FFN 容量，而不是注意力头 {#9-moe-ffn}
-
-Mixture-of-Experts 通常替换 FFN。Router 为每个 token 选择少数专家。以 top-2 为例，$E_1,E_2$ 是这个 token 选中的两个专家，$p_1,p_2$ 是 router 给它们的权重：
-
-$$
-y=p_1E_1(x)+p_2E_2(x).
-$$
-
-模型可以拥有很多 expert parameters，但单个 token 只激活少量专家，因此总参数容量
-可以远大于每个 token 实际用到的参数量。代价是 router 的选择质量、专家间的负载均衡、每个专家的容量上限、
-跨设备 all-to-all communication 和训练稳定性都更复杂。
-
-专家可能形成一定功能分工，但和注意力头一样，不应假设每个 expert 都有清晰、固定、
-可人工命名的语义。
-
-</div>
-<div class="concept-face concept-en" data-concept-en markdown="1">
-
-<div class="concept-title-en" role="heading" aria-level="3">9. MoE: scaling FFN capacity, not attention heads</div>
-
-Mixture-of-Experts usually replaces the FFN. A router selects a small number of
-experts for each token. With top-2 routing, $E_1,E_2$ are the two experts chosen for this token and $p_1,p_2$ are the router weights assigned to them:
-
-$$
-y=p_1E_1(x)+p_2E_2(x).
-$$
-
-The model may contain many expert parameters while activating only a few per token,
-so total parameter capacity can grow much faster than per-token compute. The cost is
-greater complexity in routing quality, load balancing, expert capacity, cross-device
-all-to-all communication, and training stability.
-
-Experts may develop some functional specialization, but—as with attention heads—one
-should not assume every expert has a clean, fixed, human-nameable semantic role.
-
-</div>
-</section>
-
-<section class="concept-card" data-concept-card markdown="1">
-<div class="concept-face concept-zh" data-concept-zh markdown="1">
-
-### 10. 把一个现代 Block 从头走一遍 {#10-block}
+### 3. 把一个现代 Block 从头走一遍 {#10-block}
 
 对于第 $l$ 层输入 $X_l$，先归一化并产生 Q、K、V：
 
@@ -755,7 +366,7 @@ $$
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
-<div class="concept-title-en" role="heading" aria-level="3">10. Walking through one modern block end to end</div>
+<div class="concept-title-en" role="heading" aria-level="3">3. Walking through one modern block end to end</div>
 
 For layer-$l$ input $X_l$, first normalize and form Q, K, and V:
 
@@ -842,7 +453,7 @@ optimizes the attention kernel; and MoE replaces the FFN.
 
 ### Decode {#decode}
 
-每次只输入新 token，查询历史 KV cache，再产生下一个 token。每步计算量小，但各步必须串行，常受内存带宽和 cache 大小限制。
+每次只输入新 token，查询历史 KV cache，再产生下一个 token。每步计算量小，但各步必须串行，常受内存带宽和 cache 大小限制；batch 变大后瓶颈怎样移动，见[推理性能](../../12-infra/performance.md#decode-batching)。
 
 ```mermaid
 flowchart LR
@@ -952,7 +563,7 @@ Sampling 决定怎样从模型给出的概率分布中选择 token，但不会�
 | pre-training | 语言、知识与模式 | next-token cross-entropy |
 | SFT | 什么输入应该对应什么回答 | 对目标回答 token 做 cross-entropy |
 | preference learning | 两个回答哪个更好 | pairwise / policy objective |
-| RL | 行为怎样产生更高回报 | trajectory-level objective |
+| RL | 行为怎样产生更高回报 | trajectory-level objective（多步工具调用的情形见[用强化学习训练 agent](../../11-frontier/agentic-rl/README.md)） |
 
 这些阶段通常不改变 decoder-only 的主体结构，改变的是数据分布、loss 和哪些位置直接计入 loss。Prompt 位置即使不计入 loss，也仍可能通过后续回答的 attention 路径收到梯度。
 

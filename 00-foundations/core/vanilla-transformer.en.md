@@ -4,7 +4,7 @@
 
 > Reading time: ~15 min · Level: core · Last reviewed: 2026-10
 
-For translation, an encoder can read the entire source sentence at once. A decoder predicting the next word cannot look ahead at the unwritten translation. The original Transformer uses different attention paths and masks for those two conditions. Following one sentence through the encoder and decoder gives each block a concrete role.
+For translation, an encoder can read the entire source sentence at once. A decoder predicting the next word cannot look ahead at the unwritten translation. The original Transformer uses different attention paths and masks for those two conditions. Following one sentence through the encoder and decoder gives each block a concrete role. **The original Transformer moves information between positions with attention and transforms each position with an FFN; the encoder and decoder differ mainly in their masks and in where attention reads from.**
 
 ## Move information, then transform it {#move-information-then-transform-it}
 
@@ -128,18 +128,7 @@ not equal $d_k$; the number of output channels is determined by $d_v$. Setting
 $d_k=d_v=64$ per head in the original model was a design choice, not a mathematical
 requirement of attention.
 
-Why divide the score by $\sqrt{d_k}$? If $q_i,k_i$ are approximately independent with
-zero mean and unit variance, then
-
-$$q^\top k=\sum_{i=1}^{d_k}q_ik_i,\qquad
-\operatorname{Var}(q^\top k)\approx d_k.$$
-
-The standard deviation of the dot product therefore grows like $\sqrt{d_k}$. After
-scaling,
-
-$$\operatorname{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right)\approx1,$$
-
-Under those assumptions, scaling reduces the risk of early saturation as head width grows; it does not bound learned scores throughout training. Saturation depends on score differences, not just absolute magnitude. The relevant width is the Q/K matching dimension $d_k$, not $d_v$.
+The score is divided by $\sqrt{d_k}$, the Q/K matching width, not $d_v$; the variance derivation and the example showing that saturation depends on score differences are in [multi-head attention](multi-head-attention.en.md#why-divide-by-sqrtd_k).
 
 The individual coordinates of $W_Q,W_K,W_V$ have no fixed human meaning, but the
 three projections play different roles: Q expresses “what I am looking for,” K
@@ -148,16 +137,7 @@ match.” Hence
 
 $$QK^\top=\text{addressing / routing},\qquad V=\text{retrieved content}.$$
 
-If $Q=K$ is forced, the score before the mask and softmax becomes
-
-$$S=QQ^\top,$$
-
-a symmetric positive-semidefinite matrix with $S_{ij}=S_{ji}$. Row-wise softmax need
-not preserve the symmetry, and a causal mask also breaks it, but the underlying
-matching function has already been restricted to a symmetric similarity. It cannot
-naturally express a directional relation in which “$i$ queries $j$” differs from
-“$j$ queries $i$.” Separate $W_Q,W_K$ remove this constraint; a separate $W_V$
-decouples “how the information is found” from “what is read once it is found.”
+Separate $W_Q,W_K$ let “$i$ queries $j$” and “$j$ queries $i$” score differently, and a separate $W_V$ decouples “how the information is found” from “what is read once it is found”; what forcing $Q=K$ does is covered in the [multi-head attention interview questions](multi-head-attention.en.md#common-interview-questions).
 
 ### 2. What one encoder layer computes {#2-what-one-encoder-layer-computes}
 
@@ -347,7 +327,7 @@ During training the true target sequence is known, so it can be shifted right as
 ## Verify it: run the complete example {#verify-it-run-the-complete-example}
 
 - Quick end-to-end run: [`../code/vanilla_demo.py`](../code/vanilla_demo.py)
-- Full math and modern components: [Transformer architecture deep dive](../transformer.en.md)
+- How the parts fit, the RoPE code, and checks for a from-scratch implementation: [The Transformer architecture](../transformer.en.md)
 - Attention forward pass without PyTorch: [`../code/sequence_numpy.py`](../code/sequence_numpy.py)
 
 ## Self-check {#self-check}

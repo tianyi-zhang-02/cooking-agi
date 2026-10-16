@@ -36,9 +36,7 @@ $$\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M
 **Why $\sqrt{d_k}$ rather than $\sqrt{d_v}$ or $\sqrt{d_{\text{model}}}$**: each entry of
 $QK^\top$ sums exactly $d_k$ products. Q and K must share their last dimension; V's feature
 dimension may differ, although standard MHA usually sets $d_v=d_k$. At model width 768 with
-12 heads, a head has $d_k=64$, so the divisor is $\sqrt{64}$. See the
-[Transformer deep dive](transformer.en.md#scaled-dot-product-attention) for the derivation and
-the $Q=K$ edge case.
+12 heads, a head has $d_k=64$, so the divisor is $\sqrt{64}$. The variance derivation is in [multi-head attention](core/multi-head-attention.en.md#why-divide-by-sqrtd_k), and the $Q=K$ follow-up is in that note's [interview questions](core/multi-head-attention.en.md#common-interview-questions).
 
 Time $O(T^2 d)$, memory $O(T^2)$. That $T \times T$ matrix is the long-context bottleneck and the whole motivation for FlashAttention: **never materialize it**.
 
@@ -128,7 +126,7 @@ x = LN(x + FFN(x))           x = x + FFN(LN(x))
                              x = LN(x)   ← a common final LN
 ```
 
-**Why Pre-LN is common**: it preserves an identity term along the residual trunk without routing that path through LN at every layer. Xiong et al. also found large expected gradients near the output at initialization in Post-LN; warmup helps prevent overly aggressive early updates. Their Pre-LN experiments trained without warmup, but that is not a guarantee for every model or training recipe.
+**Why Pre-LN is common**: it preserves an identity term along the residual trunk, so gradients need not pass through LN at every layer and training relies less on warmup; that is not a guarantee that every model can drop warmup. The Jacobian derivation, and how far Xiong et al.'s result carries, are in question 3 of [normalization](core/normalization.en.md#four-concepts-answer-first-then-go-deeper).
 
 **Implementation check**: Pre-LN models commonly normalize the final residual output before the output head. This is a common recipe, not a mathematical necessity. Match the particular model when reproducing it.
 
@@ -158,7 +156,7 @@ scores = np.where(mask, -np.inf, scores)             # add -inf, don't zero
 
 **Why it must be before the softmax** (the follow-up): adding $-\infty$ makes $e^{-\infty}=0$, and **the softmax renormalizes over the remaining positions** — mathematically identical to those positions not existing.
 
-Zeroing **after** the softmax **breaks normalization** — rows no longer sum to one, and unevenly: position 1 can only see itself, loses the most mass, and gets scaled down hardest. You've multiplied each position by an arbitrary, meaningless attenuation.
+Zeroing **after** the softmax **breaks normalization** — rows no longer sum to one, and unevenly: position 1 can only see itself, loses the most mass, and gets scaled down hardest. You've multiplied each position by an arbitrary, meaningless attenuation. [Multi-head attention](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong) works it through with two scores.
 
 **Engineering detail**: a fully masked row has no valid probability distribution. A plain softmax over all `-inf` produces NaNs; finite negative values may produce a uniform distribution, which is not a valid fix. `-1e9` also exceeds fp16's finite range. Explicitly handle queries without valid keys, check your attention API's all-masked behavior, and exclude padding from the loss. Masking after softmax and correctly renormalizing can be mathematically equivalent; merely zeroing entries is not.
 
