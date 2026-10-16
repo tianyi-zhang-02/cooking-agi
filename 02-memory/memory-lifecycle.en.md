@@ -2,6 +2,8 @@
 
 [中文](memory-lifecycle.md) · **English**
 
+> Reading time: ~8–10 min · Last reviewed: 2026-10
+
 Last month a user said, “Don't schedule evening meetings.” Today they say, “I'm in another time zone this week; evenings are fine.” If both statements simply enter a vector store and whichever is retrieved wins, memory becomes a liability.
 
 **The question isn't how much was stored, but which record applies and when it stops applying.** This note uses a fictional scheduling assistant.
@@ -173,13 +175,14 @@ The same wrong answer can have three causes: the validity interval was lost duri
 
 For the trip example, check the stored statement and interval, then whether retrieval returns that evidence, then whether the answer applies the exception only from Wednesday through Friday. In a synthetic test, provide the correct evidence directly as a control. If the answer is still wrong, retrieving more records may not help. This is a diagnostic experiment, not the normal production input.
 
-Two public benchmarks offer useful starting points, with different scopes:
+Three public benchmarks offer useful starting points as of October 2026, with different scopes:
 
 | Resource | What it helps test | What you still need to add |
 | --- | --- | --- |
 | [LongMemEval, ICLR 2025, §3–4](https://arxiv.org/html/2410.10813v2#S3) | Extraction, multi-session reasoning, temporal reasoning, updates, and abstention; separates indexing, retrieval, and reading | Product-specific permissions, deletion propagation, latency, and target languages |
 | [LoCoMo, 2024, §4 and §8](https://arxiv.org/html/2402.17753v1#S4) | Long-dialogue QA, event summaries, and multimodal dialogue; mainly model-generated data checked by humans | Real users' wording and changes; the paper's English data does not establish Chinese-language quality |
+| [MemoryAgentBench, first posted 2025 / v4 June 2026, §3.1 and §4.2](https://arxiv.org/html/2507.05257v4#S3) | Tests accurate retrieval, test-time learning, long-range understanding, and selective forgetting separately; FactConsolidation gives a fact, then a rewritten version that contradicts it, and asks for the newer one. The paper reports that every method reaches at most 28% accuracy on the multi-hop version | The prompt tells the model that larger serial numbers are newer, which real user corrections rarely make explicit; it tests overwriting facts in context, not deletion propagation or permissions |
 
-These are evaluation references, not a ranking of all memory systems in 2026. Fix the dataset version, available history, retrieval budget, and scoring script when reusing a benchmark. We have not run either full benchmark here. Strong QA results cannot replace checks that deleted information is no longer served.
+These are evaluation references, not a ranking of all memory systems in 2026. Fix the dataset version, available history, retrieval budget, and scoring script when reusing a benchmark. We have not run any of the three full benchmarks here. Strong QA results cannot replace checks that deleted information is no longer served.
 
 Continue: [Retrieving evidence](../04-search/README.en.md) · [When to ask a human](../06-systems/human-in-the-loop.en.md).

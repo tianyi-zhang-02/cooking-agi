@@ -77,9 +77,10 @@ class DataSupervisionTests(unittest.TestCase):
             "https://arxiv.org/html/2411.15124v3",
             "https://arxiv.org/html/2503.14476v2",
             "https://arxiv.org/html/2511.19399v3",
-            "https://arxiv.org/html/2609.29421v1",
-            "https://huggingface.co/docs/trl/v0.29.0/en/sft_trainer",
-            "https://docs.pytorch.org/docs/2.8/notes/randomness.html",
+            "https://arxiv.org/html/2609.29421v2",
+            "https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer",
+            "https://huggingface.co/docs/trl/v1.16.0/en/chat_templates",
+            "https://docs.pytorch.org/docs/2.14/notes/randomness.html",
         }
         for article in articles:
             self.assertEqual(set(re.findall(r"\]\((https://[^)]+)\)", article)), expected_sources)

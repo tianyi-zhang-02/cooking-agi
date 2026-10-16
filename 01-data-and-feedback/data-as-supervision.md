@@ -2,7 +2,7 @@
 
 **中文** · [English](data-as-supervision.en.md)
 
-> 阅读时间：约 12 分钟 · 最近审阅：2026-10-11 · 例子和数字为本站教学假设，不是模型实测结果。
+> 阅读时间：约 12 分钟 · 最近审阅：2026-10-16 · 例子和数字为本站教学假设，不是模型实测结果。
 
 后训练做着做着，经常又回到看数据、改评分规则、查环境。明明已经选了 SFT、DPO 或 GRPO，为什么还要反复试？因为算法只决定了其中一部分：练什么题、用什么反馈、什么时候换数据、花多少生成预算，仍然会影响这次训练是否有效。
 
@@ -21,7 +21,7 @@
 | [Tülu 3，2024 首发 / 2025 v3](https://arxiv.org/html/2411.15124v3) | §5.3 比较新问题、同题增加不同回答对，以及待训练模型自己生成的候选回答 | 数据更多不等于有效信息更多；一个模型的数据配比不保证适合另一个 |
 | [DAPO，2025 v2](https://arxiv.org/html/2503.14476v2) | §3.2 动态筛选有组内奖励差异的采样 | 全错的题不是永远学不会；被筛掉的回答也已经花了生成成本 |
 | [DR Tulu，2025 首发 / 2026 v3](https://arxiv.org/html/2511.19399v3) | §3 随训练更新长篇回答的评分细则，利用搜索证据与当前回答 | 更细的评分不等于 judge 不会错；附录 A 仍报告训练奖励与外部评估的差异 |
-| [Rufus-Air，2026-09 v1](https://arxiv.org/html/2609.29421v1) | §3.2–3.3 中，reasoning 阶段在线筛题，coding 阶段则预筛容易题并保留预筛时全错的题 | 同一报告也没有处处采用同一规则；§1 明确部分判断来自训练经验，而非完整消融 |
+| [Rufus-Air，2026-09 v2](https://arxiv.org/html/2609.29421v2) | §3.2–3.3 中，reasoning 阶段在线筛题，coding 阶段则预筛容易题并保留预筛时全错的题 | 同一报告也没有处处采用同一规则；§1 明确部分判断来自训练经验，而非完整消融 |
 
 这些例子说明，训练数据不总是一份事先做完的文件；反馈与任务选择也可能跟着模型改变。这里是对上述工作的归纳，不是说所有项目都需要动态换题或动态换奖励。后两篇作为进一步阅读，不因为更新就自动进入[AI 编年史](../learn/technology-timeline.md)的主干。
 
@@ -137,9 +137,9 @@ RL 更不能只盯着最初那份题库。模型变了，采样到的回答、�
 | 改多卡与梯度累积 | 只是多用几张卡 | 实际 batch、梯度归一化、数据顺序 |
 | 换 RL 工具或测试环境 | 接口仍能调用 | 状态是否重置、超时含义、评分和成功条件 |
 
-例如，TRL v0.29.0 的 `assistant_only_loss=True` 依赖模板提供 assistant token mask。不能只看配置项写了 `True`，就认为标签已经正确。应该拿一条样本解码，检查实际参与 loss 的位置。[TRL SFT 文档，v0.29.0](https://huggingface.co/docs/trl/v0.29.0/en/sft_trainer)
+例如，截至 2026-10 的 TRL v1.16.0，`assistant_only_loss=True` 仍要求 chat template 用 `{% generation %}` 和 `{% endgeneration %}` 标出 assistant 输出；对 Qwen3 等已知模型家族，TRL 会自动换上打过补丁的训练模板。[TRL SFT 文档，v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer) 换上的训练模板不一定和推理时的模板渲染得一样，例如 Qwen3 的训练模板会在每一轮 assistant 回复里都保留思考块。[TRL Chat Templates，v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/chat_templates) 所以不能只看配置项写了 `True`，就认为标签已经正确。应该拿一条样本解码，检查实际参与 loss 的位置。
 
-固定随机种子也不是跨机器、跨版本结果相同的保证；PyTorch 明确说明了这一限制。[PyTorch 2.8：Reproducibility](https://docs.pytorch.org/docs/2.8/notes/randomness.html)
+固定随机种子也不是跨机器、跨版本结果相同的保证；PyTorch 明确说明了这一限制，2026-10 对照 2.14 文档，这句说明没有变。[PyTorch 2.14：Reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html)
 
 这些工作不必每次从头做。锁定依赖、保存数据与模板版本、留一小组固定样本做 smoke test，可以减少反复修环境的时间。具体要检查哪些输入和梯度，接着看[从一条示范到训练 batch](../practice/post-training/data-pipeline.md#supervision-smoke-test)。
 
