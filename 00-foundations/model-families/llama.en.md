@@ -59,7 +59,7 @@ Separate the components:
 
 <span id="three-ideas-worth-keeping"></span>
 
-## What does GQA save? Calculate the cache
+## What does GQA save? Calculate the cache {#gqa-cache}
 
 GQA shares K/V across groups of Query heads. It does not reduce all queries to a single head, but compact KV storage no longer needs a separate pair for every Query head. [GQA paper](https://arxiv.org/abs/2305.13245)
 

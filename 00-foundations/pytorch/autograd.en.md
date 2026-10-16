@@ -167,7 +167,7 @@ assert first.item() == 12.0
 assert second.item() == 12.0
 ```
 
-`torch.compile` may capture and compile parts of execution. That does not replace eager-autograd reasoning with “the entire program always has one static graph.” Get gradient and state handling right first, then consider compilation boundaries.
+`torch.compile` may capture and compile parts of execution. That does not replace eager-autograd reasoning with “the entire program always has one static graph.” Get gradient and state handling right first, then consider compilation boundaries; for how `torch.compile` captures a graph and generates kernels, see [The framework layer](../../12-infra/frameworks.en.md).
 
 ## 6. Check a derivative instead of trusting its appearance
 

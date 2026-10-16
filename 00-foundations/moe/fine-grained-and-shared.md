@@ -1,4 +1,4 @@
-# MoE：细粒度专家与共享专家
+# MoE：细粒度专家与共享专家（shared expert）
 
 **中文** · [English](fine-grained-and-shared.en.md)
 

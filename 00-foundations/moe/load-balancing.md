@@ -131,7 +131,7 @@ $$L_z = \frac{1}{B}\sum_{i=1}^{B}\Big(\log \sum_{j=1}^{N} e^{x^{(i)}_j}\Big)^2$$
 
 Qwen3 走的是另一条路：global-batch balance loss，在全局 batch 上算均衡，而不是每个 micro-batch 都算，这样 expert 在局部可以更偏科。
 
-## 不进门值公式，为什么还会改变输出？
+## 不进门值公式，为什么还会改变输出？ {#bias-example}
 
 看一个只用于说明的 top-2 例子，忽略分组路由和额外缩放：
 

@@ -4,7 +4,7 @@
 
 把上下文加长，只是允许模型接收更多输入。真正难的是：历史越来越长，哪些信息还要保留，下一步应该读哪些，以及这些取舍会不会损失任务需要的细节。
 
-这篇接着 [V2 / V3 / R1](deepseek.md) 往下读。先看注意力，再看残差和训练；不要把三个层面的变化混成一个“模型更强”。2026-10-10 核对范围是报告 v1 与 V4-Pro / V4-Flash preview 的公开配置和推理源码，不是对所有后续版本的概括，也不声称复现官方性能。
+这篇接着 [V2 / V3 / R1](deepseek.md) 往下读。先看注意力（attention），再看残差和训练；不要把三个层面的变化混成一个“模型更强”。2026-10-10 核对范围是报告 v1 与 V4-Pro / V4-Flash preview 的公开配置和推理源码，不是对所有后续版本的概括，也不声称复现官方性能。
 
 > **之后的版本（截至 2026-10）：** 2026-08-13 [V4-Pro 正式版](https://api-docs.deepseek.com/news/news260813)上线，API 名称不变，并给 V4-Pro 和 V4-Flash 加了 low / high / max 三档推理强度。2026-09-10 发布的 [V4.1-Flash](https://api-docs.deepseek.com/news/news260910) 换成了新的 Causal Encoder–Decoder 结构：据[模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash)，它是 552B 主干参数的 MoE，prefill 时每 token 激活 8B、decode 时激活 16B，原生支持图像输入；注意力改用 CSA2，每层固定为 Full、Reindex、Reuse 三种模式之一，模型卡没有提 HCA。这份发布说明同时宣布 V4-Flash 停用，`deepseek-v4-flash` 暂时转到 V4.1-Flash；2026-09-14 起，`deepseek-v4-pro` 的请求也转到 V4.1-Flash，直到 V4.1-Pro 上线。所以下面的 CSA / HCA 分析只适用于 V4 权重；现在调用这两个 API 名称，用的已经不是本文讲的模型。
 
@@ -33,7 +33,7 @@
   </ol>
 </figure>
 
-图里两条路代表**不同层的配置**，不是一个 head 把两套都跑一遍。CSA 的实际压缩有重叠：相邻块的两个投影参与合成，仍然每 m 个位置产出一个条目；不能把它误写成每 2m 个位置产出一个。细节见[报告 §2.3](https://arxiv.org/html/2606.19348v1#S2.SS3)。
+图里两条路代表**不同层的配置**，不是一个 head 把两套都跑一遍。CSA 的实际压缩有重叠：相邻块的两个投影参与合成，但仍然每 m 个位置产出一个条目，不是每 2m 个。细节见[报告 §2.3](https://arxiv.org/html/2606.19348v1#S2.SS3)。
 
 这里的主 attention 使用 shared-KV MQA，不是直接复用 V3 的 MLA 缓存公式。局部条目与压缩条目进入同一个归一化，分母还含可学习的 attention sink；不能分别 softmax 后直接相加。位置处理等细节仍以源码为准。
 

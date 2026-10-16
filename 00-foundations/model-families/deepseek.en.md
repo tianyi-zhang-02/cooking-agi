@@ -54,7 +54,7 @@ Two updates sit between V3 and V4; this note does not cover them in depth. [V3.1
 2. **MoE separates total capacity from per-token computation.** Routed experts provide capacity; each token uses a subset. Shared experts aim to capture reusable patterns, without guaranteeing neatly separated domains. Routing, communication, and storage remain costs.
 3. **R1 investigates what post-training can change.** R1-Zero applies RL to a pretrained V3-Base, not random weights. It does not establish that pretraining is unimportant or that RL explains every capability beyond the reward.
 
-An invented width budget makes “fine-grained” concrete. Replace 8 experts of intermediate width 256, selecting 2, with 32 experts of width 64, selecting 8. For bias-free SwiGLU with unchanged input width, parameter counts and matrix multiply-adds scale with expert count times intermediate width. Total expert parameters and active-branch multiply-adds therefore match, but routing and communication costs need not. Adding another shared expert increases the budget; it is not a free branch.
+“Fine-grained” means cutting wide experts into more narrow ones and selecting more of them per token: total expert parameters and the main multiply-adds per token stay the same, while the possible combinations and the routing and communication costs change. For the worked comparison of 8-choose-2 with 32-choose-8, and why adding a shared expert increases the budget, see [Fine-grained and shared experts](../moe/fine-grained-and-shared.en.md).
 
 ### MLA cache accounting: one latent, not two {#mla-cache-ledger}
 
@@ -119,6 +119,8 @@ assert math.isclose(sum(weight * [2, 0, 10][index] for index, weight in routed),
 
 This illustrates only the routed branch, without shared experts, node constraints, full scaling, or communication. A bias updated from prior load statistics is not new evidence of relevance for the current token. Measure tokens received per device too: balanced mean expert loads do not guarantee balanced inter-node traffic.
 
+For another set of numbers, where adding the bias changes which experts are selected, and why expert balance and device balance are separate tables, see [Load balancing](../moe/load-balancing.en.md#bias-example).
+
 ### MTP adds a target, not permission to skip verification {#mtp-causal-chain}
 
 V3 uses MTP depth 1. The backbone state $h_i$ predicts $t_{i+1}$; an extra module combines $h_i$ with the ground-truth embedding of $t_{i+1}$ to predict $t_{i+2}$. Modules preserve causal order and share the backbone's embedding and output head, rather than making independent predictions from separate heads. [V3 §2.2 and §4.2](https://arxiv.org/html/2412.19437v2#S2.SS2)
@@ -156,9 +158,9 @@ Small-model distillation is another branch: use the curated data for Qwen / Llam
 
 ### Checking the outcome does not necessarily check the reasoning
 
-R1-Zero uses rule-based accuracy and format rewards. Later R1 stages also involve language consistency and general preferences. Do not extrapolate one phase's rule-based reward to the entire training pipeline. [R1 §2.2–2.3](https://arxiv.org/html/2501.12948v1#S2.SS2)
+R1-Zero uses rule-based accuracy and format rewards. Later R1 stages also involve language consistency and general preferences. Do not extrapolate one phase's rule-based reward to the entire training pipeline. [R1 §2.2–2.3](https://arxiv.org/html/2501.12948v1#S2.SS2) For why answers grow longer on their own when only the answer is rewarded, see the R1-Zero section of [How long chains of thought are trained](../../11-frontier/test-time-compute/long-chains.en.md).
 
-For an original small example, suppose an addition problem has answer 12. A response ends with 12 but explains it as “5 + 8.” A final-number checker rewards it; a step check catches the inconsistency. Conversely, a brittle parser might reject a valid algorithm's answer expressed in different units. Test **verifier reliability, reward coverage, and whether training actually uses the intended signal** separately.
+For an original small example, suppose an addition problem has answer 12. A response ends with 12 but explains it as “5 + 8.” A final-number checker rewards it; a step check catches the inconsistency. Conversely, a brittle parser might reject a valid algorithm's answer expressed in different units. Test **verifier reliability, reward coverage, and whether training actually uses the intended signal** separately. For how a verifier's error rate caps the gains of best-of-N, see [Sampling, voting and verifiers](../../11-frontier/test-time-compute/parallel-and-verify.en.md).
 
 Local fixtures should include a correct response, a correct response in a different format, a correct result with faulty reasoning, and a fluent but wrong response. The training checker should not be the only independent evaluation.
 

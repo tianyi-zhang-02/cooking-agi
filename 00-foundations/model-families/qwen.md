@@ -4,7 +4,9 @@
 
 > 类型：模型家族精读 · 最近核对：2026-10-10
 
-Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精读](qwen-early.md)。本篇以初版 Qwen3 为基线，再对照 Qwen3-2507、Qwen3-Next、Qwen3.5、Qwen3.6 和已核对的 Qwen3.8 型号。核对截至 2026-10-10，不是完整产品目录或“最新版”保证；模型卡描述不等于已验证的服务能力或完整训练配方。
+读 Qwen3，我更关心的是：**同一家族怎样适应不同任务和预算？** 它有 dense 和 MoE、不同参数规模，也支持 thinking 与 non-thinking。把这些版本放在一起看，才能分清哪些差异来自模型大小，哪些来自架构或推理方式。
+
+本篇以初版 Qwen3 为基线，对照到 Qwen3-2507、Qwen3-Next、Qwen3.5、Qwen3.6 和 Qwen3.8 的具体型号，核对截至 2026-10-10；Qwen 1–2.5 见[早期版本精读](qwen-early.md)。
 
 <div class="lesson-recipe advanced">
   <div><span>核心问题</span><strong>怎样让一个模型家族覆盖不同预算与 workload？</strong></div>
@@ -15,7 +17,7 @@ Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精�
 
 ## 一句话定位
 
-读 Qwen3，我更关心的是：**同一家族怎样适应不同任务和预算？** 它有 dense 和 MoE、不同参数规模，也支持 thinking 与 non-thinking。把这些版本放在一起看，才能分清哪些差异来自模型大小，哪些来自架构或推理方式。
+规模、稀疏和推理预算这三样，Qwen 都给了可以对照的版本，所以适合用来练习把它们分开算。
 
 这里的模式切换主要指初版 Qwen3 的 hybrid checkpoints。家族名不能代替型号：例如 [Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) 只支持 non-thinking，而 [Thinking-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507) 只支持 thinking。这是两份不同权重，不是同一个 checkpoint 的两种请求设置。
 
@@ -42,7 +44,7 @@ Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精�
 
 以 [初版 Qwen3-8B 的接口](https://huggingface.co/Qwen/Qwen3-8B#switching-between-thinking-and-non-thinking-mode)为例，`enable_thinking=False` 是传给 chat template 的硬开关；`/think` 与 `/no_think` 是它开启时的软指令，不能覆盖硬关闭。当 `add_generation_prompt=True` 且硬关闭时，当前模板把一个空的 `<think>…</think>` 段放进 **prompt**；它不是模型新生成的推理。因此检查“有没有 think 标签”时，要先分开输入模板、生成 continuation 和服务端解析后的字段。
 
-这不涉及每次请求重新训练权重，也不靠切换 MoE 路由数量实现。后训练让模型学会协议，推理时模板和采样控制它如何作答；`max_new_tokens` 限的是整个 continuation，不是独立的“思考额度”。预算用尽而截断也不保证已生成最终答案。
+这不涉及每次请求重新训练权重，也不靠切换 MoE 路由数量实现。后训练让模型学会协议，推理时模板和采样控制它如何作答；`max_new_tokens` 限的是整个 continuation，不是独立的“思考额度”。预算用尽而截断也不保证已生成最终答案。怎样给思考单独设预算、控制长度，见[长思维链：预算和长度控制](../../11-frontier/test-time-compute/long-chains.md)。
 
 后来的型号又多了两个开关（截至 2026-10）。[Qwen3.8-27B 模型卡](https://huggingface.co/Qwen/Qwen3.8-27B)用 `reasoning_effort` 调推理深度，可选 `xhigh`（默认）、`medium`、`low`，示例里直接作为请求参数传入。`preserve_thinking` 决定多轮对话里是否保留之前各轮的 thinking 块：Qwen3.8 默认保留，[Qwen3.6](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) 默认不保留、只留最近一轮。前者改变这一次回答花多少推理，后者改变下一轮输入里带着多少旧推理。它们和 `enable_thinking` 一样，只改请求和模板，不改权重。
 
@@ -86,7 +88,7 @@ Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精�
 
 ### Qwen3-Next：同名家族里的架构转弯 {#qwen3-next-boundary}
 
-[Qwen3-Next-80B-A3B-Instruct](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct)已经换成 Gated DeltaNet 与 Gated Attention 的 3:1 混合布局；MoE 是 512 个 routed experts、每 token 选 10 个，另有 1 个 shared expert，不能套用初版的 128/8、无 shared expert。这个 Instruct checkpoint 只支持 non-thinking。模型卡还描述了 MTP；训练中预测后续多个位置，与推理引擎是否使用对应的 speculative decoding 路径，是两件事，不能仅凭模块存在就推导实际加速。
+[Qwen3-Next-80B-A3B-Instruct](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct)已经换成 Gated DeltaNet 与 Gated Attention 的 3:1 混合布局；MoE 是 512 个 routed experts、每 token 选 10 个，另有 1 个 shared expert，和初版的 128 选 8、无 shared expert 不同。这个 Instruct checkpoint 只支持 non-thinking。模型卡还描述了 MTP：训练时多预测几个位置，和推理引擎有没有用它做 speculative decoding 是两件事，有这个模块不等于实际加速。
 
 ## Qwen3.5：线性状态与完整历史各负责什么？
 

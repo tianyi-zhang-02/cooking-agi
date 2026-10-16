@@ -34,30 +34,14 @@ flowchart TD
 
 ## 第三步：用 GQA 算一次账
 
-假设 query 有 16 个头，KV 有 4 个头，每个头维度为 64。一个位置仍有 16 组 query，但每组 KV 由 4 个 query 头共享。GQA 的目标之一是减少 decoder 推理中的 KV 开销；具体质量和速度结论应看它自己的实验条件。[GQA 原论文](https://arxiv.org/abs/2305.13245)
+假设 query 有 16 个头，KV 有 4 个头，每个头维度为 64。一个位置仍有 16 组 query，但每组 KV 由 4 个 query 头共享。再取单请求、4,096 个 token、24 层、BF16，按 $2BTLH_{\mathrm{KV}}d_hs$ 算 KV cache：16 个 KV 头是 384 MiB，4 个是 96 MiB。[GQA 原论文](https://arxiv.org/abs/2305.13245)
 
-对于每层都缓存完整上下文、K/V 维度相同的简化模型：
-
-$$
-M_{\mathrm{KV}}=2\,B\,T\,L\,H_{\mathrm{KV}}\,d_h\,s.
-$$
-
-2 对应 K 和 V，$s$ 是每个数占的字节。设 $B=1,T=4096,L=24,d_h=64,s=2$：
-
-```python
-def kv_cache_mib(kv_heads):
-    return 2 * 1 * 4096 * 24 * kv_heads * 64 * 2 / (1024 ** 2)
-
-assert kv_cache_mib(16) == 384
-assert kv_cache_mib(4) == 96
-```
-
-这个例子把 KV 缓存量降为四分之一，**不是把整个模型显存或请求延迟降为四分之一**。权重、临时激活、其他计算、实现开销都还在。滑动窗口、量化或特殊缓存结构也需要另算。
+这一步要练的是：先找出改动省的是哪一笔，再问其他开销还剩多少。KV 缓存降为四分之一，**不是把整个模型显存或请求延迟降为四分之一**。公式里每个符号的含义、可以改数字的代码，以及权重、激活这些不跟着变的部分，在 [Llama 的 GQA 一节](llama.md#gqa-cache)里完整算过一遍。滑动窗口、量化或特殊缓存结构要另算。
 
 ## 第四步：分开看 prefill 和 decode
 
 - **Prefill**：处理已有 prompt。一次输入很多 token，重点看长度、batch、attention 实现和首 token 延迟。
-- **Decode**：继续生成。每轮新增 token，会读取缓存；长上下文、小 batch 等情况下，内存访问可能很重要。
+- **Decode**：继续生成。每轮新增 token，会读取缓存；长上下文、小 batch 等情况下，内存访问可能很重要。batch 变大以后为什么会转向算力受限，见[性能：decode 的 batch](../../12-infra/performance.md#decode-batching)。
 
 不要把“减少理论 FLOPs”直接翻译成“延迟一定更低”。并行度、带宽和 kernel 实现都可能改变结果。至少记录 workload、输入输出长度、batch 和硬件，再比较测量值。
 

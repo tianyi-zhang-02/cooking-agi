@@ -1,4 +1,4 @@
-# 交叉熵：从一个预测到训练里的 loss
+# 交叉熵（CE）：从一个预测到训练里的 loss
 
 **中文** · [English](cross-entropy.en.md)
 

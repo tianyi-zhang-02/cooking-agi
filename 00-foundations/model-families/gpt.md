@@ -142,7 +142,7 @@ assert math.isclose(output, 4.0)
 
 官方说明包含 SFT 和高计算量 RL，目标涉及推理、工具使用和行为对齐；提供 low / medium / high 三档 reasoning effort。公开资料没有给出可直接重跑的完整数据与训练配方，不能把它自行补成“用了某个 GRPO 配置”。[发布说明：Post-training](https://openai.com/index/introducing-gpt-oss/)
 
-架构解释每步怎样算，训练目标解释怎样更新，effort 则改变回答时投入的计算。三者要分开比较。把同一模型从 low 切到 high 后答对更多题，不能称为“又训练了一次”；换了工具环境，也不能只归因于模型参数。
+架构解释每步怎样算，训练目标解释怎样更新，effort 则改变回答时投入的计算（怎样在相同计算下比较，见[测试时计算：怎么比较、怎么读数字](../../11-frontier/test-time-compute/measuring.md)）。三者要分开比较。把同一模型从 low 切到 high 后答对更多题，不能称为“又训练了一次”；换了工具环境，也不能只归因于模型参数。
 
 实际做一次小规模评估，可以先固定同一批题，设置下面四组。这里是实验设计，不是测得的结果：
 

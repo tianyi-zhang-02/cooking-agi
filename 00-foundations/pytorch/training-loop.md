@@ -238,7 +238,7 @@ TensorBoard 画出的网络图依赖捕获方式和示例输入，不能当作�
 
 设备内部也不是所有数据都一直待在同一个地方：张量通常放在 GPU 的全局内存中，kernel 按需把一部分数据读到 cache、shared memory 或寄存器里运算。算完的结果再留给后续算子。具体经过哪层、是否融合，取决于 kernel；Python 里一个 `matmul` 不代表整块矩阵一次装进片上存储。想继续看这部分，可以接着读 [attention kernel](../deep-dives/attention-kernels.md)。
 
-这里的 kernel 是启动到 GPU 上执行的函数，不是一块存储器。计算由 SM（Streaming Multiprocessor）里的计算单元执行；shared memory、cache 和寄存器负责放数据，不能简单说“在 SRAM 里做计算”。它们的容量和配置随硬件变化，也不该把某张卡的数字背成通用规格。具体区分见 [CUDA 编程模型的硬件与内存说明](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#gpu-hardware-model)（2026-10-10 核对）。
+这里的 kernel 是启动到 GPU 上执行的函数，不是一块存储器。计算由 SM（Streaming Multiprocessor）里的计算单元执行；shared memory、cache 和寄存器负责放数据，不能简单说“在 SRAM 里做计算”。它们的容量和配置随硬件变化，也不该把某张卡的数字背成通用规格。具体区分见 [CUDA 编程模型的硬件与内存说明](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#gpu-hardware-model)（2026-10-10 核对）。SM、warp 和内存层级的讲解见 [GPU 架构](../../12-infra/gpu-architecture.md)；kernel 怎样用 shared memory 分块，见 [CUDA：shared memory tiling](../../12-infra/cuda.md#tiling)。
 
 ### 先把设备放对，再谈加速 {#device-placement}
 
@@ -259,7 +259,7 @@ def device_step(model, optimizer, features, labels):
 
 这个函数假设模型参数在同一设备上，输入是前面的两个 tensor，不是通用多设备 batch 搬运器。CPU 版本会做数值测试；**这篇没有运行 CUDA 吞吐测试**。返回的 loss 已脱离计算图，但仍在原设备上；如果把每一步的返回值一直存进列表，还是会积累张量。
 
-`non_blocking=True` 的意思是尽可能不让主机在复制调用处等待，不等于“下一批传输已经和当前计算重叠”。真要重叠，还要有合适的 pinned 源数据、不同 stream、可用复制引擎和正确依赖。先用普通循环跑通，再看 profiler，通常比一开始手写预取器好排查。[PyTorch 的传输教程](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html)有对应的时间线对照。
+`non_blocking=True` 的意思是尽可能不让主机在复制调用处等待，不等于“下一批传输已经和当前计算重叠”。真要重叠，还要有合适的 pinned 源数据、不同 stream、可用复制引擎和正确依赖。先用普通循环跑通，再看 profiler，通常比一开始手写预取器好排查。[PyTorch 的传输教程](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html)有对应的时间线对照；stream 怎样让拷贝和计算重叠，见 [CUDA：Streams](../../12-infra/cuda.md#streams)。
 
 ### 复制已经返回，数据就能改了吗？ {#async-copy-safety}
 
@@ -320,7 +320,7 @@ assert ideal_pipeline_ms(3, 12, 2, 8) == (66, 46)
 | CPU 内存随 worker 数增加 | 看预取队列、每批大小和进程内副本 | 认为 `num_workers` 越多越好 |
 | 计算很快，记日志却慢 | 降低同步取指标的频率，再比较时间线 | 直接关掉所有检查或保留所有输出 |
 
-复用 batch 只是定位数据开销，不能拿来报告真实训练吞吐。计时也要等所测 GPU 工作完成；只量 Python 调用返回，可能只量到了排队。多 stream 还需处理依赖与张量生命周期，不能靠随手插一个 `synchronize()` 证明写法高效。[CUDA semantics](https://docs.pytorch.org/docs/2.14/notes/cuda.html#asynchronous-execution)说明了这些边界。
+复用 batch 只是定位数据开销，不能拿来报告真实训练吞吐。计时也要等所测 GPU 工作完成；只量 Python 调用返回，可能只量到了排队。多 stream 还需处理依赖与张量生命周期，不能靠随手插一个 `synchronize()` 证明写法高效。[CUDA semantics](https://docs.pytorch.org/docs/2.14/notes/cuda.html#asynchronous-execution)说明了这些边界；怎样用 profiler 正确计时，见[性能：Profiling](../../12-infra/performance.md#profiling)。
 
 前面的保存例子只检查输出一致。接下来若要处理被打断的训练，去看 [checkpoint 与恢复](../../practice/post-training/checkpoint-and-resume.md)：那里会让“接着跑”与“从同一权重重新开始”真正分出差别。
 

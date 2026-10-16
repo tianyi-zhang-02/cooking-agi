@@ -11,11 +11,13 @@
   <div><span>After reading</span><strong>separate architectural sparsity, inference-time compute, and small-model distillation</strong></div>
 </div>
 
-Qwen 1–2.5 tokenizer, GQA, data, and post-training changes are covered in the [early-version walkthrough](qwen-early.en.md). The original Qwen3 is the baseline here, followed by selected Qwen3-2507, Qwen3-Next, Qwen3.5, Qwen3.6, and verified Qwen3.8 models. Checks are dated 2026-10-10, not an exhaustive catalog or a guarantee of the latest release. Model-card descriptions do not establish tested service behavior or disclose a complete training recipe.
+What interests me in Qwen3 is this: **how does one family adapt to different tasks and budgets?** It has dense and MoE models, many sizes, and both thinking and non-thinking modes. Only by putting these versions side by side can we tell which differences come from model size and which from architecture or inference mode.
+
+The original Qwen3 is the baseline here, compared with specific Qwen3-2507, Qwen3-Next, Qwen3.5, Qwen3.6, and Qwen3.8 models, checked as of 2026-10-10; Qwen 1–2.5 are covered in the [early-version walkthrough](qwen-early.en.md).
 
 ## One-sentence position
 
-What makes Qwen3 worth studying is not that it is another decoder-only model. It treats **family design** as the object: dense and MoE variants, many sizes, thinking and non-thinking modes, long context, and multilingual capability all sit in one spectrum that users can choose by budget.
+Qwen offers comparable versions along all three axes—scale, sparsity, and inference budget—so it is good practice for accounting for them separately.
 
 Mode switching here refers primarily to the original Qwen3 hybrid checkpoints. [Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) is non-thinking-only, whereas [Thinking-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507) is thinking-only. These are different weights, not two request settings for one checkpoint.
 
@@ -42,7 +44,7 @@ The [Qwen3-8B config](https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json
 
 In the [original Qwen3-8B interface](https://huggingface.co/Qwen/Qwen3-8B#switching-between-thinking-and-non-thinking-mode), `enable_thinking=False` is a hard chat-template switch. The `/think` and `/no_think` instructions are soft controls when thinking is enabled; they cannot override the hard-off setting. With `add_generation_prompt=True` and thinking disabled, the current template puts an empty `<think>…</think>` segment in the **prompt**, not in newly generated reasoning. Before testing for tags, distinguish template input, generated continuation, and fields extracted by a serving parser.
 
-This does not retrain the weights per request or change the number of routed experts. Post-training teaches the protocol; templates and sampling guide its use at inference. `max_new_tokens` limits the entire continuation, not a separate reasoning allowance, and reaching that limit does not guarantee that a final answer has been produced.
+This does not retrain the weights per request or change the number of routed experts. Post-training teaches the protocol; templates and sampling guide its use at inference. `max_new_tokens` limits the entire continuation, not a separate reasoning allowance, and reaching that limit does not guarantee that a final answer has been produced. For separate thinking budgets and length control, see [Long chains: budgets and length control](../../11-frontier/test-time-compute/long-chains.en.md).
 
 Later models add two more controls (as of October 2026). The [Qwen3.8-27B model card](https://huggingface.co/Qwen/Qwen3.8-27B) tunes reasoning depth with `reasoning_effort`, which accepts `xhigh` (the default), `medium` or `low`; its example passes it directly as a request parameter. `preserve_thinking` decides whether a multi-turn conversation keeps the thinking blocks from earlier turns: Qwen3.8 keeps them by default, while [Qwen3.6](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) by default keeps only the latest turn's. The first changes how much reasoning this answer spends; the second changes how much old reasoning the next turn's input carries. Like `enable_thinking`, both change the request and template, not the weights.
 
@@ -86,7 +88,7 @@ Suppose the student has generated an imperfect prefix. Imitating a prewritten te
 
 ### Qwen3-Next changes the architecture, not just the label {#qwen3-next-boundary}
 
-[Qwen3-Next-80B-A3B-Instruct](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct) uses a 3:1 Gated DeltaNet/Gated Attention layout. Its MoE selects ten of 512 routed experts and adds one shared expert, unlike the original 128/eight design without shared experts. This Instruct checkpoint is non-thinking-only. The card also describes MTP: predicting additional future positions during training is distinct from an inference engine using the corresponding speculative-decoding path. Module presence alone does not establish a measured speedup.
+[Qwen3-Next-80B-A3B-Instruct](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct) uses a 3:1 Gated DeltaNet/Gated Attention layout. Its MoE selects ten of 512 routed experts and adds one shared expert, unlike the original 128/eight design without shared experts. This Instruct checkpoint is non-thinking-only. The card also describes MTP: predicting additional future positions during training is distinct from an inference engine using it for speculative decoding, and having the module is not a measured speedup.
 
 ## Qwen3.5: recurrent state versus full history
 

@@ -34,30 +34,14 @@ For example, the FFN usually acts token by token, while attention aggregates inf
 
 ## Step 3: calculate a GQA example
 
-Suppose there are 16 query heads, 4 KV heads, and head dimension 64. There are still 16 queries per position, with each KV head shared by 4 query heads. Reducing decoder KV overhead is one motivation for GQA; quality and speed claims depend on the paper's experimental settings. [Original GQA paper](https://arxiv.org/abs/2305.13245)
+Suppose there are 16 query heads, 4 KV heads, and head dimension 64. There are still 16 queries per position, with each KV head shared by 4 query heads. Take one request of 4,096 tokens, 24 layers and BF16, and compute the KV cache as $2BTLH_{\mathrm{KV}}d_hs$: 16 KV heads need 384 MiB and 4 need 96 MiB. [Original GQA paper](https://arxiv.org/abs/2305.13245)
 
-For a simplified model caching the full context at every layer, with equal K/V dimensions:
-
-$$
-M_{\mathrm{KV}}=2\,B\,T\,L\,H_{\mathrm{KV}}\,d_h\,s.
-$$
-
-The 2 accounts for K and V, and $s$ is bytes per value. Set $B=1,T=4096,L=24,d_h=64,s=2$:
-
-```python
-def kv_cache_mib(kv_heads):
-    return 2 * 1 * 4096 * 24 * kv_heads * 64 * 2 / (1024 ** 2)
-
-assert kv_cache_mib(16) == 384
-assert kv_cache_mib(4) == 96
-```
-
-The KV cache becomes one quarter of its previous size, **not the whole model's memory use or request latency**. Weights, temporary activations, other computation, and implementation overhead remain. Sliding windows, quantization, or specialized caches need different accounting.
+The skill to practise here is to find which cost a change reduces, then ask what other costs remain. The KV cache becomes one quarter of its previous size, **not the whole model's memory use or request latency**. The [GQA section of the Llama walkthrough](llama.en.md#gqa-cache) works through the full calculation: what each symbol means, code you can change, and the weights and activations that do not shrink. Sliding windows, quantization, or specialized caches need different accounting.
 
 ## Step 4: separate prefill and decode
 
 - **Prefill:** process the existing prompt. Many tokens enter together; inspect sequence length, batch, attention implementation, and time to first token.
-- **Decode:** generate further tokens while reading cached state. Memory access can matter especially with long contexts and small batches.
+- **Decode:** generate further tokens while reading cached state. Memory access can matter especially with long contexts and small batches. For why a larger batch shifts decoding toward compute-bound, see [Performance: decode batching](../../12-infra/performance.en.md#decode-batching).
 
 Fewer theoretical FLOPs do not guarantee lower latency. Parallelism, bandwidth, and kernels affect the result. Record workload, input/output lengths, batch, and hardware before comparing measurements.
 

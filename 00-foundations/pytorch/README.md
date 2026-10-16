@@ -14,10 +14,10 @@
 
 | 章节 | 先回答一个问题 | 动手检查 |
 | --- | --- | --- |
-| [1 · 张量与存储](tensors-and-storage.md) | 为什么我只改了切片，原数据也变了？ | shape、dtype、索引、view 与 copy |
+| [1 · 张量（tensor）与存储](tensors-and-storage.md) | 为什么我只改了切片，原数据也变了？ | shape、dtype、索引、view 与 copy |
 | [2 · 运算与维度](operations-and-shapes.md) | 代码没报错，为什么算的不是我要的 loss？ | broadcasting、归约、矩阵乘法、数值稳定性 |
-| [3 · 交叉熵与 loss](cross-entropy.md) | 同样叫平均 loss，为什么算出来不一样？ | LogSumExp、软标签、loss mask 与分母 |
-| [4 · 自动求导](autograd.md) | 有计算图，为什么 `.grad` 还是 None？ | 梯度累积、叶节点、detach、VJP |
+| [3 · 交叉熵（CE）与 loss](cross-entropy.md) | 同样叫平均 loss，为什么算出来不一样？ | LogSumExp、软标签、loss mask 与分母 |
+| [4 · 自动求导（autograd）](autograd.md) | 有计算图，为什么 `.grad` 还是 None？ | 梯度累积、叶节点、detach、VJP |
 | [5 · 从 batch 到训练循环](training-loop.md) | 怎样确认参数真的学到了，而不只是前向能跑？ | Module、DataLoader、验证、日志与恢复 |
 
 ## 先看一次完整的小更新

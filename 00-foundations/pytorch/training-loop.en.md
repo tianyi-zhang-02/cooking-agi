@@ -238,7 +238,7 @@ So far, everything has run on the CPU. Moving to a GPU does not mean moving the 
 
 Inside the GPU, tensors usually reside in global memory. Kernels move working portions through caches, shared memory, or registers and leave outputs for later operations. The exact path depends on the kernel and fusion choices; a Python `matmul` does not mean the entire matrix fits into on-chip storage. The [attention-kernel chapter](../deep-dives/attention-kernels.en.md) follows that distinction further.
 
-A kernel is a function launched on the GPU, not a memory region. Functional units within an SM (Streaming Multiprocessor) perform the computation; shared memory, caches, and registers store data. “Computing in SRAM” blurs that distinction. Capacities and configurations vary by hardware, so one GPU's numbers are not universal specifications. See the [CUDA hardware and memory model](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#gpu-hardware-model), checked on 2026-10-10.
+A kernel is a function launched on the GPU, not a memory region. Functional units within an SM (Streaming Multiprocessor) perform the computation; shared memory, caches, and registers store data. “Computing in SRAM” blurs that distinction. Capacities and configurations vary by hardware, so one GPU's numbers are not universal specifications. See the [CUDA hardware and memory model](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#gpu-hardware-model), checked on 2026-10-10. SMs, warps and the memory hierarchy are explained in [GPU architecture](../../12-infra/gpu-architecture.en.md); how kernels tile data through shared memory is in [CUDA: shared-memory tiling](../../12-infra/cuda.en.md#tiling).
 
 ### Get placement right before tuning throughput {#device-placement}
 
@@ -259,7 +259,7 @@ def device_step(model, optimizer, features, labels):
 
 This assumes a single-device model and the two input tensors used earlier, not an arbitrary nested or multi-device batch. Numerical tests cover its CPU path; **no CUDA throughput experiment was run for this note**. The returned loss is detached but stays on its device. Keeping every return value in a list still accumulates tensors.
 
-`non_blocking=True` avoids waiting at the host copy call where possible. It does not establish overlap between the next transfer and current computation. That also needs suitable pinned input, separate streams, available copy hardware, and correct dependencies. Start with the ordinary loop and inspect a profiler trace before building a prefetcher. [PyTorch's transfer tutorial](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html) compares the timelines.
+`non_blocking=True` avoids waiting at the host copy call where possible. It does not establish overlap between the next transfer and current computation. That also needs suitable pinned input, separate streams, available copy hardware, and correct dependencies. Start with the ordinary loop and inspect a profiler trace before building a prefetcher. [PyTorch's transfer tutorial](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html) compares the timelines; for how streams overlap copies with computation, see [CUDA: streams](../../12-infra/cuda.en.md#streams).
 
 ### The copy call returned. Can I change the data? {#async-copy-safety}
 
@@ -320,7 +320,7 @@ The second calculation raises preparation to 12 ms, making it the slowest stage.
 | Host memory grows with workers | Inspect prefetch queues, batch size, and per-process copies | More workers are always better |
 | Logging takes longer than computation | Retrieve synchronized metrics less often and compare traces | Remove all checks or retain all outputs |
 
-Reusing a batch diagnoses data overhead; it is not a realistic training-throughput benchmark. Timing must wait for the measured GPU work to finish, rather than just measuring Python enqueue time. Multiple streams also require dependency and lifetime handling; an extra `synchronize()` does not prove an efficient implementation. See [CUDA semantics](https://docs.pytorch.org/docs/2.14/notes/cuda.html#asynchronous-execution).
+Reusing a batch diagnoses data overhead; it is not a realistic training-throughput benchmark. Timing must wait for the measured GPU work to finish, rather than just measuring Python enqueue time. Multiple streams also require dependency and lifetime handling; an extra `synchronize()` does not prove an efficient implementation. See [CUDA semantics](https://docs.pytorch.org/docs/2.14/notes/cuda.html#asynchronous-execution); for timing correctly with a profiler, see [Performance: profiling](../../12-infra/performance.en.md#profiling).
 
 The earlier save example only checks matching outputs. For interrupted training, continue with [checkpoints and recovery](../../practice/post-training/checkpoint-and-resume.en.md): it tests the difference between continuing a run and starting over from the same weights.
 

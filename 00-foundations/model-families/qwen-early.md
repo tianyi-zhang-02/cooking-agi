@@ -45,9 +45,7 @@
 
 ## Qwen2：GQA 的账可以单独算
 
-GQA 让多个 query heads 共享 K/V heads。以报告中 7B 型号的 28 个 Q heads、4 个 KV heads 为例，固定其他条件，相比 28 个 KV heads，原始 KV 存储是 $4/28=1/7$。
-
-但 attention 输出仍有 28 路 query，FFN 也没有少算成 1/7。不能把缓存比例直接写成整模型 7 倍加速。
+GQA 让多个 query heads 共享 K/V heads。以报告中 7B 型号的 28 个 Q heads、4 个 KV heads 为例，固定其他条件，相比 28 个 KV heads，原始 KV 存储是 $4/28=1/7$。这个缓存比例不是整模型 7 倍加速：28 路 query 和 FFN 都没有少算，道理和 [Llama 的 GQA 算例](llama.md#gqa-cache)一样。
 
 也不能把 GQA 的分界写成“Qwen1.5 全是 MHA，Qwen2 才有 GQA”。以下是本次读取的具体配置，而非首发阵容：
 
@@ -58,7 +56,7 @@ GQA 让多个 query heads 共享 K/V heads。以报告中 7B 型号的 28 个 Q 
 | [Qwen2-7B](https://huggingface.co/Qwen/Qwen2-7B/blob/main/config.json) | 28 / 4 | 1/7 |
 | [Qwen2.5-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/config.json) | 28 / 4 | 1/7 |
 
-每一行的比较都固定层数、head dimension、序列长度和 dtype，不是跨型号内存比。对普通完整注意力，原始缓存字节数为 $2BLSH_{KV}d_hb$：开头的 2 是 K 与 V，$b$ 是每个数的字节数。下面只算单请求、28 层、8,192 token、BF16 的 Qwen2-7B KV 张量：
+每一行的比较都固定层数、head dimension、序列长度和 dtype，不是跨型号内存比。套用 [Llama 一节的缓存公式](llama.md#gqa-cache)，下面只算单请求、28 层、8,192 token、BF16 的 Qwen2-7B KV 张量：
 
 ```python
 def kv_cache_bytes(*, batch, layers, tokens, kv_heads, head_dim, bytes_per_value=2):
@@ -76,7 +74,7 @@ assert qwen2_gqa == 448 * 2**20
 assert qwen2_mha == 7 * qwen2_gqa
 ```
 
-结果是 448 MiB；假想的 28-KV-head 版本是 3,136 MiB。这里没有权重、训练激活、梯度、优化器、分配器或服务框架开销，也没有假定运行时真的把共享 KV 复制成 28 份。它不是训练显存估计。
+结果是 448 MiB；假想的 28-KV-head 版本是 3,136 MiB。这只是 KV 张量本身，假定运行时没有把共享 KV 复制成 28 份；权重、激活和框架开销都不在内。
 
 Qwen2 还给出 57B-A14B MoE 与 dense 路线。读 MoE 配置时，分别记总参数、激活专家与 shared experts，再算通信和驻留权重。长上下文部分用到 DCA / YaRN，机制见[位置与上下文](../deep-dives/position-and-context.md)，不是只改一个最大长度常数。
 

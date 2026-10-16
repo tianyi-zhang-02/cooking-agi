@@ -45,9 +45,7 @@ These are diagnostic possibilities, not reported model defects. A base checkpoin
 
 ## Qwen2: calculate GQA's savings separately
 
-GQA lets several query heads share K/V heads. The report's 7B model has 28 query heads and four KV heads. Holding everything else fixed, raw KV storage is $4/28=1/7$ of a 28-KV-head variant.
-
-There are still 28 query output paths, and the FFN does not become seven times cheaper. A cache ratio is not a whole-model speedup.
+GQA lets several query heads share K/V heads. The report's 7B model has 28 query heads and four KV heads. Holding everything else fixed, raw KV storage is $4/28=1/7$ of a 28-KV-head variant. That cache ratio is not a sevenfold whole-model speedup: the 28 query paths and the FFN do no less work, for the same reason as in the [Llama GQA example](llama.en.md#gqa-cache).
 
 Nor is the boundary “all Qwen1.5 models use MHA; GQA starts with Qwen2.” These are specific inspected configurations, not a launch lineup:
 
@@ -58,7 +56,7 @@ Nor is the boundary “all Qwen1.5 models use MHA; GQA starts with Qwen2.” The
 | [Qwen2-7B](https://huggingface.co/Qwen/Qwen2-7B/blob/main/config.json) | 28 / 4 | 1/7 |
 | [Qwen2.5-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/config.json) | 28 / 4 | 1/7 |
 
-Each row holds layers, head dimension, sequence length, and dtype fixed; these are not cross-model memory ratios. Raw full-attention cache storage is $2BLSH_{KV}d_hb$ bytes: the leading 2 counts K and V, and $b$ is bytes per value. This example counts only Qwen2-7B's KV tensors for one request, 28 layers, 8,192 tokens, and BF16:
+Each row holds layers, head dimension, sequence length, and dtype fixed; these are not cross-model memory ratios. Using the [cache formula from the Llama section](llama.en.md#gqa-cache), this example counts only Qwen2-7B's KV tensors for one request, 28 layers, 8,192 tokens, and BF16:
 
 ```python
 def kv_cache_bytes(*, batch, layers, tokens, kv_heads, head_dim, bytes_per_value=2):
@@ -76,7 +74,7 @@ assert qwen2_gqa == 448 * 2**20
 assert qwen2_mha == 7 * qwen2_gqa
 ```
 
-The result is 448 MiB, versus 3,136 MiB for a hypothetical 28-KV-head variant. This excludes weights, training activations, gradients, optimizer state, allocator and serving overhead; it also assumes shared KV is not physically expanded into 28 copies. It is not a training-memory estimate.
+The result is 448 MiB, versus 3,136 MiB for a hypothetical 28-KV-head variant. This counts only the KV tensors and assumes shared KV is not physically expanded into 28 copies; weights, activations and framework overhead are excluded.
 
 Qwen2 includes a 57B-A14B MoE alongside dense models. Record total parameters, activated experts, and shared experts separately before accounting for communication and resident weights. Its long-context methods include DCA/YaRN; see [positions and context](../deep-dives/position-and-context.en.md). Extending context is not simply changing a maximum-length constant.
 

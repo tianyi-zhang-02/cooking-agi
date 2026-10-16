@@ -1,4 +1,4 @@
-# 张量与存储：改的是哪一份数据？
+# 张量（tensor）与存储：改的是哪一份数据？
 
 **中文** · [English](tensors-and-storage.en.md)
 

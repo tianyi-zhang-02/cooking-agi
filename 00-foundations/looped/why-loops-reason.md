@@ -26,7 +26,7 @@ $$D_{\text{shared}}=D_{\text{untied}}=kL,\qquad P_{\text{shared block}}=kP_{\tex
 
 ## 和 CoT 的关系
 
-Chain-of-thought 靠**生成中间 token**增加计算；使用 KV cache 时，每一步是新位置经过整个网络，不是重算全部前缀。循环是在**隐藏状态里**继续更新，不必为每圈输出一个 token。两者可以一起用；看得见的 CoT 也不自动等于模型真实的决策过程。
+Chain-of-thought 靠**生成中间 token**增加计算；使用 KV cache 时，每一步是新位置经过整个网络，不是重算全部前缀。循环是在**隐藏状态里**继续更新，不必为每圈输出一个 token。两者可以一起用；看得见的 CoT 也不自动等于模型真实的决策过程。多生成 token 属于测试时计算（test-time compute）里的“串行”一轴，它和多采样的“并行”一轴怎样比较，见[推理模型与测试时计算](../../11-frontier/test-time-compute/README.md)。
 
 Saunshi 等的定理给出了 looped 模型模拟固定长度 CoT 的存在性构造，需要增加宽度、head 和占位 token。它不是“把任意现成 LLM 的权重循环起来就与 CoT 等价”，也没有保证训练会找到那组参数。
 

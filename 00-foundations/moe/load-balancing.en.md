@@ -131,7 +131,7 @@ It is not entirely free of balance losses: DeepSeek-V3 keeps a very small sequen
 
 Another route is Qwen3's global-batch balance loss: balance is computed over the global batch rather than each micro-batch, which lets experts specialize more locally.
 
-## Why can a selection-only bias change the output?
+## Why can a selection-only bias change the output? {#bias-example}
 
 Consider a toy top-2 router, omitting grouped routing and additional scaling:
 

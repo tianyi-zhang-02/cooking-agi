@@ -54,7 +54,7 @@ Attention 这个缩写包含投影、Q/K 的 RoPE、mask、softmax 和输出投�
 
 [GPT-2 已经采用 pre-normalization](https://cdn.openai.com/better-language-models/language-models.pdf)，因此不能把 Llama 的变化一概说成“GPT 都是 Post-LN，Llama 才改成 Pre”。要比较具体版本和具体公式。
 
-## GQA 省了哪里？算一次缓存就明白了
+## GQA 省了哪里？算一次缓存就明白了 {#gqa-cache}
 
 GQA 让多个 Query heads 共用一组 K/V。Query 没有因此少到一个；原始 KV cache 则不必为每个 Query head 各存一份。[GQA 论文](https://arxiv.org/abs/2305.13245)
 

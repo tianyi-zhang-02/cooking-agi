@@ -26,7 +26,7 @@ This is parameter accounting at fixed width, excluding extra components, not an 
 
 ## How it relates to CoT
 
-Chain-of-thought adds computation by **generating intermediate tokens**. With KV caching, each new position traverses the network without recomputing the whole prefix. Looping instead updates **hidden states**, without requiring an output token per loop. The two can coexist, and a visible CoT is not automatically a faithful account of the model's decision.
+Chain-of-thought adds computation by **generating intermediate tokens**. With KV caching, each new position traverses the network without recomputing the whole prefix. Looping instead updates **hidden states**, without requiring an output token per loop. The two can coexist, and a visible CoT is not automatically a faithful account of the model's decision. Generating more tokens is the serial axis of test-time compute; for how it compares with the parallel axis of sampling many answers, see [Reasoning models and test-time compute](../../11-frontier/test-time-compute/README.en.md).
 
 Saunshi et al. give an existence construction in which a looped model simulates fixed-length CoT, with added width, heads, and placeholder tokens. This does not make arbitrary pretrained weights equivalent to CoT when repeated, or guarantee that training finds the constructed parameters.
 
