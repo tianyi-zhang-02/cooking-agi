@@ -60,4 +60,4 @@ The central policy-gradient expression is therefore
 
 $$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
 
-When $\hat A_t>0$, increase the probability of the sampled action; when it is negative, decrease it. The expression directly updates sampled tokens, with shared parameters carrying the effect to other states. The Critic regresses $V_\psi(s_t)$ toward returns or bootstrapped targets. Its main job is **variance reduction**, not choosing the Actor's next token.
+When $\hat A_t>0$, increase the probability of the sampled action; when it is negative, decrease it. The sum runs only over sampled positions, but at one state the softmax probabilities share a normalizer: when the sampled token's probability changes, the other tokens at that position move the opposite way (the gradient of the log-probability with respect to the logits is $e_a-\pi$). Shared parameters carry the effect to other states as well. The Critic regresses $V_\psi(s_t)$ toward returns or bootstrapped targets. Its main job is **variance reduction**, not choosing the Actor's next token.

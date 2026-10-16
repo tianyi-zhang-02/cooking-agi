@@ -22,7 +22,7 @@ They are not interchangeable buttons; they solve different learning problems.
 
 ## From Base Model to Aligned Model: get the map right first
 
-### 1. Three stages use three different kinds of supervision
+### 1. Three stages, each with its own supervision
 
 A common high-level path is
 
@@ -32,7 +32,7 @@ $$
 \longrightarrow
 \text{SFT}
 \longrightarrow
-\text{Preference Alignment (RLHF / DPO / RLVR)}
+\text{Preference / RL (RLHF, DPO, RLVR)}
 }
 $$
 
@@ -40,13 +40,16 @@ $$
 | --- | --- | --- | --- |
 | Pre-training | large-scale text, code, and related corpora | token targets constructed from the text itself | Base Model |
 | SFT | instruction–response demonstrations | selected ideal responses | Instruction Model |
-| Preference alignment | chosen/rejected pairs, rewards, or verifiers | which complete behavior is better | Aligned Model / Policy |
+| Preference learning (RLHF / DPO) | chosen/rejected pairs, or a reward model trained on them | which of two responses is preferred | Aligned Model / Policy |
+| RL with verifiable rewards (RLVR) | prompts plus a program that checks results, such as answer matching or unit tests | whether a sampled response passes the check | RL-trained policy |
 
 These labels describe functional stages; an organization need not save exactly three
 separate checkpoints. The useful distinction is that pre-training learns language,
 knowledge, and foundational capability from the data distribution; SFT teaches the
-model to invoke that capability through demonstrations; preference alignment selects
-which of several plausible behaviors better serves the objective.
+model to invoke that capability through demonstrations; preference learning selects
+which of several plausible behaviors better serves the objective. RLVR needs no preference
+data: its reward comes from a program check (see [verifiable rewards](verifiable-rewards.en.md)).
+It often sits in the same post-SFT stage as preference learning, but uses a different signal.
 
 **Pre-training precedes classic RLHF; it is not RLHF's first stage.** In the full model
 lifecycle it is upstream, while the classic RLHF pipeline usually begins from an SFT

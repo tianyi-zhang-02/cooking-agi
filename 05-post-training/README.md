@@ -30,7 +30,7 @@
 <section class="concept-card" data-concept-card markdown="1">
 <div class="concept-face concept-zh" data-concept-zh markdown="1">
 
-### 1. 三个阶段，使用三种不同的监督
+### 1. 三个阶段，监督各不相同
 
 最常见的主线是：
 
@@ -40,7 +40,7 @@ $$
 \longrightarrow
 \text{SFT}
 \longrightarrow
-\text{Preference Alignment (RLHF / DPO / RLVR)}
+\text{Preference / RL (RLHF, DPO, RLVR)}
 }
 $$
 
@@ -48,11 +48,13 @@ $$
 | --- | --- | --- | --- |
 | 预训练 | 海量普通文本、代码等 | 根据上下文预测文本单元 | 基础模型（Base Model） |
 | 监督微调（SFT） | 指令与示范回答 | 指定的理想回答 | 指令模型（Instruction Model） |
-| 偏好对齐 | 被选中与被拒绝的回答、奖励或验证结果 | 哪种完整行为更好 | 对齐后的模型或策略 |
+| 偏好学习（RLHF / DPO） | 被选中与被拒绝的回答，或用它们训练的奖励模型 | 两个回答中哪个更受偏好 | 对齐后的模型或策略 |
+| 可验证奖励的 RL（RLVR） | 题目，加上能自动检查结果的程序，如答案匹配、单元测试 | 采样出的回答是否通过检查 | 经过 RL 的策略 |
 
 这是按训练目的划分的阶段，不代表实际训练一定会分别保存 3 份模型状态。主要区别在于：
-预训练学习数据分布中的语言、知识与基础能力；SFT 教模型按示范调用这些能力；偏好对齐
-再告诉它多个可行回答中哪种更符合目标。
+预训练学习数据分布中的语言、知识与基础能力；SFT 教模型按示范调用这些能力；偏好学习
+再告诉它多个可行回答中哪种更符合目标。RLVR 不需要偏好数据，奖励来自程序检查（见[可验证奖励](verifiable-rewards.md)）；
+它和偏好学习常放在 SFT 之后的同一阶段，用的却是不同的信号。
 
 **预训练在经典 RLHF 之前，不是 RLHF 的第一阶段。** RLHF 指利用人类反馈进行强化学习；
 讲它的训练流程时，通常从监督微调这一步开始，而不是从零预训练。
@@ -60,7 +62,7 @@ $$
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
-<div class="concept-title-en" role="heading" aria-level="3">1. Three stages use three different kinds of supervision</div>
+<div class="concept-title-en" role="heading" aria-level="3">1. Three stages, each with its own supervision</div>
 
 A common high-level path is
 
@@ -70,7 +72,7 @@ $$
 \longrightarrow
 \text{SFT}
 \longrightarrow
-\text{Preference Alignment (RLHF / DPO / RLVR)}
+\text{Preference / RL (RLHF, DPO, RLVR)}
 }
 $$
 
@@ -78,13 +80,16 @@ $$
 | --- | --- | --- | --- |
 | Pre-training | large-scale text, code, and related corpora | token targets constructed from the text itself | Base Model |
 | SFT | instruction–response demonstrations | selected ideal responses | Instruction Model |
-| Preference alignment | chosen/rejected pairs, rewards, or verifiers | which complete behavior is better | Aligned Model / Policy |
+| Preference learning (RLHF / DPO) | chosen/rejected pairs, or a reward model trained on them | which of two responses is preferred | Aligned Model / Policy |
+| RL with verifiable rewards (RLVR) | prompts plus a program that checks results, such as answer matching or unit tests | whether a sampled response passes the check | RL-trained policy |
 
 These labels describe functional stages; an organization need not save exactly three
 separate checkpoints. The useful distinction is that pre-training learns language,
 knowledge, and foundational capability from the data distribution; SFT teaches the
-model to invoke that capability through demonstrations; preference alignment selects
-which of several plausible behaviors better serves the objective.
+model to invoke that capability through demonstrations; preference learning selects
+which of several plausible behaviors better serves the objective. RLVR needs no preference
+data: its reward comes from a program check (see [verifiable rewards](verifiable-rewards.md)).
+It often sits in the same post-SFT stage as preference learning, but uses a different signal.
 
 **Pre-training precedes classic RLHF; it is not RLHF's first stage.** In the full model
 lifecycle it is upstream, while the classic RLHF pipeline usually begins from an SFT

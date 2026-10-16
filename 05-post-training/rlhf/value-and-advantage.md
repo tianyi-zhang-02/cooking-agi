@@ -60,4 +60,4 @@ $\delta_t$ 是 **temporal-difference error**（时序差分误差）：新观察
 
 $$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
 
-$\hat A_t>0$ 时，提高这次采样动作的概率；$\hat A_t<0$ 时，降低它。这个公式只直接更新实际采样到的 token，并通过共享参数影响其他状态下的分布。Critic 则用 return 或 bootstrapped target 回归 $V_\psi(s_t)$；它的主要作用是**降低估计方差**，不是替 Actor 决定下一个 token。
+$\hat A_t>0$ 时，提高这次采样动作的概率；$\hat A_t<0$ 时，降低它。这个公式只对实际采样到的位置求和；但在同一状态下，softmax 的各项共享归一化：采样 token 的概率一变，同一位置其他 token 的概率也会反向变化（log-prob 对 logits 的梯度是 $e_a-\pi$）。共享参数还会把影响带到其他状态。Critic 则用 return 或 bootstrapped target 回归 $V_\psi(s_t)$；它的主要作用是**降低估计方差**，不是替 Actor 决定下一个 token。
