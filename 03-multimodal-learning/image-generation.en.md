@@ -71,11 +71,11 @@ Background: [Flow Matching](https://arxiv.org/abs/2210.02747). This code checks 
 | Version / source | Change checked in this review | Old assumption to reconsider |
 | --- | --- | --- |
 | Original Qwen-Image, August 2025 | VLM conditioning, VAE, and MMDiT; generation and editing tasks | A chat model is not directly predicting RGB values |
-| Qwen-Image-2.0, May 2026 report | Qwen3-VL conditioning; VAE spatial compression increases from 8 to 16 | Original visual and latent token budgets no longer transfer unchanged |
+| Qwen-Image-2.0, May 2026 report | Generation and editing unified in one framework; Qwen3-VL conditioning; VAE spatial compression increases from 8 to 16 | Original visual and latent token budgets no longer transfer unchanged |
 | Qwen-Image-2.0-RL, June 2026 | Task-specific rewards, GRPO, and on-policy distillation | One aesthetic score does not describe every task |
-| Qwen-Image-2.1, September 2026 announcement | Unified generation/editing and transparent-image support announced | A product announcement does not establish a verified local deployment or training recipe |
+| Qwen-Image-2.1, September 2026 open weights | A new generation backbone: the visual generation component is a 7B-parameter, 32-layer single-stream DiT (the original was a 20B MMDiT); it can output RGBA images with a transparency channel when the prompt asks | A release post and model card do not establish a verified local deployment or training recipe |
 
-Sources: [2.0 report](https://arxiv.org/abs/2605.10730), [2.0-RL report](https://arxiv.org/abs/2606.27608), [2.1 announcement](https://qwen.ai/blog?id=qwen-image-2.1). Reports and release announcements provide different levels of evidence; their performance results are not reproduced here.
+Sources: [2.0 report](https://arxiv.org/abs/2605.10730), [2.0-RL report](https://arxiv.org/abs/2606.27608), [2.1 announcement](https://qwen.ai/blog?id=qwen-image-2.1), [2.1 model card](https://huggingface.co/Qwen/Qwen-Image-2.1). Reports and release announcements provide different levels of evidence; their performance results are not reproduced here.
 
 Check the spatial arithmetic: a 1024 × 1024 image compressed by 8 along each axis has 128 × 128 positions; compression by 16 gives 64 × 64, one quarter as many. **That does not promise one-quarter the memory.** Channels, patchification, model width, and reconstruction quality may also change.
 
