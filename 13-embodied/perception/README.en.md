@@ -30,7 +30,7 @@ Public job descriptions say the same. On 2026-10-15 we read 13 public job descri
 ## Prerequisites on this site and outside textbooks
 
 - [ViT](../../03-multimodal-learning/vit.en.md) and [CLIP](../../03-multimodal-learning/clip.en.md): the backbones and image–text alignment behind notes 3 and 4.
-- [Probability](../../quant/probability/README.en.md): note 2 uses conditional probability and the Gaussian distribution.
+- Probability: note 2 uses conditional probability and the Gaussian distribution.
 - [How world models serve robots and cars as simulators](../../11-frontier/world-models/robotics-driving.en.md): the counterpoint when note 5 discusses reconstruction-based simulation.
 - Free textbooks: [Szeliski, *Computer Vision*, 2nd ed.](https://szeliski.org/Book/) and [Barfoot, *State Estimation for Robotics*, 2nd ed.](https://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser24.pdf); for Hartley & Zisserman only the [sample chapters](https://www.robots.ox.ac.uk/~vgg/hzbook/) are free, including the chapter on epipolar geometry.
 - Courses: CMU [16-385](http://16385.courses.cs.cmu.edu/) (camera models, two-view geometry, tracking) and [16-822](https://geometric3d.github.io/) (projective geometry, the fundamental matrix, learning-based SfM/SLAM), both offered in Fall 2026; [Stanford CS231n](https://cs231n.stanford.edu/), Spring 2026, covers detection, segmentation and 3D vision.

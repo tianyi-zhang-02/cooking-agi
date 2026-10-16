@@ -10,7 +10,7 @@ A detector produces a pile of boxes every frame, each frame on its own. A planne
 
 ## Write "what you believe" as a Gaussian
 
-Prerequisites: [conditional probability](../../quant/probability/conditional.en.md) and the Gaussian distribution from the [probability notes](../../quant/probability/README.en.md), and projection from [note 1](camera-geometry.en.md).
+Prerequisites: conditional probability and the Gaussian distribution, and projection from [note 1](camera-geometry.en.md).
 
 Tracking does not store a number; it stores a distribution. The mean is the most likely position and the variance says how unsure you are. Under linear models with Gaussian noise the distribution stays Gaussian, so only two quantities need updating. Take the one-dimensional case of eq. (3.1) in [Barfoot, *State Estimation for Robotics*, 2nd ed.](https://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser24.pdf) (the book writes the known input as $v_k$; here it is $u_k$):
 

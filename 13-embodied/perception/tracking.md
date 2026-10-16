@@ -10,7 +10,7 @@
 
 ## 先把“相信什么”写成一个高斯
 
-前置知识是[概率](../../quant/probability/README.md)里的[条件概率](../../quant/probability/conditional.md)和高斯分布，以及[第 1 篇](camera-geometry.md)的投影。
+前置知识是条件概率和高斯分布，以及[第 1 篇](camera-geometry.md)的投影。
 
 跟踪不是记住一个数，而是记住一个分布：均值是最可能的位置，方差是有多不确定。在线性、高斯噪声的假设下，这个分布一直是高斯，只需要更新两个量。取 [Barfoot《State Estimation for Robotics》第 2 版](https://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser24.pdf)式 (3.1) 的一维情形（书里把已知输入记作 $v_k$，这里写成 $u_k$）：
 
