@@ -107,7 +107,7 @@ h_t=(1-z_t)\odot n_t+z_t\odot h_{t-1}.$$
 
 这里 $z_t$ 越大，保留越多旧状态；有些教材反过来定义 $z_t$，先看公式再比较。固定门值时，$h_{t-1}=0.8,n_t=-0.2,z_t=0.75$ 得到 $h_t=0.55$。只看 $z_t\odot h_{t-1}$ 这条直接通路，对 $h_{t-1}$ 的导数是 $\operatorname{diag}(z_t)$；总导数还经过 gate 和 candidate，不能只写成 $z_t$。
 
-实现上的一个坑：$W(r\odot h)$ 与 $r\odot(Wh)$ 通常不相等。令 $h=[1,2],r=[1,0],W=[[1,1],[1,1]]$，前者为 `[1,1]`，后者为 `[3,0]`。原始 GRU 与 PyTorch 的 reset 位置有这个区别，移植 checkpoint 时尤其要核对。[PyTorch 2.8 GRU 文档](https://docs.pytorch.org/docs/2.8/generated/torch.nn.GRU.html)列出了两种公式。
+实现上的一个坑：$W(r\odot h)$ 与 $r\odot(Wh)$ 通常不相等。令 $h=[1,2],r=[1,0],W=[[1,1],[1,1]]$，前者为 `[1,1]`，后者为 `[3,0]`。原始 GRU 与 PyTorch 的 reset 位置有这个区别，移植 checkpoint 时尤其要核对。[PyTorch 2.8 GRU 文档](https://docs.pytorch.org/docs/2.8/generated/torch.nn.GRU.html)列出了两种公式；2026-10 的 [2.14 文档](https://docs.pytorch.org/docs/2.14/generated/torch.nn.GRU.html)写法相同。
 
 同宽度下，GRU 通常比标准 LSTM 少一组门投影，但效果和速度仍受任务、序列长度和 kernel 影响。两者都沿时间递推，也都有门控的加法通路（LSTM 的 $f_t\odot c_{t-1}$，GRU 的 $z_t\odot h_{t-1}$），但都没有彻底解决所有长程学习问题。
 

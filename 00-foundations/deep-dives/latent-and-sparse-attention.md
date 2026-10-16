@@ -330,6 +330,8 @@ assert sparse_output == 0
 
 实现检查要包含 causal selection、top-k 边界、cache 与位置编码。[V3.2-Exp 模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp) 记录过 indexer 与 MLA 使用不同 RoPE layout 的修正：shape 都正确，也可能算错旋转。本文核对到 2026-10-08，讲的是 V3.2 路径，不把它自动套到后续 DeepSeek 版本。
 
+后续版本确实改了：截至 2026-10，[DeepSeek-V4 报告 §2.3](https://arxiv.org/html/2606.19348v1#S2.SS3)把注意力层分成两类交错使用。CSA 先沿序列把每 m 个 token 的 KV 压成一个条目，再在压缩条目上做 DSA 式选择；HCA 压得更重，不做稀疏选择，读全部压缩条目。两类层都另外保留近处的局部窗口。CSA 层选择的对象因此从逐 token 的 KV 变成了压缩条目，详见 [DeepSeek-V4 笔记](../model-families/deepseek-v4.md)。
+
 ## 怎样比较才不容易自我误导？
 
 MLA 要测 latent 维度、质量、KV 大小和 decode 速度；稀疏注意力还要专门测远距离证据、少数关键 token、选择开销与端到端速度。

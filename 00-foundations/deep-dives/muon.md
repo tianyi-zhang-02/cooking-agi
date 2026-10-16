@@ -133,7 +133,9 @@ $$\operatorname{RMS}(O)=\sqrt{\frac{\min(m,n)}{mn}}
 | $8\times2$ | $1/\sqrt8\approx0.3536$ | 0.7071 | 0.2 |
 | $2\times8$ | $1/\sqrt8\approx0.3536$ | 0.3536 | 0.2 |
 
-同一实现的 weight decay 使用基础学习率，而不是形状调整后的学习率。若 $\eta=0.1,\lambda=0.2$，衰减项是 $0.98W$；更新方向乘 2，不会把衰减也改成 $0.96W$。
+截至 2026-10，稳定版 [PyTorch 2.14 文档](https://docs.pytorch.org/docs/2.14/generated/torch.optim.Muon.html)多了第三个选项 `spectral_unclamped`：系数是 $\sqrt{m/n}$，不再把它的下限夹到 1。上表 $8\times2$ 仍是 0.7071，$2\times8$ 则变成 $0.3536\times0.5\approx0.1768$。不传参数时仍按 `original` 处理。
+
+v2.9.0 实现里，weight decay 使用基础学习率，而不是形状调整后的学习率。若 $\eta=0.1,\lambda=0.2$，衰减项是 $0.98W$；更新方向乘 2，不会把衰减也改成 $0.96W$。
 
 **其次是参数分组。** 经典混合用法让隐藏层矩阵用 Muon，embedding、输出层、bias 和 norm 参数继续用 AdamW。Embedding 明明也是二维矩阵，所以不能只用 `ndim == 2` 判断归属。共享 embedding / output 权重要按对象去重，不能被两个优化器更新两遍。[原仓库的用法说明](https://github.com/KellerJordan/Muon)明确区分了这些参数。
 
@@ -192,6 +194,7 @@ assert not torch.allclose(row_updates, whole_update)
 ## 2026 年再读，哪些说法要留余地？
 
 - “Embedding 必须永远用 AdamW”太绝对。2026 年 10 月的 [AF-Muon](https://arxiv.org/abs/2610.01395)已经研究 tied embedding 的专门更新；它是新的方案，不代表可以把经典 Muon 无修改地套上去。本页仅核对其摘要与问题设定，尚未复现实验。
+- “换上 Muon 就能直接放大规模”太乐观。[Kimi K2 报告 §2.1](https://arxiv.org/abs/2507.20534)（2025-07）在一个激活 9B、总 53B 参数的实验里看到，普通 Muon 让最大 attention logit 很快超过 1000。他们的 MuonClip 在每次更新后按 head 检查最大 logit，超过阈值 τ（K2 用 100）就缩小这个 head 的 query / key 投影权重。K2 用它预训练 15.5T tokens，报告全程没有 loss spike。到 2026 年，Muon 已经用在这类生产级训练中：[DeepSeek-V4 模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro)也写明用 Muon（embedding 等参数仍用 AdamW，见 [V4 笔记](../model-families/deepseek-v4.md)）。规模上去以后，要额外监控 logit 这类新问题。
 - “Muon 保证收敛”也太绝对。2026 年 8 月的[收敛性分析](https://arxiv.org/abs/2608.04607)讨论了特定随机优化问题中的反例与误差条件；不能由此推出它在所有 LLM 训练中无效，也不能忽略假设宣称普遍有效。
 
 先理解更新的几何含义，再读新变体究竟改了哪一步，会比记“某优化器已经过时”有用。接着可以看[训练显存](precision-and-memory.md)和[多卡训练](../../06-systems/distributed-training.md)，把算法代价放回完整训练过程。

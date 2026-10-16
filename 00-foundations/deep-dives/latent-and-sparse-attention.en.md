@@ -330,6 +330,8 @@ Reading fewer positions does not mean retaining less history. Later queries may 
 
 Test causal selection, top-k boundaries, cache behavior, and position encodings. The [V3.2-Exp model card](https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp) records a correction involving different RoPE layouts in the indexer and MLA: matching shapes do not guarantee correct rotations. Checked 2026-10-08; this note describes V3.2, not an automatic description of subsequent DeepSeek versions.
 
+A later version did change it: as of October 2026, the [DeepSeek-V4 report §2.3](https://arxiv.org/html/2606.19348v1#S2.SS3) interleaves two kinds of attention layer. CSA first compresses the KV of every m tokens along the sequence into one entry, then applies DSA-style selection over the compressed entries; HCA compresses more heavily and skips sparse selection, reading all compressed entries. Both kinds also keep a local window of recent positions. In CSA layers, selection therefore operates on compressed entries rather than per-token KV; see the [DeepSeek-V4 note](../model-families/deepseek-v4.en.md).
+
 ## Compare costs and failures separately
 
 For MLA, measure latent dimension, quality, cache size, and decode speed. Sparse methods additionally need tests of distant evidence, rare crucial tokens, selection overhead, and end-to-end speed.

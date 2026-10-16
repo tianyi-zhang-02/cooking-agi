@@ -105,7 +105,7 @@ print(dtypes)
 
 </details>
 
-这是 PyTorch 2.8.0 / CPU 的接口检查，不是 GPU 速度实验。这里 FP32 参数本身就保存更新，不需要再算一份相同用途的 FP32 master copy；换成低精度参数加独立 master weights 的实现，显存账就不同了；后面 16 bytes 的算例假设的正是这种实现。更多算子的选择规则见 [AMP 文档](https://docs.pytorch.org/docs/2.8/amp.html)，不要把这一个线性层的结果推广成所有算子的 dtype 规则。
+这是 PyTorch 2.8.0 / CPU 的接口检查，不是 GPU 速度实验。本页代码都在 2.8.0 上运行；2026-10 对照稳定版 [2.14 文档](https://docs.pytorch.org/docs/2.14/notes/amp_examples.html)，下文引用的 AMP 用法、checkpoint 限制和显存计数说明都没有变，但代码没有在 2.14 上重跑。这里 FP32 参数本身就保存更新，不需要再算一份相同用途的 FP32 master copy；换成低精度参数加独立 master weights 的实现，显存账就不同了；后面 16 bytes 的算例假设的正是这种实现。更多算子的选择规则见 [AMP 文档](https://docs.pytorch.org/docs/2.8/amp.html)，不要把这一个线性层的结果推广成所有算子的 dtype 规则。
 
 ## Loss scaling 在救什么？
 

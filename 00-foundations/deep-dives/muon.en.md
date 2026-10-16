@@ -126,14 +126,16 @@ $$\operatorname{RMS}(O)=\sqrt{\frac{\min(m,n)}{mn}}
 
 With the same learning rate, larger matrices receive smaller per-entry RMS updates. The [scaling paper](https://arxiv.org/abs/2502.16982) uses $0.2\sqrt{\max(m,n)}$ to match an empirical AdamW update scale. That constant is not a theorem; the original shape adjustment and RMS matching are different configurations.
 
-For example, the `original` option in [PyTorch v2.9.0](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L69) uses $\sqrt{\max(1,m/n)}$. For ideal full-rank directions, before multiplying by the learning rate:
+For example, the `original` option in [PyTorch v2.9.0](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L69) uses $\sqrt{\max(1,m/n)}$. For ideal full-rank directions, before multiplying by the learning rate (reference values, not a claim that finite-step NS is exactly orthogonal):
 
 | Matrix shape | Without scaling | After `original` | After RMS matching |
 | --- | ---: | ---: | ---: |
 | $8\times2$ | $1/\sqrt8\approx0.3536$ | 0.7071 | 0.2 |
 | $2\times8$ | $1/\sqrt8\approx0.3536$ | 0.3536 | 0.2 |
 
-These are reference values, not a claim that finite-step NS is exactly orthogonal. In that implementation, weight decay uses the base learning rate, not the shape-adjusted rate. With $\eta=0.1,\lambda=0.2$, the decay term is $0.98W$; doubling the update direction does not change it to $0.96W$.
+As of October 2026, the stable [PyTorch 2.14 documentation](https://docs.pytorch.org/docs/2.14/generated/torch.optim.Muon.html) adds a third option, `spectral_unclamped`: the factor is $\sqrt{m/n}$, no longer clamped below at 1. The $8\times2$ row stays at 0.7071, while $2\times8$ becomes $0.3536\times0.5\approx0.1768$. Leaving the argument unset still means `original`.
+
+In the v2.9.0 implementation, weight decay uses the base learning rate, not the shape-adjusted rate. With $\eta=0.1,\lambda=0.2$, the decay term is $0.98W$; doubling the update direction does not change it to $0.96W$.
 
 **Second, parameter groups.** The classical hybrid uses Muon for hidden matrices and AdamW for embeddings, output layers, biases, and normalization parameters. Embeddings are themselves matrices, so `ndim == 2` is not a sufficient selector. Deduplicate tied embedding/output weights by object identity to avoid two updates to the same parameter. The [original repository's usage guide](https://github.com/KellerJordan/Muon) distinguishes these groups.
 
@@ -192,6 +194,7 @@ A practical starting experiment fixes a small model and data order, gives both o
 ## What needs qualification in 2026?
 
 - “Embeddings must always use AdamW” is too broad. October 2026's [AF-Muon](https://arxiv.org/abs/2610.01395) studies specialized tied-embedding updates. It is a new design, not permission to apply classical Muon unchanged. Only its abstract and problem setting have been checked here; its experiments have not been reproduced.
+- “Switch to Muon and scale up directly” is too optimistic. The [Kimi K2 report §2.1](https://arxiv.org/abs/2507.20534) (July 2025) found that in a run with 9B activated and 53B total parameters, plain Muon drove the maximum attention logit past 1,000 quickly. Its MuonClip checks each head's maximum logit after every update and, above a threshold τ (100 for K2), shrinks that head's query / key projection weights. K2 used it to pre-train on 15.5T tokens and reports no loss spike. By 2026 Muon is in production-scale training of this kind: the [DeepSeek-V4 model card](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro) also states that it uses Muon (embeddings and some other parameters stay on AdamW; see the [V4 note](../model-families/deepseek-v4.en.md)). At scale, monitor new failure signals such as logit growth.
 - “Muon guarantees convergence” is also too broad. An August 2026 [convergence analysis](https://arxiv.org/abs/2608.04607) examines counterexamples and error conditions in specific stochastic optimization problems. That establishes neither universal failure in LLM training nor success without assumptions.
 
 Understand the update geometry, then ask which operation a newer variant changes. That is more useful than memorizing claims that an optimizer is obsolete. Continue with [training memory](precision-and-memory.en.md) and [distributed training](../../06-systems/distributed-training.en.md) to place the costs in a complete training run.

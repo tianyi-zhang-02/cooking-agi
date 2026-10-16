@@ -135,7 +135,7 @@ assert math.isclose(streaming_attention(scores, [10, 20, 0], 2), 25 / 3)
 
 短序列、特殊 mask、不同 head dimension 或不匹配的硬件，收益会不同。测试应同时比较输出和梯度，并分别测 prefill、decode；不要把某个 kernel 的速度提升直接当作端到端提升。
 
-## FA2、FA3 为什么还要继续改？
+## FA2 到 FA4 为什么还要继续改？
 
 不再存整张矩阵以后，GPU 也未必已经忙满。计算怎样分给线程、不同操作能否重叠，仍会影响速度。
 
@@ -144,10 +144,15 @@ assert math.isclose(streaming_attention(scores, [10, 20, 0], 2), 25 / 3)
 | FA1 | 分块与 online softmax，减少 HBM 中间量读写 | 少看一部分 keys |
 | FA2 | 减少非矩阵乘操作，改进线程块与 warp 之间的工作划分 | 换一个近似 attention 目标 |
 | FA3 | 面向 Hopper，把异步搬运、矩阵乘与 softmax 更好地重叠；另有 FP8 路径 | 所有硬件都会同样受益，或只能算 FP8 |
+| FA4 | 面向 Blackwell（B200 / GB200）：全异步矩阵乘流水线和更大的块；软件模拟 exp，只在必要时 rescale；反向用 tensor memory 和 2-CTA 矩阵乘减少 shared memory 读写 | Hopper 上也该换 FA4，或作者报告的加速比在你的形状上同样成立 |
 
 [FA2](https://arxiv.org/abs/2307.08691)中一个具体改动是让不同 warps 负责不同 Query 行，减少交换部分结果的工作。这里的 warp 间通信主要涉及**片上 shared memory**，不要和 GPU 显存 HBM 混在一起。
 
-[FA3](https://arxiv.org/abs/2407.08608)进一步利用 Hopper 的异步执行能力。它同时讨论 FP16 和 FP8；采用 FP8 时，量化误差要单独测，不能拿“exact attention”当作没有数值误差的保证。判断要不要用某个版本，先看当前硬件、形状和 dtype 支不支持，再测端到端收益。
+[FA3](https://arxiv.org/abs/2407.08608)进一步利用 Hopper 的异步执行能力。它同时讨论 FP16 和 FP8；采用 FP8 时，量化误差要单独测，不能拿“exact attention”当作没有数值误差的保证。
+
+[FA4](https://arxiv.org/abs/2603.05451)（2026-03）针对 Blackwell。这一代的 Tensor Core 吞吐翻倍，shared memory 带宽和算指数的单元却没跟着涨，瓶颈又回到了矩阵乘以外的部分，所以它主要减少 exp、rescale 和 shared memory 流量。作者报告：B200 上 BF16 最高比 cuDNN 9.13 快 1.3 倍、比 Triton 快 2.7 倍。这是作者自报的 kernel 数字，不是端到端结果。实现全部用嵌在 Python 里的 CuTe-DSL 写成。
+
+判断要不要用某个版本，先看当前硬件、形状和 dtype 支不支持，再测端到端收益。
 
 ## PagedAttention：逻辑连续，不要求物理连续
 

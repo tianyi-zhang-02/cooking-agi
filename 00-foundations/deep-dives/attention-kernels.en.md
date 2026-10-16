@@ -135,7 +135,7 @@ Dense attention still computes the permitted query–key pairs; the pairing coun
 
 Sequence length, masks, head dimensions, and hardware affect the benefit. Compare outputs and gradients, and benchmark prefill and decode separately. Kernel speedup is not automatically end-to-end speedup.
 
-## What remains for FA2 and FA3 to improve?
+## What remains for FA2 through FA4 to improve?
 
 Avoiding the full matrix does not guarantee a fully utilized GPU. Work partitioning and overlap between operations still matter.
 
@@ -144,10 +144,15 @@ Avoiding the full matrix does not guarantee a fully utilized GPU. Work partition
 | FA1 | Tiling and online softmax reduce intermediate HBM traffic | Some keys are ignored |
 | FA2 | Less non-matmul work and better thread-block / warp partitioning | The attention objective is approximated |
 | FA3 | Hopper-oriented overlap of asynchronous movement, matrix multiplication, and softmax; an additional FP8 path | Every GPU benefits equally, or FP8 is mandatory |
+| FA4 | Blackwell-oriented (B200 / GB200): fully asynchronous matmul pipelines and larger tiles; software-emulated exp and rescaling only when needed; tensor memory and 2-CTA matmul in backward to cut shared-memory traffic | Hopper users should switch too, or the authors' speedups hold for your shapes |
 
 One [FA2](https://arxiv.org/abs/2307.08691) change assigns different query rows to different warps, reducing exchanges of partial results. This inter-warp communication involves **on-chip shared memory**, not HBM.
 
-[FA3](https://arxiv.org/abs/2407.08608) exploits Hopper's asynchronous execution and discusses both FP16 and FP8. FP8 adds quantization error to measure: “exact attention” does not promise error-free arithmetic. Check hardware, shape, and dtype support before benchmarking the end-to-end gain.
+[FA3](https://arxiv.org/abs/2407.08608) exploits Hopper's asynchronous execution and discusses both FP16 and FP8. FP8 adds quantization error to measure: “exact attention” does not promise error-free arithmetic.
+
+[FA4](https://arxiv.org/abs/2603.05451) (March 2026) targets Blackwell. That generation doubles Tensor Core throughput, but shared-memory bandwidth and the exponential units did not keep pace, so the bottleneck moves back to work outside the matmuls; FA4 mainly reduces exp, rescaling, and shared-memory traffic. The authors report up to 1.3× over cuDNN 9.13 and 2.7× over Triton in BF16 on B200. These are the authors' own kernel numbers, not end-to-end results. The kernels are written entirely in CuTe-DSL, embedded in Python.
+
+Before adopting any version, check hardware, shape, and dtype support, then benchmark the end-to-end gain.
 
 ## PagedAttention separates logical order from physical placement
 

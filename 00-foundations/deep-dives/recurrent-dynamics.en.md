@@ -105,7 +105,7 @@ h_t=(1-z_t)\odot n_t+z_t\odot h_{t-1}.$$
 
 Larger $z_t$ retains more old state; some texts define it in the opposite direction. With fixed gates, $h_{t-1}=0.8,n_t=-0.2,z_t=0.75$ gives $h_t=0.55$. Along the direct $z_t\odot h_{t-1}$ path alone, the derivative with respect to $h_{t-1}$ is $\operatorname{diag}(z_t)$; the total derivative also passes through the gates and candidate, so it is not simply $z_t$.
 
-Implementation detail: $W(r\odot h)$ generally differs from $r\odot(Wh)$. For $h=[1,2],r=[1,0],W=[[1,1],[1,1]]$, they give `[1,1]` and `[3,0]`. This reset-placement difference exists between the original GRU and PyTorch; check it when transferring checkpoints. The [PyTorch 2.8 documentation](https://docs.pytorch.org/docs/2.8/generated/torch.nn.GRU.html) gives both formulas.
+Implementation detail: $W(r\odot h)$ generally differs from $r\odot(Wh)$. For $h=[1,2],r=[1,0],W=[[1,1],[1,1]]$, they give `[1,1]` and `[3,0]`. This reset-placement difference exists between the original GRU and PyTorch; check it when transferring checkpoints. The [PyTorch 2.8 documentation](https://docs.pytorch.org/docs/2.8/generated/torch.nn.GRU.html) gives both formulas; the October 2026 [2.14 documentation](https://docs.pytorch.org/docs/2.14/generated/torch.nn.GRU.html) is unchanged.
 
 At equal width, a GRU typically has one fewer gate projection than a standard LSTM. Quality and speed still depend on task, sequence length, and kernels. Both recur through time and both have a gated additive path (the LSTM's $f_t\odot c_{t-1}$, the GRU's $z_t\odot h_{t-1}$); neither solves every long-range learning problem.
 

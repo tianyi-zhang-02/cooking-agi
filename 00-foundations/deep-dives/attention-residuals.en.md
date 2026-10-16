@@ -63,6 +63,8 @@ A block here groups **depth**, not consecutive text positions. Attention and MLP
 
 These costs describe depth mixing, not whole-model training memory or FLOPs. They do not directly shrink sequence KV caches or make token attention linear in sequence length.
 
+A production model already uses it. As of October 2026, the [Kimi K3 report §2.2](https://arxiv.org/html/2607.24653v1#S2.SS2) (July 2026) adopts Block AttnRes: its 93 backbone layers are grouped 12 at a time into 8 blocks, the last one partial; counting the embedding gives 9 depth sources. That section only cites the earlier finding that $N\approx8$ recovers most of the benefit; it reports no separate AttnRes ablation within K3. For K3's 3:1 KDA / Gated MLA layout and NoPE, see [position and order](nope-and-order.en.md#kimi-k3).
+
 ## Why not average locally normalized outputs?
 
 Processing sources in batches can reduce intermediate storage. But each batch has its own softmax denominator, so normalized batch outputs cannot simply be averaged.

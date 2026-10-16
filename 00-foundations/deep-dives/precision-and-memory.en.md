@@ -105,7 +105,7 @@ print(dtypes)
 
 </details>
 
-This checks the PyTorch 2.8.0 CPU interface, not GPU speed. The FP32 parameters already retain updates here; do not count a second FP32 master copy serving the same purpose. A scheme with low-precision parameters and separate master weights needs different memory accounting; the 16-byte ledger below assumes exactly that scheme. Consult the [AMP documentation](https://docs.pytorch.org/docs/2.8/amp.html) for operator-specific policies rather than generalizing this layer's dtypes to every operation.
+This checks the PyTorch 2.8.0 CPU interface, not GPU speed. All code on this page ran on 2.8.0; checked in October 2026 against the stable [2.14 documentation](https://docs.pytorch.org/docs/2.14/notes/amp_examples.html), the AMP usage, checkpoint constraints, and memory counters cited below have not changed, but the code has not been rerun on 2.14. The FP32 parameters already retain updates here; do not count a second FP32 master copy serving the same purpose. A scheme with low-precision parameters and separate master weights needs different memory accounting; the 16-byte ledger below assumes exactly that scheme. Consult the [AMP documentation](https://docs.pytorch.org/docs/2.8/amp.html) for operator-specific policies rather than generalizing this layer's dtypes to every operation.
 
 ## What does loss scaling protect?
 
