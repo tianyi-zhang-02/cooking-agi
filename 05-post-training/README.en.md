@@ -22,6 +22,8 @@ They are not interchangeable buttons; they solve different learning problems.
 
 ## From Base Model to Aligned Model: get the map right first
 
+<span id="1-three-stages-use-three-different-kinds-of-supervision"></span>
+
 ### 1. Three stages, each with its own supervision
 
 A common high-level path is
