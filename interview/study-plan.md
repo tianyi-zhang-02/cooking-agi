@@ -98,7 +98,9 @@
 | 讲清 reference 和 old policy | [Q-learning、PPO、DPO：到底在学什么？](../05-post-training/deep-rl/methods-map.md) | 分别解释它们的用途、什么时候更新，以及混用会改掉什么目标。 | 35 分钟 |
 | 选一次训练并行方案 | [训练框架怎么选：从 DDP 到 FSDP2](../06-systems/training-frameworks.md) | 给定显存和卡数，比较 DDP 与 FSDP，并列出换框架后的正确性检查。 | 40 分钟 |
 
-### 推理与 ML 系统
+<span id="ml"></span>
+
+### 推理与 ML 系统 {#inference-ml-systems_1}
 
 **起步 · 一条请求怎么跑起来**：会调用模型 API，想看懂服务背后发生了什么。
 
