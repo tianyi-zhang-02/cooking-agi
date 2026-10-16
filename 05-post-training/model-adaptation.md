@@ -205,8 +205,10 @@ print(sorted(legal_next_tokens(("b",), labels)))
 token，**恰好生成一步就停止**，再映射回业务枚举。前缀约束或这个单步特例保证的是成功完成
 时的格式，不是分类准确率；它们也不保证每次请求都能成功完成。
 
-实现接口可参考 [Transformers 4.57.1 的前缀约束文档](https://huggingface.co/docs/transformers/v4.57.1/internal/generation_utils#transformers.PrefixConstrainedLogitsProcessor)
-（核对日期：2026-10-10）；这里没有调用该库，也没有假设其他版本的行为。
+实现接口可参考 [Transformers v5.20.0 的前缀约束文档](https://huggingface.co/docs/transformers/v5.20.0/internal/generation_utils#transformers.PrefixConstrainedLogitsProcessor)
+（2026-10 核对）；这里没有调用该库，也没有假设其他版本的行为。用推理服务部署时，引擎通常自带这类约束：例如
+[vLLM 的 structured outputs](https://docs.vllm.ai/en/stable/features/structured_outputs.html) 可以用 `choice` 让输出恰好是几个候选之一，
+也支持正则、JSON schema 和语法约束（2026-10 核对 stable 文档）。
 
 ### 方法三：Classification Head {#classification-head}
 

@@ -49,7 +49,7 @@ The Critic estimates state value, providing a variance-reducing baseline and par
 | **RLOO** | leave-one-out: one sample's baseline is the mean reward of the others | multiple samples; a common form uses a whole-response advantage rather than learned prefix values |
 | **REINFORCE++** | construct advantages from KL-shaped returns, then normalize across the batch | no trained value model; inspect returns, KL, and the normalization scope |
 
-These methods avoid an independently trained value model, not estimation error. Compare saved training state against extra sampling, signal variance, and task structure. The REINFORCE++ row refers to [v1 §3](https://arxiv.org/html/2501.03262v1#S3). Batch normalization of advantages is not another learned baseline, nor a guarantee of unbiased gradients or stable training.
+These methods avoid an independently trained value model, not estimation error. Compare saved training state against extra sampling, signal variance, and task structure. The REINFORCE++ row refers to [v1 §3](https://arxiv.org/html/2501.03262v1#S3). Batch normalization of advantages is not another learned baseline, nor a guarantee of unbiased gradients or stable training. As of October 2026, the latest arXiv version is [v9 (2025-11-10)](https://arxiv.org/abs/2501.03262v9), retitled “…with Global Advantage Normalization”. It adds a “REINFORCE++ w/ baseline” variant: sample several responses per prompt, subtract the group's mean reward, then normalize across the whole batch, with KL moved into a separate loss term (v9 §3.2).
 
 RLOO's baseline, with $k$ samples per prompt:
 
@@ -89,7 +89,7 @@ J_{\mathrm{GRPO}}&=\frac{1}{G}\sum_i\frac{1}{|o_i|}\sum_t s_{i,t}.
 \end{aligned}
 $$
 
-Here $G$ counts responses to one prompt, and $|o_i|$ counts valid tokens in response $i$. Training maximizes $J$, or minimizes $-J$ in code. [DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1) also includes a Reference KL term; later recipes sometimes set $\beta=0$. The main saving is the learned value baseline, not rollout, reward, or policy ratios. Check loss reduction, KL weight, and update count separately rather than inferring them from the algorithm's name.
+Here $G$ counts responses to one prompt, and $|o_i|$ counts valid tokens in response $i$. Training maximizes $J$, or minimizes $-J$ in code. [DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1) also includes a Reference KL term; some recipes drop it, for example [DAPO](dapo.en.md). As of October 2026, the [TRL v1.16.0 GRPOTrainer](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) defaults to `beta=0.0` (no Reference loaded) and `loss_type="dapo"` (normalized by the number of valid tokens in the global batch, not the per-response average above), and when generating with vLLM it turns on importance-sampling correction by default (`vllm_importance_sampling_correction=True`). The main saving is the learned value baseline, not rollout, reward, or policy ratios. Check loss reduction, KL weight, and update count separately rather than inferring them from the algorithm's name.
 
 | | PPO baseline | GRPO baseline |
 | --- | --- | --- |

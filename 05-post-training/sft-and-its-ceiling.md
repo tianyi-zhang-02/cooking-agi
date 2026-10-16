@@ -239,7 +239,7 @@ active_positions = (logits.grad.abs().sum(-1) > 0).nonzero().tolist()
 assert active_positions == [[0, 2], [0, 3]]
 ```
 
-这里手动 shift，是因为我们直接调用 CE。[Transformers 的 causal LM loss 实现](https://github.com/huggingface/transformers/blob/v4.57.1/src/transformers/loss/loss_utils.py)会做这一步；把 labels 交给已处理 shift 的模型时，不要再提前 shift 一遍。
+这里手动 shift，是因为我们直接调用 CE。[Transformers 的 causal LM loss 实现](https://github.com/huggingface/transformers/blob/v5.20.0/src/transformers/loss/loss_utils.py)会做这一步（2026-10 对照 v5.20.0 的 `ForCausalLMLoss` 核对）；把 labels 交给已处理 shift 的模型时，不要再提前 shift 一遍。
 
 <details id="teacher-forcing" markdown="1">
 <summary>两个位置都算对了，为什么还要让模型自己生成一次？</summary>
@@ -268,7 +268,7 @@ Attention mask 是另一件事：它控制可见位置，例如不看未来 toke
 | assistant 最终回复 | 监督内容与结束标记 | 训练所有轮，还是只训练最后一轮？ |
 | padding | 不参与 loss | 若 PAD 与 EOS 共用 ID，要按位置区分 |
 
-[TRL 的版本化说明](https://huggingface.co/docs/trl/v0.23.1/sft_trainer#train-on-assistant-messages-only)分别提供 assistant-only 与 completion-only 配置，不能只凭选项名字判断是否等价。检查真实模板返回的 mask，再解码几条最终 labels，看看训练到底会奖励什么。
+[TRL v1.16.0 的说明](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer#train-on-assistant-messages-only)（2026-10 核对）分别提供 assistant-only 与 completion-only 配置，不能只凭选项名字判断是否等价。assistant-only 要求聊天模板里有 `{% generation %}` 与 `{% endgeneration %}` 标记；文档说对 Qwen3 等已知模型族，打开 `assistant_only_loss=True` 时 TRL 会自动补上，其他模型要自己确认模板。检查真实模板返回的 mask，再解码几条最终 labels，看看训练到底会奖励什么。
 
 长对话被截断时尤其要看：是不是只剩问题、没剩回答？结束标记是否被截掉？全部 labels 都是 `-100` 的样本没有有效监督，应在数据检查阶段处理。Packing 还需要独立的样本边界与 attention 检查，loss mask 本身不能隔开两条对话。
 
@@ -357,7 +357,7 @@ $$
 \ell_{\text{DFT}}=-\operatorname{sg}(p_y)\log p_y.
 $$
 
-这里只讨论这个单项形式；实际批次还要指定 mask 和 reduction。它没有新增环境奖励，也没有规定“概率超过某值才进入 RL”。
+这里只讨论这个单项形式；实际批次还要指定 mask 和 reduction。它没有新增环境奖励，也没有规定“概率超过某值才进入 RL”。截至 2026-10，[TRL v1.16.0 的 SFTTrainer](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer) 已内置这个损失，在 `SFTConfig` 里设 `loss_type="dft"` 即可；用现成选项前，同样要确认它的 mask 和 reduction 与你的设定一致。
 
 一个容易写错的地方是忘记 `detach()`。取二分类目标概率 $p=0.01$，对正类 logit 求导：普通 CE 是 −0.99；带停止梯度权重后是 −0.0099。若直接求 $-p\log p$ 的完整导数，却约为 +0.0357，梯度下降反而会降低这个低概率目标的分数。
 
@@ -377,7 +377,7 @@ $$
 
 - [交叉熵怎么实现](../00-foundations/pytorch/cross-entropy.md)：稳定计算、soft target、mask 和分母
 - [RLHF 的三个阶段](rlhf/three-stages.md)：SFT 之后那两个阶段在做什么
-- [PPO 之后](after-ppo.md)：RL 那条线的算法谱系
+- [PPO、GRPO 与 DPO](after-ppo.md)：RL 那条线的算法谱系
 - [数据与反馈](../01-data-and-feedback/)：示范和偏好数据本身的质量问题
 
 ## 快速学习：SFT 教会模型什么 {#sft_1}

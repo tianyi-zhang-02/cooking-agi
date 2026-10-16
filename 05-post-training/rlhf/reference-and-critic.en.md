@@ -86,7 +86,7 @@ assert math.isclose(objective, 1 - beta * divergence)
 print(round(divergence, 4), round(objective, 4))
 ```
 
-Setting `beta` to zero removes this cost; it does not invalidate the mathematics. Outcomes need measurement. With reward scale held fixed, a larger coefficient usually favors reference behavior and a smaller one permits more change. **There is no theorem requiring a nonzero coefficient for every task.** Existing implementations allow disabling it; consult the version and options in the [TRL GRPO documentation](https://huggingface.co/docs/trl/grpo_trainer). That is not a recommendation to disable it in your task.
+Setting `beta` to zero removes this cost; it does not invalidate the mathematics. Outcomes need measurement. With reward scale held fixed, a larger coefficient usually favors reference behavior and a smaller one permits more change. **There is no theorem requiring a nonzero coefficient for every task.** Some implementations even disable it by default: as of October 2026, the [TRL v1.16.0 GRPOTrainer](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) defaults to `beta=0.0` and then does not load a Reference model; the same documentation notes that DeepSeek-R1 used 0.001. A default is not a recommendation to disable it in your task.
 
 <span id="why-a-critic-as-well"></span>
 

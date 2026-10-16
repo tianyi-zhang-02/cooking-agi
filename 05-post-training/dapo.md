@@ -121,4 +121,4 @@ assert [length_penalty(value, 100, 20) for value in (70, 80, 90, 100, 110)] == [
 
 先把这些局部检查做对，再运行训练对比。本文的小算例只检验目标和数据处理，没有复现论文的模型训练。2026 年继续读 [GSPO / ASPO](policy-ratios.md)与 [SAO](async-policy-learning.md)时，也可以沿用这套问题：到底改了采样、权重，还是数据到达训练器的时间？
 
-实现入口：[DAPO 项目页](https://dapo-sia.github.io/) · [verl DAPO recipe](https://github.com/volcengine/verl/tree/main/recipe/dapo)。实际复现要记录 commit，不把随时变化的 main 当作固定版本。
+实现入口：[DAPO 项目页](https://dapo-sia.github.io/) · [verl DAPO recipe](https://github.com/verl-project/verl-recipe/tree/main/dapo)（2026-10 核对：verl 的 recipe 已移到单独的 `verl-project/verl-recipe` 仓库）。实际复现要记录 commit，不把随时变化的 main 当作固定版本。

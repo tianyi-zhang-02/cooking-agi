@@ -345,7 +345,7 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 1. 为什么预训练完还不够（本页）—— SFT、偏好学习、RL 各自解决什么学习问题
 2. [模型适配：Full Fine-Tuning、LoRA、Prompt Tuning 与蒸馏](model-adaptation.md) —— 区分 learning objective 与 parameterization，并解释分类输出怎样被系统约束
 3. [SFT](sft-and-its-ceiling.md) —— 为什么平均 token loss 不能代替任务成功率，以及示范怎样教会回答、澄清或拒答
-4. [偏好与奖励模型](where-preferences-come-from.md) —— Bradley–Terry 如何用分数差解释偏好，以及策略变化后奖励模型还是否可靠
+4. [偏好与奖励模型](where-preferences-come-from.md) —— Bradley–Terry 如何用分数差解释偏好，策略变化后奖励模型还是否可靠，以及 AI 反馈、生成式奖励模型和 rubric 奖励
 
 想把两种常用方法算清楚，可以接着读 [LoRA / QLoRA](lora-and-qlora.md)和[蒸馏](distillation.md)：前者算参数、梯度和显存，后者算软标签、KL 和 top-k 省略了什么。
 

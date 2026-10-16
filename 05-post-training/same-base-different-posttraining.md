@@ -122,7 +122,7 @@ $$
 
 ## 继续阅读 {#_11}
 
-- [PPO 之后：每个算法都在删掉它的一部分](after-ppo.md)：理解目标和约束
+- [PPO、GRPO 与 DPO：反馈怎样变成一次更新](after-ppo.md)：理解目标和约束
 - [RLHF 的三个阶段](rlhf/three-stages.md)：区分训练角色与数据来源
 - [双塔检索](../04-search/dual-encoder.md)：检查训练与候选池的定义
 

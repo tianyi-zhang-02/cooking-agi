@@ -51,7 +51,7 @@ Critic 估计状态价值，既可以提供降低方差的 baseline，也参与 
 | **RLOO** | 留一法：某个样本的基线 = 其余样本奖励的均值 | 同样要多采样；常见形式用整条回答的优势，不另学各前缀的 value |
 | **REINFORCE++** | 用包含 KL 惩罚的 return 构造优势，再做 batch 归一化 | 不训练 value；需检查 return、KL 和归一化范围 |
 
-这些方法不再依赖独立训练的 value model，但并没有消除估计误差。省下的训练状态，要和额外采样、信号方差及任务结构一起比较。表中 REINFORCE++ 对应[首版论文 §3](https://arxiv.org/html/2501.03262v1#S3)；batch 归一化不是另一个训练出来的 baseline，也不保证梯度无偏或训练稳定。
+这些方法不再依赖独立训练的 value model，但并没有消除估计误差。省下的训练状态，要和额外采样、信号方差及任务结构一起比较。表中 REINFORCE++ 对应[首版论文 §3](https://arxiv.org/html/2501.03262v1#S3)；batch 归一化不是另一个训练出来的 baseline，也不保证梯度无偏或训练稳定。截至 2026-10，arXiv 上的最新版是 [v9（2025-11-10）](https://arxiv.org/abs/2501.03262v9)，标题改为 “…with Global Advantage Normalization”，并增加了一个 “REINFORCE++ w/ baseline” 变体：同一 prompt 采多份回答，先减组内平均奖励，再在整个 batch 上归一化，KL 改成单独的损失项（v9 §3.2）。
 
 RLOO 的基线写出来是这样，$k$ 是同一提示下的采样数：
 
@@ -91,7 +91,7 @@ J_{\mathrm{GRPO}}&=\frac{1}{G}\sum_i\frac{1}{|o_i|}\sum_t s_{i,t}.
 \end{aligned}
 $$
 
-这里 $G$ 是同一 prompt 的回答数，$|o_i|$ 是第 $i$ 条回答的有效 token 数；$J$ 是要最大化的策略目标，代码通常最小化 $-J$。[DeepSeekMath 原论文 §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1)还加入相对于 Reference 的 KL 项，后来的配方也有设 $\beta=0$ 的。GRPO 主要省掉的是 learned value baseline，不是 rollout、reward 或 policy ratio。具体框架的 loss reduction、KL 系数和更新次数都要单独看，不能只读算法名。
+这里 $G$ 是同一 prompt 的回答数，$|o_i|$ 是第 $i$ 条回答的有效 token 数；$J$ 是要最大化的策略目标，代码通常最小化 $-J$。[DeepSeekMath 原论文 §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1)还加入相对于 Reference 的 KL 项；有的配方干脆去掉它，例如 [DAPO](dapo.md)。截至 2026-10，[TRL v1.16.0 的 GRPOTrainer](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) 默认 `beta=0.0`（不加载 Reference）、`loss_type="dapo"`（按全局有效 token 数归一化，不是上式的先按回答平均），用 vLLM 生成时还默认打开重要性采样修正（`vllm_importance_sampling_correction=True`）。GRPO 主要省掉的是 learned value baseline，不是 rollout、reward 或 policy ratio。具体框架的 loss reduction、KL 系数和更新次数都要单独看，不能只读算法名。
 
 | | PPO baseline | GRPO baseline |
 | --- | --- | --- |

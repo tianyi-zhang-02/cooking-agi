@@ -123,7 +123,7 @@ A task can use several checks. For a report, code might verify numbers and links
 ## Where to read next {#where-to-read-next}
 
 - [Where preferences come from](where-preferences-come-from.en.md): the structural ceilings of a learned reward model
-- [After PPO](after-ppo.en.md): how binary sparse rewards and group baselines amplify each other
+- [PPO, GRPO, and DPO](after-ppo.en.md): how binary sparse rewards and group baselines amplify each other
 - [The alignment tax](alignment-tax.en.md): check entropy, solution coverage, and actual quality separately
 - [Evaluation](../07-evaluation/): a verifier and an eval set are not the same thing
 

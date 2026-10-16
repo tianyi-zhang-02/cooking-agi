@@ -212,7 +212,7 @@ First separate **what supplies supervision** from **which parameters may change*
 1. Why pretraining isn't enough (this page) — what learning problem SFT, preference learning, and RL each solve
 2. [Model adaptation: Full Fine-Tuning, LoRA, Prompt Tuning, and Distillation](model-adaptation.en.md) — separate the learning objective from parameterization, and explain how the system constrains classification output
 3. [SFT](sft-and-its-ceiling.en.md) — why mean token loss does not replace task success, and how demonstrations teach answering, clarification, or abstention
-4. [Preferences and reward models](where-preferences-come-from.en.md) — how Bradley–Terry models preferences through score differences, and whether the reward model remains reliable as the policy changes
+4. [Preferences and reward models](where-preferences-come-from.en.md) — how Bradley–Terry models preferences through score differences, whether the reward model remains reliable as the policy changes, and AI feedback, generative reward models, and rubric rewards
 
 For worked calculations, continue to [LoRA / QLoRA](lora-and-qlora.en.md) and [distillation](distillation.en.md): parameters, gradients, and memory in the former; soft targets, KL, and what top-k leaves out in the latter.
 

@@ -111,10 +111,13 @@ RLVR fits tasks or subgoals with automatically checkable outcomes. Open-ended di
 
 ## Further reading (Chinese)
 
-- [Reinforcement learning in large models](https://zhuanlan.zhihu.com/p/693582342) — a Zhihu article, in Chinese.
-  This chapter deliberately covers only the RLHF trunk. The algorithm taxonomy is in
-  that piece: MDP elements, the Bellman equation, the bias-variance tradeoff across
-  MC/TD/GAE, PPO's four-model setup, DPO with IPO/KTO, and what GRPO, DAPO,
+This chapter covers only the RLHF trunk. The algorithm family has its own notes on this site: start with [PPO, GRPO, and DPO](../after-ppo.en.md),
+then read [DAPO](../dapo.en.md), [Clipping and gradients](../clipping-variants.en.md), [GSPO and ASPO](../policy-ratios.en.md),
+and [asynchronous training](../async-policy-learning.en.md) as needed.
+
+- [Reinforcement learning in large models](https://zhuanlan.zhihu.com/p/693582342) — a Zhihu article, in Chinese, as a supplement.
+  It runs from MDP elements, the Bellman equation, and the bias-variance tradeoff across
+  MC/TD/GAE, through PPO's four-model setup and DPO with IPO/KTO, to what GRPO, DAPO,
   Dr. GRPO, RLOO, and REINFORCE++ each set out to fix.
 
 ## Papers to start with

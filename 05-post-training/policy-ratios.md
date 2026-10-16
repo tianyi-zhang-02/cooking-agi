@@ -83,7 +83,7 @@ assert clipped_surrogate(0.5, -1) == -0.8
 
 ## ASPO：正 advantage 的权重，反过来算
 
-[ASPO 论文](https://arxiv.org/html/2510.06062v1)讨论的是 token-level 更新：保留按 advantage 方向的 mask，对正 advantage 使用倒数权重，对负 advantage 保留原比值，并约束极端权重。它的动机是让已经涨得很多与仍落后的 token 不再沿用同一种放大方式。
+[ASPO 论文](https://arxiv.org/html/2510.06062v2)（2026-05-15 的 v2 改题为 “When Importance Sampling Misallocates Credit: Asymmetric Ratios for Outcome-Supervised RL”，方法在 §6）讨论的是 token-level 更新：保留按 advantage 方向的 mask，对正 advantage 使用倒数权重，对负 advantage 保留原比值，并约束极端权重。它的动机是让已经涨得很多与仍落后的 token 不再沿用同一种放大方式。
 
 最容易写错的是梯度。令 $\ell=\log p_\theta$，采样概率为 $p_b$。正 advantage 分支写成：
 
@@ -122,7 +122,7 @@ derivative = (
 assert math.isclose(derivative, 2.0, rel_tol=1e-6)
 ```
 
-没有 mask、dual clipping 和 loss reduction 的这几行，不能叫完整 ASPO 实现。[作者代码](https://github.com/wizard-III/Archer2.0)适合继续对照。论文 v1 的 token-masking 文字中有一处上界符号与标准 PPO 描述不一致；接入训练前应核对具体实现，而不是把那句话直接复制成条件判断。
+没有 mask、dual clipping 和 loss reduction 的这几行，不能叫完整 ASPO 实现。[作者代码](https://github.com/wizard-III/Archer2.0)适合继续对照。论文 v1 的 token-masking 条件把正 advantage 的上界印成了 $1-\epsilon_{high}$；v2 §6 已改为与 PPO 一致的 $1+\epsilon_{high}$。接入训练前仍应核对具体实现，而不是把论文里的句子直接复制成条件判断。
 
 ## 怎么判断哪种改法值得试
 

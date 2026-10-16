@@ -121,4 +121,4 @@ Mean reward alone can improve when the model writes less and pays a smaller pena
 
 Check these local properties before training comparisons. The examples test objectives and data handling, not a reproduction of the paper's training run. When reading [GSPO / ASPO](policy-ratios.en.md) and [SAO](async-policy-learning.en.md) in 2026, ask the same question: did the method change sampling, weighting, or when data reaches the trainer?
 
-Implementation entry points: [DAPO project](https://dapo-sia.github.io/) and [verl DAPO recipe](https://github.com/volcengine/verl/tree/main/recipe/dapo). Record a commit when reproducing a result; a changing main branch is not a fixed version.
+Implementation entry points: [DAPO project](https://dapo-sia.github.io/) and [verl DAPO recipe](https://github.com/verl-project/verl-recipe/tree/main/dapo) (checked 2026-10: verl's recipes now live in the separate `verl-project/verl-recipe` repository). Record a commit when reproducing a result; a changing main branch is not a fixed version.

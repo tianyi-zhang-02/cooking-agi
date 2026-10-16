@@ -120,7 +120,7 @@ First establish the mean's definition and measurement sample, then inspect quant
 
 ## Where to read next {#where-to-read-next}
 
-- [After PPO: every algorithm deletes one of its parts](after-ppo.en.md): objectives and constraints
+- [PPO, GRPO, and DPO: turning feedback into an update](after-ppo.en.md): objectives and constraints
 - [The three stages of RLHF](rlhf/three-stages.en.md): training roles and data sources
 - [Dual-encoder retrieval](../04-search/dual-encoder.en.md): checking training and candidate-pool definitions
 

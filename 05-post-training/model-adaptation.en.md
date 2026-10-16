@@ -225,8 +225,11 @@ map that token to the enum. Prefix constraints and this single-step special case
 format on successful completion, not classification accuracy or successful completion
 of every request.
 
-For an implementation interface, see the [Transformers 4.57.1 prefix-constraint documentation](https://huggingface.co/docs/transformers/v4.57.1/internal/generation_utils#transformers.PrefixConstrainedLogitsProcessor)
-(checked 2026-10-10). This example does not call the library or assume behavior in other versions.
+For an implementation interface, see the [Transformers v5.20.0 prefix-constraint documentation](https://huggingface.co/docs/transformers/v5.20.0/internal/generation_utils#transformers.PrefixConstrainedLogitsProcessor)
+(checked 2026-10). This example does not call the library or assume behavior in other versions. When serving through an
+inference engine, the engine usually provides such constraints itself: for example,
+[vLLM's structured outputs](https://docs.vllm.ai/en/stable/features/structured_outputs.html) can use `choice` to make the output exactly one of
+several candidates, and also support regex, JSON schema, and grammar constraints (stable docs checked 2026-10).
 
 ### Add a classification head {#add-a-classification-head}
 

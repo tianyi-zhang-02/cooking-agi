@@ -111,11 +111,13 @@ RLVR 适合能自动检查结果的任务或子目标；开放式对话也可能
 
 ## 中文导读
 
-- [大模型中的强化学习](https://zhuanlan.zhihu.com/p/693582342) — 知乎 @大家好我是爱因，专栏《机器学习小王子》。
-  本章只讲 RLHF 这条主干，刻意没有铺开算法谱系。那一半在这篇里：从 MDP 的要素、
-  贝尔曼方程、MC/TD/GAE 的偏差-方差权衡讲起，一路到 PPO 的四模型协同、DPO 与
+本章只讲 RLHF 这条主干。算法谱系本站另有几篇：先读 [PPO、GRPO 与 DPO](../after-ppo.md)，
+再按需看 [DAPO](../dapo.md)、[Clipping 与梯度](../clipping-variants.md)、[GSPO 与 ASPO](../policy-ratios.md)
+和[异步训练](../async-policy-learning.md)。
+
+- [大模型中的强化学习](https://zhuanlan.zhihu.com/p/693582342) — 知乎 @大家好我是爱因，专栏《机器学习小王子》，作为中文补充。
+  它从 MDP 的要素、贝尔曼方程、MC/TD/GAE 的偏差-方差权衡讲起，一路到 PPO 的四模型协同、DPO 与
   IPO/KTO，再到 GRPO、DAPO、Dr. GRPO、RLOO、REINFORCE++ 各自想解决什么问题。
-  想看全景，从它开始。
 
 ## 参考论文
 

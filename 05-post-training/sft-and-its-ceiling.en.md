@@ -143,7 +143,7 @@ active_positions = (logits.grad.abs().sum(-1) > 0).nonzero().tolist()
 assert active_positions == [[0, 2], [0, 3]]
 ```
 
-We shift manually because this code calls CE directly. The [Transformers causal LM loss](https://github.com/huggingface/transformers/blob/v4.57.1/src/transformers/loss/loss_utils.py) already handles shifting; do not pre-shift labels again when passing them to a model that does this internally.
+We shift manually because this code calls CE directly. The [Transformers causal LM loss](https://github.com/huggingface/transformers/blob/v5.20.0/src/transformers/loss/loss_utils.py) already handles shifting (checked against `ForCausalLMLoss` in v5.20.0, 2026-10); do not pre-shift labels again when passing them to a model that does this internally.
 
 <details id="teacher-forcing" markdown="1">
 <summary>Why test generation if both token predictions look good?</summary>
@@ -172,7 +172,7 @@ An attention mask has a different job: controlling visibility, such as hiding fu
 | Assistant answer | Supervise content and ending marker | Every assistant turn, or only the last? |
 | Padding | Exclude from loss | Distinguish by position if PAD and EOS share an ID |
 
-The [versioned TRL guide](https://huggingface.co/docs/trl/v0.23.1/sft_trainer#train-on-assistant-messages-only) exposes assistant-only and completion-only options separately. Their names alone do not establish equivalent behavior. Inspect masks returned by the actual template and decode final labels for a few examples to see what training will reward.
+The [TRL v1.16.0 guide](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer#train-on-assistant-messages-only) (checked 2026-10) exposes assistant-only and completion-only options separately. Their names alone do not establish equivalent behavior. Assistant-only loss needs `{% generation %}` and `{% endgeneration %}` markers in the chat template; the docs say TRL patches them in automatically for known model families such as Qwen3 when `assistant_only_loss=True`, and other models need their template checked by hand. Inspect masks returned by the actual template and decode final labels for a few examples to see what training will reward.
 
 Check truncation too: does the example retain an answer, or only its prompt? Was the ending marker cut off? All-`-100` labels provide no supervision and need handling during data checks. Packing additionally needs sample-boundary and attention checks; a loss mask alone does not isolate conversations.
 
@@ -261,7 +261,7 @@ $$
 \ell_{\text{DFT}}=-\operatorname{sg}(p_y)\log p_y.
 $$
 
-This is one term; a batch still needs a mask and reduction. It adds no environment reward and specifies no probability threshold for switching to RL.
+This is one term; a batch still needs a mask and reduction. It adds no environment reward and specifies no probability threshold for switching to RL. As of October 2026, the [TRL v1.16.0 SFTTrainer](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer) ships this loss: set `loss_type="dft"` in `SFTConfig`. Before using the built-in option, confirm that its mask and reduction match your setup.
 
 Forgetting `detach()` changes the update. With binary target probability $p=0.01$, the positive logit's CE gradient is −0.99; detached weighting gives −0.0099. Fully differentiating $-p\log p$ instead gives about +0.0357, so gradient descent would lower this already unlikely target's score.
 
@@ -281,7 +281,7 @@ That is a chain-rule difference, not a precision issue. The [tests](../site/test
 
 - [Implementing cross-entropy](../00-foundations/pytorch/cross-entropy.en.md): stability, soft targets, masks, and denominators
 - [The three stages of RLHF](rlhf/three-stages.en.md): what the two stages after SFT do
-- [After PPO](after-ppo.en.md): the family tree of algorithms on the RL line
+- [PPO, GRPO, and DPO](after-ppo.en.md): the family tree of algorithms on the RL line
 - [Data and feedback](../01-data-and-feedback/README.en.md): the quality of demonstration and preference data itself
 
 ## Quick learning: what does SFT teach? {#quick-learning-what-does-sft-teach}

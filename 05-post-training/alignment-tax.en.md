@@ -16,7 +16,7 @@ This chapter starts with possible changes, then works through the easily misread
 
 **Reduced output diversity.** Repeated responses to the same prompt may become more alike. Distinguish wording, meaning, and genuinely different valid solutions rather than just counting distinct words.
 
-**Falling entropy.** The policy may become more concentrated. For a low-probability action with positive advantage, a fixed ratio threshold corresponds to a small absolute increase, potentially limiting the incentive from that sample. Clipping is neither a hard probability bound nor the only cause of falling entropy. [After PPO](after-ppo.en.md) discusses alternative clipping choices.
+**Falling entropy.** The policy may become more concentrated. For a low-probability action with positive advantage, a fixed ratio threshold corresponds to a small absolute increase, potentially limiting the incentive from that sample. Clipping is neither a hard probability bound nor the only cause of falling entropy. [PPO, GRPO, and DPO](after-ppo.en.md) and [Clipping and gradients](clipping-variants.en.md) discuss alternative clipping choices.
 
 **Formulaic responses.** Repeated preferences for particular wording or formats can make them more common. Check whether they displace more direct, useful answers rather than treating every style change as a regression.
 
@@ -162,7 +162,7 @@ This is the same point as [freezing the evaluation protocol](../07-evaluation/):
 
 ## Where to read next {#where-to-read-next}
 
-- [After PPO](after-ppo.en.md): how clipping, group rewards, and gradients affect updates
+- [PPO, GRPO, and DPO](after-ppo.en.md): how clipping, group rewards, and gradients affect updates
 - [Where preferences come from](where-preferences-come-from.en.md): which step the bias entered at
 - [How far one base model can go](same-base-different-posttraining.en.md): a live case of "no regressions mentioned" not meaning "no regressions"
 - [Evaluation](../07-evaluation/): measure task improvements and regressions separately

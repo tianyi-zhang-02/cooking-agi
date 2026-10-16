@@ -83,7 +83,7 @@ This checks objective values; it is not a trainer. GSPO thresholds need to be ch
 
 ## ASPO: reverse the positive-advantage weight
 
-[ASPO](https://arxiv.org/html/2510.06062v1) changes token-level updates: retain an advantage-directed mask, use reciprocal weights for positive advantages and ordinary ratios for negative advantages, and bound extreme weights. The motivation is to treat tokens already moving strongly and those lagging behind differently.
+[ASPO](https://arxiv.org/html/2510.06062v2) (retitled “When Importance Sampling Misallocates Credit: Asymmetric Ratios for Outcome-Supervised RL” in v2, 2026-05-15; the method is in §6) changes token-level updates: retain an advantage-directed mask, use reciprocal weights for positive advantages and ordinary ratios for negative advantages, and bound extreme weights. The motivation is to treat tokens already moving strongly and those lagging behind differently.
 
 The gradient is easy to get wrong. Write $\ell=\log p_\theta$, with behavior probability $p_b$. The positive branch uses:
 
@@ -122,7 +122,7 @@ derivative = (
 assert math.isclose(derivative, 2.0, rel_tol=1e-6)
 ```
 
-Without masking, dual clipping, and loss reduction, these lines are not a complete ASPO implementation. Continue with the [authors' code](https://github.com/wizard-III/Archer2.0). The v1 paper's token-masking prose contains an upper-bound sign inconsistent with the standard PPO description; check the implementation before turning that sentence into a branch condition.
+Without masking, dual clipping, and loss reduction, these lines are not a complete ASPO implementation. Continue with the [authors' code](https://github.com/wizard-III/Archer2.0). The v1 paper's token-masking condition printed the positive-advantage upper bound as $1-\epsilon_{high}$; v2 §6 corrects it to $1+\epsilon_{high}$, matching PPO. Still check the implementation before turning a sentence from the paper into a branch condition.
 
 ## Decide with diagnostics, not names
 

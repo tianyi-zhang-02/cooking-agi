@@ -86,7 +86,7 @@ assert math.isclose(objective, 1 - beta * divergence)
 print(round(divergence, 4), round(objective, 4))
 ```
 
-把 `beta` 改为 0，只是去掉这一项代价，并不会让数学表达式失效。实际效果要测：相对同一奖励尺度，更大的系数通常更偏向保留参照行为；更小的系数通常允许更大改变。**没有“所有任务都必须非零”的定理。** 已有实现允许关闭该项，版本与选项可查 [TRL GRPO 文档](https://huggingface.co/docs/trl/grpo_trainer)；这不代表你的任务也应该关闭。
+把 `beta` 改为 0，只是去掉这一项代价，并不会让数学表达式失效。实际效果要测：相对同一奖励尺度，更大的系数通常更偏向保留参照行为；更小的系数通常允许更大改变。**没有“所有任务都必须非零”的定理。** 有的实现甚至默认关闭它：截至 2026-10，[TRL v1.16.0 的 GRPOTrainer](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) 默认 `beta=0.0`，此时不加载 Reference 模型；同一文档注明 DeepSeek-R1 用的是 0.001。默认值不代表你的任务也应该关闭。
 
 <span id="critic"></span>
 

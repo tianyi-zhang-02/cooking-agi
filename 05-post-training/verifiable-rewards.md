@@ -125,7 +125,7 @@ G=4 时，p=0.5 得到 12.5%；p=0.1 或 0.9 都得到 65.62%。太难和太容�
 ## 继续阅读 {#_9}
 
 - [偏好从哪来](where-preferences-come-from.md)：学出来的奖励模型有哪些结构性上限
-- [PPO 之后](after-ppo.md)：二元稀疏奖励和组相对基线怎么互相放大弱点
+- [PPO、GRPO 与 DPO](after-ppo.md)：二元稀疏奖励和组相对基线怎么互相放大弱点
 - [对齐税](alignment-tax.md)：熵、解法覆盖和实际质量怎样分别检查
 - [Evaluation](../07-evaluation/)：验证器和评估集不是一回事
 
