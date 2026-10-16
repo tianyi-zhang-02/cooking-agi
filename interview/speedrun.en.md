@@ -23,6 +23,8 @@ Choose by familiarity, not years of employment. If you know Python but not ML, u
 <a href="#twelve-hours"><small>12 HOURS</small><strong>Practice again under different conditions</strong><span>Add system tradeoffs, experiment checks, and another debugging pass</span></a>
 </nav>
 
+<span id="google"></span>
+
 ## Spend ten minutes choosing the round to prepare for {#start}
 
 Check the invitation and job description: algorithms, ML coding, code comprehension, system design, or a project discussion? Can you run code, read documentation, or use a specified AI tool? **Do not use AI during the interview without explicit permission.** If the round involves reading and debugging code, start with the [code-comprehension exercises](code-comprehension.en.md#read); they do not replace algorithm practice.

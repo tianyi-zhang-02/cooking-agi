@@ -8,6 +8,8 @@ Writing a solution from scratch and taking over someone else's code need differe
 
 We will use a tiny embedding cache and a metric-aggregation example. No GPU, model, or external service is needed. Read the code and predict the result before running it; the reference fixes are further down.
 
+<span id="google"></span>
+
 ## Ask how this round works {#rules}
 
 Code-reading and debugging rounds vary a lot. In some you can run code and tests; in others you trace by hand. Some allow a specified AI tool; others allow none. Different rounds with the same team can have different rules. Once you have the invitation, ask your recruiter:

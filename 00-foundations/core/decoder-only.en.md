@@ -105,7 +105,7 @@ of LayerNorm, RoPE instead of additive sinusoidal positions, SwiGLU instead of a
 FFN, and sometimes GQA or MQA instead of standard MHA.
 
 As of October 2026, open models show three more common changes: Qwen3 and Gemma 3 add
-[QK-norm](normalization.en.md#qk-norm) on q and k; DeepSeek-V3 caches only a low-dimensional latent with
+[QK-norm](normalization.en.md#qk-norm) on q and k; DeepSeek-V3 caches a 512-dimensional KV latent plus a separate 64-dimensional positional key with
 [MLA](../deep-dives/latent-and-sparse-attention.en.md); and in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) (February 2026), 45 of 60 layers are
 [Gated DeltaNet](../deep-dives/gated-deltanet.en.md) layers with a fixed-size recurrent state and only 15 are
 [Gated Attention](../deep-dives/gated-attention.en.md) layers, in a 3:1 pattern.
