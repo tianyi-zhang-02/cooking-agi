@@ -78,7 +78,7 @@ KIVI（2024-02，ICML 2024）统计了 KV cache 的分布：key 里有少数几�
 
 这不是唯一的分法。[QuaRot 的 §5](https://arxiv.org/html/2404.00456v2#S5) 先旋转 key，再在每个 token、每个 head 内沿通道分组做 4 位量化，并不是跨 token 共用一个 per-channel scale。该怎么分，取决于变换后的数据分布，也取决于实际使用的 kernel。下面的例子解释 KIVI 为什么这样处理带通道离群值的 key，不代表所有模型都要照搬。
 
-**手算一次。** 4 个 token、4 个通道的 key，第 3 个通道是离群通道（教学数字）；query 取 $q=[1,\ 1,\ 0.1,\ 1]$；非对称 2 bit，每组 4 个格子。
+**手算一次。** 4 个 token、4 个通道的 key，第 3 个通道是离群通道（教学数字）；query 取 $q=[1,\ 1,\ 0.1,\ 1]$；非对称 2 bit，每组 4 个格子。这里用实数最小值作偏移量：$s=(x_{\max}-x_{\min})/3$，$\hat{x}=x_{\min}+s\,\operatorname{clamp}(\operatorname{round}((x-x_{\min})/s),0,3)$。这和[格式与误差](formats-and-error.md)里的整数 zero-point 方案不同，不要求精确表示零。下面比较两种分组时，都用这个约定。
 
 $$
 K=\begin{bmatrix}0.4&-0.2&9.0&0.1\\-0.3&0.5&11.0&-0.4\\0.2&-0.6&10.0&0.3\\0.5&0.1&12.0&-0.2\end{bmatrix},\qquad Kq=\begin{bmatrix}1.2\\0.9\\0.9\\1.6\end{bmatrix}.

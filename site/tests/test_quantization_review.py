@@ -36,6 +36,34 @@ def round_e4m3(value):
 
 
 class QuantizationReviewTests(unittest.TestCase):
+    def test_kv_grouping_example_uses_a_real_minimum_offset(self):
+        keys = [[0.4, -0.2, 9.0, 0.1], [-0.3, 0.5, 11.0, -0.4],
+                [0.2, -0.6, 10.0, 0.3], [0.5, 0.1, 12.0, -0.2]]
+        query = [1, 1, 0.1, 1]
+
+        def quantize(values):
+            lower = min(values)
+            scale = (max(values) - lower) / 3
+            return [lower + scale * round((value - lower) / scale) for value in values]
+
+        def scores(matrix):
+            return [sum(value * weight for value, weight in zip(row, query)) for row in matrix]
+
+        per_token = [quantize(row) for row in keys]
+        per_channel = list(zip(*(quantize(column) for column in zip(*keys))))
+        for observed, expected in zip(scores(keys), [1.2, 0.9, 0.9, 1.6]):
+            self.assertAlmostEqual(observed, expected)
+        for observed, expected in zip(scores(per_token), [0.3, -0.1, -0.8, 0.6]):
+            self.assertAlmostEqual(observed, expected)
+        for observed, expected in zip(scores(per_channel), [1.2333333333, 0.9, 0.9333333333, 1.6666666667]):
+            self.assertAlmostEqual(observed, expected)
+        for suffix in (".md", ".en.md"):
+            integer_zero_point = example_namespace(suffix)["quantize_asym"]
+            self.assertAlmostEqual(scores([integer_zero_point(keys[0], 2)[3]])[0], 0.92)
+            source = note_text("12-infra/quantization/fp8-and-kv-cache", suffix)
+            self.assertIn(r"\hat{x}=x_{\min}+s", source)
+            self.assertIn("zero-point", source)
+
     def test_bilingual_examples_are_identical_and_execute(self):
         blocks = [
             re.findall(r"```python\n(.*?)```", note_text(CHAPTER, suffix), re.S)
