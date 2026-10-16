@@ -61,4 +61,4 @@
 2. [状态估计与跟踪](tracking.md)：Kalman filter、Hungarian 配对、ByteTrack 的低分框，以及滤波和优化两种 SLAM
 3. [2026 年的检测与分割](detection.md)：手算 AP，NMS 和一对一匹配，闭集实时、开放词表和 SAM 3 怎么选，常见权重的许可证
 4. [冻结骨干与几何基础模型](foundation-models.md)：DINOv3、Depth Anything 3、VGGT，以及一次前向输出相机、深度和点图
-5. [三维重建与神经渲染](reconstruction.md)：从 SfM 到 Gaussian splatting 仿真器，以及重建在哪里不够用
+5. [三维重建与神经渲染（NeRF、3DGS）](reconstruction.md)：从 SfM 到 Gaussian splatting 仿真器，以及重建在哪里不够用

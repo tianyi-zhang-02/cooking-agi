@@ -1,4 +1,4 @@
-# 用强化学习训练 agent：复习题
+# 用强化学习训练 agent（agentic RL）：复习题
 
 **中文** · [English](review.en.md)
 

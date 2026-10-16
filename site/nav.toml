@@ -255,7 +255,7 @@ zone = "frontier"
 zh = "前沿"
 en = "Frontier"
 home = "11-frontier/README.md"
-summary_zh = "世界模型、递归自我改进这类正在变化的方向：先问清楚指的是什么，再看有哪些可核对的证据。"
+summary_zh = "世界模型、递归自我改进（RSI）这类正在变化的方向：先问清楚指的是什么，再看有哪些可核对的证据。"
 summary_en = "Moving targets such as world models and recursive self-improvement: ask what is meant, then check the evidence."
 
 [[group]]
@@ -730,7 +730,7 @@ order = ["README.md", "dreamer.md", "jepa.md", "interactive-video.md", "robotics
 [[section]]
 dir   = "11-frontier/self-improvement"
 group = "frontier"
-zh    = "递归自我改进"
+zh    = "递归自我改进（RSI）"
 en    = "Recursive self-improvement"
 order = ["README.md", "generate-verify-train.md", "code-not-weights.md", "measuring.md", "review.md"]
 
@@ -744,7 +744,7 @@ order = ["README.md", "parallel-and-verify.md", "long-chains.md", "measuring.md"
 [[section]]
 dir   = "11-frontier/agentic-rl"
 group = "frontier"
-zh    = "用 RL 训练 agent（待审核）"
+zh    = "Agentic RL（待审核）"
 en    = "Agent RL (draft)"
 order = ["README.md", "environments-and-rewards.md", "credit-and-training.md", "review.md"]
 
@@ -1103,9 +1103,9 @@ en  = "Templates"
 "13-embodied/perception/tracking.md" = ["状态估计与跟踪", "Estimation & tracking"]
 "13-embodied/perception/detection.md" = ["检测与分割", "Detection & segmentation"]
 "13-embodied/perception/foundation-models.md" = ["几何基础模型", "Geometry foundation models"]
-"13-embodied/perception/reconstruction.md" = ["三维重建与神经渲染", "Reconstruction & rendering"]
+"13-embodied/perception/reconstruction.md" = ["三维重建（NeRF、3DGS）", "Reconstruction & rendering"]
 "13-embodied/driving/README.md" = ["总览", "Overview"]
-"13-embodied/driving/bev-occupancy.md" = ["鸟瞰图与占用", "BEV & occupancy"]
+"13-embodied/driving/bev-occupancy.md" = ["鸟瞰图（BEV）与占用", "BEV & occupancy"]
 "13-embodied/driving/prediction-planning.md" = ["预测与规划", "Forecasting & planning"]
 "13-embodied/driving/end-to-end.md" = ["端到端与闭环评测", "End-to-end & closed loop"]
 "13-embodied/robot-learning/README.md" = ["总览", "Overview"]
@@ -1144,7 +1144,7 @@ en  = "Templates"
 "11-frontier/agentic-rl/review.md" = ["复习题", "Review"]
 "11-frontier/interpretability/README.md" = ["总览", "Overview"]
 "11-frontier/interpretability/features-and-superposition.md" = ["特征、叠加与探针", "Features & superposition"]
-"11-frontier/interpretability/sparse-autoencoders.md" = ["稀疏自编码器", "Sparse autoencoders"]
+"11-frontier/interpretability/sparse-autoencoders.md" = ["稀疏自编码器（SAE）", "Sparse autoencoders"]
 "11-frontier/interpretability/circuits.md" = ["电路、归因与干预", "Circuits & interventions"]
 "11-frontier/interpretability/review.md" = ["复习题", "Review"]
 "learn/README.md" = ["基础目录与导读", "Foundations catalog & guide"]

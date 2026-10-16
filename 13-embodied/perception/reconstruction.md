@@ -1,4 +1,4 @@
-# 感知与几何：三维重建与神经渲染
+# 感知与几何：三维重建与神经渲染（NeRF、3DGS）
 
 **中文** · [English](reconstruction.en.md)
 

@@ -1,4 +1,4 @@
-# 用强化学习训练 agent：从一问一答到多步任务
+# 用强化学习训练 agent（agentic RL）：从一问一答到多步任务
 
 **中文** · [English](README.en.md)
 

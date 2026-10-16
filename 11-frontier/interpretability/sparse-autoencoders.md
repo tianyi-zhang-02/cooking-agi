@@ -1,4 +1,4 @@
-# 可解释性：稀疏自编码器
+# 可解释性：稀疏自编码器（SAE）
 
 **中文** · [English](sparse-autoencoders.en.md)
 

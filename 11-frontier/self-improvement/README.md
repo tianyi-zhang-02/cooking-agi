@@ -1,4 +1,4 @@
-# 递归自我改进：先问改的是什么
+# 递归自我改进（RSI）：先问改的是什么
 
 **中文** · [English](README.en.md)
 
@@ -8,7 +8,7 @@
 
 ## 这个想法从哪里来
 
-I. J. Good 在 1965 年的文章里（所在卷册常记为 1966 年）设想：一台智力超过人的机器能设计出更好的机器，进而引发“intelligence explosion”（[DOI](https://doi.org/10.1016/S0065-2458%2808%2960418-0)）。Schmidhuber 2003 年提出的 [Gödel Machine](https://arxiv.org/abs/cs/0309048) 给自我改写设了一道很严的门：只有找到形式证明，确认改写在给定效用函数下有益，才改自己的代码。Yudkowsky 在 [LOGI（2007）](https://intelligence.org/files/LOGI.pdf)里把 seed AI 描述为专门为理解和修改自身而设计的系统，并强调递归自我改进是 seed AI 的结果，不是造出 AI 的捷径。
+I. J. Good 在 1965 年的文章里（所在卷册常记为 1966 年）设想：一台智力超过人的机器能设计出更好的机器，进而引发“intelligence explosion”（[DOI](https://doi.org/10.1016/S0065-2458%2808%2960418-0)）。Schmidhuber 2003 年提出的 [Gödel Machine](https://arxiv.org/abs/cs/0309048) 给自我改写设了一道很严的门：只有找到形式证明，确认改写在给定效用函数下有益，才改自己的代码。Yudkowsky 在 [LOGI（2007）](https://intelligence.org/files/LOGI.pdf)里把 seed AI 描述为专门为理解和修改自身而设计的系统，并强调递归自我改进（recursive self-improvement，RSI）是 seed AI 的结果，不是造出 AI 的捷径。
 
 2026 年，Anthropic Institute 的 Favaro 与 Clark 在 [When AI builds itself](https://www.anthropic.com/institute/recursive-self-improvement) 里给了一个更具体的定义：“an AI system capable of fully autonomously designing and developing its own successor”，即一个能完全自主地设计并开发自己继任者的 AI 系统。这几种说法的共同点是，改进作用在“做改进的那个东西”身上，于是下一轮可能改得更快；分歧在于，今天这个回路到底闭合到了哪一步。
 

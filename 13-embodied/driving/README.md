@@ -83,6 +83,6 @@
 
 ## 这一组怎么读
 
-1. [从环视相机到鸟瞰图与占用](bev-occupancy.md)：lift-splat 手算、BEV query、稀疏 query、camera–lidar 融合、占用网格和它的标签
+1. [从环视相机到鸟瞰图（BEV）与占用](bev-occupancy.md)：lift-splat 手算、BEV query、稀疏 query、camera–lidar 融合、占用网格和它的标签
 2. [预测与规划](prediction-planning.md)：minADE / minFDE 手算、联合与边缘预测、搜索与采样规划器、4 条候选轨迹按代价挑一条、PDM-Closed
 3. [端到端驾驶与闭环评测](end-to-end.md)：端到端的几种含义、模仿与 self-play、开环与闭环手算、NAVSIM / Bench2Drive / CARLA、安全标准、部署情况
