@@ -31,7 +31,7 @@
 
 ## 怎么评估
 
-- 代码：SWE-bench，现在多看 SWE-bench Pro；
+- 代码：SWE-bench；也可以看 SWE-bench Pro，上文链接的 OpenAI 2026 年 2 月说明推荐了它；
 - 网页任务：WebArena；
 - 操作电脑：OSWorld；
 - 带政策约束的对话与工具：τ-bench 及后续的 τ²/τ³-bench。

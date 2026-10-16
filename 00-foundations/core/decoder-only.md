@@ -168,7 +168,7 @@ MHA 变为 GQA 或 MQA。
 
 截至 2026-10，开源模型里还有三类常见变化：Qwen3、Gemma 3 在 q/k 上再做一次
 [QK-norm](normalization.md#qk-norm)；DeepSeek-V3 用 [MLA](../deep-dives/latent-and-sparse-attention.md)
-只缓存低维 latent；[Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)（2026-02）的 60 层里，45 层是
+缓存 512 维 KV latent，加上单独的 64 维位置 key；[Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)（2026-02）的 60 层里，45 层是
 [Gated DeltaNet](../deep-dives/gated-deltanet.md) 这种固定大小的循环状态，只有 15 层是
 [Gated Attention](../deep-dives/gated-attention.md)，按 3:1 交替。
 
@@ -203,7 +203,7 @@ of LayerNorm, RoPE instead of additive sinusoidal positions, SwiGLU instead of a
 FFN, and sometimes GQA or MQA instead of standard MHA.
 
 As of October 2026, open models show three more common changes: Qwen3 and Gemma 3 add
-[QK-norm](normalization.md#qk-norm) on q and k; DeepSeek-V3 caches only a low-dimensional latent with
+[QK-norm](normalization.md#qk-norm) on q and k; DeepSeek-V3 caches a 512-dimensional KV latent plus a separate 64-dimensional positional key with
 [MLA](../deep-dives/latent-and-sparse-attention.md); and in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) (February 2026), 45 of 60 layers are
 [Gated DeltaNet](../deep-dives/gated-deltanet.md) layers with a fixed-size recurrent state and only 15 are
 [Gated Attention](../deep-dives/gated-attention.md) layers, in a 3:1 pattern.
