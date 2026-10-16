@@ -86,7 +86,7 @@ The results are **1 GiB and 8 GiB**. These are raw KV sizes, excluding weights, 
 
 ## The weights fit. Why does the first batch run out of memory? {#inference-budget}
 
-“A 7B model in BF16 is about 14 GB. Shouldn't a 24 GiB device be enough?” It may be enough to load weights. Requests also need KV state, temporary tensors, and kernel workspaces. Longer inputs and higher concurrency expose that difference.
+“A 7B model in BF16 is about 14 GB. Shouldn't a 24 GiB device be enough?” It may be enough to load weights. Requests also need KV state, temporary tensors, and kernel workspaces. Longer inputs and higher concurrency expose that difference. (Counting weights alone, how many GPUs of each generation a 70B model needs is worked out in [NVIDIA generations](../../12-infra/nvidia-generations.en.md).)
 
 Write a budget before choosing the GPU count. Suppose the model has exactly seven billion BF16 parameters and the device exposes 24 GiB. For this calculation, **assume** 2 GiB for runtime allocations and another 2 GiB of headroom:
 
@@ -106,7 +106,7 @@ The 2 GiB runtime value is an input to this example, not a constant for every mo
 
 ### Unequal lengths, pages, and shared prefixes {#paged-budget}
 
-The equal-length formula is convenient, but real requests differ. Round each cache length up to its allocation block, then sum. With four-token blocks and lengths 5, 3, and 8, allocation needs 2 + 1 + 2 = 5 blocks: 20 slots for 16 computed positions, leaving four unused slots.
+The equal-length formula is convenient, but real requests differ. Round each cache length up to its allocation block, then sum; for how blocks are mapped and why tail blocks have empty slots, see the [PagedAttention example](attention-kernels.en.md). With four-token blocks and lengths 5, 3, and 8, allocation needs 2 + 1 + 2 = 5 blocks: 20 slots for 16 computed positions, leaving four unused slots.
 
 <details markdown="1">
 <summary>Try different lengths in a small KV calculator</summary>
@@ -169,18 +169,13 @@ KV head count is an architecture choice, not necessarily the GPU count. Tensor-p
 
 ## What do FlashAttention and PagedAttention save?
 
-| Method | Main change | What it does not promise |
-| --- | --- | --- |
-| KV cache | Reuse earlier K/V | No further reads of history |
-| GQA / MQA | Share K/V across query heads | Identical quality to MHA |
-| FlashAttention | Tile computation to reduce intermediate attention memory traffic | Linear pair count for full attention |
-| PagedAttention | Manage KV storage in blocks to improve fragmentation and sharing | Eliminate KV storage or change the learning objective |
+Both often appear next to the KV cache, but they save different things. FlashAttention still computes the same attention; it just avoids writing the full score/probability matrix to GPU memory and reading it back. PagedAttention manages KV storage for many requests in blocks, improving fragmentation and sharing. Neither shrinks K/V itself; that takes architectural changes such as GQA / MQA / MLA. For worked examples and limits of each, see [FlashAttention and PagedAttention: what does each save?](attention-kernels.en.md).
 
-[FlashAttention](https://arxiv.org/abs/2205.14135) computes mathematically equivalent attention without first writing and rereading the entire score/probability matrix in GPU memory. Changed floating-point operation order need not be bitwise identical. [PagedAttention](https://arxiv.org/abs/2309.06180) primarily addresses cache management for multi-request serving. These ideas are not mutually exclusive; support and gains depend on implementation, hardware, and workload.
+<span id="cache-checks"></span>
 
 ## Different results with caching: what should you check?
 
-1. **Positions:** the fourth position cannot start at zero again. RoPE positions must continue rather than reset at each decode call.
+1. **Positions:** the fourth position cannot start at zero again. RoPE positions must continue rather than reset at each decode call. The token order of cached K/V must not change either, and every layer must write and read the same set of positions.
 2. **Masks:** three cached positions plus two new inputs require 2 × 5 attention, not 2 × 2. The first new position must not see the second. An upper-left triangle loses valid history; [this averaging example](../core/multi-head-attention.en.md#cached-causal-mask) shows the resulting error.
 3. **Prefixes:** changing the system prompt, image input, or adapter can invalidate the cache. Identical text under different weights is not an identical computational prefix.
 4. **Determinism:** use `eval()` to disable module dropout; if calling functional SDPA directly, also pass `dropout_p=0.0`. Compare logits before sampled text. Different random samples do not establish a cache bug.
@@ -197,6 +192,6 @@ The useful test is not “can it generate a sentence?” Fix an input and compar
 | Throughput | How many requests or tokens can the system process over time? |
 | Peak memory and concurrency limit | How many users fit at the specified lengths? |
 
-Hold model, input/output length distributions, concurrency, and hardware fixed. A short-prompt, single-request test is not a substitute for concurrent long conversations. Before optimizing, find out whether time goes into compute, weight movement, KV reads, or queueing. A newer kernel may not address the actual bottleneck.
+Hold model, input/output length distributions, concurrency, and hardware fixed. A short-prompt, single-request test is not a substitute for concurrent long conversations. Before optimizing, find out whether time goes into compute, weight movement, KV reads, or queueing (for how batch size shifts this, see the [decode roofline example](../../12-infra/performance.en.md#decode-batching)). A newer kernel may not address the actual bottleneck.
 
 Return to [attention](../core/multi-head-attention.en.md) for the tensor computation, or continue to [LoRA and QLoRA](../../05-post-training/lora-and-qlora.en.md) for training rather than inference memory.

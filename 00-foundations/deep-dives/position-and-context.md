@@ -4,7 +4,7 @@
 
 > 最近审阅：2026-10 · 前置：[多头注意力](../core/multi-head-attention.md)
 
-把配置里的 context length 从 8K 改成 128K，模型不报错，只能说明程序容纳了这些位置。它有没有学过这么远的关系，能不能找回中间的证据，还要另测。
+把配置里的 context length 从 8K 改成 128K，模型不报错，只能说明程序容纳了这些位置。**它有没有学过这么远的关系，能不能找回中间的证据，还要另测。**
 
 先看 RoPE 到底改变了哪个计算。它不是给 token 贴一个编号后就结束了，而是在 attention 的点积里引入位置关系。
 
@@ -202,7 +202,7 @@ assert dca_distance(8, 4) == 3
 assert dca_distance(10, 0) == 7
 ```
 
-这是单个 query–key 对的位置算例，不是 DCA kernel。完整实现还要对不同区域的结果做**全局归一化**，不能平均各 chunk 已归一化的 attention 输出。例如一个 chunk 有 1 个 value 0，另一个有 3 个 value 4，score 全为 0，正确输出是 3，不是两个局部输出的平均值 2。
+这是单个 query–key 对的位置算例，不是 DCA kernel。完整实现还要对不同区域的结果做**全局归一化**，不能平均各 chunk 已归一化的 attention 输出。[分批合并的算例](attention-residuals.md#batched-merge)算了平均为什么会错（正确是 3，平均得 2）；合并时要保留每块的最大值和指数和，做法与 [online softmax](attention-kernels.md#online-output) 相同。
 
 DCA 不等于只看几个 chunk：它仍可读取全部历史，也没有自动消除 dense attention 的二次计算。验证时除长文任务，还应专门移动证据跨越 chunk 边界，检查边界、padding、cached / uncached logits。不用额外训练就能运行，不等于换到任何 checkpoint 都不掉质量。[作者实现](https://github.com/HKUNLP/ChunkLlama) 提供了具体接法。
 

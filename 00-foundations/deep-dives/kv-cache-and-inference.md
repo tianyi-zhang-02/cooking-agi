@@ -86,7 +86,7 @@ print(one_sequence / 2**30, eight_sequences / 2**30)
 
 ## 权重放得下，为什么一接请求就 OOM？ {#inference-budget}
 
-“7B 模型用 BF16，大约 14 GB，24 GiB 的卡应该够了吧？”只加载权重时可能够，但用户一来，KV、临时张量和 kernel 工作区也要占地方。输入越长、同时服务的人越多，差距就越明显。
+“7B 模型用 BF16，大约 14 GB，24 GiB 的卡应该够了吧？”只加载权重时可能够，但用户一来，KV、临时张量和 kernel 工作区也要占地方。输入越长、同时服务的人越多，差距就越明显。（只算权重时，70B 模型在各代 GPU 上要几张卡，见 [NVIDIA 各代 GPU 的算例](../../12-infra/nvidia-generations.md)。）
 
 先列预算，不急着猜卡数。假设模型恰好有 70 亿个参数，全用 BF16；设备有 24 GiB 可见显存。为了方便计算，**假设**给运行时留 2 GiB，再保留 2 GiB 安全余量：
 
@@ -106,7 +106,7 @@ print(one_sequence / 2**30, eight_sequences / 2**30)
 
 ### 不同长度、分页和共享前缀怎么算？ {#paged-budget}
 
-前面的统一长度公式很方便，但服务里的请求通常不等长。先对每条缓存按块向上取整，再合计。假设每块 4 个 token，长度是 5、3、8：需要 2 + 1 + 2 = 5 块，也就是 20 个槽；实际只有 16 个位置，4 个槽空着。
+前面的统一长度公式很方便，但服务里的请求通常不等长。先对每条缓存按块向上取整，再合计；块怎样映射、尾块为什么会空，见 [PagedAttention 的例子](attention-kernels.md)。假设每块 4 个 token，长度是 5、3、8：需要 2 + 1 + 2 = 5 块，也就是 20 个槽；实际只有 16 个位置，4 个槽空着。
 
 <details markdown="1">
 <summary>换几个长度，自己算 KV 占用（Python）</summary>
@@ -169,18 +169,13 @@ KV head 数是模型架构的选择，不必等于 GPU 数量；tensor parallel 
 
 ## FlashAttention 和 PagedAttention 又在省什么？
 
-| 方法 | 主要改变 | 没有承诺的事 |
-| --- | --- | --- |
-| KV cache | 复用旧位置的 K/V | 不再读取历史 |
-| GQA / MQA | 多个 Query heads 共享 K/V | 质量必然与 MHA 相同 |
-| FlashAttention | 分块计算，减少中间 attention 数据的显存读写 | 把所有全注意力配对数变成线性 |
-| PagedAttention | 按块管理 KV 存储，改善碎片和共享 | 消除 K/V 本身占用，或改变模型的学习目标 |
+两者常和 KV cache 一起出现，但省的不是同一样东西。FlashAttention 计算的还是同一个 attention，只是不把整张分数/概率矩阵写进显存再读回来；PagedAttention 按块管理多请求的 KV 存放，改善碎片和共享。两者都不缩小 K/V 本身，这部分要靠 GQA / MQA / MLA 这类架构改动。各自的算例和限制见 [FlashAttention 和 PagedAttention，分别省了什么？](attention-kernels.md)。
 
-[FlashAttention](https://arxiv.org/abs/2205.14135)计算数学上相同的 attention，不需要先把整张分数/概率矩阵写到显存再读回来；浮点运算顺序改变时，不要求逐 bit 一致。[PagedAttention](https://arxiv.org/abs/2309.06180)主要解决多请求服务时的缓存管理。它们并不互斥，但具体能否组合、收益多大，取决于实现、硬件和工作负载。
+<span id="cache-checks"></span>
 
 ## 缓存打开后结果不一样，先查什么？
 
-1. **位置**：第 4 个位置不能又从位置 0 开始。RoPE 的位置必须延续，而不是每次 decode 重置。
+1. **位置**：第 4 个位置不能又从位置 0 开始。RoPE 的位置必须延续，而不是每次 decode 重置。缓存里 K/V 的 token 顺序也不能乱，每一层写入和读取的都要是同一组位置。
 2. **Mask**：缓存有 3 个位置、新输入有 2 个位置时，attention 是 2 × 5，不是 2 × 2。第一个新位置不能看到第二个新位置。也不能从矩阵左上角直接画下三角，那会漏掉可读的历史；[这个平均值算例](../core/multi-head-attention.md#cached-causal-mask)把两种结果算给你看。
 3. **前缀**：改了 system prompt、图片输入或 adapter，旧缓存不一定还能用。相同文字但不同模型权重也不算相同前缀。
 4. **确定性**：先用 `eval()` 关掉模块的 dropout；如果直接调用 functional SDPA，还要显式传 `dropout_p=0.0`。比较 logits，再比较采样文本。两次随机采样不同，不能直接证明 cache 出错。
@@ -197,6 +192,6 @@ KV head 数是模型架构的选择，不必等于 GPU 数量；tensor parallel 
 | 吞吐量 | 系统一段时间能处理多少请求或 token |
 | 峰值显存与最大并发 | 在给定长度下能同时服务多少人 |
 
-固定模型、输入/输出长度分布、并发与硬件，再比较。短 prompt 的单请求实验不能替代长对话的并发测试。优化前先知道是在等计算、搬权重、读 KV，还是排队；否则换了一个更酷的 kernel，也可能没有解决真正的瓶颈。
+固定模型、输入/输出长度分布、并发与硬件，再比较。短 prompt 的单请求实验不能替代长对话的并发测试。优化前先知道是在等计算、搬权重、读 KV，还是排队（batch 大小怎样改变这一点，见 [decode 的 roofline 算例](../../12-infra/performance.md#decode-batching)）；否则换了一个更酷的 kernel，也可能没有解决真正的瓶颈。
 
 想回头看这些张量怎样产生，读[注意力](../core/multi-head-attention.md)；想算训练而非推理的内存，接着看 [LoRA 与 QLoRA](../../05-post-training/lora-and-qlora.md)。

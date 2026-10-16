@@ -79,16 +79,7 @@ $$
 \sum_{t\in\mathcal V}\log p_\theta(x_{t+1}\mid x_{\le t}).
 $$
 
-Suppose two microbatches contain 2 and 6 valid targets, with summed losses 4 and 6. The global mean is $10/8=1.25$. Averaging their individual means gives $(2+1)/2=1.5$. Gradient accumulation has the same weighting issue.
-
-```python
-loss_sums = [4.0, 6.0]
-valid_counts = [2, 6]
-token_mean = sum(loss_sums) / sum(valid_counts)
-batch_mean = sum(total / count for total, count in zip(loss_sums, valid_counts)) / 2
-assert token_mean == 1.25
-assert batch_mean == 1.5
-```
+When microbatches hold different numbers of valid targets, averaging each one first and then averaging those means optimizes a different objective; gradient accumulation has the same issue. [One training update](training-step.en.md#token-mean) works through it with 2 and 8 tokens: the token mean is 2.6, while averaging the two means gives 2.
 
 A typical update fixes the valid-token denominator for its accumulation window, accumulates correctly weighted gradients, unscales and clips when needed, then steps the optimizer. See [distributed training](../../06-systems/distributed-training.en.md) for synchronization and normalization across devices.
 
@@ -96,7 +87,7 @@ A typical update fixes the valid-token denominator for its accumulation window, 
 
 Warmup gradually increases the learning rate; a specified decay schedule follows. Neither repairs broken masks or poor data. Record whether the schedule advances by optimizer steps or consumed tokens, especially when changing batch sizes or resuming a run.
 
-A rough estimate for dominant dense Transformer training matrix work is $C\approx6ND$, with $N$ parameters and $D$ training tokens. Long-context attention, recomputation, communication, and hardware utilization are outside that simple estimate. FLOPs are not elapsed time.
+A rough estimate for dominant dense Transformer training matrix work is $C\approx6ND$, with $N$ parameters and $D$ training tokens. Long-context attention, recomputation, communication, and hardware utilization are outside that simple estimate. FLOPs are not elapsed time; converting them into time needs an estimate of hardware utilization, see [MFU and HFU](../../12-infra/performance.en.md#mfu).
 
 [Chinchilla](https://arxiv.org/abs/2203.15556) studies allocation between model size and data under a training compute budget. It is not a law prescribing one tokens-per-parameter ratio for every project. Data quality, repetition, availability, and eventual inference volume also matter.
 

@@ -4,7 +4,7 @@
 
 > Reviewed: 2026-10 · Prerequisite: [multi-head attention](../core/multi-head-attention.en.md)
 
-Changing a context-length setting from 8K to 128K without crashing establishes that the program can accommodate those positions. Whether the model learned such distances or retrieves evidence from the middle requires separate tests.
+Changing a context-length setting from 8K to 128K without crashing establishes that the program can accommodate those positions. **Whether the model learned such distances or retrieves evidence from the middle requires separate tests.**
 
 RoPE does more than attach a position number. It introduces position relationships into attention dot products.
 
@@ -202,7 +202,7 @@ assert dca_distance(8, 4) == 3
 assert dca_distance(10, 0) == 7
 ```
 
-This tests one query–key distance, not a DCA kernel. A full implementation must **globally normalize** the regions rather than average locally normalized chunk outputs. One chunk containing value 0 and another containing three values of 4, with all scores zero, should yield 3—not the average local output of 2.
+This tests one query–key distance, not a DCA kernel. A full implementation must **globally normalize** the regions rather than average locally normalized chunk outputs. The [batched-merge example](attention-residuals.en.md#batched-merge) shows why averaging goes wrong (the correct output is 3, the average gives 2); merging keeps each chunk's maximum and exponential sum, as in [online softmax](attention-kernels.en.md#online-output).
 
 DCA is not restricted to reading a few chunks: it can still read the entire history and does not automatically remove quadratic dense-attention computation. Test evidence crossing chunk boundaries, padding, cached/uncached logits, and actual long-document tasks. Running without additional training does not guarantee unchanged quality on every checkpoint. The [authors' implementation](https://github.com/HKUNLP/ChunkLlama) shows concrete integration.
 

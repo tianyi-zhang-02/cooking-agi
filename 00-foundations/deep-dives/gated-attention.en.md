@@ -2,7 +2,7 @@
 
 [中文](gated-attention.md) · **English**
 
-Attention produces information for later layers. Output gating adds a separate decision: how much of that information should pass through? This note covers the 2025 attention-gating paper, not MoE expert selection or Gated DeltaNet's recurrent-state update.
+Attention produces information for later layers. **Output gating adds a separate decision: how much of that information should pass through?** This note covers the 2025 attention-gating paper ([Qwen3-Next and Qwen3.5](../model-families/qwen.en.md#qwen3-next-boundary) pair every three Gated DeltaNet layers with one such gated attention layer), not MoE expert selection or Gated DeltaNet's recurrent-state update.
 
 ## Where does the gate go?
 

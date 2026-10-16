@@ -49,6 +49,8 @@ $$L=\frac{1}{M}\sum_{b,t}m_{b,t}\left[-\log p_\theta(x_{b,t}\mid x_{b,<t})\right
 
 Here $m_{b,t}$ marks **target positions**. A batch with no valid targets needs an explicit skip or error, not division by zero. See [PyTorch CrossEntropyLoss](https://docs.pytorch.org/docs/main/generated/torch.nn.CrossEntropyLoss.html) for `ignore_index` and reduction semantics.
 
+<span id="token-mean"></span>
+
 ## What a larger batch changes
 
 Suppose two microbatches contain 2 and 8 valid tokens, with mean losses of 1 and 3. Averaging the means gives 2; averaging all tokens gives $(2\times1+8\times3)/10=2.6$. These are different objectives.

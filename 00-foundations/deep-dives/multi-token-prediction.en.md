@@ -2,13 +2,13 @@
 
 [中文](multi-token-prediction.md) · **English**
 
-To compare MTP with DFlash, establish target alignment here, then read [DFlash drafting, verification, and costs](dflash.en.md). That chapter distinguishes the original method, DFlash 2, and recent suffix-refinement work without conflating training objectives and inference algorithms.
-
 > Reviewed: 2026-10 · Prerequisite: [language-model objectives](language-model-objective.en.md)
 
 Ordinary language modeling predicts the next token at each position. Multi-token prediction adds further-ahead targets during training, encouraging representations useful beyond the immediate next step.
 
-It does not eliminate autoregression or guarantee a twofold generation speedup by adding a head. Separate the training objective from the inference algorithm.
+**It does not eliminate autoregression or guarantee a twofold generation speedup by adding a head.** Separate the training objective from the inference algorithm.
+
+To compare MTP with DFlash, establish target alignment here, then read [DFlash drafting, verification, and costs](dflash.en.md). That chapter distinguishes the original method, DFlash 2, and recent suffix-refinement work without conflating training objectives and inference algorithms.
 
 ## How do targets shift on one sequence?
 
@@ -135,7 +135,7 @@ For a draft sequence, a causal target forward evaluates the conditional distribu
 
 Use **hypothetical timings**, not benchmark results: ordinary decoding takes 10 ms per token; drafting plus verification takes 18 ms per round and emits three final tokens on average. That is 6 ms per token, about 1.67× faster. If it emits only one, it costs 18 ms per token and is slower.
 
-Count accepted drafts plus any token emitted on rejection or full acceptance. Include sampling, cache handling, and scheduling in timing. A small module forward and a longer target verification do not have equal costs, so counting both as one step, then claiming a $K/2$ speedup from “$K$ tokens per two steps,” is not justified.
+Count accepted drafts plus any token emitted on rejection or full acceptance. Include sampling, cache handling, and scheduling in timing. A small module forward and a longer target verification do not have equal costs, so counting both as one step, then claiming a $K/2$ speedup from “$K$ tokens per two steps,” is not justified. Verifying several positions at once can be cheap because small-batch decode mostly waits on weight reads; that slack disappears as the batch grows, see the [decode roofline example](../../12-infra/performance.en.md#decode-batching).
 
 ## Establish the benefit you actually want
 

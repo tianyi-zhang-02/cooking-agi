@@ -171,7 +171,7 @@ assert cycle_speedup(10, 3, 12, 1, 4) == 2.5
 assert cycle_speedup(10, 3, 12, 1, 1) == 0.625
 ```
 
-A longer block may face more suffix rejection and higher verification/cache cost. Parallelism is not free. Under concurrency, drafter compute and memory can also affect other requests. A batch=1 latency improvement does not establish a whole-server throughput gain.
+A longer block may face more suffix rejection and higher verification/cache cost. Parallelism is not free. Under concurrency, drafter compute and memory can also affect other requests. At small batch sizes decode mostly waits on weight reads, so computing a few extra positions adds little time; that slack disappears as the batch grows, see the [decode roofline example](../../12-infra/performance.en.md#decode-batching). A batch=1 latency improvement does not establish a whole-server throughput gain.
 
 ## Developments in 2026: making parallel guesses coherent
 

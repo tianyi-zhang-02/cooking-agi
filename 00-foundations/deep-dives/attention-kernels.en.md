@@ -4,7 +4,7 @@
 
 > Reviewed: 2026-10 · Prerequisites: [multi-head attention](../core/multi-head-attention.en.md), [KV cache](kv-cache-and-inference.en.md)
 
-The names are similar, but the problems differ. FlashAttention addresses data movement during attention computation. PagedAttention addresses KV storage for concurrent requests. One mainly changes computation and IO; the other mainly changes cache organization.
+The names are similar, but the problems differ. **FlashAttention addresses data movement during attention computation. PagedAttention addresses KV storage for concurrent requests.** One mainly changes computation and IO; the other mainly changes cache organization.
 
 We will work through one small example of each before discussing when they help.
 
@@ -129,7 +129,7 @@ Change block size to 1 or 3, then add 1,000 to every score. Normalized results s
 
 ## FlashAttention does not remove every quadratic pairing
 
-[FlashAttention](https://arxiv.org/abs/2205.14135) combines tiled computation with these statistics, keeping blocks in faster on-chip memory where possible instead of repeatedly materializing the full intermediates in HBM. Backward can recompute selected quantities.
+[FlashAttention](https://arxiv.org/abs/2205.14135) combines tiled computation with these statistics, keeping blocks in faster on-chip memory where possible instead of repeatedly materializing the full intermediates in HBM. Backward can recompute selected quantities. For how on-chip memory and HBM differ in capacity and bandwidth, see [the memory hierarchy in GPU architecture](../../12-infra/gpu-architecture.en.md); for loading a tile into shared memory and reusing it, see [CUDA tiling](../../12-infra/cuda.en.md#tiling).
 
 Dense attention still computes the permitted query–key pairs; the pairing count generally remains quadratic. Mathematically exact attention also does not promise bitwise agreement across operation orders.
 
@@ -146,9 +146,9 @@ Avoiding the full matrix does not guarantee a fully utilized GPU. Work partition
 | FA3 | Hopper-oriented overlap of asynchronous movement, matrix multiplication, and softmax; an additional FP8 path | Every GPU benefits equally, or FP8 is mandatory |
 | FA4 | Blackwell-oriented (B200 / GB200): fully asynchronous matmul pipelines and larger tiles; software-emulated exp and rescaling only when needed; tensor memory and 2-CTA matmul in backward to cut shared-memory traffic | Hopper users should switch too, or the authors' speedups hold for your shapes |
 
-One [FA2](https://arxiv.org/abs/2307.08691) change assigns different query rows to different warps, reducing exchanges of partial results. This inter-warp communication involves **on-chip shared memory**, not HBM.
+One [FA2](https://arxiv.org/abs/2307.08691) change assigns different query rows to different warps, reducing exchanges of partial results. This inter-warp communication involves **on-chip shared memory**, not HBM; for where each memory space lives and who can see it, see [CUDA memory spaces](../../12-infra/cuda.en.md#memory-spaces).
 
-[FA3](https://arxiv.org/abs/2407.08608) exploits Hopper's asynchronous execution and discusses both FP16 and FP8. FP8 adds quantization error to measure: “exact attention” does not promise error-free arithmetic.
+[FA3](https://arxiv.org/abs/2407.08608) exploits Hopper's asynchronous execution (asynchronous data movement such as TMA; see [NVIDIA generations](../../12-infra/nvidia-generations.en.md)) and discusses both FP16 and FP8. FP8 adds quantization error to measure: “exact attention” does not promise error-free arithmetic.
 
 [FA4](https://arxiv.org/abs/2603.05451) (March 2026) targets Blackwell. That generation doubles Tensor Core throughput, but shared-memory bandwidth and the exponential units did not keep pace, so the bottleneck moves back to work outside the matmuls; FA4 mainly reduces exp, rescaling, and shared-memory traffic. The authors report up to 1.3× over cuDNN 9.13 and 2.7× over Triton in BF16 on B200. These are the authors' own kernel numbers, not end-to-end results. The kernels are written entirely in CuTe-DSL, embedded in Python.
 
@@ -180,7 +180,7 @@ Separate a paper's sharing mechanisms from the features a framework currently im
 
 In the checked vLLM V1 commit `10cc2f6`, active requests hold references. After the last release, a cached block can enter the free queue yet remain reusable; allocating it for new content removes the old mapping. This is capacity-driven eviction, not a fixed ten-minute TTL. The [pinned block-pool implementation](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/core/block_pool.py#L729) handles cached and uncached blocks differently, so do not describe every free block as part of one undifferentiated LRU queue.
 
-Separate **releasing a request's reference, invalidating a cache hit, and returning GPU memory to the system**. A preallocated pool may retain memory for future requests.
+Separate **releasing a request's reference, invalidating a cache hit, and returning GPU memory to the system**. A preallocated pool may retain memory for future requests. For how cancellation releases these references, see the [request lifecycle](../../06-systems/llm-serving.en.md#request-lifecycle).
 
 Follow one computed prefix block:
 
@@ -196,17 +196,9 @@ For a seven-token common prefix and four-token blocks, the full-block path can r
 
 ## vLLM versus SGLang is not “finer means faster”
 
-vLLM uses prefix-aware block hashes; SGLang's RadixAttention organizes shared paths as a tree. Splittable nodes do not guarantee tokenwise reuse in every configuration. At SGLang `436d73d`, ordinary models use [UnifiedRadixCache](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/registry.py#L142), and the page size [defaults to 1](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/arg_groups/overrides.py#L1282); only some backends or models raise it. When `page_size > 1`, [matching aligns to pages first](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/unified_cache/unified_tree_core.py#L840). A seven-token common prefix keeps seven positions with page size one, but aligns down to four with page size four. With vLLM configured at its base block-size default of 16, the same prefix fills no complete block, so nothing is reused. Configuration changes reuse granularity; this is not a throughput comparison.
+For their index structures (block hashes versus a radix tree), default granularity, and eviction policies, see the comparison in [inference frameworks](../../06-systems/inference-frameworks.en.md#prefix). Splittable tree nodes do not guarantee tokenwise reuse in every configuration. Here we only run the page-alignment arithmetic on the seven-token common prefix above. At SGLang `436d73d`, ordinary models use [UnifiedRadixCache](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/registry.py#L142), and the page size [defaults to 1](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/arg_groups/overrides.py#L1282); only some backends or models raise it. When `page_size > 1`, [matching aligns to pages first](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/unified_cache/unified_tree_core.py#L840). A seven-token common prefix keeps seven positions with page size one, but aligns down to four with page size four. With vLLM configured at its base block-size default of 16, the same prefix fills no complete block, so nothing is reused. Configuration changes reuse granularity; this is not a throughput comparison.
 
-| Check on the same request trace | Why |
-| --- | --- |
-| Token IDs, templates, adapters, and images | Similar text need not mean identical computation |
-| Replica placement and warm-up | Caches need not be shared across replicas |
-| Common-prefix length and block/page size | Logical overlap differs from reusable length |
-| Weight changes, tenant isolation, and explicit resets | Correct reuse comes before speed |
-| TTFT, output intervals, throughput, and tail latency | High hit rates can coexist with long queues |
-
-Avoid blanket rules such as “vLLM for concurrency, SGLang for agents.” Replay your workload with fixed models and budgets; changing a backend within one framework can matter more than switching frameworks. These are mechanism and public-implementation checks, not a serving benchmark we ran.
+Avoid blanket rules such as “vLLM for concurrency, SGLang for agents.” Replay your workload with fixed models and budgets; changing a backend within one framework can matter more than switching frameworks. For the conditions to check on one request trace and the latency metrics to report, see the [benchmark section of inference frameworks](../../06-systems/inference-frameworks.en.md#benchmark). These are mechanism and public-implementation checks, not a serving benchmark we ran.
 
 ## Paging, continuous batching, and chunked prefill are different mechanisms
 

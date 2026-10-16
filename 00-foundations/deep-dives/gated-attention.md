@@ -2,7 +2,7 @@
 
 **中文** · [English](gated-attention.en.md)
 
-普通 attention 把读到的信息交给后面的层。Gated Attention 多问了一句：这次读到的东西，需要原样传下去吗？它给 attention 的输出加一个可学习的门。这里讨论的是 2025 年论文中的 attention-output gating，不是 MoE 选专家，也不是 Gated DeltaNet 更新循环状态。
+普通 attention 把读到的信息交给后面的层。Gated Attention 多问了一句：这次读到的东西，需要原样传下去吗？**它给 attention 的输出加一个可学习的门。**这里讨论的是 2025 年论文中的 attention-output gating（[Qwen3-Next 和 Qwen3.5](../model-families/qwen.md#qwen3-next-boundary) 每 3 层 Gated DeltaNet 配 1 层这种带门的 attention），不是 MoE 选专家，也不是 Gated DeltaNet 更新循环状态。
 
 ## 门放在哪里？
 

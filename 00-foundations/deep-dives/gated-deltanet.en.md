@@ -2,7 +2,7 @@
 
 [中文](gated-deltanet.md) · **English**
 
-A KV cache retains records for historical tokens. A recurrent model instead updates a fixed-shaped state after every token. Decode no longer has to scan every historical record, but exact item-by-item access is lost. Gated DeltaNet studies how to write, revise, and forget within that limited state.
+A KV cache retains records for historical tokens. A recurrent model instead updates a fixed-shaped state after every token. **Decode no longer has to scan every historical record, but exact item-by-item access is lost.** Gated DeltaNet studies how to write, revise, and forget within that limited state.
 
 <!-- paper-figure:gated-deltanet-arch -->
 

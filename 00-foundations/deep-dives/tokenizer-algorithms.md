@@ -1,4 +1,4 @@
-# 分词算法：BPE 到底学到了什么？
+# 分词（tokenization）算法：BPE 到底学到了什么？
 
 **中文** · [English](tokenizer-algorithms.en.md)
 

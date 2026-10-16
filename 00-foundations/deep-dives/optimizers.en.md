@@ -2,13 +2,13 @@
 
 [中文](optimizers.md) · **English**
 
-This chapter starts with coordinate-wise updates. For matrix optimizers, continue with [Muon](muon.en.md). It is an optional follow-up, not a prerequisite for learning the basics.
-
 > Reading time: about 15 minutes · Level: foundations to advanced · Reviewed: 2026-10
 
-A gradient supplies a local direction; an optimizer decides how to use it. It may remember recent directions, adapt the step to each coordinate's history, or both. Separating those choices makes the names easier to understand.
+**A gradient supplies a local direction; an optimizer decides how to use it.** It may remember recent directions, adapt the step to each coordinate's history, or both. Separating those choices makes the names easier to understand.
 
 These equations cover common dense real-valued minimization settings. $t$ counts optimizer updates, not epochs, and $g_t=\nabla L_t(\theta_{t-1})$. Squares, divisions, and square roots are coordinate-wise.
+
+This chapter starts with coordinate-wise updates. For matrix optimizers, continue with [Muon](muon.en.md). It is an optional follow-up, not a prerequisite for learning the basics.
 
 ## SGD: Start with the Learning Rate
 

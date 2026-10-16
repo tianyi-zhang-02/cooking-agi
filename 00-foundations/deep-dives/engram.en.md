@@ -2,7 +2,7 @@
 
 [中文](engram.md) · **English**
 
-Recognizing a familiar phrase and interpreting it in context are related but different jobs. Engram adds a learned lookup module for local patterns, then uses context to decide how much of the retrieved information to use. It is not a personal chat-history store or another name for RAG.
+Recognizing a familiar phrase and interpreting it in context are related but different jobs. **Engram adds a learned lookup module for local patterns, then uses context to decide how much of the retrieved information to use.** It is not a personal chat-history store or another name for RAG.
 
 ## What happens during a lookup?
 

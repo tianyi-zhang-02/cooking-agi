@@ -79,16 +79,7 @@ $$
 \sum_{t\in\mathcal V}\log p_\theta(x_{t+1}\mid x_{\le t}).
 $$
 
-假设两个 microbatch 分别有 2、6 个有效 targets，loss 总和为 4、6。正确的总体均值是 $10/8=1.25$；直接平均两个 batch 的均值却是 $(2+1)/2=1.5$。累积梯度时也有同样的问题。
-
-```python
-loss_sums = [4.0, 6.0]
-valid_counts = [2, 6]
-token_mean = sum(loss_sums) / sum(valid_counts)
-batch_mean = sum(total / count for total, count in zip(loss_sums, valid_counts)) / 2
-assert token_mean == 1.25
-assert batch_mean == 1.5
-```
+几个 microbatch 的有效 target 数不同时，先各自求均值、再平均这几个数，就换成了另一个目标；梯度累积也有同样的问题。[一次训练](training-step.md#token-mean)用 2 和 8 个 token 的例子算了一遍：按 token 平均是 2.6，直接平均两个均值是 2。
 
 一般流程是：固定这一更新要覆盖的有效 token 数，累积相应 loss 的梯度，必要时还原缩放并裁剪，然后 optimizer step。多卡同步和归一化见[分布式训练](../../06-systems/distributed-training.md)。
 
@@ -96,7 +87,7 @@ assert batch_mean == 1.5
 
 warmup 让学习率逐步升高；后续可以按约定退火。它不是修复脏数据或错误 mask 的药。记录 schedule 按 optimizer steps 还是按 tokens 推进，改变 batch 或恢复训练时才不会悄悄换了节奏。
 
-粗略估算 dense Transformer 训练的主要矩阵计算，常写作 $C\approx6ND$：$N$ 是参数量，$D$ 是训练 tokens。长序列 attention、重算、通信和硬件利用率不包含在这个简式里，不能直接把 FLOPs 当耗时。
+粗略估算 dense Transformer 训练的主要矩阵计算，常写作 $C\approx6ND$：$N$ 是参数量，$D$ 是训练 tokens。长序列 attention、重算、通信和硬件利用率不包含在这个简式里，不能直接把 FLOPs 当耗时；从 FLOPs 换算成时间要先估硬件利用率，见 [MFU 与 HFU](../../12-infra/performance.md#mfu)。
 
 [Chinchilla](https://arxiv.org/abs/2203.15556)研究的是给定训练计算预算下模型规模与数据量的分配；它不是“任何项目都按某个 tokens/parameter 比例训练”的定律。实际还要考虑可用数据、质量、重复，以及模型上线后被调用多少次。
 

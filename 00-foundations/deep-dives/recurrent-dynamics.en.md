@@ -6,7 +6,7 @@
 
 First replace each matrix with a scalar. Multiplying a gradient by 0.9 for 50 steps leaves about 0.005 of its original size; multiplying by 1.1 gives about 117 times the original. An RNN uses matrix products, but this calculation shows why modest local changes can become a serious optimization problem across a long sequence.
 
-## The core question: why long-range dependencies are hard to learn {#the-core-question-why-long-range-dependencies-are-hard-to-learn}
+## Why are long-range dependencies hard to learn? {#the-core-question-why-long-range-dependencies-are-hard-to-learn}
 
 The state update of a vanilla RNN is $h_t=f(a_t)$, where $a_t=W_hh_{t-1}+W_xx_t+b$. How an early state affects a much later loss is determined by a product of Jacobians:
 
@@ -17,7 +17,7 @@ States are column vectors here. The earliest change passes through the rightmost
 
 If every Jacobian operator norm is bounded by one common $c<1$, the product norm is bounded by $c^{T-t}$. A largest singular value above 1 at one step does not guarantee explosion: gradient directions and later matrices matter. Long dependencies therefore involve both capacity and a long optimization path. Weights are shared, but Jacobians change with the input and state; they are not one fixed matrix.
 
-## Dissection 1: BPTT is the chain rule after unrolling in time {#dissection-1-bptt-is-the-chain-rule-after-unrolling-in-time}
+## BPTT is the chain rule after unrolling in time {#dissection-1-bptt-is-the-chain-rule-after-unrolling-in-time}
 
 Backpropagation Through Time simply unrolls the recurrent cell with shared parameters, then accumulates, by ordinary backpropagation, each time step's gradient with respect to the same parameter:
 
@@ -68,7 +68,7 @@ This isolates detaching: there is no optimizer step between chunks. If a real tr
 
 </details>
 
-## Dissection 2: what is really clever about the LSTM is the additive path {#dissection-2-what-is-really-clever-about-the-lstm-is-the-additive-path}
+## The LSTM's key idea is the additive path {#dissection-2-what-is-really-clever-about-the-lstm-is-the-additive-path}
 
 The core update of the cell state:
 
@@ -79,22 +79,7 @@ Along the direct cell path with gate values held fixed, the elementwise derivati
 $$\left.\frac{\partial c_t}{\partial c_{t-1}}\right|_{\text{fixed gates}}
 =\operatorname{diag}(f_t).$$
 
-The model can learn $f_t$ close to 1, so that the gradient need not pass through a saturated $\tanh(W_hh)$ at every step. Gates are not a mysterious memory module; they are **learnable controllers of gradient and information flow**.
-
-## Training triage: check these first {#training-triage-check-these-first}
-
-- gradient clipping handles explosion; it does not solve vanishing;
-- orthogonal initialization can preserve norms through the recurrent weight matrix, but the activation derivative means the full Jacobian need not preserve them;
-- a positive forget-gate bias encourages the model to keep memory early in training;
-- packing / masking keeps padding from updating the hidden state;
-- be explicit about whether state carries over across chunks or is reset for every sample.
-
-## Evidence: how to show it is really remembering rather than guessing right by luck {#evidence-how-to-show-it-is-really-remembering-rather-than-guessing-right-by-luck}
-
-1. How does accuracy change as the dependency distance grows from 8 to 64?
-2. Log the hidden-state gradient norm at every time step: does it fall exponentially with distance?
-3. Shuffle the early key tokens: does the output really change?
-4. Is the forget gate persistently near 1? Inspect the input gate and candidate too; the forget gate alone does not establish pure state copying.
+The model can learn $f_t$ close to 1. The path is then close to identity, so the gradient need not pass through a saturated $\tanh(W_hh)$ at every step and attenuates less per step. The number of time steps it must cross is not reduced. Gates are not a mysterious memory module; they are **learnable controllers of gradient and information flow**.
 
 ## GRU: one state, not merely one fewer LSTM gate {#gru}
 
@@ -109,34 +94,24 @@ Implementation detail: $W(r\odot h)$ generally differs from $r\odot(Wh)$. For $h
 
 At equal width, a GRU typically has one fewer gate projection than a standard LSTM. Quality and speed still depend on task, sequence length, and kernels. Both recur through time and both have a gated additive path (the LSTM's $f_t\odot c_{t-1}$, the GRU's $z_t\odot h_{t-1}$); neither solves every long-range learning problem.
 
+## Training triage: check these first {#training-triage-check-these-first}
+
+- gradient clipping handles explosion; it does not solve vanishing: it only shrinks norms that are too large and cannot scale near-zero gradients back up;
+- orthogonal initialization can preserve norms through the recurrent weight matrix, but the activation derivative means the full Jacobian need not preserve them;
+- a positive forget-gate bias encourages the model to keep memory early in training;
+- packing / masking keeps padding from updating the hidden state;
+- be explicit about whether state carries over across chunks or is reset for every sample.
+
+<span id="self-check"></span><span id="quick-learning-the-minimal-explanation-of-the-long-range-gradient-problem"></span>
+
+## Evidence: how to show it is really remembering rather than guessing right by luck {#evidence-how-to-show-it-is-really-remembering-rather-than-guessing-right-by-luck}
+
+1. How does accuracy change as the dependency distance grows from 8 to 64?
+2. Log the hidden-state gradient norm at every time step: does it fall exponentially with distance?
+3. Shuffle the early key tokens: does the output really change?
+4. Is the forget gate persistently near 1? Inspect the input gate and candidate too; the forget gate alone does not establish pure state copying.
+5. Shuffle irrelevant local cues: does accuracy stay roughly the same? A large drop suggests the model relies on a shortcut.
+
+Only when the prediction changes after you alter the early key information can “solves the task” be separated from “really stores the distant information.”
+
 The corresponding experiment is in [`../code/sequence_torch.py`](../code/sequence_torch.py).
-
-## Self-check {#self-check}
-
-<div class="taste-check advanced">
-  <strong>Without looking at the formulas, can you explain:</strong>
-  <ol>
-    <li>Why does the gradient problem come from a chain of Jacobians rather than from any single time step?</li>
-    <li>Once gradient clipping has dealt with explosion, why has it not also dealt with vanishing?</li>
-    <li>Which intervention distinguishes “the model really used the early token” from “the data happens to contain a shortcut”?</li>
-  </ol>
-</div>
-
-## Quick learning: the minimal explanation of the long-range gradient problem {#quick-learning-the-minimal-explanation-of-the-long-range-gradient-problem}
-
-<details class="interview" markdown="1">
-<summary>BPTT, Jacobian products, and the LSTM additive path</summary>
-
-**Quick memory**: a long-range dependency in an RNN passes through a product of Jacobians. Clipping can only stop explosion; it cannot recover gradients that have already vanished. When the forget gate is near 1, an LSTM's cell-state path is close to identity, so gradients attenuate less per step; the number of time steps is not reduced.
-
-**Interview answer**
-
-> BPTT unrolls the recurrence and sums each step's contribution to shared parameters. Gradients from a late loss to an early state involve an ordered product of Jacobians; attenuation or amplification depends on that product and the direction involved. An LSTM's gated additive path helps preserve signals, without guaranteeing that every long-range task can be learned.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: how do you prove the model really remembered, rather than exploiting a shortcut?</summary>
-
-Besides average accuracy, plot performance and gradient norm against dependency distance, intervene on the early key token, shuffle irrelevant local cues, and check whether the gates stay saturated for long stretches. Only when the prediction changes under a causal intervention on the memory can “solves the task” be separated from “really stores the distant information.”
-
-</details>
-</details>

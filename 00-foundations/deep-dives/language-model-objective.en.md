@@ -2,17 +2,17 @@
 
 [中文](language-model-objective.md) · **English**
 
-> Reading time: ~10 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~7 min · Level: advanced · Last reviewed: 2026-10
 
-One answer has 20 valid tokens and another has 200. Averaging over all tokens gives the second answer ten times as many loss terms. Averaging within each answer first gives the answers equal weight. Before changing any architecture, the reduction already changes whose examples dominate learning.
+One answer has 20 valid tokens and another has 200. Averaging over all tokens gives the second answer ten times as many loss terms. Averaging within each answer first gives the answers equal weight. **Before changing any architecture, the reduction already changes whose examples dominate learning.** [The numbers are worked out below](#dissection-one-cross-entropy-does-not-decide-what-matters-for-you).
 
-## The core question: why training and generation run at different rhythms {#the-core-question-why-training-and-generation-run-at-different-rhythms}
+## Why do training and generation run at different rhythms? {#the-core-question-why-training-and-generation-run-at-different-rhythms}
 
 Training and generation use the same parameterized distribution:
 
 $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$
 
-The only difference is whether the future is known. In training the whole ground-truth sequence is already laid out on the table; in generation the next token does not exist yet, so the model can only write one, look at it, and then keep writing.
+The only difference is whether the future is known. In training the whole ground-truth sequence is already laid out on the table; in generation the next token does not exist yet, so the model can only write one, look at it, and then keep writing. The [roofline](../../12-infra/performance.en.md#roofline) explains the split in the table's “main bottleneck” row.
 
 | | training / prefill | autoregressive decode |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ The only difference is whether the future is known. In training the whole ground
 | Main bottleneck | compute, activation memory | memory bandwidth, cache, number of serial steps |
 | Sources of error | data and objective | additionally, sampling and error accumulation |
 
-## Part 1: cross-entropy does not decide “what matters” for you {#dissection-one-cross-entropy-does-not-decide-what-matters-for-you}
+## Cross-entropy does not decide “what matters” for you {#dissection-one-cross-entropy-does-not-decide-what-matters-for-you}
 
 The loss at a single position:
 
@@ -29,17 +29,26 @@ $$\ell_t=-\log p_\theta(y_t\mid x_{\le t})$$
 
 Here $y_t=x_{t+1}$ is the true token after position $t$. The gradient with respect to the logits is $p-e_{y_t}$, where $e_{y_t}$ is the one-hot vector for $y_t$; the formula is clean. But once all positions are summed, frequent tokens and long samples naturally hold more “votes”. So data mixing, sample weighting, and loss masking are not leftovers in the corner of a training script — they are what defines whom the model should actually care about.
 
+Return to the two answers from the opening. Suppose the short answer (20 tokens) has a mean per-token loss of 1.0 and the long answer (200 tokens) has 2.0:
+
+| How you average | Calculation | Result |
+| --- | --- | ---: |
+| Over all tokens together | $(20\times1.0+200\times2.0)/220=420/220$ | about 1.91 |
+| Within each answer, then over samples | $(1.0+2.0)/2$ | 1.5 |
+
+Under the token mean, the long answer carries $200/220\approx91\%$ of the weight, so the result is almost its own 2.0; under the per-sample mean, each answer counts for half. Which one fits depends on what you want the model to care about; the formula does not choose for you. Gradient accumulation across microbatches raises the same question; see [one training update](training-step.en.md#token-mean).
+
 Perplexity is the exponential of the average token negative log-likelihood:
 
 $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 Different tokenizers have different token units, so perplexity cannot be compared directly across them.
 
-## Part 2: training uses the true prefix; generation depends on the model's own output {#dissection-two-training-uses-the-true-prefix-generation-depends-on-the-models-own-output}
+## Training uses the true prefix; generation depends on the model's own output {#dissection-two-training-uses-the-true-prefix-generation-depends-on-the-models-own-output}
 
 In training the model always predicts on top of the true prefix (teacher forcing); in generation it must continue from its own output. This mismatch is commonly called exposure bias; see [Seq2Seq](../core/seq2seq.en.md) for a worked example. A low-probability error at one step can carry the subsequent context into a region that the training data rarely covers.
 
-It is very easy here to say, by reflex, “then use RL”. I hold off first and check where the problem actually comes from:
+It is very easy here to say, by reflex, “then use RL”. Before that, check where the problem actually comes from:
 
 1. the training data does not cover the target behavior;
 2. the loss mask or the template is wrong;
@@ -48,50 +57,14 @@ It is very easy here to say, by reflex, “then use RL”. I hold off first and 
 
 The fourth category points most directly to a sequence-level preference or an RL objective; if the problem is exactly that the model's own outputs carry the context away from the training distribution, training on the model's own prefixes (on-policy data, RL, and similar) is also worth considering.
 
-## The correctness floor: a cache is not “fine as long as it runs”; it must be equivalent {#the-correctness-floor-a-cache-is-not-fine-as-long-as-it-runs-it-must-be-equivalent}
+## A cache must match the full forward pass {#the-correctness-floor-a-cache-is-not-fine-as-long-as-it-runs-it-must-be-equivalent}
 
-Incremental decoding must be equivalent to a one-shot forward pass within numerical tolerance. All of the following must hold at once:
+Incremental decoding must agree with a one-shot forward pass within numerical tolerance. A small error in positions, the mask, or K/V order can still produce fluent sentences while the logits have already changed, so compare logits step by step rather than judging whether the text looks right. The item-by-item checklist is in the [KV cache note](kv-cache-and-inference.en.md#cache-checks), and [`../code/test_model.py`](../code/test_model.py) has the matching equivalence test.
 
-- the new query uses the correct absolute position;
-- the token order of K/V in the cache is unchanged;
-- the causal mask lets the query see all of the past and itself;
-- every layer reads the same cache position;
-- after a batch reorder, the cache is reordered in sync.
-
-[`../code/test_model.py`](../code/test_model.py) aligns the full forward pass with token-by-token decode, which is stronger correctness evidence than “the generation looks normal”.
+<span id="self-check"></span><span id="quick-learning-one-factorization-two-execution-paths"></span>
 
 ## What post-training actually changes {#what-post-training-actually-changes}
 
 SFT, preference learning, and RL do not switch to a different kind of model. On the same autoregressive distribution they change: where the training samples come from, which tokens count toward the loss, how different outputs are compared, and how the return is assigned across a whole trajectory.
 
 Continue with [Post-Training](../../05-post-training/README.en.md).
-
-## Self-check {#self-check}
-
-<div class="taste-check advanced">
-  <strong>When you hit a generation-quality problem, first ask:</strong>
-  <ol>
-    <li>In terms of evidence, how do you tell a training objective that never covered the behavior apart from sampling that chose badly?</li>
-    <li>Why can perplexity not be compared directly across different tokenizers?</li>
-    <li>How do you verify a KV cache with full forward versus incremental decode, rather than only checking whether the text looks plausible?</li>
-  </ol>
-</div>
-
-## Quick learning: one factorization, two execution paths {#quick-learning-one-factorization-two-execution-paths}
-
-<details class="interview" markdown="1">
-<summary>Training, prefill, decode, and loss weighting</summary>
-
-**Quick memory**: all three predict the same conditional distribution. Training and prefill know the complete input and can run in parallel; decode does not know the future and can only generate step by step. Token CE also implicitly weights by token frequency and sample length.
-
-**Interview answer**
-
-> A causal LM always models $p(x_t\mid x_{<t})$. Training computes CE for all positions of a known sequence in parallel, prefill builds the KV cache for the prompt in parallel, and decode computes once per step, only for the new token. For a quality problem, first separate data coverage, loss weighting, sampling, and cache correctness, and only then decide whether a sequence-level objective is needed.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why does plausible text not prove that the KV cache is correct?</summary>
-
-A slight error in position, mask, or K/V ordering can still generate fluent text while quietly changing the logits. The correct invariant is: for the same prefix, the per-step logits of incremental decode and of a full causal forward agree within numerical tolerance; after a beam reorder, each sequence's cache must also correspond to the correct history.
-
-</details>
-</details>

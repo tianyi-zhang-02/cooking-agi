@@ -40,7 +40,7 @@ Memorizing a tiny batch checks the training path, not generalization. More rows 
 
 Early stopping selects a checkpoint using validation performance. Cross-validation estimates performance across splits and supports hyperparameter selection. Rotating which fold is held out does not automatically improve a single model.
 
-If every disappointing test result causes another design change, the test set has become part of selection. Reserve independent final evaluation, with group or time splits when samples are dependent.
+If every disappointing test result causes another design change, the test set has become part of selection (for the same problem on public benchmarks, see [contamination and saturation in test-time compute](../../11-frontier/test-time-compute/measuring.en.md)). Reserve independent final evaluation, with group or time splits when samples are dependent.
 
 Preprocessing is also learned. With training values `[0, 2]`, the mean is 1. Include a future observation of `100`, and it becomes 34. No label was accessed, but future distribution information entered training. Fit preprocessing only on training data, then apply that transform to validation and test. Each cross-validation fold needs its own fitted preprocessing. See the [scikit-learn leakage guidance](https://scikit-learn.org/stable/common_pitfalls.html#data-leakage).
 

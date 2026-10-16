@@ -4,7 +4,7 @@
 
 > 最近审阅：2026-10 · 前置：[多头注意力](../core/multi-head-attention.md)、[KV cache](kv-cache-and-inference.md)
 
-两者名字很像，但不是同一道题。FlashAttention 关心计算 attention 时搬了多少数据；PagedAttention 关心很多请求同时生成时，KV cache 怎样放。一个主要改变计算与读写方式，另一个主要改变缓存的组织方式。
+两者名字很像，但不是同一道题。**FlashAttention 关心计算 attention 时搬了多少数据；PagedAttention 关心很多请求同时生成时，KV cache 怎样放。**一个主要改变计算与读写方式，另一个主要改变缓存的组织方式。
 
 先各算一个小例子，再讨论它们什么时候有用。
 
@@ -129,7 +129,7 @@ assert math.isclose(streaming_attention(scores, [10, 20, 0], 2), 25 / 3)
 
 ## FlashAttention 的收益，不等于少算所有配对
 
-[FlashAttention](https://arxiv.org/abs/2205.14135)将分块计算与这些统计量结合，尽量在较快的片上存储中处理块，避免把完整 attention 中间矩阵反复写入、读出 HBM。反向阶段也可以重算部分量。
+[FlashAttention](https://arxiv.org/abs/2205.14135)将分块计算与这些统计量结合，尽量在较快的片上存储中处理块，避免把完整 attention 中间矩阵反复写入、读出 HBM。反向阶段也可以重算部分量。片上存储和 HBM 的容量、带宽差多少，见 [GPU 架构的内存层级](../../12-infra/gpu-architecture.md)；分块读进 shared memory 再反复使用的写法，见 [CUDA 的 tiling](../../12-infra/cuda.md#tiling)。
 
 对 dense attention，它仍计算允许的 query–key 配对，通常没有把二次方配对数变成线性。数学上的 exact attention 也不承诺不同运算顺序下逐 bit 相同。
 
@@ -146,9 +146,9 @@ assert math.isclose(streaming_attention(scores, [10, 20, 0], 2), 25 / 3)
 | FA3 | 面向 Hopper，把异步搬运、矩阵乘与 softmax 更好地重叠；另有 FP8 路径 | 所有硬件都会同样受益，或只能算 FP8 |
 | FA4 | 面向 Blackwell（B200 / GB200）：全异步矩阵乘流水线和更大的块；软件模拟 exp，只在必要时 rescale；反向用 tensor memory 和 2-CTA 矩阵乘减少 shared memory 读写 | Hopper 上也该换 FA4，或作者报告的加速比在你的形状上同样成立 |
 
-[FA2](https://arxiv.org/abs/2307.08691)中一个具体改动是让不同 warps 负责不同 Query 行，减少交换部分结果的工作。这里的 warp 间通信主要涉及**片上 shared memory**，不要和 GPU 显存 HBM 混在一起。
+[FA2](https://arxiv.org/abs/2307.08691)中一个具体改动是让不同 warps 负责不同 Query 行，减少交换部分结果的工作。这里的 warp 间通信主要涉及**片上 shared memory**，不要和 GPU 显存 HBM 混在一起；几种内存谁能看见、放在哪里，见 [CUDA 的内存空间](../../12-infra/cuda.md#memory-spaces)。
 
-[FA3](https://arxiv.org/abs/2407.08608)进一步利用 Hopper 的异步执行能力。它同时讨论 FP16 和 FP8；采用 FP8 时，量化误差要单独测，不能拿“exact attention”当作没有数值误差的保证。
+[FA3](https://arxiv.org/abs/2407.08608)进一步利用 Hopper 的异步执行能力（TMA 等异步搬运，见 [NVIDIA 各代 GPU](../../12-infra/nvidia-generations.md)）。它同时讨论 FP16 和 FP8；采用 FP8 时，量化误差要单独测，不能拿“exact attention”当作没有数值误差的保证。
 
 [FA4](https://arxiv.org/abs/2603.05451)（2026-03）针对 Blackwell。这一代的 Tensor Core 吞吐翻倍，shared memory 带宽和算指数的单元却没跟着涨，瓶颈又回到了矩阵乘以外的部分，所以它主要减少 exp、rescale 和 shared memory 流量。作者报告：B200 上 BF16 最高比 cuDNN 9.13 快 1.3 倍、比 Triton 快 2.7 倍。这是作者自报的 kernel 数字，不是端到端结果。实现全部用嵌在 Python 里的 CuTe-DSL 写成。
 
@@ -180,7 +180,7 @@ A 再把 3 个新 tokens 送入模型、形成它们的 K/V 后，可填满已�
 
 按本次核对的 vLLM V1 `10cc2f6`，活跃请求持有引用；最后一个引用释放后，缓存块可进入空闲队列，但内容仍可能被再次命中。新分配复用该块时会移除旧映射。这是容量驱动的回收，不是“过 10 分钟自动失效”的 TTL。[固定版本的 block pool](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/core/block_pool.py#L729)分别处理缓存块与未缓存块，不能把所有空闲块都理解成同一条纯 LRU 队列。
 
-区分这三件事：**请求不再持有、缓存不能再命中、GPU 内存归还给系统**。它们不是同一时刻，也不是同一个操作；预分配的池可以一直占着显存供后续使用。
+区分这三件事：**请求不再持有、缓存不能再命中、GPU 内存归还给系统**。它们不是同一时刻，也不是同一个操作；预分配的池可以一直占着显存供后续使用。取消请求时这些引用怎样释放，见[请求生命周期](../../06-systems/llm-serving.md#request-lifecycle)。
 
 拿一个已计算好的前缀块看就更直观：
 
@@ -196,17 +196,9 @@ A 再把 3 个新 tokens 送入模型、形成它们的 K/V 后，可填满已�
 
 ## vLLM 和 SGLang，不是“谁更细就谁更快”
 
-vLLM 用带前缀信息的块哈希；SGLang 的 RadixAttention 用树组织共享路径。但树节点能拆分，不代表所有配置都按单 token 复用。本次核对 SGLang `436d73d`：普通模型默认走 [UnifiedRadixCache](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/registry.py#L142)，page size [默认是 1](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/arg_groups/overrides.py#L1282)，只有部分后端或模型会调大；`page_size > 1` 时，[匹配前先做页对齐](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/unified_cache/unified_tree_core.py#L840)。仍用共同前缀 7 个 token 的例子：page size=1 时可以保留 7；page size=4 则向下对齐到 4。若 vLLM 使用基础默认值 16 作为块大小，同一个例子凑不满一个完整块，命中为 0。它说明配置会改变复用粒度，不说明哪个系统更快。
+两者的索引结构（块哈希对 radix 树）、默认粒度和回收策略，对比见[推理框架一篇](../../06-systems/inference-frameworks.md#prefix)。树节点能拆分，不代表所有配置都按单 token 复用。这里只拿上面 7 个 token 的共同前缀，算一笔页对齐的账。本次核对 SGLang `436d73d`：普通模型默认走 [UnifiedRadixCache](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/registry.py#L142)，page size [默认是 1](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/arg_groups/overrides.py#L1282)，只有部分后端或模型会调大；`page_size > 1` 时，[匹配前先做页对齐](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/mem_cache/unified_cache/unified_tree_core.py#L840)。page size=1 时可以保留 7；page size=4 则向下对齐到 4。若 vLLM 使用基础默认值 16 作为块大小，同一个例子凑不满一个完整块，命中为 0。它说明配置会改变复用粒度，不说明哪个系统更快。
 
-| 同一批请求，要检查什么？ | 为什么 |
-| --- | --- |
-| token IDs、模板、adapter 与图片是否一致 | 文本相似不等于可复用同一计算 |
-| 请求落在哪个副本、是否 warm-up | 缓存不一定跨副本共享 |
-| 共享前缀长度与块/页大小 | 逻辑重合不等于实际命中长度 |
-| 权重更新、租户隔离与主动 reset | 命中必须先正确，再谈收益 |
-| TTFT、输出间隔、吞吐与尾延迟 | 命中率高也可能排队很久 |
-
-所以不写“高并发一定选 vLLM、agent 一定选 SGLang”。先拿自己的请求回放，固定模型和预算；同一框架换 backend，也可能比换框架带来更大的差别。这里核对的是机制与公开实现，没有运行 serving 性能对比。
+所以不写“高并发一定选 vLLM、agent 一定选 SGLang”。先拿自己的请求回放，固定模型和预算；同一框架换 backend，也可能比换框架带来更大的差别。同一批请求该核对哪些条件、报告哪些延迟指标，见[推理框架的对照实验](../../06-systems/inference-frameworks.md#benchmark)。这里核对的是机制与公开实现，没有运行 serving 性能对比。
 
 ## 分页、连续组批、分块 prefill 不是同一个开关
 

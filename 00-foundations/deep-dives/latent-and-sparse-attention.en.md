@@ -6,7 +6,7 @@
 
 Long histories increase both stored state and the work of reading that state for each generated token. Compressing state and narrowing what is read address different costs.
 
-MLA primarily asks how much state each token leaves behind. Sparse attention asks which positions a query should consult. They may be combined, but are not substitutes.
+**MLA primarily asks how much state each token leaves behind. Sparse attention asks which positions a query should consult.** They may be combined, but are not substitutes.
 
 ## Start with a compressed representation
 

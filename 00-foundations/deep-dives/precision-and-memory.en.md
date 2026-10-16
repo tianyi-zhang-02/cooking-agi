@@ -10,7 +10,7 @@ Separate **reliable arithmetic** from **fitting the live tensors**. BF16, gradie
 
 ## FP16 and BF16 trade range against resolution
 
-These are storage formats, not a claim that every operation accumulates in the same precision.
+These are storage formats, not a claim that every operation accumulates in the same precision. Only FP32, FP16, and BF16 are covered here; for FP8, FP4, and block-scaled formats such as NVFP4, see [the data-types section of GPU architecture](../../12-infra/gpu-architecture.en.md).
 
 | Format | Sign / exponent / fraction bits | Spacing near 1 | Main property |
 | --- | --- | --- | --- |

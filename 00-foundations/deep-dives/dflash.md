@@ -1,4 +1,4 @@
-# DFlash：草拟、验证与加速
+# DFlash：草拟（draft）、验证与加速
 
 **中文** · [English](dflash.en.md)
 
@@ -171,7 +171,7 @@ assert cycle_speedup(10, 3, 12, 1, 4) == 2.5
 assert cycle_speedup(10, 3, 12, 1, 1) == 0.625
 ```
 
-Block 更长不一定更好：后段可能更容易被拒绝，验证与缓存成本也会变。并行不是免费；高并发下，draft 占掉的算力和显存也可能影响其他请求。不能从 batch=1 的低延迟结果直接推导整台服务器的吞吐收益。
+Block 更长不一定更好：后段可能更容易被拒绝，验证与缓存成本也会变。并行不是免费；高并发下，draft 占掉的算力和显存也可能影响其他请求。batch 小时 decode 主要在等读权重，多算几个位置几乎不加时间；batch 变大后这份余量会消失，见 [decode 的 roofline 算例](../../12-infra/performance.md#decode-batching)。不能从 batch=1 的低延迟结果直接推导整台服务器的吞吐收益。
 
 ## 2026 年的新进展：并行猜，怎样猜得更连贯？
 

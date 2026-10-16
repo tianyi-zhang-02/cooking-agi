@@ -8,7 +8,7 @@
 
 <span id="bptt"></span>
 
-## 核心问题：为什么远距离依赖难以学习 {#_2}
+## 为什么远距离依赖难学？ {#_2}
 
 普通 RNN 的状态更新是 $h_t=f(a_t)$，其中 $a_t=W_hh_{t-1}+W_xx_t+b$。一个早期状态怎样影响很晚的 loss，取决于 Jacobian 连乘：
 
@@ -19,7 +19,7 @@ $$J_k=\frac{\partial h_k}{\partial h_{k-1}}=\operatorname{diag}\!\big(f'(a_k)\bi
 
 若每一步 Jacobian 的算子范数都有统一上界 $c<1$，乘积范数不超过 $c^{T-t}$，也就是至少按这个速度衰减。某一步最大奇异值大于 1 却不保证爆炸，还要看梯度方向和后续矩阵。因此远距离依赖不只涉及表示容量，也涉及很长的优化路径。权重会共享，Jacobian 则随着输入和状态变化，不能当成同一个固定矩阵。
 
-## 拆解一：BPTT 是时间展开后的链式法则 {#bptt_1}
+## BPTT 是时间展开后的链式法则 {#bptt_1}
 
 Backpropagation Through Time 只是把共享参数的 recurrent cell 展开，再按普通反向传播累计每个时间步对同一参数的梯度：
 
@@ -70,7 +70,7 @@ assert recurrence_gradient(True) == (0.125, 0.0078125, 0.03125)
 
 </details>
 
-## 拆解二：LSTM 真正聪明的是那条加法通路 {#lstm}
+## LSTM 的关键是那条加法通路 {#lstm}
 
 cell state 的核心更新：
 
@@ -81,22 +81,7 @@ $$c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t$$
 $$\left.\frac{\partial c_t}{\partial c_{t-1}}\right|_{\text{fixed gates}}
 =\operatorname{diag}(f_t).$$
 
-模型可以把 $f_t$ 学到接近 1，使梯度不必每步穿过一个饱和的 $\tanh(W_hh)$。门不是神秘记忆模块，而是**可学习的梯度与信息流控制器**。
-
-## 训练排查：优先检查这些问题 {#_3}
-
-- gradient clipping 处理爆炸，不解决消失；
-- orthogonal initialization 可以让 recurrent 权重矩阵保范数，但乘上激活导数后，完整 Jacobian 不一定保范数；
-- forget-gate bias 设为正值，鼓励训练初期先保留记忆；
-- packing / masking 避免 padding 更新隐藏状态；
-- 明确 state 是跨 chunk 延续还是每个 sample 重置。
-
-## 证据：怎么证明它真的在记，而不是碰巧猜对 {#_4}
-
-1. 把依赖距离从 8 增加到 64，准确率如何变化？
-2. 记录每个时间步 hidden-state gradient norm，是否随距离指数下降？
-3. 打乱早期关键 token，输出是否真正变化？
-4. LSTM 的 forget gate 是否长期接近 1？再一起看 input gate 与 candidate，不能只凭 forget gate 判断模型只会复制状态。
+模型可以把 $f_t$ 学到接近 1，这条通路就接近恒等，梯度不必每步穿过一个饱和的 $\tanh(W_hh)$，每步衰减更少。但要穿过的时间步数并没有变短。门不是神秘记忆模块，而是**可学习的梯度与信息流控制器**。
 
 ## GRU：少一个状态，不是直接删掉 LSTM 的一扇门 {#gru}
 
@@ -111,34 +96,24 @@ h_t=(1-z_t)\odot n_t+z_t\odot h_{t-1}.$$
 
 同宽度下，GRU 通常比标准 LSTM 少一组门投影，但效果和速度仍受任务、序列长度和 kernel 影响。两者都沿时间递推，也都有门控的加法通路（LSTM 的 $f_t\odot c_{t-1}$，GRU 的 $z_t\odot h_{t-1}$），但都没有彻底解决所有长程学习问题。
 
+## 训练排查：优先检查这些问题 {#_3}
+
+- gradient clipping 处理爆炸，不解决消失：它只把过大的范数缩小，不能把已经接近 0 的梯度放大回来；
+- orthogonal initialization 可以让 recurrent 权重矩阵保范数，但乘上激活导数后，完整 Jacobian 不一定保范数；
+- forget-gate bias 设为正值，鼓励训练初期先保留记忆；
+- packing / masking 避免 padding 更新隐藏状态；
+- 明确 state 是跨 chunk 延续还是每个 sample 重置。
+
+<span id="_5"></span><span id="_1"></span>
+
+## 证据：怎么证明它真的在记，而不是碰巧猜对 {#_4}
+
+1. 把依赖距离从 8 增加到 64，准确率如何变化？
+2. 记录每个时间步 hidden-state gradient norm，是否随距离指数下降？
+3. 打乱早期关键 token，输出是否真正变化？
+4. LSTM 的 forget gate 是否长期接近 1？再一起看 input gate 与 candidate，不能只凭 forget gate 判断模型只会复制状态。
+5. 打乱无关的局部线索，准确率是否基本不变？如果下降很多，模型可能在用捷径。
+
+只有改动早期关键信息后预测跟着变化，才能把“会做题”和“真的记住了远处的信息”分开。
+
 对应实验在 [`../code/sequence_torch.py`](../code/sequence_torch.py)。
-
-## 自检 {#_5}
-
-<div class="taste-check advanced">
-  <strong>不看公式，能否说清：</strong>
-  <ol>
-    <li>为什么梯度问题来自一串 Jacobian，而不是某一个时间步？</li>
-    <li>gradient clipping 解决爆炸后，为什么没有同时解决消失？</li>
-    <li>哪种干预能区分“模型真的利用了早期 token”和“数据里恰好有捷径”？</li>
-  </ol>
-</div>
-
-## 快速学习：长距离梯度问题的最小解释 {#_1}
-
-<details class="interview" markdown="1">
-<summary>BPTT、Jacobian 连乘与 LSTM 加法通路</summary>
-
-**快速记忆**：RNN 的远距离依赖经过 Jacobian 连乘；clipping 只能截住爆炸，不能恢复已经消失的梯度；forget gate 接近 1 时，LSTM 的 cell-state path 接近恒等，梯度每步衰减更少；需要经过的时间步数并没有变短。
-
-**面试回答**
-
-> BPTT 把时间递推展开，共享参数的梯度要把各步贡献相加。早期状态到晚期 loss 之间是一串有顺序的 Jacobian；是否衰减或放大，要看整个乘积和具体方向。LSTM 的门控加法路径有利于保留信号，但不保证任何长距离任务都能学好。
-
-<details markdown="1">
-<summary><b>深挖</b>：怎样证明模型真的记住了，而不是利用 shortcut？</summary>
-
-除了平均准确率，还要画出性能和 gradient norm 随依赖距离怎样变化，改动早期关键 token，打乱无关的局部线索，并检查各个门是否长期饱和。只有改动早期关键信息后预测跟着变化，才能把“会做题”和“真的记住了远处的信息”分开。
-
-</details>
-</details>

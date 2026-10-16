@@ -49,6 +49,8 @@ $$L=\frac{1}{M}\sum_{b,t}m_{b,t}\left[-\log p_\theta(x_{b,t}\mid x_{b,<t})\right
 
 这里 $m_{b,t}$ 标的是**目标位置**。全是无效目标的 batch 不能除以 0；应明确跳过或报错。框架的 `ignore_index` 和 reduction 语义见 [PyTorch CrossEntropyLoss](https://docs.pytorch.org/docs/main/generated/torch.nn.CrossEntropyLoss.html)。
 
+<span id="token-mean"></span>
+
 ## Batch 变大，究竟哪里变了
 
 假设两个 microbatch 分别有 2 和 8 个有效 token，平均 loss 分别是 1 和 3。直接平均两个数得 2；按全部 token 平均是 $(2\times1+8\times3)/10=2.6$。它们不是同一个训练目标。
