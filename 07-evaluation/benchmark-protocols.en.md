@@ -4,15 +4,16 @@
 
 A knowledge-question score may be a poor way to choose an assistant for long reports. Knowledge, evidence retrieval, reasoning across sections, citation, and abstention are different capabilities. One attractive average cannot establish them all.
 
-This page is not a latest-model leaderboard. It gives a reusable process: choose the question, fix the protocol, then interpret scores. Checked 2026-10-08. Historical benchmarks remain useful for comparison, but age and familiarity do not establish present-day discriminative power.
+This page is not a latest-model leaderboard. It gives a reusable process: choose the question, fix the protocol, then interpret scores. Checked 2026-10-16. Historical benchmarks remain useful for comparison, but age and familiarity do not establish present-day discriminative power.
 
 ## 1. What question does each test answer?
 
 | Question | Example reference | What remains to test |
 | --- | --- | --- |
-| Subject knowledge and multiple-choice reasoning | [MMLU](https://github.com/hendrycks/test) | Open responses, citations, real tasks, contamination |
+| Subject knowledge and multiple-choice reasoning | [MMLU](https://github.com/hendrycks/test); frontier models now exceed 90%, so when it no longer separates models use [MMLU-Pro](https://arxiv.org/abs/2406.01574), [GPQA](https://arxiv.org/abs/2311.12022) or [HLE](https://arxiv.org/abs/2501.14249) | Open responses, citations, real tasks, contamination |
 | Chinese subject knowledge | [C-Eval](https://github.com/hkust-nlp/ceval) | Conversation, domain language, mixed-language work |
-| Code passing tests | [LiveCodeBench](https://livecodebench.github.io/) | Dependencies, repository edits, security, maintainability |
+| Code passing tests | [LiveCodeBench](https://livecodebench.github.io/); problems come in release versions, and as of October 2026 [the latest, `release_v6`](https://github.com/LiveCodeBench/LiveCodeBench), holds 1,055 problems from May 2023 to April 2025, so for any model whose training cutoff is later than those problems, they no longer count as unseen | Dependencies, security, maintainability |
+| Repository-level code changes | [SWE-bench Pro](https://arxiv.org/abs/2509.16941); since February 2026 OpenAI [no longer reports SWE-bench Verified](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/), citing saturation, flawed tests and leaked problems | Whether the grading tests are reliable, the run environment, code review |
 | Long-context lookup, tracing, aggregation | [RULER](https://arxiv.org/abs/2404.06654) | Ambiguous natural documents and actual workflows |
 | More complex realistic long-input tasks | [LongBench v2](https://arxiv.org/abs/2412.15204) | Your files, costs, and user requirements |
 | Helpful conversation | Human review or a calibrated judge | Separate stylistic preference, facts, and execution |

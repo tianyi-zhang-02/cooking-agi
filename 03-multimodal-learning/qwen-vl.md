@@ -100,6 +100,8 @@ flowchart TD
 
 Qwen3.5 的公开模型卡把图文早期融合与混合语言主干放在一起介绍：视觉能力不再只看单独的 VL 型号，语言侧还结合 Gated DeltaNet 与 attention。这里以公开的 397B-A17B 型号为例，不把其配置推广到所有尺寸。[官方模型卡](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)
 
+截至 2026-10，较新的 [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B)（模型卡标为 2026-08）把同样的思路放进一个 27B 的 dense 模型：它本身就是原生视觉语言模型，64 层按“3 层 Gated DeltaNet + 1 层 Gated Attention”循环排列，原生上下文 262,144 token。这也只是这一型号的配置；Qwen3.8 各型号的结构差别见 [Qwen 精读](../00-foundations/model-families/qwen.md#2026-qwen38)。
+
 这会改变选型时的问题：不只比较“哪个视觉编码器更强”，还要看长图文序列怎样进入语言主干，哪些层保留 KV，哪些层压进递归状态。后者在固定状态里汇总历史，但不能因此说混合模型的全部缓存都不随长度增长。
 
 所以，前面的 patch=14 和 merge=2 是 Qwen2 系列的算例，不是所有新版本的通用常数。换 checkpoint 时，从 processor 配置重新算输入预算；部署文档里的上下文上限也不等于每种视觉任务都能有效用满。

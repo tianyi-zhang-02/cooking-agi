@@ -42,6 +42,8 @@ The model producing `{"name": "read_note", "arguments": {"note_id": "attention"}
 
 MCP separates the host application, its clients, and servers exposing capabilities. The model need not know whether a service uses a database or files. The protocol does not prescribe a particular model or agent loop. [MCP architecture](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture)
 
+MCP covers how an assistant reaches tools and data. Handing a task to an agent built by another team or on another framework needs a different kind of protocol, such as [A2A (Agent2Agent)](https://a2a-protocol.org/latest/): started by Google, donated to the Linux Foundation in June 2025, with v1.0 released in March 2026. Its maintainers describe it as complementary to MCP, not a replacement ([A2A anniversary post](https://opensource.googleblog.com/2026/04/a-year-of-open-collaboration-celebrating-the-anniversary-of-a2a.html), checked 2026-10-16). When several agents are actually worth it is covered in [One agent or several](single-vs-multi-agent.en.md).
+
 A skill can use MCP tools or local file tools. An MCP server can serve multiple assistants without supplying any skills. Use these components to reduce repeated integration work, not to collect every name in an architecture diagram.
 
 **A 2026 update: skills can also be distributed over MCP.** The published Skills extension uses Resources to read instructions and supporting files. SDK and host support still needs checking individually. Reading `SKILL.md` does not activate it: the host must verify the content and apply required approval. Digests establish consistency, not trustworthiness. [Skills over MCP](https://modelcontextprotocol.io/extensions/skills/overview) (checked October 10, 2026)

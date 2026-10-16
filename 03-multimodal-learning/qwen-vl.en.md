@@ -100,6 +100,8 @@ Only two injections are drawn to illustrate the route, not a layer configuration
 
 Qwen3.5's public model card describes early vision–language fusion alongside a hybrid language backbone combining Gated DeltaNet and attention. Visual capability is no longer confined to separately named VL releases. The specific example here is the public 397B-A17B checkpoint, not a configuration for every size. [Official model card](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)
 
+As of October 2026, the newer [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) (dated August 2026 on its model card) puts the same idea into a 27B dense model: it is a native vision-language model whose 64 layers repeat a pattern of three Gated DeltaNet layers and one Gated Attention layer, with a native context of 262,144 tokens. This too is one checkpoint's configuration; how the Qwen3.8 checkpoints differ is covered in [Qwen family](../00-foundations/model-families/qwen.en.md#2026-update-qwen38-is-not-one-uniform-architecture).
+
 Model selection therefore involves more than comparing vision encoders. Ask how long image–text sequences enter the backbone, which layers retain KV, and which summarize history in recurrent state. Fixed recurrent state does not make the entire hybrid model's cache independent of sequence length.
 
 The earlier patch=14 and merge=2 example belongs to the Qwen2 series, not every later release. Recalculate the input budget from the new checkpoint's processor configuration. A documented context limit also does not establish useful performance at that length for every visual task.

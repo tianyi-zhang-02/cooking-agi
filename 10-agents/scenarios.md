@@ -19,11 +19,11 @@
 
 ## 写代码：验证信号最强的场景
 
-代码能运行、测试能判断对错，这是 agent 最理想的环境：每一步都有客观反馈。SWE-bench 就是用真实的 GitHub issue 和配套测试来评估这类 agent 的。但测试通过不等于改对了，测试没覆盖到的地方，还是需要人来检查。
+代码能运行、测试能判断对错，这是 agent 最理想的环境：每一步都有客观反馈。SWE-bench 就是用真实的 GitHub issue 和配套测试来评估这类 agent 的。它最常被引用的 Verified 子集已经接近做满，题目也可能被模型见过：OpenAI 在 2026-02-23 的说明里表示不再报告 SWE-bench Verified，改为推荐题目更难、仓库更多的 [SWE-bench Pro](https://arxiv.org/abs/2509.16941)（[OpenAI 的说明](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/)）。基准为什么会被做满、被污染，见[测试时计算：怎么读数字](../11-frontier/test-time-compute/measuring.md)。但测试通过不等于改对了，测试没覆盖到的地方，还是需要人来检查。
 
 ## 客服：可靠性比单次成功率重要
 
-同一个问题，这次答对、下次答错，在客服场景里是不能接受的。τ-bench 模拟用户和受政策约束的工具环境，用 pass^k 衡量「同一个任务连续 k 次都做对」的比例，比只看一次成功率更接近真实要求。
+同一个问题，这次答对、下次答错，在客服场景里是不能接受的。τ-bench 模拟用户和受政策约束的工具环境，用 pass^k 衡量「同一个任务连续 k 次都做对」的比例，比只看一次成功率更接近真实要求。它的后续版本 [τ²-bench](https://arxiv.org/abs/2506.07982) 加了电信客服场景：用户也要自己动手操作设备（dual control），agent 得指导用户一起完成。截至 2026-10，[仓库](https://github.com/sierra-research/tau2-bench)已发布 τ³-bench；2026-07 的 v1.0.1 修正了 banking_knowledge 领域的几处任务错误，仓库说明 1.0.1 之前和之后的结果不能直接比较。
 
 ## 读外部内容的 agent：小心注入
 
@@ -31,9 +31,9 @@
 
 ## 怎么评估
 
-- 代码：SWE-bench；
+- 代码：SWE-bench，现在多看 SWE-bench Pro；
 - 网页任务：WebArena；
 - 操作电脑：OSWorld；
-- 带政策约束的对话与工具：τ-bench。
+- 带政策约束的对话与工具：τ-bench 及后续的 τ²/τ³-bench。
 
 公开 benchmark 只是起点。上线前，要在自己的任务上建立评估集，并检查完整的运行轨迹，见 [Agent Observability](../06-systems/agent-observability.md) 和 [Evaluation](../07-evaluation/)。

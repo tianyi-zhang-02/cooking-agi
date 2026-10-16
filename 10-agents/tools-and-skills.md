@@ -42,6 +42,8 @@
 
 MCP 的基本结构是 host、client、server：host 是运行助手的应用，client 负责与 server 通信，server 暴露能力。模型不必知道服务底层用了数据库还是文件系统。协议也不要求必须用某一种模型或 agent 循环。[MCP 架构说明](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture)
 
+MCP 管的是助手怎样连到工具和数据。要把任务交给另一个团队、另一个框架做的 agent，用的是另一类协议，例如 [A2A（Agent2Agent）](https://a2a-protocol.org/latest/)：Google 发起，2025-06 捐给 Linux Foundation，2026-03 发布 v1.0；官方把它定位为 MCP 的补充，不是替代（[A2A 一周年说明](https://opensource.googleblog.com/2026/04/a-year-of-open-collaboration-celebrating-the-anniversary-of-a2a.html)，核对：2026-10-16）。什么时候真的需要多个 agent，见[一个还是多个 agent](single-vs-multi-agent.md)。
+
 一个 Skill 可以调用 MCP 工具，也可以只使用本地文件工具；一个 MCP server 可以被多个助手使用，完全不需要附带 Skill。选择它们的理由应该是减少重复工作，而不是把几个热门名字都装进系统。
 
 **2026 年的更新：Skill 也可以通过 MCP 分发。** 官方 Skills 扩展用 Resources 读取说明及附件，这更说明二者可以组合。扩展已发布，但各 SDK / host 的支持仍需逐一确认。读取一份 `SKILL.md` 不等于激活它：应用还要校验内容，并完成所需授权；文件哈希（digest）只能证明内容没被改动，不能证明内容可信。[Skills over MCP](https://modelcontextprotocol.io/extensions/skills/overview)（核对：2026-10-10）

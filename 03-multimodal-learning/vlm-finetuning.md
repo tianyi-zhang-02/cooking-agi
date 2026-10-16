@@ -106,9 +106,11 @@ $$
 
 ## 长度、冻结与显存
 
-TRL v0.29.0 的 VLM 指南建议避免未经检查的序列截断，因为可能切掉图像 token；其中 `max_length=None` 是关闭这种截断，不是无限显存。仍要在数据侧限制图片尺寸、张数、文本长度，并检查高分位长度。[固定版本的 TRL 文档](https://huggingface.co/docs/trl/v0.29.0/en/sft_trainer)
+TRL 的 VLM 指南建议避免未经检查的序列截断，因为可能切掉图像 token；其中 `max_length=None` 是关闭这种截断，不是无限显存。仍要在数据侧限制图片尺寸、张数、文本长度，并检查高分位长度。这条建议从 v0.29.0 到 v1.16.0（2026-10-15 发布）都没变。[v1.16.0 的 TRL 文档](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer)
 
-**这个版本的 VLM 不支持 `assistant_only_loss=True`，即使模板能返回 assistant mask，trainer 也会报错。**单轮问答可以使用 `prompt` / `completion` 数据格式和 `completion_only_loss=True`，把答案放在 completion 中；它不等同于从任意多轮对话里自动挑出所有 assistant 回合。若需要后者，应使用经过检查的自定义 labels / collator，并保持不支持的开关关闭。仅把开关改成 `False` 让训练跑起来，不代表 loss 已经只覆盖答案。[v0.29.0 的限制与 collator 实现](https://github.com/huggingface/trl/blob/v0.29.0/trl/trainer/sft_trainer.py)
+**截至 2026-10，VLM 也能用 `assistant_only_loss=True` 了：TRL v1.15.0 起支持图片数据，但要求 `transformers>=5.18.0` 和对话格式的 language-modeling 数据，更旧的 transformers 仍会报错**（[v1.15.0 发布说明](https://github.com/huggingface/trl/releases/tag/v1.15.0)）。打开它之前，仍要解码一批数据，确认有效 labels 只落在 assistant 回合上。
+
+本页最初对照 TRL v0.29.0 写成。那个版本的 VLM 不支持 `assistant_only_loss=True`，即使模板能返回 assistant mask，trainer 也会报错。如果环境固定在旧版本，单轮问答可以使用 `prompt` / `completion` 数据格式和 `completion_only_loss=True`，把答案放在 completion 中；它不等同于从任意多轮对话里自动挑出所有 assistant 回合。若需要后者，应使用经过检查的自定义 labels / collator，并保持不支持的开关关闭。仅把开关改成 `False` 让训练跑起来，不代表 loss 已经只覆盖答案。[v0.29.0 的限制与 collator 实现](https://github.com/huggingface/trl/blob/v0.29.0/trl/trainer/sft_trainer.py)
 
 | 更新范围 | 适合先验证什么 | 代价与限制 |
 | --- | --- | --- |

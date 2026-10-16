@@ -4,15 +4,16 @@
 
 假如我们要选一个读长报告的助手，只看知识问答总分，很可能选不到真正需要的模型。知识、找证据、跨段推理、引用和拒答是不同能力；一个漂亮的平均分没法替它们全部作证。
 
-这篇不列“最新最强”的排行榜。它给一套可复用的测试方法：先选问题，再定协议，然后解释分数。核对日期：2026-10-08；旧 benchmark 可用于历史可比性，但不能因此叫它当前最有区分度的测试。
+这篇不列“最新最强”的排行榜。它给一套可复用的测试方法：先选问题，再定协议，然后解释分数。核对日期：2026-10-16；旧 benchmark 可用于历史可比性，但不能因此叫它当前最有区分度的测试。
 
 ## 1. 每种测试回答什么问题？
 
 | 想知道什么 | 可以参考的测试 | 还需要补什么 |
 | --- | --- | --- |
-| 学科知识与选择题能力 | [MMLU](https://github.com/hendrycks/test) | 开放式回答、引用、真实任务与数据污染检查 |
+| 学科知识与选择题能力 | [MMLU](https://github.com/hendrycks/test)；前沿模型已超过 90%，拉不开差距时改看 [MMLU-Pro](https://arxiv.org/abs/2406.01574)、[GPQA](https://arxiv.org/abs/2311.12022) 或 [HLE](https://arxiv.org/abs/2501.14249) | 开放式回答、引用、真实任务与数据污染检查 |
 | 中文学科知识 | [C-Eval](https://github.com/hkust-nlp/ceval) | 中文交流、行业语言、混合语言和领域任务 |
-| 代码能否通过测试 | [LiveCodeBench](https://livecodebench.github.io/) | 依赖环境、仓库级修改、安全与维护性 |
+| 代码能否通过测试 | [LiveCodeBench](https://livecodebench.github.io/)；按发布版本取题，截至 2026-10 [最新的 `release_v6`](https://github.com/LiveCodeBench/LiveCodeBench) 收的是 2023-05 到 2025-04 的 1,055 道题；题目早于模型的训练截止日期，就不能再算没见过的新题 | 依赖环境、安全与维护性 |
+| 仓库级代码修改 | [SWE-bench Pro](https://arxiv.org/abs/2509.16941)；OpenAI 2026-02 起[不再报告 SWE-bench Verified](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/)，理由是接近做满、测试有错和题目泄漏 | 评分测试本身是否可靠、运行环境、代码审查 |
 | 长上下文中的查找、关联、汇总 | [RULER](https://arxiv.org/abs/2404.06654) | 自然文档的歧义与真实工作流程 |
 | 更复杂的真实长文任务 | [LongBench v2](https://arxiv.org/abs/2412.15204) | 你的文件分布、成本与用户要求 |
 | 对话是否有用 | 人审或校准后的 judge | 格式偏好、事实、执行结果要分开 |

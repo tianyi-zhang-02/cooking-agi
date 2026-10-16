@@ -2,7 +2,7 @@
 
 **中文** · [English](training-frameworks.en.md)
 
-> 核对：2026-10-11 · FSDP2 机制对照 PyTorch v2.8.0 源码；不把它称为最新版本。本页没有运行多卡性能测试。
+> 核对：2026-10-16 · FSDP2 机制最初对照 PyTorch v2.8.0 源码写成；2026-10 对照 v2.14.1（2026-09-30 发布）源码，分组、DTensor 分片和 `reshard_after_forward` 的行为没有变。本页没有运行多卡性能测试。
 
 模型能在一张卡上训练，只是太慢；和模型连一张卡都放不下，是两个不同的问题。前者可以让更多卡同时处理不同数据，后者还要想办法减少每张卡保存的状态。选框架之前，先分清自己卡在哪里。
 
@@ -44,7 +44,7 @@ DDP 是 Distributed Data Parallel（分布式数据并行）；FSDP 是 Fully Sh
 <figcaption>示意采用 reshard_after_forward=True。保留参数、预取和混合精度会改变实际内存与通信时间线。</figcaption>
 </figure>
 
-[PyTorch v2.8.0 的 fully_shard](https://github.com/pytorch/pytorch/blob/v2.8.0/torch/distributed/fsdp/_fully_shard/_fully_shard.py)把每次调用覆盖的参数组织成通信组，并用 DTensor 表示分片。通常先对各个 block 调用，再处理根模块里剩余的参数。只对最外层调用，会把大量参数放进一个组，不利于降低临时峰值和重叠通信。
+[PyTorch v2.14.1 的 fully_shard](https://github.com/pytorch/pytorch/blob/v2.14.1/torch/distributed/fsdp/_fully_shard/_fully_shard.py)把每次调用覆盖的参数组织成通信组，并用 DTensor 表示分片。通常先对各个 block 调用，再处理根模块里剩余的参数。只对最外层调用，会把大量参数放进一个组，不利于降低临时峰值和重叠通信。
 
 这里的“组”是 **FSDP 的参数通信组**，不是多头注意力的 head group，也不是 optimizer 的超参数分组。
 

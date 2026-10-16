@@ -61,6 +61,8 @@ When a model offers a thinking mode, ask whether the caller selects it or the mo
 
 A detail worth checking: stage 2 removes batch balancing but retains the mode-and-correctness-dependent base reward, rather than switching to binary accuracy reward. The main experiments concern mathematics. We have not reproduced them or established benefits for arbitrary agents.
 
+**When the first two layers merge.** As of October 2026, some hosted APIs fold "the caller specifies" and "the model chooses" into one interface. In Anthropic's Claude API, for example, the caller sets an `effort` level (from `low` to `max`) and the model decides per request whether to think and how much. The documentation says the caller no longer sets a thinking token budget: `max_tokens` is the only hard cap, and `effort` is soft guidance that does not guarantee a token count. [Claude docs: Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost) "Give date extraction a short budget" then becomes "give these requests a lower effort", and the model may still think longer on an occasional hard case. Check the thinking tokens actually reported per request type rather than trusting the configuration.
+
 **External routing.** The application estimates which model suits a request; neither candidate needs a thinking switch. [Adaptive depth](../00-foundations/looped/adaptive-depth.en.md) instead concerns internal layers or iterations. Hidden-state computation is not the same as generating more text.
 
 ## 4. Routing and cascading decide at different times {#not-a-choice-of-one-mixing-them}
