@@ -36,7 +36,7 @@ A deeper gradient chain can create stability and activation-memory challenges, b
 
 ## Knowledge-capacity experiments are not universal bounds {#it-does-not-store-more-knowledge}
 
-The approximate 2-bit-per-parameter result in [Ouro §6.1](https://arxiv.org/html/2510.25741v5) measures 1M–40M-parameter GPT-2-style models trained on synthetic biographies, not the released 1.4B / 2.6B checkpoints or a universal neural-network capacity bound. Looping adds no weights, but training, encoding, external memory, and input information all affect answerable knowledge. Evaluate parametric storage, use of contextual facts, and reasoning over facts separately.
+The approximate 2-bit-per-parameter result in [Ouro §6.1 (v5; unchanged in v6)](https://arxiv.org/html/2510.25741v5) measures 1M–40M-parameter GPT-2-style models trained on synthetic biographies, not the released 1.4B / 2.6B checkpoints or a universal neural-network capacity bound. Looping adds no weights, but training, encoding, external memory, and input information all affect answerable knowledge. Evaluate parametric storage, use of contextual facts, and reasoning over facts separately.
 
 ## When it is worth it
 

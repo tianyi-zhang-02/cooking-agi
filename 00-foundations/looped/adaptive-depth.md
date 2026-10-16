@@ -49,7 +49,7 @@ assert abs(expected_steps - 2.2) < 1e-12
 
 ## Ouro 的退出 gate
 
-[Ouro（v5，§3.2–3.4）](https://arxiv.org/html/2510.25741v5) 在每一圈后面接一个退出 gate：$\lambda_t = \sigma(\mathrm{Linear}(h_t))$。训练分两个阶段：
+[Ouro（v5，§3.2–3.4；v6 未变）](https://arxiv.org/html/2510.25741v5) 在每一圈后面接一个退出 gate：$\lambda_t = \sigma(\mathrm{Linear}(h_t))$。训练分两个阶段：
 
 1. **第一阶段**：损失是 $\sum_t p(t \mid x)\, \mathcal L_t - \beta\, H(p)$。对固定最大步数，$\mathrm{KL}(p\|U)=-H(p)+\log T$，所以熵项等价于加权的均匀先验 KL，差一个常数；标准负 ELBO 还要匹配似然定义和权重，不能把任意 $\beta$ 都直接叫标准 ELBO；
 2. **第二阶段**：冻结语言模型，用相邻两圈已经算出的损失下降量 $I_t=\max(0,\mathcal L_{t-1}-\mathcal L_t)$ 构造软标签，只训练 gate；损失需 detach。这是根据已观察到的收益学习是否继续，不是直接回归下一圈的未知损失。

@@ -50,7 +50,7 @@ An integer index removes an axis; a slice preserves it. The last two expressions
 | Match an existing tensor | `zeros_like`, `randn_like` | Inherit dtype/device by default; default `randn_like` on an integer tensor fails |
 | Allocate storage only | `empty` | Uninitialized values, not zeros or reliably tiny numbers |
 
-Use `empty` for a buffer whose entire contents will be overwritten. Specific determinism settings can fill special values, but that does not make it a useful numerical initialization. The [official documentation](https://docs.pytorch.org/docs/2.8/generated/torch.empty.html) describes the exception.
+Use `empty` for a buffer whose entire contents will be overwritten. Specific determinism settings can fill special values, but that does not make it a useful numerical initialization. The [official documentation](https://docs.pytorch.org/docs/2.14/generated/torch.empty.html) describes the exception.
 
 `.to(dtype=..., device=...)` returns the conversion result and may return the original object when no conversion is needed. Neither it nor `.float()` guarantees a copy. Type promotion is operator-specific: addition can promote types, whereas common matrix products require matching types. PyTorch does not scan every element to discover its type before every operation.
 
@@ -101,7 +101,7 @@ assert repacked[:5].tolist() == [0, 6, 12, 18, 24]
 assert repacked.data_ptr() != swapped.data_ptr()
 ```
 
-The first example can flatten while retaining a stride of two. The second needs to repack the transposed order; this particular reshape makes a copy. `contiguous()` can also return its input unchanged when the requested layout already holds. See the [stride condition for view](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.view.html).
+The first example can flatten while retaining a stride of two. The second needs to repack the transposed order; this particular reshape makes a copy. `contiguous()` can also return its input unchanged when the requested layout already holds. See the [stride condition for view](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.view.html).
 
 `flatten(start_dim=1)` commonly preserves the batch axis while combining later axes. `squeeze(dim)` removes a specified singleton axis; unrestricted `squeeze()` can accidentally delete a batch axis when batch size is one. `unsqueeze(dim)` inserts a singleton axis.
 
@@ -132,13 +132,13 @@ assert len(torch.arange(4).chunk(3)) == 2
 assert len(torch.tensor_split(torch.arange(4), 3)) == 3
 ```
 
-`stack` is not analogous to appending `[3,4]` to `[1,2]`, which creates a ragged Python list. Split outputs form an immutable tuple, but their tensors can still modify shared storage. Check the [chunk contract](https://docs.pytorch.org/docs/2.8/generated/torch.chunk.html) before unpacking a fixed number of outputs.
+`stack` is not analogous to appending `[3,4]` to `[1,2]`, which creates a ragged Python list. Split outputs form an immutable tuple, but their tensors can still modify shared storage. Check the [chunk contract](https://docs.pytorch.org/docs/2.14/generated/torch.chunk.html) before unpacking a fixed number of outputs.
 
 ## Crossing into NumPy or Python
 
 `torch.tensor(array)` copies data; `from_numpy` and compatible `as_tensor` calls can share storage. Sharing avoids a copy but lets changes on either side affect training inputs.
 
-Default `.numpy()` requires a CPU tensor not requiring gradients, with supported dtype/layout and other conditions. It normally shares storage. `.numpy(force=True)` handles detach, CPU transfer, and conjugate-related conversions, but does not guarantee an independent copy. Explicitly copy when you need a snapshot. See the [numpy interface conditions](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.numpy.html).
+Default `.numpy()` requires a CPU tensor not requiring gradients, with supported dtype/layout and other conditions. It normally shares storage. `.numpy(force=True)` handles detach, CPU transfer, and conjugate-related conversions, but does not guarantee an independent copy. Explicitly copy when you need a snapshot. See the [numpy interface conditions](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.numpy.html).
 
 `.tolist()` produces nested Python numbers; `list(tensor)` iterates over sub-tensors along the first axis. `.item()` needs exactly one element, not necessarily a zero-dimensional tensor. Its Python result carries no gradient connection. Frequent CUDA `item()` calls can also make the CPU wait, so use them for logging rather than constructing a differentiable loss.
 

@@ -111,7 +111,7 @@ assert mixed_cache_mib(512) == 12
 
 版本依据：[3n 官方说明](https://ai.google.dev/gemma/docs/gemma-3n)、[Gemma 4 型号与模态表](https://ai.google.dev/gemma/docs/core/model_card_4)。**effective、active、total 是不同口径**。例如一份教学假设里的 26B 权重，如果全部以 BF16 常驻，就约有 52 GB（十进制）的原始权重；每个 token 只激活约 4B，并不会把剩下的权重文件变没。
 
-Gemma 4 还采用 KV 共享等设计；因此上面的“两份 K/V × 每层各存一份”只是独立缓存的基线，不能直接当 Gemma 4 的显存计算器。共享是模型结构的一部分，不是推理时随意删一半缓存。[Gemma 4 报告 §2](https://arxiv.org/html/2607.02770v1#S2)
+Gemma 4 的 E2B / E4B 还在层间共享 KV cache，报告给出的共享比例分别是 20/35 和 18/42；因此上面的“两份 K/V × 每层各存一份”只是独立缓存的基线，不能直接当 Gemma 4 的显存计算器。共享是模型结构的一部分，不是推理时随意删一半缓存。[Gemma 4 报告 v2（2026-07-24）§2](https://arxiv.org/html/2607.02770v2#S2)
 
 同样，支持 thinking mode 不代表回答越长就越好。比较时固定任务和工具权限，分别记录输出预算、成功率和延迟；不能拿一个开 thinking 的版本与另一个关闭的版本，仅凭总分推断架构收益。
 

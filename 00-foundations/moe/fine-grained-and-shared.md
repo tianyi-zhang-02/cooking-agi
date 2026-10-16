@@ -54,12 +54,16 @@ assert coarse == fine == with_shared == (786432, 196608)
 | 模型 | 每层 routed expert | 每个 token 走几个 | shared expert |
 | --- | --- | --- | --- |
 | DeepSeek-V3 | 256 | 8 | 1 个 |
-| Qwen3-235B-A22B / 30B-A3B | 128 | 8 | 没有 |
+| 初版 Qwen3-235B-A22B / 30B-A3B | 128 | 8 | 没有 |
 | Llama 4 Maverick | 128 | 1 | 1 个（MoE 层与 dense 层交替） |
 | Llama 4 Scout | 16 | 1 | 1 个 |
 | gpt-oss-120b / 20b | 128 / 32 | 4 | 没有 |
+| DeepSeek-V4-Pro（2026） | 384 | 6 | 1 个 |
+| Qwen3.5-397B-A17B / Qwen3.8-2.4T-A95B（2026） | 512 | 10 | 1 个 |
+| Gemma 4 26B A4B（2026） | 128 | 8 | 1 个 |
+| Kimi K3（2026） | 896 | 16 | 2 个（完整宽度） |
 
-[Qwen3 技术报告](https://arxiv.org/abs/2505.09388)明确说明，相比报告中的 Qwen2.5-MoE，Qwen3-MoE 不再使用 shared experts。Llama 4 Maverick 则每个 token 走 1 个 shared expert，外加 128 个 routed expert 里的 1 个。比较时记下具体 checkpoint，别只记家族名。
+[Qwen3 技术报告](https://arxiv.org/abs/2505.09388)明确说明，相比报告中的 Qwen2.5-MoE，Qwen3-MoE 不再使用 shared experts。Llama 4 Maverick 则每个 token 走 1 个 shared expert，外加 128 个 routed expert 里的 1 个。到了 2026 年，Qwen 的 MoE 又把 shared expert 加了回来：Qwen3-Next-80B-A3B、Qwen3.5-397B-A17B 和 Qwen3.8-2.4T-A95B 都是 512 个 routed 加 1 个 shared，Qwen3.6-35B-A3B 是 256 个加 1 个，所以“Qwen3 没有 shared expert”只对初版成立。比较时记下具体 checkpoint，别只记家族名。2026 年各行的来源见 [MoE 总览的参数表](README.md)（截至 2026-10）。
 
 ## 怎么选
 

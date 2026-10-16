@@ -8,6 +8,8 @@ Recognizing RoPE, RMSNorm, GQA, and SwiGLU can make a Llama report feel familiar
 
 This article covers **Llama 1–3.1 text models**, using their dense decoder as a baseline before studying MoE, MLA, and multimodal designs. A configuration from one release is not a specification for the entire family.
 
+Later releases are outside this article's scope. [Llama 4](https://ai.meta.com/blog/llama-4-multimodal-intelligence/) (April 2025) moved to MoE: Scout activates 17B per token with 16 experts and 109B total parameters; Maverick activates 17B with 128 experts and 400B total. Their expert layouts are in the [MoE shared-expert comparison](../moe/fine-grained-and-shared.en.md). In 2026 Meta Superintelligence Labs started a new Muse family. The announcements for [Muse Spark](https://ai.meta.com/blog/introducing-muse-spark-msl/) (2026-04-08) and [Muse Wonder](https://about.fb.com/news/2026/10/introducing-muse-wonder-models/) (2026-10-12) offer access only through Meta's own apps and API, mention no downloadable weights, and disclose no architecture or parameter count (as of October 2026).
+
 <span id="one-sentence-position"></span>
 <span id="primary-sources"></span>
 

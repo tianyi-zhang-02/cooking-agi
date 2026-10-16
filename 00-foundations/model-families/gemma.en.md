@@ -111,7 +111,7 @@ As of 2026-10-10, Gemma 3 is not a complete account of the family. These distinc
 
 Version sources: [3n overview](https://ai.google.dev/gemma/docs/gemma-3n), [Gemma 4 model and modality tables](https://ai.google.dev/gemma/docs/core/model_card_4). **Effective, active, and total measure different things.** As a teaching example, 26B resident BF16 weights require roughly 52 GB (decimal) of raw storage. Activating roughly 4B per token does not make the other weights disappear.
 
-Gemma 4 also uses KV sharing. The independent-cache formula above, with two separate K/V tensors in every layer, is therefore a baseline—not a Gemma 4 memory calculator. Sharing is built into the model, not permission to discard half of an arbitrary model's cache. [Gemma 4 report, §2](https://arxiv.org/html/2607.02770v1#S2)
+Gemma 4 E2B / E4B also share the KV cache across layers, with sharing ratios of 20/35 and 18/42 according to the report. The independent-cache formula above, with two separate K/V tensors in every layer, is therefore a baseline—not a Gemma 4 memory calculator. Sharing is built into the model, not permission to discard half of an arbitrary model's cache. [Gemma 4 report v2 (2026-07-24), §2](https://arxiv.org/html/2607.02770v2#S2)
 
 Likewise, thinking mode does not mean longer answers are always better. Hold tasks and tool permissions fixed; record output budgets, success rates, and latency separately. Comparing a thinking-enabled model with a disabled one does not isolate architecture gains.
 

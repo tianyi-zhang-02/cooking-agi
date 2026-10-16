@@ -198,7 +198,7 @@ assert torch.autograd.gradcheck(smooth_objective, (coordinate,))
 
 上面的代码是教学实验，不是完整训练器。接着看[训练循环](training-loop.md)，把数据、参数、验证和日志接起来。
 
-- [Autograd mechanics](https://docs.pytorch.org/docs/2.8/notes/autograd.html)：叶节点、梯度模式、计算图与原地修改。
-- [Tensor.backward](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.backward.html) 与 [autograd.grad](https://docs.pytorch.org/docs/2.8/generated/torch.autograd.grad.html)：梯度种子、累积和返回值。
-- [retain_grad](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.retain_grad.html) 与 [detach](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.detach.html)：保留中间梯度不等于复制或保留整张图。
-- [Gradcheck mechanics](https://docs.pytorch.org/docs/2.8/notes/gradcheck.html)：数值梯度检查的原理和限制。
+- [Autograd mechanics](https://docs.pytorch.org/docs/2.14/notes/autograd.html)：叶节点、梯度模式、计算图与原地修改。
+- [Tensor.backward](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.backward.html) 与 [autograd.grad](https://docs.pytorch.org/docs/2.14/generated/torch.autograd.grad.html)：梯度种子、累积和返回值。
+- [retain_grad](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.retain_grad.html) 与 [detach](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.detach.html)：保留中间梯度不等于复制或保留整张图。
+- [Gradcheck mechanics](https://docs.pytorch.org/docs/2.14/notes/gradcheck.html)：数值梯度检查的原理和限制。

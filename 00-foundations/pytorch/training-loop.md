@@ -265,7 +265,7 @@ def device_step(model, optimizer, features, labels):
 
 不一定。比如把一个 pinned CPU batch 异步复制到 GPU，调用返回后马上对源张量做 `zero_()`。如果复制还没完成，GPU 收到的数据就可能被改掉。反过来，异步从 GPU 复制到 CPU 后，CPU 也不能立刻读取目标。要等相关复制完成，而不是只等 Python 函数返回。[官方教程的反例](https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html#other-copy-directions-gpu-cpu-cpu-mps)说明了这两种情况。
 
-`DataLoader(pin_memory=True)` 可以把取出的张量放进 pinned 主机内存，但**pinning 不是搬到 GPU**；后面仍要调用 `.to(device)`。自定义 batch 类型可能还需要自己的 `pin_memory()` 方法，见 [DataLoader 说明](https://docs.pytorch.org/docs/2.8/data.html#memory-pinning)。
+`DataLoader(pin_memory=True)` 可以把取出的张量放进 pinned 主机内存，但**pinning 不是搬到 GPU**；后面仍要调用 `.to(device)`。自定义 batch 类型可能还需要自己的 `pin_memory()` 方法，见 [DataLoader 说明](https://docs.pytorch.org/docs/2.14/data.html#memory-pinning)。
 
 如果进一步使用不同 CUDA streams，还要分清两件事：
 
@@ -274,7 +274,7 @@ def device_step(model, optimizer, features, labels):
 | 消费方能开始计算了吗？ | 等待生产方之前提交的复制或计算完成 | event / `wait_stream`，建立执行顺序 |
 | 这块显存能被别的张量复用了吗？ | 使用它的 stream 尚未结束时，不能提前回收 | `record_stream` 通知分配器，或自行完整管理生命周期 |
 
-`record_stream` 不会替消费方等待数据准备好；`wait_stream` 本身也不是完整的生命周期管理。不要把其中一个当成另一个的替代品。这里先记住区别，不急着写多 stream 预取器；[PyTorch 2.8 的生命周期示例](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.record_stream.html)给出了两种管理方式。本页没有用 CPU 测试验证这些 CUDA 竞态。
+`record_stream` 不会替消费方等待数据准备好；`wait_stream` 本身也不是完整的生命周期管理。不要把其中一个当成另一个的替代品。这里先记住区别，不急着写多 stream 预取器；[`record_stream` 文档里的生命周期示例](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.record_stream.html)给出了两种管理方式。本页没有用 CPU 测试验证这些 CUDA 竞态。
 
 ### 用 3 个 batch 看懂等待发生在哪儿 {#pipeline-example}
 
@@ -320,7 +320,7 @@ assert ideal_pipeline_ms(3, 12, 2, 8) == (66, 46)
 | CPU 内存随 worker 数增加 | 看预取队列、每批大小和进程内副本 | 认为 `num_workers` 越多越好 |
 | 计算很快，记日志却慢 | 降低同步取指标的频率，再比较时间线 | 直接关掉所有检查或保留所有输出 |
 
-复用 batch 只是定位数据开销，不能拿来报告真实训练吞吐。计时也要等所测 GPU 工作完成；只量 Python 调用返回，可能只量到了排队。多 stream 还需处理依赖与张量生命周期，不能靠随手插一个 `synchronize()` 证明写法高效。[CUDA semantics](https://docs.pytorch.org/docs/2.8/notes/cuda.html#asynchronous-execution)说明了这些边界。
+复用 batch 只是定位数据开销，不能拿来报告真实训练吞吐。计时也要等所测 GPU 工作完成；只量 Python 调用返回，可能只量到了排队。多 stream 还需处理依赖与张量生命周期，不能靠随手插一个 `synchronize()` 证明写法高效。[CUDA semantics](https://docs.pytorch.org/docs/2.14/notes/cuda.html#asynchronous-execution)说明了这些边界。
 
 前面的保存例子只检查输出一致。接下来若要处理被打断的训练，去看 [checkpoint 与恢复](../../practice/post-training/checkpoint-and-resume.md)：那里会让“接着跑”与“从同一权重重新开始”真正分出差别。
 
@@ -328,10 +328,10 @@ assert ideal_pipeline_ms(3, 12, 2, 8) == (66, 46)
 
 这一章没有用旧版 torchtext 加载数据：torchtext 已停止开发，0.18 是最后一个稳定版本。学习 PyTorch 不需要先装齐它的所有领域库，也不要照着老截图盲目补依赖。
 
-- [Linear](https://docs.pytorch.org/docs/2.8/generated/torch.nn.Linear.html)、[Module](https://docs.pytorch.org/docs/2.8/generated/torch.nn.Module.html)：维度、注册、状态与调用接口。
-- [Data utilities](https://docs.pytorch.org/docs/2.8/data.html)：Dataset、DataLoader、collate 与多进程；iterable dataset 的分片和 `drop_last` 还需单独检查。
-- [CrossEntropyLoss](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html)：类别索引、概率目标、权重与归约。
-- [Saving and loading models](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)、[TensorBoard](https://docs.pytorch.org/docs/2.8/tensorboard.html)：状态保存与日志。
-- [Reproducibility](https://docs.pytorch.org/docs/2.8/notes/randomness.html)、[torchtext 状态](https://docs.pytorch.org/text/stable/index.html)：种子的保证范围和依赖维护情况。
+- [Linear](https://docs.pytorch.org/docs/2.14/generated/torch.nn.Linear.html)、[Module](https://docs.pytorch.org/docs/2.14/generated/torch.nn.Module.html)：维度、注册、状态与调用接口。
+- [Data utilities](https://docs.pytorch.org/docs/2.14/data.html)：Dataset、DataLoader、collate 与多进程；iterable dataset 的分片和 `drop_last` 还需单独检查。
+- [CrossEntropyLoss](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html)：类别索引、概率目标、权重与归约。
+- [Saving and loading models](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)、[TensorBoard](https://docs.pytorch.org/docs/2.14/tensorboard.html)：状态保存与日志。
+- [Reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html)、[torchtext 状态](https://docs.pytorch.org/text/stable/index.html)：种子的保证范围和依赖维护情况。
 
 接下来把小模型换成[从零实现的模块](../code/README.md)，或去看[语言模型的一次训练更新](../deep-dives/training-step.md)。如果你能说清每个 batch 的形状、loss 分母和参数更新时机，再扩大模型才不容易把小错误一起放大。

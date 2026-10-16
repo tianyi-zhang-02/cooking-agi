@@ -54,12 +54,16 @@ The paper reports DeepSeekMoE 16B matching LLaMA2 7B with about 40% of the compu
 | Model | Routed experts per layer | Experts per token | Shared expert |
 | --- | --- | --- | --- |
 | DeepSeek-V3 | 256 | 8 | 1 |
-| Qwen3-235B-A22B / 30B-A3B | 128 | 8 | none |
+| Original Qwen3-235B-A22B / 30B-A3B | 128 | 8 | none |
 | Llama 4 Maverick | 128 | 1 | 1 (MoE layers alternate with dense layers) |
 | Llama 4 Scout | 16 | 1 | 1 |
 | gpt-oss-120b / 20b | 128 / 32 | 4 | none |
+| DeepSeek-V4-Pro (2026) | 384 | 6 | 1 |
+| Qwen3.5-397B-A17B / Qwen3.8-2.4T-A95B (2026) | 512 | 10 | 1 |
+| Gemma 4 26B A4B (2026) | 128 | 8 | 1 |
+| Kimi K3 (2026) | 896 | 16 | 2 (full width) |
 
-The [Qwen3 report](https://arxiv.org/abs/2505.09388) explicitly removes shared experts compared with its Qwen2.5-MoE baseline. Llama 4 Maverick uses one shared expert plus one of 128 routed experts per token. Record the checkpoint, not just the family name.
+The [Qwen3 report](https://arxiv.org/abs/2505.09388) explicitly removes shared experts compared with its Qwen2.5-MoE baseline. Llama 4 Maverick uses one shared expert plus one of 128 routed experts per token. By 2026 Qwen's MoE models brought the shared expert back: Qwen3-Next-80B-A3B, Qwen3.5-397B-A17B and Qwen3.8-2.4T-A95B all use 512 routed experts plus 1 shared, and Qwen3.6-35B-A3B uses 256 plus 1, so “Qwen3 has no shared expert” holds only for the original release. Record the checkpoint, not just the family name. Sources for the 2026 rows are in the [MoE overview's parameter table](README.en.md) (as of October 2026).
 
 ## How to choose
 

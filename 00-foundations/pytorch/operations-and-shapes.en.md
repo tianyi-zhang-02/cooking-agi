@@ -104,7 +104,7 @@ summed = torch.addbmm(offset, queries, keys.transpose(1, 2))
 torch.testing.assert_close(summed, scores.sum(dim=0))
 ```
 
-Each batch has 3 queries, 5 keys, and 4 features. The output scores every query against every key. `einsum` names the axes explicitly for inspection, without promising better performance. [addbmm](https://docs.pytorch.org/docs/2.8/generated/torch.addbmm.html) removes the batch axis; it is not simply `bmm` with a bias.
+Each batch has 3 queries, 5 keys, and 4 features. The output scores every query against every key. `einsum` names the axes explicitly for inspection, without promising better performance. [addbmm](https://docs.pytorch.org/docs/2.14/generated/torch.addbmm.html) removes the batch axis; it is not simply `bmm` with a bias.
 
 Useful constructors have concrete roles: `eye` creates an identity matrix; `diag` constructs a diagonal matrix from a vector or extracts a diagonal from a matrix, while `diagonal` also supports batched extraction. `triu` / `tril` keep upper/lower triangles; an upper triangle with `diagonal=1` often marks future positions. `t()` accepts inputs with at most two dimensions. For batched transposition, use `transpose(-2,-1)` rather than treating high-dimensional `.T` as a last-two-axis swap.
 
@@ -143,4 +143,4 @@ Specify distances too: `linalg.vector_norm(vector, ord=2)` gives Euclidean lengt
 
 Floating-point operation order matters. `equal` is not approximate and does not enforce identical dtypes; `allclose` uses absolute/relative tolerances and can broadcast shapes. For model tests, explicitly check shapes and use `torch.testing.assert_close` for values and types. Printing more decimal places does not increase computational precision.
 
-These rules are checked against [PyTorch numerical accuracy](https://docs.pytorch.org/docs/stable/notes/numerical_accuracy.html), the [math and reduction API](https://docs.pytorch.org/docs/stable/torch.html), and [CrossEntropyLoss](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html). The examples are small tensor calculations, not model-training or performance reproductions.
+These rules are checked against [PyTorch numerical accuracy](https://docs.pytorch.org/docs/stable/notes/numerical_accuracy.html), the [math and reduction API](https://docs.pytorch.org/docs/stable/torch.html), and [CrossEntropyLoss](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html). The examples are small tensor calculations, not model-training or performance reproductions.

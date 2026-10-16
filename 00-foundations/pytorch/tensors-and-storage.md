@@ -50,7 +50,7 @@ assert values[0:1].shape == (1, 3, 4)
 | 与现有张量匹配 | `zeros_like`、`randn_like` | 默认继承 dtype / device；整数张量不能直接做默认 `randn_like` |
 | 只分配空间 | `empty` | 内容未初始化，不能当作“小数值”或零 |
 
-`empty` 适合马上覆盖全部内容的缓冲区。启用特定确定性设置时，框架可能填入特殊值，但这仍不意味着可以依赖它作为初始化。[官方说明](https://docs.pytorch.org/docs/2.8/generated/torch.empty.html)列出了这个例外。
+`empty` 适合马上覆盖全部内容的缓冲区。启用特定确定性设置时，框架可能填入特殊值，但这仍不意味着可以依赖它作为初始化。[官方说明](https://docs.pytorch.org/docs/2.14/generated/torch.empty.html)列出了这个例外。
 
 `.to(dtype=..., device=...)` 返回转换结果；类型和设备已经匹配时可能直接返回原对象。`.float()` 也不保证复制。类型提升按算子规则发生，不是“PyTorch 每次遍历所有元素，要求类型完全相同”：加法可以提升类型，常见矩阵乘法则要求匹配。遇到报错，检查对应算子。
 
@@ -101,7 +101,7 @@ assert repacked[:5].tolist() == [0, 6, 12, 18, 24]
 assert repacked.data_ptr() != swapped.data_ptr()
 ```
 
-第一段每两个存储位置取一个数（stride 为 2），仍能按同一规律展平；第二段展平转置结果需要重新排数据。在这个具体例子里 `reshape` 复制了。`contiguous()` 也不是“总复制”：原来已经满足要求时可以原样返回。细则见 [view 的 stride 条件](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.view.html)。
+第一段每两个存储位置取一个数（stride 为 2），仍能按同一规律展平；第二段展平转置结果需要重新排数据。在这个具体例子里 `reshape` 复制了。`contiguous()` 也不是“总复制”：原来已经满足要求时可以原样返回。细则见 [view 的 stride 条件](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.view.html)。
 
 `flatten(start_dim=1)` 常用于保留 batch、合并后面各轴。`squeeze(dim)` 只移除指定的长度为 1 的轴；裸 `squeeze()` 可能把 batch size = 1 的 batch 轴也删掉。`unsqueeze(dim)` 则插入一个长度为 1 的轴。
 
@@ -132,13 +132,13 @@ assert len(torch.arange(4).chunk(3)) == 2
 assert len(torch.tensor_split(torch.arange(4), 3)) == 3
 ```
 
-不要把 `stack` 类比成 `[1,2].append([3,4])`：后者是形状不齐的 Python 列表。拆分产生的 tuple 不能替换其中的项，但里面的 tensor 仍可能修改原存储。`chunk` 的返回数量以[文档](https://docs.pytorch.org/docs/2.8/generated/torch.chunk.html)为准，不要不检查就解包成固定数量。
+不要把 `stack` 类比成 `[1,2].append([3,4])`：后者是形状不齐的 Python 列表。拆分产生的 tuple 不能替换其中的项，但里面的 tensor 仍可能修改原存储。`chunk` 的返回数量以[文档](https://docs.pytorch.org/docs/2.14/generated/torch.chunk.html)为准，不要不检查就解包成固定数量。
 
 ## 和 NumPy、Python 交接时
 
 `torch.tensor(array)` 会复制输入数据；`from_numpy` 与兼容的 `as_tensor` 可以共享存储。共享更省复制，却意味着另一边的修改也可能影响训练输入。
 
-`.numpy()` 默认要求 CPU、无需梯度且 dtype / layout 等受支持，返回值通常共享存储。`.numpy(force=True)` 会处理 detach、CPU 和共轭等转换，但不能理解为“无条件独立复制”。真要独立快照，明确复制。见 [numpy 接口条件](https://docs.pytorch.org/docs/2.8/generated/torch.Tensor.numpy.html)。
+`.numpy()` 默认要求 CPU、无需梯度且 dtype / layout 等受支持，返回值通常共享存储。`.numpy(force=True)` 会处理 detach、CPU 和共轭等转换，但不能理解为“无条件独立复制”。真要独立快照，明确复制。见 [numpy 接口条件](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.numpy.html)。
 
 `.tolist()` 生成 Python 嵌套数值，`list(tensor)` 则沿第一个轴拿到子 tensor。`.item()` 要求恰好一个元素，不要求一定是零维；它得到的 Python 数不再带梯度关系。CUDA 上频繁 `item()` 还可能引入 CPU 等待，所以通常用于日志，而不是拼 loss。
 

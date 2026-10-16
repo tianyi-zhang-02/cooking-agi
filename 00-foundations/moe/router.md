@@ -32,6 +32,7 @@ $$g_i = \frac{e^{s_i}}{\sum_{j \in \mathrm{TopK}} e^{s_j}}, \qquad i \in \mathrm
 - **top-2**：GShard、Mixtral。每个 token 可组合两个 expert 的输出，多了一条路径，也多了计算。
 - **top-4**：gpt-oss。
 - **top-8**：DeepSeek-V3、Qwen3。它们把 expert 切得更细（[细粒度那篇](fine-grained-and-shared.md)讲），所以要多挑几个。
+- **2026 年的型号**（截至 2026-10 的公开配置）：DeepSeek-V4-Pro 从 384 个里选 6 个，Gemma 4 26B A4B 从 128 个里选 8 个，Qwen3.5-397B-A17B 和 Qwen3.8-2.4T-A95B 从 512 个里选 10 个，Kimi K3 从 896 个里选 16 个；它们另外都有 shared expert。来源见 [MoE 总览的参数表](README.md)。
 
 固定 expert 宽度时，$k$ 越大，每个 token 的 expert 计算通常越多；跨卡流量还取决于专家放在哪里。跨模型比较不能只看 $k$：top-8 的小 expert 未必比 top-2 的大 expert 更贵，也不保证更稳定。
 

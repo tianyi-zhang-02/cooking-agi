@@ -75,13 +75,13 @@ assert math.isclose(loss_after.item(), 0.5787059562, abs_tol=1e-9)
 
 第 1 章解释输入如何存，第 2 章解释运算和维度，第 3 章拆开 loss，第 4 章追踪梯度，第 5 章再加上数据加载、验证和恢复。你不必现在就懂每个函数；先知道每一步交出了什么，再到对应章节拆开看。
 
-这里使用无类别权重的平均 CE 和无 momentum、无 weight decay 的 SGD。换了这些条件，上面的更新数值也会变。接口约定见 [PyTorch 2.8 CE](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html) 和 [SGD](https://docs.pytorch.org/docs/2.8/generated/torch.optim.SGD.html)。
+这里使用无类别权重的平均 CE 和无 momentum、无 weight decay 的 SGD。换了这些条件，上面的更新数值也会变。接口约定见 [CE](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html) 和 [SGD](https://docs.pytorch.org/docs/2.14/generated/torch.optim.SGD.html)。
 
 ## 已经会写训练代码了？
 
 可以直接看几个反例：非连续张量不一定不能 `view`；`[B,1]` 减 `[B]` 会得到 `[B,B]`；`eval()` 不会关闭梯度；最后一个 batch 的 loss 不代表整轮平均值。能解释原因，再去写更大的模型会踏实一些。
 
-代码是本站独立编写的小实验，使用 PyTorch 2.x 的常用接口。数值验证环境单独记录为 **PyTorch 2.8.0 / CPU**，不是“最新版”的代称，也不是 GPU 性能测试。可从仓库根目录运行：
+代码是本站独立编写的小实验，使用 PyTorch 2.x 的常用接口。数值验证在 **PyTorch 2.8.0 / CPU** 上运行，不是 GPU 性能测试。截至 2026-10，稳定版已是 2.14（[2.14.0 于 2026-09-02 发布](https://dev-discuss.pytorch.org/t/pytorch-2-14-0-general-availability/3431)，2.14.1 于 2026-09-30 发布）；这组笔记的文档链接已改指 2.14 版，但例子没有在 2.14 上重跑。可从仓库根目录运行：
 
 ```bash
 python -m unittest discover -s site/tests -p test_pytorch_notes.py -v

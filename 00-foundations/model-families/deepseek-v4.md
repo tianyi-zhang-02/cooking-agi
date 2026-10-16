@@ -6,6 +6,8 @@
 
 这篇接着 [V2 / V3 / R1](deepseek.md) 往下读。先看注意力，再看残差和训练；不要把三个层面的变化混成一个“模型更强”。2026-10-10 核对范围是报告 v1 与 V4-Pro / V4-Flash preview 的公开配置和推理源码，不是对所有后续版本的概括，也不声称复现官方性能。
 
+> **之后的版本（截至 2026-10）：** 2026-08-13 [V4-Pro 正式版](https://api-docs.deepseek.com/news/news260813)上线，API 名称不变，并给 V4-Pro 和 V4-Flash 加了 low / high / max 三档推理强度。2026-09-10 发布的 [V4.1-Flash](https://api-docs.deepseek.com/news/news260910) 换成了新的 Causal Encoder–Decoder 结构：据[模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash)，它是 552B 主干参数的 MoE，prefill 时每 token 激活 8B、decode 时激活 16B，原生支持图像输入；注意力改用 CSA2，每层固定为 Full、Reindex、Reuse 三种模式之一，模型卡没有提 HCA。这份发布说明同时宣布 V4-Flash 停用，`deepseek-v4-flash` 暂时转到 V4.1-Flash；2026-09-14 起，`deepseek-v4-pro` 的请求也转到 V4.1-Flash，直到 V4.1-Pro 上线。所以下面的 CSA / HCA 分析只适用于 V4 权重；现在调用这两个 API 名称，用的已经不是本文讲的模型。
+
 ## 1. 两种注意力，各省哪一笔？
 
 [V4 模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro)介绍 CSA / HCA 混合架构：前者压缩后再稀疏选择，后者更重地压缩、读取压缩后的历史。它们交错安排在不同层，不是每层都先 CSA、再 HCA。两者都保留近处的滑动窗口。

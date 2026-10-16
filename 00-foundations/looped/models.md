@@ -16,7 +16,7 @@
 
 ## Ouro：把循环放进预训练
 
-[Ouro（2025；以下按 v5，2026-07-01）](https://arxiv.org/html/2510.25741v5)重复 decoder 层栈，不是每圈重新查一次 token embedding：
+[Ouro（2025；以下按 v5，2026-07-01；2026-10-11 的 v6 中所引内容未变）](https://arxiv.org/html/2510.25741v5)重复 decoder 层栈，不是每圈重新查一次 token embedding：
 
 | | Ouro 1.4B | Ouro 2.6B |
 | --- | --- | --- |

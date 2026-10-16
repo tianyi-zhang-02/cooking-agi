@@ -34,6 +34,7 @@ These values are often called probabilities, but **top-k is not a random draw**.
 - **Top-2**: GShard, Mixtral. Two expert outputs can contribute, providing another path at additional cost.
 - **Top-4**: gpt-oss.
 - **Top-8**: DeepSeek-V3, Qwen3. Their experts are cut finer (see [fine-grained experts](fine-grained-and-shared.en.md)), so each token picks more of them.
+- **2026 models** (public configs as of October 2026): DeepSeek-V4-Pro picks 6 of 384, Gemma 4 26B A4B picks 8 of 128, Qwen3.5-397B-A17B and Qwen3.8-2.4T-A95B pick 10 of 512, and Kimi K3 picks 16 of 896; each also has shared experts. Sources are in the [MoE overview's parameter table](README.en.md).
 
 At fixed expert width, larger $k$ usually means more expert compute; cross-device traffic also depends on placement. Across models, top-8 with small experts need not cost more than top-2 with wide experts, or be more stable.
 

@@ -30,8 +30,14 @@ At fixed expert width, total expert parameters grow with N and main expert compu
 | DeepSeek-V3 | 256 routed + 1 shared | 8 + 1 | 671B | 37B |
 | Qwen3-235B-A22B | 128 | 8 | 235B | 22B |
 | gpt-oss-120b | 128 | 4 | 116.8B | 5.1B |
+| DeepSeek-V4-Pro (2026) | 384 routed + 1 shared | 6 + 1 | 1.6T | 49B |
+| Qwen3.8-2.4T-A95B (2026) | 512 routed + 1 shared | 10 + 1 | 2.4T | 95B |
+| Gemma 4 26B A4B (2026) | 128 routed + 1 shared | 8 + 1 | 25.2B | 3.8B |
+| Kimi K3 (2026) | 896 routed + 2 shared | 16 + 2 | 2.8T | 104B |
 
 Mixtral 8x7B is not 56B: only the FFNs are copied eight times, while attention and embeddings exist once, so the total is 46.7B.
+
+The four 2026 rows were read in October 2026. Sources: [V4-Pro config](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json), [Qwen3.8-2.4T-A95B model card](https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B), [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4), [Kimi K3 report](https://arxiv.org/abs/2607.24653). All four keep shared experts; V4-Pro's first three MoE layers route by token-ID hash rather than content top-k.
 
 ## Sparsity saves compute, not memory
 

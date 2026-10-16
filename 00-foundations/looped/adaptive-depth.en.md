@@ -49,7 +49,7 @@ assert abs(expected_steps - 2.2) < 1e-12
 
 ## Ouro's exit gate
 
-[Ouro (v5, §3.2–3.4)](https://arxiv.org/html/2510.25741v5) attaches an exit gate after every loop: $\lambda_t = \sigma(\mathrm{Linear}(h_t))$. Training has two stages:
+[Ouro (v5, §3.2–3.4; unchanged in v6)](https://arxiv.org/html/2510.25741v5) attaches an exit gate after every loop: $\lambda_t = \sigma(\mathrm{Linear}(h_t))$. Training has two stages:
 
 1. **Stage one**: the loss is $\sum_t p(t \mid x)\, \mathcal L_t - \beta\, H(p)$. At a fixed depth cap, $\mathrm{KL}(p\|U)=-H(p)+\log T$, so the entropy term is a weighted uniform-prior KL up to a constant. Calling it a standard negative ELBO additionally requires matching likelihood and weighting conventions; arbitrary $\beta$ does not establish that equivalence;
 2. **Stage two**: freeze the LM and train only the gate with soft labels derived from the observed adjacent-loop gain $I_t=\max(0,\mathcal L_{t-1}-\mathcal L_t)$, using detached losses. This learns whether to continue from realized gains, rather than directly regressing an unknown next-loop loss.

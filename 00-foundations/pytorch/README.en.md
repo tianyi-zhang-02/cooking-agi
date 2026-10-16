@@ -75,13 +75,13 @@ assert math.isclose(loss_after.item(), 0.5787059562, abs_tol=1e-9)
 
 Chapter 1 explains storage; chapter 2 covers operations and shapes; chapter 3 unpacks the loss; chapter 4 traces gradients; chapter 5 adds loading, validation, and recovery. You do not need to know every function yet. First follow what each step produces, then study its implementation.
 
-This example uses mean CE without class weights and SGD without momentum or weight decay. Changing those conditions changes the update. See the [PyTorch 2.8 CE](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html) and [SGD](https://docs.pytorch.org/docs/2.8/generated/torch.optim.SGD.html) contracts.
+This example uses mean CE without class weights and SGD without momentum or weight decay. Changing those conditions changes the update. See the [CE](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html) and [SGD](https://docs.pytorch.org/docs/2.14/generated/torch.optim.SGD.html) contracts.
 
 ## Already comfortable with training code?
 
 Start with the counterexamples: some non-contiguous tensors support `view`; subtracting `[B]` from `[B,1]` produces `[B,B]`; `eval()` does not disable gradients; and the final batch loss is not the epoch average. Understanding these cases makes larger models easier to debug.
 
-The examples are original, small experiments using common PyTorch 2.x interfaces. Numerical validation is recorded separately as **PyTorch 2.8.0 / CPU**, not as a claim to use the latest release or measure GPU performance. From the repository root:
+The examples are original, small experiments using common PyTorch 2.x interfaces. Numerical validation runs on **PyTorch 2.8.0 / CPU** and is not a GPU performance test. As of October 2026 the stable release is 2.14 ([2.14.0 was released on 2026-09-02](https://dev-discuss.pytorch.org/t/pytorch-2-14-0-general-availability/3431), 2.14.1 on 2026-09-30); the documentation links in these chapters now point to 2.14, but the examples have not been rerun on 2.14. From the repository root:
 
 ```bash
 python -m unittest discover -s site/tests -p test_pytorch_notes.py -v

@@ -74,7 +74,7 @@ We never materialize probabilities and then take their logarithms. That route ca
 
 Subtracting the maximum bounds each exponential, but **the reduction dtype still matters**. For 65,536 FP16 zero logits, every exponential is 1; storing their sum in FP16 overflows, although the correct loss is only $\log 65536\approx11.09035$. The code therefore promotes FP16/BF16 to FP32 before computing, while preserving existing FP64. This cast keeps the computation graph connected: gradients still reach the original logits and are stored in their original dtype, so low-precision gradient rounding or underflow remains possible.
 
-A direct library call does not automatically enable autocast. On the PyTorch 2.8 CPU build checked here, passing that FP16 input directly to `functional.cross_entropy` also returns `inf`; explicitly converting to FP32 or calling library CE inside CPU autocast gives a finite result. The [2.8 CPU autocast policy](https://docs.pytorch.org/docs/2.8/amp.html#cpu-ops-that-can-autocast-to-float32) runs library CE in FP32, but does not automatically promote every handwritten `exp → sum → log` composition. Policies differ by device; this CPU observation is not a claim about CUDA.
+A direct library call does not automatically enable autocast. On the PyTorch 2.8 CPU build checked here, passing that FP16 input directly to `functional.cross_entropy` also returns `inf`; explicitly converting to FP32 or calling library CE inside CPU autocast gives a finite result. The [CPU autocast policy](https://docs.pytorch.org/docs/2.14/amp.html#cpu-ops-that-can-autocast-to-float32) runs library CE in FP32 (checked against the 2.14 docs in October 2026, `cross_entropy_loss` is still on that FP32 list, but the `inf` result above has not been rerun on 2.14), but does not automatically promote every handwritten `exp → sum → log` composition. Policies differ by device; this CPU observation is not a claim about CUDA.
 
 ## Hard and soft targets {#soft-targets}
 
@@ -168,7 +168,7 @@ The same issue applies to gradient accumulation: naively averaging microbatch me
 <details markdown="1">
 <summary>Implementation detail: why can a different label format change CE?</summary>
 
-The [PyTorch CE interface](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html) distinguishes integer classes from probability targets. Integer targets support `ignore_index`; probability targets need explicit position selection. With class weights, their default mean denominators also differ.
+The [PyTorch CE interface](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html) distinguishes integer classes from probability targets. Integer targets support `ignore_index`; probability targets need explicit position selection. With class weights, their default mean denominators also differ.
 
 For two `[0, 0]` logit rows, labels 0 and 1, and class weights `[1, 3]`, the integer-target weighted mean is $\log2$. Replacing labels with float one-hot targets gives $2\log2$ under the default mean. Same classes, **different reduction conventions**.
 

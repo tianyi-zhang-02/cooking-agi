@@ -183,11 +183,13 @@ assert compare_runs(baseline, candidate) == (1, 0, 6)
 
 如果任务必须极少出错，增加等待可能值得；如果是交互里的简单分类，未必需要高 effort。决策取决于任务，而不是默认最长回答最好。协议与统计检查见 [Benchmark 评估](../../07-evaluation/benchmark-protocols.md)。
 
-## GPT-4、GPT-5：架构与训练细节尚未完整公开
+## GPT-4 到 GPT-6：架构与训练细节仍未公开
 
-GPT-4 和 GPT-5 目前都没有公开完整的模型架构和训练细节。GPT-4 的技术报告明确省略了参数量、训练算力和数据集构建等信息；GPT-5 的 system card 介绍了系统组成、能力评估与安全测试，但没有给出完整的架构和训练配置。[GPT-4 技术报告](https://arxiv.org/abs/2303.08774)、[GPT-5 system card](https://openai.com/index/gpt-5-system-card/)
+GPT-4 和 GPT-5 都没有公开完整的模型架构和训练细节。GPT-4 的技术报告明确省略了参数量、训练算力和数据集构建等信息；GPT-5 的 system card 介绍了系统组成、能力评估与安全测试，但没有给出完整的架构和训练配置。[GPT-4 技术报告](https://arxiv.org/abs/2303.08774)、[GPT-5 system card](https://openai.com/index/gpt-5-system-card/)
 
-所以，这两代模型主要看公开的评估结果、测试条件和使用限制，暂时无法像开源模型那样逐层拆解。前面介绍的 gpt-oss 也不是它们的架构说明。
+之后的型号也一样。截至 2026-10，[GPT-6 Astra system card](https://deploymentsafety.openai.com/gpt-6-astra)（2026-09-03）只说用多样的数据训练、用 RL 训练模型先推理再回答，没有给出架构、参数量或训练算力；[GPT-6.1 Sol 的补充说明](https://deploymentsafety.openai.com/gpt-6-1-sol)（2026-09-29）说它沿用 Astra 的数据和训练方式。GPT-5.5 以来各型号的发布日期和评估读数，见[怎么量 AI 加速 AI](../../11-frontier/self-improvement/measuring.md)。
+
+所以，这些模型主要看公开的评估结果、测试条件和使用限制，暂时无法像开源模型那样逐层拆解。前面介绍的 gpt-oss 也不是它们的架构说明。
 
 GPT-4 报告中的 scaling 实验仍值得读：研究者用较小规模的训练预测大模型的 loss 和部分任务表现。不过，这不代表所有任务的效果都能用同一条曲线预测。
 

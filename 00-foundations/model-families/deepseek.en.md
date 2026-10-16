@@ -38,7 +38,9 @@ V3 chat post-training and R1 follow different routes from V3-Base. R1 is not a m
 
 The branches distinguish weight initialization, not complete data independence: V3 used an internal R1 model to help produce reasoning SFT data. [V3 §5.1](https://arxiv.org/html/2412.19437v2#S5.SS1)
 
-**Version scope:** this note checks V2 report v5, V3 report v2, and the original R1 report v1, not every Lite, minor-version, or dated checkpoint. The official configurations below were read on 2026-10-10; their `main` URLs are mutable.
+Two updates sit between V3 and V4; this note does not cover them in depth. [V3.1](https://api-docs.deepseek.com/news/news250821), released on 2025-08-21, puts thinking and non-thinking modes into one model: in the API, `deepseek-reasoner` uses thinking mode and `deepseek-chat` uses non-thinking mode. The [V3.2 report](https://arxiv.org/abs/2512.02556) (December 2025) adds DeepSeek Sparse Attention (DSA) next to MLA: a cheap indexer picks the top-k positions, and core attention reads only those. For DSA's complexity and the cost of a wrong selection, see the DSA section of [MLA and sparse attention](../deep-dives/latent-and-sparse-attention.en.md).
+
+**Version scope:** this note checks V2 report v5, V3 report v2, and the original R1 report v1, not every Lite, minor-version, or dated checkpoint. The official configurations below were read on 2026-10-10; their `main` URLs are mutable. The R1 report was later published in [Nature 645, 633–638](https://doi.org/10.1038/s41586-025-09422-z) (2025), and arXiv [v2](https://arxiv.org/abs/2501.12948v2) followed on 2026-01-04: R1-Zero is in §2, R1's two RL stages are in §3, and the data recipe moved to Appendix B.3. The four-stage order below is unchanged in v2. The statement that the third stage fine-tunes V3-Base again comes from v1 §2.3.3; v2's main text and Appendix B.3 no longer state that stage's starting checkpoint.
 
 | Configuration | Attention | Routed / selected per token / shared experts in an MoE layer | Distinction to preserve |
 | --- | --- | --- | --- |
@@ -166,7 +168,7 @@ Rejection sampling creates another choice. Suppose four samples per question pro
 
 The [V4 walkthrough](deepseek-v4.en.md) examines CSA / HCA hybrid attention, mHC, and post-training. Sequence compression is not MLA's channel compression; constraints on mHC residual mappings are not Muon's update orthogonalization; a fixed local window does not make the whole history cache constant-size.
 
-Keep mechanisms separate from measurements. Compression is not a losslessness guarantee, orthogonalization does not guarantee convergence, and a FLOPs ratio at one context length is not a universal latency ratio.
+Keep mechanisms separate from measurements. Compression is not a losslessness guarantee, orthogonalization does not guarantee convergence, and a FLOPs ratio at one context length is not a universal latency ratio. V4.1-Flash, released after V4, changes the architecture, and the old API names now route to the new weights; see the note at the top of the V4 walkthrough.
 
 ## Trade-offs
 

@@ -38,7 +38,9 @@ V3 的对话后训练与 R1 是从 V3-Base 出发的不同路线，不是“先�
 
 这张图区分的是权重起点，不代表两条路线没有数据联系：V3 报告明确说，部分推理 SFT 数据借助了内部 R1 模型。[V3 §5.1](https://arxiv.org/html/2412.19437v2#S5.SS1)
 
-**版本范围：**本文按 V2 报告 v5、V3 报告 v2 和原始 R1 报告 v1 核对；不把结论自动推广到 Lite、后续小版本或带日期的 checkpoint。以下官方 `config.json` 读取于 2026-10-10，`main` 不是不可变版本。
+V3 和 V4 之间还有两次更新，本文不展开。2025-08-21 的 [V3.1](https://api-docs.deepseek.com/news/news250821) 把 thinking 与 non-thinking 合进同一个模型，API 里 `deepseek-reasoner` 走 thinking、`deepseek-chat` 走 non-thinking。2025-12 的 [V3.2 报告](https://arxiv.org/abs/2512.02556)在 MLA 旁边加了 DeepSeek Sparse Attention（DSA）：先用便宜的 indexer 挑出 top-k 位置，主 attention 只读这些位置。DSA 的复杂度和错选代价，见 [MLA 与稀疏注意力](../deep-dives/latent-and-sparse-attention.md)的 DSA 一节。
+
+**版本范围：**本文按 V2 报告 v5、V3 报告 v2 和原始 R1 报告 v1 核对；不把结论自动推广到 Lite、后续小版本或带日期的 checkpoint。以下官方 `config.json` 读取于 2026-10-10，`main` 不是不可变版本。R1 报告后来发表于 [Nature 645, 633–638](https://doi.org/10.1038/s41586-025-09422-z)（2025），arXiv 也在 2026-01-04 更新到 [v2](https://arxiv.org/abs/2501.12948v2)：R1-Zero 在 §2，R1 的两轮 RL 在 §3，数据配方移到附录 B.3。下面的四阶段顺序在 v2 里不变；“第三步重新微调 V3-Base”出自 v1 §2.3.3，v2 的正文和附录 B.3 没有再写明这一步的起点。
 
 | 配置 | Attention | MoE 层中的 routed / 每 token 选中 / shared | 不能混用的细节 |
 | --- | --- | --- | --- |
@@ -166,7 +168,7 @@ R1-Zero 的规则奖励检查答案准确性和格式；R1 后续不同阶段还
 
 [V4 专篇](deepseek-v4.md)继续拆 CSA / HCA 混合注意力、mHC 与后训练。几个词不能混用：序列压缩不同于 MLA 的通道压缩；mHC 的残差映射约束不同于 Muon 的更新矩阵正交化；局部窗口大小固定，也不代表整个模型的历史缓存恒定。
 
-报告中的实现与性能还需要分开看。压缩比不是无损保证，正交化不是收敛保证，某个长度下的 FLOPs 比例也不是所有请求的延迟比例。
+报告中的实现与性能还需要分开看。压缩比不是无损保证，正交化不是收敛保证，某个长度下的 FLOPs 比例也不是所有请求的延迟比例。V4 之后的 V4.1-Flash 换了结构，原来的 API 名称也已转到新权重，见 V4 专篇开头的说明。
 
 ## 取舍表
 

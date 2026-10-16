@@ -183,9 +183,11 @@ This is not a throughput benchmark: concurrency, batching, and queueing matter i
 
 Extra latency may be acceptable when errors are very costly; simple interactive classification may not need high effort. Choose for the task rather than assuming longer answers are better. Continue with [evaluation protocols](../../07-evaluation/benchmark-protocols.en.md).
 
-## GPT-4 and GPT-5: architecture and training details are not fully public
+## GPT-4 to GPT-6: architecture and training details are still not public
 
 Neither GPT-4 nor GPT-5 has a fully public architecture and training specification. GPT-4's technical report explicitly omits details such as parameter count, training compute, and dataset construction. GPT-5's system card describes the system's components, capability evaluations, and safety testing, but not the complete architecture or training configuration. [GPT-4 technical report](https://arxiv.org/abs/2303.08774), [GPT-5 system card](https://openai.com/index/gpt-5-system-card/)
+
+Later models follow the same pattern. As of October 2026, the [GPT-6 Astra system card](https://deploymentsafety.openai.com/gpt-6-astra) (2026-09-03) says only that the model was trained on diverse data and trained with RL to reason before answering; it gives no architecture, parameter count, or training compute. The [GPT-6.1 Sol addendum](https://deploymentsafety.openai.com/gpt-6-1-sol) (2026-09-29) says it uses the same types of data and training as Astra. For release dates and evaluation readings of the models since GPT-5.5, see [Measuring AI speeding up AI](../../11-frontier/self-improvement/measuring.en.md).
 
 For these models, we can examine published evaluations, test conditions, and limitations, but cannot walk through the architecture layer by layer as we can with open models. The gpt-oss architecture discussed above does not describe their internals either.
 

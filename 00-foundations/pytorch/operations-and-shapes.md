@@ -104,7 +104,7 @@ summed = torch.addbmm(offset, queries, keys.transpose(1, 2))
 torch.testing.assert_close(summed, scores.sum(dim=0))
 ```
 
-这里每个 batch 有 3 个 query、5 个 key、4 个特征；输出是每个 query 对每个 key 的分数。`einsum` 把这件事写成带字母的轴约定，便于核对，不保证比 `matmul` 更快。[addbmm](https://docs.pytorch.org/docs/2.8/generated/torch.addbmm.html)会消掉 batch 轴，不能把它当作带 bias 的普通 `bmm`。
+这里每个 batch 有 3 个 query、5 个 key、4 个特征；输出是每个 query 对每个 key 的分数。`einsum` 把这件事写成带字母的轴约定，便于核对，不保证比 `matmul` 更快。[addbmm](https://docs.pytorch.org/docs/2.14/generated/torch.addbmm.html)会消掉 batch 轴，不能把它当作带 bias 的普通 `bmm`。
 
 常用的矩阵构造也有实际用途：`eye` 是单位矩阵，`diag` 可从向量构造对角矩阵或从二维矩阵取对角线；批量取对角可看 `diagonal`。`triu` / `tril` 只保留上 / 下三角，`diagonal=1` 的上三角常用于标记“未来位置”。`t()` 面向不超过二维的输入，批量转置用 `transpose(-2,-1)`，别拿整个高维 `.T` 当成只交换最后两个轴。
 
@@ -143,4 +143,4 @@ assert torch.round(torch.tensor([0.5, 1.5, 2.5])).tolist() == [0.0, 2.0, 2.0]
 
 浮点数的结合顺序会影响结果。`equal` 不是近似比较，也不替你检查 dtype；`allclose` 使用绝对与相对容差，shape 还可能广播。测试模型时更适合明确检查 shape，再用 `torch.testing.assert_close` 检查值和类型。不要把“多打印几位”和“提高计算精度”混为一谈。
 
-上述基础规则对照 [PyTorch 数值精度说明](https://docs.pytorch.org/docs/stable/notes/numerical_accuracy.html)、[归约与数学 API](https://docs.pytorch.org/docs/stable/torch.html)及 [CrossEntropyLoss](https://docs.pytorch.org/docs/2.8/generated/torch.nn.CrossEntropyLoss.html)。本章只算小 tensor，没有声称复现大模型训练或性能。
+上述基础规则对照 [PyTorch 数值精度说明](https://docs.pytorch.org/docs/stable/notes/numerical_accuracy.html)、[归约与数学 API](https://docs.pytorch.org/docs/stable/torch.html)及 [CrossEntropyLoss](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html)。本章只算小 tensor，没有声称复现大模型训练或性能。

@@ -16,7 +16,7 @@ Training samples recurrent depth with a configured expectation around 32 and bac
 
 ## Ouro: looping built into pretraining
 
-[Ouro (2025; details from v5, 2026-07-01)](https://arxiv.org/html/2510.25741v5) repeats the decoder stack, not the token-embedding lookup:
+[Ouro (2025; details from v5, 2026-07-01; the cited content is unchanged in v6, 2026-10-11)](https://arxiv.org/html/2510.25741v5) repeats the decoder stack, not the token-embedding lookup:
 
 | | Ouro 1.4B | Ouro 2.6B |
 | --- | --- | --- |

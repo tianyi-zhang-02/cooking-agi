@@ -30,8 +30,14 @@ $$y = \sum_{i \in \mathrm{TopK}(x)} g_i(x)\, E_i(x)$$
 | DeepSeek-V3 | 256 个 routed + 1 个 shared | 8 + 1 | 671B | 37B |
 | Qwen3-235B-A22B | 128 | 8 | 235B | 22B |
 | gpt-oss-120b | 128 | 4 | 116.8B | 5.1B |
+| DeepSeek-V4-Pro（2026） | 384 个 routed + 1 个 shared | 6 + 1 | 1.6T | 49B |
+| Qwen3.8-2.4T-A95B（2026） | 512 个 routed + 1 个 shared | 10 + 1 | 2.4T | 95B |
+| Gemma 4 26B A4B（2026） | 128 个 routed + 1 个 shared | 8 + 1 | 25.2B | 3.8B |
+| Kimi K3（2026） | 896 个 routed + 2 个 shared | 16 + 2 | 2.8T | 104B |
 
 Mixtral 8x7B 不是 56B：复制成 8 份的只有 FFN，attention 和 embedding 各只有一份，加起来 46.7B。
+
+标 2026 的四行截至 2026-10 读取。来源：[V4-Pro 配置](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)、[Qwen3.8-2.4T-A95B 模型卡](https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B)、[Gemma 4 模型卡](https://ai.google.dev/gemma/docs/core/model_card_4)、[Kimi K3 报告](https://arxiv.org/abs/2607.24653)。四个型号都留了 shared expert；V4-Pro 的前三个 MoE 层按 token ID 哈希路由，不走内容 top-k。
 
 ## 稀疏省的是计算，不是显存
 

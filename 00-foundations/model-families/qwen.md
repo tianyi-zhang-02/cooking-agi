@@ -4,7 +4,7 @@
 
 > 类型：模型家族精读 · 最近核对：2026-10-10
 
-Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精读](qwen-early.md)。本篇以初版 Qwen3 为基线，再对照 Qwen3-2507、Qwen3-Next、Qwen3.5 和已核对的 Qwen3.8 型号。核对截至 2026-10-10，不是完整产品目录或“最新版”保证；模型卡描述不等于已验证的服务能力或完整训练配方。
+Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精读](qwen-early.md)。本篇以初版 Qwen3 为基线，再对照 Qwen3-2507、Qwen3-Next、Qwen3.5、Qwen3.6 和已核对的 Qwen3.8 型号。核对截至 2026-10-10，不是完整产品目录或“最新版”保证；模型卡描述不等于已验证的服务能力或完整训练配方。
 
 <div class="lesson-recipe advanced">
   <div><span>核心问题</span><strong>怎样让一个模型家族覆盖不同预算与 workload？</strong></div>
@@ -43,6 +43,8 @@ Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精�
 以 [初版 Qwen3-8B 的接口](https://huggingface.co/Qwen/Qwen3-8B#switching-between-thinking-and-non-thinking-mode)为例，`enable_thinking=False` 是传给 chat template 的硬开关；`/think` 与 `/no_think` 是它开启时的软指令，不能覆盖硬关闭。当 `add_generation_prompt=True` 且硬关闭时，当前模板把一个空的 `<think>…</think>` 段放进 **prompt**；它不是模型新生成的推理。因此检查“有没有 think 标签”时，要先分开输入模板、生成 continuation 和服务端解析后的字段。
 
 这不涉及每次请求重新训练权重，也不靠切换 MoE 路由数量实现。后训练让模型学会协议，推理时模板和采样控制它如何作答；`max_new_tokens` 限的是整个 continuation，不是独立的“思考额度”。预算用尽而截断也不保证已生成最终答案。
+
+后来的型号又多了两个开关（截至 2026-10）。[Qwen3.8-27B 模型卡](https://huggingface.co/Qwen/Qwen3.8-27B)用 `reasoning_effort` 调推理深度，可选 `xhigh`（默认）、`medium`、`low`，示例里直接作为请求参数传入。`preserve_thinking` 决定多轮对话里是否保留之前各轮的 thinking 块：Qwen3.8 默认保留，[Qwen3.6](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) 默认不保留、只留最近一轮。前者改变这一次回答花多少推理，后者改变下一轮输入里带着多少旧推理。它们和 `enable_thinking` 一样，只改请求和模板，不改权重。
 
 ## 先把三种“省计算”分开
 
@@ -98,10 +100,13 @@ Qwen 1–2.5 的 tokenizer、GQA、数据和后训练变化见[早期版本精�
 
 ## 2026 更新：Qwen3.8 不是一种统一结构
 
-下面按 2026-10-10 实际读取的官方模型卡整理，只列影响理解的差异，不代表检查了全部 2026 发布。链接指向可变页面；复现时仍应固定 checkpoint revision、模板和推理引擎版本。
+Qwen3.5 和 3.8 之间还有 Qwen3.6：据 [Qwen 的 GitHub 发布记录](https://github.com/QwenLM/Qwen3.8)，MoE 的 Qwen3.6-35B-A3B 发布于 2026-04-16，dense 的 Qwen3.6-27B 发布于 2026-04-22，两者都沿用 3:1 的 DeltaNet / attention 布局并带视觉编码器。
+
+下面按 2026-10-10 实际读取的官方模型卡整理（Qwen3.6 一行读取于 2026-10-16），只列影响理解的差异，不代表检查了全部 2026 发布。链接指向可变页面；复现时仍应固定 checkpoint revision、模板和推理引擎版本。
 
 | 公开型号 | token mixer / FFN | 输入与部署边界 |
 | --- | --- | --- |
+| [Qwen3.6-35B-A3B](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) | 3 层 Gated DeltaNet + 1 层 Gated Attention；MoE 256 个专家，每 token 8 个 routed + 1 个 shared | 公开视觉语言模型；默认 thinking，可按请求关闭，不支持斜杠软指令 |
 | [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) | 3 层 Gated DeltaNet + 1 层 Gated Attention 的重复布局；dense FFN | 公开视觉语言模型；支持按请求关闭 thinking，不是纯文本 Qwen3 的换名版本 |
 | [Qwen3.8-2.4T-A95B](https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B) | 同类混合 attention，MoE；总量 2.4T、激活 95B | 公开权重是文本、thinking-only 模型；托管 Max 的视觉、non-thinking 与工具功能不能归到这份权重 |
 | [Qwen3.8-Flash-Next](https://huggingface.co/Qwen/Qwen3.8-Flash-Next) | Gated DeltaNet + QSA；另有 gated residual、n-gram embedding 与 MoE | 公开视觉语言模型，可关闭 thinking；QSA 选 micro-block，模型卡将其定位为新架构预览 |
