@@ -55,7 +55,7 @@ GPTQ 逐层最小化 $\|WX-\hat WX\|^2$，Hessian 是 $H=2XX^\top$；量化一�
 <details class="interview" markdown="1">
 <summary>KIVI 为什么把 key 按通道、value 按 token 量化？只有这一种分法吗？</summary>
 
-KIVI 观察到 key 里有少数固定通道幅值特别大，value 没有明显离群模式，而 attention 输出主要来自少数重要 token 的 value。key 按 token 量化时，一行的步长被离群通道撑大：4×4 的例子里 2 bit 下普通通道全变成同一个值，分数从 $[1.2,0.9,0.9,1.6]$ 变成 $[0.3,-0.1,-0.8,0.6]$；按通道量化时最大误差只有 0.067。$K$ 本身的相对误差 8.6% 对 0.6%，低估了分数被破坏的程度。KIVI 在 Llama-2-7B 上，2 bit 两者都按 token 时 GSM8K 只剩 0.83，KIVI-2 是 12.74（16 位 13.50）。但这不是通用规定：QuaRot 先旋转 key，再在每个 token、每个 head 内沿通道分组量化。分组要看变换后的分布和 kernel。部署时还要注意引擎的默认值：vLLM 不校准时 KV 的 scale 全是 1.0。
+KIVI 观察到 key 里有少数固定通道幅值特别大，value 没有明显离群模式，而 attention 输出主要来自少数重要 token 的 value。key 按 token 量化时，一行的步长被离群通道撑大。4×4 的 2 bit 例子用每组的实数最小值作偏移量，不是精确保留零的整数 zero-point 方案。按这个约定，普通通道全变成同一个值，分数从 $[1.2,0.9,0.9,1.6]$ 变成 $[0.3,-0.1,-0.8,0.6]$；按通道量化时最大误差只有 0.067。$K$ 本身的相对误差 8.6% 对 0.6%，低估了分数被破坏的程度。KIVI 在 Llama-2-7B 上，2 bit 两者都按 token 时 GSM8K 只剩 0.83，KIVI-2 是 12.74（16 位 13.50）。但这不是通用规定：QuaRot 先旋转 key，再在每个 token、每个 head 内沿通道分组量化。分组要看变换后的分布和 kernel。部署时还要注意引擎的默认值：vLLM 不校准时 KV 的 scale 全是 1.0。
 
 </details>
 

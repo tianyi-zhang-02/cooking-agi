@@ -78,7 +78,7 @@ KIVI (2024-02, ICML 2024) measured the KV cache's distributions: the keys have a
 
 The axes are not universal. [QuaRot, §5](https://arxiv.org/html/2404.00456v2#S5) rotates the keys before 4-bit quantization, then groups channels within each token and head rather than sharing a per-channel scale across tokens. The right layout depends on the distribution after any transforms, and on the kernel that will consume it. The example below explains KIVI's choice for keys with channel outliers; it does not establish a rule for every model.
 
-**Worked once.** A key with 4 tokens and 4 channels, channel 3 being the outlier channel (teaching numbers); the query is $q=[1,\ 1,\ 0.1,\ 1]$; asymmetric 2 bits, 4 grid points per group.
+**Worked once.** A key with 4 tokens and 4 channels, channel 3 being the outlier channel (teaching numbers); the query is $q=[1,\ 1,\ 0.1,\ 1]$; asymmetric 2 bits, 4 grid points per group. This example uses a real-valued minimum offset: $s=(x_{\max}-x_{\min})/3$, $\hat{x}=x_{\min}+s\,\operatorname{clamp}(\operatorname{round}((x-x_{\min})/s),0,3)$. Unlike the integer zero-point quantizer in [Formats and error](formats-and-error.en.md), it does not require zero to be exactly representable. Keep this convention fixed when comparing the two grouping layouts.
 
 $$
 K=\begin{bmatrix}0.4&-0.2&9.0&0.1\\-0.3&0.5&11.0&-0.4\\0.2&-0.6&10.0&0.3\\0.5&0.1&12.0&-0.2\end{bmatrix},\qquad Kq=\begin{bmatrix}1.2\\0.9\\0.9\\1.6\end{bmatrix}.
