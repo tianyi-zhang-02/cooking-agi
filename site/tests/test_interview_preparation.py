@@ -119,12 +119,12 @@ class InterviewPreparationTests(unittest.TestCase):
     def test_sources_and_scope_are_preserved(self):
         for suffix in ("", ".en"):
             text = (ROOT / f"interview/ai-roles-prep{suffix}.md").read_text()
-            for url in ("https://www.1point3acres.com/home/thread/1188659",
-                        "https://reyzharkov.com/blog/posts/interviews-2025-ml-research-engineer-uk",
-                        "https://alisawuffles.github.io/blog/job-search/",
-                        "https://openai.com/interview-guide/"):
+            for url in ("https://reyzharkov.com/blog/posts/interviews-2025-ml-research-engineer-uk",
+                        "https://alisawuffles.github.io/blog/job-search/"):
                 self.assertIn(f"]({url})", text)
-            self.assertNotIn("1188659https", text)
+            # Site rule (2026-10-15): no company-specific hiring-process content.
+            for url in ("1point3acres.com", "openai.com/interview-guide"):
+                self.assertNotIn(url, text)
             self.assertNotIn("bytebytego", text.lower())
             self.assertIn("RMSNorm", text)
             self.assertIn("GPT-2", text)

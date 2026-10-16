@@ -75,7 +75,7 @@ Read the [vLLM / SGLang stack](../06-systems/inference-frameworks.en.md#engine-m
 | GPU utilization is low: what next? | Separate CPU input, queues, execution, HBM bandwidth, communication, and output buffering; trace first, change one variable |
 | When would you separate prefill and decode? | Weigh observed interference against KV transfer, both queues, and failure recovery |
 
-The [1point3acres inference account](https://www.1point3acres.com/home/thread/1188659) emphasizes relevant experience and technical depth, particularly for senior candidates. Use it to choose a layer to investigate. It does not establish that newcomers must transfer internally first, or that traditional system design can be skipped. Confirm the actual interview format.
+For inference roles, prepare at least one layer down to the details: scheduling policy, KV-cache management, or performance evidence you can show. Do not drop traditional system design either; confirm the actual interview format.
 
 ## Projects, research discussions, and behavioral preparation {#projects}
 
@@ -91,19 +91,17 @@ For behavioral preparation, use real examples of disagreement, failure, and ambi
 
 ## Free resources, with a purpose for each {#resources}
 
-You need not complete all of these. They serve different purposes: identifying gaps, practicing implementations, and checking interview rules.
+You need not complete all of these. They serve two purposes: identifying gaps and practicing implementations.
 
 | Resource | What it is useful for |
 | --- | --- |
 | [Alisa: Notes on the Industry Job Search](https://alisawuffles.github.io/blog/job-search/) · 2026-06 | A PhD perspective that separates ML coding, technical discussion, and research discussion rather than focusing only on presenting papers |
-| [Evan: astrophysics postdoc to Anthropic](https://evanhanders.blog/2026/04/02/my-path-from-astrophysics-postdoc-to-anthropic/) · 2026-04 | A career-change account; in hindsight he would spend more time on engineering, other people's code, and code review |
+| [Evan: from an astrophysics postdoc to ML](https://evanhanders.blog/2026/04/02/my-path-from-astrophysics-postdoc-to-anthropic/) · 2026-04 | A career-change account; in hindsight he would spend more time on engineering, other people's code, and code review |
 | [Silvia: ML Job Interviews](https://silviasapora.github.io/blog/ml-interviews.html) · 2026-06 | An ML PhD's RS search, including implementation and debugging topics; her topic range is not everyone's required syllabus |
 | [Andrey: ML/Research Engineer interviews 2025](https://reyzharkov.com/blog/posts/interviews-2025-ml-research-engineer-uk) · published 2026-03 | An experienced engineer's 2025 UK / remote search; publication date and interview dates differ |
-| [LLM Inference Role interview account](https://www.1point3acres.com/home/thread/1188659) · 2026-09 | How serving / systems conversations can probe depth; an individual account, not market statistics |
 | [Stanford CS336 Assignment 1](https://github.com/stanford-cs336/assignment1-basics) | Implement the student interfaces and connect tests; a substantial assignment, not a solution dump. Follow course collaboration rules if enrolled |
 | [Karpathy: Zero to Hero](https://karpathy.ai/zero-to-hero.html) → [Let's reproduce GPT-2 (124M)](https://www.youtube.com/watch?v=l8pRSuU81PU) | Move from implementation to training and efficiency. Rewrite after closing the video rather than only following along |
 | [TinyZero](https://github.com/Jiayi-Pan/TinyZero) → [verl](https://github.com/volcengine/verl) | An optional RL experiment. TinyZero says it is no longer actively maintained and directs new experiments to verl; its 0.5B observation concerns that model and setup, not a limit on all small models |
-| [OpenAI's interview guide](https://openai.com/interview-guide/) | AI and other tool rules vary by round; check preparation materials and confirm with the recruiter |
 
 The authors have different backgrounds. We use their accounts to spot omissions, with our own exercises and organization—not reproduced company questions, compensation claims, or purported success thresholds. Advice from friends is supplementary too, not an internal company standard.
 

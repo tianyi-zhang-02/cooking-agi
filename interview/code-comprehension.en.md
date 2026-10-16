@@ -2,23 +2,21 @@
 
 [中文](code-comprehension.md) · **English**
 
-> Last reviewed: 2026-10-11 · Original teaching exercises, not interview questions from Google or another company.
+> Last reviewed: 2026-10 · Original teaching exercises, not interview questions from any company.
 
 Writing a solution from scratch and taking over someone else's code need different practice. With existing code, first establish its behavior: how inputs move, where state lives, and why a result is wrong. Running successfully—or passing most tests—does not prove that you understand it.
 
 We will use a tiny embedding cache and a metric-aggregation example. No GPU, model, or external service is needed. Read the code and predict the result before running it; the reference fixes are further down.
 
-## What can we confirm about Google's changes? {#google}
+## Ask how this round works {#rules}
 
-[Business Insider's May 7, 2026 report](https://www.businessinsider.com/google-job-interview-software-engineers-ai-assistant-coding-2026-5) described a pilot on selected US Google teams: Gemini-assisted code reading, debugging, and optimization, with plans confirmed by a Google spokesperson. **That is reporting on a pilot, not proof of a universal rollout.**
-
-As of this page's 2026-10-11 review, we have not confirmed its full rollout scope. Do not infer that LeetCode is unnecessary or AI is permitted in every round. Ask your recruiter:
+Code-reading and debugging rounds vary a lot. In some you can run code and tests; in others you trace by hand. Some allow a specified AI tool; others allow none. Different rounds with the same team can have different rules. Once you have the invitation, ask your recruiter:
 
 - Will you implement from scratch, or read and modify existing code?
 - Can you run code and tests? Which language, editor, and references are available?
 - Is AI explicitly allowed? In which round, using which tool, and with which material?
 
-[Google DeepMind's official interview guidance](https://storage.googleapis.com/deepmind-media/DeepMind.com/Assets/Docs/interviewing-at-google-deepmind.pdf) says its process is managed separately from Google's and disallows AI in live interviews or tasks unless stated otherwise. It is not the rulebook for Google's SWE pilot; it is another reason to confirm permissions for the actual round.
+**Unless AI is explicitly allowed, do not use it in a live interview.** Code-reading practice does not replace algorithm preparation either; keep practicing LeetCode.
 
 ## Where do you start in unfamiliar code? {#read}
 

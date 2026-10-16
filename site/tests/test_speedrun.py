@@ -209,11 +209,10 @@ class SpeedrunContentTests(unittest.TestCase):
     def test_interview_policy_claims_keep_evidence_and_scope(self):
         for suffix in ("", ".en"):
             source = (ROOT / f"interview/code-comprehension{suffix}.md").read_text()
-            self.assertIn("2026-10-11", source)
-            self.assertIn("https://www.businessinsider.com/", source)
-            self.assertIn("deepmind-media/", source)
+            # Site rule (2026-10-15): no company-specific hiring-process content.
+            self.assertNotIn("https://www.businessinsider.com/", source)
+            self.assertNotIn("deepmind-media/", source)
             self.assertIn("https://google.github.io/eng-practices/", source)
-            self.assertIn("试点" if not suffix else "pilot", source)
             body, _ = build.render_markdown(source)
             self.assertEqual(body.count("<details>"), 2)
 

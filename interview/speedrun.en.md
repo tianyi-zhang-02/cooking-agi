@@ -25,7 +25,7 @@ Choose by familiarity, not years of employment. If you know Python but not ML, u
 
 ## Spend ten minutes choosing the round to prepare for {#start}
 
-Check the invitation and job description: algorithms, ML coding, code comprehension, system design, or a project discussion? Can you run code, read documentation, or use a specified AI tool? **Do not use AI during the interview without explicit permission.**
+Check the invitation and job description: algorithms, ML coding, code comprehension, system design, or a project discussion? Can you run code, read documentation, or use a specified AI tool? **Do not use AI during the interview without explicit permission.** If the round involves reading and debugging code, start with the [code-comprehension exercises](code-comprehension.en.md#read); they do not replace algorithm practice.
 
 Write down the next round, your weakest relevant skill, and what you will produce today. For example: “ML coding on Thursday; I reverse masks; today I will implement attention and test that changing a future token cannot change earlier outputs.” That gives you more to work with than “review Transformers.”
 
@@ -141,12 +141,6 @@ Continue: [A complete ML system](../practice/ml-system/README.en.md) · [vLLM / 
 | Inference / ML systems | Algorithms, generation and caches, memory estimates, scheduling, performance evidence | Memorizing every framework class |
 
 These are time-allocation suggestions, not a company's question bank. For vision, speech, robotics, or other domains, substitute their core problems for the LLM material. A few memorized terms do not replace domain knowledge.
-
-## Should you practice Google's code-comprehension format? {#google}
-
-Yes, but **do not drop algorithm practice**. Reporting from May 2026 described an AI-assisted code-comprehension pilot on selected US Google teams, involving reading, debugging, and optimization—not a confirmed worldwide process. See [code comprehension](code-comprehension.en.md#google) for sources and an original practice exercise.
-
-If your invitation includes that round, confirm the tools, test execution, and exact permission to use AI. Code comprehension does not automatically mean AI is allowed; Google's and Google DeepMind's processes are not interchangeable.
 
 ## Finish with a small note of your own {#finish}
 

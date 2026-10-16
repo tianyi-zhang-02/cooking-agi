@@ -75,7 +75,7 @@ RE 是 Research Engineer，MLE 是 Machine Learning Engineer，RS 是 Research S
 | GPU 利用率低，先改什么？ | 分开检查 CPU 输入、队列、执行、HBM 带宽、通信和输出缓冲；先取 trace，再改一个变量 |
 | 什么时候拆 prefill / decode？ | 在测出的干扰之外，算上 KV 传输、两端队列与失败恢复成本 |
 
-[一亩三分地上的 inference 面试复盘](https://www.1point3acres.com/home/thread/1188659)特别强调相关经验和技术深度，语境主要是有经验、尤其 senior 的求职者。可以借它决定要深挖哪一层，但不能推出“新人必须先内部转岗”或“传统系统设计不用准备”。轮次还是要问清楚。
+准备 inference 方向，至少挑一层准备到能讲细节：调度策略、KV cache 管理，或者你拿得出的性能证据。传统系统设计也别丢；轮次还是要问清楚。
 
 ## 项目、研究讨论和 BQ，别拖到最后 {#projects}
 
@@ -91,19 +91,17 @@ BQ 可以准备合作分歧、失败、模糊需求各一个真实故事：当�
 
 ## 免费资料怎么接着用 {#resources}
 
-不必把它们全部刷完。下面分别解决“需要练什么”“怎样动手”和“面试有什么规则”。
+不必把它们全部刷完。下面分别解决“需要练什么”和“怎样动手”。
 
 | 资料 | 适合拿来做什么 |
 | --- | --- |
 | [Alisa：Notes on the Industry Job Search](https://alisawuffles.github.io/blog/job-search/) · 2026-06 | PhD 求职视角；把 ML coding、技术讨论和研究讨论区分开，不只准备论文介绍 |
-| [Evan：从 astrophysics postdoc 到 Anthropic](https://evanhanders.blog/2026/04/02/my-path-from-astrophysics-postdoc-to-anthropic/) · 2026-04 | 转行视角；作者反思会多练工程编码、读别人的代码与 code review |
+| [Evan：从天体物理博士后转行做 ML](https://evanhanders.blog/2026/04/02/my-path-from-astrophysics-postdoc-to-anthropic/) · 2026-04 | 转行视角；作者反思会多练工程编码、读别人的代码与 code review |
 | [Silvia：ML Job Interviews](https://silviasapora.github.io/blog/ml-interviews.html) · 2026-06 | ML PhD 的 RS 求职经历；实现和 debugging 清单。她的题目范围不等于所有人的必修课 |
 | [Andrey：ML/Research Engineer interviews 2025](https://reyzharkov.com/blog/posts/interviews-2025-ml-research-engineer-uk) · 2026-03 发布 | 复盘的是 2025 年英国 / 远程求职，有经验工程师的视角；别把发布时间当面试发生年份 |
-| [LLM Inference Role 面试总结](https://www.1point3acres.com/home/thread/1188659) · 2026-09 | 了解 serving / systems 方向如何追问深度；个人样本，不是市场统计 |
 | [Stanford CS336 Assignment 1](https://github.com/stanford-cs336/assignment1-basics) | 从学生版接口写实现、接测试；是系统性作业，不是现成答案。正在修课时遵守课程协作规则 |
 | [Karpathy：Zero to Hero](https://karpathy.ai/zero-to-hero.html) → [Let's reproduce GPT-2 (124M)](https://www.youtube.com/watch?v=l8pRSuU81PU) | 先练从零实现，再练训练与效率；视频关掉后重新写，比只跟着敲更能发现缺口 |
 | [TinyZero](https://github.com/Jiayi-Pan/TinyZero) → [verl](https://github.com/volcengine/verl) | 有余力再做 RL 实验。TinyZero 已声明不再积极维护，建议新实验用 verl；其 0.5B 结果只描述该模型与设置，不是小模型能力上限 |
-| [OpenAI 官方面试指南](https://openai.com/interview-guide/) | AI 和其他工具是否允许，取决于具体轮次；以准备材料和 recruiter 确认为准 |
 
 这几篇作者的背景差别很大。我们借用它们发现遗漏，练习、例子和站内组织另写，不搬运公司题目、薪资推断或成功门槛。朋友的个人建议也只能作为补充，不写成某家公司的内部标准。
 

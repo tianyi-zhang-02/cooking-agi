@@ -4,7 +4,7 @@
 
 This page tracks what has been written and what still needs checking. It helps us avoid losing material when reorganizing the notes; it is not a checklist readers have to work through.
 
-**As of 2026-10-10, every listed topic has a reading entry, but the review is not complete.** Of the 82 main topics, 81 have substantive explanations and one is an interview-preparation overview. The appendix lists 65 topics plus algorithm and PyTorch indexes. Several entries link to the same note, so these numbers are not an article count.
+**As of 2026-10-16, every topic in the reference list has a reading entry, but the review is not complete.** Of the 82 main topics, 81 have substantive explanations and one is an interview-preparation overview. The appendix lists 65 topics plus algorithm and PyTorch indexes. Several entries link to the same note, so these numbers are not an article count. For the new blocks outside the reference list and their review state, see [what this update focuses on](#current-update).
 
 The listed Appendix 1 articles have now been read; the generated summary below records their status. The next task is to check whether our explanations are accurate and our examples useful, not to increase a reading count. Reading the prose does not verify every source figure, external link, or implementation.
 
@@ -14,13 +14,23 @@ Published notes are still being revised, and new material is checked locally bef
 
 ## What this update focuses on {#current-update}
 
-Before expanding the notes further, we're bringing the existing changes together in a PR for review. This snapshot is not a completed site-wide audit; it only reaches the live site after a separate merge and deployment.
+On 2026-10-15 we added a fourth area, Frontier watch, two new blocks, and a few single notes. Anything marked “pending review” is a draft: it opens with a notice and is marked “(draft)” in the sidebar until the site owner has read it. Check the primary sources a draft links before relying on its facts.
 
-- **Language entry:** a first visit to the homepage starts in English, with a small dismissible tip. The top link switches the same note in one click, and Chinese notes include English terms. Your browser remembers your choice; direct links to a particular language still take precedence.
-- **Repository README:** the [main README](../README.md) introduces the project in English, with a separate [Chinese version](../README.zh.md). Reading goals come first, then topic routes, contributing, and local setup.
-- **Explanations and figures:** BERT, RL / post-training, Python, and retrieval now have more examples and derivations. Figure text is written for each language, with optional detail to expand. Article-by-article review is still ongoing.
+| Content | Notes | Review state |
+| --- | ---: | --- |
+| [Frontier watch](../11-frontier/README.en.md) · [World models](../11-frontier/world-models/README.en.md) | 7 | Reviewed |
+| Frontier watch · [Recursive self-improvement](../11-frontier/self-improvement/README.en.md) | 5 | Reviewed |
+| Frontier watch · [Test-time compute](../11-frontier/test-time-compute/README.en.md) | 5 | Draft, pending review |
+| Frontier watch · [Agent RL](../11-frontier/agentic-rl/README.en.md) | 4 | Draft, pending review |
+| Frontier watch · [Interpretability](../11-frontier/interpretability/README.en.md) | 5 | Draft, pending review |
+| [AI infrastructure](../12-infra/README.en.md): wafers and packaging, CPUs, GPUs, NVIDIA generations, CUDA, performance, frameworks, Kubernetes | 10 | Draft, pending review |
+| [Perception, robots, and driving](../13-embodied/README.en.md): perception and geometry, autonomous driving, robot learning | 14 | Draft, pending review |
+| Deep RL: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md), [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md) | 3 | Reviewed |
+| Other chapters: [one agent or several](../10-agents/single-vs-multi-agent.en.md), [LLMs for decision support](../06-systems/decision-support.en.md), [taking evaluation online](../07-evaluation/eval-observability.en.md) | 3 | Draft, pending review |
 
-**Checks so far:** language switching and narrow-screen layouts for the homepage, retrieval notes, and pages changed in subsequent batches; regressions for the first-visit tip, saved language choice, and existing links. Chapter reviews are still in progress. The repository's `CONTENT_RELEASE_CHECKLIST.md` records the scope and findings of each batch, rather than treating a scoped check as site-wide approval.
+Counts are per note, including each series overview; every note also has a Chinese version. None of this is in the reference list, so the comparison tables below do not count it. The table records review state only; it is not a completed site-wide audit. The scope and results of each batch's checks are in the repository's `CONTENT_RELEASE_CHECKLIST.md`.
+
+The previous round (2026-10-10) reorganized the language entry (a first visit starts in English; the top link switches the same note), the repository [README](../README.md) and its [Chinese version](../README.zh.md), and the examples and figures for BERT, RL / post-training, Python, and retrieval.
 
 **Still to do:** continue reviewing our explanations, examples, figures, and wording in both languages, and verify any image equations or external material used to support our claims. Unused reference material stays outside that verification scope; “read” is not the same as “validated.” Technical claims are checked against original papers or official implementations. Teaching examples in engineering notes are not evidence of full GPU training runs.
 

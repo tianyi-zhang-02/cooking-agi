@@ -10,7 +10,13 @@
 
 不确定该选哪一部分，可以先看[阅读路线](choose-your-path.md)；主要为面试复习，直接去[面试准备](../interview/README.md)。
 
-近期补充：[Muon 与 AdamW 的区别](../00-foundations/deep-dives/muon.md)、[DFlash、MTP 与 DFlash 2](../00-foundations/deep-dives/dflash.md)。这两篇偏进阶，分别讨论参数更新与推理加速。
+近期补充（2026-10）：
+
+- [前沿观察](../11-frontier/README.md)：新增的第四部分。[世界模型](../11-frontier/world-models/README.md)和[递归自我改进](../11-frontier/self-improvement/README.md)两组已审阅；[测试时计算](../11-frontier/test-time-compute/README.md)、[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)、[机制可解释性](../11-frontier/interpretability/README.md)三组是待审核草稿。
+- [AI 基础设施](../12-infra/README.md)（从芯片、GPU、CUDA 到框架和集群）和[感知、机器人与自动驾驶](../13-embodied/README.md)：两个新板块，都是待审核草稿。
+- 强化学习补了三篇：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划和学习怎样互相喂](../05-post-training/deep-rl/planning-and-learning.md)、[离线评估的估计量](../05-post-training/deep-rl/ope-estimators.md)。
+
+待审核草稿的开头有提示框，侧栏标「（待审核）」；引用其中的事实前，请回到文中链接的一手资料核对。
 
 ## 从基础开始
 
@@ -72,7 +78,7 @@
 
 ## 全部章节
 
-分为**理解模型、训练与检验、推理与应用**三个部分，与左侧目录一致。点标题看导读，展开小节找文章。相关主题会在文中互相链接。
+分为**理解模型、训练与检验、推理与应用、前沿观察**四个部分，与左侧目录一致。点标题看导读，展开小节找文章。相关主题会在文中互相链接。
 
 <!-- widget:study-atlas -->
 

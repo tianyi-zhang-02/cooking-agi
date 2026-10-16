@@ -2,23 +2,21 @@
 
 **中文** · [English](code-comprehension.en.md)
 
-> 最近审阅：2026-10 · 原创教学练习，不是 Google 或其他公司的面试原题。
+> 最近审阅：2026-10 · 原创教学练习，不是任何公司的面试原题。
 
 从零写一个解法，和接过别人写的代码，是两种练习。后者先要弄清原来的行为：输入怎么走、状态存在哪里、结果为什么不对。代码能跑，甚至大部分测试都绿，也不代表理解对了。
 
 这页用一个很小的 embedding cache 和一个指标聚合例子练这件事。不需要 GPU、模型或外部服务。先读代码，写下预期，再运行；参考修复放在后面，不必一开始就打开。
 
-## Google 最近的变化，哪些可以确认？ {#google}
+## 先问清这一轮怎么考 {#rules}
 
-[Business Insider 在 2026 年 5 月 7 日的报道](https://www.businessinsider.com/google-job-interview-software-engineers-ai-assistant-coding-2026-5)提到，Google 计划在部分美国团队试点代码理解环节，允许指定的 Gemini 辅助阅读、排错和优化；报道包含 Google 发言人的确认。**这是试点报道，不是所有岗位已统一改制的证明。**
-
-本页截至 2026-10-11 未确认它的全面推广范围。不要因此认为不用再刷 LeetCode，或者任何一轮都能用 AI。收到通知后，直接向 recruiter 确认：
+读代码、排错这类环节，形式差别很大：有的能运行代码和测试，有的只能手工推演；有的允许指定的 AI 工具，有的完全不允许。同一个团队的不同轮次，规则也可能不一样。收到通知后，直接向 recruiter 确认：
 
 - 这一轮要从零实现，还是阅读并修改现有程序？
 - 能否运行代码和测试？使用什么语言、编辑器和资料？
 - 是否明确允许 AI？只限哪一轮、哪个工具，哪些材料可以输入？
 
-[Google DeepMind 的官方面试说明](https://storage.googleapis.com/deepmind-media/DeepMind.com/Assets/Docs/interviewing-at-google-deepmind.pdf)写明其流程与 Google 分开管理，并要求除非另有通知，不在正式面试或任务中使用 AI。不要把它当作 Google SWE 试点的细则；它也提醒我们，工具权限需要逐轮确认。
+**没有明确允许，就不要在正式面试里用 AI。**读代码的练习也不能代替算法准备，LeetCode 仍要练。
 
 ## 拿到陌生代码，先看哪儿？ {#read}
 

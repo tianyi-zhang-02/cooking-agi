@@ -16,7 +16,13 @@ This section explains how models work, why training methods take the forms they 
 
 <span id="how-the-sections-fit-together"></span>
 
-Recent additions: [Muon](../00-foundations/deep-dives/muon.en.md) explains matrix updates versus AdamW; [DFlash and MTP](../00-foundations/deep-dives/dflash.en.md) covers drafting, verification, acceleration conditions, and DFlash 2 changes. Beginners can skip these initially; readers working on training or inference can go directly to the relevant question.
+Recent additions (October 2026):
+
+- [Frontier watch](../11-frontier/README.en.md), a new fourth area. The [world models](../11-frontier/world-models/README.en.md) and [recursive self-improvement](../11-frontier/self-improvement/README.en.md) series have been reviewed; [test-time compute](../11-frontier/test-time-compute/README.en.md), [agent RL](../11-frontier/agentic-rl/README.en.md), and [interpretability](../11-frontier/interpretability/README.en.md) are drafts pending review.
+- [AI infrastructure](../12-infra/README.en.md) (from chips, GPUs, and CUDA up to frameworks and clusters) and [Perception, robots, and driving](../13-embodied/README.en.md): two new blocks, both drafts pending review.
+- Three new deep RL notes: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [how planning and learning feed each other](../05-post-training/deep-rl/planning-and-learning.en.md), and [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md).
+
+Drafts pending review open with a notice and are marked “(draft)” in the sidebar; check the primary sources they link before relying on a fact.
 
 ## Start with the foundations
 
@@ -80,7 +86,7 @@ These are not reader rankings. You can build RAG without first studying SAC, or 
 
 ## All chapters
 
-The three areas match the sidebar: **understand models → train and evaluate → inference and applications**. These describe subjects, not difficulty levels. Each article has one main home; links connect related subjects without duplicating content.
+The four areas match the sidebar: **understand models → train and evaluate → inference and applications → frontier watch**. These describe subjects, not difficulty levels. Each article has one main home; links connect related subjects without duplicating content.
 
 Open an overview or expand a chapter for all its articles. Model families follow component fundamentals. Questions and coding exercises live in Interview preparation; design exercises and project walkthroughs live in Engineering practice. Switch whenever you want to try an idea, without finishing the whole section first.
 
