@@ -35,6 +35,7 @@ class ReviewAnchorSemanticsTests(unittest.TestCase):
             ("06-systems/README.md", "_7", "排查前，先问自己这九个问题"),
             ("06-systems/README.md", "_8", "两个帮助系统持续改进的模块"),
             ("interview/study-plan.en.md", "inference-ml-systems_1", "Inference &amp; ML systems"),
+            ("interview/study-plan.md", "inference-ml-systems_1", "推理与 ML 系统"),
         ]
         for relative, anchor, heading in cases:
             with self.subTest(source=relative, anchor=anchor):
@@ -66,3 +67,4 @@ class ReviewAnchorSemanticsTests(unittest.TestCase):
             self.assertIn('<span id="inference-ml-systems"></span><strong>Inference / ML Systems', plan)
         systems = render("06-systems/README.md")
         self.assertRegex(systems, r'<span id="_5"></span></p>\s*<p>确定性规则、参考答案或执行器')
+        self.assertRegex(render("interview/study-plan.md"), r'<span id="ml"></span></p>\s*<h3 id="inference-ml-systems_1">')
