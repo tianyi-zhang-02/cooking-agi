@@ -71,7 +71,7 @@ vLLM 的进程边界可查[官方架构](https://docs.vllm.ai/en/v0.31.0/design/
 | 编译、算子与 CUDA Graph | 生成或选择算子，减少启动与调度成本 | Graph capture 的 shape / buffer 约束；不适配时回退到什么路径？ |
 | GPU 内存与通信 | 在 HBM 存权重与 KV，在寄存器 / shared memory 复用局部数据；多卡交换张量 | 计算、显存带宽还是互联限速？通信能否与计算重叠？ |
 
-PyTorch、Triton、CUDA / 厂商库可能出现在不同后端，不是每次执行都必经的一串“服务”。比如 CUDA Graph 主要减少 CPU 发起 GPU 工作的开销，不会让 KV cache 免费，也不会消除 TP 的通信。FlashAttention 的 IO 优化与 paged KV 的内存管理同样不在一个层面：前者改变 attention 怎么计算，后者改变 KV 怎么分配和寻址。详见[attention kernel 与缓存布局](../00-foundations/deep-dives/attention-kernels.md)。
+PyTorch、Triton、CUDA / 厂商库可能出现在不同后端，不是每次执行都必经的一串“服务”。比如 CUDA Graph 主要减少 CPU 发起 GPU 工作的开销（为什么小 batch 时这笔开销显眼，见[框架这一层](../12-infra/frameworks.md)），不会让 KV cache 免费，也不会消除 TP 的通信。FlashAttention 的 IO 优化与 paged KV 的内存管理同样不在一个层面：前者改变 attention 怎么计算，后者改变 KV 怎么分配和寻址。详见[attention kernel 与缓存布局](../00-foundations/deep-dives/attention-kernels.md)。
 
 SGLang 的上述执行选择可以在固定版本的 [ModelRunner](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/model_executor/model_runner.py)中继续追。面试讲到自己没测过的后端，就说清阅读到哪一层，不把源码阅读说成调优经验。
 
@@ -87,6 +87,58 @@ SGLang 的上述执行选择可以在固定版本的 [ModelRunner](https://githu
 </figure>
 
 举个教学配置：总共八张 GPU，TP=2、4 个完整副本，就是每个请求由一个双卡组处理，共有 4 组独立安排请求。不能把它说成“每个请求自动用满八张”。是否比 TP=8 更合适，取决于模型放得下吗、KV 余量、单请求延迟、到达率和互联。先把[显存账](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)算清，再拿代表性负载验证。
+
+### 卡数相同，TP8 和 DP8 在忙什么？ {#eight-gpus}
+
+先看 dense 模型，不启用共享专家。**TP8 是 8 张卡合作跑一份模型；DP8 / TP1 是 8 份模型分别接请求。** 一组 TP8 也可以批量处理很多请求，不是“一组只能服务一个人”。差别在于一轮计算由谁合作完成。
+
+假设权重恰好占 16 GiB、每卡 24 GiB，并把全部权重视为可均匀切分。下面只算权重，暂不计 KV、工作区和小型复制参数：
+
+| 配置 | 每卡权重 | 怎样分工 |
+| --- | --- | --- |
+| TP8 · 1 个协作组 | 理想 2 GiB | 同一批请求在 8 卡上协作。省下单卡权重空间，但层内需要频繁交换结果 |
+| DP8 / TP1 · 8 个副本 | 16 GiB | 各副本分担请求，dense 前向不需要副本之间同步。每份还有自己的缓存和队列 |
+| DP2 / TP4 · 2 个协作组 | 理想 4 GiB | 每组 4 卡合作，两组分担流量。这不是同时用了 8 份模型 |
+
+这是纯权重估算，不是可服务并发或吞吐结果。DP8 的单卡剩余 8 GiB，还得容纳缓存和运行时；不能全算成 KV。
+
+权重放得下、目标是总吞吐时，可以先测副本方案；单卡容量不足，或者单请求计算太重时，再比较 TP / PP。TP 的矩阵变小不保证延迟线性下降：通信、kernel 效率和调度都可能抵消收益。[vLLM 扩展指南](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/)给出了单卡、TP 与 TP+PP 的部署起点；实际选择仍要测自己的请求分布。
+
+比较时固定总卡数、到达流量、输入/输出长度和缓存预热条件。不要只看离线 tokens/s：也看首 token 延迟（TTFT）、输出间隔、尾延迟、被拒请求和每卡显存峰值。一个吞吐更高、但排队更久的配置，不一定更适合交互产品。
+
+### 部署时的 DP，不一定是互不相干的副本 {#moe-deployment}
+
+训练里的 DDP 同步梯度；推理里的 data parallelism 通常分配请求。对于 MoE，还要看专家是否跨副本共享。按 2026-10-09 核对的 [vLLM EP 部署说明](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment/)，启用 EP 时，专家组大小为 TP × DP；attention 的复制或切分与专家分布不是同一件事。这是该框架的组合方式，不是所有系统的定义。
+
+用一个**虚构权重账**：可切分的非专家权重共 6 GiB，路由专家共 42 GiB，部署在 4 张卡上。暂不计复制的小张量、量化元数据、KV 和 workspace：
+
+| 配置 | 每卡非专家权重 | 每卡路由专家 | 每卡合计 |
+| --- | --- | --- | --- |
+| TP1 / DP4 / EP4 | 6 GiB | 10.5 GiB | 16.5 GiB |
+| TP4 / DP1 / EP4 | 1.5 GiB | 10.5 GiB | 12 GiB |
+
+第二种每卡少 4.5 GiB，但单次 attention 计算要在 TP 组内协作。第一种把 attention 留给各 rank；遇到远端专家，仍要交换激活。**不能把第一种当成 4 套完全独立、互不等待的服务。** 副本的缓存、请求队列和共享专家的调度要一起看。
+
+这是容量估算，不是吞吐预测。比较时固定到达流量、输入/输出长度和缓存冷热，记录首 token 延迟、输出间隔、尾延迟与专家负载。若矩阵被切得过小，省显存也可能换来更多等待。
+
+### PP 的 KV 在哪里，边界传多少东西？ {#pp-kv}
+
+先限定为普通 decoder、按层做 PP，不叠加 cache offload 或 prefill/decode 分离。某张卡计算哪些层，就保存那些层的 KV；相邻 stage 传递边界激活，不需要每步把全部历史 KV 来回搬。
+
+但“只传激活”不等于“传得很少”。设 hidden size 为 3072，BF16 每元素 2 字节：
+
+| 单次边界传输 | 张量元素数 | 原始字节数 |
+| --- | --- | --- |
+| 8 条请求各 decode 1 个 token | 8 × 3072 | 48 KiB |
+| 8 条请求各 prefill 4096 个 token | 8 × 4096 × 3072 | 192 MiB |
+
+这里尚未计额外 residual 张量、元数据、协议和同步。长 prefill 可以分块传，代价是调度与流水线行为随之变化；不能拿 decode 的小包去解释所有场景。
+
+[vLLM 的扩展指南](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/)建议无 NVLink 的某些配置优先考虑 PP，以减少通信；这不构成“PP 在所有 PCIe 机器上最优”的证明。单请求仍要依次经过各 stage，层间负载不均会让卡空等。若模型单卡已放得下，独立副本、量化后单卡、TP 和 PP 都应在相同流量下比较。分离式 serving 若迁移 KV，则又是不同的通信路径。
+
+再算一个传输下限：假设边界有效带宽为 12 GiB/s，且忽略启动延迟。上表的 48 KiB 至少约需 3.8 微秒，192 MiB 约需 15.6 毫秒。前者很可能由启动和同步开销主导；后者已经不能忽略字节量。这个带宽是算例假设，不是 PCIe 或某款显卡的实测值。
+
+PP 可以减少跨卡协作的频率，但也带来顺序依赖：只有一条请求、一个待生成 token 时，后面的 stage 仍要等前面的结果。增加 microbatch 能让不同请求同时占用不同 stage，却需要足够流量，也可能增加排队和缓存占用。因此“没有 NVLink”只是选型条件之一，还要看链路拓扑、prefill 长度、并发与延迟预算。
 
 ## 为什么请求结束一个，就能补进一个 {#batching}
 

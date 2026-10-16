@@ -71,7 +71,7 @@ Distinguish two kinds of traffic:
 | Compilation, kernels, CUDA Graphs | Generate or select kernels; reduce launch and scheduling overhead | Capture constraints on shapes and buffers; fallback paths when they do not fit |
 | GPU memory and communication | HBM holds weights and KV; registers / shared memory reuse local data; devices exchange tensors | Compute, HBM bandwidth, or interconnect bound? Can transfers overlap useful computation? |
 
-PyTorch, Triton, CUDA, and vendor libraries appear in different backends; they are not a fixed series of services that every request traverses. CUDA Graphs primarily reduce CPU overhead for launching GPU work. They do not make KV storage free or eliminate TP communication. FlashAttention's IO optimization and paged KV management also address different layers: how attention is computed versus how cached state is allocated and addressed. See [attention kernels and cache layouts](../00-foundations/deep-dives/attention-kernels.en.md).
+PyTorch, Triton, CUDA, and vendor libraries appear in different backends; they are not a fixed series of services that every request traverses. CUDA Graphs primarily reduce CPU overhead for launching GPU work (why that overhead stands out at small batch sizes is covered in [the framework layer](../12-infra/frameworks.en.md)). They do not make KV storage free or eliminate TP communication. FlashAttention's IO optimization and paged KV management also address different layers: how attention is computed versus how cached state is allocated and addressed. See [attention kernels and cache layouts](../00-foundations/deep-dives/attention-kernels.en.md).
 
 Continue through the pinned [SGLang ModelRunner](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/model_executor/model_runner.py) for execution choices. If you have only read a backend, say so; source reading is not measured optimization experience.
 
@@ -87,6 +87,58 @@ Continue through the pinned [SGLang ModelRunner](https://github.com/sgl-project/
 </figure>
 
 For a teaching configuration with eight GPUs, TP=2 and four complete replicas means a request uses one two-GPU group, with four groups scheduling requests independently. It does not mean every request automatically uses all eight GPUs. Whether this beats TP=8 depends on model fit, KV headroom, single-request latency, arrivals, and interconnects. Start with the [memory budget](../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget), then measure representative traffic.
+
+### Eight GPUs: TP8 or DP8? {#eight-gpus}
+
+Start with a dense model and no shared experts. **TP8 uses eight GPUs to run one model cooperatively; DP8 / TP1 runs eight replicas handling separate requests.** A TP8 group can batch many requests—it is not limited to one user. The difference is who cooperates on each computation.
+
+Suppose weights occupy exactly 16 GiB, each device has 24 GiB, and all weights can be partitioned evenly. Count only weights for now, excluding KV, workspace, and small replicated parameters:
+
+| Configuration | Weights per GPU | Division of work |
+| --- | --- | --- |
+| TP8 · one cooperating group | Ideally 2 GiB | Eight ranks cooperate on the same batch. Weight storage per GPU falls, but layer computations need frequent communication |
+| DP8 / TP1 · eight replicas | 16 GiB | Replicas share the incoming load without synchronizing dense forward computation. Each has its own cache and queue |
+| DP2 / TP4 · two cooperating groups | Ideally 4 GiB | Each four-GPU group cooperates internally. Two groups share the load; this is not eight model replicas |
+
+This is weight accounting, not measured throughput or supported concurrency. DP8 leaves 8 GiB per GPU for both caches and runtime—not 8 GiB of guaranteed KV capacity.
+
+If weights fit and aggregate throughput matters, replicas are a useful baseline. If capacity or per-request computation is the problem, compare TP / PP. Smaller TP matrix multiplications do not guarantee a proportional latency reduction: communication, kernel efficiency, and scheduling can absorb the gains. [vLLM's scaling guide](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) provides starting configurations; choose using your actual request distribution.
+
+Hold GPU count, arrival load, input/output lengths, and cache warmup fixed. Alongside offline tokens/s, measure time to first token (TTFT), output intervals, tail latency, rejected requests, and peak memory. Higher throughput with longer queues may be a poor trade for an interactive product.
+
+### Serving DP does not always mean independent replicas {#moe-deployment}
+
+Training DDP synchronizes gradients; serving data parallelism typically distributes requests. With MoE, check whether experts are shared across those replicas. In [vLLM's EP deployment documentation](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment/), checked on 2026-10-09, enabling EP forms an expert group of size TP × DP. Attention replication/sharding and expert placement are different decisions. This is a framework convention, not a universal definition.
+
+Take a **hypothetical weight budget**: 6 GiB of shardable non-expert weights and 42 GiB of routed experts on four GPUs. Ignore replicated small tensors, quantization metadata, KV, and workspace:
+
+| Configuration | Non-expert weights per GPU | Routed experts per GPU | Total per GPU |
+| --- | --- | --- | --- |
+| TP1 / DP4 / EP4 | 6 GiB | 10.5 GiB | 16.5 GiB |
+| TP4 / DP1 / EP4 | 1.5 GiB | 10.5 GiB | 12 GiB |
+
+The second saves 4.5 GiB per GPU but requires TP cooperation for attention. The first keeps attention local to each rank while still exchanging activations for remote experts. **It is not four completely independent services.** Consider replica caches and queues together with shared-expert scheduling.
+
+This estimates capacity, not throughput. Hold arrivals, input/output lengths, and cache warmth fixed; measure first-token latency, output intervals, tail latency, and expert load. Matrices sharded too finely may save memory while increasing waiting.
+
+### Where does PP keep KV, and what crosses a boundary? {#pp-kv}
+
+Assume an ordinary decoder partitioned by layer, without cache offload or prefill/decode disaggregation. Each GPU retains KV for its own layers. Adjacent stages exchange boundary activations rather than repeatedly moving the entire historical KV cache.
+
+“Only activations” does not necessarily mean a small transfer. With hidden size 3072 and two bytes per BF16 element:
+
+| One boundary transfer | Element count | Raw bytes |
+| --- | --- | --- |
+| Eight requests decoding one token each | 8 × 3072 | 48 KiB |
+| Eight requests prefilling 4096 tokens each | 8 × 4096 × 3072 | 192 MiB |
+
+Extra residual tensors, metadata, protocol costs, and synchronization are excluded. Chunking long prefill changes scheduling and pipeline behavior; a small decode message cannot describe every workload.
+
+[vLLM's scaling guide](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) recommends considering PP for certain configurations without NVLink to reduce communication. That is not proof of optimality on every PCIe machine. A single request still traverses stages sequentially; unequal stage work creates idle time. If the model fits on one GPU, compare independent replicas, quantized single-GPU serving, TP, and PP under the same workload. Disaggregated serving that transfers KV introduces a different communication path.
+
+For a transfer lower bound, assume effective boundary bandwidth of 12 GiB/s and ignore startup latency. The 48 KiB message takes about 3.8 microseconds; the 192 MiB message takes about 15.6 milliseconds. Startup and synchronization can dominate the first, while bytes already matter in the second. This is assumed bandwidth, not a measured PCIe link or GPU specification.
+
+PP can reduce the frequency of cross-device cooperation, but preserves sequential dependencies: with one request and one next token, later stages still wait for earlier results. More microbatches let different requests occupy different stages, provided there is enough traffic; queues and cache usage can also grow. Lack of NVLink is one input to the decision, alongside topology, prefill length, concurrency, and the latency budget.
 
 ## Refill a batch as requests finish {#batching}
 

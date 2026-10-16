@@ -41,11 +41,12 @@ If these questions have no answers, the final score means nothing, however preci
 ## How to read this section
 
 - [The evaluation stack](evaluation-stack.en.md): from deterministic checks to online outcomes, which question each layer is good at.
-- [BLEU, ROUGE, and edit distance](text-metrics.en.md): score a short sentence, then see why an incorrect answer can receive a higher score.
+- [BLEU, ROUGE, edit distance and perplexity](text-metrics.en.md): score a short sentence, then see why an incorrect answer can receive a higher score; perplexity scores the probability a model gives to the test text, not its own writing.
 - [Benchmarks and long-context tests](benchmark-protocols.en.md): choose tasks, fix the protocol, move evidence, and interpret score differences.
 - [Comparisons and slices](ablation-and-slices.en.md): hold conditions fixed, then check which group got worse while the average rose.
 - [Is the metric robust?](metric-robustness.en.md): what an average hides, and how an evaluator drifts on its own.
 - [LLM-as-a-Judge](llm-as-a-judge/README.en.md): how to handle the criterion, the scoring mode, and the biases when a model does the scoring.
+- [Taking evaluation online](eval-observability.en.md) (draft under review): what to record for production requests, how to sample traffic for a judge, and how failures become regression items.
 
 ## How it connects to other topics
 

@@ -56,6 +56,8 @@ DDP 是 Distributed Data Parallel（分布式数据并行）；FSDP 是 Fully Sh
 
 $$M_{\text{peak}}=\max_t\left(M_{\text{persistent}}(t)+M_{\text{activation}}(t)+M_{\text{temporary}}(t)\right).$$
 
+接着上面的 10 亿参数例子填一次数，下面的数都是假设：模型有 20 个同样大的 block，每个 5,000 万参数。反向算到某个 block 时，每卡常驻 4 GB 分片；这个 block 的完整 FP32 参数刚聚合回来，占 $5\times10^7\times4=0.2$ GB，它的完整梯度在 reduce-scatter 之前又占 0.2 GB；这时还留着 3 GB 激活和 0.5 GB workspace。这一刻就是 $4+3+0.2+0.2+0.5=7.9$ GB。$M_{\text{peak}}$ 是所有时刻里最大的那个值，比只数常驻分片的 4 GB 高出将近一倍。
+
 不要把不同时间各自出现的最大值随便相加，当成精确峰值；也不要只数常驻分片，就认定能训练。先记录时间线，再看哪几项同时存在。混合精度下参数、梯度和通信可能是不同 dtype，需要重新列账。
 
 | 想省哪部分 | 可以试什么 | 交换条件 |
@@ -91,7 +93,7 @@ Prefetch 可以在算当前块时取下一块，前提是还有通信和内存�
 
 先在固定小样本上比较一次更新，再谈吞吐：输入顺序、有效 token、mask、梯度归一化、clipping 和 optimizer 配置都要对齐。不同并行归约顺序可能有数值误差，用事先声明的容差比较，不承诺逐 bit 相同。
 
-然后测 warm-up 后的有效 target tokens/s、每步耗时分布、峰值显存和通信等待。GPU utilization 很高，也可能是在重算、padding 或通信上忙。更有用的问题是：**同样的质量目标，多久能完成一次可靠实验？**
+然后测 warm-up 后的有效 target tokens/s、每步耗时分布、峰值显存和通信等待。GPU utilization 很高，也可能是在重算、padding 或通信上忙；MFU 和 HFU 的分子为什么不同，见[性能：MFU 与 HFU](../12-infra/performance.md#mfu)。更有用的问题是：**同样的质量目标，多久能完成一次可靠实验？**
 
 最后故意中断一次。只恢复模型权重，不等于恢复训练；还要检查 optimizer、scheduler、RNG、数据游标和更新步。分片 checkpoint 能否换卡数加载，需要实际验证所用保存格式与 loader；能加载也不等于重放同一条训练轨迹。接着看[保存与恢复](../practice/post-training/checkpoint-and-resume.md)。
 

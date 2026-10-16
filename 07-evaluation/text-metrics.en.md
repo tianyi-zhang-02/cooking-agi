@@ -1,4 +1,4 @@
-# BLEU, ROUGE, and edit distance: what does the score compare?
+# BLEU, ROUGE, edit distance and perplexity: what does the score compare?
 
 [中文](text-metrics.md) · **English**
 

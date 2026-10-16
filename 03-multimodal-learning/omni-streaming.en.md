@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisite: [Qwen-VL](qwen-vl.en.md)
 
-“Which button did he point at when he said ‘here’?” Transcription alone loses the gesture; isolated frames lose its timing. An audiovisual model must align the evidence before answering. If it speaks, correctness is only part of the experience: waiting, stuttering, and interruption matter too.
+“Which button did he point at when he said ‘here’?” Transcription alone loses the gesture; isolated frames lose its timing. **An audiovisual model must align the evidence in time before answering.** If it speaks, correctness is only part of the experience: waiting, stuttering, and interruption matter too.
 
 ## End-to-end is not the only starting point
 

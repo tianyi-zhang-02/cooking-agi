@@ -50,7 +50,7 @@ The closest centroid need not own the closest point. Probing more clusters reduc
 
 Product quantization (PQ) splits a vector into parts and represents each part by an entry in its own learned codebook. Split 768 dimensions into 64 parts with 256 entries per codebook: each part needs an 8-bit ID, making a 64-byte vector code. The original float32 vector needs 3,072 bytes, so the **code payload alone** is 48× smaller. Codebooks are fitted to training samples; splitting coordinates alone does not train a quantizer.
 
-ADC keeps the query unquantized and estimates distance to the reconstruction of a stored code. Squared L2 distances add across parts. SDC quantizes the query as well. The distinction is which sides are quantized, not whether a lookup table is used. [PQ paper, Sections II–III](https://paper-notes.zhjwpku.com/assets/pdfs/Product_Quantization_for_Nearest_Neighbor_Search.pdf)
+ADC keeps the query unquantized and estimates distance to the reconstruction of a stored code. Squared L2 distances add across parts. SDC quantizes the query as well. The distinction is which sides are quantized, not whether a lookup table is used. [PQ paper, Sections II–III](https://doi.org/10.1109/TPAMI.2010.57)
 
 Shrink the example to four dimensions. The query is `[1, 2 | 3, 4]`; each subspace has three codewords. This code demonstrates ADC only: it neither trains codebooks nor chooses the nearest encoding. The illustrative IDs are not bit-packed.
 
@@ -87,7 +87,7 @@ Code `[1, 1]` reconstructs `[1, 1, 3, 3]`, giving `0² + 1² + 0² + 1² = 2`. A
 
 ## 4. IVF-PQ introduces two sources of approximation
 
-IVF narrows the regions searched; PQ compresses stored vectors. A common IVFADC construction encodes each vector's **residual** relative to its coarse centroid, rather than simply chaining two unrelated steps. [PQ paper, Section IV](https://paper-notes.zhjwpku.com/assets/pdfs/Product_Quantization_for_Nearest_Neighbor_Search.pdf)
+IVF narrows the regions searched; PQ compresses stored vectors. A common IVFADC construction encodes each vector's **residual** relative to its coarse centroid, rather than simply chaining two unrelated steps. [PQ paper, Section IV](https://doi.org/10.1109/TPAMI.2010.57)
 
 | Failure | Concrete example | How to isolate it |
 | --- | --- | --- |
@@ -101,6 +101,8 @@ Retrieve a larger approximate shortlist and rescore its original vectors to repa
 
 [HNSW](https://arxiv.org/abs/1603.09320) searches a layered neighbor graph, navigating sparse upper layers before exploring more densely below. It does not require PQ compression, and its graph has its own memory cost.
 
+It has three parameters to tune. `M` is the maximum number of edges per node per layer: larger means a denser graph and more memory. `efConstruction` is how many candidates are kept while building: larger builds more slowly and gives a better graph. The query-time `ef` (called `efSearch` in many libraries) is how many candidates are kept during search: larger raises recall and latency. In pgvector these are `m`, `ef_construction` and `hnsw.ef_search`, with defaults 16, 64 and 40 ([pgvector documentation](https://github.com/pgvector/pgvector#hnsw), v0.8.7, checked 2026-10-16).
+
 | Option | Why try it first? | What still needs checking? |
 | --- | --- | --- |
 | Flat | A modest collection, efficient batching, or an exact baseline | Full-scan latency, throughput, and memory; exact does not always mean slowest in practice |
@@ -108,9 +110,9 @@ Retrieve a larger approximate shortlist and rescore its original vectors to repa
 | IVF-Flat | Isolate the effect of searching fewer regions | List imbalance, `nprobe`, and tail latency |
 | IVF-PQ | Vector storage is the main constraint | Code length, quantization error, representative training samples, and refinement costs |
 
-These are starting points for experiments, not mandatory transitions at a particular collection size. Hardware, concurrency, filtering, and update frequency can change the answer.
+These are starting points for experiments, not mandatory transitions at a particular collection size. Hardware, concurrency, filtering, and update frequency can change the answer. A batched Flat scan is essentially one large matrix multiplication and can keep the hardware's compute busy, which is why exact search is not always slowest; how to tell whether an operation is limited by compute or by bandwidth is covered in [Performance: the roofline](../12-infra/performance.en.md#roofline).
 
-## 6. ANN recall is not task relevance recall
+## 6. ANN recall is not task relevance recall {#ann-vs-task-recall}
 
 Let A be the exact top ten and B the approximate top ten. `|A ∩ B| / 10` measures retained exact neighbors. Relevance Recall@10 instead uses labeled relevant documents. A high value for the former shows that the approximation works, not that the representation does.
 

@@ -95,11 +95,13 @@ On 200 items, 160 versus 164 correct answers establishes a sample improvement of
 
 Retain paired per-item results and use [paired comparisons](metric-robustness.en.md#paired-comparison) to estimate uncertainty. Questions derived from the same document should be grouped at a sensible unit rather than treated as independent. Repeated generation measures sampling variation; independent training runs measure training variation.
 
+One calculation shows how little four items say. Treating the two result sets as unrelated samples, the 95% interval for a two-point difference has a half-width of about $1.96\sqrt{0.8\times0.2/200+0.82\times0.18/200}\approx7.7$ points, much larger than the difference itself. Paired, look only at the items that disagree: suppose the new model fixes 10 and breaks 6, a net gain of exactly 4; the exact McNemar test gives p ≈ 0.45, so these items do not show that the two accuracies differ.
+
 Predefine the main metric, protected slices, and acceptable costs. Selecting the largest post-hoc improvement can create an unstable story. An interval containing zero does not prove equivalence, and statistical significance does not automatically justify deployment.
 
 ## 6. Contamination and evaluation updates
 
-Old items can enter pretraining, SFT, synthetic data, or prompt demonstrations. Exact and near-duplicate checks help, but failing to find overlap does not prove cleanliness. Temporal splits require actual training and data-update dates; changing a date label does not remove leaked answers.
+Old items can enter pretraining, SFT, synthetic data, or prompt demonstrations. Exact and near-duplicate checks help, but failing to find overlap does not prove cleanliness. Temporal splits require actual training and data-update dates; changing a date label does not remove leaked answers. How mainstream benchmarks get contaminated and saturated is covered in [Test-time compute: reading the numbers](../11-frontier/test-time-compute/measuring.en.md).
 
 For a continually updated test, fix a release snapshot and date window rather than combine different periods into one supposedly comparable score. Treat a claimed model cutoff cautiously; it is not an auditable inventory of every training source.
 

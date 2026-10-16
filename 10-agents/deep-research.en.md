@@ -2,9 +2,11 @@
 
 [中文](deep-research.md) · **English**
 
+> Last reviewed: 2026-10
+
 “What time does this library close?” may need one lookup. “How have these libraries' hours changed this year, including weekends and holidays?” needs decomposition, date checks, conflict handling, and decisions about what remains unknown. Length is not the distinction; **adapting the next step to evidence** is.
 
-This is an original teaching design, not a product reproduction. [Anthropic's engineering account](https://www.anthropic.com/engineering/multi-agent-research-system) is a useful public example; its models, costs, and results describe that configuration, not ours.
+This is an original teaching design, not a product reproduction. [Anthropic's engineering account](https://www.anthropic.com/engineering/multi-agent-research-system) is a useful public example; its models, costs, and results describe that configuration, not ours. The search loop here is organized with code and prompts; training multi-step search itself as an RL task is covered in [Training agents with RL](../11-frontier/agentic-rl/README.en.md).
 
 ## 1. Define what must be answered
 

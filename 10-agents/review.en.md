@@ -23,14 +23,14 @@ A model (decides the next step), tools (act on the world), a loop (results go ba
 <details class="interview" markdown="1">
 <summary>Why is coding one of the most mature settings for agents?</summary>
 
-Because its verification signal is the strongest: code runs, tests pass, every step gets objective feedback, and the agent can safely try again. Settings such as customer support or personal assistants are much harder to judge automatically and lean more on rules, permissions, and people. Even in coding, passing tests does not mean the change is right.
+Because its verification signal is the strongest: code runs, tests pass, every step gets objective feedback, and the agent can try again in a sandbox, with a person still reviewing the diff once tests pass. Settings such as customer support or personal assistants are much harder to judge automatically and lean more on rules, permissions, and people. Even in coding, passing tests does not mean the change is right.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>How do you evaluate the reliability of a customer-support agent?</summary>
 
-Not by single-run success alone: check whether the same task is done right every time it is repeated, as with τ-bench's pass^k. Also check policy compliance, whether tool calls are correct, whether hard cases are handed to a person, and read complete run traces rather than only the final answer.
+Not by single-run success alone: check whether the same task succeeds in every one of several independent repeats, as with τ-bench's pass^k (the probability that all k runs succeed). Also check policy compliance, whether tool calls are correct, whether hard cases are handed to a person, and read complete run traces rather than only the final answer.
 
 </details>
 

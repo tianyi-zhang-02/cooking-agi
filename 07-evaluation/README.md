@@ -41,11 +41,12 @@ Slice       哪些用户、任务和环境必须分别观察？
 ## 这一块怎么读
 
 - [分层评估](evaluation-stack.md)：规则检查、实际执行和用户反馈，各能告诉我们什么。
-- [BLEU、ROUGE 与编辑距离](text-metrics.md)：用短句算一次分数，再看它为什么会奖励一个错误答案。
+- [BLEU、ROUGE、编辑距离与困惑度](text-metrics.md)：用短句算一次分数，再看它为什么会奖励一个错误答案；困惑度（perplexity）评的是模型给测试原文的概率，不是它自己的作文。
 - [Benchmark 与长上下文测试](benchmark-protocols.md)：选测试、固定协议、移动证据位置，再解释分数差异。
 - [对照实验与切片](ablation-and-slices.md)：锁住相同条件做对比，再看平均分上涨时哪一组变差了。
 - [指标靠得住吗](metric-robustness.md)：平均值会掩盖什么，评分器本身稳不稳定。
 - [LLM-as-a-Judge](llm-as-a-judge/)：评分标准怎么写、分数怎么算，以及怎样发现评分偏差。
+- [评估接到线上](eval-observability.md)（待审核草稿）：线上请求记什么、怎样抽样跑 judge，以及怎样把失败变成回归题。
 
 ## 接着可以看什么
 

@@ -50,7 +50,7 @@ vLLM V1 将 API、engine core 和 GPU worker 的职责分开；engine 管调度�
 
 新请求第 3 轮完成 prefill 后才有机会给出首 token。老请求则每轮都得到计算机会。把预算改成 12，新 prompt 可以一轮处理完，但这一轮也可能更长，正在等后续 token 的用户会感到停顿。
 
-这是**轮数与预算的算例，不是延迟预测**。Prefill 的一个位置和 decode 的一个位置，计算成本并不相同；实际还受 KV 容量、batch 形状、优先级和 kernel 影响。即使按表安排，6 个位置也不代表固定多少毫秒。
+这是**轮数与预算的算例，不是延迟预测**。Prefill 的一个位置和 decode 的一个位置，计算成本并不相同；实际还受 KV 容量、batch 形状、优先级和 kernel 影响。即使按表安排，6 个位置也不代表固定多少毫秒。为什么 decode 的 batch 变大后会从带宽受限走向算力受限，见[性能：decode 的 batch](../12-infra/performance.md#decode-batching)。
 
 <!-- widget:step-chunked-prefill -->
 
@@ -108,14 +108,7 @@ assert prefill_chunks(10, 2, 12) == [10]
 
 ## 有了这张图，再选部署方式 {#serving-choices}
 
-模型能装进一张卡，不代表这张卡能满足目标并发。[完整显存账](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)要把权重、KV 和运行时余量一起算。需要扩容时，先问自己缺的是哪一种资源。
-
-| 选择 | 可能解决什么 | 要付出什么 |
-| --- | --- | --- |
-| 多开独立副本 | 分担请求，提高总服务容量 | 重复权重；请求换副本可能失去热缓存 |
-| TP：层内拆分 | 分摊单个模型的权重和部分状态 | 各层需要通信，对互联敏感 |
-| PP：按层拆分 | 跨设备放下模型 | 中间激活传输，pipeline 空泡与调度复杂度 |
-| Prefill / decode 分离 | 两阶段分别选硬件与调度 | KV 传输、队列协调和故障处理 |
+模型能装进一张卡，不代表这张卡能满足目标并发。[完整显存账](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)要把权重、KV 和运行时余量一起算。需要扩容时，先问自己缺的是哪一种资源。多开独立副本、TP、PP、prefill / decode 分离各解决什么、要付出什么，以及同样 8 张卡怎样算权重账，见 [vLLM 与 SGLang：多张 GPU 的拼法](inference-frameworks.md#deployment-map)；副本在集群里怎样调度和扩容，见 [Kubernetes 与 GPU 集群](../12-infra/kubernetes.md)。
 
 这里不是框架排行榜。先选一种能跑通的简单部署，在代表性请求上测清质量、成本和延迟，再决定多加一层系统复杂度是否值得。[并行原理](distributed-training.md)可以解释拆分方式；推理的容量和服务指标仍要单独验证。
 

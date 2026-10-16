@@ -95,7 +95,7 @@ Isolate frequency by fixing $L_d/\overline L=1$:
 | 4 | 4 | 1.6923 |
 | 8 | 8 | 1.9130 |
 
-With length fixed, this factor approaches $k_1+1=2.2$. This is a controlled comparison, not a claim that appending words leaves length unchanged. Actually adding repetitions changes both frequency and length.
+With length fixed, this factor approaches $k_1+1=2.2$. Since 8.0, Lucene drops the $(k_1+1)$ factor from the numerator (LUCENE-8563): it is the same constant for every document and does not change the ranking. Lucene's scores are therefore $1/2.2$ of the ones here, with the same order ([BM25Similarity source in 10.3.1](https://github.com/apache/lucene/blob/releases/lucene/10.3.1/lucene/core/src/java/org/apache/lucene/search/similarities/BM25Similarity.java)). This is a controlled comparison, not a claim that appending words leaves length unchanged. Actually adding repetitions changes both frequency and length.
 
 Back to our documents: the new IDFs are $0.3567$ for `cache` and $0.6931$ for `error`. A's length adjustment is $1-0.75+0.75\times3/2.75\approx1.0682$. First compute its frequency factor $g(\texttt{cache},A)$, then multiply by IDF:
 

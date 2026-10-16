@@ -12,7 +12,7 @@ We follow **ViT + projector + decoder-only LLM**, not a universal VLM architectu
 
 [ViT](https://arxiv.org/abs/2010.11929) divides an image into patches, flattens and projects them, adds position information, and applies a Transformer.
 
-Take a **teaching configuration**, not a product default: a $224\times224$ RGB image with $16\times16$ patches. There are $14\times14=196$ patches, each containing $16\times16\times3=768$ raw values. Their projected features can remain a sequence rather than immediately becoming one global vector. Original ViT classification adds a class token, so include one extra position when counting that sequence.
+The shape arithmetic is worked in [ViT](vit.en.md): a $224\times224$ RGB image cut into $16\times16$ patches gives 196 patches of 768 raw values each. What matters here is that the 196 projected vectors can remain a sequence rather than immediately becoming one global vector. Original ViT classification adds a class token, so include one extra position when counting that sequence.
 
 ```mermaid
 flowchart TD
@@ -51,21 +51,14 @@ $\mathcal A$ contains scored answer positions. This differs from the contrastive
 
 ## Three design trade-offs worth asking about
 
-- **Detail versus length:** with fixed-size patches and one image scale, doubling both image dimensions gives four times as many patches. The dense attention score matrix over those tokens has sixteen times as many entries. End-to-end cost also depends on text length, implementation, and compression; this does not imply a sixteen-fold runtime increase.
+- **Detail versus length:** with fixed-size patches and one image scale, doubling both image dimensions gives four times as many patches. The dense attention score matrix over those tokens has sixteen times as many entries (worked in [ViT](vit.en.md)). End-to-end cost also depends on text length, implementation, and compression; this does not imply a sixteen-fold runtime increase.
 - **Freezing versus adaptation:** training fewer modules can reduce their gradient and optimizer-state costs, but forward computation and some activation costs remain. Measure the effect on domain adaptation rather than assuming it.
 - **Descriptions versus evidence:** a fluent caption may omit small text, spatial relations, or details needed by the question. OCR or higher resolution should address a specific information gap, not be added automatically.
 
 ## Test more than a plausible answer
 
-Make paired synthetic images with checkable answers. For “Is the red square left of the circle?”, swap only the shapes' positions; the answer should change. Hold the prompt and decoding settings fixed and compare:
-
-| Input change | What to check | What it does not establish |
-| --- | --- | --- |
-| Move the relevant object | Whether the answer follows decisive visual evidence | General spatial reasoning from one successful example |
-| Supply a mismatched image | Whether the model follows the question's suggestion blindly | Correct understanding merely because the score dropped |
-| Remove the image or mask a region | Which evidence affects the answer | A clean causal interpretation of degradation on out-of-distribution black images |
-| Ask about an invisible attribute | Whether the model acknowledges missing information | Reliability from a longer explanation |
+Make paired synthetic images with checkable answers. For “Is the red square left of the circle?”, swap only the shapes' positions; the answer should change. Hold the prompt and decoding settings fixed and compare. What removing the image, changing one piece of evidence, masking the key region, or an image–text conflict can and cannot show is listed once in [the multimodal overview's comparison table](README.en.md#modality-checks). Spatial questions add two more: supply a mismatched image and see whether the model blindly follows the question's suggestion; ask about an attribute that cannot be seen and see whether it admits the information is missing rather than giving a longer explanation.
 
 These are proposed teaching experiments, not measured claims about a model. Track small text, counting, and spatial relations separately rather than relying only on aggregate accuracy.
 
-Connect these checks to [controlled comparisons and slices](../07-evaluation/ablation-and-slices.en.md) before deciding whether more training is necessary.
+Connect these checks to [controlled comparisons and slices](../07-evaluation/ablation-and-slices.en.md) before deciding whether more training is necessary. Robot VLA models use the same vision encoder, connector and LLM, but output actions instead of text; see [Robot learning: VLA](../13-embodied/robot-learning/vla.en.md).

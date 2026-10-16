@@ -2,6 +2,8 @@
 
 **English** · [中文](hybrid-and-reranking.md)
 
+> Last reviewed: 2026-10
+
 A user searches for “attention mask shape mismatch.” Dense retrieval finds a good introduction to attention. Keyword search finds a debugging note containing the exact error and tensor shapes. Both are reasonable matches, but being on topic is not the same as solving the error.
 
 Following the [dual-encoder note](dual-encoder.en.md), we now combine sources and decide what deserves a closer read. Start with the document example for the design intuition, or jump to [rank fusion](#rank-fusion) for an implementation.
@@ -35,7 +37,7 @@ $$
 
 Ranks start at 1. $L_r$ is the list actually returned by source $r$; a missing document contributes zero for that source. The constant $k$ smooths rank differences and is distinct from the final top-$K$ output size. See the formula and implementation conventions in [Elasticsearch’s RRF documentation](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion).
 
-With a teaching constant $k=10$, B scores $1/12+1/11\approx0.1742$, C scores $1/13+1/12\approx0.1603$, A scores $1/11\approx0.0909$, and D scores $1/13\approx0.0769$. B and C receive support from both lists. Being first in keyword search does not guarantee that A wins fusion.
+With a teaching constant $k=10$, B scores $1/12+1/11\approx0.1742$, C scores $1/13+1/12\approx0.1603$, A scores $1/11\approx0.0909$, and D scores $1/13\approx0.0769$. B and C receive support from both lists. Being first in keyword search does not guarantee that A wins fusion. The $k=10$ here only makes the differences easy to see; a common default is 60, for example Elasticsearch's `rank_constant`. With 60 the order in this example is unchanged, and the scores just sit closer together.
 
 <!-- widget:step-rrf -->
 
@@ -73,6 +75,8 @@ RRF discards raw score gaps, so it cannot distinguish a narrow first-place win f
 ## 4. What does reranking add?
 
 After fusion, we still need to determine whether A is outdated and B applies to the current environment. A cross-encoder jointly reads the query and candidate for finer comparisons. An LLM judge with clear criteria is another option, but cost, consistency, and resistance to instructions inside retrieved content need testing.
+
+One concrete scoring rule: [Qwen3-Reranker](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B) puts the query and the candidate into one prompt asking whether the candidate meets the requirement, takes the logits of the “yes” and “no” tokens at the last position, applies a softmax over just those two, and uses the probability of “yes” as the score. With logits 2 and 0 the score is $e^2/(e^2+1)\approx0.881$. This is hand arithmetic, not model output; it shows that the score comes from one joint reading, not from the dot product of two independent vectors.
 
 ```text
 Documents the user may access

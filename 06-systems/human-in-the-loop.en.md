@@ -2,6 +2,8 @@
 
 [中文](human-in-the-loop.md) · **English**
 
+> Last reviewed: 2026-10
+
 ## HITL is a risk-control policy {#hitl-is-a-risk-control-policy}
 
 Human-in-the-Loop does not mean “hand everything to a person whenever the model cannot do it.” It means having the system actively request confirmation, correction, or takeover when **risk is high, evidence is insufficient, the task is novel, or the action cannot be undone**.

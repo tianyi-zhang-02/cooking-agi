@@ -1,6 +1,8 @@
-# Agent 可观测性：刚才到底哪一步出了问题？
+# Agent 可观测性（observability）：刚才到底哪一步出了问题？
 
 **中文** · [English](agent-observability.en.md)
+
+> 最近审阅：2026-10
 
 ## 不只知道报错了，还要知道为什么
 
@@ -42,7 +44,7 @@ Agent 特别需要 trace，因为一次结果通常由多次模型、检索和�
 
 ### 版本
 
-模型、prompt、retriever、索引、工具、memory policy、evaluator、数据和配置分别是什么版本；用 task、trace 和实验 ID 关联一次运行。只有确实需要时才记录用户标识，不把邮箱等信息当作默认日志字段。
+模型、prompt、retriever、索引、工具、memory policy、evaluator、数据和配置分别是什么版本；用 task、trace 和实验 ID 关联一次运行。只有确实需要时才记录用户标识，不把邮箱等信息当作默认日志字段。这些字段在 OpenTelemetry 的 GenAI 约定里叫什么、截至 2026-10 还处在哪个稳定性级别，见[评估接到线上](../07-evaluation/eval-observability.md)。
 
 ### 输入证据
 

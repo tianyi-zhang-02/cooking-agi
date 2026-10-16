@@ -6,7 +6,7 @@
 
 ## The key difference: can the result be checked automatically?
 
-Writing code and booking a flight are both called agents, yet they are entirely different jobs. The biggest difference is **whether you can tell automatically, once it is done, whether it was right**: where results can be verified, an agent can safely try several times; where they cannot, every step leans more on a person.
+Writing code and booking a flight are both called agents, yet they are entirely different jobs. The biggest difference is **whether you can tell automatically, once it is done, whether it was right**: where results can be verified, an agent can try several times in a sandbox, and a person still reviews the diff once the tests pass; where they cannot, every step leans more on a person.
 
 | Setting | Environment and tools | Automatically verifiable? | Most common failure | Guardrails |
 | --- | --- | --- | --- | --- |
@@ -23,7 +23,7 @@ Code that runs and tests that pass make the ideal agent environment: every step 
 
 ## Customer support: reliability beats one-off success
 
-An agent that answers a customer's question correctly this time and wrongly next time is not acceptable in support. τ-bench simulates users and a tool environment with policy constraints, and measures pass^k, the share of tasks done right k times in a row, which is closer to the real requirement than a single success. Its successor [τ²-bench](https://arxiv.org/abs/2506.07982) adds a telecom support domain where the user must also operate the device (dual control), so the agent has to guide the user through the fix. As of October 2026 the [repository](https://github.com/sierra-research/tau2-bench) has released τ³-bench; its July 2026 v1.0.1 fixed several task errors in the banking_knowledge domain, and the repository says results from before 1.0.1 are not comparable with later ones.
+An agent that answers a customer's question correctly this time and wrongly next time is not acceptable in support. τ-bench simulates users and a tool environment with policy constraints, and measures reliability with pass^k: the probability that k independent runs of the same task all succeed, averaged over tasks. That is closer to the real requirement than a single success: a task solved 90% of the time per run is solved in all 8 runs only $0.9^8\approx0.43$ of the time. Its successor [τ²-bench](https://arxiv.org/abs/2506.07982) adds a telecom support domain where the user must also operate the device (dual control), so the agent has to guide the user through the fix. As of October 2026 the [repository](https://github.com/sierra-research/tau2-bench) has released τ³-bench; its July 2026 v1.0.1 fixed several task errors in the banking_knowledge domain, and the repository says results from before 1.0.1 are not comparable with later ones.
 
 ## Agents that read outside content: beware of injection
 

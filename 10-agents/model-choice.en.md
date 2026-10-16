@@ -44,7 +44,7 @@ A small team might establish a baseline with an API that meets its data requirem
 
 ## 3. Who decides whether to reason longer? {#thinking-control}
 
-When a model offers a thinking mode, ask whether the caller selects it or the model chooses during generation. Both can be useful, but they are different capabilities.
+When a model offers a thinking mode, ask whether the caller selects it or the model chooses during generation. Both can be useful, but they are different capabilities. Why reasoning models get more answers right when they think longer, and when longer thinking stops helping, is covered in [Reasoning models and test-time compute](../11-frontier/test-time-compute/README.en.md).
 
 <figure class="worked-update" lang="en" id="reasoning-decisions">
 <figcaption>Date extraction and debugging can receive budgets at different points</figcaption>

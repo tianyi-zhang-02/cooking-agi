@@ -2,6 +2,8 @@
 
 [中文](agent-observability.md) · **English**
 
+> Last reviewed: 2026-10
+
 ## Observability has to explain the decision process {#observability-has-to-explain-the-decision-process}
 
 The goal of agent observability is not only to know whether a service threw an error, but to be able to reconstruct: **what the agent saw, which decisions it made, how state changed, and at which step the failure began.**
@@ -44,7 +46,7 @@ Retained traces do not necessarily represent all traffic. [Selecting traces by e
 
 ### Versions {#versions}
 
-Record the model, prompt, retriever, index, tools, memory policy, evaluator, data, and configuration versions. Connect the run through task, trace, and experiment IDs. Include user identifiers only when necessary, rather than logging email addresses or similar fields by default.
+Record the model, prompt, retriever, index, tools, memory policy, evaluator, data, and configuration versions. Connect the run through task, trace, and experiment IDs. Include user identifiers only when necessary, rather than logging email addresses or similar fields by default. What these fields are called in OpenTelemetry's GenAI conventions, and which stability level those conventions are at as of October 2026, is covered in [Taking evaluation online](../07-evaluation/eval-observability.en.md).
 
 ### Input evidence {#input-evidence}
 

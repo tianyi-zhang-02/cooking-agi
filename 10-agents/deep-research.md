@@ -2,9 +2,11 @@
 
 **中文** · [English](deep-research.en.md)
 
+> 最近审阅：2026-10
+
 “这家图书馆几点关门？”可能一次查找就够。“这几家图书馆今年的开放时间改过几次，周末和节假日分别适用哪条规则？”就需要拆问题、核对时间、处理冲突，再决定还有什么没查到。写得长不是区别，**根据新证据调整下一步**才是。
 
-下面是一套原创的教学设计，不是某家产品的完整复刻。公开研究系统可以参考 [Anthropic 的工程复盘](https://www.anthropic.com/engineering/multi-agent-research-system)；其中的模型、成本和效果属于当时配置，不能直接当作我们的性能。
+下面是一套原创的教学设计，不是某家产品的完整复刻。公开研究系统可以参考 [Anthropic 的工程复盘](https://www.anthropic.com/engineering/multi-agent-research-system)；其中的模型、成本和效果属于当时配置，不能直接当作我们的性能。这里的搜索循环靠代码和 prompt 组织；把多轮搜索本身当成 RL 任务来训练，见 [Agent RL](../11-frontier/agentic-rl/README.md)。
 
 ## 1. 先定义这次要回答什么
 

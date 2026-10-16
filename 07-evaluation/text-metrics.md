@@ -1,4 +1,4 @@
-# BLEU、ROUGE、编辑距离：分数到底在比较什么？
+# BLEU、ROUGE、编辑距离与困惑度（perplexity）：分数到底在比较什么？
 
 **中文** · [English](text-metrics.en.md)
 

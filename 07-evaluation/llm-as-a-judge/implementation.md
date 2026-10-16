@@ -26,7 +26,7 @@ python3 07-evaluation/llm-as-a-judge/code/judge_eval.py
 {
   "case_id": "toy-01",
   "group_id": "conversation-01",
-  "slice": "rag",
+  "slice": "rag_short",
   "human": "pass",
   "allowed_evidence_ids": ["policy-1"],
   "judge_raw": "{\"criterion_id\":\"policy-grounding-v1\",\"verdict\":\"pass\",\"evidence_ids\":[\"policy-1\"],\"reason\":\"期限与条件均受条款支持。\"}"

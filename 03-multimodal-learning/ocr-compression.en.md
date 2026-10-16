@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisites: [ViT](vit.en.md), [KV cache](../00-foundations/deep-dives/kv-cache-and-inference.en.md)
 
-A document occupies 2000 text tokens but only 200 visual tokens after image encoding: a tenfold saving? Only in input length. We still need to ask whether characters and structure survived, and how much image encoding cost.
+A document occupies 2000 text tokens but only 200 visual tokens after image encoding: a tenfold saving? **Only in input length: whether the characters and table structure survived, and how long image encoding took, belong in the same account.**
 
 ## Separate three tasks
 

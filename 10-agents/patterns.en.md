@@ -23,6 +23,8 @@ A model can use retrieval, tools, and memory without every agent requiring all t
 
 These are not levels in a sophistication ranking, and they can be combined. A fixed workflow calling many models concurrently may cost more than an agent that searches once. Inspect the actual execution.
 
+The table's voting and evaluator-optimizer are what reasoning-model work calls test-time compute: sample one problem several times and vote, or let a verifier pick one. When the extra compute pays off is covered in [Test-time compute: sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md).
+
 <!-- widget:step-agent-patterns -->
 
 ## Follow one execution before memorizing pattern names
@@ -42,13 +44,7 @@ Continue with the booking policy. This is an action record for developers, not a
 
 ## What do function calling and MCP each do?
 
-| Layer | Responsibility | Not a guarantee |
-| --- | --- | --- |
-| Model tool-call output | Propose a tool name and arguments | Producing arguments does not grant execution permission |
-| Application executor | Validate arguments and access, enforce timeouts and retries, execute calls | Arbitrary tool-returned text is not a system instruction |
-| MCP | Connect applications to external tools and resources through a shared protocol | It does not choose the plan, define authorization policy, or certify the answer |
-
-An MCP host manages client connections to servers. This is an integration layer, not another reasoning algorithm. [MCP architecture](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture)
+A model's tool-call output only proposes a tool name and arguments, and producing arguments grants no permission to execute; the application's executor validates and makes the call, and does not treat tool-returned text as system instructions; MCP is the protocol layer that connects external tools, and it does not choose the plan, set permissions, or certify the answer. The three layers are laid out in one table, with one running example, in [tools, MCP, and skills](tools-and-skills.en.md#three-layers).
 
 Read-only search and booking cancellation also carry different risks. One retrieves information; the other changes external state. A cancellation tool should require confirmation and use an idempotency key so a retry after a timeout does not duplicate the operation. Remembering an action mentioned in history does not authorize executing it.
 
@@ -64,9 +60,7 @@ Change the question to “How have these policies changed, and which exceptions 
 | Is venue closure an exception? | An explicit clause in the current policy | Retain its source location, not just a summary |
 | Which version applies to this booking? | The booking date is missing | Ask the user instead of guessing |
 
-Independent questions can run in parallel. Do not force dependent steps into multiple agents merely to increase their number. Five pages repeating one notice are not five independent sources.
-
-Stop when key questions have support, or when the budget, source access, or missing user information prevents further progress. In the latter cases, state what remains unresolved instead of filling gaps with confident prose. [The research-workflow guide](deep-research.en.md) develops the evidence queue, citation checks, and stopping logic with runnable local examples. These are not results from a live multi-agent experiment.
+When questions can run in parallel, why reposts are not independent evidence, how to state what remains unresolved when the budget runs out, and the evidence queue and runnable citation checks are all in [the research-workflow guide](deep-research.en.md). Its local tests check the code's logic only; they are not results from a live multi-agent experiment.
 
 ## How to choose
 

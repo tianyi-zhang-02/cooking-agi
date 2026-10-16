@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisites: [ViT](vit.en.md), [RoPE](../00-foundations/deep-dives/position-and-context.en.md)
 
-An icon and a dense train timetable need different information budgets. Yet unrestricted growth in visual tokens lets a single tall image slow down the model. One useful thread through Qwen-VL is how it preserves detail while controlling these costs.
+An icon and a dense train timetable need different information budgets. Yet unrestricted growth in visual tokens lets a single tall image slow down the model. **One useful thread through Qwen-VL is how it preserves detail while controlling these costs.**
 
 This is an architecture walkthrough, not a leaderboard. Always record the model variant, processor, and inference budget together.
 

@@ -107,6 +107,6 @@ assert math.isclose(siglip_loss(scores), 2 * math.log1p(math.exp(-2)))
 
 做图文检索时，通常关心可比较的全局向量：候选离线编码、查询在线编码，再接 ANN 或精确打分。升级 encoder 后，旧库向量和新查询向量一般不能混用；要规划重建索引与切换。
 
-接入生成式 VLM 时，常用视觉分支的 token / patch features，再经过 projector 或 resampler 交给 LLM。还需要连接模块、训练数据和生成目标，不能只插入一个 SigLIP encoder 就说模型已经会视觉问答。详细流程见[图片怎样进入 LLM](vision-to-language.md)。
+接入生成式 VLM 时，常用视觉分支的 token / patch features，再经过 projector 或 resampler 交给 LLM。还需要连接模块、训练数据和生成目标，不能只插入一个 SigLIP encoder 就说模型已经会视觉问答。详细流程见[图片怎样进入 LLM](vision-to-language.md)。机器人用的 VLA 模型也这样接：OpenVLA 把 DINOv2 和 SigLIP 两路特征一起送进 Llama 2，再输出动作，见[机器人学习：VLA](../13-embodied/robot-learning/vla.md)。
 
 选择 CLIP、SigLIP 或 SigLIP 2，可以先比较你真正需要的切片：中英文、细小文字、相似物体、重复描述、低清晰度，以及离线编码与在线查询成本。名称更新，不代表你的任务一定提升；先固定数据切分和检索协议，再看差别。

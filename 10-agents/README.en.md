@@ -13,6 +13,7 @@ agent was the thing that moves in a game: it looks at its environment, picks an 
 a little reward, and goes round again. Reinforcement learning is built on that loop, and
 today's LLM agents are still that loop — what changed is who picks the action: written
 rules, then a learned policy, now a model you ask.
+What it looks like to train such a multi-step agent directly with RL is covered in [Training agents with RL](../11-frontier/agentic-rl/README.en.md).
 
 <!-- widget:tx-agent-maze -->
 

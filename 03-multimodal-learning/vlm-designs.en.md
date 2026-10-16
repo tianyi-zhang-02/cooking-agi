@@ -42,7 +42,7 @@ A simplified budget: each view is $336\times336$, with patch width 14, retaining
 
 <!-- paper-figure:llava15-hd -->
 
-Suppose the question and history occupy 120 positions. One view gives length 696; five give 3000. Dense attention score-element counts differ by $(3000/696)^2\approx18.58$. **That is not a measured 18.58-fold latency increase**: vision computation, matrix multiplication, caching, and kernels remain outside this calculation.
+Suppose the question and history occupy 120 positions. One view gives length 696; five give 3000. Dense attention score-element counts differ by $(3000/696)^2\approx18.58$. **That is not a measured 18.58-fold latency increase**: vision computation, matrix multiplication, caching, and kernels remain outside this calculation. How much slower an operation actually runs depends on whether it is limited by compute or by memory bandwidth; see [Performance: roofline and MFU](../12-infra/performance.en.md#roofline).
 
 Tiling is not free accuracy. With a limited budget, compare a thumbnail, a thumbnail plus selected tiles, and localization followed by cropping. The last saves input length but adds a call and can fail at localization.
 
@@ -96,7 +96,7 @@ Record trainable parameter names rather than only “SFT.” Also preserve proce
 
 ## Did the additional detail actually help?
 
-Create three versions of one menu: the original, one with only the target price changed, and one where the price is unreadable. Fix the prompt and decoding configuration. Does the answer follow the price, and does the model stop guessing when evidence disappears?
+Create three versions of one menu: the original, one with only the target price changed, and one where the price is unreadable. Fix the prompt and decoding configuration. Does the answer follow the price, and does the model stop guessing when evidence disappears? What each of these comparisons can and cannot show is listed in [the multimodal overview's comparison table](README.en.md#modality-checks).
 
 Report accuracy separately for small text, layout, and cross-tile relationships, alongside visual tokens, time to first token, and peak memory. An aggregate gain alone cannot distinguish improved evidence use from better guesses about common menus.
 

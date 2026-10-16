@@ -6,7 +6,7 @@
 
 You show a timetable and ask when the last bus leaves. The answer is “22:40.” Training loss falls, but the model still answers 22:40 when the image is hidden. It may have learned the dataset's most common answer rather than how to read a timetable.
 
-Fine-tuning first needs evidence that the data teaches the intended skill. Starting a training process is only one step.
+**Fine-tuning first needs evidence that the data teaches the intended skill.** Starting a training process is only one step.
 
 ## Check whether fine-tuning addresses the failure
 
@@ -152,13 +152,6 @@ This page supplies a checked mask example and an experiment protocol, **not a re
 
 ## Counterfactual images reveal more than one overall score
 
-Keep the original timetable, then make three versions: change only the last departure time, hide that field, and use a matching layout with different numbers. Expected behavior is to follow the new time, acknowledge missing evidence, and read the new values.
-
-| Check | What it can reveal | What it cannot establish alone |
-| --- | --- | --- |
-| Remove the image | Whether text priors suffice | A score drop does not prove correct visual reasoning |
-| Change one field | Whether answers follow visual facts | Does not cover every layout or semantic skill |
-| Conflict between image and text | Whether inconsistencies are noticed | Neither modality is always authoritative |
-| Unseen templates | Reliance on layout memorization | Domain and temporal transfer still need testing |
+Keep the original timetable, then make three versions: change only the last departure time, hide that field, and use a matching layout with different numbers. Expected behavior is to follow the new time, acknowledge missing evidence, and read the new values. What removing the image, an image–text conflict, or an unseen template can and cannot show is listed once in [the multimodal overview's comparison table](README.en.md#modality-checks); with new templates, also test transfer across domains and time.
 
 Track field accuracy, unanswerable detection, output format, latency, and memory. Report which settings help which slices. Without measurements, retain the experiment plan rather than claiming significant gains. This page validates teaching mask code, not end-to-end GPU fine-tuning; use the [official Qwen3-VL fine-tuning project](https://github.com/QwenLM/Qwen3-VL/tree/main/qwen-vl-finetune) for a real run and pin its commit.

@@ -2,14 +2,16 @@
 
 [中文](README.md) · **English**
 
-This overview follows the complete path. You do not need to finish the whole section before building a search system; start with your current question.
+This overview follows the complete path. The table lists the notes by question.
 
 | What do you want to understand? | Start here | What you should be able to explain |
 | --- | --- | --- |
 | Why can keyword matches rank poorly? | [TF-IDF and BM25](tfidf-and-bm25.en.md) | How repetition and document length affect scores |
 | How does text become a searchable vector? | [Dual encoders](dual-encoder.en.md) | What can be precomputed and how training uses positives and negatives |
 | Qwen3 Embedding or BGE-M3? | [Specific model comparison](embedding-models.en.md) | Why inputs, pooling, and indexes must remain compatible |
+| Too many vectors: how to search fast without missing too much? | [Vector indexes](vector-indexes.en.md) | What IVF, PQ and HNSW trade for speed and memory, and why ANN recall is not task recall |
 | How do retrieval paths work together? | [Hybrid retrieval and reranking](hybrid-and-reranking.en.md) | Fusion and comparisons under equal budgets |
+| The documents were found, so why is the answer still wrong? | [RAG evidence](rag-evidence.en.md) | Where chunking, retrieval metrics and generation each go wrong |
 
 The notes begin with intuition and small examples, then develop the arithmetic and implementation. Stop after the mechanism if that is what you need; return to the code and debugging when you are ready to build.
 

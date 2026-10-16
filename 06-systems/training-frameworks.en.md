@@ -56,6 +56,8 @@ Peak memory also includes activations, temporary full parameters, communication 
 
 $$M_{\text{peak}}=\max_t\left(M_{\text{persistent}}(t)+M_{\text{activation}}(t)+M_{\text{temporary}}(t)\right).$$
 
+Fill it in once for the billion-parameter example; every number below is an assumption. The model has 20 equal blocks of 50 million parameters each. When backward reaches one block, each rank holds its 4 GB of persistent shards; that block's full FP32 parameters have just been gathered, taking $5\times10^7\times4=0.2$ GB, and its full gradient takes another 0.2 GB before reduce-scatter; 3 GB of activations and 0.5 GB of workspace are still live. At that moment the total is $4+3+0.2+0.2+0.5=7.9$ GB. $M_{\text{peak}}$ is the largest such value over all moments, nearly twice the 4 GB counted from persistent shards alone.
+
 Independent component peaks may occur at different times; summing them is not an exact measurement. Counting only persistent shards is also insufficient. Inspect which allocations coexist. Mixed precision requires a fresh accounting of parameter, gradient, and communication dtypes.
 
 | Memory source | Possible intervention | Cost |
@@ -91,7 +93,7 @@ Prefetching can fetch the next block while the current one computes. It also kee
 
 Compare one update on fixed small inputs. Align sample order, valid tokens, masks, gradient normalization, clipping, and optimizer settings. Reduction order can cause numerical differences; declare tolerances rather than promising bitwise equality.
 
-Then measure effective target tokens/s after warm-up, step-time distributions, peak memory, and communication waits. High GPU utilization can include recomputation, padding, and communication. Ask how long it takes to complete a reliable experiment at the required quality, not just how busy the devices look.
+Then measure effective target tokens/s after warm-up, step-time distributions, peak memory, and communication waits. High GPU utilization can include recomputation, padding, and communication; why MFU and HFU count different numerators is covered in [Performance: MFU and HFU](../12-infra/performance.en.md#mfu). Ask how long it takes to complete a reliable experiment at the required quality, not just how busy the devices look.
 
 Finally, interrupt a run deliberately. Loading weights is not full training recovery: inspect optimizer, scheduler, RNG, data cursor, and update count. Resharding a checkpoint to another world size depends on the format and loader and needs testing. Successful loading does not guarantee the same training trajectory. Continue with [saving and resuming](../practice/post-training/checkpoint-and-resume.en.md).
 

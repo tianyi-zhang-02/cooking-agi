@@ -1,4 +1,4 @@
-# Agent 选模型：API、自部署与路由 {#agents-frontier-api-serve}
+# Agent 选模型：API、自部署与路由（routing） {#agents-frontier-api-serve}
 
 **中文** · [English](model-choice.en.md)
 
@@ -44,7 +44,7 @@ $$P_{\mathrm{success}}=0.95^{20}\approx0.358.$$
 
 ## 3. “自动决定要不要思考”，是谁在决定？ {#thinking-control}
 
-看到一个模型有 thinking 模式，不妨追问：这是调用方选的，还是模型生成过程中自己选的？两者都可以有用，但不是同一种能力。
+看到一个模型有 thinking 模式，不妨追问：这是调用方选的，还是模型生成过程中自己选的？两者都可以有用，但不是同一种能力。推理模型为什么想得越久越可能做对、什么时候多想也没用，见[推理模型与测试时计算](../11-frontier/test-time-compute/README.md)。
 
 <figure class="worked-update" lang="zh-CN" id="reasoning-decisions">
 <figcaption>提取日期和排查 bug，可以在不同位置分配预算</figcaption>

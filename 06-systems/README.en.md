@@ -113,24 +113,7 @@ repeat-contact rate all together. Fluent wording is only one part of the result.
 
 ## A more reliable evaluation stack
 
-| Layer | Best for | Strength | Risk |
-| --- | --- | --- | --- |
-| Deterministic rules | Schema, format, state, tools, structure | Fast, stable, regression-friendly | Cannot judge open-ended semantic quality |
-| Reference / executor | Math, code, evidence, task completion | Close to verifiable truth | References may be incomplete or wrong |
-| LLM judge | Relevance, helpfulness, style, open-ended quality | Scalable semantic judgment | Bias, drift, and nondeterminism |
-| Pairwise judge | Relative model, prompt, or policy comparison | More natural than absolute scoring | Position bias; may hide that both are bad |
-| Human audit | Rubrics, edge cases, value judgments | Understands real context | Expensive; reviewers can disagree |
-| Online and longitudinal metrics | Real outcomes and sustained experience | Closest to the product objective | Confounding, delay, and experiment cost |
-
-### When using an LLM judge
-
-- Specify the criterion before selecting single-output or pairwise evaluation.
-- Do not delegate deterministic conditions to a probabilistic model.
-- Decompose complex rubrics into atomic judgments; a DAG organizes decisions but does not guarantee validity.
-- Swap pairwise order and allow ties or “both bad.”
-- Calibrate with references, few-shot examples, and human-labeled cases.
-- Track agreement with humans and failures across meaningful slices.
-- Record the prompt, model version, temperature, and evidence for reproducibility.
+What deterministic rules, references or executors, an LLM judge, human review and online metrics can each answer, and what none of them establishes alone, is laid out in one table in [the evaluation stack](../07-evaluation/evaluation-stack.en.md#check-methods). The rule of thumb: do not hand a condition that a rule can decide exactly to a model. When a model does score, write the criterion first, then choose between scoring one output and comparing two; pairwise comparisons swap the display order and allow a tie or “both bad”, see [LLM judge output formats](../07-evaluation/llm-as-a-judge/scoring.en.md); how to calibrate against human labels and check agreement by slice is covered in [LLM-as-a-judge](../07-evaluation/llm-as-a-judge/README.en.md).
 
 ## Why look at the full chain
 
@@ -211,3 +194,5 @@ For that layer the best thing I know is
 August 2024 — RL infra, online and offline inference, SGLang including the SGLang Omni series
 on multi-stage generative models — in both Chinese and English. He works on RL infra inside
 the SGLang community, so he is writing about what he is changing. Start there.
+
+This site also has notes on that layer: GPUs, CUDA, frameworks and performance analysis are in [AI infrastructure](../12-infra/README.en.md); how sampling, numerics and context are aligned in RL training is in [post-training infrastructure](../05-post-training/post-training-infrastructure.en.md); how the training system for multi-step agent RL is put together is in [Agent RL: credit assignment and the training system](../11-frontier/agentic-rl/credit-and-training.en.md).

@@ -95,7 +95,7 @@ $$
 | 4 | 4 | 1.6923 |
 | 8 | 8 | 1.9130 |
 
-同一长度下，这一因子的极限是 $k_1+1=2.2$。这是把两个影响分开看的控制例子；真的往文档后面添词，还会同时改变文档长度，不能只改 $f$。
+同一长度下，这一因子的极限是 $k_1+1=2.2$。Lucene 从 8.0 起把分子里的 $(k_1+1)$ 去掉了（LUCENE-8563）：它对每篇文档都是同一个常数，不改变排序。所以 Lucene 算出的分数是这里的 $1/2.2$，名次一样（[10.3.1 的 BM25Similarity 源码](https://github.com/apache/lucene/blob/releases/lucene/10.3.1/lucene/core/src/java/org/apache/lucene/search/similarities/BM25Similarity.java)）。这是把两个影响分开看的控制例子；真的往文档后面添词，还会同时改变文档长度，不能只改 $f$。
 
 回到那 4 篇文档：`cache` 的新 IDF 为 $0.3567$，`error` 为 $0.6931$。A 的长度修正项是 $1-0.75+0.75\times3/2.75\approx1.0682$。先算它的词频因子 $g(\texttt{cache},A)$，再乘 IDF：
 

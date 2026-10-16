@@ -1,6 +1,8 @@
-# 人工参与：什么时候应该让人来判断？
+# 人工参与（HITL）：什么时候应该让人来判断？
 
 **中文** · [English](human-in-the-loop.en.md)
+
+> 最近审阅：2026-10
 
 <span id="_1"></span>
 
@@ -8,7 +10,9 @@
 
 人工参与不是把模型不会的事一股脑丢给人。更重要的是提前约定：**操作风险高、信息不够、遇到没处理过的任务，或者做完无法撤回**时，该请谁确认、怎样纠正，什么时候由人接手。
 
-## 从“写邮件”和“发邮件”的区别说起 {#_3}
+<span id="_3"></span>
+
+## 从“写邮件”和“发邮件”的区别说起 {#first-a-scenario-that-needs-escalation-to-a-human}
 
 让模型“帮我写一封邮件”和“直接替我发送这封邮件”看起来很接近，但风险完全不同。
 
@@ -18,7 +22,9 @@
 
 HITL 的关键不是模型置信度低就问人，而是同时看**出错概率、影响大小和行动是否可逆**。
 
-## 人在系统里可以扮演什么角色 {#_4}
+<span id="_4"></span>
+
+## 人在系统里可以扮演什么角色 {#what-roles-can-a-human-play-in-the-system}
 
 | 角色 | 做什么 |
 | --- | --- |
@@ -29,7 +35,9 @@ HITL 的关键不是模型置信度低就问人，而是同时看**出错概率�
 | 审计者 | 定期寻找自动系统和 evaluator 的盲区 |
 | 用户本人 | 表达目标、设置边界并纠正个性化状态 |
 
-## 什么时候该转人工 {#_5}
+<span id="_5"></span>
+
+## 什么时候该转人工 {#when-is-escalation-to-a-human-worth-it}
 
 如果只讨论是否值得多加一次审核，可以用下面的账帮助思考：
 
@@ -48,7 +56,9 @@ HITL 的关键不是模型置信度低就问人，而是同时看**出错概率�
 - 用户目标不明确，继续猜测的代价很高；
 - Agent 反复绕圈、连续走备用方案，或成本异常增加。
 
-## 人工反馈最好留下依据 {#_6}
+<span id="_6"></span>
+
+## 人工反馈最好留下依据 {#human-feedback-cannot-be-stored-as-just-a-label}
 
 “同意 / 不同意”可以作为训练标签，但通常解释不了问题出在哪一步。条件允许时，最好再留下证据或修改理由。
 
@@ -61,9 +71,13 @@ HITL 的关键不是模型置信度低就问人，而是同时看**出错概率�
 - 为什么这样修改；
 - 这个案例应该更新测试、规则、policy 还是训练数据。
 
-## 三种介入时间 {#_7}
+<span id="_7"></span>
 
-### 实时确认 {#_8}
+## 三种介入时间 {#three-timings-for-intervention}
+
+<span id="_8"></span>
+
+### 实时确认 {#real-time-confirmation}
 
 行动发生前让用户批准，适合高风险或不可逆操作。
 
@@ -80,15 +94,21 @@ HITL 的关键不是模型置信度低就问人，而是同时看**出错概率�
 
 这只是状态约束，不是发送实现。恢复暂停的工作流也不一定等于“从下一行只执行一次”：例如 [LangGraph 的 interrupt](https://docs.langchain.com/oss/python/langgraph/interrupts#side-effects-called-before-interrupt-must-be-idempotent) 恢复时会从节点开头重跑。待批准的外部写操作要放在有效批准之后，重试仍要遵守工具的幂等约定。
 
-### 事后抽查 {#_9}
+<span id="_9"></span>
+
+### 事后抽查 {#after-the-fact-spot-checks}
 
 从完成的轨迹中抽样，发现系统性失败、judge 偏差和新类型问题。
 
-### 定期重新设计规则 {#_10}
+<span id="_10"></span>
+
+### 定期重新设计规则 {#periodically-redesigning-the-rules}
 
 随着模型和任务变化，重新检查 rubric、升级阈值、权限、数据保留和用户控制。
 
-## 常见误区 {#_11}
+<span id="_11"></span>
+
+## 常见误区 {#common-mistakes}
 
 - **把人当成 fallback API**：没有提供上下文，却要求快速做决定。
 - **只看最终回答**：忽略 Search、工具、副作用和状态更新。
@@ -97,7 +117,9 @@ HITL 的关键不是模型置信度低就问人，而是同时看**出错概率�
 - **反馈直接进入训练**：没有处理标注者差异、策略偏置和数据泄漏。
 - **自动化偏见**：模型语气越自信，人越容易不加思考地接受。
 
-## 好的 HITL 最终应该减少什么 {#hitl_1}
+<span id="hitl_1"></span>
+
+## 好的 HITL 最终应该减少什么 {#what-good-hitl-should-ultimately-reduce}
 
 目标不是让越来越多任务依赖人工，而是让最有价值的人类判断出现在正确位置，然后把这些判断变成：
 
@@ -107,14 +129,18 @@ HITL 的关键不是模型置信度低就问人，而是同时看**出错概率�
 - 可复用的训练数据；
 - 更合理的自动化边界。
 
-## 和其他章节的连接 {#_12}
+<span id="_12"></span>
+
+## 和其他章节的连接 {#connections-to-other-chapters}
 
 - [Agent Observability](agent-observability.md) 帮审核者追查发生了什么。
 - [Evaluation](../07-evaluation/) 决定哪些案例需要人工校准。
 - [数据与反馈](../01-data-and-feedback/) 决定人工判断怎样进入后续学习。
 - [Personal AGI](../09-personal-agi/) 要求用户能控制和纠正长期状态。
 
-## 快速学习：什么时候应该把控制权交给人 {#_2}
+<span id="_2"></span>
+
+## 快速学习：什么时候应该把控制权交给人 {#quick-learning-when-should-control-pass-to-a-human}
 
 <details class="interview" markdown="1">
 <summary>看风险、把握和可撤回性，决定要不要请人确认</summary>

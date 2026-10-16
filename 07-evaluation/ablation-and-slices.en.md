@@ -47,13 +47,13 @@ change = sum(weight * (new - old)
 assert abs(change - 0.008) < 1e-12
 ```
 
-Between-group comparisons also require checking positive counts, candidate difficulty, and observation windows. Higher Recall in group A doesn't automatically mean better understanding of A. Matching does not eliminate every confounder.
+Between-group comparisons also require checking positive counts, candidate difficulty, and observation windows. Higher Recall in group A doesn't automatically mean better understanding of A. Matching does not eliminate every confounder. How these weights should be chosen, and how a different set of weights reverses the conclusion, are covered in [metric robustness: whose proportions the average uses](metric-robustness.en.md#population-mix).
 
 ## Measure differences, not just two means
 
 For shared test samples, calculate a paired difference per unit before aggregation. If users are the unit, summarize by user. Correlated events from one user are not independent observations.
 
-Bootstrap resampling at an appropriate independent unit can estimate test-set uncertainty. It cannot replace retraining or establish performance under a different distribution. **Sampling variation, training variation, and distribution shift are different questions.**
+Bootstrap resampling at an appropriate independent unit can estimate test-set uncertainty. It cannot replace retraining or establish performance under a different distribution. **Sampling variation, training variation, and distribution shift are different questions.** A worked paired comparison with an exact test is in [metric robustness](metric-robustness.en.md#paired-comparison).
 
 More slices aren't always better. Define primary slices beforehand. Patterns found after inspecting results are exploratory; check them on a fresh holdout rather than choosing the best-looking table.
 

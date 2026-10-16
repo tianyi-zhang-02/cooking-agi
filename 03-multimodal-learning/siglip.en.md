@@ -107,6 +107,6 @@ Use the checkpoint's processor rather than carrying over CLIP resize, normalizat
 
 Image–text retrieval usually needs comparable global vectors: encode candidates offline, encode queries online, then use ANN or exact scoring. After an encoder upgrade, old candidate vectors generally cannot be mixed with new query vectors. Plan reindexing and a coordinated switch.
 
-A generative VLM often uses visual token or patch features, followed by a projector or resampler feeding an LLM. It still needs the connector, training data, and a generation objective. Adding a SigLIP encoder alone does not teach visual question answering. See [vision to language](vision-to-language.en.md).
+A generative VLM often uses visual token or patch features, followed by a projector or resampler feeding an LLM. It still needs the connector, training data, and a generation objective. Adding a SigLIP encoder alone does not teach visual question answering. See [vision to language](vision-to-language.en.md). Robot VLA models connect it the same way: OpenVLA feeds DINOv2 and SigLIP features together into Llama 2 and outputs actions; see [Robot learning: VLA](../13-embodied/robot-learning/vla.en.md).
 
 Compare CLIP, SigLIP, and SigLIP 2 on the slices you need: languages, small text, similar objects, duplicate descriptions, degraded images, and offline/online encoding costs. A newer name is not evidence of improvement on your task. Fix the data split and retrieval protocol before comparing results.

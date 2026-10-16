@@ -26,7 +26,7 @@ A record contains both the human label and raw judge output for post-hoc meta-ev
 {
   "case_id": "toy-01",
   "group_id": "conversation-01",
-  "slice": "rag",
+  "slice": "rag_short",
   "human": "pass",
   "allowed_evidence_ids": ["policy-1"],
   "judge_raw": "{\"criterion_id\":\"policy-grounding-v1\",\"verdict\":\"pass\",\"evidence_ids\":[\"policy-1\"],\"reason\":\"Eligibility and deadline are supported.\"}"

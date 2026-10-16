@@ -4,7 +4,7 @@
 
 > Reading time: about 14 minutes · Last reviewed: 2026-10
 
-Suppose a photo contains a bicycle, a rider, and a speed-limit sign. Retrieving its caption, deciding whether “pushing the bicycle” is accurate, and answering “what is the speed limit?” require different information.
+Suppose a photo contains a bicycle, a rider, and a speed-limit sign. Retrieving its caption, deciding whether “pushing the bicycle” is accurate, and answering “what is the speed limit?” require different information. **So the training objective, what the connector compresses away, and whether the question takes part in extracting visual features all have to be chosen per task.**
 
 [CLIP](clip.en.md) introduces image–text vector comparison. Here we move from BLIP's matching and generation objectives to BLIP-2's connection between pretrained models, then to InstructBLIP's question-conditioned feature extraction. These older architectures are useful for understanding design choices, not automatic recommendations for a new deployment.
 
@@ -35,7 +35,7 @@ Take four invented image–caption pairs with filter scores `0.9, 0.8, 0.6, 0.4`
 | 0.5 | 3 | 2/3 | 3/4 | 2/3 |
 | 0.85 | 1 | 1 | 1/4 | 1/3 |
 
-The higher threshold improves precision but discards two correct descriptions. If discarded examples disproportionately contain rare scenes, long descriptions, or small text, the data becomes cleaner and narrower. Inspect content slices rather than selecting a flattering average.
+Raising the threshold from 0.5 to 0.85 lifts precision from 2/3 to 1 but drops one more correct description (the 0.6 one), leaving 1 of the 3 correct descriptions. If discarded examples disproportionately contain rare scenes, long descriptions, or small text, the data becomes cleaner and narrower. Inspect content slices rather than selecting a flattering average.
 
 ```python
 def filter_report(scores, verified, threshold):
@@ -192,11 +192,6 @@ Reduce this to a scalar: $z=\theta x$, $f(z)=az$, and $L=(az-y)^2$. With fixed $
 
 ## Check whether the information actually gets used
 
-| What stays fixed / changes | Question to answer | Conclusion to avoid |
-| --- | --- | --- |
-| Fix the question; remove or shuffle images | Does success depend on the correct image? | A drop alone does not prove fine-grained understanding |
-| Keep the scene; change a critical digit or action | Does the answer follow the evidence? | A few successes do not establish overall reliability |
-| Ask different questions about one image | Does extraction support different tasks? | Attention maps are not causal proof |
-| Test small text, counting, and spatial relations separately | What does summarization lose? | One average score is insufficient |
+What removing or shuffling the image, or changing only a critical digit or action, can and cannot show is listed once in [the multimodal overview's comparison table](README.en.md#modality-checks). For the connector, add two more: ask different questions about one image to see whether the extracted features serve different tasks (an attention map by itself is not causal proof), and test small text, counting and spatial relations separately to see which kind of information the compression loses most, rather than relying on one average.
 
 These are proposed checks, not a shared benchmark from all three papers. BLIP's objectives and data, BLIP-2's connector bottleneck, and InstructBLIP's instruction conditioning offer different intervention points. Locate the failure before deciding to change data, increase visual input, or redesign the connector.

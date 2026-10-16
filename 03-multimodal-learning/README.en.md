@@ -80,7 +80,7 @@ Contrastive learning, caption generation, instruction tuning, and preference opt
 <span id="multimodality-and-personal-agi"></span>
 <span id="value-judgment"></span>
 
-## Check whether the new modality helps
+## Check whether the new modality helps {#modality-checks}
 
 A correct “22:40” is not enough. Retain the original and create a few comparisons whose expected behavior can be checked:
 

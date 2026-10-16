@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10-08 · Prerequisite: [Vision to language](vision-to-language.en.md)
 
-“Change Friday to Saturday on this poster. Leave everything else alone.” The model needs to locate the text, understand the edit, render the new letters, and preserve the background. Being able to describe an image does not automatically provide those abilities.
+“Change Friday to Saturday on this poster. Leave everything else alone.” The model needs to locate the text, understand the edit, render the new letters, and preserve the background. **Being able to describe an image does not automatically provide those abilities.**
 
 ## Different tasks need different outputs
 

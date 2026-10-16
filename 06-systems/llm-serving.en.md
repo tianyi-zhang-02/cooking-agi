@@ -50,7 +50,7 @@ Two requests are decoding, each needing one input position this iteration. A new
 
 The new request can produce its first token after completing prefill in iteration 3. Existing requests receive compute each iteration. With a budget of 12, the prompt fits in one iteration—but that iteration may take longer, pausing the streams already in progress.
 
-This is **budget arithmetic, not a latency prediction**. One prefill position and one decode position need not cost the same. KV capacity, batch shapes, priorities, and kernels also matter. Six scheduled positions do not imply a fixed number of milliseconds.
+This is **budget arithmetic, not a latency prediction**. One prefill position and one decode position need not cost the same. KV capacity, batch shapes, priorities, and kernels also matter. Six scheduled positions do not imply a fixed number of milliseconds. Why a larger decode batch moves from bandwidth-bound toward compute-bound is covered in [Performance: decode batching](../12-infra/performance.en.md#decode-batching).
 
 <!-- widget:step-chunked-prefill -->
 
@@ -108,14 +108,7 @@ Load generation matters too. In a fixed-concurrency test, a completed request is
 
 ## Use the flow to choose a deployment {#serving-choices}
 
-Fitting model weights on one GPU does not establish that the GPU can serve your target concurrency. A [complete memory budget](../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget) includes weights, KV, and runtime headroom. Identify the resource you are short of before scaling.
-
-| Choice | What it may help | What it costs |
-| --- | --- | --- |
-| Independent replicas | Divide request load and increase total serving capacity | Duplicate weights; routing changes may lose warm-cache locality |
-| Tensor parallelism | Distribute weights and some state within layers | Repeated communication; sensitivity to interconnect |
-| Pipeline parallelism | Distribute model layers across devices | Activation transfers, bubbles, and scheduling complexity |
-| Separate prefill and decode | Choose hardware and scheduling for each phase | KV transfers, coordinated queues, and failure handling |
+Fitting model weights on one GPU does not establish that the GPU can serve your target concurrency. A [complete memory budget](../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget) includes weights, KV, and runtime headroom. Identify the resource you are short of before scaling. What independent replicas, TP, PP and prefill/decode separation each help with and cost, and how to do the weight arithmetic for eight GPUs, are in [vLLM and SGLang: several ways to use several GPUs](inference-frameworks.en.md#deployment-map); how replicas are scheduled and scaled in a cluster is in [Kubernetes and GPU clusters](../12-infra/kubernetes.en.md).
 
 This is not a framework ranking. Start with a simple working deployment, measure quality, cost, and latency on representative traffic, and then decide whether another system layer is worth it. [Parallelism mechanics](distributed-training.en.md) explains partitioning; inference capacity and service behavior still need their own validation.
 

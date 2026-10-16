@@ -2,6 +2,8 @@
 
 **English** · [中文](dual-encoder.md)
 
+> Last reviewed: 2026-10
+
 Imagine searching a million passages of course notes. A query asks why gradients vanish. You want passages about repeated multiplication and RNNs, not just anything containing “gradient.”
 
 You could send the query and every passage through a model together, but a million joint comparisons per request would be expensive. A dual encoder starts with a simpler question: **documents rarely change between requests, so can we compute them ahead of time and encode only the new query?**
@@ -166,16 +168,14 @@ Evaluation also needs a fixed candidate pool and labeling protocol. Adding negat
 
 ## 5. Why can a model upgrade break search? {#index-version}
 
-Suppose training updates both encoders, but deployment updates only the query encoder while retaining old document vectors. Dimensions and APIs still match, but the two spaces may no longer align. Unless compatibility with the old space was explicitly enforced, “both are 768-dimensional” is not enough.
-
-A reproducible retrieval version links encoder checkpoints, tokenizer, text cleaning, chunking, pooling, normalization, similarity function, and index snapshot. Test fixed queries before deciding whether to rebuild the index or retain a compatible path.
+Suppose training updates both encoders, but deployment updates only the query encoder while retaining old document vectors. Dimensions and APIs still match, but the two spaces may no longer align. Unless compatibility with the old space was explicitly enforced, “both are 768-dimensional” is not enough. A two-dimensional rotation example, and the version information to store beside an index, are in [why a model swap needs a new index](embedding-models.en.md#index-swap).
 
 Separate two diagnoses before tuning ANN:
 
 1. **Exact search also misses the document:** inspect representation, training data, chunking, and ingestion.
 2. **Exact search finds it but ANN does not:** inspect indexing parameters, quantization, filters, and search budget.
 
-ANN recall measures how well approximate search recovers exact neighbors. Relevant-document Recall measures recovery of labeled relevant content. Neither substitutes for the other: perfectly recovering irrelevant nearest neighbors is not task success.
+The ANN recall in step 2 only measures how well approximate search recovers exact neighbors; it is not relevant-document Recall. The difference is covered in [vector indexes](vector-indexes.en.md#ann-vs-task-recall).
 
 ## 6. Before adding more vectors
 
