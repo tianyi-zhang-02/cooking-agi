@@ -107,7 +107,7 @@ of the token context while the model continues ordinary causal next-token predic
 第二轮生成时，序列通常包含 system、第一轮 user、第一轮 assistant、第二轮 user，
 最后再加新的 assistant 起始标记。标准 full causal attention 可以读取左侧所有未被截断、未被 mask 排除的 token；滑动窗口等变体的可见范围更小。新回答由此利用此前对话。
 
-这不等于模型拥有脱离上下文的永久记忆。历史必须保留在当前逻辑前缀中：可以重新输入对应 token，也可以复用与该前缀匹配的 KV cache，只输入未缓存的新 token；两者都没有，模型才无法读取那段历史。如果总长度超过 context window，应用还必须截断、总结，或通过 retrieval / external memory 选回重要信息。[缓存接口说明（Transformers v4.57.1）](https://huggingface.co/docs/transformers/v4.57.1/cache_explanation)
+这不等于模型拥有脱离上下文的永久记忆。历史必须保留在当前逻辑前缀中：可以重新输入对应 token，也可以复用与该前缀匹配的 KV cache，只输入未缓存的新 token；两者都没有，模型才无法读取那段历史。如果总长度超过 context window，应用还必须截断、总结，或通过 retrieval / external memory 选回重要信息。[缓存接口说明（Transformers v5.20.0）](https://huggingface.co/docs/transformers/v5.20.0/cache_explanation)
 
 KV cache 只缓存**本次推理序列**里已计算的 K/V，减少重复计算；它不会自动把一次会话
 变成跨会话知识库，也不会替你决定哪些历史值得长期保留。
@@ -120,7 +120,7 @@ KV cache 只缓存**本次推理序列**里已计算的 K/V，减少重复计算
 For the second response, the sequence usually contains the system message, first user
 turn, first assistant turn, second user turn, and a new assistant-start marker. Standard full causal attention can read earlier tokens that remain in context and are not masked; sliding-window variants have narrower visibility. This lets the response use earlier dialogue.
 
-This is not permanent memory independent of context. History must remain in the logical prefix: either supply its tokens again or reuse a matching KV cache and pass only uncached new tokens. History absent from both cannot be read. When the sequence exceeds the context window, the application must truncate, summarize, or retrieve important facts. [Caching API, Transformers v4.57.1](https://huggingface.co/docs/transformers/v4.57.1/cache_explanation)
+This is not permanent memory independent of context. History must remain in the logical prefix: either supply its tokens again or reuse a matching KV cache and pass only uncached new tokens. History absent from both cannot be read. When the sequence exceeds the context window, the application must truncate, summarize, or retrieve important facts. [Caching API, Transformers v5.20.0](https://huggingface.co/docs/transformers/v5.20.0/cache_explanation)
 
 KV cache stores already-computed K/V for the **current inference sequence** to avoid
 recomputation. It does not turn one session into a cross-session knowledge base or decide
@@ -166,6 +166,12 @@ encoder–decoder 变为 decoder-only，post-norm 常被 pre-norm 替代，Layer
 RMSNorm 替代，正弦位置编码常被 RoPE 替代，FFN 常使用 SwiGLU，注意力头也可能从
 MHA 变为 GQA 或 MQA。
 
+截至 2026-10，开源模型里还有三类常见变化：Qwen3、Gemma 3 在 q/k 上再做一次
+[QK-norm](normalization.md#qk-norm)；DeepSeek-V3 用 [MLA](../deep-dives/latent-and-sparse-attention.md)
+只缓存低维 latent；[Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)（2026-02）的 60 层里，45 层是
+[Gated DeltaNet](../deep-dives/gated-deltanet.md) 这种固定大小的循环状态，只有 15 层是
+[Gated Attention](../deep-dives/gated-attention.md)，按 3:1 交替。
+
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
@@ -195,6 +201,12 @@ This is a common design, not a universal law. Relative to the 2017 encoder–dec
 modern LLMs are often decoder-only, use pre-norm instead of post-norm, RMSNorm instead
 of LayerNorm, RoPE instead of additive sinusoidal positions, SwiGLU instead of a ReLU
 FFN, and sometimes GQA or MQA instead of standard MHA.
+
+As of October 2026, open models show three more common changes: Qwen3 and Gemma 3 add
+[QK-norm](normalization.md#qk-norm) on q and k; DeepSeek-V3 caches only a low-dimensional latent with
+[MLA](../deep-dives/latent-and-sparse-attention.md); and in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) (February 2026), 45 of 60 layers are
+[Gated DeltaNet](../deep-dives/gated-deltanet.md) layers with a fixed-size recurrent state and only 15 are
+[Gated Attention](../deep-dives/gated-attention.md) layers, in a 3:1 pattern.
 
 </div>
 </section>

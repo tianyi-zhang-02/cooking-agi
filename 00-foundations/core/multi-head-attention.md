@@ -538,7 +538,7 @@ def causal_mask(t, device=None):
     return torch.triu(torch.ones(t, t, dtype=torch.bool, device=device), diagonal=1)
 ```
 
-改用 SDPA 时，**mask 也要一起迁移**。这里的布尔 mask 用 `True` 表示屏蔽，而 PyTorch 2.8 SDPA 用 `True` 表示允许，方向正好相反。已有合法 mask、且只需要输出时，核心调用是：
+改用 SDPA 时，**mask 也要一起迁移**。这里的布尔 mask 用 `True` 表示屏蔽，而 PyTorch SDPA 用 `True` 表示允许（2.14 文档，2026-10 核对），方向正好相反。已有合法 mask、且只需要输出时，核心调用是：
 
 ```python
 import torch.nn.functional as F
@@ -550,7 +550,7 @@ output = F.scaled_dot_product_attention(
 )
 ```
 
-这行返回每个头的输出，不返回 attention weights；后面仍要合头和做输出投影。是否采用融合 kernel 取决于设备、dtype 和输入条件，不是调用这个 API 就一定运行 FlashAttention。教学实现里的逐行检查便于定位错误，不是性能优化。接口细节见 [PyTorch 2.8 SDPA](https://docs.pytorch.org/docs/2.8/generated/torch.nn.functional.scaled_dot_product_attention.html)。
+这行返回每个头的输出，不返回 attention weights；后面仍要合头和做输出投影。是否采用融合 kernel 取决于设备、dtype 和输入条件，不是调用这个 API 就一定运行 FlashAttention。教学实现里的逐行检查便于定位错误，不是性能优化。接口细节见 [PyTorch 2.14 SDPA](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.scaled_dot_product_attention.html)。
 
 </details>
 
@@ -575,7 +575,7 @@ output = F.scaled_dot_product_attention(
 | 可见位置是否相同 | 本例和 `nn.MultiheadAttention` 的布尔 mask 都是 `True` 表示屏蔽，SDPA 正好相反 |
 | 梯度是否相同 | 用相同的标量 loss 比较输入梯度；共享参数的手写与 SDPA 路径还要比较参数梯度 |
 
-完整脚本中的 `library_version` 会新建一个模块并复制参数，只用于对照；它的参数梯度不会回到原来的 `mha`。仓库测试在三条 PyTorch 路径上覆盖了 bias、float32 / float64、逐头 mask 和梯度检查；NumPy 对照仍是无 bias 的小例子。这里都关闭 dropout，不是速度或显存测试。接口约定见 [PyTorch 2.8 MultiheadAttention](https://docs.pytorch.org/docs/2.8/generated/torch.nn.MultiheadAttention.html)。
+完整脚本中的 `library_version` 会新建一个模块并复制参数，只用于对照；它的参数梯度不会回到原来的 `mha`。仓库测试在三条 PyTorch 路径上覆盖了 bias、float32 / float64、逐头 mask 和梯度检查；NumPy 对照仍是无 bias 的小例子。这里都关闭 dropout，不是速度或显存测试。接口约定见 [PyTorch 2.14 MultiheadAttention](https://docs.pytorch.org/docs/2.14/generated/torch.nn.MultiheadAttention.html)。
 
 ## 接上 KV cache，mask 要从哪里开始？ {#cached-causal-mask}
 
@@ -598,7 +598,7 @@ output = F.scaled_dot_product_attention(
   </ol>
 </figure>
 
-PyTorch 2.8 的 `F.scaled_dot_product_attention(..., is_causal=True)` 对非方阵采用**左上角对齐**，不会根据 KV 长度自动推断 query 在末尾。这里用实际位置构造 `attn_mask`，不同时传 `is_causal=True`。这是这个 API 的约定，不是说所有 attention kernel 都采用同一种对齐方式。[SDPA 文档](https://docs.pytorch.org/docs/2.8/generated/torch.nn.functional.scaled_dot_product_attention.html)
+截至 PyTorch 2.14（2026-10 核对文档），`F.scaled_dot_product_attention(..., is_causal=True)` 对非方阵采用**左上角对齐**，不会根据 KV 长度自动推断 query 在末尾。这里用实际位置构造 `attn_mask`，不同时传 `is_causal=True`。这是这个 API 的约定，不是说所有 attention kernel 都采用同一种对齐方式。[SDPA 文档](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.scaled_dot_product_attention.html)
 
 <details class="code-drop" markdown="1">
 <summary>用 PyTorch 算出这四个数</summary>

@@ -681,7 +681,7 @@ $$
 | 主体 | encoder + decoder | decoder stack only |
 | norm | post-norm LayerNorm | 多为 pre-norm RMSNorm |
 | position | sinusoidal | 多为 RoPE |
-| attention | MHA | 常见 GQA / MQA |
+| attention | MHA | 常见 GQA / MQA；也有 [MLA](../deep-dives/latent-and-sparse-attention.md)，或部分层换成[线性注意力 / 循环状态](../deep-dives/gated-deltanet.md) |
 | FFN | ReLU | 常见 SwiGLU |
 | 预测条件 | source + target prefix → 下一个 target token | 同一 token stream 的 prefix → 下一个 token |
 
@@ -704,7 +704,7 @@ $$
 | Body | encoder + decoder | decoder stack only |
 | Normalization | post-norm LayerNorm | usually pre-norm RMSNorm |
 | Position | sinusoidal encoding | usually RoPE |
-| Attention | MHA | often GQA / MQA |
+| Attention | MHA | often GQA / MQA; also [MLA](../deep-dives/latent-and-sparse-attention.md), or [linear attention / recurrent state](../deep-dives/gated-deltanet.md) in some layers |
 | FFN | ReLU | often SwiGLU |
 | Prediction context | source + target prefix → next target token | prefix of one token stream → next token |
 

@@ -140,7 +140,7 @@ table turns integers into model-width vectors.
 A chat template does not alter the attention equation. It gives an ordinary token
 sequence a learnable grammatical structure.
 
-Avoid duplicating special tokens in actual code. In Transformers v4.57.1, if you render with `apply_chat_template(tokenize=False)` and tokenize separately, use `add_special_tokens=False`; `tokenize=True` combines the two steps. [Official guidance](https://huggingface.co/docs/transformers/v4.57.1/chat_templating)
+Avoid duplicating special tokens in actual code. In Transformers v5.20.0 (checked October 2026), if you render with `apply_chat_template(tokenize=False)` and tokenize separately, use `add_special_tokens=False`; `tokenize=True` combines the two steps and, because `return_dict` now defaults to `True` in v5, returns a dict with `input_ids` rather than a bare list of ids. [Official guidance](https://huggingface.co/docs/transformers/v5.20.0/chat_templating)
 
 ## Connecting the output shapes to the neural network {#connecting-the-output-shapes-to-the-neural-network}
 

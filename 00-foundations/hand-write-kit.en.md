@@ -66,7 +66,7 @@ assert np.isneginf(indirect[1])
 assert np.allclose(direct, [0.0, -1000.0])
 ```
 
-[PyTorch's `log_softmax` documentation](https://docs.pytorch.org/docs/2.8/generated/torch.nn.functional.log_softmax.html) makes this distinction explicitly. For blockwise computation and attention without a stored probability row, continue to the [online softmax example](deep-dives/attention-kernels.en.md#online-output). Numerical range, output representation, and intermediate storage are related but separate concerns.
+[PyTorch's `log_softmax` documentation](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.log_softmax.html) (2.14, checked October 2026) makes this distinction explicitly. For blockwise computation and attention without a stored probability row, continue to the [online softmax example](deep-dives/attention-kernels.en.md#online-output). Numerical range, output representation, and intermediate storage are related but separate concerns.
 
 ## Connect the forward and backward passes {#the-last-one-is-the-dividing-line}
 

@@ -14,7 +14,7 @@
 
 ![三种归一化各自沿哪条轴](../assets/norm-axes.svg)
 
-图中每行是一条 feature vector。放到 `[B,T,d]` 序列里，逐 token 归一化对应 `LayerNorm(d)` / `RMSNorm(d)`；写成 `(T,d)` 就会把时间维也算进去。**是不是逐 token，要看 `normalized_shape`，不能只看层的名字。** [LayerNorm](https://docs.pytorch.org/docs/2.8/generated/torch.nn.LayerNorm.html) 和 [RMSNorm](https://docs.pytorch.org/docs/2.8/generated/torch.nn.RMSNorm.html) 的接口都允许归一化多个末尾维度。
+图中每行是一条 feature vector。放到 `[B,T,d]` 序列里，逐 token 归一化对应 `LayerNorm(d)` / `RMSNorm(d)`；写成 `(T,d)` 就会把时间维也算进去。**是不是逐 token，要看 `normalized_shape`，不能只看层的名字。** [LayerNorm](https://docs.pytorch.org/docs/2.14/generated/torch.nn.LayerNorm.html) 和 [RMSNorm](https://docs.pytorch.org/docs/2.14/generated/torch.nn.RMSNorm.html) 的接口都允许归一化多个末尾维度。
 
 ## 三个公式 {#_2}
 
@@ -38,7 +38,7 @@ $$y_{ij} = \gamma_j\,\frac{x_{ij}}{\sqrt{\frac{1}{d}\sum_{k} x_{ik}^2+\epsilon}}
 
 ## 同一批数据，train 和 eval 为什么不一样？ {#train-eval-statistics}
 
-上面的 BatchNorm 公式用二维输入举例；在 `[N,C,L]` 上，`BatchNorm1d` 对每个 channel 沿 `N,L` 统计。默认训练用当前输入的统计量，eval 用积累下来的 running statistics；`track_running_stats=False` 时 eval 也用当前输入。它们是统计状态，不是由优化器学习的 gamma / beta。[PyTorch 2.8 文档](https://docs.pytorch.org/docs/2.8/generated/torch.nn.BatchNorm1d.html)明确区分了这些行为。
+上面的 BatchNorm 公式用二维输入举例；在 `[N,C,L]` 上，`BatchNorm1d` 对每个 channel 沿 `N,L` 统计。默认训练用当前输入的统计量，eval 用积累下来的 running statistics；`track_running_stats=False` 时 eval 也用当前输入。它们是统计状态，不是由优化器学习的 gamma / beta。[PyTorch 2.14 文档](https://docs.pytorch.org/docs/2.14/generated/torch.nn.BatchNorm1d.html)明确区分了这些行为（2026-10 核对）。
 
 先别急着归因于“训练和测试的数据分布不同”。**就算喂同一批 `[1,3]`，结果也可能不同。** 令 `eps=0`、不加 affine，并用 `momentum=1` 让 running statistics 直接采用这一批的值：
 
@@ -72,7 +72,7 @@ print(training.flatten().tolist())
 print(evaluation.flatten().tolist(), stored_variance.item())
 ```
 
-默认 `momentum=0.1` 时还会混入之前的统计量，上面的数字就不适用了。这个例子故意选 `momentum=1`，只是为了单独看清方差估计的区别。
+默认 `momentum=0.1` 时还会混入之前的统计量，上面的数字就不适用了。这个例子故意选 `momentum=1`，只是为了单独看清方差估计的区别。代码在 PyTorch 2.8 / CPU 上运行过；2026-10 对照 2.14 文档，BatchNorm 的这些行为没有变。
 
 </details>
 
@@ -89,7 +89,7 @@ print(evaluation.flatten().tolist(), stored_variance.item())
 
 第一行的样本方差是 $104/3$；第二行每批都是 2，但更新了两次。输入的归一化结果、后续 loss 和梯度也可能不同。因此不能把“有效 batch size 一样”当成带 BN 训练等价的证明。
 
-还有一个常见混淆：`torch.no_grad()` 关闭梯度记录，不会切换 BN 模式；训练模式下仍会更新 running statistics。要用已有统计量做验证，通常是 `.eval()` 加 `no_grad()`，分别控制两件事。[Autograd 文档](https://docs.pytorch.org/docs/2.8/notes/autograd.html#evaluation-mode-nn-module-eval)
+还有一个常见混淆：`torch.no_grad()` 关闭梯度记录，不会切换 BN 模式；训练模式下仍会更新 running statistics。要用已有统计量做验证，通常是 `.eval()` 加 `no_grad()`，分别控制两件事。[Autograd 文档](https://docs.pytorch.org/docs/2.14/notes/autograd.html#evaluation-mode-nn-module-eval)
 
 ## 四个概念：先会答，再深挖 {#_3}
 
@@ -279,6 +279,32 @@ $$
 </details>
 
 </details>
+
+## 现代 LLM 还在哪儿加 norm：QK-norm 与前后两次 norm {#qk-norm}
+
+Pre-LN 管住了送进子层的 $x$，但 attention 里还有一个会自己涨起来的量：logit $q\cdot k/\sqrt{d_k}$。$x$ 被归一化了，$q=xW_Q$、$k=xW_K$ 的长度却还跟着投影权重走。
+
+看一个小例子。这里只比较分数差，先省略 $\sqrt{d_k}$ 这个固定常数。$q=[2,1]$，两个 key 是 $[1,0]$ 和 $[0,1]$，分数是 2 和 1，softmax 约为 `[0.731, 0.269]`。训练中如果 $W_Q$、$W_K$ 各自整体变大 3 倍，$q=[6,3]$，key 变成 $[3,0]$ 和 $[0,3]$，分数是 18 和 9。分数差从 1 变成 9，softmax 约为 `[0.99988, 0.00012]`，几乎是 one-hot，经 softmax 传回分数的梯度也变得很小（推导见[多头注意力](multi-head-attention.md#sqrtd_k)）。[ViT-22B](https://arxiv.org/abs/2302.05442) 报告过这种情况：attention logit 变得极大，注意力熵接近 0，训练几千步后 loss 发散。
+
+**QK-norm** 在点积之前，对每个 head 的 $q$ 和 $k$ 各做一次 RMSNorm（各带一组可学习的 gain）：
+
+$$
+\hat q=\operatorname{RMSNorm}(q),\qquad
+\hat k=\operatorname{RMSNorm}(k),\qquad
+s=\frac{\hat q\cdot\hat k}{\sqrt{d_k}}.
+$$
+
+前面讲过，忽略 epsilon 时 RMSNorm 对整体缩放不变：$[6,3]$ 和 $[2,1]$ 归一化后相同，所以权重整体放大 3 倍不再改变分数。gain 为 1 时 $\|\hat q\|=\|\hat k\|=\sqrt{d_k}$，于是 $|s|\le\sqrt{d_k}$；$d_k=128$ 时上界约 11.3。logit 要变大，只能靠 gain 一点点学，不会跟着投影权重的范数自动膨胀。RoPE 是旋转，不改变向量长度，所以这个上界和 norm 放在 RoPE 前后无关；[Gemma 3 的 Transformers 实现](https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py)放在 RoPE 之前。
+
+[Qwen3 技术报告](https://arxiv.org/abs/2505.09388)写明去掉 Qwen2 的 QKV bias、引入 QK-Norm，是为了训练稳定；[Gemma 3 技术报告](https://arxiv.org/abs/2503.19786) §2 用 QK-norm 替换了 Gemma 2 的 soft-capping。soft-capping 用 $c\tanh(s/c)$ 把分数压在 $(-c,c)$ 里，是事后截住；QK-norm 从源头限制 $q$、$k$ 的长度。
+
+**前后两次 norm。** Gemma 3 在每个子层的前后各放一个 RMSNorm：
+
+$$
+h=x+\operatorname{Norm}_{\text{post}}\big(\operatorname{Attn}(\operatorname{Norm}_{\text{pre}}(x))\big),
+$$
+
+FFN 也一样。这里的 post-norm 只作用在**分支输出**上，加回残差之后不再归一化，所以主干仍保留上面 Pre-LN 的 identity path。它和 2017 年那种把“残差加和”整体归一化的 Post-LN 名字相同、位置不同，可以理解为限制每个子层写回残差流的更新尺度。
 
 ## 怎样选择归一化方法 {#_4}
 

@@ -77,6 +77,8 @@ LSTM 缓解遗忘，但没有消除递归带来的串行计算和固定状态瓶
 
 流式传感器、非常小的边缘模型、需要记住的状态不多、又必须一步步在线更新的任务里，递归状态仍可能比保存完整上下文更便宜。架构选择取决于 workload，不是简单的新旧排名。
 
+固定大小的循环状态也回到了大模型里：截至 2026-10，[Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) 的 60 层中有 45 层是 [Gated DeltaNet](../deep-dives/gated-deltanet.md)，用可并行训练的方式更新一个矩阵状态；世界模型 [Dreamer](../../11-frontier/world-models/dreamer.md) 的 RSSM 也是循环网络。它们改的是“状态怎么写、怎么忘”，不是回到逐 token 串行训练的 LSTM。
+
 </details>
 
 ## 实验：验证长距离依赖 {#_3}

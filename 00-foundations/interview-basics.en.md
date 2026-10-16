@@ -297,7 +297,8 @@ When asked to "walk through the architecture," don't recite the figure. **Go com
 | Post-LN | Pre-LN + RMSNorm | Pre-LN reduces reliance on warmup and stacks deeper; RMSNorm drops centering to save compute |
 | Sinusoidal / learned absolute positions | RoPE | position enters $q\cdot k$ only through the offset $n-m$, while the score still depends on content; going past the training length still needs RoPE scaling |
 | ReLU FFN | SwiGLU | better at equal compute |
-| MHA | GQA / MQA | **the KV cache is the inference memory bottleneck** |
+| MHA | GQA / MQA, or [MLA](deep-dives/latent-and-sparse-attention.en.md) (cache only a low-dimensional latent) | **the KV cache is the inference memory bottleneck** |
+| Softmax attention in every layer | Some layers become linear attention / recurrent state; e.g. in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B), 3 of every 4 layers are [Gated DeltaNet](deep-dives/gated-deltanet.en.md) (as of October 2026) | The state has a fixed size, so those layers do not read a full KV history during decode |
 
 ## Where to read next {#where-to-read-next}
 

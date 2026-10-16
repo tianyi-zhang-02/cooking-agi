@@ -297,7 +297,8 @@ heap-style 的 `left=2i+1, right=2i+2`？对稀疏树，二者不等价。面试
 | Post-LN | Pre-LN + RMSNorm | Pre-LN 降低对 warmup 的依赖、更容易堆深；RMSNorm 省去中心化，计算更省 |
 | 正弦 / 学习式绝对位置 | RoPE | 位置只以相对距离 $n-m$ 进入 $q\cdot k$，分数仍取决于内容；超出训练长度仍要靠 RoPE scaling 等扩展 |
 | ReLU FFN | SwiGLU | 同等算力下更好 |
-| MHA | GQA / MQA | **KV cache 是推理显存瓶颈** |
+| MHA | GQA / MQA，或 [MLA](deep-dives/latent-and-sparse-attention.md)（只缓存低维 latent） | **KV cache 是推理显存瓶颈** |
+| 每层都是 softmax attention | 部分层换成线性注意力 / 循环状态，例如 [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) 每 4 层里 3 层是 [Gated DeltaNet](deep-dives/gated-deltanet.md)（截至 2026-10） | 状态大小固定，这些层 decode 时不再读完整 KV |
 
 ## 继续阅读 {#_7}
 

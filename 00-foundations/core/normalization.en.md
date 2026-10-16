@@ -14,7 +14,7 @@ Start with the axes, then check running statistics and train / eval modes. Toget
 
 ![which axis each norm averages over](../assets/norm-axes.en.svg)
 
-Each row in the figure is one feature vector. For a sequence shaped `[B,T,d]`, token-wise normalization means `LayerNorm(d)` / `RMSNorm(d)`. Passing `(T,d)` includes time as well. **Check `normalized_shape`, not just the layer's name.** Both [LayerNorm](https://docs.pytorch.org/docs/2.8/generated/torch.nn.LayerNorm.html) and [RMSNorm](https://docs.pytorch.org/docs/2.8/generated/torch.nn.RMSNorm.html) allow normalization over multiple trailing dimensions.
+Each row in the figure is one feature vector. For a sequence shaped `[B,T,d]`, token-wise normalization means `LayerNorm(d)` / `RMSNorm(d)`. Passing `(T,d)` includes time as well. **Check `normalized_shape`, not just the layer's name.** Both [LayerNorm](https://docs.pytorch.org/docs/2.14/generated/torch.nn.LayerNorm.html) and [RMSNorm](https://docs.pytorch.org/docs/2.14/generated/torch.nn.RMSNorm.html) allow normalization over multiple trailing dimensions.
 
 ## Three formulas {#three-formulas}
 
@@ -38,7 +38,7 @@ Add 10 to the opening example: `[1, 3]` becomes `[11, 13]`. Ignoring epsilon, La
 
 ## Why can train and eval differ on the same batch? {#train-eval-statistics}
 
-The BatchNorm formula above uses a two-dimensional input. On `[N,C,L]`, `BatchNorm1d` reduces over `N,L` per channel. By default, training uses current-input statistics and eval uses accumulated running statistics. With `track_running_stats=False`, eval uses the current input too. These are statistical state, not optimizer-trained parameters such as gamma / beta. See [PyTorch 2.8](https://docs.pytorch.org/docs/2.8/generated/torch.nn.BatchNorm1d.html).
+The BatchNorm formula above uses a two-dimensional input. On `[N,C,L]`, `BatchNorm1d` reduces over `N,L` per channel. By default, training uses current-input statistics and eval uses accumulated running statistics. With `track_running_stats=False`, eval uses the current input too. These are statistical state, not optimizer-trained parameters such as gamma / beta. See [PyTorch 2.14](https://docs.pytorch.org/docs/2.14/generated/torch.nn.BatchNorm1d.html) (checked October 2026).
 
 A distribution shift is not the only possible explanation. **Even the same batch `[1,3]` can produce different outputs.** Set `eps=0`, disable affine parameters, and use `momentum=1` so the running statistics come directly from this batch:
 
@@ -72,7 +72,7 @@ print(training.flatten().tolist())
 print(evaluation.flatten().tolist(), stored_variance.item())
 ```
 
-Default `momentum=0.1` would mix in previous statistics, changing these numbers. Setting it to 1 isolates the difference between the variance estimators.
+Default `momentum=0.1` would mix in previous statistics, changing these numbers. Setting it to 1 isolates the difference between the variance estimators. The code was run on PyTorch 2.8 / CPU; checked against the 2.14 documentation in October 2026, these BatchNorm behaviors are unchanged.
 
 </details>
 
@@ -89,7 +89,7 @@ Starting with running mean 0 and variance 1, with `momentum=0.1`:
 
 The first row uses sample variance $104/3$. Each microbatch in the second row has sample variance 2, but updates the state twice. Normalized activations, subsequent losses, and gradients may differ too. Matching the effective batch size therefore does not establish equivalent training with BN.
 
-One more distinction: `torch.no_grad()` disables gradient recording; it does not switch BN modes. A training-mode module still updates running statistics. Validation commonly uses both `.eval()` and `no_grad()` because they control different behaviors. [Autograd documentation](https://docs.pytorch.org/docs/2.8/notes/autograd.html#evaluation-mode-nn-module-eval)
+One more distinction: `torch.no_grad()` disables gradient recording; it does not switch BN modes. A training-mode module still updates running statistics. Validation commonly uses both `.eval()` and `no_grad()` because they control different behaviors. [Autograd documentation](https://docs.pytorch.org/docs/2.14/notes/autograd.html#evaluation-mode-nn-module-eval)
 
 ## Four concepts: answer first, then go deeper {#four-concepts-answer-first-then-go-deeper}
 
@@ -279,6 +279,32 @@ RMSNorm's engineering gain is one fewer mean reduction and less associated synch
 </details>
 
 </details>
+
+## Where modern LLMs add more norms: QK-norm and pre + post norm {#qk-norm}
+
+Pre-LN controls the $x$ that enters each sublayer, but attention has another quantity that can grow on its own: the logit $q\cdot k/\sqrt{d_k}$. The input $x$ is normalized, yet the lengths of $q=xW_Q$ and $k=xW_K$ still follow the projection weights.
+
+Take a small example. Only score gaps matter here, so leave out the constant $\sqrt{d_k}$. With $q=[2,1]$ and keys $[1,0]$ and $[0,1]$, the scores are 2 and 1 and the softmax is about `[0.731, 0.269]`. If training scales $W_Q$ and $W_K$ each by 3, then $q=[6,3]$, the keys become $[3,0]$ and $[0,3]$, and the scores are 18 and 9. The gap grows from 1 to 9 and the softmax is about `[0.99988, 0.00012]`: nearly one-hot, so the gradient back through the softmax to the scores becomes small (derivation in [multi-head attention](multi-head-attention.en.md#why-divide-by-sqrtd_k)). [ViT-22B](https://arxiv.org/abs/2302.05442) reported exactly this: attention logits became extremely large, attention entropy fell to near zero, and the loss diverged after a few thousand steps.
+
+**QK-norm** applies RMSNorm to each head's $q$ and $k$ before the dot product, each with its own learnable gain:
+
+$$
+\hat q=\operatorname{RMSNorm}(q),\qquad
+\hat k=\operatorname{RMSNorm}(k),\qquad
+s=\frac{\hat q\cdot\hat k}{\sqrt{d_k}}.
+$$
+
+As shown above, RMSNorm ignores an overall scale when epsilon is ignored: $[6,3]$ and $[2,1]$ normalize to the same vector, so scaling the weights by 3 no longer changes the score. With unit gain, $\|\hat q\|=\|\hat k\|=\sqrt{d_k}$, so $|s|\le\sqrt{d_k}$; for $d_k=128$ the bound is about 11.3. Larger logits now have to be learned slowly through the gains instead of growing automatically with the projection norms. RoPE is a rotation and preserves length, so the bound does not depend on whether the norm comes before or after RoPE; [Gemma 3's Transformers implementation](https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py) applies it before.
+
+The [Qwen3 technical report](https://arxiv.org/abs/2505.09388) says it removed Qwen2's QKV bias and introduced QK-Norm for stable training; the [Gemma 3 technical report](https://arxiv.org/abs/2503.19786) §2 replaced Gemma 2's soft-capping with QK-norm. Soft-capping squeezes a score into $(-c,c)$ with $c\tanh(s/c)$ after the fact; QK-norm limits the lengths of $q$ and $k$ at the source.
+
+**Norm before and after.** Gemma 3 puts an RMSNorm both before and after each sublayer:
+
+$$
+h=x+\operatorname{Norm}_{\text{post}}\big(\operatorname{Attn}(\operatorname{Norm}_{\text{pre}}(x))\big),
+$$
+
+and the FFN does the same. This post-norm acts only on the **branch output**; nothing normalizes the sum after it is added back, so the trunk keeps the Pre-LN identity path above. It shares a name with the 2017 Post-LN, which normalizes the whole residual sum, but sits in a different place. One way to read it is as a limit on how large an update each sublayer writes into the residual stream.
 
 ## How to choose a normalization method {#how-to-choose-a-normalization-method}
 

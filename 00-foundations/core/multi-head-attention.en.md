@@ -433,7 +433,7 @@ def causal_mask(t, device=None):
     return torch.triu(torch.ones(t, t, dtype=torch.bool, device=device), diagonal=1)
 ```
 
-When switching to SDPA, **carry the mask across too**. This example uses boolean `True` for blocked positions; PyTorch 2.8 SDPA uses `True` for allowed positions, the opposite convention. With a valid mask, and when only the output is needed, the core call is:
+When switching to SDPA, **carry the mask across too**. This example uses boolean `True` for blocked positions; PyTorch SDPA uses `True` for allowed positions (2.14 documentation, checked October 2026), the opposite convention. With a valid mask, and when only the output is needed, the core call is:
 
 ```python
 import torch.nn.functional as F
@@ -445,7 +445,7 @@ output = F.scaled_dot_product_attention(
 )
 ```
 
-It returns per-head outputs, not attention weights; head merging and output projection are still needed. Fused-kernel selection depends on device, dtype, and input support: calling SDPA does not guarantee FlashAttention. The teaching implementation's row checks aid debugging, not performance. See the [PyTorch 2.8 SDPA reference](https://docs.pytorch.org/docs/2.8/generated/torch.nn.functional.scaled_dot_product_attention.html).
+It returns per-head outputs, not attention weights; head merging and output projection are still needed. Fused-kernel selection depends on device, dtype, and input support: calling SDPA does not guarantee FlashAttention. The teaching implementation's row checks aid debugging, not performance. See the [PyTorch 2.14 SDPA reference](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.scaled_dot_product_attention.html).
 
 </details>
 
@@ -470,7 +470,7 @@ One matching output is a useful start, not a complete migration test. Check thes
 | Allowed positions | This example and `nn.MultiheadAttention` use boolean `True` to block a key; SDPA uses the opposite meaning. |
 | Gradients | Compare input gradients under the same scalar loss. For the handwritten and SDPA paths, also compare gradients of their shared parameters. |
 
-The script's `library_version` creates a separate module and copies the parameters for comparison. Its parameter gradients do not flow back to the original `mha`. Tests cover bias, float32 / float64, per-head masks, and gradients across the three PyTorch paths; the NumPy comparison remains a small bias-free fixture. Dropout is off throughout. These are correctness checks, not speed or memory benchmarks. See the [PyTorch 2.8 MultiheadAttention API](https://docs.pytorch.org/docs/2.8/generated/torch.nn.MultiheadAttention.html) for its conventions.
+The script's `library_version` creates a separate module and copies the parameters for comparison. Its parameter gradients do not flow back to the original `mha`. Tests cover bias, float32 / float64, per-head masks, and gradients across the three PyTorch paths; the NumPy comparison remains a small bias-free fixture. Dropout is off throughout. These are correctness checks, not speed or memory benchmarks. See the [PyTorch 2.14 MultiheadAttention API](https://docs.pytorch.org/docs/2.14/generated/torch.nn.MultiheadAttention.html) for its conventions.
 
 ## Where does the causal mask start with a KV cache? {#cached-causal-mask}
 
@@ -493,7 +493,7 @@ To make the error visible, set all Q/K scores to zero and use values `[10, 20, 3
   </ol>
 </figure>
 
-In PyTorch 2.8, `F.scaled_dot_product_attention(..., is_causal=True)` uses **upper-left alignment** for a non-square mask. It does not infer that the queries belong at the end of the KV sequence. Here, construct `attn_mask` from actual positions and leave `is_causal` off. This is an API-specific convention, not a claim that every attention kernel uses the same alignment. [SDPA documentation](https://docs.pytorch.org/docs/2.8/generated/torch.nn.functional.scaled_dot_product_attention.html)
+As of PyTorch 2.14 (documentation checked October 2026), `F.scaled_dot_product_attention(..., is_causal=True)` uses **upper-left alignment** for a non-square mask. It does not infer that the queries belong at the end of the KV sequence. Here, construct `attn_mask` from actual positions and leave `is_causal` off. This is an API-specific convention, not a claim that every attention kernel uses the same alignment. [SDPA documentation](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.scaled_dot_product_attention.html)
 
 <details class="code-drop" markdown="1">
 <summary>Check the four numbers in PyTorch</summary>

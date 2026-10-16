@@ -329,7 +329,7 @@ $$
 | Body | encoder + decoder | decoder stack only |
 | Norm | post-norm LayerNorm | mostly pre-norm RMSNorm |
 | Position | sinusoidal | mostly RoPE |
-| Attention | MHA | commonly GQA / MQA |
+| Attention | MHA | commonly GQA / MQA; also [MLA](../deep-dives/latent-and-sparse-attention.en.md), or [linear attention / recurrent state](../deep-dives/gated-deltanet.en.md) in some layers |
 | FFN | ReLU | commonly SwiGLU |
 | Prediction context | source + target prefix → next target token | prefix of one token stream → next token |
 

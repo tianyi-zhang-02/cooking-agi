@@ -68,7 +68,7 @@ assert np.isneginf(indirect[1])
 assert np.allclose(direct, [0.0, -1000.0])
 ```
 
-[PyTorch 的 `log_softmax`](https://docs.pytorch.org/docs/2.8/generated/torch.nn.functional.log_softmax.html)也明确区分直接计算与 `log(softmax(x))`。如果想接着理解怎样分块计算、为什么 attention 不必存整行概率，可以看 [online softmax 的例子](deep-dives/attention-kernels.md#online-output)。这三个问题分别关心数值范围、输出形式和中间量存储，不是同一件事。
+[PyTorch 的 `log_softmax`](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.log_softmax.html)（2.14，2026-10 核对）也明确区分直接计算与 `log(softmax(x))`。如果想接着理解怎样分块计算、为什么 attention 不必存整行概率，可以看 [online softmax 的例子](deep-dives/attention-kernels.md#online-output)。这三个问题分别关心数值范围、输出形式和中间量存储，不是同一件事。
 
 ## 把前向和反向连起来 {#_5}
 

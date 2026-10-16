@@ -201,7 +201,7 @@ table 才把整数变成模型维度里的向量。
 
 Chat template 没有改变 attention 公式，它只是给普通序列加了可学习的语法结构。
 
-实际调用时也要避免重复添加特殊 token：在 Transformers v4.57.1 中，若先用 `apply_chat_template(tokenize=False)` 得到文本，再单独 tokenize，应设置 `add_special_tokens=False`；直接用 `tokenize=True` 可以合并这两步。[官方说明](https://huggingface.co/docs/transformers/v4.57.1/chat_templating)
+实际调用时也要避免重复添加特殊 token：在 Transformers v5.20.0 中（2026-10 核对），若先用 `apply_chat_template(tokenize=False)` 得到文本，再单独 tokenize，应设置 `add_special_tokens=False`；直接用 `tokenize=True` 可以合并这两步，v5 的 `return_dict` 默认是 `True`，返回带 `input_ids` 的字典，不是一串 id。[官方说明](https://huggingface.co/docs/transformers/v5.20.0/chat_templating)
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -230,7 +230,7 @@ table turns integers into model-width vectors.
 A chat template does not alter the attention equation. It gives an ordinary token
 sequence a learnable grammatical structure.
 
-Avoid duplicating special tokens in actual code. In Transformers v4.57.1, if you render with `apply_chat_template(tokenize=False)` and tokenize separately, use `add_special_tokens=False`; `tokenize=True` combines the two steps. [Official guidance](https://huggingface.co/docs/transformers/v4.57.1/chat_templating)
+Avoid duplicating special tokens in actual code. In Transformers v5.20.0 (checked October 2026), if you render with `apply_chat_template(tokenize=False)` and tokenize separately, use `add_special_tokens=False`; `tokenize=True` combines the two steps and, because `return_dict` now defaults to `True` in v5, returns a dict with `input_ids` rather than a bare list of ids. [Official guidance](https://huggingface.co/docs/transformers/v5.20.0/chat_templating)
 
 </div>
 </section>

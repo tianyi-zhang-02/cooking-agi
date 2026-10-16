@@ -35,7 +35,7 @@ $$p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$$
 
 Positive temperature preserves the **ranking** but changes concentration. Lowering it does not add knowledge or guarantee a more correct answer.
 
-> The formula is undefined at $T=0$. Some interfaces use it as shorthand for greedy decoding; others have a separate switch. In [Transformers 4.57.1](https://huggingface.co/docs/transformers/v4.57.1/en/main_classes/text_generation), for example, `do_sample=False, num_beams=1` explicitly selects greedy decoding.
+> The formula is undefined at $T=0$. Some interfaces use it as shorthand for greedy decoding; others have a separate switch. In [Transformers 5.20.0](https://huggingface.co/docs/transformers/v5.20.0/en/main_classes/text_generation) (checked October 2026), for example, `do_sample=False, num_beams=1` explicitly selects greedy decoding.
 
 ## Top-k: keep only the k most probable {#top-k-keep-only-the-k-most-probable}
 
@@ -139,7 +139,7 @@ A few easy traps:
 
 **min-p**: keep tokens whose probability is ≥ `min_p × highest probability`. This is a threshold relative to the peak, not cumulative mass. Whether it improves high-temperature outputs requires a task-level comparison.
 
-**Repetition penalty and no-repeat n-gram are different operations**. The former changes scores of previously used tokens; the latter bans a next token that would complete a repeated n-gram. After `A B A`, a bigram ban excludes `B`, not every previously seen token. See the [Transformers 4.57.1 generation processors](https://huggingface.co/docs/transformers/v4.57.1/en/internal/generation_utils#transformers.NoRepeatNGramLogitsProcessor).
+**Repetition penalty and no-repeat n-gram are different operations**. The former changes scores of previously used tokens; the latter bans a next token that would complete a repeated n-gram. After `A B A`, a bigram ban excludes `B`, not every previously seen token. See the [Transformers 5.20.0 generation processors](https://huggingface.co/docs/transformers/v5.20.0/en/internal/generation_utils#transformers.NoRepeatNGramLogitsProcessor).
 
 **Typical sampling**: compare token surprisal $-\log p_i$ with conditional entropy rather than ranking solely by probability. It favors information content near the current expectation; see the assumptions and experiments in [Locally Typical Sampling](https://arxiv.org/abs/2202.00666).
 

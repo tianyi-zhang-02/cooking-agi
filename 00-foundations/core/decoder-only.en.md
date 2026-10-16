@@ -69,7 +69,7 @@ of the token context while the model continues ordinary causal next-token predic
 For the second response, the sequence usually contains the system message, first user
 turn, first assistant turn, second user turn, and a new assistant-start marker. Standard full causal attention can read earlier tokens that remain in context and are not masked; sliding-window variants have narrower visibility. This lets the response use earlier dialogue.
 
-This is not permanent memory independent of context. History must remain in the logical prefix: either supply its tokens again or reuse a matching KV cache and pass only uncached new tokens. History absent from both cannot be read. When the sequence exceeds the context window, the application must truncate, summarize, or retrieve important facts. [Caching API, Transformers v4.57.1](https://huggingface.co/docs/transformers/v4.57.1/cache_explanation)
+This is not permanent memory independent of context. History must remain in the logical prefix: either supply its tokens again or reuse a matching KV cache and pass only uncached new tokens. History absent from both cannot be read. When the sequence exceeds the context window, the application must truncate, summarize, or retrieve important facts. [Caching API, Transformers v5.20.0](https://huggingface.co/docs/transformers/v5.20.0/cache_explanation)
 
 KV cache stores already-computed K/V for the **current inference sequence** to avoid
 recomputation. It does not turn one session into a cross-session knowledge base or decide
@@ -103,6 +103,12 @@ This is a common design, not a universal law. Relative to the 2017 encoder–dec
 modern LLMs are often decoder-only, use pre-norm instead of post-norm, RMSNorm instead
 of LayerNorm, RoPE instead of additive sinusoidal positions, SwiGLU instead of a ReLU
 FFN, and sometimes GQA or MQA instead of standard MHA.
+
+As of October 2026, open models show three more common changes: Qwen3 and Gemma 3 add
+[QK-norm](normalization.en.md#qk-norm) on q and k; DeepSeek-V3 caches only a low-dimensional latent with
+[MLA](../deep-dives/latent-and-sparse-attention.en.md); and in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) (February 2026), 45 of 60 layers are
+[Gated DeltaNet](../deep-dives/gated-deltanet.en.md) layers with a fixed-size recurrent state and only 15 are
+[Gated Attention](../deep-dives/gated-attention.en.md) layers, in a 3:1 pattern.
 
 ### 2. RoPE: relative phase in Q and K {#2-rope-relative-phase-in-q-and-k}
 

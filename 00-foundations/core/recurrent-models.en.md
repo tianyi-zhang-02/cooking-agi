@@ -77,6 +77,8 @@ An LSTM mitigates forgetting, but it does not eliminate the sequential computati
 
 For streaming sensors, very small edge models, and tasks whose state space is small and which must be updated online one step at a time, a recurrent state can still be cheaper than keeping the full context. The choice of architecture depends on the workload; it is not a simple ranking of new over old.
 
+Fixed-size recurrent state has also returned to large models: as of October 2026, 45 of the 60 layers in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) are [Gated DeltaNet](../deep-dives/gated-deltanet.en.md) layers, which update a matrix state in a form that trains in parallel; the RSSM in the world model [Dreamer](../../11-frontier/world-models/dreamer.en.md) is a recurrent network as well. They change how the state is written and forgotten; they are not a return to LSTMs trained serially token by token.
+
 </details>
 
 ## Experiment: verify long-range dependencies {#experiment-verify-long-range-dependencies}
