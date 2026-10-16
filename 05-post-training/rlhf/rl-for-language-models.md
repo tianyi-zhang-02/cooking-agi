@@ -2,46 +2,19 @@
 
 **中文** · [English](rl-for-language-models.en.md)
 
-> 阅读时间：约 3 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 2 分钟 · 难度：必修 · 最近审阅：2026-10
 
-理解 RL 最清楚的方式，是先把它拆成两层：**环境层**描述世界怎样变化，**学习层**描述 agent 怎样从经验中改进 policy。监督学习通常直接给出目标答案；强化学习（Reinforcement Learning, **RL**）只评价一段行为的结果。模型知道这次得了多少分，却未必知道是哪一步造成的，也没有一个逐步的标准答案可以照抄。
+语言模型每次只是在预测下一个 token，为什么能用强化学习来训练？因为一次生成可以看成一串决策：每一步看到当前前缀，选一个 token，最后由奖励模型、测试或环境给整段结果打分。监督学习通常直接给出目标答案；强化学习（Reinforcement Learning, **RL**）只评价一段行为的结果。模型知道这次得了多少分，却未必知道是哪一步造成的，也没有一个逐步的标准答案可以照抄。
 
-## 环境层：世界如何运行
+## 先借用 RL 的几个词 {#rl-vocabulary}
 
-| Component | 它回答什么问题 | 自动驾驶例子 |
-| --- | --- | --- |
-| **State**（状态）$s_t$ | 世界此刻的完整情况是什么？ | 车辆位置、速度、周围车辆和路况 |
-| **Observation**（观测）$o_t$ | agent 实际看到了什么？ | camera、LiDAR、speedometer |
-| **Policy**（策略）$\pi_\theta(a\mid o)$ | 看到这些信息后，动作怎样分布？ | 红灯前给刹车更高概率 |
-| **Action**（动作）$a_t$ | agent 真正做了什么？ | 转向、加速或刹车 |
-| **Dynamics**（转移规律）$P$ | 动作会怎样改变世界？ | 刹车后速度和位置如何变化 |
-| **Reward**（奖励）$r_t$ | 这一步或最终结果得到什么评分？ | 安全行驶为正，碰撞为负 |
-
-一次 transition / experience 常写成
-
-$$
-(s_t,a_t,r_t,s_{t+1}),
-$$
-
-把许多步连起来便得到 trajectory：
+在 RL 里，agent 处在**状态**（state）$s_t$，按**策略**（policy）$\pi_\theta$ 选一个**动作**（action）$a_t$；环境按转移规律给出下一状态 $s_{t+1}$ 和**奖励**（reward）$r_t$。一次 transition 写成 $(s_t,a_t,r_t,s_{t+1})$，许多步连起来就是一条轨迹（trajectory）：
 
 $$
 \tau=(s_0,a_0,r_0,s_1,a_1,r_1,\ldots).
 $$
 
-**State 不一定等于 observation。** State 是决定未来演化所需的完整世界信息；observation 是 agent 能取得的部分信号。教科书 MDP 常假设 $o_t=s_t$，现实中的机器人、游戏和对话 agent 往往只能部分观测，此时更接近 POMDP。Policy 实际只能根据 observation 或历史摘要做决定，而不是读取不可见的真实 state。
-
-## 学习层：怎样判断 policy 的行为
-
-| Quantity | 它回答的问题 |
-| --- | --- |
-| Immediate reward $r_t$ | “我现在拿到了什么反馈？” |
-| Return $G_t$ | “这次 rollout 从现在往后实际拿了多少？” |
-| Value $V^\pi(s_t)$ | “从这里按当前 policy 继续，平均预计拿多少？” |
-| Q-value $Q^\pi(s_t,a_t)$ | “在这里先做这个 action，平均预计拿多少？” |
-| Advantage $A_t$ | “这个 action 比这里的正常选择好还是差？” |
-
-前一层产生 experience，后一层把 experience 转成训练信号。Reward 是环境或 evaluator 给出的反馈；return、value、Q 和 advantage 是为了学习而构造或估计的量。
+agent 实际看到的是观测（observation），不一定是完整状态；状态、观测、转移和 Bellman 递推的细节见 [MDP 与 Bellman](../deep-rl/mdp-bellman.md)。Return、value、Q 和 advantage 是为了学习而构造或估计的量，不是环境直接给的反馈，[下一篇](value-and-advantage.md)逐个定义。
 
 ## 映射到语言模型
 

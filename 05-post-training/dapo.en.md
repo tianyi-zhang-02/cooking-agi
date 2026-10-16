@@ -24,7 +24,7 @@ For $A=-1$, the same ratio gives -1.25, retaining a gradient to correct the bad 
 
 Absolute changes can be tiny for rare tokens. Moving from 0.01 to 0.012 is already a factor of 1.2, just like moving from 0.5 to 0.6. Clip-Higher relaxes a multiplicative margin, not an equal additive probability allowance or a guarantee against entropy decline.
 
-## Dynamic sampling retains groups, not only correct answers
+## Dynamic sampling retains groups, not only correct answers {#dynamic-sampling}
 
 With 4 samples per prompt, binary rewards might be:
 

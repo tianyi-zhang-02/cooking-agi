@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisites: [On- vs off-policy](rlhf/on-off-policy.en.md) and [GAE](deep-rl/actor-critic-gae.en.md)
 
-One agent finishes in 5 seconds. Another searches, runs code, and takes 40. Waiting for the slowest leaves the trainer idle; training on whichever finishes first makes later trajectories stale. Asynchronous RL removes the waiting but introduces this distribution mismatch, which still has to be handled.
+One agent finishes in 5 seconds. Another searches, runs code, and takes 40. Waiting for the slowest leaves the trainer idle; training on whichever finishes first makes later trajectories stale. Asynchronous RL removes the waiting but introduces this distribution mismatch, which still has to be handled. For how multi-step agent training systems cope with such uneven completion times (public reports on AReaL, ROLL Flash, Kimi-Researcher, and others), see the section “The training system: when the environment is slower than the model” in the frontier draft on [agent credit assignment and training](../11-frontier/agentic-rl/credit-and-training.en.md).
 
 ## Draw the data path first
 
@@ -59,6 +59,8 @@ $$
 | 0.6 | 0 | Discarded for either advantage sign |
 | 1.1 | 1.1 | Retained |
 | 1.8 | 0 | No distinction based on whether the move is in the wrong direction |
+
+`[0.7, 1.5]` only keeps the arithmetic easy. The paper's Eq. (3) writes the interval as $(1-\epsilon_l,1+\epsilon_h)$. In its experiments (§4.1), math reasoning with Python tools uses $\epsilon_{low}=0.3$ and $\epsilon_{high}=5.0$, a ratio interval of $(0.7, 6.0)$; the coding agent uses $\epsilon_{low}=0.8$ and $\epsilon_{high}=3.0$, an interval of $(0.2, 4.0)$. The upper bound is far wider than the lower one: under the paper's settings, the 1.8 token in the table would be kept, and only tokens that drift much further are dropped. Choosing the interval is a design decision to tune per task, not a teaching value to copy.
 
 PPO retains corrective gradients for movement in a bad direction. This two-sided filter more directly discards highly shifted tokens. It introduces selection bias: if long tasks become stale more often, retained data may favor easy, quickly completed tasks.
 

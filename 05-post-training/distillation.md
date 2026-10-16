@@ -229,7 +229,7 @@ assert aligned_spans([b"blue", b"bird", b"!"], [b"bluebird", b"!"]) == [
 
 ## R1 的数据蒸馏属于哪一种？
 
-[DeepSeek-R1 的公开说明](https://github.com/deepseek-ai/DeepSeek-R1)介绍了用 R1 整理的数据微调 Qwen / Llama 学生。这可以放在上面的“老师提供答案”一栏：学生用自己的 tokenizer 读文本，不要求逐 token 对齐老师的 logits。
+[DeepSeek-R1 的公开说明](https://github.com/deepseek-ai/DeepSeek-R1)介绍了用 R1 整理的数据微调 Qwen / Llama 学生。这可以放在上面的“老师提供答案”一栏：学生用自己的 tokenizer 读文本，不要求逐 token 对齐老师的 logits。长思维链蒸馏到小模型的效果和局限，见前沿草稿[长思维链是怎样训练出来的](../11-frontier/test-time-compute/long-chains.md)里“蒸馏：把长链教给小模型”一节。
 
 不能仅凭词表不同，就反推出一个项目完整的训练方法。也别把 SFT 等同于全参数更新：用什么监督，与更新全部权重还是 LoRA，是两件事。要确认一个具体模型，还是看它的训练报告。
 

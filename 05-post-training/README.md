@@ -1,4 +1,4 @@
-# 后训练：模型预训练之后还要学什么？
+# 后训练（post-training）：模型预训练之后还要学什么？
 
 **中文** · [English](README.en.md)
 
@@ -6,9 +6,45 @@
 
 ## 会续写文本，还不等于会完成任务
 
+预训练让模型从大量数据里学习语言、知识和通用能力。后训练则进一步教它怎样完成任务：怎么遵循指令、什么回答更合适，以及怎样根据反馈调整行为。
+
 想先弄懂 RL 本身？从独立的[强化学习路线](deep-rl/README.md)开始：MDP、Bellman、Policy Gradient、DQN、SAC 与 Model-based RL，再回到这里看它们怎样用于语言模型。
 
-预训练让模型从大量数据里学习语言、知识和通用能力。后训练则进一步教它怎样完成任务：怎么遵循指令、什么回答更合适，以及怎样根据反馈调整行为。
+## 这个系列怎么读
+
+先分清两件事：**用什么信号教**，以及**允许哪些参数改变**。如果已经了解 SFT，可以直接去看偏好学习；遇到不熟的概念再回来补，不必从第一页重新读。
+
+**一、打地基：为什么还需要教**
+
+1. 为什么预训练完还不够（本页）—— SFT、偏好学习、RL 各自解决什么学习问题
+2. [模型适配：Full Fine-Tuning、LoRA、Prompt Tuning 与蒸馏](model-adaptation.md) —— 区分 learning objective 与 parameterization，并解释分类输出怎样被系统约束
+3. [SFT](sft-and-its-ceiling.md) —— 为什么平均 token loss 不能代替任务成功率，以及示范怎样教会回答、澄清或拒答
+4. [偏好与奖励模型](where-preferences-come-from.md) —— Bradley–Terry 如何用分数差解释偏好，策略变化后奖励模型还是否可靠，以及 AI 反馈、生成式奖励模型和 rubric 奖励
+
+想把两种常用方法算清楚，可以接着读 [LoRA / QLoRA](lora-and-qlora.md)和[蒸馏](distillation.md)：前者算参数、梯度和显存，后者算软标签、KL 和 top-k 省略了什么。
+
+想知道 SFT 示范怎么从模型输出里筛出来，接着读[拒绝采样与数据筛选](rejection-sampling.md)：区分“挑一份交给用户”和“挑一批继续训练”，再检查筛选是否悄悄改变了题目比例。
+
+**二、用结果教：RL 那条线**
+
+5. [RLHF 的三个阶段，和后来发生了什么](rlhf/) —— 四个模型，谁在训谁被冻住
+6. [PPO、GRPO 与 DPO](after-ppo.md) —— 从 PPO 讲起，再看 GRPO / RLOO / REINFORCE++ / DAPO / DPO 怎样使用不同的信号和目标
+7. [可验证奖励](verifiable-rewards.md) —— 从排序测试看奖励漏洞，再看稀疏反馈与过程检查
+
+这条线往后延伸，可以看两篇前沿草稿：[用 RL 训练多步 agent](../11-frontier/agentic-rl/README.md)，以及[长思维链是怎样训练出来的](../11-frontier/test-time-compute/long-chains.md)。
+
+**三、怎么真的跑起来**
+
+8. [后训练的基础设施：采样、数值、上下文](post-training-infrastructure.md) —— 三样都不改目标函数，但决定你能对目标函数做什么。**这一层最少被讨论，而效果常常卡在这里**
+9. [同一个基座能走多远](same-base-different-posttraining.md) —— 一次难得的自然实验：基座锁死、只改后训练，看看第 8 篇那三件事值多少
+
+**四、代价**
+
+10. [对齐的取舍](alignment-tax.md) —— 检查具体任务的退化、多样性与分布变化；不能仅凭总体 pass@1 和 pass@k 判断模式坍缩
+
+这些文章可以连着读：先选监督信号和更新方式，再看如何训练、怎样验证，以及有什么代价。
+
+想解决具体问题，也可以从目录直接进入，不必一次读完。
 
 ## 各阶段的直观分工
 
@@ -335,40 +371,6 @@ RL 更适合需要多步行动、结果延迟，或者策略必须通过探索�
 - 模型是否牺牲多样性、校准或安全性换取一个指标；
 - 离线偏好是否转化为真实任务结果；
 - 训练和推理时使用的策略、对数概率（log-probability）与数据含义是否一致。
-
-## 这个系列怎么读
-
-先分清两件事：**用什么信号教**，以及**允许哪些参数改变**。如果已经了解 SFT，可以直接去看偏好学习；遇到不熟的概念再回来补，不必从第一页重新读。
-
-**一、打地基：为什么还需要教**
-
-1. 为什么预训练完还不够（本页）—— SFT、偏好学习、RL 各自解决什么学习问题
-2. [模型适配：Full Fine-Tuning、LoRA、Prompt Tuning 与蒸馏](model-adaptation.md) —— 区分 learning objective 与 parameterization，并解释分类输出怎样被系统约束
-3. [SFT](sft-and-its-ceiling.md) —— 为什么平均 token loss 不能代替任务成功率，以及示范怎样教会回答、澄清或拒答
-4. [偏好与奖励模型](where-preferences-come-from.md) —— Bradley–Terry 如何用分数差解释偏好，策略变化后奖励模型还是否可靠，以及 AI 反馈、生成式奖励模型和 rubric 奖励
-
-想把两种常用方法算清楚，可以接着读 [LoRA / QLoRA](lora-and-qlora.md)和[蒸馏](distillation.md)：前者算参数、梯度和显存，后者算软标签、KL 和 top-k 省略了什么。
-
-想知道 SFT 示范怎么从模型输出里筛出来，接着读[拒绝采样与数据筛选](rejection-sampling.md)：区分“挑一份交给用户”和“挑一批继续训练”，再检查筛选是否悄悄改变了题目比例。
-
-**二、用结果教：RL 那条线**
-
-5. [RLHF 的三个阶段，和后来发生了什么](rlhf/) —— 四个模型，谁在训谁被冻住
-6. [PPO、GRPO 与 DPO](after-ppo.md) —— 从 PPO 讲起，再看 GRPO / RLOO / REINFORCE++ / DAPO / DPO 怎样使用不同的信号和目标
-7. [可验证奖励](verifiable-rewards.md) —— 从排序测试看奖励漏洞，再看稀疏反馈与过程检查
-
-**三、怎么真的跑起来**
-
-8. [后训练的基础设施：采样、数值、上下文](post-training-infrastructure.md) —— 三样都不改目标函数，但决定你能对目标函数做什么。**这一层最少被讨论，而效果常常卡在这里**
-9. [同一个基座能走多远](same-base-different-posttraining.md) —— 一次难得的自然实验：基座锁死、只改后训练，看看第 8 篇那三件事值多少
-
-**四、代价**
-
-10. [对齐的取舍](alignment-tax.md) —— 检查具体任务的退化、多样性与分布变化；不能仅凭总体 pass@1 和 pass@k 判断模式坍缩
-
-这些文章可以连着读：先选监督信号和更新方式，再看如何训练、怎样验证，以及有什么代价。
-
-想解决具体问题，也可以从目录直接进入，不必一次读完。
 
 ## 继续阅读
 

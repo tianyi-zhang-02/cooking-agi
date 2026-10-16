@@ -61,17 +61,7 @@ The paper tests these simplifications on particular pretrained models and prefer
 
 ### GRPO's group-relative advantage {#grpos-group-relative-advantage}
 
-Sample $G$ responses for one prompt and score them $R_1,\ldots,R_G$. A common response-level advantage is
-
-$$
-\begin{aligned}
-\mu_R&=\frac{1}{G}\sum_{i=1}^{G}R_i,\\
-\sigma_R&=\sqrt{\frac{1}{G}\sum_i(R_i-\mu_R)^2},\\
-\hat A_i&=\frac{R_i-\mu_R}{\sigma_R+\varepsilon}.
-\end{aligned}
-$$
-
-For rewards $[1,0,1,0]$, $\mu_R=0.5$ and $\sigma_R=0.5$, giving advantages approximately $[1,-1,1,-1]$ when the small $\varepsilon$ is ignored. This uses population standard deviation; a sample-standard-deviation convention changes the scale. Rewards may come from a Reward Model, humans, a math verifier, unit tests, code execution, or a format checker.
+Sample $G$ responses for one prompt and score them $R_1,\ldots,R_G$. A common response-level advantage is $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$, where $\mu_R$ is the group mean, $\sigma_R$ the group's population standard deviation (divide by $G$), and $\varepsilon$ prevents division by zero. The formula written out term by term, with a full worked example for `[0, 1, 0, 0]`, is in [four answers, one correct](rlhf/after-rlhf.en.md#group-example). For the opening rewards $[1,0,1,0]$, $\mu_R$ and $\sigma_R$ are both 0.5, giving advantages approximately $[1,-1,1,-1]$ when the small $\varepsilon$ is ignored. A sample-standard-deviation convention changes the scale. Rewards may come from a Reward Model, humans, a math verifier, unit tests, code execution, or a format checker.
 
 A common GRPO implementation broadcasts one sequence-level advantage to the tokens in that response and then uses a PPO-style clipped objective:
 
@@ -158,7 +148,7 @@ Log policy loss, KL, valid-token count, group reward variance, and gradient norm
 Removing a model does not remove the need to judge an answer against something. The comparison now comes from the sampled group, so its weaknesses matter.
 
 **One: when a group's rewards don't differ, the baseline carries no information.**
-If every response is right or every one is wrong—for example, $R=[0,0,0,0]$—subtracting the mean leaves every advantage at zero. An $\varepsilon$ in the denominator prevents division by zero but cannot create a relative signal. The group contributes **no useful policy-gradient signal**. On tasks that are too easy or too hard, that share gets large.
+If every response is right or every one is wrong—for example, $R=[0,0,0,0]$—subtracting the mean leaves every advantage at zero. An $\varepsilon$ in the denominator prevents division by zero but cannot create a relative signal. The group contributes **no useful policy-gradient signal**. For how common such groups are, and how much extra sampling filtering them costs, see [DAPO's dynamic sampling](dapo.en.md#dynamic-sampling).
 
 **Two: normalization introduces bias.**
 Dividing by within-group standard deviation changes prompt weights; averaging within responses changes token weights across lengths. [Dr. GRPO](https://arxiv.org/abs/2503.20783) analyzes these biases. Whether removing a normalization helps your task still requires matched sampling and evaluation budgets; it is not a universally correct repair.
@@ -196,7 +186,11 @@ Do not memorize the expansion. It says only:
 
 **Relative to the Reference, chosen should improve more than rejected.**
 
-Why is a separate Reward Model unnecessary? A Bradley–Terry preference model says
+To compute the loss for one pair by hand, see [calculate the loss for one pair](rlhf/after-rlhf.en.md#dpo-example) in the introductory note: with a relative gap of 2 and $\beta=0.2$, it is about 0.513.
+
+### Why is a separate Reward Model unnecessary? {#dpo-derivation}
+
+A Bradley–Terry preference model says
 
 $$
 \begin{gathered}
@@ -205,13 +199,18 @@ P(y_w\succ y_l\mid x)=\sigma(\Delta r).
 \end{gathered}
 $$
 
-At the optimum of KL-constrained reward maximization, policy and reward satisfy
+Now take KL-constrained reward maximization. For a KL-regularized reward objective with $\beta>0$, optimizing over all policy distributions satisfying the support conditions, with a finite partition function $Z(x)$, the optimal policy is:
 
 $$
-r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}+C(x).
+\begin{gathered}
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)}{Z(x)}\\
+{}\times\exp\!\left(\frac{r(x,y)}{\beta}\right).
+\end{gathered}
 $$
 
-Substitute this relation into the preference probability: $C(x)$ cancels in the reward difference for the same prompt, so a policy/reference log-ratio directly represents the implicit reward difference. Reward has not vanished; it has been **absorbed into the policy objective**. See the DPO section of [GRPO, DPO, RLVR: which part does each change?](rlhf/after-rlhf.en.md) for the full derivation.
+Rearrange this as $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$. Substitute into Bradley–Terry: for two responses to the same prompt, $\beta\log Z(x)$ cancels in the reward difference, leaving $\Delta r$ as $\beta$ times the difference of the two policy/reference log-ratios. Replace $\pi^*$ with the policy being trained, $\pi_\theta$, and average the negative log-likelihood over the preference dataset: that is the $\mathcal L_{\mathrm{DPO}}$ above. Reward has not vanished; it has been **absorbed into the policy objective**.
+
+This derivation comes from [DPO §4](https://arxiv.org/html/2305.18290v2#S4). It depends on the reward objective, preference model, and support assumptions. It does not establish that all human preferences follow this model, or guarantee that a finite neural network trained on finite data reaches the global optimum.
 
 ### DPO versus SFT {#dpo-versus-sft}
 
@@ -250,7 +249,7 @@ Two follow-ups:
 
 Math answers can be checked, and code can be tested. When a reliable checker is available, its result can supply that part of the reward without a separately trained Reward Model. [DeepSeek-R1-Zero's reward setup](https://arxiv.org/html/2501.12948v1#S2.SS2.SSS2) is one example. This specifies a feedback source, not a choice between PPO and GRPO.
 
-For example, a function can pass five public tests by hard-coding those five outputs. A deterministic result does not mean the checker captures the whole requirement. It avoids the corresponding learned reward's fitting error, but does not guarantee less reward hacking. Test coverage, execution isolation, and independent evaluation still matter.
+A deterministic result does not mean the checker captures the whole requirement: a function that hard-codes answers for the public tests also gets full marks. [Verifiable rewards](verifiable-rewards.en.md) takes this kind of loophole apart with a sorting check. It avoids the corresponding learned reward's fitting error, but does not guarantee less reward hacking. Test coverage, execution isolation, and independent evaluation still matter.
 
 RLVR suits the parts with verifiable outcomes. A broader task can combine program checks, human judgments, and learned rewards rather than force every requirement into one checker.
 
@@ -301,7 +300,7 @@ For a learned Reward Model, monitor reward hacking, length or style shortcuts, a
 <details class="interview" markdown="1">
 <summary>2. What fraction of GRPO groups are all-right or all-wrong?</summary>
 
-Log the zero-variance group rate directly. When all rewards match, normalized advantages are zero and the rollouts supply no relative gradient. If the rate is high, adjust problem difficulty, group size, or reward resolution, or use dynamic sampling to filter uninformative groups—while monitoring the distribution shift caused by filtering.
+Log the zero-variance group rate directly (problem one above explains why these groups carry no signal). If the rate is high, adjust problem difficulty, group size, or reward resolution, or use dynamic sampling to filter uninformative groups—while monitoring the distribution shift caused by filtering.
 
 </details>
 
@@ -326,13 +325,6 @@ Record the generation checkpoint, sampling temperature, decoding constraints, an
 
 </details>
 
-<details class="interview" markdown="1">
-<summary>6. Can DPO fully replace PPO / GRPO?</summary>
-
-Not in general. With suitable pairs already available, offline DPO avoids online generation during training; collecting and labeling those pairs still costs something. PPO / GRPO can keep sampling and receiving feedback, but require generation budgets and more system coordination. Compare total cost and stability on matched tasks and budgets, not algorithm names.
-
-</details>
-
 ## Can you explain it in two minutes? {#can-you-explain-it-in-two-minutes}
 
 <details class="interview" markdown="1">
@@ -345,27 +337,27 @@ With Monte Carlo returns, PPO can use $\hat A_t=G_t-V_\phi(s_t)$; GAE additional
 <details class="interview" markdown="1">
 <summary>Why does GRPO remove the Critic but not rollout?</summary>
 
-It still needs the current or recent policy to generate multiple responses to one prompt and score every response; otherwise there is no group-relative baseline. What disappears is the Critic that learns $V_\phi(s)$. If a group is all-right or all-wrong, $R_i-\mu_R=0$, so it supplies no relative policy-gradient signal.
+It still needs the current or recent policy to generate multiple responses to one prompt and score every response; otherwise there is no group-relative baseline. What disappears is the Critic that learns $V_\phi(s)$.
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Why does DPO need no explicit Reward Model?</summary>
 
-The KL-constrained optimum satisfies $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+C(x)$. Substitute it into a Bradley–Terry preference probability and $C(x)$ cancels for two responses to the same prompt. The reward difference becomes a chosen/rejected policy-to-reference log-ratio. Reward did not vanish; it is implicit in the DPO loss.
+The KL-constrained optimal policy can be inverted to give the reward: $r=\beta\log(\pi^*/\pi_{\mathrm{ref}})$ plus a term that depends only on the prompt. Subtracting two responses to the same prompt cancels that term, so the reward difference becomes the difference of chosen/rejected policy-to-reference log-ratios. Reward did not vanish; it is implicit in the DPO loss. See the [derivation above](#dpo-derivation).
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Two-minute conclusion: can DPO fully replace PPO?</summary>
 
-No. Ask where data comes from and when feedback is refreshed. Offline DPO does not collect new failures by itself; PPO / GRPO usually generate and score responses during training. Online DPO can refresh preference data too, so online versus offline and preference loss versus policy gradient are separate choices. Compare actual cost, coverage, and evaluation rather than ranking the names.
+Not in general. Ask where data comes from and when feedback is refreshed. Offline DPO does not collect new failures by itself; PPO / GRPO usually generate and score responses during training. Online DPO can refresh preference data too, so online versus offline and preference loss versus policy gradient are separate choices. Count the whole cost as well: offline DPO avoids online generation during training, but collecting and labeling the pairs still costs something, while PPO / GRPO pay for generation and more system coordination. Compare cost, coverage, and evaluation on matched tasks and budgets rather than ranking the names.
 
 </details>
 
 ## Where to read next {#where-to-read-next}
 
-- [The three stages of RLHF, and what came after](rlhf/README.en.md): what each model does, and the DPO derivation
+- [The three stages of RLHF, and what came after](rlhf/README.en.md): what each model does, plus introductory GRPO and DPO examples
 - [Data and feedback](../01-data-and-feedback/): the quality of preference labels themselves
 - [Evaluation](../07-evaluation/): telling whether alignment actually helped
 - [Clipping and gradients](clipping-variants.en.md): compare Dual-clip, CISPO, and SAPO on identical inputs; optional on a first pass
@@ -380,13 +372,6 @@ No. Ask where data comes from and when feedback is refreshed. Offline DPO does n
 **Interview answer**
 
 > With high-quality preference pairs, offline DPO offers a simpler training loop, but does not collect new failures from the current policy by itself. If you can keep sampling and obtaining reliable rewards, compare online methods such as PPO and GRPO. The need for a Critic and the cost of group sampling depend on the task and budget; changing the loss does not guarantee stability.
-
-<details markdown="1">
-<summary><b>Deep dive</b>: why does an all-correct or all-wrong GRPO group carry no signal?</summary>
-
-Group-normalized advantage uses $(R_i-\mu_R)/\sigma_R$. If every reward is equal, centering makes every advantage zero; adding epsilon to the denominator cannot create a relative ordering. Many homogeneous groups indicate that rollout difficulty or sampling diversity needs adjustment.
-
-</details>
 </details>
 
 ## Starting papers {#starting-papers}

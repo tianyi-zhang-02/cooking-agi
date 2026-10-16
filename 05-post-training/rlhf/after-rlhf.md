@@ -71,7 +71,7 @@ assert math.isclose(sum(advantages), 0, abs_tol=1e-12)
 print([round(advantage, 3) for advantage in advantages])
 ```
 
-若四份全错，或四份全对，减去均值后都为零。这一组没有提供区分回答的 policy-gradient 信号。加了 KL 等其他项时，总梯度不一定为零，不能把两件事混为一谈。
+若四份全错，或四份全对，减去均值后都为零。这一组没有提供区分回答的 policy-gradient 信号。加了 KL 等其他项时，总梯度不一定为零，不能把两件事混为一谈。这种组在一批里有多常见、怎样补采，见 [DAPO 的动态采样](../dapo.md#dynamic-sampling)。
 
 ### Reward、advantage、loss：三个数各管什么？ {#reward-to-update}
 
@@ -148,34 +148,7 @@ Reference 也不是训练数据或标准答案。给定同一段 prompt 和回�
 <details markdown="1">
 <summary>这个比较为什么能写成 DPO loss？</summary>
 
-在 $\beta>0$ 的 KL 正则化奖励目标下，若把优化范围看成所有满足支持条件的策略分布，并假定配分函数 $Z(x)$ 有限，最优策略满足：
-
-$$
-\begin{gathered}
-\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)}{Z(x)}\\
-{}\times\exp\!\left(\frac{r(x,y)}{\beta}\right).
-\end{gathered}
-$$
-
-把它反过来写，得到 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。再放入 Bradley–Terry 偏好模型：比较同一 prompt 的两个回答时，$\log Z(x)$ 抵消了。这就得到 DPO 的形式：
-
-$$
-\begin{aligned}
-\delta_w&=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)},\\
-\delta_l&=\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}.
-\end{aligned}
-$$
-
-这里 $\delta_w,\delta_l$ 就是两份回答的相对 log-prob 变化。把缩放后的分差记为 $g$，对偏好数据集 $\mathcal D$ 取平均：
-
-$$
-\begin{aligned}
-g&=\beta(\delta_w-\delta_l),\\
-\mathcal L_{\mathrm{DPO}}&=-\mathbb E_{\mathcal D}\log\sigma(g).
-\end{aligned}
-$$
-
-这段推导来自 [DPO 原论文](https://arxiv.org/abs/2305.18290)。它依赖奖励目标、偏好模型和支持条件；并不是证明了「所有人的真实偏好都长这样」，也不保证有限神经网络和有限数据能找到全局最优。
+思路分三步：带 KL 约束的奖励最大化有一个闭式的最优策略；把它反过来写，奖励就变成“$\beta$ 乘以策略相对 Reference 的 log-ratio，再加上一个只和 prompt 有关的项”；代入 Bradley–Terry 偏好模型后，同一 prompt 的两个回答相减，这一项正好抵消，剩下的就是上面两份回答的相对变化之差。完整推导和它依赖的条件，见 [PPO、GRPO 与 DPO 的 DPO 一节](../after-ppo.md#dpo-derivation)。
 
 </details>
 
@@ -215,21 +188,13 @@ print(round(loss, 4))
 
 这里用了温和的数值，便于手算；生产实现应使用数值稳定的 `logsigmoid` / `softplus`。标准序列 log-prob 是回答 token 的 log-prob 之和，要正确处理 prompt、padding 和 EOS。随意改成 token 均值，就不再是完全相同的目标。[TRL DPO 文档](https://huggingface.co/docs/trl/dpo_trainer)可用来对照实际的数据格式和损失实现。
 
-DPO 能提高一对回答的相对分差，但这不保证 chosen 的绝对概率一定上升；降低 rejected 的概率也能改善这个 loss。它也无法从一份固定数据里发现根本没有出现过的新失败。
+DPO 能提高一对回答的相对分差，但这不保证 chosen 的绝对概率一定上升；降低 rejected 的概率也能改善这个 loss，[这个三类输出的反例](../after-ppo.md#relative-not-absolute)把它算了出来。它也无法从一份固定数据里发现根本没有出现过的新失败。
 
 ## RLVR：程序给分，程序也有盲区
 
 RLVR 把可验证结果用于 reward，例如答案匹配、编译结果或测试通过情况。它说的是**反馈怎么来**，不是一种唯一的 policy update 算法。[DeepSeek-R1](https://arxiv.org/abs/2501.12948)是使用规则奖励的公开实例之一。
 
-「程序是确定的」和「程序检查得完整」是两回事。假设任务是排序，模型永远输出 `[1, 2, 3]`：
-
-| 检查输入 | 固定输出 | 这个检查能告诉我们什么 |
-|---|---|---|
-| `[3, 1, 2]` | `[1, 2, 3]` | 这一例通过，不能据此确认会排序 |
-| `[8, 4]` | `[1, 2, 3]` | 暴露了硬编码答案 |
-| `[2, 2, 1]` | `[1, 2, 3]` | 也失败（应为 `[1, 2, 2]`）；原因仍是硬编码，不过重复元素这类边界用例值得保留 |
-
-现实里的漏洞还可能在答案提取、空测试集、异常返回值和超时处理。**优化器只收到你给的分数，不会自动补全你没写出来的需求。**确定性 verifier 能减少一些主观打分误差，却不能消灭 specification gaming。[Anthropic 的受控研究](https://www.anthropic.com/research/reward-tampering)也提醒我们：奖励和真实目标之间的缝隙可能被利用；这不是所有训练都会发生的必然结果。
+“程序是确定的”和“程序检查得完整”是两回事：一个永远输出 `[1, 2, 3]` 的“排序函数”，能通过只含 `[3, 1, 2]` 的测试。[可验证奖励](../verifiable-rewards.md)从这个例子出发，逐项拆开验证器漏验了什么。现实里的漏洞还可能在答案提取、空测试集、异常返回值和超时处理。**优化器只收到你给的分数，不会自动补全你没写出来的需求。**确定性 verifier 能减少一些主观打分误差，却不能消灭 specification gaming。[Anthropic 的受控研究](https://www.anthropic.com/research/reward-tampering)也提醒我们：奖励和真实目标之间的缝隙可能被利用；这不是所有训练都会发生的必然结果。
 
 所以至少分开训练检查器与独立评估：保留未用于训练的题目和边界用例，检查新的输入类型，必要时加入人工抽查。只换一道题、却保留同一个有漏洞的检查逻辑，并不够独立。
 

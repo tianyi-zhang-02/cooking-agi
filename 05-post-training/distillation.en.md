@@ -229,7 +229,7 @@ The counterexample concerns **renormalizing both distributions after selecting t
 
 ## Where does R1 data distillation fit?
 
-[DeepSeek-R1's public description](https://github.com/deepseek-ai/DeepSeek-R1) describes fine-tuning Qwen / Llama students with R1-curated data. This fits the “teacher provides answers” row: the student tokenizes text itself, without requiring aligned teacher logits.
+[DeepSeek-R1's public description](https://github.com/deepseek-ai/DeepSeek-R1) describes fine-tuning Qwen / Llama students with R1-curated data. This fits the “teacher provides answers” row: the student tokenizes text itself, without requiring aligned teacher logits. For what distilling long chains of thought into small models achieves and where it stops, see the section “Distillation: teaching long chains to small models” in the frontier draft on [how long chains of thought are trained](../11-frontier/test-time-compute/long-chains.en.md).
 
 Different vocabularies alone do not establish an entire training recipe. Nor does SFT imply updating every parameter: supervision and the choice of full-parameter versus LoRA updates are separate decisions. Check the specific model's training report.
 

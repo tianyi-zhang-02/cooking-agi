@@ -2,7 +2,7 @@
 
 [中文](model-adaptation.md) · **English**
 
-> Reading time: about 16 minutes · Level: core · Last reviewed: 2026-10
+> Reading time: about 15 minutes · Level: core · Last reviewed: 2026-10
 
 To make a model reliably produce a required JSON format, you might update all parameters or train LoRA adapters. The signal might come from demonstrations or preference comparisons. Which parameters change and which objective trains them are separate decisions: LoRA and SFT can be used together.
 
@@ -44,35 +44,12 @@ dynamically or merged for serving.
 
 ### Prompt Tuning: learn virtual tokens before the input {#prompt-tuning-learn-virtual-tokens-before-the-input}
 
-Prompt Tuning freezes the model and prepends $m$ learned vectors to ordinary token
-embeddings:
-
-$$
-P\in\mathbb R^{m\times d_{model}},\qquad
-H_0=[P;E(x)],\qquad
-\hat y=f_{\theta_{\text{frozen}}}(H_0).
-$$
-
-$P$ is a **soft prompt**. It is not a hidden natural-language sentence and does not
-correspond to lexical token IDs in the vocabulary (a framework may assign placeholder
-indices). It generally cannot be translated into readable words. Gradients pass through
-the Transformer, but only $P$ updates:
-
-$$
-\Delta\theta=0,\qquad P\leftarrow P-\eta\nabla_P\mathcal L.
-$$
-
-Freezing means not updating $\theta$, not that its mathematical loss derivative must be zero. Gradients still pass through the model to reach $P$ at the input.
-
-Its direct parameter count is
-
-$$
-N_{\text{prompt}}=m\,d_{model}.
-$$
-
-For prompt length $m=4$ and hidden dimension $d_{model}=1024$, only
-$4\times1024=4096$ parameters train. The embedding table and all other model weights
-remain frozen.
+Prompt Tuning freezes the model and only prepends $m$ learned vectors $P$ to ordinary token
+embeddings; the direct parameter count is $m\,d_{model}$. $P$ is a **soft prompt**. It is not a hidden
+natural-language sentence and does not correspond to lexical token IDs in the vocabulary (a framework may
+assign placeholder indices). It generally cannot be translated into readable words. For the equations, the
+parameter count, and why gradients must still pass through a frozen model, see
+[Prompt / Prefix / Adapter](parameter-efficient-tuning.en.md).
 
 Each task can store a tiny $P_k$ while sharing one large model:
 
@@ -121,29 +98,12 @@ is more appropriate.
 ### Prefix Tuning: parameters enter every layer {#prefix-tuning-parameters-enter-every-layer}
 
 Prompt Tuning usually adds virtual tokens only at the embedding layer. Prefix Tuning
-directly provides learned prefix keys and values to attention at every layer:
-
-$$
-K_l'=[P_l^K;K_l],\qquad V_l'=[P_l^V;V_l].
-$$
-
-Ordinary token queries can attend to these virtual K/V states at every layer. If the
-total KV dimension per layer is $d_{KV}=n_{kv\_heads}d_{head}$, the directly stored
-prefix KV state has approximate size
-
-$$
-N_{\text{prefix}}\approx2Lmd_{KV}.
-$$
-
-For standard MHA, $d_{KV}=d_{model}$, giving the familiar
-$2\times L\times m\times d_{model}$. With $L=24,m=4,d_{model}=1024$, that is about
-$196{,}608$ prefix KV parameters. GQA and MQA have fewer KV heads, so use $d_{KV}$
-rather than blindly substituting $d_{model}$.
-
-Some implementations use a small MLP to generate layer-wise prefix K/V. The expression
-above then describes the **final prefix-state size**; the actual trainable parameter
-count must also include the reparameterization network. Prefix Tuning influences every
-attention block more directly, uses more parameters, and often has greater capacity:
+directly provides learned prefix keys and values to attention at every layer, and ordinary token
+queries can attend to them at every layer. The directly stored state is about $2Lmd_{KV}$, where
+$d_{KV}$ is the actual KV width per layer, smaller than $d_{model}$ under GQA / MQA; if a small MLP
+generates the per-layer prefixes, the trainable count must include that MLP. For the parameter
+count term by term, see [Prompt / Prefix / Adapter](parameter-efficient-tuning.en.md). Prefix Tuning
+influences every attention block more directly, uses more parameters, and often has greater capacity:
 
 ```text
 Prompt Tuning: prepend P to input embeddings
@@ -250,36 +210,15 @@ Knowledge Distillation normally has a capable or expensive Teacher and a Student
 will be deployed. It is not one fixed parameter-update method; it is a family of
 supervision sources.
 
-### Response distillation {#response-distillation}
-
-The Teacher generates answers and the Student treats them as SFT demonstrations. This
-is simple but keeps only one sampled output and loses the Teacher's relative preference
-over alternative tokens.
-
-### Logit / distribution distillation {#logit-distribution-distillation}
-
-The Student matches the Teacher's token distribution, for example by minimizing
-
-$$
-\mathcal L_{KD}
-=T^2\,D_{KL}\!\left(
-p_T(\cdot\mid x,y_{<t};T)
-\,\|\,
-p_S(\cdot\mid x,y_{<t};T)
-\right).
-$$
-
-Temperature $T$ (not to be confused with the subscripts $T$ and $S$, which mark Teacher and Student) flattens the distribution so relationships among secondary tokens also
-become supervision. Storing full-vocabulary logits is expensive, so systems often retain
-only Teacher top-$k$ logits. That creates obligations around residual probability mass,
-cross-tokenizer projection, masking, and normalization.
-
-### On-policy distillation {#on-policy-distillation}
-
-The Student samples from its current policy, then the Teacher scores token distributions
-on those same prefixes. Supervision now follows states the Student actually visits, but
-the system must sustain rollout, Teacher inference, and model-version tracking—much like
-an online training loop.
+Three forms are common. **Response distillation**: the Teacher generates answers and the Student treats them
+as SFT demonstrations; this is simple but keeps only one sampled output and loses the Teacher's relative
+preference over alternative tokens. **Logit / distribution distillation**: the Student matches the Teacher's
+token distribution, classically through a KL between both distributions softened by temperature $T$, multiplied
+by $T^2$; keeping only Teacher top-$k$ logits requires explicit handling of residual probability mass,
+tokenizer mapping, masking, and normalization. **On-policy distillation**: the Student samples from its current
+policy, then the Teacher scores token distributions on those prefixes; supervision follows states the Student
+actually visits, at the cost of continuous rollouts, Teacher inference, and weight-version management. For worked
+examples and the details of temperature and top-k, see [distillation](distillation.en.md).
 
 Distillation combines with any parameterization: the Student may full fine-tune or train
 only LoRA. The Teacher is normally frozen; the Student is optimized and deployed.

@@ -16,14 +16,14 @@ For the training workflow, read the first two sections and [the data records](#d
 | --- | --- | --- |
 | Classical accept–reject sampling | Samples accepted with a probability chosen to recover a target distribution | Not inherently a training method |
 | Verifier filtering | Answers that pass checks or a threshold; possibly several per prompt | Filtering alone does not update weights; SFT may follow |
-| Best-of-N | The highest-scoring of N generated candidates | Can be inference-only |
+| Best-of-N | The highest-scoring of N generated candidates | Can be inference-only; for how verifier errors cap it, see [sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md) |
 | Rejection-sampling fine-tuning | Selected answers become demonstrations | SFT updates the parameters |
 
 [Llama 2 (2023), §3.2.3](https://arxiv.org/html/2307.09288v2) used multiple candidates per prompt, selected the highest reward, and fine-tuned on those answers. The [initial DeepSeek-R1 report (2025), §2.3.3](https://arxiv.org/html/2501.12948v1#S2.SS3.SSS3) describes retaining correct responses, with additional readability filters. Keeping exactly one reward-model winner is therefore not the definition of every such pipeline. Neither procedure is automatically exact statistical accept–reject sampling.
 
 ## What does filtered SFT learn? {#filtered-sft}
 
-The workflow has four parts: fix a generator and sampling configuration, produce candidates, score and filter them, then run SFT on the retained answers. A later iteration can generate a fresh dataset from the updated model.
+The workflow has four parts: fix a generator and sampling configuration, produce candidates, score and filter them, then run SFT on the retained answers. A later iteration can generate a fresh dataset from the updated model. For ReST-EM, which writes this loop as EM, and for how the verifier sets the ceiling of this route, see the frontier draft [Self-improvement: generate, verify, retrain](../11-frontier/self-improvement/generate-verify-train.en.md).
 
 For the retained dataset $D_{\rm keep}$, first sum the supervised token losses within each answer to get $\ell(x,y)$. Then divide the total across answers by M, the number of supervised tokens:
 

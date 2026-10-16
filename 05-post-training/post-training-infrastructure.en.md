@@ -92,7 +92,7 @@ Bootstrap from the interrupted trajectory's final observation, not the first obs
 
 ## Find out where sampling time goes {#one-sampling-throughput-rls-real-cost-center}
 
-A batch can pass through generation, tool waits, scoring, training, and weight synchronization. GPU utilization alone can make “waiting for a tool” look like “the model is too small.”
+A batch can pass through generation, tool waits, scoring, training, and weight synchronization. GPU utilization alone can make “waiting for a tool” look like “the model is too small.” As NVML defines it, the utilization in `nvidia-smi` is only the fraction of the sample period during which some kernel was running; it says nothing about how much compute is used. See [Performance: the roofline, arithmetic intensity, and MFU](../12-infra/performance.en.md).
 
 Take hypothetical durations: 30 seconds sampling, 10 scoring, 20 training, and 5 synchronizing. Serial execution takes 65 seconds. If the first three stages have independent resources and overlap perfectly across batches, while the 5-second synchronization cannot overlap, the steady-state interval has a lower bound of `max(30, 10, 20) + 5 = 35` seconds: about 1.86× faster. This is not a general asynchronous speedup. The first batch still traverses all stages; contention, stragglers, and networking add time.
 
@@ -135,7 +135,7 @@ Also distinguish what you monitor: a raw ratio outside the clipping interval doe
 
 ## Removed context is information the policy no longer has {#three-context-management-so-long-tasks-can-finish}
 
-Return to the tool task. The user initially says “do not modify the original file.” Several turns later, the system removes that sentence to fit the context window. If the model then changes the file, reward design is not the only issue: the constraint was missing when it made the decision.
+Return to the tool task. The user initially says “do not modify the original file.” Several turns later, the system removes that sentence to fit the context window. If the model then changes the file, reward design is not the only issue: the constraint was missing when it made the decision. For how truncation and compression affect scoring and the loss in multi-turn agent training, see the section “When episodes get long” in the frontier draft on [agent credit assignment and training](../11-frontier/agentic-rl/credit-and-training.en.md).
 
 | Approach | Benefit | What to validate |
 | --- | --- | --- |

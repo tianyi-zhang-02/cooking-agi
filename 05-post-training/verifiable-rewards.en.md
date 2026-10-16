@@ -34,6 +34,8 @@ Incomplete checks can reinforce a model that learns to:
 - swallow every exception so the program doesn't crash, satisfying "doesn't error" style checks;
 - find bugs in the test harness itself.
 
+These are not hypothetical: for exploits already documented in agent tasks, see the frontier draft [Agent RL: where environments and rewards come from](../11-frontier/agentic-rl/environments-and-rewards.en.md). Conversely, a rising reward need not mean the model learned what the reward asks for: [Spurious Rewards (Shao et al., 2025)](https://arxiv.org/abs/2506.10947) reports that RLVR with randomly assigned rewards still raises Qwen2.5-Math-7B's MATH-500 score by 21.4 percentage points (29.1 with ground-truth rewards), an effect that often fails to appear for Llama3 or OLMo2.
+
 For math, matching the final answer does not establish that every intermediate step is valid. A guess or an incorrect derivation can happen to reach the right result. Whether the process also needs checking depends on whether the task requires an answer or a dependable argument.
 
 This does not mean every model will discover every loophole. The reward supplies an optimization direction; exploiting it also depends on capability, sampling, and training. Check whether independent measurements support an improvement instead of inferring one from rising training reward.
@@ -82,13 +84,9 @@ This concerns the outcome-reward policy-gradient term. KL, entropy, or other aux
 
 Task difficulty and sampling budget matter. Measure all-correct and all-incorrect groups before deciding whether you need different tasks, a stronger starting policy, or more attempts.
 
-For one fixed task with independent success probability p per attempt and G answers per group, the probability of a homogeneous group is:
+How common homogeneous groups are can be estimated with [the mixed-group probability on the DAPO page](dapo.en.md#dynamic-sampling): for one fixed task with independent success probability p per attempt and G answers per group, its complement, $p^G+(1-p)^G$, is the probability that a group is all equal. With G=4, only 12.5% of groups are homogeneous at p=0.5, rising to 65.62% at p=0.1 or 0.9: both very hard and very easy tasks can provide little within-group discrimination. This assumes independent, identically distributed draws. When difficulty varies or samples are correlated, measure groups per task rather than plugging the dataset-wide mean p into the formula.
 
-$$P(\text{all equal})=p^G+(1-p)^G.$$
-
-With G=4, p=0.5 gives 12.5%; p=0.1 or 0.9 gives 65.62%. Both very hard and very easy tasks can provide little within-group discrimination. This assumes independent, identically distributed draws. When difficulty varies or samples are correlated, measure groups per task rather than plugging the dataset-wide mean p into the formula.
-
-Filtering homogeneous groups, as in [DAPO](dapo.en.md), increases the share of discriminative groups used for updates. It costs additional sampling and changes which prompts enter the update. It cannot create a successful solution to a hard task from nothing. As with [filtered SFT](rejection-sampling.en.md#prompt-selection), track prompt coverage as well as retention.
+Filtering homogeneous groups, as DAPO does, increases the share of discriminative groups used for updates. It costs additional sampling and changes which prompts enter the update. It cannot create a successful solution to a hard task from nothing. As with [filtered SFT](rejection-sampling.en.md#prompt-selection), track prompt coverage as well as retention.
 
 ## Outcome rewards or process rewards {#outcome-rewards-or-process-rewards}
 
@@ -96,7 +94,7 @@ Final-outcome checks are straightforward to integrate, but do not locate which s
 
 The two can be combined: tests check the final result while process signals guide search. Evaluate whether the extra signal improves equal-budget success, rather than merely increasing process scores.
 
-Check where a paper's improvement occurs. [Let's Verify Step by Step, §2.1](https://arxiv.org/html/2305.20050v1#S2.SS1) keeps the generator fixed and compares reward models at selecting answers from multiple candidates; it does not update the generator with RL. Better selection with process scores is therefore not, by itself, evidence that training a policy with process rewards would improve it. That requires a separate training and evaluation comparison.
+For how outcome and process reward models pick answers at inference time, and how search over intermediate steps works, see the frontier draft [Test-time compute: sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md). Check where a paper's improvement occurs. [Let's Verify Step by Step, §2.1](https://arxiv.org/html/2305.20050v1#S2.SS1) keeps the generator fixed and compares reward models at selecting answers from multiple candidates; it does not update the generator with RL. Better selection with process scores is therefore not, by itself, evidence that training a policy with process rewards would improve it. That requires a separate training and evaluation comparison.
 
 ## Verifiability is a spectrum, not a binary {#verifiability-is-a-spectrum-not-a-binary}
 

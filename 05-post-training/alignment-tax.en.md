@@ -131,7 +131,7 @@ For your task, ask whether a regression repeats, whom it affects, and whether it
 
 For independent samples on one task with success probability $p$, the probability of at least one success is $1-(1-p)^k$. For that fixed task and sampling distribution, increasing $p$ increases both quantities.
 
-If dataset-average pass@1 rises while average pass@k falls, it does not directly prove collapse to a point. Gains may concentrate on easy tasks while coverage of hard tasks falls. Sampling procedures and estimation error also matter.
+If dataset-average pass@1 rises while average pass@k falls, it does not directly prove collapse to a point. Gains may concentrate on easy tasks while coverage of hard tasks falls. Sampling procedures and estimation error also matter. For the evidence and counterarguments in the pass@k debate over whether RL only “sharpens” existing solutions, see the frontier draft [Test-time compute: how to compare and read the numbers](../11-frontier/test-time-compute/measuring.en.md).
 
 | Question | Check |
 | --- | --- |

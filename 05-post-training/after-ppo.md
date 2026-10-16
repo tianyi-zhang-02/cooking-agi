@@ -63,17 +63,7 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 
 ### GRPO 的组相对 advantage {#grpo-advantage}
 
-对同一个 prompt 采样 $G$ 个回答，得到奖励 $R_1,\ldots,R_G$。常见的 response-level advantage 是：
-
-$$
-\begin{aligned}
-\mu_R&=\frac{1}{G}\sum_{i=1}^{G}R_i,\\
-\sigma_R&=\sqrt{\frac{1}{G}\sum_i(R_i-\mu_R)^2},\\
-\hat A_i&=\frac{R_i-\mu_R}{\sigma_R+\varepsilon}.
-\end{aligned}
-$$
-
-如果奖励为 $[1,0,1,0]$，那么 $\mu_R=0.5$、$\sigma_R=0.5$，忽略很小的 $\varepsilon$ 后，优势约为 $[1,-1,1,-1]$。这里用总体标准差；代码库若用样本标准差，数值尺度会不同。奖励可以来自 Reward Model、人类、数学 verifier、单元测试、代码执行或格式检查器。
+对同一个 prompt 采样 $G$ 个回答，得到奖励 $R_1,\ldots,R_G$。常见的 response-level advantage 是 $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$：$\mu_R$ 是组内均值，$\sigma_R$ 是组内总体标准差（分母为 $G$），$\varepsilon$ 防止除零。逐项写开的公式和 `[0, 1, 0, 0]` 的完整算例在[四份回答，只有一份答对](rlhf/after-rlhf.md#group-example)。开头那组奖励 $[1,0,1,0]$ 的 $\mu_R$、$\sigma_R$ 都是 0.5，忽略很小的 $\varepsilon$ 后，优势约为 $[1,-1,1,-1]$。代码库若用样本标准差，数值尺度会不同。奖励可以来自 Reward Model、人类、数学 verifier、单元测试、代码执行或格式检查器。
 
 常见 GRPO 实现把同一回答的 sequence-level advantage 广播给该回答里的 token，再使用 PPO-style clipped objective：
 
@@ -160,7 +150,7 @@ assert abs(theta.grad.item() + 0.5) < 1e-12
 省去一个模型，不等于省去了判断好坏这件事。现在比较标准来自这一组回答，新的问题也就出在这里。
 
 **问题一：组内奖励没有差异时，基线不含信息。**
-一组回答全对或全错，例如 $R=[0,0,0,0]$，减去组内均值后 advantage 都是 0；带有 $\varepsilon$ 的实现避免了除零，但创造不出相对信号。这一组对 policy-gradient 项**不产生有效梯度**。任务偏简单或偏难时，这种组占比会很高。
+一组回答全对或全错，例如 $R=[0,0,0,0]$，减去组内均值后 advantage 都是 0；带有 $\varepsilon$ 的实现避免了除零，但创造不出相对信号。这一组对 policy-gradient 项**不产生有效梯度**。这种组有多常见、过滤它们要多花多少采样，见 [DAPO 的动态采样](dapo.md#dynamic-sampling)。
 
 **问题二：归一化引入偏置。**
 除以组内标准差会改变不同 prompt 的相对权重；按回答长度平均又会改变不同长度的 token 权重。[Dr. GRPO](https://arxiv.org/abs/2503.20783)分析了这些偏置。是否改善你自己的任务，仍要按相同采样与评估预算比较，不能把去掉归一化当成普遍正确的修复。
@@ -198,7 +188,11 @@ $$
 
 **相对于 Reference，让 chosen 的提升大于 rejected 的提升。**
 
-为什么不用单独训练 Reward Model？Bradley–Terry 偏好模型写成
+一对回答的 loss 怎么手算，见入门篇的[算一对回答的 loss](rlhf/after-rlhf.md#dpo-example)：相对分差为 2、$\beta=0.2$ 时约为 0.513。
+
+### 为什么不用单独训练 Reward Model？ {#dpo-derivation}
+
+Bradley–Terry 偏好模型写成
 
 $$
 \begin{gathered}
@@ -207,13 +201,18 @@ P(y_w\succ y_l\mid x)=\sigma(\Delta r).
 \end{gathered}
 $$
 
-而带 KL 约束的奖励最大化，其最优 policy 与 reward 满足
+再看带 KL 约束的奖励最大化。在 $\beta>0$ 的 KL 正则化奖励目标下，若把优化范围看成所有满足支持条件的策略分布，并假定配分函数 $Z(x)$ 有限，最优策略满足：
 
 $$
-r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}+C(x).
+\begin{gathered}
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)}{Z(x)}\\
+{}\times\exp\!\left(\frac{r(x,y)}{\beta}\right).
+\end{gathered}
 $$
 
-代回偏好概率后，$C(x)$ 在同一个 prompt 的 reward difference 中抵消，reward difference 就能直接用 policy/reference log-ratio 表示。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。完整推导见 [GRPO、DPO、RLVR：它们到底改了哪一环？](rlhf/after-rlhf.md) 的 DPO 一节。
+把它反过来写，得到 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。代回 Bradley–Terry：比较同一 prompt 的两个回答时，$\beta\log Z(x)$ 在 reward difference 中抵消，$\Delta r$ 就只剩 $\beta$ 乘以两份回答的 policy/reference log-ratio 之差。用正在训练的 $\pi_\theta$ 代替 $\pi^*$，再对偏好数据集取负对数似然的平均，就得到上面的 $\mathcal L_{\mathrm{DPO}}$。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。
+
+这段推导来自 [DPO 原论文 §4](https://arxiv.org/html/2305.18290v2#S4)。它依赖奖励目标、偏好模型和支持条件；并不是证明了“所有人的真实偏好都长这样”，也不保证有限神经网络和有限数据能找到全局最优。
 
 ### DPO 和 SFT 到底差在哪 {#dpo-sft}
 
@@ -252,7 +251,7 @@ chosen 的概率下降了，但 rejected 降得更多。相对 Reference 的概�
 
 数学题可以核对答案，代码可以跑测试。有可靠检查器时，可以直接把结果变成 reward，不必为这部分反馈另训 Reward Model。[DeepSeek-R1-Zero 的奖励设置](https://arxiv.org/html/2501.12948v1#S2.SS2.SSS2)就是一个例子；这说的是奖励来源，并没有指定必须用 PPO 还是 GRPO。
 
-比如函数通过了公开的 5 个测试，也可能只对这 5 个输入返回写死的答案。检查器的结果很确定，不代表它完整表达了需求。它避免了这部分 learned reward 的拟合误差，却不能保证 reward hacking 更少；仍需检查测试覆盖、执行隔离和独立评估。
+检查器的结果很确定，不代表它完整表达了需求：只对公开测试返回写死答案的函数也能拿满分，[可验证奖励](verifiable-rewards.md)用一个排序检查把这类漏洞拆开讲。它避免了这部分 learned reward 的拟合误差，却不能保证 reward hacking 更少；仍需检查测试覆盖、执行隔离和独立评估。
 
 RLVR 适合有可验证结果的部分。复杂任务也可以混合程序检查、人工判断和 learned reward，不必把所有要求硬塞进同一个检查器。
 
@@ -303,7 +302,7 @@ Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以�
 <details class="interview" markdown="1">
 <summary>2. GRPO 中有多少组全对或全错？</summary>
 
-直接记录 zero-variance group rate。组内 reward 完全相同时，标准化 advantage 为 0，这些 rollout 不提供相对梯度。比例过高时，可以调整题目难度、增加组大小、改善 reward 分辨率，或用 dynamic sampling 过滤无信息组；但过滤也会改变训练数据分布，需要同时监控。
+直接记录 zero-variance group rate（为什么这些组没有信号，见上文问题一）。比例过高时，可以调整题目难度、增加组大小、改善 reward 分辨率，或用 dynamic sampling 过滤无信息组；但过滤也会改变训练数据分布，需要同时监控。
 
 </details>
 
@@ -328,13 +327,6 @@ Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以�
 
 </details>
 
-<details class="interview" markdown="1">
-<summary>6. DPO 能完全替代 PPO / GRPO 吗？</summary>
-
-不能一概而论。已有合适的偏好对时，离线 DPO 省去训练中的在线生成；但收集和标注这些数据的成本并没有消失。PPO / GRPO 可以持续采样并接收新反馈，同时也需要生成预算和更多系统协调。总成本和稳定性要在同任务、同预算下比较，不能只凭算法名判断。
-
-</details>
-
 ## 面试时能否两分钟讲清楚 {#_7}
 
 <details class="interview" markdown="1">
@@ -347,27 +339,27 @@ Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以�
 <details class="interview" markdown="1">
 <summary>为什么 GRPO 省掉 Critic，却没有省掉 rollout？</summary>
 
-它仍要让当前或近期 policy 对同一 prompt 生成多个回答，并给每个回答计算 reward；否则没有组内相对 baseline。它省掉的是训练 $V_\phi(s)$ 的 Critic。若同组全对或全错，$R_i-\mu_R=0$，所以这一组没有相对 policy-gradient signal。
+它仍要让当前或近期 policy 对同一 prompt 生成多个回答，并给每个回答计算 reward；否则没有组内相对 baseline。它省掉的是训练 $V_\phi(s)$ 的 Critic。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>DPO 为什么不需要显式 Reward Model？</summary>
 
-带 KL 约束的最优策略满足 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+C(x)$。把它代入 Bradley–Terry 偏好概率时，同一 prompt 的 $C(x)$ 抵消，于是 reward difference 可以直接写成 chosen/rejected 的 policy/reference log-ratio。Reward 没消失，而是隐含在 DPO loss 中。
+KL 约束下的最优策略可以反解出奖励：$r=\beta\log(\pi^*/\pi_{\mathrm{ref}})$ 加一个只依赖 prompt 的项。同一 prompt 的两个回答相减时这一项抵消，reward difference 就写成 chosen/rejected 的 policy/reference log-ratio 之差。Reward 没消失，而是隐含在 DPO loss 中。推导见[上文](#dpo-derivation)。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>两分钟结论：DPO 能完全替代 PPO 吗？</summary>
 
-不能。先问数据从哪来、反馈多久更新：离线 DPO 不会自己采集新失败；PPO / GRPO 通常在训练中持续生成并打分。Online DPO 也能刷新偏好数据，因此 online / offline 和偏好损失 / 策略梯度是两个不同的选择。再比较实际成本、覆盖和验证结果，不把它们排成优劣榜。
+不能一概而论。先问数据从哪来、反馈多久更新：离线 DPO 不会自己采集新失败；PPO / GRPO 通常在训练中持续生成并打分。Online DPO 也能刷新偏好数据，因此 online / offline 和偏好损失 / 策略梯度是两个不同的选择。成本也要算全：离线 DPO 省掉了训练中的在线生成，但收集和标注偏好对的成本还在；PPO / GRPO 要付生成预算和更多系统协调。在同任务、同预算下比较成本、覆盖和验证结果，不把它们排成优劣榜。
 
 </details>
 
 ## 继续阅读 {#_8}
 
-- [RLHF 的三个阶段，和后来发生了什么](rlhf/)：四个模型各自在干嘛，DPO 的推导
+- [RLHF 的三个阶段，和后来发生了什么](rlhf/)：四个模型各自在干嘛，以及 GRPO、DPO 的入门算例
 - [数据与反馈](../01-data-and-feedback/)：偏好标签本身的质量问题
 - [Evaluation](../07-evaluation/)：怎么判断对齐之后真的变好了
 - [Clipping 与梯度](clipping-variants.md)：用同一个输入比较 Dual-clip、CISPO 与 SAPO；基础读者可以稍后再看
@@ -382,13 +374,6 @@ Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以�
 **面试回答**
 
 > 只有高质量偏好对时，可以先考虑离线 DPO，训练流程更简单，但它不会自己去收集当前 policy 的新失败。如果能持续采样并获得可靠 reward，再比较 PPO、GRPO 等在线方法。是否需要 Critic、能负担多少组内采样，得结合任务与预算看；换个 loss 不会自动让训练稳定。
-
-<details markdown="1">
-<summary><b>深挖</b>：GRPO 组内全对或全错为什么没有梯度信号？</summary>
-
-组标准化 advantage 使用 $(R_i-\mu_R)/\sigma_R$。若整组 reward 相同，去均值后全部为 0；实现即使给分母加 epsilon，也没有相对优劣可学。高比例的 homogeneous groups 说明 rollout 难度或采样多样性需要调整。
-
-</details>
 </details>
 
 ## 参考论文 {#_9}

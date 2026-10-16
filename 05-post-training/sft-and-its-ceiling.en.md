@@ -245,7 +245,7 @@ Consider a support assistant that uses an order tool. These are **illustrative n
 B's numbers do not automatically justify RL. Ask three more questions:
 
 1. **Can the reward distinguish good attempts from bad ones?** Rewarding valid JSON alone can accept irrelevant answers. Check the reward or verifier against a small human-reviewed slice.
-2. **Do different attempts on the same task provide a learning signal?** With within-group relative advantages, equal scores give no contrast from that term. If every attempt fails, inspect difficulty, sampling, and reward design; more SFT is not the only possible response.
+2. **Do different attempts on the same task provide a learning signal?** With within-group relative advantages, equal scores give no contrast from that term (for how common such groups are, see [DAPO's dynamic sampling](dapo.en.md#dynamic-sampling)). If every attempt fails, inspect difficulty, sampling, and reward design; more SFT is not the only possible response.
 3. **What does RL solve beyond a simpler, equal-budget alternative?** Start from the same checkpoint and compare continued SFT, generation-and-filtering followed by training, and a short RL run. Track quality, length, cost, and regressions—not just training reward.
 
 Choose metrics and stopping conditions before the pilot. If reward rises while success stays flat and answers get longer, inspect the reward before simply adding steps.

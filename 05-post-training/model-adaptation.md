@@ -2,7 +2,7 @@
 
 **中文** · [English](model-adaptation.en.md)
 
-> 阅读时间：约 16 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10
 
 要让一个模型稳定输出客服需要的 JSON，可以修改全部参数，也可以只训练 LoRA；训练信号则可以来自示范，也可以来自偏好比较。“改哪些参数”和“按什么目标训练”是两件事，LoRA 与 SFT 完全可以同时使用。把这两个问题分开，后面的选择就容易多了。
 
@@ -41,32 +41,10 @@ $r\ll\min(d_{in},d_{out})$；$\alpha/r$ 控制增量尺度。基础权重冻结�
 
 ### Prompt Tuning：只学习输入前的 virtual tokens {#prompt-tuning-virtual-tokens}
 
-Prompt Tuning 冻结整个模型，在正常 token embedding 前拼接 $m$ 个可学习向量：
-
-$$
-P\in\mathbb R^{m\times d_{model}},\qquad
-H_0=[P;E(x)],\qquad
-\hat y=f_{\theta_{\text{frozen}}}(H_0).
-$$
-
+Prompt Tuning 冻结整个模型，只在正常 token embedding 前拼接 $m$ 个可学习向量 $P$，直接参数量是 $m\,d_{model}$。
 $P$ 叫 **soft prompt**。它不是一句隐藏的自然语言，也不对应词表里的 lexical token ID
-（框架可以给它分配占位索引），通常不能翻译成人能读懂的词。训练时梯度穿过整个
-Transformer，但只有 $P$ 更新：
-
-$$
-\Delta\theta=0,\qquad P\leftarrow P-\eta\nabla_P\mathcal L.
-$$
-
-冻结指不更新 $\theta$，不代表损失对这些参数的数学导数必然为零。梯度仍需经过模型，才能算到输入侧的 $P$。
-
-它的直接参数量就是：
-
-$$
-N_{\text{prompt}}=m\,d_{model}.
-$$
-
-例如 prompt length $m=4$、hidden dimension $d_{model}=1024$，只训练
-$4\times1024=4096$ 个参数；embedding table 与其余模型参数全部不动。
+（框架可以给它分配占位索引），通常不能翻译成人能读懂的词。公式、参数账，以及“模型冻结了，梯度为什么还要穿过它”，
+见 [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)。
 
 每个任务可以保存一份很小的 $P_k$，共享同一个大模型：
 
@@ -112,25 +90,9 @@ pretraining、LoRA 或 full fine-tuning。
 ### Prefix Tuning：不只在输入层加向量 {#prefix-tuning}
 
 Prompt Tuning 通常只在 embedding 层加 virtual tokens；Prefix Tuning 为每一层 attention
-直接提供可学习的 prefix key/value：
-
-$$
-K_l'=[P_l^K;K_l],\qquad V_l'=[P_l^V;V_l].
-$$
-
-普通 token 的 Query 可以在每一层关注这些虚拟 K/V。若每层的总 KV 维度是
-$d_{KV}=n_{kv\_heads}d_{head}$，直接存储 prefix KV 的规模近似为：
-
-$$
-N_{\text{prefix}}\approx2Lmd_{KV}.
-$$
-
-标准 MHA 中 $d_{KV}=d_{model}$，因此就是常见的 $2\times L\times m\times d_{model}$。
-例如 $L=24,m=4,d_{model}=1024$，大约是 $196{,}608$ 个 prefix KV 参数。GQA / MQA
-因为 KV heads 更少，应当使用 $d_{KV}$，不能直接套 $d_{model}$。
-
-有些实现用一个小 MLP 生成每层 prefix K/V，所以上式更准确地说是**最终 prefix-state
-规模**；若采用 reparameterization，实际 trainable parameter count 还要把 MLP 算进去。
+直接提供可学习的 prefix key/value，普通 token 的 Query 可以在每一层关注它们。直接存储的规模约为
+$2Lmd_{KV}$，其中 $d_{KV}$ 是每层实际的 KV 宽度，GQA / MQA 下小于 $d_{model}$；若用小 MLP 生成各层
+prefix，可训练参数还要把 MLP 算进去。逐项的参数账见 [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)。
 它比 Prompt Tuning 更直接影响各层注意力，参数更多、表达力也通常更强：
 
 ```text
@@ -229,33 +191,12 @@ $$
 Knowledge Distillation（知识蒸馏）通常有一个能力更强或成本更高的 Teacher，以及要部署的
 Student。它不是一种固定的参数更新方式，而是一类监督来源。
 
-### Response Distillation {#response-distillation}
-
-Teacher 先生成答案，Student 把答案当 demonstration 做 SFT。实现简单，但只保留了一条
-采样结果，看不到 Teacher 对其他 token 的相对偏好。
-
-### Logit / Distribution Distillation {#logit-distribution-distillation}
-
-Student 拟合 Teacher 的 token distribution，例如最小化：
-
-$$
-\mathcal L_{KD}
-=T^2\,D_{KL}\!\left(
-p_T(\cdot\mid x,y_{<t};T)
-\,\|\,
-p_S(\cdot\mid x,y_{<t};T)
-\right).
-$$
-
-温度 $T$（不要和下标 $T$、$S$ 混淆：下标分别表示 Teacher 和 Student）把分布变平，让次优 token 之间的关系也成为监督。大词表下保存全部 logits 很
-贵，因此系统常只保存 Teacher top-$k$ logits；但这要求明确处理其余概率质量、不同
-tokenizer 的映射，以及 mask 和 normalization 的一致性。
-
-### On-policy Distillation {#on-policy-distillation}
-
-Student 先从当前策略采样，Teacher 再给这些同一前缀上的 token distribution 打分。这样
-监督更贴近 Student 真正会访问的状态，但需要持续 rollout、Teacher inference 和权重版本
-管理，系统复杂度接近 online training loop。
+常见的有三种。**Response distillation**：Teacher 先生成答案，Student 把它当示范做 SFT；实现简单，但只保留一条
+采样结果，看不到 Teacher 对其他 token 的相对偏好。**Logit / distribution distillation**：Student 拟合 Teacher 的
+token 分布，经典做法是用温度 $T$ 软化两边分布后算 KL，再乘 $T^2$；只存 Teacher top-$k$ logits 时，要明确处理
+剩余概率质量、tokenizer 映射以及 mask 和归一化。**On-policy distillation**：Student 先从当前策略采样，Teacher
+再给这些前缀上的 token 分布打分；监督更贴近 Student 真正会访问的状态，代价是持续 rollout、Teacher 推理和
+权重版本管理。三种做法的算例、温度和 top-k 的细节见[蒸馏](distillation.md)。
 
 Distillation 可以和任何 parameterization 组合：Student 可以 full fine-tune，也可以只训
 LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。

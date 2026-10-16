@@ -71,7 +71,7 @@ assert math.isclose(sum(advantages), 0, abs_tol=1e-12)
 print([round(advantage, 3) for advantage in advantages])
 ```
 
-If all four rewards are zero, or all four are one, centering produces zeros. That group provides no distinguishing policy-gradient signal. The total gradient need not vanish if other terms, such as KL, remain active.
+If all four rewards are zero, or all four are one, centering produces zeros. That group provides no distinguishing policy-gradient signal. The total gradient need not vanish if other terms, such as KL, remain active. For how common such groups are in a batch, and how to resample them, see [DAPO's dynamic sampling](../dapo.en.md#dynamic-sampling).
 
 ### Reward, advantage, and loss are different numbers {#reward-to-update}
 
@@ -148,34 +148,7 @@ For our overfitting example, score the same prompt and response with the current
 <details markdown="1">
 <summary>How does this comparison lead to the DPO loss?</summary>
 
-For a KL-regularized reward objective with $\beta>0$, optimizing over all policy distributions satisfying the support conditions, with a finite partition function $Z(x)$, gives:
-
-$$
-\begin{gathered}
-\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)}{Z(x)}\\
-{}\times\exp\!\left(\frac{r(x,y)}{\beta}\right).
-\end{gathered}
-$$
-
-Rearrange this as $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$. Under a Bradley–Terry preference model, comparing two answers to the same prompt cancels $\log Z(x)$, leading to:
-
-$$
-\begin{aligned}
-\delta_w&=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)},\\
-\delta_l&=\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}.
-\end{aligned}
-$$
-
-The terms $\delta_w,\delta_l$ are the two responses' changes in log-probability relative to the Reference. Call the scaled gap $g$ and average over the preference dataset $\mathcal D$:
-
-$$
-\begin{aligned}
-g&=\beta(\delta_w-\delta_l),\\
-\mathcal L_{\mathrm{DPO}}&=-\mathbb E_{\mathcal D}\log\sigma(g).
-\end{aligned}
-$$
-
-This derivation comes from the [DPO paper](https://arxiv.org/abs/2305.18290). It depends on the reward objective, preference model, and support assumptions. It does not establish that all human preferences follow this model, or guarantee that a finite neural network trained on finite data reaches the global optimum.
+The argument has three steps. KL-constrained reward maximization has a closed-form optimal policy. Rearranged, it expresses the reward as “$\beta$ times the policy's log-ratio to the Reference, plus a term that depends only on the prompt.” Substituted into a Bradley–Terry preference model, that term cancels when two responses to the same prompt are subtracted, leaving the difference between the two responses' relative changes above. For the full derivation and the conditions it needs, see the [DPO section of PPO, GRPO, and DPO](../after-ppo.en.md#dpo-derivation).
 
 </details>
 
@@ -215,21 +188,13 @@ print(round(loss, 4))
 
 These small values are convenient for hand calculations; production implementations should use stable `logsigmoid` / `softplus` operations. Standard sequence log-probability sums answer-token log-probabilities, with correct prompt, padding, and EOS handling. Replacing the sum with a token mean changes the objective. The [TRL DPO documentation](https://huggingface.co/docs/trl/dpo_trainer) helps connect the equations to data formats and loss implementations.
 
-DPO can improve the relative gap without necessarily increasing the chosen answer's absolute probability: lowering the rejected answer's probability can also reduce this loss. A fixed dataset also cannot reveal failures that never appear in it.
+DPO can improve the relative gap without necessarily increasing the chosen answer's absolute probability: lowering the rejected answer's probability can also reduce this loss, as [a three-output counterexample](../after-ppo.en.md#relative-not-absolute) works out. A fixed dataset also cannot reveal failures that never appear in it.
 
 ## RLVR: programs give feedback, but programs have blind spots
 
 RLVR uses verifiable outcomes as rewards, such as answer matching, compilation results, or test passes. It specifies **where feedback comes from**, not a unique policy-update algorithm. [DeepSeek-R1](https://arxiv.org/abs/2501.12948) is one public example using rule-based rewards.
 
-“Deterministic” does not mean “complete.” Suppose the task is sorting, but the model always returns `[1, 2, 3]`:
-
-| Test input | Constant output | What the test establishes |
-|---|---|---|
-| `[3, 1, 2]` | `[1, 2, 3]` | This case passes; sorting ability is not established |
-| `[8, 4]` | `[1, 2, 3]` | Exposes the hard-coded answer |
-| `[2, 2, 1]` | `[1, 2, 3]` | Also fails (expected `[1, 2, 2]`); the cause is still hard-coding, but duplicate-value edge cases are worth keeping |
-
-Other gaps can lie in answer extraction, empty test sets, exception handling, or timeouts. **An optimizer receives the score you implemented, not the requirements you forgot to implement.** A deterministic verifier can remove some subjective scoring errors without eliminating specification gaming. [Anthropic's controlled study](https://www.anthropic.com/research/reward-tampering) illustrates how gaps between reward and intent can be exploited; it does not establish that every training run will do so.
+“Deterministic” does not mean “complete”: a “sorting function” that always returns `[1, 2, 3]` passes a test containing only `[3, 1, 2]`. [Verifiable rewards](../verifiable-rewards.en.md) starts from this example and takes apart, item by item, what the verifier failed to check. Other gaps can lie in answer extraction, empty test sets, exception handling, or timeouts. **An optimizer receives the score you implemented, not the requirements you forgot to implement.** A deterministic verifier can remove some subjective scoring errors without eliminating specification gaming. [Anthropic's controlled study](https://www.anthropic.com/research/reward-tampering) illustrates how gaps between reward and intent can be exploited; it does not establish that every training run will do so.
 
 Separate training checks from independent evaluation: reserve unseen problems and boundary cases, test new input types, and add human audits where needed. Changing the question while retaining the same faulty checker is not enough independence.
 

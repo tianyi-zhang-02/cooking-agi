@@ -142,7 +142,7 @@ Adding a tiny constant to the denominator prevents a numerical error but cannot 
 
 ### 2. Small token-level differences can multiply
 
-A full-trajectory importance weight typically contains a product of stepwise ratios. Even a ratio of $1.1$ per step becomes $1.1^{20}\approx6.73$ after twenty steps. Real ratios need not all move in the same direction; the point is that long sequences can amplify estimator variance.
+A full-trajectory importance weight typically contains a product of stepwise ratios. Even a ratio of $1.1$ per step becomes $1.1^{20}\approx6.73$ after twenty steps. Real ratios need not all move in the same direction; the point is that long sequences can amplify estimator variance. For how per-decision importance sampling, which multiplies ratios only up to the current step, eases this, see [off-policy evaluation, one layer deeper](../deep-rl/ope-estimators.en.md).
 
 Adding log-probabilities helps numerics, not statistical variance. Nor should PPO's token-level surrogate be described as an exact correction of the entire old trajectory distribution.
 
@@ -168,7 +168,7 @@ The old model chooses A 80% of the time; the new model chooses it only 20%. Yet 
 
 </div>
 
-The missing change is **how often each prefix occurs**, not the next-token probability at a given prefix. The new model reaches the more successful branch B more often. A ratio at step 2 alone misses that shift. For a language model, the state includes the existing prefix, so the prefix distribution is part of the state distribution.
+The missing change is **how often each prefix occurs**, not the next-token probability at a given prefix. The new model reaches the more successful branch B more often. A ratio at step 2 alone misses that shift. For a language model, the state includes the existing prefix, so the prefix distribution is part of the state distribution. For weighting by state-distribution ratios instead of multiplying over time, see the section “No product over time” in [off-policy evaluation, one layer deeper](../deep-rl/ope-estimators.en.md).
 
 <details markdown="1">
 <summary>Enumerate the four paths and check the full weights</summary>
