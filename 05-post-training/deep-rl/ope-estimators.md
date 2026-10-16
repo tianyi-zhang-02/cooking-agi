@@ -1,4 +1,4 @@
-# 离线评估再拆一层：逐步权重、双重稳健与 LSTD
+# 离线策略评估（OPE）再拆一层：逐步权重、双重稳健与 LSTD
 
 **中文** · [English](ope-estimators.en.md)
 
