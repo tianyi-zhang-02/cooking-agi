@@ -34,7 +34,7 @@
 
 - [System Design Primer](https://github.com/donnemartin/system-design-primer)：免费，覆盖面广，适合搭骨架
 - [ByteByteGo](https://bytebytego.com)：Alex Xu 的《System Design Interview》系列，图多、好读
-- [Designing Data-Intensive Applications](https://www.dataintensive.net)：想真正理解底层取舍，这本最值得花时间
+- [Designing Data-Intensive Applications](https://www.dataintensive.net)：想真正理解底层取舍，这本最值得花时间。截至 2026-10，最新的是 [2026 年 3 月出版的第 2 版](https://martin.kleppmann.com/2026/03/24/designing-data-intensive-applications-2e.html)（Martin Kleppmann、Chris Riccomini 合著，O'Reilly）；书的网站目前仍是第 1 版的介绍
 
 ML / 推荐方向：
 
