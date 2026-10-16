@@ -276,12 +276,12 @@ It is also why you cannot rotate only $\mathbf{q}$ and not $\mathbf{k}$: then $R
 ```python
 def apply_rope(x, cos, sin):
     """x: (B, H, T, d)   cos/sin: (T, d/2)"""
-    x1, x2 = x.chunk(2, dim=-1)                     # split-half (Llama convention)
+    x1, x2 = x.chunk(2, dim=-1)                     # split-half (GPT-NeoX / HF-converted Llama)
     return torch.cat([x1 * cos - x2 * sin,
                       x1 * sin + x2 * cos], dim=-1)
 ```
 
-⚠️ There are two pairing conventions: split-half (channel $i$ pairs with $i + d/2$; GPT-NeoX/Llama) and interleaved (the original RoPE paper). They differ by a channel permutation, so **weights are not interchangeable** — a classic pitfall when converting models.
+⚠️ There are two pairing conventions: split-half (channel $i$ pairs with $i + d/2$; GPT-NeoX and Llama after Hugging Face conversion) and adjacent pairs (channel $2i$ with $2i+1$; the RoFormer paper and [Meta's original Llama code](https://github.com/meta-llama/llama/blob/main/llama/model.py)). They differ by a channel permutation, so **weights are not interchangeable**: the Hugging Face converter permutes $W_Q$/$W_K$ to fit split-half. This is a classic pitfall when converting models; [position and context](deep-dives/position-and-context.en.md) works through the numbers.
 
 ## What else the modern decoder-only model changed {#what-else-the-modern-decoder-only-model-changed}
 

@@ -109,7 +109,7 @@ These are **specific historical versions**, not a ranking of each family's lates
 | Family | Layout | Norm | Position | Attention | FFN | Context | Size |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Transformer (2017, base) | Encoder–decoder, 6 + 6 layers | Post-LN · LayerNorm | Sinusoidal, added to the embedding | MHA · 8 heads, plus cross-attention | Dense · ReLU · $d_{ff}$ 2,048 | Sentence pairs (translation) | 65M · $d_{model}$ 512 |
-| GPT-2 / GPT-3 (2019–20) | Decoder-only | Pre-LN · LayerNorm, plus a final one | Learned absolute positions | MHA · 25 heads (GPT-2 XL) · 96 heads (GPT-3) | Dense · GELU · 4× | 1,024 · 2,048 | 1.5B: 48 layers · 175B: 96 layers |
+| GPT-2 / GPT-3 (2019–20) | Decoder-only | Pre-LN · LayerNorm, plus a final one | Learned absolute positions | MHA · 25 heads (GPT-2 XL) · 96 heads (GPT-3, alternating dense and locally banded sparse layers) | Dense · GELU · 4× | 1,024 · 2,048 | 1.5B: 48 layers · 175B: 96 layers |
 | Llama 3 (2024, 8B) | Decoder-only | Pre-norm · RMSNorm | RoPE · $\theta$ = 500,000 | GQA · 32 query / 8 KV heads | Dense · SwiGLU · $d_{ff}$ 14,336 | 8K → 128K (Llama 3.1) | 8B: 32 layers, $d$ 4,096 |
 | Mistral 7B (2023) | Decoder-only | Pre-norm · RMSNorm | RoPE | GQA · 32 / 8 · sliding window 4,096 | Dense · SwiGLU · $d_{ff}$ 14,336 | 8K, through a 4,096 window per layer | 7B: 32 layers, $d$ 4,096 |
 | Mixtral 8x7B (2023) | Decoder-only | Pre-norm · RMSNorm | RoPE | GQA · 32 / 8 · full 32K attention | MoE · 8 SwiGLU experts, top-2 | 32K | ≈47B total · ≈13B active |

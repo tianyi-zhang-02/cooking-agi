@@ -261,12 +261,12 @@ $m$ 和 $n$ 在这项旋转恒等式里只以差出现，但这不是长上下�
 ```python
 def apply_rope(x, cos, sin):
     """x: (B, H, T, d)   cos/sin: (T, d/2)"""
-    x1, x2 = x.chunk(2, dim=-1)                     # split-half（Llama 约定）
+    x1, x2 = x.chunk(2, dim=-1)                     # split-half（GPT-NeoX / HF 转换后的 Llama）
     return torch.cat([x1 * cos - x2 * sin,
                       x1 * sin + x2 * cos], dim=-1)
 ```
 
-⚠️ 配对方式有两种：split-half（通道 $i$ 配 $i + d/2$，GPT-NeoX/Llama）和交错（原 RoPE 论文）。两者差一个通道置换，**权重不能互换**——转模型时这是经典踩坑点。
+⚠️ 配对方式有两种：split-half（通道 $i$ 配 $i + d/2$，GPT-NeoX、HF Transformers 转换后的 Llama）和相邻配对（通道 $2i$ 配 $2i+1$，RoFormer 论文与 [Meta 原版 Llama 代码](https://github.com/meta-llama/llama/blob/main/llama/model.py)）。两者差一个通道置换，**权重不能互换**：HF 的转换脚本会重排 $W_Q$/$W_K$ 来配合 split-half。转模型时这是经典踩坑点，具体数字见[位置编码与上下文](deep-dives/position-and-context.md)。
 
 ## 现代 Decoder-only 还改了什么 {#decoder-only}
 

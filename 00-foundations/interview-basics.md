@@ -295,7 +295,7 @@ heap-style 的 `left=2i+1, right=2i+2`？对稀疏树，二者不等价。面试
 | 2017 原版 | 现代 LLM | 为什么换 |
 | --- | --- | --- |
 | Post-LN | Pre-LN + RMSNorm | Pre-LN 降低对 warmup 的依赖、更容易堆深；RMSNorm 省去中心化，计算更省 |
-| 正弦 / 学习式绝对位置 | RoPE | 分数只依赖相对距离；超出训练长度仍要靠 RoPE scaling 等扩展 |
+| 正弦 / 学习式绝对位置 | RoPE | 位置只以相对距离 $n-m$ 进入 $q\cdot k$，分数仍取决于内容；超出训练长度仍要靠 RoPE scaling 等扩展 |
 | ReLU FFN | SwiGLU | 同等算力下更好 |
 | MHA | GQA / MQA | **KV cache 是推理显存瓶颈** |
 

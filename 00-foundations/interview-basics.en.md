@@ -295,7 +295,7 @@ When asked to "walk through the architecture," don't recite the figure. **Go com
 | 2017 original | Modern LLM | Why |
 | --- | --- | --- |
 | Post-LN | Pre-LN + RMSNorm | Pre-LN reduces reliance on warmup and stacks deeper; RMSNorm drops centering to save compute |
-| Sinusoidal / learned absolute positions | RoPE | scores depend only on relative distance; going past the training length still needs RoPE scaling |
+| Sinusoidal / learned absolute positions | RoPE | position enters $q\cdot k$ only through the offset $n-m$, while the score still depends on content; going past the training length still needs RoPE scaling |
 | ReLU FFN | SwiGLU | better at equal compute |
 | MHA | GQA / MQA | **the KV cache is the inference memory bottleneck** |
 
