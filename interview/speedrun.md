@@ -23,6 +23,8 @@
 <a href="#twelve-hours"><small>12 小时</small><strong>练设计，重做错题</strong><span>继续补系统设计、实验分析和排错</span></a>
 </nav>
 
+<span id="google"></span>
+
 ## 先确认面试形式 {#start}
 
 看面试邮件和职位描述，确认：这一轮是算法、ML Coding、读代码、系统设计，还是项目讨论？能否运行代码、查文档、使用指定 AI 工具？**没有明确允许，就不要在正式面试里用 AI。**要考读代码和排错，可以先做[代码理解](code-comprehension.md#read)的练习；它不能代替算法准备。

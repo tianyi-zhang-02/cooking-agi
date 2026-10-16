@@ -241,5 +241,25 @@
       "start-with-the-whole-systemthen-select-a-stage",
       "what-comes-from-public-code-and-what-is-a-teaching-design"
     ]
+  },
+  {
+    "source": "interview/code-comprehension.en.md",
+    "lost": ["google"]
+  },
+  {
+    "source": "interview/code-comprehension.md",
+    "lost": ["google"]
+  },
+  {
+    "source": "interview/speedrun.en.md",
+    "lost": ["google"]
+  },
+  {
+    "source": "interview/speedrun.md",
+    "lost": ["google"]
+  },
+  {
+    "source": "05-post-training/README.en.md",
+    "lost": ["1-three-stages-use-three-different-kinds-of-supervision"]
   }
 ]

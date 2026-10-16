@@ -60,4 +60,4 @@ $\delta_t$ 是 **temporal-difference error**（时序差分误差）：新观察
 
 $$\nabla_\theta J(\theta)\approx\mathbb E\left[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t\right].$$
 
-$\hat A_t>0$ 时，提高这次采样动作的概率；$\hat A_t<0$ 时，降低它。这个公式只对实际采样到的位置求和；但在同一状态下，softmax 的各项共享归一化：采样 token 的概率一变，同一位置其他 token 的概率也会反向变化（log-prob 对 logits 的梯度是 $e_a-\pi$）。共享参数还会把影响带到其他状态。Critic 则用 return 或 bootstrapped target 回归 $V_\psi(s_t)$；它的主要作用是**降低估计方差**，不是替 Actor 决定下一个 token。
+$\hat A_t>0$ 时，提高这次采样动作的概率；$\hat A_t<0$ 时，降低它。这个公式只对实际采样到的位置求和；但在同一状态下，softmax 的各项共享归一化：采样 log-prob 对 logits 的梯度是 $e_a-\pi$。advantage 为正时，直接沿这个梯度更新 logits，会抬高采样 token 的 logit、压低其他 logits。但概率还要一起归一化，不能据此说其他概率都会下降。例如，从 `[0.2, 0.7, 0.1]` 出发，采样第一个 token，取 advantage 为 1、logit 更新步长为 0.1，得到的概率约为 `[0.22374, 0.67402, 0.10224]`。第三个概率也上升了；在这个直接更新 logits 的例子里，下降的是未采样 token 的概率总和。共享参数还会把影响带到其他状态。Critic 则用 return 或 bootstrapped target 回归 $V_\psi(s_t)$；它的主要作用是**降低估计方差**，不是替 Actor 决定下一个 token。
