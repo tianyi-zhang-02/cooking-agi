@@ -1,4 +1,4 @@
-# 技术编年史：RL 与后训练
+# 技术编年史：RL 与后训练（post-training）
 
 **中文** · [English](rl-timeline.en.md)
 
@@ -8,7 +8,7 @@
 
 为什么已经研究几十年的 RL，今天还会让人觉得难训？沿着它解决过的问题看一遍，就不难理解：我们从估计几个动作的价值，走到了让大模型生成很长的轨迹；学习目标、反馈来源和系统成本都在变。
 
-这一页先整理 **RL 到 LLM 后训练**的一条技术线，不冒充完整 AI 史。年份按原始工作首次发表或公开的时间标注；后续修订不改写首发年份。每个节点回答三件事：当时遇到什么问题、方法改了哪里、今天还留下什么取舍。详细公式放在相应章节，不要求先把整条时间线背下来。
+这一页先整理 **RL 到 LLM 后训练（post-training）**的一条技术线，不冒充完整 AI 史。年份按原始工作首次发表或公开的时间标注；后续修订不改写首发年份。每个节点回答三件事：当时遇到什么问题、方法改了哪里、今天还留下什么取舍。详细公式放在相应章节，不要求先把整条时间线背下来。
 
 <nav class="timeline-jumps" aria-label="按阶段浏览技术编年史">
 <a href="#learning">1989–2015 · 学会决策</a>
@@ -90,7 +90,7 @@ DeepSeekMath 用同一问题下多次回答的奖励估计组内相对好坏，�
 
 R1-Zero 展示了在其基座与任务设置下、不先做 SFT 的 RL 训练；完整 R1 则还包含冷启动数据和多个训练阶段。两者不能混成一句“只靠 RL”。首发是 2025 年，这里链接的是后续 v2 报告。
 
-可验证的数学和代码反馈很有用，但不能直接推出开放任务都能照搬。比较结果还要固定推理时的采样和长度预算。[报告 §2–3](https://arxiv.org/html/2501.12948v2) · [LLM 与 Agent 中的 RL](../05-post-training/deep-rl/llm-bridge.md)
+可验证的数学和代码反馈很有用，但不能直接推出开放任务都能照搬。比较结果还要固定推理时的采样和长度预算。[报告 §2–3](https://arxiv.org/html/2501.12948v2) · [LLM 与 Agent 中的 RL](../05-post-training/deep-rl/llm-bridge.md) · [长思维链（long CoT）怎样训练出来](../11-frontier/test-time-compute/long-chains.md)
 
 ### 2025 · DAPO、AReaL、GSPO：分别改采样、流水线和更新 {#engineering}
 
@@ -122,7 +122,7 @@ R1-Zero 展示了在其基座与任务设置下、不先做 SFT 的 RL 训练；
 
 2018 年的 [SAC](https://arxiv.org/html/1801.01290) 将 off-policy 数据重用与最大熵目标结合，面向连续控制。旧轨迹能继续参与训练，但不代表任何旧数据都同样可靠。状态覆盖、价值估计误差和环境变化仍然重要。模拟器可以降低采样成本，不能自动消除 sim-to-real 的差距。
 
-到了 2023 年，[RT-2](https://arxiv.org/abs/2307.15818) 展示了另一条连接：把视觉语言知识和机器人示范接到动作预测上。它是 VLA 路线的例子，不能因为输出了动作就算作 RL。实际系统可以结合示范学习、规划、RL 与安全控制；每一部分处理的问题不同。
+到了 2023 年，[RT-2](https://arxiv.org/abs/2307.15818) 展示了另一条连接：把视觉语言知识和机器人示范接到动作预测上。它是 [VLA](../13-embodied/robot-learning/vla.md) 路线的例子，不能因为输出了动作就算作 RL。实际系统可以结合示范学习、规划、RL 与安全控制；每一部分处理的问题不同。
 
 继续读：[连续控制](../05-post-training/deep-rl/continuous-control.md) → [SAC 的目标](../05-post-training/deep-rl/soft-actor-critic.md) → [规划与控制](../05-post-training/deep-rl/planning-and-control.md)。
 
@@ -132,7 +132,7 @@ R1-Zero 展示了在其基座与任务设置下、不先做 SFT 的 RL 训练；
 
 这条线连接了 2017 年的[人类偏好学习](#human-preferences)、2022 年的 [InstructGPT](#instructgpt)、2023 年的 [DPO](#dpo)，以及后来面向推理的可验证反馈。DPO 是相关的偏好优化分支，不是“RL 必须经过的下一代”。同样，可验证奖励也不等于只能用 GRPO。
 
-LLM 的动作可以是离散 token，成本却一点都不“小”：同一问题采样八条长回答，每条都需要自回归生成；最后才得到一个分数时，如何把信号分给前面的选择仍然困难。代码测试能检查一部分行为，但通过有限测试不等于对所有输入都正确。工具调用还会引入执行成本与安全边界。
+LLM 的动作可以是离散 token，成本却一点都不“小”：同一问题采样八条长回答，每条都需要自回归生成；最后才得到一个分数时，如何把信号分给前面的选择仍然困难。代码测试能检查一部分行为，但通过有限测试不等于对所有输入都正确。工具调用还会引入执行成本与安全边界，多步任务怎样训练见[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)。
 
 继续读：[Q-learning、PPO 与 DPO](../05-post-training/deep-rl/methods-map.md) → [LLM / Agent 的 RL](../05-post-training/deep-rl/llm-bridge.md) → [rollout 成本与稳定性](../05-post-training/deep-rl/why-rl-is-hard.md)。
 
@@ -142,7 +142,7 @@ LLM 的动作可以是离散 token，成本却一点都不“小”：同一问�
 | --- | --- |
 | Q-learning 和 DPO 为什么不该直接比“谁更先进”？ | [方法地图](../05-post-training/deep-rl/methods-map.md) |
 | 为什么生成很多，模型却学得不多？ | [训练信号与 rollout 成本](../05-post-training/deep-rl/why-rl-is-hard.md) |
-| 这里没有展开的连续控制、离线 RL 呢？ | [SAC](../05-post-training/deep-rl/soft-actor-critic.md) · [Offline RL](../05-post-training/deep-rl/offline-and-ope.md) |
+| 这里没有展开的连续控制、离线 RL 呢？ | [SAC](../05-post-training/deep-rl/soft-actor-critic.md) · [Offline RL](../05-post-training/deep-rl/offline-and-ope.md) · [离线策略评估（OPE）估计量](../05-post-training/deep-rl/ope-estimators.md) |
 | 算法背后的数据和评估怎么设计？ | [数据作为监督](../01-data-and-feedback/data-as-supervision.md) · [评估栈](../07-evaluation/evaluation-stack.md) |
 
-这条时间线只选了能帮助理解当前后训练设计的节点；动态规划、控制、探索、模型式 RL、多智能体等都有更长的历史。一个方向没放进来，不代表它不重要。读新方法时，最值得追问的仍是：它解决了哪一个旧问题，代价又转移到了哪里？
+这条时间线只选了能帮助理解当前后训练设计的节点；动态规划、控制、探索、模型式 RL（[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习](../05-post-training/deep-rl/planning-and-learning.md)）、多智能体等都有更长的历史。一个方向没放进来，不代表它不重要。读新方法时，最值得追问的仍是：它解决了哪一个旧问题，代价又转移到了哪里？

@@ -49,3 +49,4 @@ ML / 推荐方向：
 - [现代 AI 系统：模型只是其中一部分](../06-systems/)
 - [Agents：不同场景怎么用](../10-agents/scenarios.md)
 - [Evaluation：我们凭什么说系统变好了](../07-evaluation/)
+- [Kubernetes 与 GPU 集群](../12-infra/kubernetes.md)：分布式训练为什么要成组调度（gang scheduling），推理服务扩容为什么不只是加副本（待审核草稿）

@@ -29,7 +29,7 @@
 
 在[面试准备](../interview/README.md)里按需要选一块。已有基础可以直接看[快速复习](../interview/speedrun.md)，想系统补课可以看[按计划学习](../interview/study-plan.md)。路线中的小时数是参考，可以按自己的时间拆开学。
 
-先看岗位描述和已经收到的面试说明，不要因为标题都叫 MLE，就默认每一轮考的一样。还没有具体面试，也可以拿一道概念题、一个小实现试试。
+先看岗位描述和已经收到的面试说明，不要因为标题都叫 MLE，就默认每一轮考的一样。各岗位先练什么、时间紧时先放什么，见[按岗位选练习](../interview/ai-roles-prep.md#routes)。还没有具体面试，也可以拿一道概念题、一个小实现试试。
 
 1. **说不清原理**：去 [ML / LLM 基础问答](../interview/basics/README.md)。试着不看笔记回答，再用一个例子解释。
 2. **原理懂，代码写不出来**：去 [ML Coding](ml-exercises/README.md)。重点核对 shape、mask、梯度和边界条件。
@@ -75,6 +75,9 @@
 | 检索与长期状态 | [搜索与检索](../04-search/README.md) · [记忆](../02-memory/README.md) |
 | 工具与智能体 | [Agents](../10-agents/README.md) · [Personal AGI](../09-personal-agi/README.md) |
 | 推理速度、成本与可靠性 | [推理](inference/README.md) · [AI 系统](../06-systems/README.md) · [模型体验](../08-model-experience/README.md) |
+| 芯片、GPU、CUDA 与集群 | [AI 基础设施（AI infra）](../12-infra/README.md) · 待审核草稿 |
+| 感知、机器人与自动驾驶 | [从像素到动作](../13-embodied/README.md) · 待审核草稿 |
+| 还在变化的方向 | [前沿](../11-frontier/README.md)：世界模型、递归自我改进（RSI）已审阅；测试时计算（test-time compute）、用 RL 训练 agent、机制可解释性是待审核草稿 |
 
 </div>
 

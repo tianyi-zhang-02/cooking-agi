@@ -30,7 +30,7 @@
 | loss 出现 Inf / NaN | 数值范围、缩放与梯度裁剪顺序 | [精度与显存](../../00-foundations/deep-dives/precision-and-memory.md) |
 | 权重能放下，反向却 OOM | 激活、优化器状态、临时张量、序列长度 | [精度与显存](../../00-foundations/deep-dives/precision-and-memory.md) |
 | 增加卡数后结果对不上 | 数据分片、有效 token 数、同步与随机性 | [多卡训练](../../06-systems/distributed-training.md) |
-| 利用率高，吞吐却不理想 | 有效 token 吞吐、重算、通信与等待 | [多卡训练](../../06-systems/distributed-training.md) |
+| 利用率高，吞吐却不理想 | 有效 token 吞吐、重算、通信与等待 | [多卡训练](../../06-systems/distributed-training.md) · [MFU 怎么算](../../12-infra/performance.md#mfu) |
 
 第一次看多卡，先在总览里分清 DDP、FSDP、TP、PP 就够了。想进一步弄懂“同一层到底怎么拆”，再读[两张卡算一层 FFN](../../06-systems/tensor-parallel.md)：从 `[2, −1]` 算到 `[9, 6]`，然后跟着输入梯度看通信在哪里发生。不需要先记住所有框架的参数名。已经分清数据并行与模型并行，再读[DDP、FSDP2 与训练框架](../../06-systems/training-frameworks.md)：跟一次参数聚合和梯度更新，看看状态分片省了什么、又为什么可能更慢。它也把 Trainer、Accelerate、NeMo RL 和生成引擎放回各自的层次。
 

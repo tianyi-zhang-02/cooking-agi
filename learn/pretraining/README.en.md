@@ -30,7 +30,7 @@ These interventions act at different levels. BF16 changes number representation;
 | Inf / NaN loss | Numeric range, scaling, and clipping order | [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md) |
 | Weights fit but backward runs out of memory | Activations, optimizer state, temporary tensors, sequence length | [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md) |
 | Results change with device count | Data partitioning, valid-token counts, synchronization, randomness | [Distributed training](../../06-systems/distributed-training.en.md) |
-| High utilization but poor throughput | Useful-token throughput, recomputation, communication, waiting | [Distributed training](../../06-systems/distributed-training.en.md) |
+| High utilization but poor throughput | Useful-token throughput, recomputation, communication, waiting | [Distributed training](../../06-systems/distributed-training.en.md) · [How MFU is computed](../../12-infra/performance.en.md#mfu) |
 
 On a first pass, the overview's distinction between DDP, FSDP, TP, and PP is enough. For the mechanics inside a layer, continue with [two GPUs computing one FFN](../../06-systems/tensor-parallel.en.md): calculate `[2, −1]` into `[9, 6]`, then follow the input gradient to see where communication happens. Framework configuration names can wait. Once data and model parallelism are clear, read [DDP, FSDP2, and training stacks](../../06-systems/training-frameworks.en.md). Follow parameter gathering and gradient updates to see what sharding saves and why it can cost time. The note also separates Trainer, Accelerate, NeMo RL, and generation engines by responsibility.
 

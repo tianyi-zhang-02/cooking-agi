@@ -10,11 +10,12 @@ A paper can make sense while the implementation still feels out of reach. Writin
 
 RE means Research Engineer, MLE means Machine Learning Engineer, and RS means Research Scientist. The work behind each title varies across teams. Read the job description and ask your recruiter about the rounds, coding environment, documentation access, and AI policy. Someone else's experience of not being asked a topic is not a reason to rule it out.
 
-| Target work | Start with | Then go deeper |
-| --- | --- | --- |
-| RE / MLE focused on models and training | [ML implementations](#implement), debugging, project decisions | Data and objectives, distributed training, experiment design |
-| RS focused on research | Relevant implementation skills, research questions, evidence, follow-up experiments | Papers, derivations, and failure cases in your field; not necessarily an LLM checklist |
-| Inference / serving / ML systems | General coding, generation loops, memory estimates | [Request paths and performance diagnosis](#inference), then one layer in depth |
+| Target work | Start with | Then go deeper | Leave for later when time is short |
+| --- | --- | --- | --- |
+| RE / MLE focused on models and training | Algorithms, [ML implementations](#implement), training bugs, data and evaluation, project decisions | Data and objectives, distributed training, experiment design | Every model family's details |
+| RS focused on research | Required coding and implementation skills, research questions, evidence, personal contributions, follow-up experiments | Papers, derivations, and failure cases in your field; not necessarily an LLM checklist | Implementing every popular architecture |
+| Inference / serving / ML systems | Algorithms, general coding, generation loops and caches, memory estimates, scheduling | [Request paths and performance diagnosis](#inference), then one layer in depth with performance evidence | Memorizing every framework class |
+| General SWE | Algorithms, [code reading](code-comprehension.en.md), tests, projects; system design if requested | [Python and algorithm patterns](leetcode.en.md) | Unrelated model derivations |
 
 For internships or new-grad roles, an MLP, attention, a training loop, and one well-understood project are a manageable starting point. Experienced candidates can put more weight on performance decisions, recovery, and team interfaces. This is a suggested practice order, not a hiring threshold for each level.
 
@@ -55,7 +56,7 @@ The main algorithm route remains [Python and LeetCode](leetcode.en.md). The Mark
 | --- | --- | --- |
 | Initialization | Why should weight scale change when input width doubles? Which independence assumptions enter the derivation? | [Activations and initialization](../00-foundations/deep-dives/activation-and-initialization.en.md) |
 | Position encodings | Where do absolute positions and RoPE enter the computation? What changes beyond a max-length setting? | [Position and context](../00-foundations/deep-dives/position-and-context.en.md) |
-| PPO / GRPO | Where do advantages come from? What signal remains when every reward in a group is equal? | [After RLHF](../05-post-training/rlhf/after-rlhf.en.md), [sparse reward groups](../05-post-training/deep-rl/llm-bridge.en.md#sparse-groups) |
+| PPO / GRPO | Where do advantages come from? What signal remains when every reward in a group is equal? | [After RLHF](../05-post-training/rlhf/after-rlhf.en.md), [sparse reward groups](../05-post-training/deep-rl/llm-bridge.en.md#sparse-groups), [credit assignment for multi-turn agents](../11-frontier/agentic-rl/credit-and-training.en.md) |
 | DP / TP / PP | Are you splitting examples, within-layer computation, or layers? Where does communication happen? | [Distributed training](../06-systems/distributed-training.en.md), [training frameworks](../06-systems/training-frameworks.en.md) |
 | Contrastive learning | How are positives and negatives built? Does changing batch size change the loss normalization? | [CLIP](../03-multimodal-learning/clip.en.md), [SigLIP](../03-multimodal-learning/siglip.en.md) |
 
@@ -72,7 +73,7 @@ Read the [vLLM / SGLang stack](../06-systems/inference-frameworks.en.md#engine-m
 | What occupies GPU memory? | [Separate weights, KV, and workspace](../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget), rather than multiplying parameters by precision alone |
 | What does a shared prefix reuse? | Compatible tokens and model settings, cache ownership, routing across replicas, tenant isolation |
 | Why can throughput rise while the experience worsens? | [Long prefills competing with decode](../06-systems/llm-serving.en.md#token-budget); tail latency as well as tokens/s |
-| GPU utilization is low: what next? | Separate CPU input, queues, execution, HBM bandwidth, communication, and output buffering; trace first, change one variable |
+| GPU utilization is low: what next? | Separate CPU input, queues, execution, HBM bandwidth, communication, and output buffering; [trace first](../12-infra/performance.en.md#profiling), change one variable |
 | When would you separate prefill and decode? | Weigh observed interference against KV transfer, both queues, and failure recovery |
 
 For inference roles, prepare at least one layer down to the details: scheduling policy, KV-cache management, or performance evidence you can show. Do not drop traditional system design either; confirm the actual interview format.

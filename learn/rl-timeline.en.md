@@ -90,7 +90,7 @@ Saving some Critic overhead shifts attention to group-sampling cost and signal q
 
 R1-Zero demonstrated RL without an initial SFT stage in its base-model and task setting. The full R1 pipeline also includes cold-start data and multiple training stages. The two should not be merged into a single “RL only” claim. The work first appeared in 2025; the link here is the later v2 report.
 
-Verifiable mathematics and coding feedback is useful, but it does not establish that open-ended tasks can use the same recipe. Comparisons also need fixed inference sampling and length budgets. [Report, §2–3](https://arxiv.org/html/2501.12948v2) · [RL for LLMs and agents](../05-post-training/deep-rl/llm-bridge.en.md)
+Verifiable mathematics and coding feedback is useful, but it does not establish that open-ended tasks can use the same recipe. Comparisons also need fixed inference sampling and length budgets. [Report, §2–3](https://arxiv.org/html/2501.12948v2) · [RL for LLMs and agents](../05-post-training/deep-rl/llm-bridge.en.md) · [How long chains of thought are trained](../11-frontier/test-time-compute/long-chains.en.md)
 
 ### 2025 · DAPO, AReaL, GSPO: sampling, pipelines, and updates {#engineering}
 
@@ -122,7 +122,7 @@ Consider a robot learning to place a cup on a tray. A failure costs more than a 
 
 In 2018, [SAC](https://arxiv.org/html/1801.01290) combined off-policy data reuse with a maximum-entropy objective for continuous control. Old trajectories can contribute to training, but not all old data is equally useful. State coverage, value-estimation errors, and changes in the environment still matter. Simulation reduces collection costs without automatically closing the sim-to-real gap.
 
-In 2023, [RT-2](https://arxiv.org/abs/2307.15818) showed a different connection: bringing vision-language knowledge and robot demonstrations into action prediction. This is a VLA example, not RL merely because the output is an action. A working system may combine demonstrations, planning, RL, and safety control; these components solve different problems.
+In 2023, [RT-2](https://arxiv.org/abs/2307.15818) showed a different connection: bringing vision-language knowledge and robot demonstrations into action prediction. This is a [VLA](../13-embodied/robot-learning/vla.en.md) example, not RL merely because the output is an action. A working system may combine demonstrations, planning, RL, and safety control; these components solve different problems.
 
 Continue with [continuous control](../05-post-training/deep-rl/continuous-control.en.md) → [SAC's objective](../05-post-training/deep-rl/soft-actor-critic.en.md) → [planning and control](../05-post-training/deep-rl/planning-and-control.en.md).
 
@@ -132,7 +132,7 @@ Suppose a model can already write a sorting function. To make it more reliable, 
 
 This branch connects 2017 [human preference learning](#human-preferences), 2022 [InstructGPT](#instructgpt), 2023 [DPO](#dpo), and later reasoning work with verifiable feedback. DPO is a related preference-optimization branch, not a mandatory next generation of RL. Verifiable rewards do not require GRPO either.
 
-Tokens are discrete actions, but that does not make them cheap. Eight long answers to one prompt require eight autoregressive generations. When the score arrives only at the end, credit assignment remains difficult. Tests check some behaviors; passing finite tests is not proof of correctness for every input. Tool use adds execution costs and safety constraints.
+Tokens are discrete actions, but that does not make them cheap. Eight long answers to one prompt require eight autoregressive generations. When the score arrives only at the end, credit assignment remains difficult. Tests check some behaviors; passing finite tests is not proof of correctness for every input. Tool use adds execution costs and safety constraints; for how multi-step tasks are trained, see [agent RL](../11-frontier/agentic-rl/README.en.md).
 
 Continue with [Q-learning, PPO, and DPO](../05-post-training/deep-rl/methods-map.en.md) → [LLM / agent RL](../05-post-training/deep-rl/llm-bridge.en.md) → [rollout cost and stability](../05-post-training/deep-rl/why-rl-is-hard.en.md).
 
@@ -142,7 +142,7 @@ Continue with [Q-learning, PPO, and DPO](../05-post-training/deep-rl/methods-map
 | --- | --- |
 | Why is “which is more advanced?” a poor comparison of Q-learning and DPO? | [Methods map](../05-post-training/deep-rl/methods-map.en.md) |
 | Why can so much generation produce so little learning? | [Learning signal and rollout cost](../05-post-training/deep-rl/why-rl-is-hard.en.md) |
-| What about continuous control and offline RL, not developed here? | [SAC](../05-post-training/deep-rl/soft-actor-critic.en.md) · [Offline RL](../05-post-training/deep-rl/offline-and-ope.en.md) |
+| What about continuous control and offline RL, not developed here? | [SAC](../05-post-training/deep-rl/soft-actor-critic.en.md) · [Offline RL](../05-post-training/deep-rl/offline-and-ope.en.md) · [OPE estimators](../05-post-training/deep-rl/ope-estimators.en.md) |
 | How should the data and evaluation behind these methods be designed? | [Data as supervision](../01-data-and-feedback/data-as-supervision.en.md) · [Evaluation stack](../07-evaluation/evaluation-stack.en.md) |
 
-This timeline selects milestones that help explain current post-training choices. Dynamic programming, control, exploration, model-based RL, and multi-agent learning have much longer histories. Omission does not imply irrelevance. When reading a new method, keep asking which old problem it solves and where it moves the cost.
+This timeline selects milestones that help explain current post-training choices. Dynamic programming, control, exploration, model-based RL ([which model to learn](../05-post-training/deep-rl/model-types.en.md), [planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md)), and multi-agent learning have much longer histories. Omission does not imply irrelevance. When reading a new method, keep asking which old problem it solves and where it moves the cost.

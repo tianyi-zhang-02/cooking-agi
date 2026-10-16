@@ -1,4 +1,4 @@
-# 推理：从下一个 token 到完整请求
+# 推理（inference）：从下一个 token 到完整请求
 
 **中文** · [English](README.en.md)
 
@@ -36,7 +36,7 @@
 
 想知道实际用什么跑服务，读 [vLLM 与 SGLang](../../06-systems/inference-frameworks.md)：把应用、引擎与算子分开，再比较 batching、前缀复用、HiCache 和压测方法。基础概念放在这里，完整产品的接线与分工放在[工程实践](../../practice/ml-system/README.md)。
 
-想从头跟一次真实服务的处理过程，读[一次 LLM 请求怎样跑完](../../06-systems/llm-serving.md)。它把输入处理、排队、缓存、模型计算和输出放在同一条线上，再用一个分块算例解释首 token 延迟和持续输出之间的取舍。已有模型部署经验，也可以直接看 [KV 显存预算](../../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和[缓存回收](../../00-foundations/deep-dives/attention-kernels.md#cache-lifecycle)。
+想从头跟一次真实服务的处理过程，读[一次 LLM 请求怎样跑完](../../06-systems/llm-serving.md)。它把输入处理、排队、缓存、模型计算和输出放在同一条线上，再用一个分块算例解释首 token 延迟（TTFT）和持续输出之间的取舍。已有模型部署经验，也可以直接看 [KV 显存预算](../../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和[缓存回收](../../00-foundations/deep-dives/attention-kernels.md#cache-lifecycle)。
 
 已经理解 decode 与缓存，想看怎样减少目标模型的调用轮数，可以接着读 [DFlash 与 MTP](../../00-foundations/deep-dives/dflash.md)：先跟一轮草拟和验证，再看拒绝、缓存回滚与成本。初学时不用先读完所有加速方法。
 
@@ -44,7 +44,7 @@
 
 ## 一个小小的性能判断
 
-假设一个请求先等 800 ms 才收到首 token，之后每个 token 间隔 20 ms。这两段时间回答的问题不同：前者可能涉及排队、prefill 和首步生成，后者更接近持续 decode 的体验。只报平均 tokens/s，会把两种等待混在一起。
+假设一个请求先等 800 ms 才收到首 token，之后每个 token 间隔 20 ms。这两段时间回答的问题不同：前者可能涉及排队、prefill 和首步生成，后者更接近持续 decode 的体验；小 batch 时它为什么主要受显存带宽限制，见 [decode 的 roofline 算例](../../12-infra/performance.md#decode-batching)。只报平均 tokens/s，会把两种等待混在一起。
 
 如果输入变长，先看 prefill 与缓存读取；如果并发增加后首 token 变慢，检查排队、调度与资源竞争。这个例子只是说明怎么拆测量，不表示某个组件已被诊断为瓶颈。
 

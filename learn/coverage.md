@@ -14,18 +14,18 @@
 
 ## 这轮先整理什么 {#current-update}
 
-2026-10-15 加了第四部分「前沿观察」、两个新板块和几篇单独的笔记。标“待审核”的是草稿：开头有提示框，侧栏标「（待审核）」，站主读过后才去掉。引用草稿里的事实前，请回到文中链接的一手资料核对。
+2026-10-15 加了第四部分“前沿观察”、两个新板块和几篇单独的笔记。标“待审核”的是草稿：开头有提示框，侧栏标「（待审核）」，站主读过后才去掉。引用草稿里的事实前，请回到文中链接的一手资料核对。
 
 | 内容 | 篇数 | 审阅状态 |
 | --- | ---: | --- |
 | [前沿观察](../11-frontier/README.md) · [世界模型](../11-frontier/world-models/README.md) | 7 | 已审阅 |
-| 前沿观察 · [递归自我改进](../11-frontier/self-improvement/README.md) | 5 | 已审阅 |
-| 前沿观察 · [测试时计算](../11-frontier/test-time-compute/README.md) | 5 | 待审核草稿 |
+| 前沿观察 · [递归自我改进（RSI）](../11-frontier/self-improvement/README.md) | 5 | 已审阅 |
+| 前沿观察 · [测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md) | 5 | 待审核草稿 |
 | 前沿观察 · [用 RL 训练 agent](../11-frontier/agentic-rl/README.md) | 4 | 待审核草稿 |
 | 前沿观察 · [机制可解释性](../11-frontier/interpretability/README.md) | 5 | 待审核草稿 |
-| [AI 基础设施](../12-infra/README.md)：晶圆与封装、CPU、GPU、NVIDIA 各代、CUDA、性能、框架、Kubernetes | 10 | 待审核草稿 |
+| [AI 基础设施（AI infra）](../12-infra/README.md)：晶圆与封装、CPU、GPU、NVIDIA 各代、CUDA、性能、框架、Kubernetes | 10 | 待审核草稿 |
 | [感知、机器人与自动驾驶](../13-embodied/README.md)：感知与几何、自动驾驶、机器人学习 | 14 | 待审核草稿 |
-| 强化学习：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习](../05-post-training/deep-rl/planning-and-learning.md)、[离线评估的估计量](../05-post-training/deep-rl/ope-estimators.md) | 3 | 已审阅 |
+| 强化学习：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习](../05-post-training/deep-rl/planning-and-learning.md)、[离线策略评估（OPE）的估计量](../05-post-training/deep-rl/ope-estimators.md) | 3 | 已审阅 |
 | 其他章节：[一个还是多个 agent](../10-agents/single-vs-multi-agent.md)、[LLM 辅助决策](../06-systems/decision-support.md)、[评估接到线上](../07-evaluation/eval-observability.md) | 3 | 待审核草稿 |
 
 篇数按中文笔记计（含各组导读），每篇另有英文版。这些内容不在参考清单里，下面的对照表也不统计它们。这张表只记审阅状态，不代表全站已经核对完；每批改动的检查范围和结果记在仓库的 `CONTENT_RELEASE_CHECKLIST.md`。
@@ -44,30 +44,6 @@
 
 参考范围来自[大模型学习地图](https://tcn6r3nlptym.feishu.cn/wiki/N2Yjwoez0iUA0AkGQBRcSps1nPf)。主线 9 章的 71 个页面已通过浏览器读完正文，包括多模态全部 16 页；第 7 章的 7.1–7.7 在同一页，按 1 篇计算。附录 3 的 7 篇 ML 基础与 20 篇 PyTorch 正文也已读到末尾。这里统计的是正文阅读，不是全部代码、图片和外链的验证。
 
-基础附录对应新增 [泛化与训练诊断](../00-foundations/deep-dives/generalization.md)、[激活与初始化](../00-foundations/deep-dives/activation-and-initialization.md)、[优化器](../00-foundations/deep-dives/optimizers.md)。用小例子区分训练失败与泛化差、ReLU 的二阶矩与方差、Adam 的偏差修正与 AdamW 的解耦衰减；原有 RNN / GRU、归一化和基础题的相关解释也同步修正。例子为本站原创，不复制参考代码。
-
-新增 [PyTorch 实践路线](../00-foundations/pytorch/README.md)，按张量存储、运算维度、交叉熵与 loss、自动求导和训练循环分成 5 章，中英文都有完整代码。重点不是罗列 API，而是解释那些“不报错却算错了”的情况：跨 batch 广播、错误的 loss 分母、没保留的中间梯度，以及只有模型权重却没有完整训练状态的恢复。数值测试使用 PyTorch 2.8.0 / CPU，软件版本与教学边界单独注明。
-
-多模态新增双语 [LLaVA / DeepSeek-VL](../03-multimodal-learning/vlm-designs.md)、[Qwen-VL](../03-multimodal-learning/qwen-vl.md)、[Omni](../03-multimodal-learning/omni-streaming.md)、[OCR 压缩](../03-multimodal-learning/ocr-compression.md)、[图像生成](../03-multimodal-learning/image-generation.md)与[微调检查](../03-multimodal-learning/vlm-finetuning.md)。保留之前的 [ViT](../03-multimodal-learning/vit.md)、[CLIP](../03-multimodal-learning/clip.md)和 [BLIP / Q-Former](../03-multimodal-learning/blip-and-q-former.md)。2026 年的 OCR 2、Qwen3.5 / 3.8-Omni 与 Qwen-Image 后续版本单独核对，不把旧报告当最新版本。算例不是模型训练实测，多模态 GPU 微调尚未执行。
-
-评估新增 [BLEU、ROUGE 与编辑距离](../07-evaluation/text-metrics.md)，包括短句算分、动态规划代码、PPL 比较条件与反例；[Benchmark 与长上下文测试](../07-evaluation/benchmark-protocols.md)补充固定协议、证据位置、无答案控制、配对比较与污染检查。代码只生成测试夹具，没有虚构模型评测结果。
-
-后训练新增 [DAPO](../05-post-training/dapo.md)、[GSPO / ASPO](../05-post-training/policy-ratios.md)与 [SAO / 异步训练](../05-post-training/async-policy-learning.md)。补充采样成本、loss reduction、stop-gradient 与轨迹过期的算例；修正了旧文中“clipping 硬限制概率”“Critic 只用来做 baseline”等不准确表述。小例子有测试，但并未复现这些论文的完整训练结果。
-
-上一批新增的双语 [RAG：证据与评估](../04-search/rag-evidence.md)、[向量索引：IVF 与 PQ](../04-search/vector-indexes.md)，以及扩充的 [Agent 执行过程](../10-agents/patterns.md) 保留。新增 [Prompt](../10-agents/prompting.md) 的任务约定与对照实验设计，以及 [Deep Research](../10-agents/deep-research.md) 的证据队列、引用检查与停止逻辑。可运行的本地例子不代表已完成模型对比实验。
-
-新增[工具、MCP 与 Skills](../10-agents/tools-and-skills.md)和重写的[模型选择与路由](../10-agents/model-choice.md)，用笔记检查和 4 条假设请求解释调用、权限、预算与取舍；没有真实模型或服务性能测量。
-
-此前对 [DeepSeek](../00-foundations/model-families/deepseek.md)、[Qwen](../00-foundations/model-families/qwen.md)和[多卡训练](../06-systems/distributed-training.md)的补充保留；这批继续加入路由权重、奖励边界、Ring 通信、权重版本和恢复的算例。BLIP 的筛选审计与 InstructBLIP 消融方案也已补充，均不冒充完整训练实验。
-
-此前新增的 [GPT](../00-foundations/model-families/gpt.md) 与扩充的 [Llama](../00-foundations/model-families/llama.md) 保留。新增 [Qwen1–2.5](../00-foundations/model-families/qwen-early.md) 与 [Gated DeltaNet 推导](../00-foundations/deep-dives/gated-deltanet.md)，Qwen 主文更新到 3.8 的公开型号，区分文本权重、视觉模型与托管服务。[DeepSeek-V4](../00-foundations/model-families/deepseek-v4.md) 已补混合注意力、因果边界、mHC 与后训练算例；gpt-oss 补充公开训练范围、effort / 工具对照及配对成本记账，不填补未披露的训练配方。
-
-DCA 的 chunk 边界位置、DSA 的 indexer 训练与错选例子已补入长上下文和稀疏注意力篇；新增 [Gated Attention](../00-foundations/deep-dives/gated-attention.md)、[Engram](../00-foundations/deep-dives/engram.md)与 [Block AttnRes](../00-foundations/deep-dives/attention-residuals.md) 双语讲解。局部算例覆盖 gate 初始化、hash 冲突、深度 softmax 与资源成本，未声称复现完整训练。之前的 MoE、MLA、NSA、YaRN 和推测解码算例保留。
-
-参考代码没有执行，图片内公式、嵌入 PDF 和外链视频也未全部核查。附录 2 的算法分类页已读完，字符串匹配、单调队列、BST、背包与序列 / 状态机 DP 已补 6 对笔记及局部测试。讲解、例子与代码自己写，技术结论回到原论文或官方实现核对。全站时效性审查和逐篇技术审稿还没完成，不把构建成功当成内容全部完成。
-
-推理部分补充了[请求完整流程](../06-systems/llm-serving.md)、[完整显存预算](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和[缓存生命周期](../00-foundations/deep-dives/attention-kernels.md#cache-lifecycle)。新读完参考的请求流程与推理显存两篇，公开实现固定到具体版本。算例可本地核对，但不把容量估算写成 GPU 性能实测。
-
 <span id="appendix-questions"></span>
 
 ## 附录问题：逐条查漏 {#appendix-question-map}
@@ -85,21 +61,7 @@ DCA 的 chunk 边界位置、DSA 的 indexer 训练与错选例子已补入长�
 
 例如，已有的蒸馏篇确实算过同一组分布的熵、交叉熵和 KL，这项不该误报成缺失；BM25 原先则只出现在混合检索里，本轮才补上专门算分的文章。这才是逐项检查要区分的事情。
 
-2026-10-09 补入 [Muon](../00-foundations/deep-dives/muon.md)、[DFlash / MTP 对照](../00-foundations/deep-dives/dflash.md)、BM25 / TF-IDF、质数筛法、[Qwen3 Embedding 与 BGE-M3](../04-search/embedding-models.md)、[InfoNCE 与 CE](../04-search/dual-encoder.md#infonce-and-ce)，以及 NoPE 与顺序信息。
-
-另补 [BERT 从输入到微调](../00-foundations/core/bert.md)：通过一条短序列分清输入遮盖、attention mask 和 loss mask，再接 MLM / NSP 与任务输出层。
-
-当前 **65 项有专门讲解，2 项为汇总入口**。清单里没有完全缺少相关专题的项目，不代表已经验收完成。最近补充了 [Muon 的分片反例](../00-foundations/deep-dives/muon.md)、[DFlash 的特征与 shape](../00-foundations/deep-dives/dflash.md#feature-shapes)和 [clipping 变体](../05-post-training/clipping-variants.md)。之前的重算、训练显存、ZeRO 与检索专题仍保留；[Python：变量、拷贝与函数调用](../interview/python-objects.md)仍在代码复习路线里。不会因为读完参考，就采用其中过时或过于绝对的结论。
-
-工程部分新增[沿一次请求排查错误](../practice/post-training/experiments-and-release.md#trace-a-failure)，不把所有错误都归为“需要微调”。此前的[长任务中怎样选 GRPO / PPO](../05-post-training/deep-rl/llm-bridge.md#long-horizon-choice)、[学生采样与蒸馏](../05-post-training/distillation.md#opd-choices)和[rollout 到训练数据](../05-post-training/post-training-infrastructure.md#rollout-record)也已扩充。先看小例子，再按需要展开梯度和代码；CPU 检查不代表完整训练或 GPU 性能复现。
-
-此前的[两张卡算同一层](../06-systems/tensor-parallel.md)与[同样 8 张卡的部署选择](../06-systems/distributed-training.md#eight-gpus)也保留了，从输入梯度、通信到资源开销都可以继续追下去。
-
-训练工程补了 [checkpoint 与恢复](../practice/post-training/checkpoint-and-resume.md)、[CPU 到 GPU 的数据路径](../00-foundations/pytorch/training-loop.md)、[训练显存记账](../00-foundations/deep-dives/precision-and-memory.md)。先用动量、3 批数据和 10 亿参数的小例子讲清机制，再接代码与工程限制。上述参考正文和 ZeRO stages 均已读，数据路径另补了 kernel、SM 与存储的区别。本站的[重算例子](../00-foundations/deep-dives/precision-and-memory.md#recompute-example)和[通信账](../06-systems/distributed-training.md#zero-communication)可直接接着看。CPU 结果不代表 GPU 显存或通信性能。
-
-后训练补了三个容易在训练日志里遇到的问题：[loss 为 0 但梯度不为 0](../05-post-training/after-ppo.md#zero-loss-gradient)、[ratio 越界不一定没有梯度](../05-post-training/rlhf/ppo-clipping.md#clipped-token-gradients)，以及[一组回答何时生成、复用和刷新](../05-post-training/rlhf/on-off-policy.md#grpo-data-lifecycle)。小算例和 CPU 代码对应，不把日志数值、梯度和真实训练效果混在一起。
-
-本站的 [MoE 路由](../00-foundations/moe/router.md#dispatch-example)现在有完整的分发、计算、加权回填和梯度检查；[负载均衡](../00-foundations/moe/load-balancing.md#sequence-balance)用两条序列说明为什么全 batch 均衡不等于逐序列均衡。离散计数不能直接反传、归一化分母和 padding 等细节都单独核对。教学算例不算模型实测；参考中不准确的说法不会因为“已读”就直接采用。
+当前 **65 项有专门讲解，2 项为汇总入口**。清单里没有完全缺少相关专题的项目，不代表已经验收完成；各项具体补了什么，见[此前补充了什么](#earlier-updates)。不会因为读完参考，就采用其中过时或过于绝对的结论。
 
 ### 这些问题放在哪里，读者才找得到？
 
@@ -107,7 +69,7 @@ DCA 的 chunk 边界位置、DSA 的 indexer 训练与错选例子已补入长�
 
 | 想怎么读 | 从哪里开始 | 哪些可以之后再看 |
 | --- | --- | --- |
-| 先入门，弄懂模型怎么学 | Attention、Norm、交叉熵和一次参数更新 | Muon、分布式通信、推测解码 |
+| 先入门，弄懂模型怎么学 | Attention、Norm、交叉熵和一次参数更新 | Muon、分布式通信、推测解码（speculative decoding） |
 | 只关心后训练 | SFT → PPO / GRPO → 采样、KL、loss 排错 | 各代模型和 serving 引擎源码 |
 | 只关心检索或部署 | 检索从双塔、混合检索走；部署从生成、KV cache 走 | 另一条路线不必全部读完 |
 | 想自己实现 | 手写模块 → shape / 梯度检查 → 完整小实验 | 新算法名不如先把一个模块写对 |
@@ -119,6 +81,27 @@ DCA 的 chunk 边界位置、DSA 的 indexer 训练与错选例子已补入长�
 ## 逐项对照
 
 <!-- widget:reference-coverage -->
+
+## 此前补充了什么 {#earlier-updates}
+
+下面按主题汇总 2026-10-14 之前记在这页的补充，详细讲解都在各篇正文里。小算例和 CPU 检查只核对机制，不是模型训练或 GPU 性能实测；读完参考，也不代表采用其中每个结论。
+
+- **训练基础**：[泛化与训练诊断](../00-foundations/deep-dives/generalization.md)、[激活与初始化](../00-foundations/deep-dives/activation-and-initialization.md)、[优化器](../00-foundations/deep-dives/optimizers.md)、[Muon 与分片反例](../00-foundations/deep-dives/muon.md)。例子为本站原创，不复制参考代码；RNN / GRU、归一化和基础题的相关解释同步修正。
+- **PyTorch**：[实践路线](../00-foundations/pytorch/README.md) 5 章，讲跨 batch 广播、错误的 loss 分母、没保留的中间梯度、只恢复权重这类“不报错却算错”的情况。数值测试用 PyTorch 2.8.0 / CPU。
+- **多模态**：[LLaVA / DeepSeek-VL](../03-multimodal-learning/vlm-designs.md)、[Qwen-VL](../03-multimodal-learning/qwen-vl.md)、[Omni](../03-multimodal-learning/omni-streaming.md)、[OCR 压缩](../03-multimodal-learning/ocr-compression.md)、[图像生成](../03-multimodal-learning/image-generation.md)、[微调检查](../03-multimodal-learning/vlm-finetuning.md)，以及 BLIP 的筛选审计和 InstructBLIP 消融方案。2026 年的 OCR 2、Qwen3.5 / 3.8-Omni 与 Qwen-Image 后续版本单独核对；多模态 GPU 微调尚未执行。
+- **评估**：[BLEU、ROUGE 与编辑距离](../07-evaluation/text-metrics.md)、[Benchmark 与长上下文测试](../07-evaluation/benchmark-protocols.md)。代码只生成测试夹具，没有虚构模型评测结果。
+- **后训练**：[DAPO](../05-post-training/dapo.md)、[GSPO / ASPO](../05-post-training/policy-ratios.md)、[SAO / 异步训练](../05-post-training/async-policy-learning.md)、[clipping 变体](../05-post-training/clipping-variants.md)，以及 [loss 为 0 但梯度不为 0](../05-post-training/after-ppo.md#zero-loss-gradient)、[ratio 越界不一定没有梯度](../05-post-training/rlhf/ppo-clipping.md#clipped-token-gradients)、[一组回答何时生成、复用和刷新](../05-post-training/rlhf/on-off-policy.md#grpo-data-lifecycle)。修正了“clipping 硬限制概率”“Critic 只用来做 baseline”等旧说法；没有复现论文的完整训练结果。
+- **检索**：[RAG：证据与评估](../04-search/rag-evidence.md)、[向量索引：IVF 与 PQ](../04-search/vector-indexes.md)、[BM25 对比 TF-IDF](../04-search/tfidf-and-bm25.md)（2026-10-09）、[Qwen3 Embedding 与 BGE-M3](../04-search/embedding-models.md)（2026-10-09）、[InfoNCE 与 CE](../04-search/dual-encoder.md#infonce-and-ce)（2026-10-09）。
+- **Agents**：[Agent 执行过程](../10-agents/patterns.md)、[Prompt](../10-agents/prompting.md)、[Deep Research](../10-agents/deep-research.md)、[工具、MCP 与 Skills](../10-agents/tools-and-skills.md)、[模型选择与路由](../10-agents/model-choice.md)。本地例子不代表做过模型对比或服务性能测量。
+- **模型家族**：[GPT](../00-foundations/model-families/gpt.md)（含 gpt-oss 的公开训练范围与成本记账）、[Llama](../00-foundations/model-families/llama.md)、[Qwen1–2.5](../00-foundations/model-families/qwen-early.md)、[Qwen](../00-foundations/model-families/qwen.md)（更新到 3.8 的公开型号）、[DeepSeek](../00-foundations/model-families/deepseek.md)、[DeepSeek-V4](../00-foundations/model-families/deepseek-v4.md)。不填补未披露的训练配方。
+- **架构组件与长上下文**：[BERT 从输入到微调](../00-foundations/core/bert.md)、[Gated DeltaNet 推导](../00-foundations/deep-dives/gated-deltanet.md)、[Gated Attention](../00-foundations/deep-dives/gated-attention.md)、[Engram](../00-foundations/deep-dives/engram.md)、[Block AttnRes](../00-foundations/deep-dives/attention-residuals.md)、[Kimi K3 / NoPE](../00-foundations/deep-dives/nope-and-order.md)（2026-10-09）；DCA、DSA 的例子补进长上下文和稀疏注意力篇。没有声称复现完整训练。
+- **MoE**：[路由](../00-foundations/moe/router.md#dispatch-example)的分发、加权回填和梯度检查；[负载均衡](../00-foundations/moe/load-balancing.md#sequence-balance)说明全 batch 均衡不等于逐序列均衡。
+- **训练工程与多卡**：[多卡训练](../06-systems/distributed-training.md)、[两张卡算同一层](../06-systems/tensor-parallel.md)、[同样 8 张卡的部署选择](../06-systems/distributed-training.md#eight-gpus)、[通信账](../06-systems/distributed-training.md#zero-communication)、[训练显存记账](../00-foundations/deep-dives/precision-and-memory.md)与[重算例子](../00-foundations/deep-dives/precision-and-memory.md#recompute-example)、[CPU 到 GPU 的数据路径](../00-foundations/pytorch/training-loop.md)、[checkpoint 与恢复](../practice/post-training/checkpoint-and-resume.md)。对应的参考正文和 ZeRO stages 均已读；CPU 结果不代表 GPU 显存或通信性能。
+- **推理**：[请求完整流程](../06-systems/llm-serving.md)、[完整显存预算](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)、[缓存生命周期](../00-foundations/deep-dives/attention-kernels.md#cache-lifecycle)、[DFlash / MTP 对照](../00-foundations/deep-dives/dflash.md)与[特征和 shape](../00-foundations/deep-dives/dflash.md#feature-shapes)（2026-10-09）。参考里的请求流程与推理显存两篇已读；公开实现固定到具体版本，容量估算不是 GPU 实测。
+- **工程实践**：[沿一次请求排查错误](../practice/post-training/experiments-and-release.md#trace-a-failure)、[长任务中怎样选 GRPO / PPO](../05-post-training/deep-rl/llm-bridge.md#long-horizon-choice)、[学生采样与蒸馏](../05-post-training/distillation.md#opd-choices)、[rollout 到训练数据](../05-post-training/post-training-infrastructure.md#rollout-record)。
+- **算法与 Python**：附录 2 的算法分类页已读完，据此补了字符串匹配、单调队列、BST、背包和序列 / 状态机 DP 共 6 对笔记及局部测试，[质数与筛法](../interview/algorithms/primes-and-sieves.md)（2026-10-09），以及代码复习路线里的 [Python：变量、拷贝与函数调用](../interview/python-objects.md)。
+
+参考代码没有执行，图片内公式、嵌入 PDF 和外链视频也未全部核查。全站时效性审查和逐篇技术审稿还没完成，不把构建成功当成内容全部完成。
 
 ## 本站额外保留的内容
 

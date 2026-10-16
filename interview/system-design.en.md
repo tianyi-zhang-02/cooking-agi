@@ -49,3 +49,4 @@ ML and recommendation:
 - [Modern AI systems: the model is only one part](../06-systems/README.en.md)
 - [Agents: how they are used in different settings](../10-agents/scenarios.en.md)
 - [Evaluation: why should we believe the system improved](../07-evaluation/README.en.md)
+- [Kubernetes and GPU clusters](../12-infra/kubernetes.en.md): why distributed training needs gang scheduling, and why scaling inference is more than adding replicas (draft, pending review)

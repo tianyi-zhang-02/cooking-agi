@@ -125,8 +125,8 @@ For example, `groups.get("missing")` returns `None` without inserting a key. Cac
 
 ## Language details interviewers like to probe
 
-- **Do not build a 2D array as `[[0] * n] * m`.** The outer `* m` copies a reference to the same inner list, so changing one cell changes every row. Write `[[0] * n for _ in range(m)]`.
-- **Do not use a mutable default argument.** In `def f(x, acc=[])` the `[]` is created once, when the function is defined, and every later call shares it. Write `acc=None` and check `if acc is None: acc = []` inside.
+- **Do not build a 2D array as `[[0] * n] * m`.** Write `[[0] * n for _ in range(m)]`; the question below explains why.
+- **Do not use a mutable default argument.** Write `acc=None` and create the list inside the function; the question below explains why.
 - **`is` and `==` differ.** `==` compares values; `is` asks whether two names refer to the same object. Test for None with `is None`.
 - **Shallow versus deep copy.** Ordinary list slicing and `copy()` copy the outer layer. Whether nested objects need copying depends on what you will mutate; nesting alone does not require `deepcopy`. See [why a copy can affect the original](python-objects.en.md#shallow-copy).
 - **Integer division and modulo with negatives.** Python's `//` rounds down: `-7 // 2` is `-4` and `-7 % 2` is `1`. C++ and Java round toward zero, so `-7 / 2` is `-3`, which trips people up when switching languages.
@@ -142,14 +142,14 @@ For choosing and reviewing problems, see [LeetCode practice](leetcode.en.md).
 <details class="interview" markdown="1">
 <summary>grid = [[0] * 3] * 3. After changing grid[0][0], why did all three rows change?</summary>
 
-`* 3` copies references: the three rows are one and the same list. Whether you write through `grid[0]`, `grid[1]`, or `grid[2]`, you change that one list, so all three rows show it. The right way is `[[0] * 3 for _ in range(3)]`, which builds a new row on every iteration.
+`* 3` copies references: the three rows are one and the same list. Whether you write through `grid[0]`, `grid[1]`, or `grid[2]`, you change that one list, so all three rows show it. The right way is `[[0] * 3 for _ in range(3)]`, which builds a new row on every iteration. For how names relate to objects, see [two names do not imply two copies](python-objects.en.md#names-and-objects).
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>fs = [lambda: i for i in range(3)]. Why does fs[0]() return 2?</summary>
 
-The lambda remembers the variable `i`, not its value, and looks the value up when it is called; by then the loop has finished and `i` is 2, so all three return 2. This is late binding. To keep the value from that moment, fix it with a default argument: `lambda i=i: i`.
+The lambda remembers the variable `i`, not its value, and looks the value up when it is called; by then the loop has finished and `i` is 2, so all three return 2. This is late binding. To keep the value from that moment, fix it with a default argument: `lambda i=i: i`. For a fuller closure example, see [defaults and closures](python-objects.en.md#defaults-and-closures).
 
 </details>
 
@@ -184,6 +184,6 @@ A list comprehension `[...]` stores all results. A generator expression `(...)` 
 <details class="interview" markdown="1">
 <summary>Why is a default empty list not recreated for each call?</summary>
 
-A default value is evaluated once, when the function is defined. The list in `def f(acc=[])` is shared by every later call, so whatever one call adds is still there for the next. Use `acc=None` and `if acc is None: acc = []` in the body.
+A default value is evaluated once, when the function is defined. The list in `def f(acc=[])` is shared by every later call, so whatever one call adds is still there for the next. Use `acc=None` and `if acc is None: acc = []` in the body. A list you pass in is still modified; see [defaults and closures](python-objects.en.md#defaults-and-closures) for that case and a runnable example.
 
 </details>

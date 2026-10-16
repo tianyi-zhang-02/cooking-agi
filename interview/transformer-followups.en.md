@@ -22,7 +22,7 @@ Generation happens one token at a time. Under a causal mask the K and V of past 
 <details class="qa" markdown="1">
 <summary>With a cache, what is the per-step complexity, and what becomes the bottleneck?</summary>
 
-Per-step attention drops from $O(t^2)$ to $O(t)$. The price is memory that grows linearly with tokens, and every step has to read the entire cache: small-batch decoding is usually limited by the bandwidth for reading weights and the cache (**memory-bound**). Everything that “shrinks the cache” afterwards (GQA, MLA, sliding windows) is aimed at exactly this.
+Per-step attention drops from $O(t^2)$ to $O(t)$. The price is memory that grows linearly with tokens, and every step has to read the entire cache: small-batch decoding is usually limited by the bandwidth for reading weights and the cache (**memory-bound**); for why a larger batch moves it toward compute-bound, see the [decode roofline example](../12-infra/performance.en.md#decode-batching). Everything that “shrinks the cache” afterwards (GQA, MLA, sliding windows) is aimed at exactly this.
 
 </details>
 
@@ -140,7 +140,7 @@ Figure: [MoE: routing drawn at the true number of experts](../00-foundations/tra
 <details class="qa" markdown="1">
 <summary>Is FlashAttention an approximation? What does it actually save?</summary>
 
-It is not an approximation; the result is **exact**. What it saves is memory traffic, not arithmetic: the standard implementation writes the full $n\times n$ score matrix to slow HBM and reads it back. FlashAttention cuts Q, K and V into blocks that fit in on-chip SRAM, computes block by block, and writes back only the $n\times d$ output, with extra memory linear in $n$.
+It is not an approximation; the result is **exact**. What it saves is memory traffic, not arithmetic: the standard implementation writes the full $n\times n$ score matrix to slow HBM and reads it back. FlashAttention cuts Q, K and V into blocks that fit in on-chip SRAM, computes block by block, and writes back only the $n\times d$ output, with extra memory linear in $n$. For how far apart HBM and on-chip SRAM are in capacity and bandwidth, see [the GPU memory hierarchy](../12-infra/gpu-architecture.en.md).
 
 </details>
 

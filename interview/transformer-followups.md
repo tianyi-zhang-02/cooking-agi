@@ -22,7 +22,7 @@
 <details class="qa" markdown="1">
 <summary>有了 cache，单步复杂度是多少？瓶颈变成了什么？</summary>
 
-单步 attention 从 $O(t^2)$ 降到 $O(t)$。代价是显存随 token 数线性增长，而且每一步都要把整个 cache 读一遍——小 batch 解码通常受读取权重和 cache 的带宽限制（**memory-bound**）。后面所有“压 cache”的工作（GQA、MLA、sliding window）都是冲着这一点来的。
+单步 attention 从 $O(t^2)$ 降到 $O(t)$。代价是显存随 token 数线性增长，而且每一步都要把整个 cache 读一遍——小 batch 解码通常受读取权重和 cache 的带宽限制（**memory-bound**）；batch 变大后为什么会转向算力受限，见 [decode 的 roofline 算例](../12-infra/performance.md#decode-batching)。后面所有“压 cache”的工作（GQA、MLA、sliding window）都是冲着这一点来的。
 
 </details>
 
@@ -140,7 +140,7 @@ base 越大，除频率固定为 1 的第一对外，其余维度都转得更慢
 <details class="qa" markdown="1">
 <summary>FlashAttention 是近似算法吗？它到底省了什么？</summary>
 
-不是近似，结果是**精确的**。它省的不是算术，而是访存：标准实现要把完整的 $n\times n$ 分数矩阵写进较慢的 HBM 再读回来；FlashAttention 把 Q、K、V 切块放进片上 SRAM，一块一块地算，只写回 $n\times d$ 的输出，额外显存对 $n$ 线性。
+不是近似，结果是**精确的**。它省的不是算术，而是访存：标准实现要把完整的 $n\times n$ 分数矩阵写进较慢的 HBM 再读回来；FlashAttention 把 Q、K、V 切块放进片上 SRAM，一块一块地算，只写回 $n\times d$ 的输出，额外显存对 $n$ 线性。HBM 和片上 SRAM 的容量、带宽各差多少，见 [GPU 的内存层级](../12-infra/gpu-architecture.md)。
 
 </details>
 

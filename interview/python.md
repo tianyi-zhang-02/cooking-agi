@@ -125,8 +125,8 @@ assert heapq.nlargest(2, numbers) == [9, 4]
 
 ## 面试里常被追问的语言细节
 
-- **二维数组别写成 `[[0] * n] * m`。** 外面的 `* m` 复制的是同一个内层列表的引用，改一个格子，每一行都会跟着变。要写成 `[[0] * n for _ in range(m)]`。
-- **默认参数不要用可变对象。** `def f(x, acc=[])` 里的 `[]` 只在定义函数时创建一次，之后每次调用都共用这一个列表。一般写成 `acc=None`，函数里再判断 `if acc is None: acc = []`。
+- **二维数组别写成 `[[0] * n] * m`。** 要写成 `[[0] * n for _ in range(m)]`；原因见下面的问答。
+- **默认参数不要用可变对象。** 一般写成 `acc=None`，在函数里新建列表；原因见下面的问答。
 - **`is` 和 `==` 不一样。** `==` 比较值是否相等，`is` 比较是不是同一个对象。判断 None 要用 `is None`。
 - **浅拷贝和深拷贝。** 普通 list 的切片和 `copy()` 只复制外层。是否复制内部对象，要看你接下来会改哪一层；不是遇到嵌套就必须 `deepcopy`。见[副本为什么会影响原数据](python-objects.md#shallow-copy)。
 - **负数的整除和取余。** Python 的 `//` 向下取整：`-7 // 2` 是 `-4`，`-7 % 2` 是 `1`。C++ 和 Java 是向零取整，`-7 / 2` 得 `-3`，换语言时容易踩坑。
@@ -142,14 +142,14 @@ assert heapq.nlargest(2, numbers) == [9, 4]
 <details class="interview" markdown="1">
 <summary>grid = [[0] * 3] * 3，改了 grid[0][0]，为什么三行都变了？</summary>
 
-`* 3` 复制的是引用：三行其实是同一个列表。不管通过 `grid[0]`、`grid[1]` 还是 `grid[2]` 去改，改的都是这一个列表，三行自然一起变。正确写法是 `[[0] * 3 for _ in range(3)]`，每次循环都新建一行。
+`* 3` 复制的是引用：三行其实是同一个列表。不管通过 `grid[0]`、`grid[1]` 还是 `grid[2]` 去改，改的都是这一个列表，三行自然一起变。正确写法是 `[[0] * 3 for _ in range(3)]`，每次循环都新建一行。名字和对象的关系，见[两个名字，不一定是两份数据](python-objects.md#names-and-objects)。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>fs = [lambda: i for i in range(3)]，为什么 fs[0]() 返回的是 2？</summary>
 
-lambda 记住的是变量 `i` 本身，调用时才去看 `i` 的值；循环结束时 `i` 已经是 2，所以三个函数都返回 2。这叫延迟绑定（late binding）。要记住当时的值，就用默认参数把它固定下来：`lambda i=i: i`。
+lambda 记住的是变量 `i` 本身，调用时才去看 `i` 的值；循环结束时 `i` 已经是 2，所以三个函数都返回 2。这叫延迟绑定（late binding）。要记住当时的值，就用默认参数把它固定下来：`lambda i=i: i`。闭包的完整例子见[默认参数和闭包](python-objects.md#defaults-and-closures)。
 
 </details>
 
@@ -184,6 +184,6 @@ lambda 记住的是变量 `i` 本身，调用时才去看 `i` 的值；循环结
 <details class="interview" markdown="1">
 <summary>为什么默认空列表不会在每次调用时重新创建？</summary>
 
-默认值只在定义函数时求值一次。`def f(acc=[])` 里的那个列表会被之后所有调用共用，上一次调用往里加的东西，下一次还在。改成 `acc=None`，在函数体里 `if acc is None: acc = []`。
+默认值只在定义函数时求值一次。`def f(acc=[])` 里的那个列表会被之后所有调用共用，上一次调用往里加的东西，下一次还在。改成 `acc=None`，在函数体里 `if acc is None: acc = []`。传入已有列表时它仍会被修改，这一点和可运行的例子见[默认参数和闭包](python-objects.md#defaults-and-closures)。
 
 </details>

@@ -29,7 +29,7 @@ A little Python is enough to begin. If vectors and gradients are unfamiliar, sta
 
 In [Interview prep](../interview/README.en.md), pick the area you need. With a background, go straight to the [quick review](../interview/speedrun.en.md); to build up step by step, use the [study plan](../interview/study-plan.en.md). The first narrows the scope; the second follows the prerequisites. Both let you start with what you know. Suggested hour budgets are not deadlines.
 
-Start with the job description and any interview information you've received. Two MLE roles may emphasize quite different things. Without a particular interview coming up, try one concept question and one small implementation to see where you get stuck.
+Start with the job description and any interview information you've received. Two MLE roles may emphasize quite different things. For what to practice first by role, and what to leave when time is short, see the [role-based guide](../interview/ai-roles-prep.en.md#routes). Without a particular interview coming up, try one concept question and one small implementation to see where you get stuck.
 
 1. **Hard to explain the idea?** Use the [ML / LLM questions](../interview/basics/README.en.md). Answer without notes, then explain with an example.
 2. **Understand it but can't implement it?** Try [ML coding](ml-exercises/README.en.md). Check shapes, masks, gradients, and boundary cases.
@@ -75,6 +75,9 @@ You don't need to follow the routes above first. These are topic entrances, each
 | Retrieval and persistent state | [Search and retrieval](../04-search/README.en.md) · [Memory](../02-memory/README.en.md) |
 | Tools and agents | [Agents](../10-agents/README.en.md) · [Personal AGI](../09-personal-agi/README.en.md) |
 | Inference speed, cost, and reliability | [Inference](inference/README.en.md) · [AI systems](../06-systems/README.en.md) · [Model experience](../08-model-experience/README.en.md) |
+| Chips, GPUs, CUDA, and clusters | [AI infrastructure](../12-infra/README.en.md) (draft, pending review) |
+| Perception, robots, and driving | [From pixels to actions](../13-embodied/README.en.md) (draft, pending review) |
+| Directions still in motion | [Frontier](../11-frontier/README.en.md): world models and recursive self-improvement are reviewed; test-time compute, agent RL, and interpretability are drafts pending review |
 
 </div>
 
