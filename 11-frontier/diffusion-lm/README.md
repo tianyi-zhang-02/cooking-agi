@@ -57,7 +57,7 @@ the → the tea → the tea is → the tea is cold
 | --- | --- | --- |
 | 掩码扩散的目标是负对数似然的上界，并等于任意顺序自回归的损失：RADD（2024-06）、ARDM（2021-10） | 掩码和均匀态哪个更好：Sahoo 等（2026-02）在 1.7B 上发现均匀态困惑度更差、GSM8K 却更好；Google 的开发者指南说 DiffusionGemma 用均匀态，第三方的 Asaria 等（2026-06）则称它为掩码扩散 | 更大规模、同数据的跨家族对照；DiffusionGemma 的技术报告 |
 | 同样计算下验证损失落后于 AR：SMDM 约 16 倍（$6\times10^{18}$–$10^{20}$ FLOPs） | 下游任务上的扩展：LLaDA 自报到 $10^{23}$ FLOPs 与同数据 AR 相当；数据重复多轮时扩散反超（Prabhudesai 等，2025-07） | 10B 以上、同数据同计算、公开 checkpoint 的对照 |
-| 每步固定落多个 token 会掉质量：Kim 等（2025-10）在生成长度 128、块大小 32 的设置下，每步 4 个时 GSM8K 73.6 → 61.7；理论上要整条序列正确，步数要随长度线性增长（Feng 等，2025-02） | 自适应落 token 和可修改：Fast-dLLM 的置信度阈值、LLaDA2.1 的编辑、DiffusionGemma 自报每次前向 15–20 个 token | 第三方测的“同质量下平均每步落几个” |
+| 固定并行落 token 可能损失质量：Kim 等（2025-10）在生成长度 128、块大小 32 的设置下，每步 4 个时 GSM8K 73.6 → 61.7。另外，Feng 等对最坏情况 HMM 证明了线性步数下界，但有反向过程和学习误差假设，不能直接套到所有推理任务上（[适用范围](decoding-and-speed.md)） | 自适应落 token 和可修改：Fast-dLLM 的置信度阈值、LLaDA2.1 的编辑、DiffusionGemma 自报每次前向 15–20 个 token | 第三方测的“同质量下平均每步落几个” |
 | 双向注意力不能精确缓存，分块扩散可以：Block Diffusion（2025-03） | 块多大合适，近似缓存的误差有多大 | 主流引擎里的稳定接口和公开基准：SGLang（2025-12 起）、vLLM（DiffusionGemma 指南给了 `vllm serve` 命令） |
 | 低并发时的速度优势来自用上 decode 时闲着的算力，并发高时缩小：Kim 等、Fast-dLLM 附录，以及 Google 自己对 DiffusionGemma 的说明 | 厂商速度数字（Mercury 2.5 的 1107 tokens/s 等）都是自报，条件不全 | 第三方在同硬件、同引擎、多个并发档位、同等质量下的对照 |
 | 厂商自己的同族对比里质量更低：DiffusionGemma 模型卡上 AIME 2026 69.1% 对同规格 Gemma 4 的 88.3%；Gemini Diffusion 的 GPQA Diamond 40.4% 对 2.0 Flash-Lite 的 56.5% | 从 AR 权重转换能否补上差距：LLaDA2.0-flash 自报平均 73.18，原模型 Ling-flash-2.0 是 72.15 | 转换后的模型在推理和长上下文任务上与原模型的差距 |
