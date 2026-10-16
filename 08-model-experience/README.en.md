@@ -56,16 +56,7 @@ Many important failures only appear in the interaction trajectory:
 
 So we need session-level evaluation of task completion across turns, and longitudinal evaluation of whether problems are resolved across repeated use—not only single prompt–response pairs.
 
-Start with a fictional travel timeline rather than simply asking, “Do you remember me?”
-
-| Stage | User input or change | What to check |
-| --- | --- | --- |
-| First use | “I usually prefer quiet accommodation; you may remember that” | Later relevant tasks retrieve the preference and its source |
-| Next trip | “For this trip only, prioritize staying near the station” | The current instruction wins without permanently replacing the usual preference |
-| After the trip | The temporary instruction no longer applies | Proximity to the station is not treated as a lasting preference |
-| After withdrawal | “Delete my accommodation preferences” | In a new session, neither retrieval nor answers use the deleted records or their derivatives |
-
-Start each test trajectory with independent state, advance in time, and expose only information known at that point; future corrections must not enter memory early. Hold the model, tools, and budget fixed when comparing versions with and without memory. Include tasks that need no history to detect interference from old preferences. See the [memory lifecycle](../02-memory/memory-lifecycle.en.md) for read and deletion mechanisms.
+Start with a timeline rather than simply asking, “Do you remember me?” Store “I usually prefer quiet accommodation”, add “for this trip only, stay near the station”, let the trip end, then delete the accommodation preference, and check which record the system uses at each step. The [memory lifecycle](../02-memory/memory-lifecycle.en.md#timeline-test) already turns this timeline, the rule of replaying only what was known at the time, and the with- and without-memory comparison into checkable steps. In an experience evaluation, also hold the model, tools, and budget fixed, and ask again in a new session to confirm that neither the deleted records nor anything derived from them is still used.
 
 These are proposed tests, not demonstrated improvements. Synthetic replay can expose mechanism failures, but cannot establish satisfaction weeks into real use. A real-use comparison can randomly assign users to groups, keep assignments stable for the observation period, and report dropouts and missing feedback, rather than only satisfied users who remain. [LongMemEval (arXiv v2, Section 3)](https://arxiv.org/html/2410.10813v2#S3) offers tests of updates, temporal reasoning, and abstention; its QA scores do not replace this longitudinal experience evaluation.
 

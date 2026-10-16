@@ -112,7 +112,7 @@ A constant step size may help track change, but it does not inherit an exact-con
 <details markdown="1">
 <summary>Does replacing done with terminated fix every boundary bug?</summary>
 
-Not necessarily. A vector environment may already have reset, so you must retain the final observation. GAE also needs separate masks for bootstrapping and recurrence across episode boundaries. The Actor–Critic chapter separates them. Inspect the environment API before choosing how to store arrays.
+Not necessarily. A vector environment may already have reset, and which step the reset happens on depends on the mode. As of October 2026, Gymnasium 1.x vector environments default to next-step autoreset: a finished sub-environment is reset only on the following `step`, which returns the new episode's first observation; that pair is not a real transition, so drop or mask it before it enters the buffer. Only same-step mode resets on the ending step itself and puts the last observation separately in `info["final_obs"]`. [Farama: vector autoreset modes (2025)](https://farama.org/Vector-Autoreset-Mode) GAE also needs separate masks for bootstrapping and recurrence across episode boundaries. The Actor–Critic chapter separates them. Inspect the environment API before choosing how to store arrays.
 
 </details>
 

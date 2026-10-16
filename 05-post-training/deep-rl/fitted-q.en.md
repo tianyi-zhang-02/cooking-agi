@@ -32,7 +32,7 @@ $$
 
 The Bellman operator $\mathcal T$ is a $\gamma$-contraction in the maximum norm $\|\cdot\|_\infty$. Least-squares orthogonal projection onto a linear function space is nonexpansive in the corresponding weighted $L_2(\mu)$ norm. **Those guarantees use different norms and cannot simply be multiplied.**
 
-With a nonconvex neural function class, projection may also be nonunique and optimization may miss its optimum. Even the ideal linear-projection properties no longer apply automatically. This does not mean all function approximation diverges: specific function classes, distributions, and algorithms can still admit convergence guarantees.
+With a nonconvex neural function class, projection may also be nonunique and optimization may miss its optimum. Even the ideal linear-projection properties no longer apply automatically. This does not mean all function approximation diverges: specific function classes, distributions, and algorithms can still admit convergence guarantees, such as [LSTD](ope-estimators.en.md) with linear features.
 
 ## A two-state counterexample
 

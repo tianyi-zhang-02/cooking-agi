@@ -42,7 +42,7 @@ For the sampled tokens, suppose old conditional probabilities are $[0.5,0.25,0.5
 
 A terminal score can provide learning signals to earlier actions. That does not mean each reasoning step was independently verified. Process rewards add intermediate feedback but can introduce their own bias; denser feedback is not automatically more accurate.
 
-## When does GRPO’s within-group signal disappear?
+## When does GRPO’s within-group signal disappear? {#group-signal}
 
 Take four responses to the same prompt with rewards $[0,0,1,1]$. Under the population-standard-deviation convention, mean and standard deviation are both 0.5, giving normalized advantages $[-1,-1,1,1]$. Responses above the group mean are encouraged; those below are discouraged.
 
@@ -124,7 +124,7 @@ Not necessarily. One attempt fixes a bug in 4 steps; another still fails after 1
 
 [The official GLM-5.2 announcement](https://z.ai/blog/glm-5.2) describes one concrete choice: critic-based PPO for training on variable numbers and lengths of compacted sub-traces, with a token-level loss. Published on June 16, 2026, this is a team's implementation decision—not an industry-wide finding that GRPO is obsolete, or a controlled experiment establishing that PPO always wins.
 
-Whole attempts and training fragments are also different units. Splitting one attempt into 3 fragments and another into 6 does not make the 9 fragments independent responses to the same prompt: they have different starting contexts and future returns. But when the complete task identity and outcome are retained, fragmentation alone does not make group-relative methods mathematically invalid.
+Whole attempts and training fragments are also different units. Splitting one attempt into 3 fragments and another into 6 does not make the 9 fragments independent responses to the same prompt: they have different starting contexts and future returns. But when the complete task identity and outcome are retained, fragmentation alone does not make group-relative methods mathematically invalid. For multi-turn agents, GiGPO's grouping by state, turn-level critics, and how to score a truncated trajectory are in [credit assignment and training systems for agent RL](../../11-frontier/agentic-rl/credit-and-training.en.md).
 
 ### Should every step in a successful attempt be encouraged? {#credit-example}
 
@@ -207,7 +207,7 @@ I would first fix the task set, initial model, tool permissions, verifier, and e
 
 Then inspect two kinds of evidence. During training, how often are group rewards uniform, how well does the Critic predict completed returns it was not fitted on, and does segmentation change weights? At evaluation, under the same test budget, does task success improve, can the model recover from tool failures, and does the improvement extend beyond familiar repositories or templates? A different estimator cannot rescue a broken task or verifier.
 
-Audit cheating separately. Editing the tests or reading protected answers should not count as solving a coding task. GLM-5.2's public description also treats anti-hacking as part of long-task training. Our examples check calculations only; they do not train a model or establish a winning algorithm.
+Audit cheating separately. Editing the tests or reading protected answers should not count as solving a coding task. GLM-5.2's public description also treats anti-hacking as part of long-task training; documented reward hacks are collected in [environments and rewards for agent RL](../../11-frontier/agentic-rl/environments-and-rewards.en.md). Our examples check calculations only; they do not train a model or establish a winning algorithm.
 
 ## Multiple agents make the environment nonstationary
 

@@ -50,7 +50,7 @@ Left and right have fixed rewards 1 and 3. The logging policy chooses them with 
 
 The raw mean is 1.2. IS gives $(50+150)/100=2$, the target policy’s true expectation. Right’s reward did not change; ten observations now represent its greater target-policy frequency. These are convenient expected counts; actual finite logs fluctuate.
 
-If the logging policy never goes right, there is no right-action feedback. Adding a small constant to the denominator cannot invent those observations. In multistep settings the ratios multiply, and one rare trajectory may dominate the estimate. Inspect support and weight distributions first.
+If the logging policy never goes right, there is no right-action feedback. Adding a small constant to the denominator cannot invent those observations. In multistep settings the ratios multiply, and one rare trajectory may dominate the estimate. Inspect support and weight distributions first. How to multiply fewer ratios, and how a value model can cancel noise, is in [per-decision weights and doubly robust estimation](ope-estimators.en.md).
 
 ## What CQL and IQL try to avoid
 
@@ -98,4 +98,4 @@ Do not repeatedly select policies on the same logs and report the winning OPE sc
 
 ## Scope of this introduction
 
-This chapter develops support, importance weighting, conservative learning, and in-dataset learning. It does not derive complete OPE confidence bounds or offline-RL convergence theorems. Read further: [CQL, §3.2, Eq. (4)](https://arxiv.org/abs/2006.04779) · [IQL, §§4.1–4.3](https://arxiv.org/abs/2110.06169) · [OPE and weight normalization, §§2–5](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE, §3.2, Algorithm 3](https://proceedings.mlr.press/v97/le19a.html). For basic importance weighting, revisit [policy gradients](policy-gradients.en.md).
+This chapter develops support, importance weighting, conservative learning, and in-dataset learning; per-decision importance sampling, doubly robust estimation, and LSTD follow in the [next note](ope-estimators.en.md). Neither note derives complete OPE confidence bounds or offline-RL convergence theorems. Read further: [CQL, §3.2, Eq. (4)](https://arxiv.org/abs/2006.04779) · [IQL, §§4.1–4.3](https://arxiv.org/abs/2110.06169) · [OPE and weight normalization, §§2–5](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE, §3.2, Algorithm 3](https://proceedings.mlr.press/v97/le19a.html). For basic importance weighting, revisit [policy gradients](policy-gradients.en.md).

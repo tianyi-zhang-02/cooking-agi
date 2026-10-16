@@ -17,7 +17,7 @@ $$
 L_{\rm model}=\mathbb E_{\mathcal D}\|f_\psi(s,a)-(s'-s)\|^2.
 $$
 
-This is a modeling convenience, not a theorem. Stochastic environments may require distributions; pixel observations may need latent state rather than uniformly weighted pixel MSE.
+This is a modeling convenience, not a theorem. Stochastic environments may require distributions; pixel observations may need latent state rather than uniformly weighted pixel MSE. What predicting the next frame and predicting a latent state each lose is compared in [which model to learn](model-types.en.md); for imagining and learning entirely in latent state, see [Dreamer](../../11-frontier/world-models/dreamer.en.md).
 
 ## MPC plans a sequence and executes one action
 
@@ -122,7 +122,7 @@ Short rollouts, disagreement penalties, and constraints can reduce some risks bu
 | Ensembles / uncertainty penalties | Flag some unreliable regions | Models can agree and still be wrong; not a safety guarantee |
 | Short model rollouts plus real data | Limits long-horizon drift | Synthetic-data ratio and bias still matter |
 
-PETS combines probabilistic models and ensembles with sampling-based planning. MCTS instead allocates search effort in a discrete action tree. Both need predictive structure, but organize search differently. A complete tree-search implementation is outside this chapter.
+PETS combines probabilistic models and ensembles with sampling-based planning. MCTS instead allocates search effort in a discrete action tree. Both need predictive structure, but organize search differently. A complete tree-search implementation is outside this chapter; [how planning and learning feed each other](planning-and-learning.en.md) works through a two-action tree by hand.
 
 ## Report more than model loss
 
@@ -137,4 +137,4 @@ Prefer trajectory-level or temporal splits over merely shuffling adjacent transi
 
 Measure real-environment return, planning latency, errors at different horizons, and failures outside training coverage. Comparisons with model-free methods must state both interaction and computation budgets. Fewer samples do not automatically mean lower cost or latency.
 
-Reference: [PETS](https://arxiv.org/abs/1805.12114). Go deeper with [planning and LQR](planning-and-control.en.md), then [experiments and debugging](experiments.en.md), or [RL from a fixed dataset](offline-and-ope.en.md).
+Reference: [PETS](https://arxiv.org/abs/1805.12114). Go deeper with [which model to learn](model-types.en.md) and [planning and LQR](planning-and-control.en.md), then [experiments and debugging](experiments.en.md), or [RL from a fixed dataset](offline-and-ope.en.md).

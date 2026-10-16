@@ -30,7 +30,7 @@ $$
 \mathbb E[\delta_t\mid s_t,a_t]=Q^\pi(s_t,a_t)-V^\pi(s_t).
 $$
 
-实际的 $V_\phi$ 只是近似值，单步估计会受到它的误差影响。广义优势估计把后面一串 TD 误差按距离加权：
+实际的 $V_\phi$ 只是近似值，单步估计会受到它的误差影响。广义优势估计（GAE）把后面一串 TD 误差按距离加权：
 
 $$
 \hat A_t^{\rm GAE}=\sum_{l\ge0}(\gamma\lambda)^l\delta_{t+l}
@@ -109,7 +109,7 @@ def gae(rewards, values, next_values, terminated, truncated,
     return result
 ```
 
-next_values 必须来自对应 transition 的 final observation，不是 reset 后的 observation。普通 rollout buffer 到尾但任务没结束，也可以用尾部 value bootstrap，递推在 buffer 边界停下。
+next_values 必须来自对应 transition 的 final observation，不是 reset 后的 observation。Gymnasium 1.x 默认的 next-step autoreset 下，结束后的下一次 `step` 才返回 reset 后的观察，这一条要 mask 掉，不能拿来续接 GAE；细节见[MC、TD 与终止条件](returns-and-td.md)和 [Farama 的说明](https://farama.org/Vector-Autoreset-Mode)。普通 rollout buffer 到尾但任务没结束，也可以用尾部 value bootstrap，递推在 buffer 边界停下。
 
 ## Critic 的误差怎样进入 Actor？
 

@@ -38,7 +38,7 @@ Data construction and evaluation matter enormously, but getting them right does 
 | Tokens at use time | Total generated tokens, attempts, and tool calls under the same test set and quality requirement | Shorter individual answers may require more attempts to succeed |
 | Compute and time | GPU-hours, cost, wall-clock time, and time to target quality | Higher tokens/s can accompany worse quality or greater total cost |
 
-A token does not cost the same in prefill, sequential decode, reward-model inference, and backpropagation. Token counts are not a direct FLOP comparison across models and lengths either.
+A token does not cost the same in prefill, sequential decode, reward-model inference, and backpropagation; how decode cost changes with batch size and the KV cache is in [performance: roofline and MFU](../../12-infra/performance.en.md#decode-batching). Token counts are not a direct FLOP comparison across models and lengths either.
 
 A useful report fixes the evaluation tasks, sampling budget, and grader, then plots **quality versus cumulative rollout tokens** and **quality versus GPU-hours**. Report output length and success rate separately. This answers more than reward or GPU utilization alone.
 
@@ -80,6 +80,8 @@ Suppose the stages take 60, 20, 30, and 10 seconds: 120 seconds total. With suff
 <figcaption>FSDP handles responsibilities such as sharding training state, not defining rewards. An inference engine does not choose an advantage estimator. A framework connects components; task semantics still need checking.</figcaption>
 </figure>
 
+Which layer FSDP, NCCL, and the other training-side pieces handle is mapped in [the framework layer's multi-GPU map](../../12-infra/frameworks.en.md#nccl-map).
+
 Synchronization makes it easier to track which policy generated and trained on each batch, but it waits for slow requests. Asynchrony reduces waiting while allowing samples to lag behind the current policy. [AReaL (2025), §4–5](https://arxiv.org/html/2505.24298v2) decouples generation and training while controlling staleness and changing the update objective—not merely adding workers. Its [current documentation](https://areal-ai.io/docs/en/algorithms/async.html) likewise treats staleness and throughput as a tradeoff.
 
 Another issue is subtler: identical weights need not produce identical probabilities in training and inference backends. Precision, kernels, and sampling transformations can matter. Distinguish actual behavior log-probabilities, training-side recomputed old log-probabilities, and current-policy log-probabilities. [verl’s rollout correction documentation](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html) addresses such distribution differences. Importance weighting, clipping, and filtering have assumptions and variance/bias costs; none guarantees a repair for every mismatch.
@@ -95,7 +97,7 @@ Another issue is subtler: identical weights need not produce identical probabili
 | Loss or ratios suddenly spike | Version, log-probability, mask, denominator, or numerical mismatch | Hold a small batch fixed and compare quantities token by token |
 | Asynchrony is faster but quality falls | Stale data or filtering that changes the task distribution | Compare by policy lag, response length, and task type |
 
-These are hypotheses to test, not diagnoses from a curve alone. A smaller learning rate may delay a failure without fixing rewards assigned to the wrong trajectory, mixed-up samples, or an incorrect denominator.
+These are hypotheses to test, not diagnoses from a curve alone. Longer responses, for example, may be a real gain from long chains of thought or just an accidental length reward; why length grows on its own in R1-Zero is worked through in [how long chains of thought are trained](../../11-frontier/test-time-compute/long-chains.en.md). A smaller learning rate may delay a failure without fixing rewards assigned to the wrong trajectory, mixed-up samples, or an incorrect denominator.
 
 Recent methods target different parts of this picture. [DAPO §3](https://arxiv.org/html/2503.14476v2) discusses exploration, sampling, token-level reduction, and overlong responses. [GSPO (2025), §4–5](https://arxiv.org/html/2507.18071v1) changes sequence/token weighting and clipping, evaluating stability in its Qwen3 MoE setup. These are testable designs, not evidence of one best configuration for every model, reward, and budget. Continue with [DAPO](../dapo.en.md) and [policy ratios](../policy-ratios.en.md).
 
@@ -116,7 +118,7 @@ A checkpoint is more than weights. Restore the optimizer, scheduler, RNG, and da
 
 ## Some difficulties cannot be fixed by switching frameworks {#limits}
 
-**Credit assignment in long tasks.** If the final tests fail, was the mistake in reading the problem, the third tool call, or the final output format? A terminal reward arrives at the end and gives coarse credit-assignment feedback; whether producing it is cheap still depends on the tests or grading model. Process rewards add detail while increasing annotation and verification difficulty. A Critic provides estimates and introduces its own errors. Longer reasoning text alone does not give more accurate credit assignment.
+**Credit assignment in long tasks.** If the final tests fail, was the mistake in reading the problem, the third tool call, or the final output format? A terminal reward arrives at the end and gives coarse credit-assignment feedback; whether producing it is cheap still depends on the tests or grading model. Process rewards add detail while increasing annotation and verification difficulty. A Critic provides estimates and introduces its own errors. Longer reasoning text alone does not give more accurate credit assignment. For multi-turn agents, approaches such as GiGPO's grouping by state and turn-level critics are in [credit assignment for agent RL](../../11-frontier/agentic-rl/credit-and-training.en.md).
 
 **The cost of exploration.** If the initial policy never produces a useful attempt, even a perfect verifier keeps reporting failure. Demonstrations, curricula, or stronger exploration can help, but they change the data, budget, and prior information and belong in the comparison. RL is neither necessarily limited to rearranging existing answers nor guaranteed to create new capabilities in any base model given a reward.
 

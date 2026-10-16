@@ -20,7 +20,7 @@ $$
 
 ## TD：一步观察，加一个还不准的估计
 
-时序差分不用等整局结束。若下一状态当前估值是 1.5，一步 TD 的训练目标值与误差为：
+时序差分（TD）不用等整局结束。若下一状态当前估值是 1.5，一步 TD 的训练目标值与误差为：
 
 $$
 y_0=1+0.9\times1.5=2.35,\qquad
@@ -112,7 +112,7 @@ MC target 不依赖当前参数，比较像普通监督回归；TD target 会随
 <details markdown="1">
 <summary>只把 done 换成 terminated，就把所有边界问题修好了吗？</summary>
 
-不一定。Vector environment 可能已经自动 reset；你还得保存 final observation。GAE 的 bootstrap mask 与跨 episode 递推的 mask 也不一样，后面的 [Actor–Critic 与 GAE](actor-critic-gae.md) 会分开写。先检查你用的环境 API，再决定数组怎么存。
+不一定。Vector environment 可能已经自动 reset，而且 reset 发生在哪一步取决于模式。截至 2026-10，Gymnasium 1.x 的 vector 环境默认用 next-step 模式：子环境结束后，要到下一次 `step` 才 reset，这次返回的是新 episode 的初始观察，它和上一步之间不是一条真实 transition，存进 buffer 前要去掉或 mask 掉；只有 same-step 模式会在结束的同一步 reset，并把最后的观察另放在 `info["final_obs"]`。[Farama：Vector autoreset 模式（2025）](https://farama.org/Vector-Autoreset-Mode) GAE 的 bootstrap mask 与跨 episode 递推的 mask 也不一样，后面的 [Actor–Critic 与 GAE](actor-critic-gae.md) 会分开写。先检查你用的环境 API，再决定数组怎么存。
 
 </details>
 

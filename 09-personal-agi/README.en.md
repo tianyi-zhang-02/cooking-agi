@@ -46,7 +46,7 @@ Retain only the goals, preferences, knowledge, constraints, and context needed f
 
 Know what is worth keeping, when to retrieve it, how to update it, and when it should be forgotten.
 
-For example, “I'm traveling with my parents this time; keep the itinerary relaxed” should affect this trip, not permanently label the user as disliking busy itineraries. Check scope, validity, and current authorization on reads. Corrections and deletions must also reach relevant summaries, indexes, and caches so old records do not reappear. This is the [external memory lifecycle](../02-memory/memory-lifecycle.en.md), not a claim that deleting a database record erases information from model parameters.
+For example, “I'm traveling with my parents this time; keep the itinerary relaxed” should affect this trip, not permanently label the user as disliking busy itineraries. How scope, validity, authorization, and deletion become read rules is covered in the [external memory lifecycle](../02-memory/memory-lifecycle.en.md); it concerns external storage and does not claim that deleting a database record erases information from model parameters.
 
 ### 3. Search and tools
 
@@ -58,7 +58,7 @@ Combine the user state, the current task, and external evidence to decide whethe
 
 ### 5. Feedback and learning
 
-Learn from corrections, preferences, and real outcomes, without treating every observed behavior as true intent. Updating user state is not the same as updating model weights; the latter is a separate process requiring authorization, independent evaluation, and a rollback plan.
+Learn from corrections, preferences, and real outcomes, without treating every observed behavior as true intent. Updating user state is not the same as updating model weights; the latter is a separate process requiring authorization, independent evaluation, and a rollback plan. To tell whether a change touches memory and prompts or the weights, start from the breakdown in the [self-improvement series](../11-frontier/self-improvement/README.en.md).
 
 ### 6. User control
 

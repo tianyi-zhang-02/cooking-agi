@@ -4,7 +4,7 @@
 
 > Reading time: ~8–10 min · Last reviewed: 2026-10
 
-Learning steering from expert driving looks like supervised learning. But one small steering error changes the road you see next. **Small one-step prediction error can coexist with poor full-trajectory behavior.**
+Learning steering from expert driving looks like supervised learning. But one small steering error changes the road you see next. **Small one-step prediction error can coexist with poor full-trajectory behavior.** In autonomous driving, this is why a good open-loop score can still crash in closed loop; see [end-to-end driving and closed-loop evaluation](../../13-embodied/driving/end-to-end.en.md).
 
 ## Behavior cloning has a direct objective
 
@@ -40,7 +40,7 @@ This explains the $O(T^2\epsilon)$ term: one error can affect many later steps. 
 | Multiple valid action modes | Left -1 and right +1 both avoid an obstacle, but squared error may predict unsafe straight-ahead 0 | Represent a multimodal action distribution through mixtures, discrete choices, or other expressive policies rather than only its mean |
 | Shortcut learning | A corner color in toy navigation data always indicates the expert's next turn, but is unreliable at deployment | Change or mask the cue and test whether behavior depends on task-relevant information |
 
-The third example illustrates causal confusion. History can reveal useful state information or create more shortcuts. More complete input does not automatically produce reliable behavior, and DAgger is not an automatic causal-identification algorithm.
+The second problem is common on real robots: how a diffusion action head learns both modes while committing to one per rollout, and how action chunks avoid jittering between the two routes, is in [robot learning from demonstrations](../../13-embodied/robot-learning/imitation.en.md). The third example illustrates causal confusion. History can reveal useful state information or create more shortcuts. More complete input does not automatically produce reliable behavior, and DAgger is not an automatic causal-identification algorithm.
 
 ## DAgger labels states the learner visits
 

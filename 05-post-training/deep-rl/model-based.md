@@ -19,11 +19,11 @@ $$
 L_{\rm model}=\mathbb E_{\mathcal D}\|f_\psi(s,a)-(s'-s)\|^2.
 $$
 
-这是方便的建模选择，不是定理。随机环境要考虑预测分布；像素观测还可能需要 latent state，而不是对所有像素均等做 MSE。
+这是方便的建模选择，不是定理。随机环境要考虑预测分布；像素观测还可能需要 latent state，而不是对所有像素均等做 MSE。预测下一帧和预测潜在状态各丢掉什么，见[学什么样的模型](model-types.md)；完全在潜在状态里想象和学习的做法，见 [Dreamer](../../11-frontier/world-models/dreamer.md)。
 
 ## MPC：规划一串，只执行第一步
 
-模型预测控制每次从当前真实状态出发，搜索长度 $H$ 的动作序列：
+模型预测控制（MPC）每次从当前真实状态出发，搜索长度 $H$ 的动作序列：
 
 $$
 a_{t:t+H-1}^*=
@@ -124,7 +124,7 @@ $$
 | Ensemble / uncertainty penalty | 能提示部分不可靠区域 | 模型可能一起犯错，非安全保证 |
 | 短模型 rollout + 真数据 | 减少长期模型漂移 | 仍需控制合成数据占比和偏差 |
 
-PETS 用概率模型与 ensemble 表达不确定性，并结合采样规划。MCTS 则在离散动作树中分配搜索预算；二者都需要一个可用于预测的模型，但搜索结构不同。这里不展开完整树搜索实现。
+PETS 用概率模型与 ensemble 表达不确定性，并结合采样规划。MCTS 则在离散动作树中分配搜索预算；二者都需要一个可用于预测的模型，但搜索结构不同。这里不展开完整树搜索实现；[规划和学习怎样互相喂](planning-and-learning.md)手算了一棵两动作的小树。
 
 ## 复现时别只报 model loss
 
@@ -139,4 +139,4 @@ PETS 用概率模型与 ensemble 表达不确定性，并结合采样规划。MC
 
 同时看真实环境回报、规划耗时、不同规划长度下的误差，以及训练数据未覆盖区域的失败率。和 model-free 方法比较时，交互预算与计算预算都要说明；“少采了数据”不等于“更快更便宜”。
 
-参考：[PETS](https://arxiv.org/abs/1805.12114)。继续拆开看[规划与 LQR](planning-and-control.md)，然后读[实验与排错](experiments.md)，或转到[固定数据下的 RL](offline-and-ope.md)。
+参考：[PETS](https://arxiv.org/abs/1805.12114)。继续拆开看[学什么样的模型](model-types.md)和[规划与 LQR](planning-and-control.md)，然后读[实验与排错](experiments.md)，或转到[固定数据下的 RL](offline-and-ope.md)。

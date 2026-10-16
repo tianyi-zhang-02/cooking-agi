@@ -87,4 +87,4 @@ After changing a parameter, try explaining the result before opening the calcula
 
 ## Public references
 
-For terminology and derivations, see [Spinning Up: RL foundations](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html); individual chapters link original papers. PPO and RLHF already have a separate sequence. Continue there after these foundations rather than memorizing the same definitions twice.
+For terminology and derivations, see [Spinning Up: RL foundations](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html); individual chapters link original papers. PPO and RLHF already have a separate sequence. Continue there after these foundations rather than memorizing the same definitions twice. To see these methods applied to multi-step agents and world models, continue to [training agents with RL](../../11-frontier/agentic-rl/README.en.md) and [world models](../../11-frontier/world-models/README.en.md) in the frontier series.

@@ -28,7 +28,7 @@ But it cannot prove:
 user only likes pop
 ```
 
-Jazz never entered your choice set. The system chose what to show, so the log only contains responses to those options. Here, **policy bias and exposure bias** refer to this recommender setting: the display policy affects which feedback can be observed.
+Jazz never entered your choice set. The system chose what to show, so the log only contains responses to those options. Here, **policy bias and exposure bias** refer to this recommender setting: the display policy affects which feedback can be observed. Sequence generation has an exposure bias too, with the same name and a different meaning: teacher forcing trains on the correct prefix, while generation continues from the model's own outputs; see [teacher forcing in Seq2Seq](../00-foundations/core/seq2seq.en.md#training-technique-teacher-forcing).
 
 ## What one log entry actually mixes together
 

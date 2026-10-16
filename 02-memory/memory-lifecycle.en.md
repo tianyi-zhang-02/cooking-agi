@@ -63,7 +63,7 @@ This is a teaching example, not an industry standard. `supersedes_in_scope` mean
 
 On Monday a user says, “I'll be away Wednesday through Friday.” Monday is when the system learns the fact; Wednesday is when it starts applying. With only an `updated_at` field, the system might change Tuesday’s schedule too early.
 
-Records can include `observed_at`, `valid_from`, and `valid_until`. An exclusive end boundary, $[t_{\mathrm{start}},t_{\mathrm{end}})$, prevents adjacent intervals from both claiming the same boundary. Resolve time zones as well: “Friday evening” is not inherently UTC.
+Records can include `observed_at`, `valid_from`, and `valid_until`. Databases call data with these two time axes **bitemporal**: `valid_from` and `valid_until` give the valid time, when the fact holds in the world, and `observed_at` is close to the transaction time, when the system recorded it. SQL:2011 temporal tables model them as application-time periods and system-versioned tables; their query patterns are a useful reference when designing read rules. An exclusive end boundary, $[t_{\mathrm{start}},t_{\mathrm{end}})$, prevents adjacent intervals from both claiming the same boundary. Resolve time zones as well: “Friday evening” is not inherently UTC.
 
 Put that statement on a timeline. Let Monday be day 1; Wednesday through Friday is $[3,6)$:
 
@@ -135,7 +135,7 @@ A conservative starting rule: explicit new instructions take priority only withi
 
 Deletion must also account for derived summaries, caches, and index copies. If they reintroduce the same information, the system hasn't effectively forgotten it. Inventory storage locations and test deletion or invalidation propagation; logs follow their separately disclosed retention policy.
 
-## Why can a summary remember something that was deleted?
+## Why can a summary remember something that was deleted? {#deletion-propagation}
 
 Suppose original statement M1 contributes to summary S1, which produces vector V1. Deleting only M1 leaves retrieval able to find V1 and supply S1. Track derived records through their source relationships:
 
@@ -149,7 +149,7 @@ During asynchronous cleanup, first make affected versions unavailable to readers
 
 This differs from unlearning training data from model parameters. We are discussing external memory storage and reads, not claiming that deleting a database record removes information from model weights.
 
-## Test a timeline, not a single question
+## Test a timeline, not a single question {#timeline-test}
 
 | Step | Input or change | Expected behavior |
 | --- | --- | --- |

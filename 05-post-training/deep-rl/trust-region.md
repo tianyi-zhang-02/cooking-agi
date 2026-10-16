@@ -55,7 +55,7 @@ $$
 \Delta^*=\sqrt{\frac{2\delta}{g^\top F^{-1}g}}F^{-1}g.
 $$
 
-这就是自然梯度的方向加上 KL 预算决定的缩放。实践中不直接建一个巨大的逆矩阵：用 Fisher-vector product 和共轭梯度求解，并常加 damping 改善病态问题。加了 damping、用了有限样本，已经不是上面理想问题的精确解。
+这就是自然梯度（natural gradient）的方向加上 KL 预算决定的缩放。实践中不直接建一个巨大的逆矩阵：用 Fisher-vector product 和共轭梯度求解，并常加 damping 改善病态问题。加了 damping、用了有限样本，已经不是上面理想问题的精确解。
 
 ## 用一个硬币策略手算
 

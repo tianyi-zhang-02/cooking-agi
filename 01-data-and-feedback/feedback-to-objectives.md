@@ -21,7 +21,7 @@ $$
 P(C=1\mid x,i)=P(E=1\mid x,i)\,P(C=1\mid E=1,x,i).
 $$
 
-所以观察到的点击率既和用户有关，也和系统给什么内容曝光有关。我们未必能从现有日志里把两者分开。关于选择偏差和基于倾向性（propensity）的学习和评估方法，可以接着读 [Recommendations as Treatments](https://arxiv.org/abs/1602.05352)；这不意味着给数据加权就能自动去掉所有偏差。
+所以观察到的点击率（CTR）既和用户有关，也和系统给什么内容曝光有关。我们未必能从现有日志里把两者分开。关于选择偏差和基于倾向性（propensity）的学习和评估方法，可以接着读 [Recommendations as Treatments](https://arxiv.org/abs/1602.05352)；这不意味着给数据加权就能自动去掉所有偏差。
 
 ## 算一次：点击更多，未必更受欢迎
 
@@ -44,7 +44,7 @@ $$
 \hat\mu_{\mathrm{IPW}}=\frac{1}{N}\sum_{j=1}^{N}\frac{E_jY_j}{e_j}.
 $$
 
-这里的 $N$ 是目标机会数，不是观察到的曝光行数。在刚才的例子里，$(18/0.9+6/0.1)/200=0.4$。这和用新策略概率除以旧策略概率的离线策略评估有关，但不是同一个数据约定，不能直接照抄分母。
+这里的 $N$ 是目标机会数，不是观察到的曝光行数。在刚才的例子里，$(18/0.9+6/0.1)/200=0.4$。这和用新策略概率除以旧策略概率的离线策略评估（OPE）有关，但不是同一个数据约定，不能直接照抄分母。那条线见[Offline RL 与 OPE](../05-post-training/deep-rl/offline-and-ope.md)；把这种权重和一个估值模型结合起来的双重稳健（doubly robust）估计，见[逐步权重、双重稳健与 LSTD](../05-post-training/deep-rl/ope-estimators.md)。
 
 ```python
 opportunities = 200

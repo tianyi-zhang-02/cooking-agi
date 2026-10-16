@@ -28,7 +28,7 @@
 用户只喜欢流行歌
 ```
 
-因为你根本没机会看到爵士乐。系统先决定展示什么，日志就只能记录这些选项上的反应。这里讨论推荐场景中的**策略偏差（policy bias）和曝光偏差（exposure bias）**：展示策略影响了哪些反馈能被观察到。
+因为你根本没机会看到爵士乐。系统先决定展示什么，日志就只能记录这些选项上的反应。这里讨论推荐场景中的**策略偏差（policy bias）和曝光偏差（exposure bias）**：展示策略影响了哪些反馈能被观察到。序列生成里也有一个 exposure bias，名字一样，说的却是另一件事：teacher forcing 训练时看的是正确前文，生成时只能接着自己的输出往下写，见[Seq2Seq 的 teacher forcing](../00-foundations/core/seq2seq.md#teacher-forcing)。
 
 ## 一条日志实际上混合了什么
 

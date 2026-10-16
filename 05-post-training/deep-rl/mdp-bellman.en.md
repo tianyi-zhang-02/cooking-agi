@@ -100,7 +100,7 @@ Substituting the second equation into the first gives $0.625V_A=1.5$, so $V_A=2.
                    100% to A
 ```
 
-In matrix notation, $V=r+\gamma P_\pi V$, or $(I-\gamma P_\pi)V=r$. Solving this linear system and repeatedly applying the Bellman update address the same policy-evaluation problem. Explicitly storing and solving the matrix can be costly for many states, motivating sample-based updates.
+In matrix notation, $V=r+\gamma P_\pi V$, or $(I-\gamma P_\pi)V=r$. Solving this linear system and repeatedly applying the Bellman update address the same policy-evaluation problem. Explicitly storing and solving the matrix can be costly for many states, motivating sample-based updates. With linear features, one can instead solve a small system the size of the feature dimension; see [LSTD](ope-estimators.en.md).
 
 ## What does a small residual guarantee?
 

@@ -16,7 +16,7 @@ Start with the smallest example. A corridor $A\to B\to G$ has one action, "forwa
 
 Dyna stores both transitions in its model. After the episode, it pulls $(A\to B)$ from the model and updates once more: $Q(A)=0+0.9\times1=0.9$. **Same real data, one extra computation, and the value reaches the start.** Here the "model" is just the stored transitions, no different from replay (see [which model to learn](model-types.en.md)). A learned parametric model can also generate data from unseen states, and that is where model error enters; [MBPO (Janner et al., 2019)](https://arxiv.org/abs/1906.08253) therefore runs only short rollouts branched from real data.
 
-The deployment costs of these uses are already tabulated at the end of [planning and LQR](planning-and-control.en.md). The question here is different: how the two kinds of planning and network training improve each other.
+The per-step deployment cost of each use is in the [comparison table](#combinations) at the end. First, a different question: how the two kinds of planning and network training improve each other.
 
 ## MCTS: give simulations to branches that look promising but are under-explored
 
@@ -125,7 +125,7 @@ As of October 2026, whether it is better to learn as complete a world model as p
 
 **As an auxiliary loss.** Predicting rewards or future observations can serve only to learn a better representation, with the predictions never used for planning. [UNREAL (Jaderberg et al., 2016)](https://arxiv.org/abs/1611.05397) has the agent optimize several pseudo-reward tasks at once, including reward prediction, all sharing one representation.
 
-## The combinations side by side
+## The combinations side by side {#combinations}
 
 | Combination | What is learned | What is searched | Per-step deployment cost | Typical failure |
 | --- | --- | --- | --- | --- |

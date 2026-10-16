@@ -44,7 +44,7 @@ $$
 \hat\mu_{\mathrm{IPW}}=\frac{1}{N}\sum_{j=1}^{N}\frac{E_jY_j}{e_j}.
 $$
 
-Here $N$ is the number of target opportunities, not the number of observed exposure rows. In the example, $(18/0.9+6/0.1)/200=0.4$. This relates to off-policy evaluation with target-to-logging-policy probability ratios, but the data convention differs; do not copy denominators between them.
+Here $N$ is the number of target opportunities, not the number of observed exposure rows. In the example, $(18/0.9+6/0.1)/200=0.4$. This relates to off-policy evaluation with target-to-logging-policy probability ratios, but the data convention differs; do not copy denominators between them. That line is in [offline RL and OPE](../05-post-training/deep-rl/offline-and-ope.en.md); the doubly robust estimator, which combines such weights with a value model, is in [per-decision weights, doubly robust, and LSTD](../05-post-training/deep-rl/ope-estimators.en.md).
 
 ```python
 opportunities = 200

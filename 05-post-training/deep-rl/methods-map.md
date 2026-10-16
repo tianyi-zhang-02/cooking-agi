@@ -38,7 +38,7 @@ $d$ 表示任务真正终止。未终止时，target 是 $1+0.9\times4=4.6$，�
 
 ## PPO 与 GRPO：改概率之前，先估计好坏 {#policy-update}
 
-策略梯度不一定先学一个 Q 表。它可以直接提高表现较好的动作的概率，但“好”最好是相对某个基准，而不是只看原始奖励。这个差值或估计量就是 advantage。
+策略梯度（policy gradient）不一定先学一个 Q 表。它可以直接提高表现较好的动作的概率，但“好”最好是相对某个基准，而不是只看原始奖励。这个差值或估计量就是 advantage。
 
 PPO 的常见 Actor–Critic 实现用 value model 和 GAE 估计 advantage。设某个已采样 token 的旧概率是 0.20，新概率是 0.26，概率比 $\rho=1.3$。若 advantage 为 2，裁剪范围为 $[0.8,1.2]$：
 
@@ -49,7 +49,7 @@ $$
 
 这是要**最大化**的 surrogate objective；写成 loss 时通常取负。这个样本继续提高概率，在裁剪分支上不会继续获益，但其他样本仍可改变共享参数。裁剪不是把真实概率比硬锁在范围内，也不是保证 KL 不会变大。出处是 [PPO（2017），§3](https://arxiv.org/pdf/1707.06347)；负 advantage 的另一半情况在 [PPO clipping](../rlhf/ppo-clipping.md)。
 
-GRPO 的一个关键变化是 advantage 的估计方式。以每个回答只有一个终局奖励的组内标准化为例，同一问题生成 4 个回答，奖励为 $[0,0,1,1]$；均值 0.5、总体标准差 0.5，得到 $[-1,-1,1,1]$。它不用另训一个 value model，但需要为同一问题采样多个回答。若整组都是 0，中心化后的奖励全为 0，标准差也为 0；实现必须用分母加小量或跳过该组等方式避免 $0/0$。正确处理后，这组没有相对奖励信号，但其他正则项不一定为零。[DeepSeekMath（2024），§4.1](https://arxiv.org/html/2402.03300v3)介绍了这条路线。组大小、稀疏奖励和长任务的代价见 [LLM bridge](llm-bridge.md#sparse-groups)。
+GRPO 的一个关键变化是 advantage 的估计方式：同一问题采多个回答，用组内标准化后的奖励代替 value model 的估值，代价是每题要采样多次；整组同分时还要避免 $0/0$（分母加小量或跳过该组）。奖励 $[0,0,1,1]$ 怎样变成 $[-1,-1,1,1]$、同分组为什么没有相对信号却不等于完全不更新，见 [LLM bridge 的算例](llm-bridge.md#group-signal)；组大小、稀疏奖励和长任务的代价见[同一篇](llm-bridge.md#sparse-groups)。[DeepSeekMath（2024），§4.1](https://arxiv.org/html/2402.03300v3)介绍了这条路线。
 
 ## DPO：不跑在线 rollout，也能学偏好 {#dpo-pair}
 

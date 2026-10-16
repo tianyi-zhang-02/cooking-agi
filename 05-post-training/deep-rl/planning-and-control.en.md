@@ -91,17 +91,10 @@ MPC is the execution scheme of replanning after new observations, not a fifth op
 
 ## Models can train policies rather than search online
 
-| Use | What the model does | Deployment cost |
-| --- | --- | --- |
-| MPC / CEM | Searches candidate sequences at each decision | Search latency |
-| Dyna / MBPO-style | Generates transitions to train policy / Q | Mostly policy inference |
-| Latent imagination | Rolls out latent states to train Actor / Critic | Encoding and policy inference, depending on architecture |
-| Planner distillation | Supervises a fast policy with plans | Student inference, potentially losing planning capability |
-
-One MBPO principle is to start short rollouts near real data rather than trust a model indefinitely. If latent state discards control-relevant information, attractive reconstructions do not fix it. Training inside a model is not verification of deployment safety.
+MPC spends its computation on a search at every decision; a model can instead produce training data before deployment. Dyna / MBPO run short rollouts branched from real data to train a policy or Q, [Dreamer](../../11-frontier/world-models/dreamer.en.md)-style methods imagine trajectories in latent state to train an Actor / Critic, and planner distillation trains a fast policy to imitate the planner; all three skip online search at deployment and mostly need only policy inference (latent-state methods also encode the observation first). What each combination costs and where it fails is in [how planning and learning feed each other](planning-and-learning.en.md). Two cautions belong here: if latent state discards control-relevant information, attractive reconstructions do not fix it, and training inside a model is not verification of deployment safety.
 
 ## Choose a practical starting point
 
 With low-dimensional continuous state and a known linear approximation, begin with an interpretable control baseline. A black-box model with cheap evaluations can support sampling-based planning. Tight decision latency may favor moving computation into training. Always report real interactions, model-training effort, and per-action search budget together.
 
-References: [MIT's LQR derivation](https://underactuated.mit.edu/lqr.html) · [MBPO](https://arxiv.org/abs/1906.08253). Return to the [model-based overview](model-based.en.md).
+References: [MIT's LQR derivation](https://underactuated.mit.edu/lqr.html) · [MBPO](https://arxiv.org/abs/1906.08253). Next, read [how planning and learning feed each other](planning-and-learning.en.md).

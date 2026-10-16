@@ -10,9 +10,9 @@
 
 ## 把一条 transition 变成 loss
 
-回放缓冲区存 $(s,a,r,s',d)$。在线网络 $Q_\theta$ 预测当前动作的价值。
+回放缓冲区（replay buffer）存 $(s,a,r,s',d)$。在线网络 $Q_\theta$ 预测当前动作的价值。
 
-慢一些变化的目标网络 $Q_{\bar\theta}$ 构造标签：
+慢一些变化的目标网络（target network）$Q_{\bar\theta}$ 构造标签：
 
 $$
 y=r+\gamma(1-d)\max_{a'}Q_{\bar\theta}(s',a'),\qquad

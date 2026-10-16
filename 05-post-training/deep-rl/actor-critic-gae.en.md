@@ -109,7 +109,7 @@ def gae(rewards, values, next_values, terminated, truncated,
     return result
 ```
 
-Each next_values entry must use that transition's final observation, not a reset observation. A rollout buffer that ends before the task does can also bootstrap its final value while stopping recurrence at the buffer boundary.
+Each next_values entry must use that transition's final observation, not a reset observation. Under Gymnasium 1.x's default next-step autoreset, the reset observation arrives on the step after the episode ends; mask that step out rather than continuing GAE through it. See [MC, TD, and boundaries](returns-and-td.en.md) and [Farama's explanation](https://farama.org/Vector-Autoreset-Mode). A rollout buffer that ends before the task does can also bootstrap its final value while stopping recurrence at the buffer boundary.
 
 ## How does Critic error reach the Actor?
 

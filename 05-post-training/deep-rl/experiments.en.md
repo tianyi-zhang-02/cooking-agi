@@ -51,12 +51,14 @@ Tune on validation tasks or splits and limit final-test reuse. Retain raw data w
 
 Suppose five independent training runs each produce a mean return over separate evaluation episodes:
 
-| Method | Five training-run evaluation means | Overall mean | Median |
-| --- | --- | --- | --- |
-| A | 10, 10, 10, 10, 50 | 18 | 10 |
-| B | 16, 17, 18, 19, 20 | 18 | 18 |
+| Method | Five training-run evaluation means | Overall mean | Median | IQM |
+| --- | --- | --- | --- | --- |
+| A | 10, 10, 10, 10, 50 | 18 | 10 | 10 |
+| B | 16, 17, 18, 19, 20 | 18 | 18 | 18 |
 
-Means tie, the best run favors A, and repeatability favors B. There is no context-free correct aggregation: state whether you care about typical performance, failure risk, or the best result after tuning, and report corresponding uncertainty. Five seeds here illustrate arithmetic, not sufficient statistical power.
+Means tie, the best run favors A, and repeatability favors B.
+
+The last column, the interquartile mean (IQM), is the aggregate that the [statistical evaluation paper](https://arxiv.org/abs/2108.13264) cited at the end recommends in §4.3: drop the lowest and highest 25% of runs and average the middle half. A quarter of five runs is not a whole number; the paper's rliable library calls `scipy.stats.trim_mean(x, 0.25)`, which drops one run from each end, leaving 10, 10, 10 for A and 17, 18, 19 for B. The single 50 in A cannot pull it up, and it uses more runs than the median does. The paper also recommends stratified bootstrap confidence intervals, resampling runs within each task (§4.1). Even so, there is no context-free correct aggregation: state whether you care about typical performance, failure risk, or the best result after tuning, and report corresponding uncertainty. Five seeds here illustrate arithmetic, not sufficient statistical power.
 
 One hundred evaluation episodes per seed help estimate that trained model’s performance; they do not turn five models into 500 independent training runs. Respect the hierarchy of tasks, training seeds, and evaluation episodes when estimating intervals or resampling.
 

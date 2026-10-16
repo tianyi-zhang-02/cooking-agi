@@ -4,7 +4,7 @@
 
 > 阅读时间：约 6–8 分钟 · 最近审阅：2026-10
 
-有回放缓冲区不等于在做离线强化学习。Online off-policy 算法还能出去采新数据；offline RL 只能用固定日志。模型想试一个日志没覆盖的动作时，**没有新反馈来纠正它的想象**。
+有回放缓冲区不等于在做离线强化学习（offline RL）。Online off-policy 算法还能出去采新数据；offline RL 只能用固定日志。模型想试一个日志没覆盖的动作时，**没有新反馈来纠正它的想象**。
 
 ## 先检查 support，再谈算法
 
@@ -16,7 +16,7 @@
 
 ## OPE：不部署，估计新策略的结果
 
-离策略评估是在估计一个给定策略的表现，而 offline RL 要学习策略，两者不同。最简单的轨迹重要性采样为：
+离策略评估（OPE）是在估计一个给定策略的表现，而 offline RL 要学习策略，两者不同。最简单的轨迹重要性采样（IS）为：
 
 $$
 \hat J_{\rm IS}=\frac1N\sum_{i=1}^Nw_iR_i,\qquad
@@ -31,7 +31,7 @@ $$
 
 它在有限样本下一般有偏，但可能减少方差。剪裁权重同样是在用偏差换稳定性。
 
-对于有限、非负且至少一个为正的权重，可以用有效样本量检查权重是否过于集中：
+对于有限、非负且至少一个为正的权重，可以用有效样本量（ESS）检查权重是否过于集中：
 
 $$
 {\rm ESS}=\frac{(\sum_iw_i)^2}{\sum_iw_i^2}.
@@ -52,7 +52,7 @@ $$
 
 原始平均奖励是 1.2，IS 估计为 $(50+150)/100=2$，刚好等于新策略真实期望。不是把右边奖励变大了，而是让这 10 条代表新策略下更常见的右动作。这里恰好使用期望计数，真实有限日志的结果会波动。
 
-若旧策略从不选右，右奖励就没有数据。把分母加一个很小的数，不会凭空生成那 10 条观察。多步时权重还要连乘：同一条罕见轨迹可能控制整个估计；这也是为什么支持集和权重分布必须先查。
+若旧策略从不选右，右奖励就没有数据。把分母加一个很小的数，不会凭空生成那 10 条观察。多步时权重还要连乘：同一条罕见轨迹可能控制整个估计；这也是为什么支持集和权重分布必须先查。怎样少乘几项、怎样用估值模型抵消噪声，见[逐步权重与双重稳健](ope-estimators.md)。
 
 ## CQL 与 IQL，先抓住各自避开什么
 
@@ -100,4 +100,4 @@ $$
 
 ## 这里讲到哪里为止
 
-这一篇建立 support、importance weighting、保守学习和数据内学习的直觉；不提供完整 OPE 置信界或 offline RL 收敛证明。继续精读：[CQL，第 3.2 节、式 (4)](https://arxiv.org/abs/2006.04779) · [IQL，第 4.1–4.3 节](https://arxiv.org/abs/2110.06169) · [OPE 与权重归一化，第 2–5 节](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE，第 3.2 节、算法 3](https://proceedings.mlr.press/v97/le19a.html)。基本重要性采样推导可回到 [Policy Gradient](policy-gradients.md)。
+这一篇建立 support、importance weighting、保守学习和数据内学习的直觉；逐步重要性采样、双重稳健估计和 LSTD 在[下一篇](ope-estimators.md)展开。两篇都不提供完整 OPE 置信界或 offline RL 收敛证明。继续精读：[CQL，第 3.2 节、式 (4)](https://arxiv.org/abs/2006.04779) · [IQL，第 4.1–4.3 节](https://arxiv.org/abs/2110.06169) · [OPE 与权重归一化，第 2–5 节](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE，第 3.2 节、算法 3](https://proceedings.mlr.press/v97/le19a.html)。基本重要性采样推导可回到 [Policy Gradient](policy-gradients.md)。

@@ -22,7 +22,7 @@ $\epsilon$-greedy 偶尔乱选一步；entropy bonus 鼓励动作分布保持分
 
 ## Intrinsic reward：给新鲜感一个分数
 
-随机网络蒸馏用固定随机网络 $f$ 和可训练预测器 $\hat f_\psi$，把对当前观测特征的预测误差作为内在奖励：
+随机网络蒸馏（RND）用固定随机网络 $f$ 和可训练预测器 $\hat f_\psi$，把对当前观测特征的预测误差作为内在奖励：
 
 $$
 r^{\rm int}(s)=\|\hat f_\psi(s)-f(s)\|^2,\qquad

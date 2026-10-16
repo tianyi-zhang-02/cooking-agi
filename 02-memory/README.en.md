@@ -77,7 +77,7 @@ New evidence does not necessarily overwrite old information. Where retention is 
 
 ### Forget
 
-Stale information can be downweighted or excluded from retrieval; incorrect information needs correction or removal. **Downweighting is not deletion.** A deletion request also needs to address derived summaries, vector indexes, and caches, with explicit backup-retention limits and a record of which copies have been handled or remain pending. See the [memory lifecycle](memory-lifecycle.en.md).
+Stale information can be downweighted or excluded from retrieval; incorrect information needs correction or removal. **Downweighting is not deletion.** A deletion request also has to reach copies in summaries, vector indexes, caches, and backups; see [why a summary can remember something that was deleted](memory-lifecycle.en.md#deletion-propagation).
 
 ## Why one vector may not be enough
 

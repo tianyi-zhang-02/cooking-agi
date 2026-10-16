@@ -38,7 +38,7 @@ RL 不是新概念，也不是完全没有共同框架。**采样、拿反馈、
 | 使用时的 token | 同一测试集与质量要求下，总生成 token、采样次数、工具调用 | 每条回答变短，但需要更多次尝试才能成功 |
 | 计算与时间 | GPU-hours、成本、wall-clock，以及达到目标的时间 | tokens/s 上升，最终质量或总预算反而变差 |
 
-同样一个 token，在 prefill、逐步 decode、reward model 前向和反向传播中的成本不同。比较不同长度和不同模型时，也不能把 token 数直接换成 FLOPs。
+同样一个 token，在 prefill、逐步 decode、reward model 前向和反向传播中的成本不同；decode 的成本怎样随 batch 和 KV cache 变化，见[性能：roofline 与 MFU](../../12-infra/performance.md#decode-batching)。比较不同长度和不同模型时，也不能把 token 数直接换成 FLOPs。
 
 一个实用的记录方式是：固定评估题、采样预算和判分器，然后画 **质量—累计 rollout token**、**质量—GPU-hours** 两条曲线，再分别报告输出长度与成功率。它比单看 reward 或 GPU utilization 更接近你真正想知道的事。
 
@@ -80,6 +80,8 @@ $$
 <figcaption>FSDP 负责训练状态分片等职责，不负责定义 reward；推理引擎也不会自动决定 advantage。框架把部件接起来，任务语义仍要自己确认。</figcaption>
 </figure>
 
+FSDP、NCCL 这些训练侧部件各管哪一层，见[框架这一层的多卡地图](../../12-infra/frameworks.md#nccl-map)。
+
 同步容易追踪“哪版模型生成、哪版模型训练”，但会等慢请求。异步减少等待，却让样本落后于当前策略。[AReaL（2025），§4–5](https://arxiv.org/html/2505.24298v2)把 generation 与 training 解耦，同时控制数据陈旧度并调整更新目标；这不是单纯多开几个 worker。其[当前文档](https://areal-ai.io/docs/en/algorithms/async.html)也把陈旧度与吞吐作为取舍，而不是越异步越好。
 
 另一个细节更隐蔽：权重相同，训练后端和推理后端的概率也未必完全相同，精度、kernel 与采样变换都可能影响计算。应区分实际 behavior log-prob、训练侧重算的 old log-prob，以及当前策略 log-prob。[verl 的 rollout correction 文档](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html)专门讨论这类分布差异。重要性加权、裁剪和过滤各有条件与方差 / 偏差代价，不能保证修好所有不匹配。
@@ -95,7 +97,7 @@ $$
 | Loss / ratio 突然异常 | 版本、log-prob、mask、归约分母或数值不匹配 | 固定同一小批数据，逐 token 对比更新前后的量 |
 | 异步更快但结果更差 | 数据过旧，或丢弃策略改变了任务分布 | 按 policy lag、长度和任务类型分桶对比 |
 
-这些是待检验的假设，不是看到一条曲线就能下结论。只减小学习率可能延后出问题，却没有修正 reward 对错轨迹、跨样本串数据或错误分母。
+这些是待检验的假设，不是看到一条曲线就能下结论。比如回答变长，可能是长思维链（CoT）真带来了收益，也可能只是长度被误奖；R1-Zero 里长度为什么会自己涨，见[长思维链是怎样训练出来的](../../11-frontier/test-time-compute/long-chains.md)。只减小学习率可能延后出问题，却没有修正 reward 对错轨迹、跨样本串数据或错误分母。
 
 近年的改法也在处理不同环节。[DAPO §3](https://arxiv.org/html/2503.14476v2)讨论探索、采样、token 级归约与过长回答；[GSPO（2025），§4–5](https://arxiv.org/html/2507.18071v1)改变序列与 token 的加权 / 裁剪方式，并在其 Qwen3 MoE 设置中评估稳定性。它们提供了可检验的设计，不意味着已经找到适用于所有模型、奖励和预算的最优配置。细节接到 [DAPO](../dapo.md) 与[策略概率比](../policy-ratios.md)。
 
@@ -116,7 +118,7 @@ $$
 
 ## 有些困难，靠换框架解决不了 {#limits}
 
-**长任务的信用分配。** 最后测试没过，错在第一步读题、第三次工具调用，还是最后输出格式？终局奖励到任务结束时才给出，定位错误很粗；它是否便宜，仍取决于测试或判分模型的成本。过程奖励更细，却增加标注和验证难度；Critic 可以提供估计，也会把自身误差带进更新。更长的推理文本本身不等于更准确的信用分配。
+**长任务的信用分配。** 最后测试没过，错在第一步读题、第三次工具调用，还是最后输出格式？终局奖励到任务结束时才给出，定位错误很粗；它是否便宜，仍取决于测试或判分模型的成本。过程奖励更细，却增加标注和验证难度；Critic 可以提供估计，也会把自身误差带进更新。更长的推理文本本身不等于更准确的信用分配。多轮 agent 里的做法，如按状态再分组的 GiGPO 和 turn 级 critic，见[Agent RL 的信用分配](../../11-frontier/agentic-rl/credit-and-training.md)。
 
 **探索的成本。** 如果初始策略从来不产生有用尝试，再可靠的 verifier 也只能不断判失败。示范、课程或更强的探索可以帮助，但会改变数据、预算和先验，应该计入比较。RL 不是一定只能重排已有答案，也不是给任何基座加奖励就会自动出现新能力。
 
