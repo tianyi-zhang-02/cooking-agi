@@ -21,6 +21,8 @@
 
 使用偏好式 judge 时，随机交换 A/B 顺序，并检查它是否只是偏爱长回答。人类标注与 judge 的分歧也别简单删掉：它可能说明 rubric 还不清楚。具体例子见 [LLM-as-a-Judge](../../07-evaluation/llm-as-a-judge/README.md)；配对比较与样本混合问题见[指标靠得住吗](../../07-evaluation/metric-robustness.md)。
 
+<span id="evaluation"></span>
+
 ## 评估怎样接回训练 {#closing-the-loop}
 
 上面的检查针对一次对比。放到整个训练流程里，还要分开看几类结果：通用能力有没有退化、事实有没有依据、

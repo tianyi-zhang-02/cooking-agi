@@ -101,7 +101,7 @@ Retrieve a larger approximate shortlist and rescore its original vectors to repa
 
 [HNSW](https://arxiv.org/abs/1603.09320) searches a layered neighbor graph, navigating sparse upper layers before exploring more densely below. It does not require PQ compression, and its graph has its own memory cost.
 
-It has three parameters to tune. `M` is the maximum number of edges per node per layer: larger means a denser graph and more memory. `efConstruction` is how many candidates are kept while building: larger builds more slowly and gives a better graph. The query-time `ef` (called `efSearch` in many libraries) is how many candidates are kept during search: larger raises recall and latency. In pgvector these are `m`, `ef_construction` and `hnsw.ef_search`, with defaults 16, 64 and 40 ([pgvector documentation](https://github.com/pgvector/pgvector#hnsw), v0.8.7, checked 2026-10-16).
+It has three parameters to tune. `M` controls graph connectivity: larger means a denser graph and more memory. In [pgvector v0.8.7](https://github.com/pgvector/pgvector/blob/v0.8.7/src/hnsw.h#L115-L116), upper layers allow up to `M` neighbors per node, while the base layer allows `2M` (32 when `m=16`). `efConstruction` is how many candidates are kept while building: larger builds more slowly and gives a better graph. The query-time `ef` (called `efSearch` in many libraries) is how many candidates are kept during search: larger raises recall and latency. In pgvector these are `m`, `ef_construction` and `hnsw.ef_search`, with defaults 16, 64 and 40 ([pgvector documentation](https://github.com/pgvector/pgvector#hnsw), v0.8.7, checked 2026-10-16).
 
 | Option | Why try it first? | What still needs checking? |
 | --- | --- | --- |
@@ -111,6 +111,8 @@ It has three parameters to tune. `M` is the maximum number of edges per node per
 | IVF-PQ | Vector storage is the main constraint | Code length, quantization error, representative training samples, and refinement costs |
 
 These are starting points for experiments, not mandatory transitions at a particular collection size. Hardware, concurrency, filtering, and update frequency can change the answer. A batched Flat scan is essentially one large matrix multiplication and can keep the hardware's compute busy, which is why exact search is not always slowest; how to tell whether an operation is limited by compute or by bandwidth is covered in [Performance: the roofline](../12-infra/performance.en.md#roofline).
+
+<span id="6-ann-recall-is-not-task-relevance-recall"></span>
 
 ## 6. ANN recall is not task relevance recall {#ann-vs-task-recall}
 

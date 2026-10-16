@@ -11,6 +11,8 @@
   <div><span>What you must be able to prove</span><strong>the implementation satisfies causality, relative position, and cache equivalence</strong></div>
 </div>
 
+<span id="how-the-two-kinds-of-computation-work-together"></span>
+
 ## Attention gathers context; the FFN transforms each position {#attention-gathers-context-the-ffn-transforms-each-position}
 
 The Transformer is one concrete way to build the "learned coordinate transform $\phi$" from [the previous page](from-linear-to-neural.en.md): **attention moves information across positions; the FFN processes it at a single position.** The two alternate in a stack, and at the end it is still a linear classifier that reads out the answer.
@@ -48,9 +50,11 @@ $$\operatorname{softmax}(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}}.$$
 
 For example, $[2,1,0]$ becomes approximately $[0.665,0.245,0.090]$. It does not keep only the top score; it lets one query read several positions at once. Attention applies softmax **row by row over the last dimension** of the score matrix: row $i$ answers "how much weight should query $i$ give to each key $j$". In one line: $QK^\top$ decides **where to read**; multiplying the weights by $V$ decides **in what proportions to combine what was read**.
 
+<span id="python-attention-itself"></span>
+
 Three common follow-ups are each worked through in [multi-head attention](core/multi-head-attention.en.md):
 
-- **Why divide by $\sqrt{d_k}$**: under the simplifying assumption of independent, unit-variance components, the dot product has variance $d_k$; dividing by $\sqrt{d_k}$ brings it back to 1, so the softmax does not sharpen early just because the width grew. The variance derivation, the `[8, −8]` example, and why the gradient shrinks are in [that section](core/multi-head-attention.en.md#why-divide-by-sqrtd_k).
+- <span id="why-divide-by-sqrtd_k"></span>**Why divide by $\sqrt{d_k}$**: under the simplifying assumption of mutually independent, zero-mean, unit-variance components, the dot product has variance $d_k$; dividing by $\sqrt{d_k}$ brings it back to 1, so the softmax does not sharpen early just because the width grew. The variance derivation, the `[8, −8]` example, and why the gradient shrinks are in [that section](core/multi-head-attention.en.md#why-divide-by-sqrtd_k).
 - **Where the mask goes**: set blocked positions to `-inf` before the softmax; setting them to 0 still assigns weight, and zeroing after the softmax without renormalizing is not equivalent either. The two-score example is in [the six common mistakes](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong).
 - **What $Q=K$ does**: the pre-scaling scores $QQ^\top$ are symmetric, the row-wise softmax is generally not, and attention does not stop working; see the [interview questions](core/multi-head-attention.en.md#common-interview-questions).
 

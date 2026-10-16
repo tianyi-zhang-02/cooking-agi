@@ -125,6 +125,8 @@ As of October 2026, whether it is better to learn as complete a world model as p
 
 **As an auxiliary loss.** Predicting rewards or future observations can serve only to learn a better representation, with the predictions never used for planning. [UNREAL (Jaderberg et al., 2016)](https://arxiv.org/abs/1611.05397) has the agent optimize several pseudo-reward tasks at once, including reward prediction, all sharing one representation.
 
+<span id="the-combinations-side-by-side"></span>
+
 ## The combinations side by side {#combinations}
 
 | Combination | What is learned | What is searched | Per-step deployment cost | Typical failure |

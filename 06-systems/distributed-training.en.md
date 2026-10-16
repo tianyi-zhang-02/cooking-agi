@@ -211,6 +211,8 @@ Split eight tokens across two GPUs, four each. If each device computes causal at
 
 EP solves a different problem. If a token selects two remote experts, send its activation, then return and combine the results at the original position. [Megatron's MoE parallelism guide](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md) describes composition with other strategies. The fraction of selected experts is not a communication-byte ratio or a guaranteed speedup. Hot experts can still leave other devices waiting.
 
+<span id="serving-dp-does-not-always-mean-independent-replicas"></span><span id="where-does-pp-keep-kv-and-what-crosses-a-boundary"></span>
+
 ## How are GPUs split when serving? {#eight-gpus}
 
 The parallelism used in training needs a different question at serving time: with the same eight GPUs, do all eight cooperate on one model (TP8), or do eight replicas take requests separately (DP8)? How are MoE experts spread across replicas? Which GPU holds PP's KV, and how many bytes cross a stage boundary each step? Those calculations live in [vLLM and SGLang: several ways to use several GPUs](inference-frameworks.en.md#deployment-map), next to the engine's scheduling.

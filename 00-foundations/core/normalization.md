@@ -294,7 +294,7 @@ $$
 s=\frac{\hat q\cdot\hat k}{\sqrt{d_k}}.
 $$
 
-前面讲过，忽略 epsilon 时 RMSNorm 对整体缩放不变：$[6,3]$ 和 $[2,1]$ 归一化后相同，所以权重整体放大 3 倍不再改变分数。gain 为 1 时 $\|\hat q\|=\|\hat k\|=\sqrt{d_k}$，于是 $|s|\le\sqrt{d_k}$；$d_k=128$ 时上界约 11.3。logit 要变大，只能靠 gain 一点点学，不会跟着投影权重的范数自动膨胀。RoPE 是旋转，不改变向量长度，所以这个上界和 norm 放在 RoPE 前后无关；[Gemma 3 的 Transformers 实现](https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py)放在 RoPE 之前。
+前面讲过，忽略 epsilon 时 RMSNorm 对整体缩放不变：$[6,3]$ 和 $[2,1]$ 归一化后相同，所以权重整体放大 3 倍不再改变分数。gain 为 1 时 $\|\hat q\|=\|\hat k\|=\sqrt{d_k}$，于是 $|s|\le\sqrt{d_k}$；$d_k=128$ 时上界约 11.3。这阻止了投影范数整体放大带来的 logit 膨胀，但不代表分数只能靠 gain 变大：即使 gain 固定，q、k 的方向更接近也会抬高分数；学习 gain 还可以改变上界。这两种变化都没有“一定很慢”的保证。RoPE 是旋转，不改变向量长度，所以这个上界和 norm 放在 RoPE 前后无关；[Gemma 3 的 Transformers 实现](https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py)放在 RoPE 之前。
 
 [Qwen3 技术报告](https://arxiv.org/abs/2505.09388)写明去掉 Qwen2 的 QKV bias、引入 QK-Norm，是为了训练稳定；[Gemma 3 技术报告](https://arxiv.org/abs/2503.19786) §2 用 QK-norm 替换了 Gemma 2 的 soft-capping。soft-capping 用 $c\tanh(s/c)$ 把分数压在 $(-c,c)$ 里，是事后截住；QK-norm 从源头限制 $q$、$k$ 的长度。
 

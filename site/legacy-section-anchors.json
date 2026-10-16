@@ -14,13 +14,15 @@
   {
     "source": "00-foundations/deep-dives/language-model-objective.md",
     "lost": [
-      "_1"
+      "_1",
+      "self-check"
     ]
   },
   {
     "source": "00-foundations/deep-dives/recurrent-dynamics.md",
     "lost": [
-      "bptt"
+      "bptt",
+      "self-check"
     ]
   },
   {
@@ -51,14 +53,16 @@
       "primary-sources",
       "self-check",
       "three-ideas-worth-keeping",
-      "trade-offs"
+      "trade-offs",
+      "what-does-gqa-save-calculate-the-cache"
     ]
   },
   {
     "source": "00-foundations/model-families/llama.md",
     "lost": [
       "_6",
-      "_7"
+      "_7",
+      "gqa"
     ]
   },
   {
@@ -70,6 +74,9 @@
   {
     "source": "00-foundations/transformer.md",
     "lost": [
+      "_1",
+      "python",
+      "sqrtd_k",
       "transformer"
     ]
   },
@@ -78,6 +85,7 @@
     "lost": [
       "alignment",
       "an-image-can-supply-what-the-text-cannot-show",
+      "check-whether-the-new-modality-helps",
       "common-training-approaches",
       "continue-reading",
       "how-to-evaluate",
@@ -97,6 +105,7 @@
       "_10",
       "_11",
       "_12",
+      "_5",
       "_6",
       "_7",
       "_8",
@@ -240,6 +249,238 @@
     "lost": [
       "start-with-the-whole-systemthen-select-a-stage",
       "what-comes-from-public-code-and-what-is-a-teaching-design"
+    ]
+  },
+  {
+    "source": "interview/code-comprehension.en.md",
+    "lost": [
+      "google"
+    ]
+  },
+  {
+    "source": "interview/code-comprehension.md",
+    "lost": [
+      "google"
+    ]
+  },
+  {
+    "source": "interview/speedrun.en.md",
+    "lost": [
+      "google"
+    ]
+  },
+  {
+    "source": "interview/speedrun.md",
+    "lost": [
+      "google"
+    ]
+  },
+  {
+    "source": "05-post-training/README.en.md",
+    "lost": [
+      "1-three-stages-use-three-different-kinds-of-supervision"
+    ]
+  },
+  {
+    "source": "02-memory/memory-lifecycle.md",
+    "lost": [
+      "_7",
+      "_8",
+      "_9"
+    ]
+  },
+  {
+    "source": "05-post-training/dapo.md",
+    "lost": [
+      "_1",
+      "_2",
+      "_3",
+      "_4"
+    ]
+  },
+  {
+    "source": "05-post-training/deep-rl/planning-and-learning.md",
+    "lost": [
+      "_6",
+      "_7"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/rl-for-language-models.md",
+    "lost": [
+      "_1",
+      "_2",
+      "policy"
+    ]
+  },
+  {
+    "source": "06-systems/README.md",
+    "lost": [
+      "_5",
+      "_6",
+      "_7",
+      "_8"
+    ]
+  },
+  {
+    "source": "interview/study-plan.en.md",
+    "lost": [
+      "general-coding-swe",
+      "inference-ml-systems",
+      "inference-ml-systems_1",
+      "mle-research-engineer",
+      "research-scientist"
+    ]
+  },
+  {
+    "source": "00-foundations/moe/load-balancing.md",
+    "lost": [
+      "_2"
+    ]
+  },
+  {
+    "source": "00-foundations/moe/load-balancing.en.md",
+    "lost": [
+      "why-can-a-selection-only-bias-change-the-output"
+    ]
+  },
+  {
+    "source": "02-memory/memory-lifecycle.en.md",
+    "lost": [
+      "test-a-timeline-not-a-single-question",
+      "why-can-a-summary-remember-something-that-was-deleted"
+    ]
+  },
+  {
+    "source": "04-search/embedding-models.md",
+    "lost": [
+      "1024"
+    ]
+  },
+  {
+    "source": "04-search/embedding-models.en.md",
+    "lost": [
+      "why-cant-two-1024-dimensional-models-share-an-index"
+    ]
+  },
+  {
+    "source": "04-search/vector-indexes.md",
+    "lost": [
+      "6-ann-recall-recall"
+    ]
+  },
+  {
+    "source": "04-search/vector-indexes.en.md",
+    "lost": [
+      "6-ann-recall-is-not-task-relevance-recall"
+    ]
+  },
+  {
+    "source": "05-post-training/dapo.en.md",
+    "lost": [
+      "dynamic-sampling-retains-groups-not-only-correct-answers"
+    ]
+  },
+  {
+    "source": "05-post-training/deep-rl/llm-bridge.md",
+    "lost": [
+      "grpo"
+    ]
+  },
+  {
+    "source": "05-post-training/deep-rl/llm-bridge.en.md",
+    "lost": [
+      "when-does-grpos-within-group-signal-disappear"
+    ]
+  },
+  {
+    "source": "05-post-training/deep-rl/planning-and-learning.en.md",
+    "lost": [
+      "the-combinations-side-by-side"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/evaluation-and-review.md",
+    "lost": [
+      "evaluation"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/evaluation-and-review.en.md",
+    "lost": [
+      "evaluation-closes-the-loop"
+    ]
+  },
+  {
+    "source": "05-post-training/rlhf/rl-for-language-models.en.md",
+    "lost": [
+      "environment-layer-how-the-world-works",
+      "learning-layer-how-policy-behavior-is-judged"
+    ]
+  },
+  {
+    "source": "06-systems/distributed-training.md",
+    "lost": [
+      "dp",
+      "pp-kv"
+    ]
+  },
+  {
+    "source": "06-systems/distributed-training.en.md",
+    "lost": [
+      "serving-dp-does-not-always-mean-independent-replicas",
+      "where-does-pp-keep-kv-and-what-crosses-a-boundary"
+    ]
+  },
+  {
+    "source": "07-evaluation/evaluation-stack.md",
+    "lost": [
+      "2"
+    ]
+  },
+  {
+    "source": "07-evaluation/evaluation-stack.en.md",
+    "lost": [
+      "2-match-the-check-to-the-question"
+    ]
+  },
+  {
+    "source": "00-foundations/transformer.en.md",
+    "lost": [
+      "how-the-two-kinds-of-computation-work-together",
+      "python-attention-itself",
+      "why-divide-by-sqrtd_k"
+    ]
+  },
+  {
+    "source": "05-post-training/model-adaptation.md",
+    "lost": [
+      "logit-distribution-distillation",
+      "on-policy-distillation",
+      "response-distillation"
+    ]
+  },
+  {
+    "source": "interview/study-plan.md",
+    "lost": [
+      "coding-swe",
+      "inference-ml-systems",
+      "mle-research-engineer",
+      "research-scientist"
+    ]
+  },
+  {
+    "source": "05-post-training/model-adaptation.en.md",
+    "lost": [
+      "logit-distribution-distillation",
+      "on-policy-distillation",
+      "response-distillation"
+    ]
+  },
+  {
+    "source": "06-systems/README.en.md",
+    "lost": [
+      "when-using-an-llm-judge"
     ]
   }
 ]

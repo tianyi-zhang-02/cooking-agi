@@ -135,6 +135,8 @@ A conservative starting rule: explicit new instructions take priority only withi
 
 Deletion must also account for derived summaries, caches, and index copies. If they reintroduce the same information, the system hasn't effectively forgotten it. Inventory storage locations and test deletion or invalidation propagation; logs follow their separately disclosed retention policy.
 
+<span id="why-can-a-summary-remember-something-that-was-deleted"></span>
+
 ## Why can a summary remember something that was deleted? {#deletion-propagation}
 
 Suppose original statement M1 contributes to summary S1, which produces vector V1. Deleting only M1 leaves retrieval able to find V1 and supply S1. Track derived records through their source relationships:
@@ -148,6 +150,8 @@ After deleting M1: invalidate, delete, or rebuild derived content without using 
 During asynchronous cleanup, first make affected versions unavailable to readers, then remove copies. Otherwise old content may be served while index deletion runs. Prevent delayed writes from restoring deleted information, too. That requires version checks and provenance, not merely a prompt saying “please forget.”
 
 This differs from unlearning training data from model parameters. We are discussing external memory storage and reads, not claiming that deleting a database record removes information from model weights.
+
+<span id="test-a-timeline-not-a-single-question"></span>
 
 ## Test a timeline, not a single question {#timeline-test}
 
@@ -181,7 +185,7 @@ Three public benchmarks offer useful starting points as of October 2026, with di
 | --- | --- | --- |
 | [LongMemEval, ICLR 2025, §3–4](https://arxiv.org/html/2410.10813v2#S3) | Extraction, multi-session reasoning, temporal reasoning, updates, and abstention; separates indexing, retrieval, and reading | Product-specific permissions, deletion propagation, latency, and target languages |
 | [LoCoMo, 2024, §4 and §8](https://arxiv.org/html/2402.17753v1#S4) | Long-dialogue QA, event summaries, and multimodal dialogue; mainly model-generated data checked by humans | Real users' wording and changes; the paper's English data does not establish Chinese-language quality |
-| [MemoryAgentBench, first posted 2025 / v4 June 2026, §3.1 and §4.2](https://arxiv.org/html/2507.05257v4#S3) | Tests accurate retrieval, test-time learning, long-range understanding, and selective forgetting separately; FactConsolidation gives a fact, then a rewritten version that contradicts it, and asks for the newer one. The paper reports that every method reaches at most 28% accuracy on the multi-hop version | The prompt tells the model that larger serial numbers are newer, which real user corrections rarely make explicit; it tests overwriting facts in context, not deletion propagation or permissions |
+| [MemoryAgentBench, first posted 2025 / v4 June 2026, §3.1 and §4.2](https://arxiv.org/html/2507.05257v4#S3) | Tests accurate retrieval, test-time learning, long-range understanding, and selective forgetting separately; FactConsolidation gives a fact, then a rewritten version that contradicts it, and asks for the newer one. In Table 3's main comparison, all methods score at most 28% on multi-hop FactConsolidation. This is not a ceiling across settings: the shorter-context validation in [Table 5](https://arxiv.org/html/2507.05257v4#S4.SS3.SSS4) reports 80% for o4-mini at 6K and 14% at 32K | The prompt tells the model that larger serial numbers are newer, which real user corrections rarely make explicit; it tests overwriting facts in context, not deletion propagation or permissions |
 
 These are evaluation references, not a ranking of all memory systems in 2026. Fix the dataset version, available history, retrieval budget, and scoring script when reusing a benchmark. We have not run any of the three full benchmarks here. Strong QA results cannot replace checks that deleted information is no longer served.
 
