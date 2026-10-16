@@ -29,6 +29,7 @@
 /learn/training-foundations/ @tianyi-zhang-02 @2pir2
 /learn/pretraining/ @tianyi-zhang-02 @2pir2
 /learn/training-resources/ @tianyi-zhang-02 @2pir2
+/00-foundations/scaling/ @tianyi-zhang-02 @2pir2
 /learn/inference/ @tianyi-zhang-02 @2pir2
 /learn/attention-systems/ @tianyi-zhang-02 @2pir2
 /00-foundations/model-families/ @tianyi-zhang-02 @2pir2
@@ -40,6 +41,7 @@
 /05-post-training/deep-rl/ @tianyi-zhang-02 @2pir2
 /05-post-training/rlhf/ @tianyi-zhang-02 @2pir2
 /07-evaluation/llm-as-a-judge/ @tianyi-zhang-02 @2pir2
+/12-infra/quantization/ @tianyi-zhang-02 @2pir2
 /13-embodied/perception/ @tianyi-zhang-02 @2pir2
 /13-embodied/driving/ @tianyi-zhang-02 @2pir2
 /13-embodied/robot-learning/ @tianyi-zhang-02 @2pir2
@@ -48,6 +50,7 @@
 /11-frontier/test-time-compute/ @tianyi-zhang-02 @2pir2
 /11-frontier/agentic-rl/ @tianyi-zhang-02 @2pir2
 /11-frontier/interpretability/ @tianyi-zhang-02 @2pir2
+/11-frontier/diffusion-lm/ @tianyi-zhang-02 @2pir2
 /interview/basics/ @tianyi-zhang-02 @2pir2
 /00-foundations/pytorch/ @tianyi-zhang-02 @2pir2
 /learn/ml-exercises/ @tianyi-zhang-02 @2pir2

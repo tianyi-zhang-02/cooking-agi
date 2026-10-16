@@ -20,8 +20,9 @@ RULES = [
     # 雇主与平台内部叫法
     ("employer / internal term", r"linkedin|领英|字节跳动|bytedance"),
     # 形如集群规模与超参。12-infra/ 讲的是公开的硬件与集群配置（厂商规格书里的“8 GPUs”“NVL72”），
-    # GPU 数量就是正文本身，所以只对这一个目录放行这一条；雇主名称、内部配置键等其他规则照常生效。
-    ("cluster size / hyperparam", r"^(?!12-infra/)", r"\b\d+\s*(张卡|块卡|GPUs?|devices)\b|world_size\s*=\s*\d+"),
+    # 00-foundations/scaling/ 用“几张卡跑几天”把算力预算换成 FLOPs，教学假设里的 GPU 数量就是正文本身，
+    # 所以只对这两个目录放行这一条；雇主名称、内部配置键等其他规则照常生效。
+    ("cluster size / hyperparam", r"^(?!12-infra/|00-foundations/scaling/)", r"\b\d+\s*(张卡|块卡|GPUs?|devices)\b|world_size\s*=\s*\d+"),
     ("internal config key", r"per_device\w*\s*[:=]\s*\d+|in_batch_negatives"),
     # 形如内部代码路径
     ("internal code path", r"\b\w+\.py:\d+"),

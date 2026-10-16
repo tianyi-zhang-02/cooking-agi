@@ -120,3 +120,5 @@ Now back up. The H100 SXM5's 3,352 GB/s comes from 5 HBM3 stacks and a 5,120-bit
 7. [The framework layer: from one line of PyTorch to kernels on the GPU](frameworks.en.md): the dispatcher, ATen and autograd, eager-mode overhead, torch.compile, XLA and TensorRT, where distributed APIs and inference engines sit
 8. [Kubernetes and GPU clusters: handing GPUs to jobs](kubernetes.en.md): device plugins and DRA, MIG/time-slicing/MPS, gang scheduling and topology, the comparison with Slurm, inference autoscaling and cold starts
 9. [Review questions](review.en.md): interview questions and a self-check
+
+After this series, continue with [Quantization: what fewer bits buy, and what they cost](quantization/README.en.md) (draft, pending review): how many bits for weights, activations and the KV cache, how much memory and bandwidth that saves, and how to measure the accuracy loss.

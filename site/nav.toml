@@ -479,6 +479,14 @@ include = ["00-foundations/deep-dives/precision-and-memory.md", "06-systems/dist
 order = ["precision-and-memory.md", "distributed-training.md", "tensor-parallel.md", "training-frameworks.md"]
 
 [[section]]
+dir   = "00-foundations/scaling"
+group = "pretraining"
+sequence = 3
+zh    = "03 · Scaling law 与超参数（待审核）"
+en    = "03 · Scaling laws & hyperparameters (draft)"
+order = ["README.md", "compute-optimal.md", "beyond-chinchilla.md", "hyperparameters.md", "review.md"]
+
+[[section]]
 dir = "learn/inference"
 group = "inference"
 zh = "01 · 生成与缓存"
@@ -686,6 +694,13 @@ en    = "From silicon to product"
 order = ["README.md", "chips-and-fabs.md", "cpu-architecture.md", "gpu-architecture.md", "nvidia-generations.md", "cuda.md", "performance.md", "frameworks.md", "kubernetes.md", "review.md"]
 
 [[section]]
+dir   = "12-infra/quantization"
+group = "infra"
+zh    = "量化（待审核）"
+en    = "Quantization (draft)"
+order = ["README.md", "formats-and-error.md", "weight-only-and-ptq.md", "fp8-and-kv-cache.md", "checking-quality.md", "review.md"]
+
+[[section]]
 dir   = "13-embodied"
 group = "embodied"
 zh    = "从这里开始"
@@ -754,6 +769,13 @@ group = "frontier"
 zh    = "机制可解释性（待审核）"
 en    = "Interpretability (draft)"
 order = ["README.md", "features-and-superposition.md", "sparse-autoencoders.md", "circuits.md", "review.md"]
+
+[[section]]
+dir   = "11-frontier/diffusion-lm"
+group = "frontier"
+zh    = "扩散语言模型（dLLM，待审核）"
+en    = "Diffusion LMs (draft)"
+order = ["README.md", "masked-diffusion.md", "decoding-and-speed.md", "review.md"]
 
 [[section]]
 dir   = "practice"
@@ -1121,6 +1143,12 @@ en  = "Templates"
 "12-infra/frameworks.md" = ["框架这一层", "The framework layer"]
 "12-infra/kubernetes.md" = ["Kubernetes 与 GPU 集群", "Kubernetes & GPU clusters"]
 "12-infra/review.md" = ["复习题", "Review"]
+"12-infra/quantization/README.md" = ["总览", "Overview"]
+"12-infra/quantization/formats-and-error.md" = ["格式与误差", "Formats & error"]
+"12-infra/quantization/weight-only-and-ptq.md" = ["只压权重与训练后量化（PTQ）", "Weight-only & PTQ"]
+"12-infra/quantization/fp8-and-kv-cache.md" = ["FP8 与 KV cache 量化", "FP8 & KV-cache quantization"]
+"12-infra/quantization/checking-quality.md" = ["怎样测出丢了多少", "Measuring the loss"]
+"12-infra/quantization/review.md" = ["复习题", "Review"]
 "11-frontier/world-models/README.md" = ["总览", "Overview"]
 "11-frontier/world-models/dreamer.md" = ["在想象里学", "Learning in imagination"]
 "11-frontier/world-models/jepa.md" = ["预测表示：JEPA", "Predicting representations"]
@@ -1147,6 +1175,15 @@ en  = "Templates"
 "11-frontier/interpretability/sparse-autoencoders.md" = ["稀疏自编码器（SAE）", "Sparse autoencoders"]
 "11-frontier/interpretability/circuits.md" = ["电路、归因与干预", "Circuits & interventions"]
 "11-frontier/interpretability/review.md" = ["复习题", "Review"]
+"11-frontier/diffusion-lm/README.md" = ["总览", "Overview"]
+"11-frontier/diffusion-lm/masked-diffusion.md" = ["掩码扩散在训练什么", "What masked diffusion trains"]
+"11-frontier/diffusion-lm/decoding-and-speed.md" = ["解码步数、缓存与速度", "Steps, caching & speed"]
+"11-frontier/diffusion-lm/review.md" = ["复习题", "Review"]
+"00-foundations/scaling/README.md" = ["总览", "Overview"]
+"00-foundations/scaling/compute-optimal.md" = ["给定算力：模型多大、数据多少", "Compute-optimal size and data"]
+"00-foundations/scaling/beyond-chinchilla.md" = ["为什么训练得比 Chinchilla 久", "Training past Chinchilla"]
+"00-foundations/scaling/hyperparameters.md" = ["学习率（LR）、batch size 与 schedule", "LR, batch size & schedule"]
+"00-foundations/scaling/review.md" = ["复习题", "Review"]
 "learn/README.md" = ["基础目录与导读", "Foundations catalog & guide"]
 "learn/choose-your-path.md" = ["按目标找路线", "Find your route"]
 "learn/ml-exercises/README.md" = ["从代码开始", "Start with code"]

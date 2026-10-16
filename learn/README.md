@@ -14,6 +14,7 @@
 
 - [前沿观察](../11-frontier/README.md)：新增的第四部分。[世界模型](../11-frontier/world-models/README.md)和[递归自我改进（RSI）](../11-frontier/self-improvement/README.md)两组已审阅；[测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md)、[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)、[机制可解释性](../11-frontier/interpretability/README.md)三组是待审核草稿。
 - 两个新板块，都是待审核草稿：[AI 基础设施（AI infra）](../12-infra/README.md)，从芯片、GPU、CUDA 讲到框架和集群；[感知、机器人与自动驾驶](../13-embodied/README.md)。
+- 2026-10-16 又加了三组待审核草稿：[Scaling law 与超参数](../00-foundations/scaling/README.md)，开训前怎样定模型大小、数据量和学习率（LR）；[扩散语言模型（dLLM）](../11-frontier/diffusion-lm/README.md)，放在前沿观察里；[量化](../12-infra/quantization/README.md)，放在 AI 基础设施里。
 - 强化学习补了三篇：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划和学习怎样互相喂](../05-post-training/deep-rl/planning-and-learning.md)、[离线策略评估（OPE）的估计量](../05-post-training/deep-rl/ope-estimators.md)。
 
 待审核草稿的开头有提示框，侧栏标「（待审核）」；引用其中的事实前，请回到文中链接的一手资料核对。

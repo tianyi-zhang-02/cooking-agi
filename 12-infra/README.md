@@ -120,3 +120,5 @@ GPU         SM 从 HBM 读出 16 GB 权重和 KV
 7. [框架这一层：从一行 PyTorch 到 GPU 上的 kernel](frameworks.md)：dispatcher、ATen 与 autograd，eager 的开销，torch.compile、XLA 与 TensorRT，分布式 API 和推理引擎在哪一层
 8. [Kubernetes 与 GPU 集群：把卡分给任务](kubernetes.md)：device plugin 与 DRA，MIG/time-slicing/MPS，成组调度与拓扑，和 Slurm 的对比，推理扩容与冷启动
 9. [复习题](review.md)：面试题和自检
+
+读完这一组，可以接着读[量化：少存几位，换来什么、丢掉什么](quantization/README.md)（待审核草稿）：权重、激活和 KV cache 各压到几位，省下多少显存和带宽，精度损失怎样测。

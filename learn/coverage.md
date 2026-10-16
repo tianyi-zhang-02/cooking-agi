@@ -23,6 +23,9 @@
 | 前沿观察 · [测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md) | 5 | 待审核草稿 |
 | 前沿观察 · [用 RL 训练 agent](../11-frontier/agentic-rl/README.md) | 4 | 待审核草稿 |
 | 前沿观察 · [机制可解释性](../11-frontier/interpretability/README.md) | 5 | 待审核草稿 |
+| 前沿观察 · [扩散语言模型（dLLM）](../11-frontier/diffusion-lm/README.md) | 4 | 待审核草稿（2026-10-16） |
+| 大模型基础 · [Scaling law 与超参数](../00-foundations/scaling/README.md) | 5 | 待审核草稿（2026-10-16） |
+| AI 基础设施 · [量化](../12-infra/quantization/README.md) | 6 | 待审核草稿（2026-10-16） |
 | [AI 基础设施（AI infra）](../12-infra/README.md)：晶圆与封装、CPU、GPU、NVIDIA 各代、CUDA、性能、框架、Kubernetes | 10 | 待审核草稿 |
 | [感知、机器人与自动驾驶](../13-embodied/README.md)：感知与几何、自动驾驶、机器人学习 | 14 | 待审核草稿 |
 | 强化学习：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习](../05-post-training/deep-rl/planning-and-learning.md)、[离线策略评估（OPE）的估计量](../05-post-training/deep-rl/ope-estimators.md) | 3 | 已审阅 |

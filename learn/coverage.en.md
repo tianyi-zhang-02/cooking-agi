@@ -23,6 +23,9 @@ On 2026-10-15 we added a fourth area, Frontier watch, two new blocks, and a few 
 | Frontier watch · [Test-time compute](../11-frontier/test-time-compute/README.en.md) | 5 | Draft, pending review |
 | Frontier watch · [Agent RL](../11-frontier/agentic-rl/README.en.md) | 4 | Draft, pending review |
 | Frontier watch · [Interpretability](../11-frontier/interpretability/README.en.md) | 5 | Draft, pending review |
+| Frontier watch · [Diffusion language models](../11-frontier/diffusion-lm/README.en.md) | 4 | Draft, pending review (2026-10-16) |
+| Foundations · [Scaling laws and hyperparameters](../00-foundations/scaling/README.en.md) | 5 | Draft, pending review (2026-10-16) |
+| AI infrastructure · [Quantization](../12-infra/quantization/README.en.md) | 6 | Draft, pending review (2026-10-16) |
 | [AI infrastructure](../12-infra/README.en.md): wafers and packaging, CPUs, GPUs, NVIDIA generations, CUDA, performance, frameworks, Kubernetes | 10 | Draft, pending review |
 | [Perception, robots, and driving](../13-embodied/README.en.md): perception and geometry, autonomous driving, robot learning | 14 | Draft, pending review |
 | Deep RL: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md), [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md) | 3 | Reviewed |
