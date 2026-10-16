@@ -19,6 +19,12 @@ def render(relative):
 class ReviewAnchorSemanticsTests(unittest.TestCase):
     def test_numbered_links_still_target_the_original_topic(self):
         cases = [
+            ("05-post-training/README.md", "_7", "这个系列怎么读"),
+            ("05-post-training/README.md", "_2", "各阶段的直观分工"),
+            ("05-post-training/README.md", "_3", "从基础模型到对齐模型：先分清每一步在学什么"),
+            ("05-post-training/README.md", "_4", "为什么数据经常比算法更先成为瓶颈"),
+            ("05-post-training/README.md", "_5", "怎样选择方法"),
+            ("05-post-training/README.md", "_6", "怎样评估"),
             ("02-memory/memory-lifecycle.md", "_9", "这套办法的代价"),
             ("05-post-training/dapo.md", "_2", "两种平均方式，可以直接算出不同结果"),
             ("05-post-training/dapo.md", "_3", "多卡上还有一次容易漏掉的加权"),
