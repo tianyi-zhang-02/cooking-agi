@@ -3,11 +3,7 @@
    a lamp at dusk, the moon and warm milk late at night) and says how many notes the reader
    has opened today. Lines change from day to day; on holidays it dresses up
    (Chinese festivals on Chinese pages, US holidays on English pages).
-   Everything comes from this browser; nothing is sent.
-
-   Site-wide "studying now / today" counts come from the anonymous counter
-   service (services/counter) once note-metrics-config.json names it. Until
-   then, and whenever it fails, that row stays hidden: no placeholder numbers. */
+   Everything comes from this browser; nothing is sent. */
 (function (scope) {
   'use strict';
   const KEY = 'cooking-agi:study-buddy';
@@ -116,10 +112,6 @@
     }
     if (!count) return late ? 'That’s it for today. See you tomorrow.' : 'Nothing read yet today. Start with a short one?';
     return `${count} note${count === 1 ? '' : 's'} read today${late ? '. Well done.' : ''}`;
-  }
-  function liveLine(live, lang) {
-    if (!live || !Number.isInteger(live.now) || !Number.isInteger(live.today) || live.now < 1 || live.today < live.now) return '';
-    return lang === 'zh' ? `此刻 ${live.now} 人在学，今天共 ${live.today} 人` : `${live.now} studying now · ${live.today} today`;
   }
 
   /* ---------------------------------------------------------------- the drawing
@@ -314,7 +306,7 @@
     </svg>`;
   }
 
-  const api = {periodAt, line, weekday, holidayAt, moment, todayLine, liveLine, art, LINES, LABELS, HOLIDAYS, LOOKS};
+  const api = {periodAt, line, weekday, holidayAt, moment, todayLine, art, LINES, LABELS, HOLIDAYS, LOOKS};
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   if (typeof document === 'undefined') return;
 
@@ -338,9 +330,8 @@
   const kicker = el('p', {class: 'sb-kicker'});
   const message = el('p', {class: 'sb-message'});
   const today = el('p', {class: 'sb-today'});
-  const live = el('p', {class: 'sb-live', hidden: ''});
   const fold = el('button', {type: 'button', class: 'sb-fold', 'aria-label': say('收起', 'Fold away'), 'aria-expanded': 'true', text: '›'});
-  card.append(cardArt, el('div', {class: 'sb-words'}, [kicker, message, today, live]), fold);
+  card.append(cardArt, el('div', {class: 'sb-words'}, [kicker, message, today]), fold);
   const avatar = el('button', {type: 'button', class: 'sb-avatar', 'aria-label': say('展开学习小伙伴', 'Open the study buddy'), 'aria-expanded': 'false'});
   const bubble = el('p', {class: 'sb-bubble', role: 'status', hidden: ''});
   root.append(bubble, avatar, card);
@@ -348,7 +339,6 @@
 
   let scene = '';
   let current = null;
-  let liveData = null;
   const records = () => scope.PreparationProgress?.getState?.()?.workspace?.records || {};
   function openNotes() {
     const hub = scope.ReaderHub;
@@ -377,9 +367,6 @@
     const count = openNotes();
     today.hidden = count === null;
     if (count !== null) today.textContent = todayLine(count, current.period, lang);
-    const words = liveLine(liveData, lang);
-    live.hidden = !words;
-    live.textContent = words;
   }
   function setOpen(open, remember = true) {
     root.classList.toggle('is-open', open);
@@ -410,38 +397,4 @@
   scope.addEventListener('notes:prep-restored', render);
   scope.addEventListener('notes:reader-settings', render);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); });
-  /* site-wide counts: a heartbeat every two minutes while the page is in front */
-  const base = new URL((scope.SITE && scope.SITE.prefix) || './', location.href);
-  const quiet = () => navigator.globalPrivacyControl === true || navigator.doNotTrack === '1';
-  let presence = null;
-  let lastBeat = 0;
-  async function beat() {
-    if (!presence || root.hidden || document.visibilityState !== 'visible') return;
-    lastBeat = Date.now();
-    try {
-      // no body and no custom headers: a simple request, so no CORS preflight
-      const response = await fetch(presence, {method: quiet() ? 'GET' : 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store'});
-      if (!response.ok) throw Error('presence');
-      const value = await response.json();
-      liveData = value && value.version === 1 ? {now: value.now, today: value.today} : null;
-    } catch { liveData = null; }
-    render();
-  }
-  async function connect() {
-    try {
-      const response = await fetch(new URL('static/note-metrics-config.json', base), {credentials: 'omit', cache: 'no-store'});
-      const config = await response.json();
-      if (!config || config.version !== 1 || typeof config.endpoint !== 'string' || !config.endpoint) return;
-      const endpoint = new URL(config.endpoint, base);
-      const local = ['localhost', '127.0.0.1', '[::1]'].includes(endpoint.hostname) && endpoint.protocol === 'http:';
-      if ((endpoint.protocol !== 'https:' && !local) || endpoint.username || endpoint.password || endpoint.search || endpoint.hash) return;
-      endpoint.pathname = endpoint.pathname.replace(/\/+$/, '') + '/';
-      presence = new URL('../presence', endpoint);
-      void beat();
-    } catch {}
-  }
-  scope.setTimeout(connect, 2500);
-  scope.setInterval(() => { if (Date.now() - lastBeat >= 120000) void beat(); }, 15000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - lastBeat >= 120000) void beat(); });
-  scope.StudyBuddy = {setLive(value) { liveData = value; render(); }};
 })(typeof window === 'undefined' ? globalThis : window);

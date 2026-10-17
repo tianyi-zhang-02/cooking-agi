@@ -1919,21 +1919,9 @@ CSP = {
 INLINE_SCRIPT = re.compile(r"<script>(.*?)</script>", re.S)
 
 
-def metrics_origin():
-    """The counter service endpoint (the study buddy's live counts), when one is configured, needs connect-src."""
-    try:
-        endpoint = json.loads((ROOT / "site/static/note-metrics-config.json").read_text())["endpoint"]
-    except (OSError, ValueError, KeyError, TypeError):
-        return ""
-    parts = urllib.parse.urlsplit(endpoint or "")
-    return f"{parts.scheme}://{parts.netloc}" if parts.scheme == "https" and parts.netloc else ""
-
-
 def csp_content(hashes):
     policy = dict(CSP)
     policy["script-src"] += "".join(f" 'sha256-{value}'" for value in sorted(hashes))
-    if metrics_origin():
-        policy["connect-src"] += " " + metrics_origin()
     return "; ".join(f"{key} {value}" for key, value in policy.items())
 
 
