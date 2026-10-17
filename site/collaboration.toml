@@ -6,77 +6,77 @@ id = "foundations"
 zh = "大模型基础"
 en = "Foundations"
 groups = ["study", "history", "foundations", "architectures", "pretraining", "inference"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "posttrain"
 zh = "强化学习与 Post-training"
 en = "Deep RL & post-training"
 groups = ["deep-rl", "posttrain"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "evaluation"
 zh = "评估"
 en = "Evaluation"
 groups = ["eval"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "data-retrieval"
 zh = "数据与检索"
 en = "Data & retrieval"
 groups = ["data-retrieval"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "systems-agents"
 zh = "系统、多模态与 Agents"
 en = "Systems, multimodal & agents"
 groups = ["systems", "agents", "multimodal", "infra"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "embodied"
 zh = "感知、机器人与自动驾驶"
 en = "Perception, robots & driving"
 groups = ["embodied"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "frontier"
 zh = "前沿观察"
 en = "Frontier watch"
 groups = ["frontier"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "practice"
 zh = "工程实践与开源"
 en = "Practice & open source"
 groups = ["practice", "ml-systems", "web-practice", "system-design", "recsys", "rag-practice", "posttraining-practice"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "career"
 zh = "求职经历与心态"
 en = "Career journeys & reflections"
 groups = ["career"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "exercises"
 zh = "面试准备"
 en = "Interview preparation"
 groups = ["coding", "interview-basics", "algorithms", "ml-exercises"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "papers"
 zh = "写作资料与存档"
 en = "Writing resources & archive"
 groups = ["reference"]
-reviewers = ["tianyi-zhang-02", "2pir2"]
+reviewers = ["tianyi-zhang-02"]
 
 [[area]]
 id = "site"
