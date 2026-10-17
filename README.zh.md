@@ -65,6 +65,18 @@
 
 图解直接展示主要过程；想换个条件、比较结果时，再试试交互部分，不需要每个按钮都点一遍。
 
+<span id="interview-coach"></span>
+
+### 在 AI 助手里练面试（Interview coach skill）
+
+把这些笔记装进 Claude Code、Codex 这类支持 skill 的 AI 助手，它就成了面试官：一次问一道题，对照笔记打分和追问，记下答得不好的地方，下次从那里开始。笔记和题目来自网站的只读数据接口，随网站更新；你的回答和分数只存在自己电脑上。
+
+```bash
+npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-agi-interview
+```
+
+装好后直接说「按 LLM 推理工程师岗位模拟面试，5 道题」或「我哪里比较弱？就考那里」。用法见 [skills/README.md](skills/README.md)。这个 skill 由读者 [@Juggernaut0825](https://github.com/Juggernaut0825) 贡献。
+
 ## 内容一览
 
 <!-- repository-only -->
@@ -96,7 +108,7 @@
 
 **把笔记写好，而不是写多。** 全部笔记的中英文已经各读过一遍；10 月又对照一手资料把事实重新核了一遍：改错、更新过时的数字，把重复的解释合到一处。最新的几组（AI 基础设施、感知与自动驾驶、三组前沿系列，以及 Scaling、扩散语言模型和量化）在站主读完之前都标着待审核。读到哪里觉得别扭、看不懂或者不对，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇文章末尾也有反馈按钮。
 
-**接下来：** 让人更快找到答案：先把搜索和页面速度做好，再把笔记接进大家已经在用的 AI 工具里（面试练习 skill 和 MCP 服务，读的是同一份数据）。Jetson、物理仿真，以及视觉、驾驶、机器人这几组草稿的审稿，想请做过的朋友一起来。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
+**接下来：** 让人更快找到答案：先把搜索和页面速度做好，再做 MCP 服务，让 Claude、ChatGPT、Cursor 直接查笔记、出题，和[面试练习 skill](#interview-coach) 读同一份数据。Jetson、物理仿真，以及视觉、驾驶、机器人这几组草稿的审稿，想请做过的朋友一起来。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
 
 ### 主题覆盖
 
@@ -210,6 +222,7 @@ python3 site/build.py
 
 | 日期 | 大更新 | 小更新 |
 | --- | --- | --- |
+| 2026-10-17 | 面试练习 skill：在 Claude Code、Codex 里对照笔记模拟面试，笔记和题目来自网站新开的只读数据接口（[#103](https://github.com/tianyi-zhang-02/cooking-agi/pull/103)，读者 @Juggernaut0825 贡献）· README 改版：首页动图，内容一览、路线图和贡献者卡片随网站更新（[#104](https://github.com/tianyi-zhang-02/cooking-agi/pull/104) [#105](https://github.com/tianyi-zhang-02/cooking-agi/pull/105)） | 贡献者页面从网站移到 GitHub 首页（[#104](https://github.com/tianyi-zhang-02/cooking-agi/pull/104)）· 卡片图标与折叠（[#106](https://github.com/tianyi-zhang-02/cooking-agi/pull/106)） |
 | 2026-10-16 | 全部笔记逐篇审查：改正错误，面试页不再写具体公司的招聘流程（[#99](https://github.com/tianyi-zhang-02/cooking-agi/pull/99)）；事实更新到 2026 年 10 月（[#100](https://github.com/tianyi-zhang-02/cooking-agi/pull/100)）；重复的解释合到一处，补上到新板块的链接（[#101](https://github.com/tianyi-zhang-02/cooking-agi/pull/101)）· Scaling、扩散语言模型和量化三组草稿（[#102](https://github.com/tianyi-zhang-02/cooking-agi/pull/102)） | 删除未发布的 quant 笔记（[#98](https://github.com/tianyi-zhang-02/cooking-agi/pull/98)） |
 | 2026-10-15 | 前沿观察、AI 基础设施和具身智能三块，配论文原图和 26 张分步动画（[#97](https://github.com/tianyi-zhang-02/cooking-agi/pull/97)） | — |
 | 2026-10-14 | LeetCode 笔记加上分步动画讲解（[#78](https://github.com/tianyi-zhang-02/cooking-agi/pull/78)）· 四个章节加上分步图解和论文原图（[#83](https://github.com/tianyi-zhang-02/cooking-agi/pull/83)）· 全部笔记的中英文通读一遍，逐句核对事实、算例和表达（[#84](https://github.com/tianyi-zhang-02/cooking-agi/pull/84) [#85](https://github.com/tianyi-zhang-02/cooking-agi/pull/85) [#87](https://github.com/tianyi-zhang-02/cooking-agi/pull/87) [#88](https://github.com/tianyi-zhang-02/cooking-agi/pull/88) [#89](https://github.com/tianyi-zhang-02/cooking-agi/pull/89) [#90](https://github.com/tianyi-zhang-02/cooking-agi/pull/90)）· 训练与系统的 16 篇笔记加上分步图解（[#94](https://github.com/tianyi-zhang-02/cooking-agi/pull/94)） | 收藏、阅读记录和备份合并到「我的阅读」，去掉学习台，练习移到「按计划学习」（[#81](https://github.com/tianyi-zhang-02/cooking-agi/pull/81)）· README 宣传动图换成新版（[#79](https://github.com/tianyi-zhang-02/cooking-agi/pull/79)）· README 加上路线图、主题覆盖和更新记录（[#82](https://github.com/tianyi-zhang-02/cooking-agi/pull/82)）· 中文段落里的换行不再显示成空格（[#86](https://github.com/tianyi-zhang-02/cooking-agi/pull/86)）· 复核清单与更新记录（[#91](https://github.com/tianyi-zhang-02/cooking-agi/pull/91)）· 面试准备首页改成普通目录（[#93](https://github.com/tianyi-zhang-02/cooking-agi/pull/93)）· 私有仓库归档后，泄漏检查成为唯一一道闸门（[#92](https://github.com/tianyi-zhang-02/cooking-agi/pull/92)）· 门控注意力的例子改用不相加为 1 的门（[#95](https://github.com/tianyi-zhang-02/cooking-agi/pull/95)） |

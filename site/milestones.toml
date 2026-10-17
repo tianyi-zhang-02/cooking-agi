@@ -29,6 +29,11 @@ date = "2026-10"
 zh = "前沿、基础设施、具身智能"
 en = "Frontier, infra, embodied AI"
 
+[[done]]
+date = "2026-10"
+zh = "面试练习 skill"
+en = "Interview coach skill"
+
 [[now]]
 zh = "站主审阅新草稿"
 en = "The site owner reviews the new drafts"
@@ -38,8 +43,8 @@ zh = "更快的搜索，更快的页面"
 en = "Faster search and faster pages"
 
 [[next]]
-zh = "面试练习 skill 与 MCP 服务"
-en = "Interview coach skill and an MCP server"
+zh = "远程 MCP 服务，读同一份数据"
+en = "A remote MCP server on the same data"
 
 [[next]]
 zh = "v1.0 面试准备版"

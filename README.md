@@ -67,6 +67,18 @@ Time estimates mean focused learning time, not a daily target. Split a session i
 
 Diagrams show the main idea without requiring interaction. The controls are there when you want to change an input or compare outcomes.
 
+<span id="interview-coach"></span>
+
+### Practice with your AI agent (interview coach skill)
+
+Install the notes into an agent that reads skills, such as Claude Code or Codex, and it becomes an interviewer: one question at a time, graded against the notes, with follow-up questions, and a record of what you got wrong so the next session starts there. The notes and questions come from the site's read-only data API and update with the site; your answers and scores stay on your machine.
+
+```bash
+npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-agi-interview
+```
+
+Then ask, for example, "Mock interview for an LLM inference engineer role, 5 questions" or "What am I weak at? Quiz me on that". See [skills/README.md](skills/README.md) for details. The skill was contributed by [@Juggernaut0825](https://github.com/Juggernaut0825).
+
 <span id="_2"></span>
 
 ## What's inside
@@ -100,7 +112,7 @@ For practice, head to [ML coding](learn/ml-exercises/README.en.md), [Python](int
 
 **Better notes, not more of them.** Every note has been re-read once in both languages, and in October the facts were checked again against primary sources: errors fixed, stale numbers updated, repeated explanations folded into one place. The newest series (AI infrastructure, perception and driving, three frontier series, scaling, diffusion LMs and quantization) are drafts until the site owner has read them. If something reads awkwardly, is hard to follow, or seems wrong, please [tell us](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml); every article also ends with a feedback button.
 
-**Next:** a faster way to the answer: better search and quicker pages, then the notes inside the AI tools you already use (an interview coach and an MCP server reading the same data). For Jetson, physical simulation, and reviewing the vision, driving and robotics drafts, we'd like people who have worked in those areas to join us. See the [roadmap](community/roadmap.en.md) for the full plan; the scope of the upcoming v1.0 interview-prep release is in [release scope](community/updates.en.md).
+**Next:** a faster way to the answer: better search and quicker pages, then an MCP server, so Claude, ChatGPT and Cursor can search the notes and quiz you from the same data as the [interview coach skill](#interview-coach). For Jetson, physical simulation, and reviewing the vision, driving and robotics drafts, we'd like people who have worked in those areas to join us. See the [roadmap](community/roadmap.en.md) for the full plan; the scope of the upcoming v1.0 interview-prep release is in [release scope](community/updates.en.md).
 
 ### Topic coverage
 
@@ -220,6 +232,7 @@ Every change merged into the main branch, by date, split into major and minor up
 
 | Date | Major | Minor |
 | --- | --- | --- |
+| 2026-10-17 | Interview coach skill: mock interviews in Claude Code or Codex graded against the notes, which now come from a read-only data API on the site ([#103](https://github.com/tianyi-zhang-02/cooking-agi/pull/103), contributed by @Juggernaut0825) · New README: animated preview, and topic, roadmap and contributor cards that update with the site ([#104](https://github.com/tianyi-zhang-02/cooking-agi/pull/104) [#105](https://github.com/tianyi-zhang-02/cooking-agi/pull/105)) | Contributor pages move from the site to the GitHub page ([#104](https://github.com/tianyi-zhang-02/cooking-agi/pull/104)) · Card icons and folded sections ([#106](https://github.com/tianyi-zhang-02/cooking-agi/pull/106)) |
 | 2026-10-16 | Every note audited: errors fixed, interview pages kept free of company hiring processes ([#99](https://github.com/tianyi-zhang-02/cooking-agi/pull/99)), facts updated to October 2026 ([#100](https://github.com/tianyi-zhang-02/cooking-agi/pull/100)), repeated explanations folded together and links to the new areas ([#101](https://github.com/tianyi-zhang-02/cooking-agi/pull/101)) · Draft series on scaling laws, diffusion LMs and quantization ([#102](https://github.com/tianyi-zhang-02/cooking-agi/pull/102)) | The unpublished quant notes removed ([#98](https://github.com/tianyi-zhang-02/cooking-agi/pull/98)) |
 | 2026-10-15 | Frontier watch, AI infrastructure and embodied AI, with the papers' own figures and 26 step-by-step figures ([#97](https://github.com/tianyi-zhang-02/cooking-agi/pull/97)) | — |
 | 2026-10-14 | Step-by-step animations in the LeetCode notes ([#78](https://github.com/tianyi-zhang-02/cooking-agi/pull/78)) · Step-by-step figures and the papers' own figures in four chapters ([#83](https://github.com/tianyi-zhang-02/cooking-agi/pull/83)) · Every note read through once in both languages, checking facts, worked examples and wording ([#84](https://github.com/tianyi-zhang-02/cooking-agi/pull/84) [#85](https://github.com/tianyi-zhang-02/cooking-agi/pull/85) [#87](https://github.com/tianyi-zhang-02/cooking-agi/pull/87) [#88](https://github.com/tianyi-zhang-02/cooking-agi/pull/88) [#89](https://github.com/tianyi-zhang-02/cooking-agi/pull/89) [#90](https://github.com/tianyi-zhang-02/cooking-agi/pull/90)) · Step-by-step figures in 16 training and systems notes ([#94](https://github.com/tianyi-zhang-02/cooking-agi/pull/94)) | Saved notes, reading history and backups fold into “My reading”; the study dashboard goes and its exercises move to the study plan ([#81](https://github.com/tianyi-zhang-02/cooking-agi/pull/81)) · New README promo ([#79](https://github.com/tianyi-zhang-02/cooking-agi/pull/79)) · README roadmap, topic coverage and changelog ([#82](https://github.com/tianyi-zhang-02/cooking-agi/pull/82)) · Line breaks inside Chinese paragraphs no longer render as spaces ([#86](https://github.com/tianyi-zhang-02/cooking-agi/pull/86)) · Review list and changelog ([#91](https://github.com/tianyi-zhang-02/cooking-agi/pull/91)) · The interview-prep home becomes a plain directory ([#93](https://github.com/tianyi-zhang-02/cooking-agi/pull/93)) · With the private repo archived, the leak check is the only gate ([#92](https://github.com/tianyi-zhang-02/cooking-agi/pull/92)) · The gated-attention example uses gates that do not sum to 1 ([#95](https://github.com/tianyi-zhang-02/cooking-agi/pull/95)) |
