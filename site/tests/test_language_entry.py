@@ -65,6 +65,14 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertIn('class="hero"', output)
             self.assertNotIn('{{', output)
 
+    def test_home_ends_with_a_next_page_link(self):
+        # issue #77: a button at the bottom of the home page that goes straight to the next page
+        for language, target in [('en', 'learn/index.en.html'), ('zh', 'learn/index.html')]:
+            nav = build.page_nav_html(self.home[language])
+            self.assertIn('class="page-turn-next"', nav)
+            self.assertIn(f'href="{target}"', nav)
+            self.assertIn(build.BY_SRC['learn/README.md'][language].title, nav)
+
     def test_home_navigation_stays_in_its_language(self):
         for language in ['en', 'zh']:
             page = build.BY_SRC['learn/README.md'][language]
