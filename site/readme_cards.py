@@ -13,6 +13,7 @@ import html
 import itertools
 import json
 import os
+import random
 import re
 import tomllib
 import urllib.error
@@ -28,16 +29,11 @@ OTHER_CATEGORIES = (("interview", "面试准备", "Interview prep"),
                     ("practice", "工程实践", "Engineering practice"),
                     ("history", "技术编年史", "Tech history"))
 # GitHub's own page colours underneath, the site's amber on top
-PALETTES = {
-    "light": {"ink": "#1f2328", "muted": "#59636e", "accent": "#98512b", "rule": "#d1d9e0",
-              "top": "#ffffff", "bottom": "#f6f8fa", "tile": "#f6f8fa", "tile_top": "#ffffff", "tile_rule": "#e1e6eb",
-              "shadow": "#1f2328", "shadow_opacity": ".08",
-              "glow": "#e8a672", "glow_opacity": ".16", "soft": "#98512b"},
-    "dark": {"ink": "#e6edf3", "muted": "#9198a1", "accent": "#e8a672", "rule": "#30363d",
-             "top": "#161b22", "bottom": "#0d1117", "tile": "#1c2128", "tile_top": "#232931", "tile_rule": "#2d333b",
-              "shadow": "#010409", "shadow_opacity": ".5",
-             "glow": "#e8a672", "glow_opacity": ".13", "soft": "#e8a672"},
-}
+# The README cards share the site's night sky in both GitHub themes: black, faint stars, amber accents.
+NIGHT = {"ink": "#f0f0f0", "muted": "#a4a4a4", "accent": "#e8a672", "rule": "#262626",
+         "top": "#000000", "bottom": "#000000", "tile": "#0b0b0b", "tile_top": "#151515", "tile_rule": "#262626",
+         "shadow": "#000000", "shadow_opacity": ".6", "glow": "#e8a672", "glow_opacity": ".10", "soft": "#e8a672"}
+PALETTES = {"light": NIGHT, "dark": NIGHT}
 esc = lambda value: html.escape(str(value), quote=True)
 
 
@@ -107,8 +103,29 @@ def _panel(width, height, colors, title, desc, body, glow=(0.12, 0.0)):
             f'<linearGradient id="tileg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{colors["tile_top"]}"/>'
             f'<stop offset="1" stop-color="{colors["tile"]}"/></linearGradient>'
             f'<filter id="lift" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" '
-            f'flood-color="{colors["shadow"]}" flood-opacity="{colors["shadow_opacity"]}"/></filter></defs>')
-    frame = (f'<rect x="{PAD}" y="{PAD}" width="{width - 2 * PAD}" height="{height - 2 * PAD:.0f}" rx="18" fill="url(#bg)"/>'
+            f'flood-color="{colors["shadow"]}" flood-opacity="{colors["shadow_opacity"]}"/></filter>'
+            '<radialGradient id="dawnlight" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".5"/>'
+            '<stop offset=".6" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
+            '<filter id="dawn" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'
+            '<feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0" result="g"/>'
+            '<feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="1" seed="9" result="n"/>'
+            '<feColorMatrix in="n" type="matrix" values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1" result="ng"/>'
+            '<feComposite in="g" in2="ng" operator="arithmetic" k2="1" k3="1.15" k4="-.575" result="d"/>'
+            '<feComponentTransfer in="d"><feFuncR type="discrete" tableValues="0 1"/><feFuncG type="discrete" tableValues="0 1"/>'
+            '<feFuncB type="discrete" tableValues="0 1"/><feFuncA type="identity"/></feComponentTransfer>'
+            '<feColorMatrix type="matrix" values="0 0 0 0 .91 0 0 0 0 .65 0 0 0 0 .45 1 0 0 0 0"/></filter></defs>'
+            '<style>.tw{animation:tw 4s ease-in-out infinite}@keyframes tw{50%{opacity:.08}}'
+            '@media (prefers-reduced-motion: reduce){.tw{animation:none}}</style>')
+    rng = random.Random(int(height))
+    stars = "".join(f'<rect x="{rng.uniform(8, width - 8):.1f}" y="{rng.uniform(8, height - 8):.1f}" width="{s}" height="{s}" fill="#fff" '
+                    f'opacity="{rng.uniform(.18, .6):.2f}"{" class=\"tw\"" if rng.random() < .1 else ""}/>'
+                    for s in (rng.choice((1, 1, 1, 1.5)) for _ in range(int(width * height / 2400))))
+    # a dithered band of dawn light along the bottom edge, as on the site's home page
+    dawn = (f'<g clip-path="url(#card)" filter="url(#dawn)"><ellipse cx="{width / 2}" cy="{height + 64:.0f}" rx="{width * .7:.0f}" ry="84" '
+            f'fill="url(#dawnlight)"/></g>')
+    frame = (f'<clipPath id="card"><rect x="{PAD}" y="{PAD}" width="{width - 2 * PAD}" height="{height - 2 * PAD:.0f}" rx="18"/></clipPath>'
+             f'<rect x="{PAD}" y="{PAD}" width="{width - 2 * PAD}" height="{height - 2 * PAD:.0f}" rx="18" fill="url(#bg)"/>'
+             f'{dawn}{stars}'
              f'<rect x="{PAD}" y="{PAD}" width="{width - 2 * PAD}" height="{height - 2 * PAD:.0f}" rx="18" fill="url(#glow)"/>'
              f'<rect x="{PAD + .5}" y="{PAD + .5}" width="{width - 2 * PAD - 1}" height="{height - 2 * PAD - 1:.0f}" rx="17.5" '
              f'fill="none" stroke="{colors["rule"]}"/>')
@@ -252,7 +269,7 @@ def topics_svg(data, lang, palette, built, signals):
         y += 15
     title = _pick(zh, "内容一览", "What's inside")
     desc = _pick(zh, f"按板块列出的主题和篇数，共 {notes_total} 篇。", f"Topics by area with note counts, {notes_total} notes in all.")
-    return _panel(WIDTH, y + INSET - 10, colors, title, desc, out, glow=(0.05, 0.0))
+    return _panel(WIDTH, y + INSET + 14, colors, title, desc, out, glow=(0.05, 0.0))
 
 
 def load_milestones(path):
@@ -344,7 +361,7 @@ def roadmap_svg(data, lang, palette, built):
           colors["muted"], 11.5)
     title = _pick(zh, "路线图", "Roadmap")
     desc = _pick(zh, "现在、接下来、已完成和欢迎参与的方向。", "What is in progress, next, done, and open to contributors.")
-    return _panel(WIDTH, y + INSET - 8, colors, title, desc, out, glow=(0.2, 0.0))
+    return _panel(WIDTH, y + INSET + 16, colors, title, desc, out, glow=(0.2, 0.0))
 
 
 # ---------------------------------------------------------------- people
@@ -401,120 +418,206 @@ def next_stops(outcomes):
     return out
 
 
-def people_data(people, collaboration, repo, outcomes=None):
-    """Humans by commits, AI collaborators by name, reviewers with their areas and review counts."""
-    humans = sorted((p for p in people if p["kind"] == "human" and p.get("commits")),
-                    key=lambda p: -(p["commits"] or 0))
-    ais = [p["name"] for p in people if p["kind"] == "ai"]
+# AI collaborators have no avatar; their marks are drawn on a shaded disc (site/static/crew-icons/SOURCES.md)
+AI_MARKS = {"Claude Code": "site/static/crew-icons/claude.svg", "Codex": "site/static/company-icons/openai.svg"}
+
+
+def people_data(people, collaboration, repo, outcomes=None, today=None):
+    """{"crew", "reviewers", "next"}. The crew is everyone with a commit or co-author credit, numbered
+    CG 001, CG 002 ... by first participation and shown by GitHub username (AI collaborators by name)."""
+    from datetime import date, datetime, timedelta, timezone
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    today = today or datetime.now(timezone.utc).date()
+    monday = (today - timedelta(days=today.weekday())).isoformat()  # this week, UTC Monday to Sunday
+    cache, crew = {}, []
+    members = [p for p in people if p["kind"] == "ai" or p.get("commits")]
+    for number, p in enumerate(sorted(members, key=lambda p: (p.get("first") or "", p["name"])), 1):
+        login = p.get("login") if p["kind"] == "human" else None
+        member = {"name": p["name"], "login": login, "kind": p["kind"], "commits": p.get("commits"),
+                  "first": p.get("first") or "", "last": p.get("last") or "", "cg": f"CG {number:03d}",
+                  "handle": f"@{login}" if login else p["name"], "this_week": (p.get("last") or "") >= monday}
+        if p["kind"] == "human":
+            member["avatar"] = avatar_uri(login, cache)
+        elif p["name"] in AI_MARKS and (root / AI_MARKS[p["name"]]).exists():
+            member["mark"] = (root / AI_MARKS[p["name"]]).read_text(encoding="utf-8")
+        crew.append(member)
     areas = {}
     for area in collaboration.get("area", []):
         for login in area.get("reviewers", []):
             areas.setdefault(login, []).append((area["zh"], area["en"]))
     counts = review_counts(repo, list(areas))
-    cache = {}
-    contributors = [{"name": p["name"], "login": p.get("login"), "commits": p["commits"],
-                     "avatar": avatar_uri(p.get("login"), cache)} for p in humans]
-    reviewers = [{"login": login, "areas": names, "reviews": counts.get(login),
+    reviewers = [{"login": login, "handle": f"@{login}", "kind": "human", "areas": names, "reviews": counts.get(login),
                   "avatar": avatar_uri(login, cache)} for login, names in areas.items()]
-    return {"contributors": contributors, "ai": ais, "reviewers": reviewers, "next": next_stops(outcomes or {})}
+    return {"crew": crew, "reviewers": reviewers, "next": next_stops(outcomes or {})}
 
 
-def _avatar(out, x, y, r, person, colors, key, ring=False):
-    cx, cy = x + r, y + r
-    if ring:
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="{r + 3.5}" fill="none" stroke="{colors["accent"]}" stroke-opacity=".55" stroke-width="1.5"/>')
-    if person.get("avatar"):
-        out.append(f'<clipPath id="{key}"><circle cx="{cx}" cy="{cy}" r="{r}"/></clipPath>'
-                   f'<image href="{person["avatar"]}" x="{x}" y="{y}" width="{2 * r}" height="{2 * r}" clip-path="url(#{key})"/>'
-                   f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{colors["tile_rule"]}"/>')
+# ---------------------------------------------------------------- the crew card: night sky, end credits, roster
+# The same card in both themes: the site's old contributors page drew people as 1-bit figures drifting over a
+# dithered planet, followed by film-style credits and a table. Dithering here is an SVG filter (grey + noise +
+# threshold), so the build needs no image library.
+
+CREW_INK, CREW_MUTED, CREW_FAINT, CREW_AMBER, CREW_RULE = "#f0f0f0", "#a4a4a4", "#6f6f6f", "#e8a672", "#262626"
+MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
+
+
+def _say(out, x, y, value, fill=CREW_INK, size=13, weight=400, anchor="middle", mono=False, spacing=None):
+    family = f' font-family="{esc(MONO)}"' if mono else ""
+    spacing = f' letter-spacing="{spacing}"' if spacing else ""
+    out.append(f'<text x="{x:.1f}" y="{y:.1f}" fill="{fill}" font-size="{size}" font-weight="{weight}" '
+               f'text-anchor="{anchor}"{family}{spacing}>{esc(value)}</text>')
+
+
+def _disc(out, cx, cy, r, member, key, ring=False):
+    """A 1-bit disc: the avatar, or an AI mark on a shaded disc, through the dither filter."""
+    out.append(f'<clipPath id="{key}"><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}"/></clipPath><g clip-path="url(#{key})" filter="url(#dither)">')
+    if member.get("avatar"):
+        out.append(f'<image href="{member["avatar"]}" x="{cx - r:.1f}" y="{cy - r:.1f}" width="{2 * r}" height="{2 * r}" '
+                   f'preserveAspectRatio="xMidYMid slice"/></g>')
     else:
-        name = person.get("name") or person.get("login") or "?"
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
-        _text(out, cx, cy + 5, name[:1].upper(), colors["muted"], 15, 600, "middle")
+        out.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="url(#shade)"/>')
+        if member.get("mark"):
+            mark = re.sub(r'\sfill="[^"]*"', "", member["mark"]).replace("<svg ", '<svg fill="#111" ', 1)
+            uri = "data:image/svg+xml;base64," + base64.b64encode(mark.encode("utf-8")).decode("ascii")
+            out.append(f'<image href="{uri}" x="{cx - r * .6:.1f}" y="{cy - r * .6:.1f}" width="{r * 1.2:.1f}" height="{r * 1.2:.1f}"/></g>')
+        else:
+            out.append("</g>")
+            _say(out, cx, cy + r * .35, (member.get("login") or member["name"])[:1].upper(), "#111", round(r * .9), 700)
+    out.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="none" stroke="#000"/>')
+    if ring:  # committed this week
+        out.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r + 4}" fill="none" stroke="{CREW_AMBER}" stroke-width="1.2" '
+                   f'stroke-dasharray="2 3" opacity=".9"/>')
 
 
 def people_svg(data, lang, palette, built):
-    zh, colors = lang == "zh", PALETTES[palette]
-    out, inner = [], WIDTH - 2 * INSET
-    commits = sum(p["commits"] for p in data["contributors"])
-    humans, reviewers = len(data["contributors"]), len(data["reviewers"])
-    y = _stats(out, INSET, INSET + 30, [(str(humans), _pick(zh, "位贡献者", "contributor" + "s" * (humans != 1))),
-                                    (str(commits), _pick(zh, "次提交", "commit" + "s" * (commits != 1))),
-                                    (str(reviewers), _pick(zh, "位审稿人", "reviewer" + "s" * (reviewers != 1)))], colors, inner * 3 / 4) + 4
-    _text(out, INSET, y, _pick(zh, "贡献者", "Contributors"), colors["ink"], 15, 700)
-    y += 12
-    gap = 12
-    per_row = 3
-    card_w, card_h = (inner - (per_row - 1) * gap) / per_row, 64
-    for i, person in enumerate(data["contributors"]):
-        x = INSET + (i % per_row) * (card_w + gap)
-        row_y = y + (i // per_row) * (card_h + gap)
-        out.append(f'<g><title>{esc(person["name"])}</title>')
-        _tile(out, x, row_y, card_w, card_h, colors, accent=False)
-        _avatar(out, x + 12, row_y + 12, 20, person, colors, f"c{i}", ring=i == 0)
-        _text(out, x + 62, row_y + 28, person["name"][:16], colors["ink"], 14, 650)
-        _text(out, x + 62, row_y + 47, _pick(zh, f"{person['commits']} 次提交", f"{person['commits']} commits"), colors["muted"], 12.5)
+    """palette is accepted for symmetry with the other cards; the night sky is the same in both themes."""
+    zh = lang == "zh"
+    say = lambda chinese, english: chinese if zh else english
+    out, css, rng = [], [], random.Random(7)
+    crew = data["crew"]
+    # night sky
+    sky = 330
+    stars = []
+    for i in range(260):
+        size = rng.choice((1, 1, 1, 1.5, 2))
+        twinkle = f' class="tw{i % 3}"' if rng.random() < .12 else ""
+        stars.append(f'<rect x="{rng.uniform(4, WIDTH - 4):.1f}" y="{rng.uniform(4, sky - 40):.1f}" width="{size}" height="{size}" '
+                     f'fill="#fff" opacity="{rng.uniform(.35, .95):.2f}"{twinkle}/>')
+    out.append("".join(stars))
+    radius, horizon = 900, sky - 96
+    out.append(f'<clipPath id="sky"><rect width="{WIDTH}" height="{sky}"/></clipPath><g clip-path="url(#sky)">'
+               f'<g filter="url(#dither)"><circle cx="{WIDTH / 2}" cy="{horizon + radius}" r="{radius + 40}" fill="url(#earth)"/></g>'
+               f'<circle cx="{WIDTH / 2}" cy="{horizon + radius}" r="{radius}" fill="none" stroke="#fff" stroke-width="1.3" opacity=".9"/></g>')
+    _say(out, WIDTH / 2, 46, "THE PEOPLE BEHIND THE NOTES", CREW_MUTED, 10.5, 600, mono=True, spacing=".28em")
+    _say(out, WIDTH / 2, 80, say("谢谢一起参与的你们。", "Thank you, everyone who pitched in."), CREW_INK, 21, 700)
+    spots = [(.27, .44), (.72, .38), (.52, .58), (.12, .56), (.88, .55), (.40, .32), (.64, .66), (.20, .30), (.82, .28)]
+    for i, member in enumerate(crew[:len(spots)]):
+        cx, cy = WIDTH * spots[i][0], sky * spots[i][1]
+        r = 27 if member["kind"] == "human" else 23
+        dx, dy = (6, -7, 5, -5)[i % 4], (-8, 6, -6, 7)[i % 4]
+        css.append(f".f{i}{{animation:f{i} {13 + 4 * (i % 3)}s ease-in-out infinite alternate}}"
+                   f"@keyframes f{i}{{from{{transform:translate(0,0)}}to{{transform:translate({dx}px,{dy}px)}}}}")
+        out.append(f'<g class="f{i}"><title>{esc(member["handle"])}</title>')
+        _disc(out, cx, cy, r, member, f"s{i}", ring=member["this_week"])
+        _say(out, cx, cy + r + 15, member["handle"], CREW_MUTED, 10.5, mono=True)
         out.append("</g>")
-    y += max(1, -(-len(data["contributors"]) // per_row)) * (card_h + gap)
-    if data["ai"]:
-        x = INSET
-        label = _pick(zh, "一起写的 AI：", "Written with AI:")
-        _text(out, x, y + 16, label, colors["muted"], 13)
-        x += _width(label, 13) + 10
-        for name in data["ai"]:
-            w = _width(name, 13) + 26
-            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="24" rx="12" fill="none" stroke="{colors["tile_rule"]}"/>')
-            _text(out, x + w / 2, y + 17, name, colors["ink"], 13, 600, "middle")
-            x += w + 8
-        y += 36
-    y += 22
-    _text(out, INSET, y, _pick(zh, "审稿人", "Reviewers"), colors["ink"], 15, 700)
-    y += 12
-    card_w = (inner - gap) / 2
-    for i, person in enumerate(data["reviewers"]):
-        x = INSET + (i % 2) * (card_w + gap)
-        row_y = y + (i // 2) * 82
-        names = [_pick(zh, a, b) for a, b in person["areas"]]
-        out.append(f'<g><title>{esc(", ".join(names))}</title>')
-        _tile(out, x, row_y, card_w, 70, colors, accent=True)
-        _avatar(out, x + 16, row_y + 13, 22, {**person, "name": person["login"]}, colors, f"r{i}")
-        _text(out, x + 70, row_y + 31, person["login"], colors["ink"], 14, 650)
-        detail = _pick(zh, f"{len(names)} 个领域", f"{len(names)} areas")
-        if person.get("reviews"):
-            detail += _pick(zh, f" · 审过 {person['reviews']} 个 PR", f" · {person['reviews']} PRs reviewed")
-        _text(out, x + 70, row_y + 51, detail, colors["muted"], 12.5)
-        out.append("</g>")
-    y += max(1, -(-len(data["reviewers"]) // 2)) * 82 - 4
+    week = sum(member["this_week"] for member in crew)
+    if week:
+        _say(out, WIDTH / 2, sky + 6, say(f"本周有 {week} 位留下了提交", f"{week} left commits this week"), CREW_AMBER, 11.5, 600)
+    # end credits
+    y = sky + 56
+    _say(out, WIDTH / 2, y, say("演 职 员 表", "C R E D I T S"), CREW_MUTED, 11, 600, spacing=".3em")
+    y += 34
+    since = lambda m: say(f'{m["cg"]} · {m["first"][:7]} 起', f'{m["cg"]} · since {m["first"][:7]}')
+    reviewed = lambda m: (say(f'{len(m["areas"])} 个领域', f'{len(m["areas"])} areas') +
+                          (say(f' · 审过 {m["reviews"]} 个 PR', f' · {m["reviews"]} PRs reviewed') if m.get("reviews") else ""))
+    for heading, members, meta in ((say("笔记与代码", "NOTES & CODE"), [m for m in crew if m["kind"] == "human"], since),
+                                   (say("AI 协作者", "AI COLLABORATORS"), [m for m in crew if m["kind"] == "ai"], since),
+                                   (say("审稿人", "REVIEWERS"), data["reviewers"], reviewed)):
+        if not members:
+            continue
+        _say(out, WIDTH / 2, y, heading, CREW_FAINT, 10.5, 600, spacing=".22em")
+        y += 22
+        for row in range(0, len(members), 3):
+            chunk = members[row:row + 3]
+            step = WIDTH / (len(chunk) + 1)
+            for k, member in enumerate(chunk):
+                cx = step * (k + 1)
+                _disc(out, cx, y + 22, 20, member, f"c{row + k}{heading[:2].encode().hex()}", ring=member.get("this_week"))
+                _say(out, cx, y + 64, member["handle"], CREW_INK, 15, 700)
+                _say(out, cx, y + 82, meta(member), CREW_MUTED, 10.5, mono=True)
+            y += 118
+        y += 8
     if data.get("next"):
-        y += 26
-        _text(out, INSET, y, _pick(zh, "读者的下一站", "Where readers went next"), colors["ink"], 15, 700)
-        y += 18
-        _text(out, INSET, y, _pick(zh, "读者自愿分享，不代表笔记促成了这些机会", "Self-reported and voluntary; not a claim that the notes got anyone a job"),
-              colors["muted"], 12)
-        y += 14
-        x = INSET
-        for company in data["next"]:
-            # every company in the same treatment: a one-colour mark in the text colour, then the name;
-            # a company without a local mark (Amazon) shows its name only, never an invented logo
-            mark = 26 if company["logo"] else 0
-            w = 30 + mark + _width(company["name"], 14)
-            out.append(f'<g><title>{esc(company["name"])}</title>'
-                       f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="42" rx="12" fill="url(#tileg)" '
-                       f'stroke="{colors["tile_rule"]}" filter="url(#lift)"/>')
+        _say(out, WIDTH / 2, y, say("读者的下一站", "WHERE READERS WENT NEXT"), CREW_FAINT, 10.5, 600, spacing=".22em")
+        y += 30
+        # marks only; a company without a local mark is written out by name, never drawn as an invented logo
+        widths = [26 if c["logo"] else _width(c["name"], 14) for c in data["next"]]
+        x = WIDTH / 2 - (sum(widths) + 30 * (len(widths) - 1)) / 2
+        for company, w in zip(data["next"], widths):
+            out.append(f'<g><title>{esc(company["name"])}</title>')
             if company["logo"]:
-                svg = re.sub(r'\sfill="[^"]*"', "", company["logo"]).replace("<svg ", f'<svg fill="{colors["ink"]}" ', 1)
-                uri = "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode("ascii")
-                out.append(f'<image href="{uri}" x="{x + 15:.1f}" y="{y + 12}" width="18" height="18"/>')
-            _text(out, x + 15 + mark, y + 26, company["name"], colors["ink"], 14, 650)
+                mark = re.sub(r'\sfill="[^"]*"', "", company["logo"]).replace("<svg ", f'<svg fill="{CREW_INK}" ', 1)
+                uri = "data:image/svg+xml;base64," + base64.b64encode(mark.encode("utf-8")).decode("ascii")
+                out.append(f'<image href="{uri}" x="{x:.1f}" y="{y - 20}" width="26" height="26"/>')
+            else:
+                _say(out, x, y, company["name"], CREW_INK, 14, 600, anchor="start")
             out.append("</g>")
-            x += w + 10
-        y += 50
-    y += 22
-    for line in wrap(_pick(zh, f"{built} 构建 · 来自 git 记录、GitHub 与 site/collaboration.toml，随网站每次部署更新",
-                             f"Built {built} · from git history, GitHub and site/collaboration.toml, updated on every deploy"), inner, 11.5):
-        _text(out, INSET, y, line, colors["muted"], 11.5)
-        y += 15
-    title = _pick(zh, "贡献者与审稿人", "Contributors and reviewers")
-    desc = _pick(zh, f"{len(data['contributors'])} 位贡献者，{len(data['reviewers'])} 位审稿人。",
-                 f"{len(data['contributors'])} contributors and {len(data['reviewers'])} reviewers.")
-    return _panel(WIDTH, y + INSET - 10, colors, title, desc, out, glow=(0.9, 0.0))
+            x += w + 30
+        y += 30
+        _say(out, WIDTH / 2, y, say("读者自愿分享，不代表笔记促成了这些机会", "Self-reported; not a claim that the notes got anyone a job"),
+             CREW_FAINT, 10.5)
+        y += 34
+    # roster
+    out.append(f'<line x1="40" x2="{WIDTH - 40}" y1="{y}" y2="{y}" stroke="{CREW_RULE}"/>')
+    y += 34
+    _say(out, 40, y, say("贡献榜单", "Roster"), CREW_INK, 15, 700, anchor="start")
+    y += 30
+    for x, heading in ((40, say("编号", "No.")), (110, say("贡献者", "Contributor")), (300, say("提交", "Commits")),
+                       (410, say("第一次", "First")), (500, say("最近", "Latest"))):
+        _say(out, x, y, heading, CREW_FAINT, 10.5, 600, anchor="start", spacing=".08em")
+    y += 12
+    out.append(f'<line x1="40" x2="{WIDTH - 40}" y1="{y}" y2="{y}" stroke="{CREW_RULE}"/>')
+    top = max([m["commits"] or 0 for m in crew] + [1])
+    for i, member in enumerate(crew):
+        row = y + 40
+        _say(out, 40, row, member["cg"], CREW_FAINT, 11, mono=True, anchor="start")
+        _disc(out, 124, row - 4, 12, member, f"t{i}")
+        _say(out, 144, row, member["handle"], CREW_INK, 13, 600, anchor="start")
+        commits = member["commits"]
+        if commits:
+            out.append("".join(f'<rect x="{300 + 4 * k}" y="{row - 16}" width="2" height="5" fill="{CREW_AMBER}"/>'
+                               for k in range(max(1, round(24 * commits / top)))))
+        _say(out, 300, row + 2, str(commits) if commits else "—", CREW_INK, 13, 700, anchor="start")
+        _say(out, 410, row, member["first"] or "—", CREW_MUTED, 11, mono=True, anchor="start")
+        _say(out, 500, row, member["last"] or "—", CREW_MUTED, 11, mono=True, anchor="start")
+        if member["this_week"]:
+            _say(out, WIDTH - 38, row, say("本周", "this week"), CREW_AMBER, 10, 600, anchor="end")
+        y += 56
+        out.append(f'<line x1="40" x2="{WIDTH - 40}" y1="{y}" y2="{y}" stroke="#1a1a1a"/>')
+    y += 30
+    _say(out, 40, y, say(f"{built} 更新 · 提交数不是质量排名，也不决定审核权限",
+                         f"Updated {built} · commit counts are not a ranking of quality or review rights"), CREW_FAINT, 10.5, anchor="start")
+    height = y + 26
+    defs = ('<defs><filter id="dither" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'
+            '<feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0" result="g"/>'
+            '<feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="1" seed="5" result="n"/>'
+            '<feColorMatrix in="n" type="matrix" values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1" result="ng"/>'
+            '<feComposite in="g" in2="ng" operator="arithmetic" k2="1" k3="1.15" k4="-.575" result="d"/>'
+            '<feComponentTransfer in="d"><feFuncR type="discrete" tableValues="0 1"/><feFuncG type="discrete" tableValues="0 1"/>'
+            '<feFuncB type="discrete" tableValues="0 1"/></feComponentTransfer><feComposite in2="SourceAlpha" operator="in"/></filter>'
+            '<radialGradient id="earth" cx=".5" cy=".5" r=".5"><stop offset=".86" stop-color="#fff" stop-opacity="0"/>'
+            '<stop offset=".94" stop-color="#fff" stop-opacity=".45"/><stop offset=".957" stop-color="#fff" stop-opacity=".95"/>'
+            '<stop offset=".962" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
+            '<radialGradient id="shade" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#cfcfcf"/>'
+            '<stop offset="1" stop-color="#7a7a7a"/></radialGradient></defs>')
+    style = ("<style>" + "".join(css) + ".tw0{animation:tw 3.2s ease-in-out infinite}.tw1{animation:tw 4.1s ease-in-out infinite .8s}"
+             ".tw2{animation:tw 5.3s ease-in-out infinite 1.6s}@keyframes tw{50%{opacity:.15}}"
+             "@media (prefers-reduced-motion: reduce){*{animation:none!important}}</style>")
+    humans = sum(m["kind"] == "human" for m in crew)
+    title = say("贡献者与审稿人", "Contributors and reviewers")
+    desc = say(f"{humans} 位贡献者、{len(crew) - humans} 个 AI 协作者、{len(data['reviewers'])} 位审稿人。",
+               f"{humans} contributors, {len(crew) - humans} AI collaborators and {len(data['reviewers'])} reviewers.")
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH} {height:.0f}" width="{WIDTH}" height="{height:.0f}" '
+            f'role="img" aria-labelledby="t d" font-family="{esc(FONT)}"><title id="t">{esc(title)}</title><desc id="d">{esc(desc)}</desc>'
+            f'{style}{defs}<rect width="{WIDTH}" height="{height:.0f}" rx="18" fill="#000"/>' + "".join(out) + "</svg>\n")
