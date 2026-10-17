@@ -309,7 +309,7 @@ def roadmap_svg(data, lang, palette, built):
     _icon(out, "done", INSET + 10, y - 5, colors)
     _text(out, INSET + 28, y, _pick(zh, "已完成", "Done"), colors["ink"], 15, 700)
     y += 22
-    done = data.get("done", [])
+    done = data.get("done", [])[-5:]  # the latest five; older ones stay in site/milestones.toml
     step = inner / max(1, len(done))
     out.append(f'<line x1="{INSET + step / 2:.1f}" x2="{INSET + inner - step / 2:.1f}" y1="{y:.1f}" y2="{y:.1f}" '
                f'stroke="{colors["accent"]}" stroke-opacity=".55" stroke-width="2"/>')

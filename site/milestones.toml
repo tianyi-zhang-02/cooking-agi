@@ -1,6 +1,6 @@
 # The roadmap card in the README (site/readme_cards.py draws it on every build).
-# done: shipped, oldest first, with the month it landed; drawn as a timeline, so keep labels to
-#       a few words. now: being worked on. next: decided, not started. open: needs contributors.
+# done: shipped, oldest first, with the month it landed; the card draws the latest five as a
+#       timeline, so keep labels to a few words. now: being worked on. next: decided, not started. open: needs contributors.
 # Every label is drawn inside a small card on GitHub: keep it short (about 40 Latin characters
 # or 16 Chinese characters).
 
