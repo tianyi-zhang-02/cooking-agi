@@ -30,10 +30,12 @@ OTHER_CATEGORIES = (("interview", "面试准备", "Interview prep"),
 # GitHub's own page colours underneath, the site's amber on top
 PALETTES = {
     "light": {"ink": "#1f2328", "muted": "#59636e", "accent": "#98512b", "rule": "#d1d9e0",
-              "top": "#ffffff", "bottom": "#f6f8fa", "tile": "#f6f8fa", "tile_rule": "#e1e6eb",
+              "top": "#ffffff", "bottom": "#f6f8fa", "tile": "#f6f8fa", "tile_top": "#ffffff", "tile_rule": "#e1e6eb",
+              "shadow": "#1f2328", "shadow_opacity": ".08",
               "glow": "#e8a672", "glow_opacity": ".16", "soft": "#98512b"},
     "dark": {"ink": "#e6edf3", "muted": "#9198a1", "accent": "#e8a672", "rule": "#30363d",
-             "top": "#161b22", "bottom": "#0d1117", "tile": "#1c2128", "tile_rule": "#2d333b",
+             "top": "#161b22", "bottom": "#0d1117", "tile": "#1c2128", "tile_top": "#232931", "tile_rule": "#2d333b",
+              "shadow": "#010409", "shadow_opacity": ".5",
              "glow": "#e8a672", "glow_opacity": ".13", "soft": "#e8a672"},
 }
 esc = lambda value: html.escape(str(value), quote=True)
@@ -101,7 +103,11 @@ def _panel(width, height, colors, title, desc, body, glow=(0.12, 0.0)):
     defs = (f'<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{colors["top"]}"/>'
             f'<stop offset="1" stop-color="{colors["bottom"]}"/></linearGradient>'
             f'<radialGradient id="glow" cx="{gx}" cy="{gy}" r="0.75"><stop offset="0" stop-color="{colors["glow"]}" '
-            f'stop-opacity="{colors["glow_opacity"]}"/><stop offset="1" stop-color="{colors["glow"]}" stop-opacity="0"/></radialGradient></defs>')
+            f'stop-opacity="{colors["glow_opacity"]}"/><stop offset="1" stop-color="{colors["glow"]}" stop-opacity="0"/></radialGradient>'
+            f'<linearGradient id="tileg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{colors["tile_top"]}"/>'
+            f'<stop offset="1" stop-color="{colors["tile"]}"/></linearGradient>'
+            f'<filter id="lift" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" '
+            f'flood-color="{colors["shadow"]}" flood-opacity="{colors["shadow_opacity"]}"/></filter></defs>')
     frame = (f'<rect x="{PAD}" y="{PAD}" width="{width - 2 * PAD}" height="{height - 2 * PAD:.0f}" rx="18" fill="url(#bg)"/>'
              f'<rect x="{PAD}" y="{PAD}" width="{width - 2 * PAD}" height="{height - 2 * PAD:.0f}" rx="18" fill="url(#glow)"/>'
              f'<rect x="{PAD + .5}" y="{PAD + .5}" width="{width - 2 * PAD - 1}" height="{height - 2 * PAD - 1:.0f}" rx="17.5" '
@@ -109,10 +115,6 @@ def _panel(width, height, colors, title, desc, body, glow=(0.12, 0.0)):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height:.0f}" width="{width}" '
             f'height="{height:.0f}" role="img" aria-labelledby="t d" font-family="{esc(FONT)}">'
             f'<title id="t">{esc(title)}</title><desc id="d">{esc(desc)}</desc>{defs}{frame}' + "".join(body) + "</svg>\n")
-
-
-def _kicker(out, x, y, label, colors):
-    _text(out, x, y, label.upper(), colors["accent"], 11.5, 700, spacing=".12em")
 
 
 def _stats(out, x, y, stats, colors, width):
@@ -127,8 +129,8 @@ def _stats(out, x, y, stats, colors, width):
 
 
 def _tile(out, x, y, w, h, colors, accent=True, dashed=False):
-    out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="11" fill="{colors["tile"]}" '
-               f'stroke="{colors["tile_rule"]}"/>')
+    out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="11" fill="url(#tileg)" '
+               f'stroke="{colors["tile_rule"]}" filter="url(#lift)"/>')
     if accent:
         dash = ' stroke-dasharray="3 3"' if dashed else ""
         out.append(f'<line x1="{x + 1.5:.1f}" y1="{y + 11:.1f}" x2="{x + 1.5:.1f}" y2="{y + h - 11:.1f}" '
@@ -184,9 +186,7 @@ def topics_svg(data, lang, palette, built, signals):
     notes_total = sum(n for *_, groups in data["zones"] for *_, n, _ in groups) + sum(n for *_, n in data["others"])
     drafts_total = sum(d for *_, groups in data["zones"] for *_, d in groups)
     inner = WIDTH - 2 * INSET
-    y = INSET + 14
-    _kicker(out, INSET, y, _pick(zh, "内容一览", "What's inside"), colors)
-    y = _stats(out, INSET, y + 36, [(str(signals["reviewed"]), _pick(zh, "篇中英文逐篇复核", "notes re-read in both languages")),
+    y = _stats(out, INSET, INSET + 30, [(str(signals["reviewed"]), _pick(zh, "篇中英文逐篇复核", "notes re-read in both languages")),
                                     (str(signals["figures"]), _pick(zh, "张交互与分步图解", "interactive figures")),
                                     (str(signals["paper"]), _pick(zh, "张论文原图", "figures from papers")),
                                     (str(drafts_total), _pick(zh, "篇草稿待审核", "drafts in review"))], colors, inner) + 10
@@ -207,9 +207,9 @@ def topics_svg(data, lang, palette, built, signals):
             x, yy = INSET + k * (col_w + gap), y
             label = _pick(zh, zone_zh, zone_en)
             number, _, name = label.partition(" · ")
-            out.append(f'<circle cx="{x + 11}" cy="{yy + 10}" r="11" fill="none" stroke="{colors["accent"]}" stroke-opacity=".6"/>')
-            _text(out, x + 11, yy + 14, number, colors["accent"], 10.5, 700, "middle")
-            _text(out, x + 30, yy + 15, name or label, colors["ink"], 14, 650)
+            out.append(f'<rect x="{x:.1f}" y="{yy:.1f}" width="26" height="19" rx="9.5" fill="{colors["accent"]}" fill-opacity=".14"/>')
+            _text(out, x + 13, yy + 13.5, number, colors["accent"], 10.5, 700, "middle")
+            _text(out, x + 34, yy + 14.5, name or label, colors["ink"], 14, 650)
             yy += 30
             _tile(out, x, yy, col_w, h, colors, accent=False)
             ty = yy + 8
@@ -240,7 +240,8 @@ def topics_svg(data, lang, palette, built, signals):
         w = _width(label, 13) + _width(count, 13) + 36
         if x + w > WIDTH - INSET:
             x, y = INSET, y + 38
-        out.append(f'<rect x="{x:.1f}" y="{y - 19}" width="{w:.0f}" height="28" rx="14" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
+        out.append(f'<rect x="{x:.1f}" y="{y - 19}" width="{w:.0f}" height="28" rx="14" fill="url(#tileg)" '
+                   f'stroke="{colors["tile_rule"]}" filter="url(#lift)"/>')
         _text(out, x + 13, y, label, colors["ink"], 13, 600)
         _text(out, x + w - 13, y, count, colors["muted"], 13, anchor="end")
         x += w + 8
@@ -259,25 +260,24 @@ def load_milestones(path):
 
 
 def _icon(out, kind, cx, cy, colors):
+    """Status badges for the roadmap: the same soft circle, a different glyph."""
     a = colors["accent"]
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="10" fill="{a}" fill-opacity="{".9" if kind == "done" else ".15"}"/>')
+    line = f'fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"'
     if kind == "done":
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="8" fill="{a}"/><path d="M{cx - 3.6} {cy + .2}l2.4 2.4 4.8-5" '
-                   f'fill="none" stroke="{colors["bottom"]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>')
+        out.append(f'<path d="M{cx - 4} {cy + .3}l2.7 2.7 5.3-5.6" stroke="{colors["bottom"]}" {line}/>')
     elif kind == "now":
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="10" fill="{a}" fill-opacity=".18"/><circle cx="{cx}" cy="{cy}" r="5" fill="{a}"/>')
+        out.append(f'<circle cx="{cx}" cy="{cy}" r="4" fill="{a}"/>')
     elif kind == "next":
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="7" fill="none" stroke="{a}" stroke-width="1.6"/>')
+        out.append(f'<path d="M{cx - 4} {cy}h8M{cx + .8} {cy - 3.4}l3.4 3.4-3.4 3.4" stroke="{a}" {line}/>')
     else:
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="8" fill="none" stroke="{colors["muted"]}" stroke-dasharray="2 2"/>'
-                   f'<path d="M{cx - 3.5} {cy}h7M{cx} {cy - 3.5}v7" stroke="{colors["muted"]}" stroke-width="1.5" stroke-linecap="round"/>')
+        out.append(f'<path d="M{cx - 4} {cy}h8M{cx} {cy - 4}v8" stroke="{a}" {line}/>')
 
 
 def roadmap_svg(data, lang, palette, built):
     zh, colors = lang == "zh", PALETTES[palette]
     out, inner = [], WIDTH - 2 * INSET
-    y = INSET + 14
-    _kicker(out, INSET, y, _pick(zh, "路线图", "Roadmap"), colors)
-    y += 26
+    y = INSET + 4
     # now and next, side by side
     gap = 14
     col_w = (inner - gap) / 2
@@ -309,14 +309,15 @@ def roadmap_svg(data, lang, palette, built):
     _icon(out, "done", INSET + 10, y - 5, colors)
     _text(out, INSET + 28, y, _pick(zh, "已完成", "Done"), colors["ink"], 15, 700)
     y += 22
-    done = data.get("done", [])
+    done = data.get("done", [])[-5:]  # the latest five; older ones stay in site/milestones.toml
     step = inner / max(1, len(done))
     out.append(f'<line x1="{INSET + step / 2:.1f}" x2="{INSET + inner - step / 2:.1f}" y1="{y:.1f}" y2="{y:.1f}" '
                f'stroke="{colors["accent"]}" stroke-opacity=".55" stroke-width="2"/>')
     low = y
     for i, item in enumerate(done):
         cx = INSET + step * (i + .5)
-        out.append(f'<circle cx="{cx:.1f}" cy="{y:.1f}" r="5" fill="{colors["accent"]}"/>')
+        out.append(f'<circle cx="{cx:.1f}" cy="{y:.1f}" r="9" fill="{colors["accent"]}" fill-opacity=".15"/>'
+                   f'<circle cx="{cx:.1f}" cy="{y:.1f}" r="4.5" fill="{colors["accent"]}"/>')
         _text(out, cx, y + 24, item["date"], colors["accent"], 12, 700, "middle")
         ly = y + 42
         for line in wrap_even(_pick(zh, item["zh"], item["en"]), step - 8, 12.5):
@@ -381,7 +382,9 @@ def review_counts(repo, logins):
 
 
 def next_stops(outcomes):
-    """[(company name, count, logo data URI or None)] from community/outcomes.json, consented records only."""
+    """[{"name", "logo": SVG text or None, "native": full colour?}] for each company in
+    community/outcomes.json with a consented record, most frequent first. The card shows marks only,
+    no counts; a company without a local mark is shown by name."""
     import company_icons
     from pathlib import Path
     counts, names = {}, outcomes.get("companies", {})
@@ -389,13 +392,12 @@ def next_stops(outcomes):
         if record.get("consent"):
             counts[record["company"]] = counts.get(record["company"], 0) + 1
     out = []
-    for key, n in sorted(counts.items(), key=lambda kv: -kv[1]):
-        entry = company_icons.resolve(key, names.get(key, key))
+    for key, _ in sorted(counts.items(), key=lambda kv: -kv[1]):
+        entry = company_icons.resolve(key, names.get(key, key)) or {}
         logo = None
-        if entry and entry.get("asset") and entry.get("native"):
-            svg = (Path(company_icons.ROOT) / "site/static/company-icons" / entry["asset"]).read_bytes()
-            logo = "data:image/svg+xml;base64," + base64.b64encode(svg).decode("ascii")
-        out.append(((entry or {}).get("name") or names.get(key, key), n, logo))
+        if entry.get("asset"):
+            logo = (Path(company_icons.ROOT) / "site/static/company-icons" / entry["asset"]).read_text(encoding="utf-8")
+        out.append({"name": entry.get("name") or names.get(key, key), "logo": logo, "native": bool(entry.get("native"))})
     return out
 
 
@@ -434,11 +436,9 @@ def _avatar(out, x, y, r, person, colors, key, ring=False):
 def people_svg(data, lang, palette, built):
     zh, colors = lang == "zh", PALETTES[palette]
     out, inner = [], WIDTH - 2 * INSET
-    y = INSET + 14
-    _kicker(out, INSET, y, _pick(zh, "幕后", "Behind the notes"), colors)
     commits = sum(p["commits"] for p in data["contributors"])
     humans, reviewers = len(data["contributors"]), len(data["reviewers"])
-    y = _stats(out, INSET, y + 36, [(str(humans), _pick(zh, "位贡献者", "contributor" + "s" * (humans != 1))),
+    y = _stats(out, INSET, INSET + 30, [(str(humans), _pick(zh, "位贡献者", "contributor" + "s" * (humans != 1))),
                                     (str(commits), _pick(zh, "次提交", "commit" + "s" * (commits != 1))),
                                     (str(reviewers), _pick(zh, "位审稿人", "reviewer" + "s" * (reviewers != 1)))], colors, inner * 3 / 4) + 4
     _text(out, INSET, y, _pick(zh, "贡献者", "Contributors"), colors["ink"], 15, 700)
@@ -493,17 +493,22 @@ def people_svg(data, lang, palette, built):
               colors["muted"], 12)
         y += 14
         x = INSET
-        for name, count, logo in data["next"]:
-            label = f"{name} · {count}"
-            w = _width(label, 13) + (54 if logo else 28)
-            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="36" rx="18" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
-            tx = x + 14
-            if logo:
-                out.append(f'<image href="{logo}" x="{x + 11}" y="{y + 9}" width="18" height="18"/>')
-                tx = x + 37
-            _text(out, tx, y + 23, label, colors["ink"], 13, 600)
-            x += w + 8
-        y += 44
+        for company in data["next"]:
+            # every company in the same treatment: a one-colour mark in the text colour, then the name;
+            # a company without a local mark (Amazon) shows its name only, never an invented logo
+            mark = 26 if company["logo"] else 0
+            w = 30 + mark + _width(company["name"], 14)
+            out.append(f'<g><title>{esc(company["name"])}</title>'
+                       f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="42" rx="12" fill="url(#tileg)" '
+                       f'stroke="{colors["tile_rule"]}" filter="url(#lift)"/>')
+            if company["logo"]:
+                svg = re.sub(r'\sfill="[^"]*"', "", company["logo"]).replace("<svg ", f'<svg fill="{colors["ink"]}" ', 1)
+                uri = "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode("ascii")
+                out.append(f'<image href="{uri}" x="{x + 15:.1f}" y="{y + 12}" width="18" height="18"/>')
+            _text(out, x + 15 + mark, y + 26, company["name"], colors["ink"], 14, 650)
+            out.append("</g>")
+            x += w + 10
+        y += 50
     y += 22
     for line in wrap(_pick(zh, f"{built} 构建 · 来自 git 记录、GitHub 与 site/collaboration.toml，随网站每次部署更新",
                              f"Built {built} · from git history, GitHub and site/collaboration.toml, updated on every deploy"), inner, 11.5):

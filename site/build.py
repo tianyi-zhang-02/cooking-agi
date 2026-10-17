@@ -2108,7 +2108,7 @@ def main():
     milestones = readme_cards.load_milestones(SITE / "milestones.toml")
     outcomes = json.loads((ROOT / "community/outcomes.json").read_text(encoding="utf-8"))
     team = readme_cards.people_data(people, collaboration.load_config(), nav["site"]["repo"], outcomes)
-    signals = {"reviewed": len(topic_coverage.load_reviewed(SITE / "expression-review.toml", BY_SRC)[1]),
+    signals = {"reviewed": topic_coverage.totals(coverage)[1],  # the same count as the coverage chart below it
                "figures": len(FIGURE_LAB) + len(ALGO_LAB) + len(TX_LAB), "paper": len(PAPER_FIGURES)}
     for language in ("zh", "en"):
         for palette in readme_cards.PALETTES:

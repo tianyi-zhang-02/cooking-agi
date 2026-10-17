@@ -144,6 +144,15 @@
       "provider": "Simple Icons 16.33.0"
     },
     {
+      "id": "tiktok",
+      "name": "TikTok",
+      "asset": "tiktok.svg",
+      "aliases": [],
+      "group": "tech",
+      "source": "https://www.tiktok.com",
+      "provider": "Simple Icons 16.33.0"
+    },
+    {
       "id": "baidu",
       "name": "Baidu",
       "asset": "baidu.svg",
