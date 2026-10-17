@@ -10,6 +10,7 @@ as data URIs because an SVG shown as an image cannot load anything else. Offline
 """
 import base64
 import html
+import itertools
 import json
 import os
 import re
@@ -18,11 +19,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from topic_coverage import _width
 
 FONT = ("-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', 'PingFang SC', "
         "'Hiragino Sans GB', 'Microsoft YaHei', sans-serif")
-WIDTH, PAD, INSET = 960, 2, 26
+WIDTH, PAD, INSET = 640, 2, 22
 DRAFT_MARK = "草稿，待审核"
 OTHER_CATEGORIES = (("interview", "面试准备", "Interview prep"),
                     ("practice", "工程实践", "Engineering practice"),
@@ -43,13 +43,22 @@ def _pick(zh, chinese, english):
     return chinese if zh else english
 
 
+def _width(text, size):
+    """Rough rendered width, generous for Latin text because Windows and Linux fonts run wider
+    than the Mac's; CJK glyphs are square."""
+    return sum(size if ord(char) > 0x2E80 else size * 0.6 for char in text)
+
+
+TOKEN = r"[A-Za-z0-9&().,:;/'’+\-·µ%]+|\s+|."
+
+
 def wrap(text, max_width, size):
     """Greedy line wrap using the same rough glyph widths as the coverage chart."""
-    tokens = re.findall(r"[A-Za-z0-9&().,:;/'’+\-·µ%]+|\s+|.", text)
+    tokens = re.findall(TOKEN, text)
     lines, line = [], ""
     for token in tokens:
         candidate = line + token
-        if line and _width(candidate.rstrip(), size) > max_width:
+        if line and _width(candidate.rstrip(), size) > max_width and token not in CLOSING:
             lines.append(line.rstrip())
             line = token.lstrip()
         else:
@@ -57,6 +66,27 @@ def wrap(text, max_width, size):
     if line.strip():
         lines.append(line.rstrip())
     return lines
+
+
+CLOSING = set("，。、；：！？）》」,.;:!?)")
+BREAK_AFTER = CLOSING | set("，、；：,;:")
+
+
+def wrap_even(text, max_width, size):
+    """As many lines as wrap() needs, but evenly long and broken after punctuation where possible
+    (for short labels in narrow columns, where "Deep / RL" would read badly)."""
+    tokens = re.findall(TOKEN, text)
+    n, best = len(wrap(text, max_width, size)), None
+    for cuts in itertools.combinations(range(1, len(tokens)), n - 1):
+        bounds = (0, *cuts, len(tokens))
+        lines = ["".join(tokens[a:b]).strip() for a, b in zip(bounds, bounds[1:])]
+        widest = max(_width(line, size) for line in lines)
+        if not all(lines) or widest > max_width or any(tokens[c] in CLOSING for c in cuts):
+            continue
+        score = widest + sum(0 if line[-1] in BREAK_AFTER else 4 * size for line in lines[:-1])
+        if best is None or score < best[0]:
+            best = (score, lines)
+    return best[1] if best else wrap(text, max_width, size)
 
 
 def _text(out, x, y, value, fill, size=13, weight=400, anchor="start", spacing=None, opacity=None):
@@ -85,13 +115,15 @@ def _kicker(out, x, y, label, colors):
     _text(out, x, y, label.upper(), colors["accent"], 11.5, 700, spacing=".12em")
 
 
-def _stats(out, x, y, stats, colors):
-    """Big numbers with small labels, side by side."""
-    for value, label in stats:
-        _text(out, x, y, value, colors["ink"], 28, 700, spacing="-.02em")
-        _text(out, x, y + 20, label, colors["muted"], 12)
-        x += max(_width(value, 28), _width(label, 12)) + 40
-    return x
+def _stats(out, x, y, stats, colors, width):
+    """Big numbers with small labels, in equal columns; labels wrap to two lines."""
+    col = width / len(stats)
+    for i, (value, label) in enumerate(stats):
+        cx = x + i * col
+        _text(out, cx, y, value, colors["ink"], 26, 700, spacing="-.02em")
+        for j, line in enumerate(wrap(label, col - 14, 12.5)[:2]):
+            _text(out, cx, y + 20 + j * 15, line, colors["muted"], 12.5)
+    return y + 20 + 15 * 2
 
 
 def _tile(out, x, y, w, h, colors, accent=True, dashed=False):
@@ -151,64 +183,76 @@ def topics_svg(data, lang, palette, built, signals):
     out = []
     notes_total = sum(n for *_, groups in data["zones"] for *_, n, _ in groups) + sum(n for *_, n in data["others"])
     drafts_total = sum(d for *_, groups in data["zones"] for *_, d in groups)
-    x0, y = INSET, INSET + 14
-    _kicker(out, x0, y, _pick(zh, "内容一览", "What's inside"), colors)
-    _stats(out, x0, y + 40, [(str(signals["reviewed"]), _pick(zh, "篇已中英文逐篇复核", "notes re-read in both languages")),
-                             (str(signals["figures"]), _pick(zh, "张交互与分步图解", "interactive and step-by-step figures")),
-                             (str(signals["paper"]), _pick(zh, "张论文原图", "figures from the papers")),
-                             (str(drafts_total), _pick(zh, "篇草稿待审核", "drafts in review"))], colors)
-    cols, gap = len(data["zones"]), 14
-    col_w = (WIDTH - 2 * INSET - (cols - 1) * gap) / cols
-    top, bottoms = y + 92, []
-    for i, (zone_zh, zone_en, groups) in enumerate(data["zones"]):
-        x, yy = INSET + i * (col_w + gap), top
-        label = _pick(zh, zone_zh, zone_en)
-        number, _, name = label.partition(" · ")
-        out.append(f'<circle cx="{x + 11}" cy="{yy - 4}" r="11" fill="none" stroke="{colors["accent"]}" stroke-opacity=".6"/>')
-        _text(out, x + 11, yy, number, colors["accent"], 10.5, 700, "middle")
-        _text(out, x + 30, yy, name or label, colors["ink"], 12.5, 650)
-        yy += 16
-        for name_zh, name_en, notes, drafts in groups:
-            name_lines = wrap(_pick(zh, name_zh, name_en), col_w - 74, 13)
-            h = max(52, 20 + 17 * len(name_lines) + 14)
-            tip = _pick(zh, f"{name_zh}：{notes} 篇" + (f"，其中 {drafts} 篇待审核" if drafts else ""),
-                        f"{name_en}: {notes} notes" + (f", {drafts} pending review" if drafts else ""))
-            out.append(f"<g><title>{esc(tip)}</title>")
-            _tile(out, x, yy, col_w, h, colors, accent=True, dashed=bool(drafts) and drafts == notes)
-            ty = yy + 23
-            for line in name_lines:
-                _text(out, x + 14, ty, line, colors["ink"], 13, 600)
-                ty += 17
-            if drafts:
-                tag = _pick(zh, "草稿" if drafts == notes else f"{drafts} 篇草稿", "draft" + ("s" if drafts > 1 else "") if drafts == notes else f"{drafts} draft" + ("s" if drafts > 1 else ""))
-                _text(out, x + 14, ty + 1, tag, colors["muted"], 11)
-            _text(out, x + col_w - 12, yy + 26, str(notes), colors["ink"], 20, 700, "end", spacing="-.02em")
-            _text(out, x + col_w - 12, yy + 41, _pick(zh, "篇", "notes"), colors["muted"], 10.5, anchor="end")
-            out.append("</g>")
-            yy += h + 8
-        bottoms.append(yy)
-    y = max(bottoms) + 10
-    out.append(f'<line x1="{INSET}" x2="{WIDTH - INSET}" y1="{y:.1f}" y2="{y:.1f}" stroke="{colors["tile_rule"]}"/>')
-    y += 28
+    inner = WIDTH - 2 * INSET
+    y = INSET + 14
+    _kicker(out, INSET, y, _pick(zh, "内容一览", "What's inside"), colors)
+    y = _stats(out, INSET, y + 36, [(str(signals["reviewed"]), _pick(zh, "篇中英文逐篇复核", "notes re-read in both languages")),
+                                    (str(signals["figures"]), _pick(zh, "张交互与分步图解", "interactive figures")),
+                                    (str(signals["paper"]), _pick(zh, "张论文原图", "figures from papers")),
+                                    (str(drafts_total), _pick(zh, "篇草稿待审核", "drafts in review"))], colors, inner) + 10
+    gap = 14
+    col_w = (inner - gap) / 2
+    zones = data["zones"]
+    def row_height(lines, drafts):
+        return 14 + 19 * len(lines) + (16 if drafts else 0)
+
+    for row in range(0, len(zones), 2):
+        tops, pair = [], []
+        for zone_zh, zone_en, groups in zones[row:row + 2]:
+            rows = [(wrap(_pick(zh, name_zh, name_en), col_w - 74, 14), notes, drafts)
+                    for name_zh, name_en, notes, drafts in groups]
+            pair.append((zone_zh, zone_en, rows))
+        h = max(sum(row_height(lines, drafts) for lines, _, drafts in rows) for *_, rows in pair) + 8
+        for k, (zone_zh, zone_en, rows) in enumerate(pair):
+            x, yy = INSET + k * (col_w + gap), y
+            label = _pick(zh, zone_zh, zone_en)
+            number, _, name = label.partition(" · ")
+            out.append(f'<circle cx="{x + 11}" cy="{yy + 10}" r="11" fill="none" stroke="{colors["accent"]}" stroke-opacity=".6"/>')
+            _text(out, x + 11, yy + 14, number, colors["accent"], 10.5, 700, "middle")
+            _text(out, x + 30, yy + 15, name or label, colors["ink"], 14, 650)
+            yy += 30
+            _tile(out, x, yy, col_w, h, colors, accent=False)
+            ty = yy + 8
+            for i, (lines, notes, drafts) in enumerate(rows):
+                row_h = row_height(lines, drafts)
+                if i:
+                    out.append(f'<line x1="{x + 12:.1f}" x2="{x + col_w - 12:.1f}" y1="{ty:.1f}" y2="{ty:.1f}" stroke="{colors["tile_rule"]}"/>')
+                if drafts:
+                    dash = ' stroke-dasharray="3 3"' if drafts == notes else ""
+                    out.append(f'<line x1="{x + 1.5:.1f}" y1="{ty + 8:.1f}" x2="{x + 1.5:.1f}" y2="{ty + row_h - 8:.1f}" '
+                               f'stroke="{colors["accent"]}" stroke-width="3" stroke-linecap="round"{dash}/>')
+                ly = ty + 21
+                for line in lines:
+                    _text(out, x + 14, ly, line, colors["ink"], 14, 600)
+                    ly += 19
+                if drafts:
+                    tag = _pick(zh, "草稿" if drafts == notes else f"{drafts} 篇草稿",
+                                ("draft" if notes == 1 else "drafts") if drafts == notes else f"{drafts} draft" + ("s" if drafts > 1 else ""))
+                    _text(out, x + 14, ly - 3, tag, colors["muted"], 12)
+                _text(out, x + col_w - 14, ty + 21, _pick(zh, f"{notes} 篇", str(notes)), colors["ink"], 14, 700, "end")
+                ty += row_h
+            tops.append(yy + h)
+        y = max(tops) + 16
     x = INSET
+    y += 20
     for name_zh, name_en, notes in data["others"]:
-        label, count = _pick(zh, name_zh, name_en), _pick(zh, f"{notes} 篇", f"{notes} notes")
-        w = _width(label, 12.5) + _width(count, 12) + 40
-        out.append(f'<rect x="{x}" y="{y - 17}" width="{w:.0f}" height="26" rx="13" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
-        _text(out, x + 13, y, label, colors["ink"], 12.5, 600)
-        _text(out, x + w - 13, y, count, colors["muted"], 12, anchor="end")
-        x += w + 10
-    y += 32
-    _text(out, INSET, y, _pick(zh, f"{built} 构建 · 虚线是待审核草稿 · 随网站每次部署更新",
-                               f"Built {built} · dashed accents mark drafts pending review · updated on every deploy"),
-          colors["muted"], 11)
-    height = y + INSET - 6
+        label, count = _pick(zh, name_zh, name_en), _pick(zh, f"{notes} 篇", str(notes))
+        w = _width(label, 13) + _width(count, 13) + 36
+        if x + w > WIDTH - INSET:
+            x, y = INSET, y + 38
+        out.append(f'<rect x="{x:.1f}" y="{y - 19}" width="{w:.0f}" height="28" rx="14" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
+        _text(out, x + 13, y, label, colors["ink"], 13, 600)
+        _text(out, x + w - 13, y, count, colors["muted"], 13, anchor="end")
+        x += w + 8
+    y += 30
+    for line in wrap(_pick(zh, f"{built} 构建 · 左侧色条是待审核草稿 · 随网站每次部署更新",
+                             f"Built {built} · an amber bar marks drafts pending review · updated on every deploy"), inner, 11.5):
+        _text(out, INSET, y, line, colors["muted"], 11.5)
+        y += 15
     title = _pick(zh, "内容一览", "What's inside")
     desc = _pick(zh, f"按板块列出的主题和篇数，共 {notes_total} 篇。", f"Topics by area with note counts, {notes_total} notes in all.")
-    return _panel(WIDTH, height, colors, title, desc, out, glow=(0.05, 0.0))
+    return _panel(WIDTH, y + INSET - 10, colors, title, desc, out, glow=(0.05, 0.0))
 
-
-# ---------------------------------------------------------------- roadmap
 
 def load_milestones(path):
     return tomllib.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
@@ -230,54 +274,76 @@ def _icon(out, kind, cx, cy, colors):
 
 def roadmap_svg(data, lang, palette, built):
     zh, colors = lang == "zh", PALETTES[palette]
-    columns = [("done", "已完成", "Done"), ("now", "现在", "Now"), ("next", "接下来", "Next"),
-               ("open", "欢迎参与", "Help wanted")]
-    out, gap = [], 14
-    y0 = INSET + 14
-    _kicker(out, INSET, y0, _pick(zh, "路线图", "Roadmap"), colors)
-    col_w = (WIDTH - 2 * INSET - 3 * gap) / 4
-    # the rail: one line through the four column heads
-    rail = y0 + 34
-    for i, (key, label_zh, label_en) in enumerate(columns[:-1]):
-        start = INSET + i * (col_w + gap) + 28 + _width(_pick(zh, label_zh, label_en), 13.5) + 10
-        end = INSET + (i + 1) * (col_w + gap) - 2
-        done = key in ("done", "now") and i == 0
-        out.append(f'<line x1="{start:.1f}" x2="{end:.1f}" y1="{rail}" y2="{rail}" stroke="{colors["accent"] if done else colors["tile_rule"]}" '
-                   f'stroke-width="2"' + (' stroke-opacity=".7"' if done else ' stroke-dasharray="4 4"' if key == "next" else "") + '/>')
+    out, inner = [], WIDTH - 2 * INSET
+    y = INSET + 14
+    _kicker(out, INSET, y, _pick(zh, "路线图", "Roadmap"), colors)
+    y += 26
+    # now and next, side by side
+    gap = 14
+    col_w = (inner - gap) / 2
     bottoms = []
-    for i, (key, label_zh, label_en) in enumerate(columns):
-        x, y = INSET + i * (col_w + gap), rail
-        _icon(out, key, x + 10, y, colors)
-        _text(out, x + 28, y + 4.5, _pick(zh, label_zh, label_en), colors["ink"], 13.5, 700)
-        y += 24
-        for item in data.get(key, []):
-            lines = wrap(_pick(zh, item["zh"], item["en"]), col_w - 30, 12.5)
-            dated = "date" in item
-            h = 16 + (17 if dated else 0) + 17 * len(lines) + 8
-            if key == "now":
-                out.append(f'<rect x="{x - 2:.1f}" y="{y - 2:.1f}" width="{col_w + 4:.1f}" height="{h + 4}" rx="13" '
-                           f'fill="{colors["accent"]}" fill-opacity=".08"/>')
-                out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{col_w:.1f}" height="{h}" rx="11" fill="{colors["tile"]}" '
-                           f'stroke="{colors["accent"]}" stroke-opacity=".75"/>')
-            else:
-                _tile(out, x, y, col_w, h, colors, accent=key == "done", dashed=key in ("next", "open"))
-                if key in ("next", "open"):
-                    out[-2] = out[-2].replace(f'stroke="{colors["tile_rule"]}"', f'stroke="{colors["tile_rule"]}" stroke-dasharray="4 3"')
-            ty = y + 21
-            if dated:
-                _text(out, x + 14, ty, item["date"], colors["accent"], 11, 700, spacing=".04em")
-                ty += 17
+    for k, (key, label_zh, label_en) in enumerate((("now", "现在", "Now"), ("next", "接下来", "Next"))):
+        x, yy = INSET + k * (col_w + gap), y
+        _icon(out, key, x + 10, yy + 8, colors)
+        _text(out, x + 28, yy + 13, _pick(zh, label_zh, label_en), colors["ink"], 15, 700)
+        yy += 26
+        items = [wrap(_pick(zh, item["zh"], item["en"]), col_w - 46, 14) for item in data.get(key, [])]
+        h = sum(16 + 19 * len(lines) for lines in items) + 10
+        if key == "now":
+            out.append(f'<rect x="{x - 2:.1f}" y="{yy - 2:.1f}" width="{col_w + 4:.1f}" height="{h + 4}" rx="13" fill="{colors["accent"]}" fill-opacity=".08"/>'
+                       f'<rect x="{x:.1f}" y="{yy:.1f}" width="{col_w:.1f}" height="{h}" rx="11" fill="{colors["tile"]}" stroke="{colors["accent"]}" stroke-opacity=".75"/>')
+        else:
+            out.append(f'<rect x="{x:.1f}" y="{yy:.1f}" width="{col_w:.1f}" height="{h}" rx="11" fill="{colors["tile"]}" '
+                       f'stroke="{colors["tile_rule"]}" stroke-dasharray="4 3"/>')
+        ty = yy + 8
+        for lines in items:
+            out.append(f'<circle cx="{x + 18:.1f}" cy="{ty + 15:.1f}" r="3" fill="{colors["accent"] if key == "now" else colors["muted"]}"/>')
+            ly = ty + 20
             for line in lines:
-                _text(out, x + 14, ty, line, colors["ink"], 12.5)
-                ty += 17
-            y += h + 8
-        bottoms.append(y)
-    y = max(bottoms) + 16
-    _text(out, INSET, y, _pick(zh, f"{built} 构建 · 内容来自 site/milestones.toml，随网站每次部署更新",
-                               f"Built {built} · from site/milestones.toml, updated on every deploy"), colors["muted"], 11)
+                _text(out, x + 30, ly, line, colors["ink"], 14)
+                ly += 19
+            ty += 16 + 19 * len(lines)
+        bottoms.append(yy + h)
+    y = max(bottoms) + 30
+    # done: a timeline, oldest on the left
+    _icon(out, "done", INSET + 10, y - 5, colors)
+    _text(out, INSET + 28, y, _pick(zh, "已完成", "Done"), colors["ink"], 15, 700)
+    y += 22
+    done = data.get("done", [])
+    step = inner / max(1, len(done))
+    out.append(f'<line x1="{INSET + step / 2:.1f}" x2="{INSET + inner - step / 2:.1f}" y1="{y:.1f}" y2="{y:.1f}" '
+               f'stroke="{colors["accent"]}" stroke-opacity=".55" stroke-width="2"/>')
+    low = y
+    for i, item in enumerate(done):
+        cx = INSET + step * (i + .5)
+        out.append(f'<circle cx="{cx:.1f}" cy="{y:.1f}" r="5" fill="{colors["accent"]}"/>')
+        _text(out, cx, y + 24, item["date"], colors["accent"], 12, 700, "middle")
+        ly = y + 42
+        for line in wrap_even(_pick(zh, item["zh"], item["en"]), step - 8, 12.5):
+            _text(out, cx, ly, line, colors["ink"], 12.5, anchor="middle")
+            ly += 16
+        low = max(low, ly)
+    y = low + 22
+    # help wanted
+    _icon(out, "open", INSET + 10, y - 5, colors)
+    _text(out, INSET + 28, y, _pick(zh, "欢迎参与", "Help wanted"), colors["ink"], 15, 700)
+    y += 30
+    x = INSET
+    for item in data.get("open", []):
+        label = _pick(zh, item["zh"], item["en"])
+        w = _width(label, 13) + 28
+        if x + w > WIDTH - INSET:
+            x, y = INSET, y + 38
+        out.append(f'<rect x="{x:.1f}" y="{y - 19}" width="{w:.0f}" height="28" rx="14" fill="none" '
+                   f'stroke="{colors["tile_rule"]}" stroke-dasharray="4 3"/>')
+        _text(out, x + w / 2, y, label, colors["ink"], 13, anchor="middle")
+        x += w + 8
+    y += 32
+    _text(out, INSET, y, _pick(zh, f"{built} 构建 · 内容来自 site/milestones.toml", f"Built {built} · from site/milestones.toml"),
+          colors["muted"], 11.5)
     title = _pick(zh, "路线图", "Roadmap")
-    desc = _pick(zh, "已完成、正在做、接下来和欢迎参与的方向。", "What is done, in progress, next, and open to contributors.")
-    return _panel(WIDTH, y + INSET - 6, colors, title, desc, out, glow=(0.32, 0.0))
+    desc = _pick(zh, "现在、接下来、已完成和欢迎参与的方向。", "What is in progress, next, done, and open to contributors.")
+    return _panel(WIDTH, y + INSET - 8, colors, title, desc, out, glow=(0.2, 0.0))
 
 
 # ---------------------------------------------------------------- people
@@ -367,82 +433,83 @@ def _avatar(out, x, y, r, person, colors, key, ring=False):
 
 def people_svg(data, lang, palette, built):
     zh, colors = lang == "zh", PALETTES[palette]
-    out, y = [], INSET + 14
+    out, inner = [], WIDTH - 2 * INSET
+    y = INSET + 14
     _kicker(out, INSET, y, _pick(zh, "幕后", "Behind the notes"), colors)
     commits = sum(p["commits"] for p in data["contributors"])
-    _stats(out, INSET, y + 40, [(str(len(data["contributors"])), _pick(zh, "位贡献者", "contributors")),
-                                (str(commits), _pick(zh, "次提交", "commits")),
-                                (str(len(data["reviewers"])), _pick(zh, "位审稿人", "reviewers"))], colors)
-    y += 92
-    _text(out, INSET, y, _pick(zh, "贡献者", "Contributors"), colors["ink"], 13.5, 700)
-    _text(out, WIDTH - INSET, y, _pick(zh, "按提交数排序", "by commits"), colors["muted"], 11.5, anchor="end")
-    y += 14
-    card_w, card_h, gap = 168, 64, 12
-    per_row = int((WIDTH - 2 * INSET + gap) // (card_w + gap))
+    humans, reviewers = len(data["contributors"]), len(data["reviewers"])
+    y = _stats(out, INSET, y + 36, [(str(humans), _pick(zh, "位贡献者", "contributor" + "s" * (humans != 1))),
+                                    (str(commits), _pick(zh, "次提交", "commit" + "s" * (commits != 1))),
+                                    (str(reviewers), _pick(zh, "位审稿人", "reviewer" + "s" * (reviewers != 1)))], colors, inner * 3 / 4) + 4
+    _text(out, INSET, y, _pick(zh, "贡献者", "Contributors"), colors["ink"], 15, 700)
+    y += 12
+    gap = 12
+    per_row = 3
+    card_w, card_h = (inner - (per_row - 1) * gap) / per_row, 64
     for i, person in enumerate(data["contributors"]):
         x = INSET + (i % per_row) * (card_w + gap)
         row_y = y + (i // per_row) * (card_h + gap)
         out.append(f'<g><title>{esc(person["name"])}</title>')
         _tile(out, x, row_y, card_w, card_h, colors, accent=False)
         _avatar(out, x + 12, row_y + 12, 20, person, colors, f"c{i}", ring=i == 0)
-        _text(out, x + 62, row_y + 28, person["name"][:15], colors["ink"], 12.5, 650)
-        _text(out, x + 62, row_y + 45, _pick(zh, f"{person['commits']} 次提交", f"{person['commits']} commits"), colors["muted"], 11)
+        _text(out, x + 62, row_y + 28, person["name"][:16], colors["ink"], 14, 650)
+        _text(out, x + 62, row_y + 47, _pick(zh, f"{person['commits']} 次提交", f"{person['commits']} commits"), colors["muted"], 12.5)
         out.append("</g>")
     y += max(1, -(-len(data["contributors"]) // per_row)) * (card_h + gap)
     if data["ai"]:
         x = INSET
         label = _pick(zh, "一起写的 AI：", "Written with AI:")
-        _text(out, x, y + 13, label, colors["muted"], 12)
-        x += _width(label, 12) + 10
+        _text(out, x, y + 16, label, colors["muted"], 13)
+        x += _width(label, 13) + 10
         for name in data["ai"]:
-            w = _width(name, 12) + 24
-            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="22" rx="11" fill="none" stroke="{colors["tile_rule"]}"/>')
-            _text(out, x + w / 2, y + 15, name, colors["ink"], 12, 600, "middle")
+            w = _width(name, 13) + 26
+            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="24" rx="12" fill="none" stroke="{colors["tile_rule"]}"/>')
+            _text(out, x + w / 2, y + 17, name, colors["ink"], 13, 600, "middle")
             x += w + 8
-        y += 34
+        y += 36
     y += 22
-    _text(out, INSET, y, _pick(zh, "审稿人", "Reviewers"), colors["ink"], 13.5, 700)
-    _text(out, WIDTH - INSET, y, _pick(zh, "每个 PR 都要一位非作者的领域审稿人通过", "every PR needs a non-author reviewer for its area"),
-          colors["muted"], 11.5, anchor="end")
-    y += 14
-    card_w = (WIDTH - 2 * INSET - 2 * gap) / 3
+    _text(out, INSET, y, _pick(zh, "审稿人", "Reviewers"), colors["ink"], 15, 700)
+    y += 12
+    card_w = (inner - gap) / 2
     for i, person in enumerate(data["reviewers"]):
-        x = INSET + (i % 3) * (card_w + gap)
-        row_y = y + (i // 3) * 82
+        x = INSET + (i % 2) * (card_w + gap)
+        row_y = y + (i // 2) * 82
         names = [_pick(zh, a, b) for a, b in person["areas"]]
         out.append(f'<g><title>{esc(", ".join(names))}</title>')
         _tile(out, x, row_y, card_w, 70, colors, accent=True)
         _avatar(out, x + 16, row_y + 13, 22, {**person, "name": person["login"]}, colors, f"r{i}")
-        _text(out, x + 70, row_y + 30, person["login"], colors["ink"], 13, 650)
+        _text(out, x + 70, row_y + 31, person["login"], colors["ink"], 14, 650)
         detail = _pick(zh, f"{len(names)} 个领域", f"{len(names)} areas")
         if person.get("reviews"):
             detail += _pick(zh, f" · 审过 {person['reviews']} 个 PR", f" · {person['reviews']} PRs reviewed")
-        _text(out, x + 70, row_y + 49, detail, colors["muted"], 11.5)
+        _text(out, x + 70, row_y + 51, detail, colors["muted"], 12.5)
         out.append("</g>")
-    y += max(1, -(-len(data["reviewers"]) // 3)) * 82
+    y += max(1, -(-len(data["reviewers"]) // 2)) * 82 - 4
     if data.get("next"):
-        y += 22
-        _text(out, INSET, y, _pick(zh, "读者的下一站", "Where readers went next"), colors["ink"], 13.5, 700)
-        _text(out, WIDTH - INSET, y, _pick(zh, "读者自愿分享，不代表笔记促成了这些机会", "self-reported and voluntary; not a claim that the notes got anyone a job"),
-              colors["muted"], 11.5, anchor="end")
+        y += 26
+        _text(out, INSET, y, _pick(zh, "读者的下一站", "Where readers went next"), colors["ink"], 15, 700)
+        y += 18
+        _text(out, INSET, y, _pick(zh, "读者自愿分享，不代表笔记促成了这些机会", "Self-reported and voluntary; not a claim that the notes got anyone a job"),
+              colors["muted"], 12)
         y += 14
         x = INSET
         for name, count, logo in data["next"]:
-            label = _pick(zh, f"{name} · {count}", f"{name} · {count}")
-            w = _width(label, 12.5) + (52 if logo else 28)
-            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="34" rx="17" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
+            label = f"{name} · {count}"
+            w = _width(label, 13) + (54 if logo else 28)
+            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="36" rx="18" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
             tx = x + 14
             if logo:
-                out.append(f'<image href="{logo}" x="{x + 10}" y="{y + 8}" width="18" height="18"/>')
-                tx = x + 36
-            _text(out, tx, y + 22, label, colors["ink"], 12.5, 600)
-            x += w + 10
-        y += 48
-    y += 14
-    _text(out, INSET, y, _pick(zh, f"{built} 构建 · 来自 git 记录、GitHub 与 site/collaboration.toml，随网站每次部署更新",
-                               f"Built {built} · from git history, GitHub and site/collaboration.toml, updated on every deploy"),
-          colors["muted"], 11)
+                out.append(f'<image href="{logo}" x="{x + 11}" y="{y + 9}" width="18" height="18"/>')
+                tx = x + 37
+            _text(out, tx, y + 23, label, colors["ink"], 13, 600)
+            x += w + 8
+        y += 44
+    y += 22
+    for line in wrap(_pick(zh, f"{built} 构建 · 来自 git 记录、GitHub 与 site/collaboration.toml，随网站每次部署更新",
+                             f"Built {built} · from git history, GitHub and site/collaboration.toml, updated on every deploy"), inner, 11.5):
+        _text(out, INSET, y, line, colors["muted"], 11.5)
+        y += 15
     title = _pick(zh, "贡献者与审稿人", "Contributors and reviewers")
     desc = _pick(zh, f"{len(data['contributors'])} 位贡献者，{len(data['reviewers'])} 位审稿人。",
                  f"{len(data['contributors'])} contributors and {len(data['reviewers'])} reviewers.")
-    return _panel(WIDTH, y + INSET - 6, colors, title, desc, out, glow=(0.9, 0.0))
+    return _panel(WIDTH, y + INSET - 10, colors, title, desc, out, glow=(0.9, 0.0))

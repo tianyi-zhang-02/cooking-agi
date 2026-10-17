@@ -53,7 +53,9 @@ class ReadmeCardTests(unittest.TestCase):
         zones = [zone for zone in build.NAV["zone"]]
         self.assertEqual(len(self.topics["zones"]), len(zones))
         self.assertTrue(any(d for *_, groups in self.topics["zones"] for *_, d in groups))
-        self.assertIn("notes re-read in both languages", self.cards[("topics", "en", "dark")])
+        # the label wraps onto two lines of the stat column
+        for part in ("notes re-read in", "both languages"):
+            self.assertIn(part, self.cards[("topics", "en", "dark")])
 
     def test_next_stop_counts_only_consented_records(self):
         self.assertEqual([(name, count) for name, count, _ in self.team["next"]], [("Example", 1)])

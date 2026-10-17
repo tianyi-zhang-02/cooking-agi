@@ -1,52 +1,53 @@
 # The roadmap card in the README (site/readme_cards.py draws it on every build).
-# done: shipped, newest first, with the month it landed. now: what is being worked on.
-# next: decided but not started. open: directions that need contributors.
-# Keep each line short: it is drawn inside a card, not rendered as markdown.
-
-[[done]]
-date = "2026-10"
-zh = "前沿观察、AI 基础设施、具身智能三个新板块；量化、Scaling、扩散语言模型草稿"
-en = "Frontier watch, AI infrastructure and embodied AI; drafts on quantization, scaling and diffusion LMs"
-
-[[done]]
-date = "2026-10"
-zh = "全站中英文逐篇复核；分步动画与论文原图进入各章"
-en = "Every note re-read in both languages; step-by-step figures and the papers' own figures in each chapter"
-
-[[done]]
-date = "2026-10"
-zh = "技术编年史、阅读记录与收藏、深度强化学习与 LLM-as-a-Judge 系列"
-en = "Tech history, reading records, Deep RL and LLM-as-a-Judge series"
-
-[[done]]
-date = "2026-09"
-zh = "全站双语；RLHF、MoE、Looped Transformer、Agents 系列与交互图解"
-en = "The whole site in two languages; RLHF, MoE, looped Transformers and agents, with live figures"
+# done: shipped, oldest first, with the month it landed; drawn as a timeline, so keep labels to
+#       a few words. now: being worked on. next: decided, not started. open: needs contributors.
+# Every label is drawn inside a small card on GitHub: keep it short (about 40 Latin characters
+# or 16 Chinese characters).
 
 [[done]]
 date = "2026-08"
-zh = "第一版站点：大模型基础与 Post-training 系列"
-en = "The first site: foundations and a post-training series"
+zh = "第一版站点：基础与后训练"
+en = "First site: foundations, post-training"
+
+[[done]]
+date = "2026-09"
+zh = "全站双语；RLHF、MoE、Agents"
+en = "Two languages; RLHF, MoE, agents"
+
+[[done]]
+date = "2026-10"
+zh = "Deep RL、LLM 评审、编年史"
+en = "Tech history, Deep RL, LLM judges"
+
+[[done]]
+date = "2026-10"
+zh = "逐篇复核，分步动画"
+en = "Every note re-read; step figures"
+
+[[done]]
+date = "2026-10"
+zh = "前沿、基础设施、具身智能"
+en = "Frontier, infra, embodied AI"
 
 [[now]]
-zh = "站主逐篇审阅待审核草稿（基础设施、具身、前沿三组）"
-en = "The site owner reviews the drafts (infrastructure, embodied AI, three frontier series)"
+zh = "站主审阅新草稿"
+en = "The site owner reviews the new drafts"
 
 [[now]]
-zh = "AI 面试练习 skill：笔记与题库通过只读数据接口提供"
-en = "An AI interview coach skill, reading the notes and questions from a read-only data API"
+zh = "更快的搜索，更快的页面"
+en = "Faster search and faster pages"
 
 [[next]]
-zh = "远程 MCP 服务：在 Claude、ChatGPT、Cursor 里直接查笔记、出题"
-en = "A remote MCP server, so Claude, ChatGPT and Cursor can search the notes and quiz you"
+zh = "面试练习 skill 与 MCP 服务"
+en = "Interview coach skill and an MCP server"
 
 [[next]]
-zh = "v1.0 面试准备版：路线、练习与阅读记录一起发布"
-en = "v1.0, interview prep: routes, practice and reading records released together"
+zh = "v1.0 面试准备版"
+en = "v1.0: interview prep"
 
 [[next]]
-zh = "给新草稿补分步动画，给各章补原文图"
-en = "Step-by-step figures for the new drafts, and more of the papers' own figures"
+zh = "给新草稿补分步动画"
+en = "Step-by-step figures for the new drafts"
 
 [[open]]
 zh = "Jetson 与边缘部署"
@@ -57,5 +58,5 @@ zh = "物理仿真"
 en = "Physical simulation"
 
 [[open]]
-zh = "视觉、驾驶、机器人方向的审稿人"
-en = "Reviewers for vision, driving and robotics"
+zh = "视觉、驾驶、机器人的审稿人"
+en = "Reviewers for vision, driving, robotics"
