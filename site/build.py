@@ -2101,7 +2101,9 @@ def main():
         for palette in topic_coverage.PALETTES:
             (OUT / f"static/topic-coverage-{language}-{palette}.svg").write_text(
                 topic_coverage.svg(coverage, language, palette, built[:10]), encoding="utf-8")
-    # README cards: what's inside, roadmap, contributors and reviewers (site/readme_cards.py)
+    # README cards: what's inside, roadmap, contributors and reviewers (site/readme_cards.py).
+    # Contributors are shown on GitHub, not on the site, so they are collected only for the cards.
+    people = contributors(nav["site"]["repo"])
     topics = readme_cards.topic_rows(NAV, NAV.get("_sections", []))
     milestones = readme_cards.load_milestones(SITE / "milestones.toml")
     outcomes = json.loads((ROOT / "community/outcomes.json").read_text(encoding="utf-8"))

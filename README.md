@@ -139,7 +139,7 @@ Details of every merge are in the [changelog](README.md#changelog) at the bottom
 
 <!-- /repository-only -->
 
-Everyone with a commit or co-author credit, the reviewers who approve changes in each area, and where readers went next if they chose to share it. The card is rebuilt from git history, GitHub and `site/collaboration.toml` on every deploy and once a day. Commit counts are not a ranking: questions, reviews and corrections count too. To add a location, or to share your next stop (only what you choose to show), open an issue: [add me](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [share my next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml).
+Everyone with a commit or co-author credit, the reviewers who approve changes in each area, and where readers went next if they chose to share it. The card is rebuilt from git history, GitHub and `site/collaboration.toml` on every deploy and once a day. Commit counts are not a ranking: questions, reviews and corrections count too. To be credited for a review or correction, or to share your next stop (only what you choose to show), open an issue: [credit me](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [share my next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml).
 
 <span id="_3"></span>
 
@@ -149,7 +149,7 @@ If a passage is confusing, something has changed, or a topic is missing, we'd li
 
 - **Give feedback:** [open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) and link the part you're referring to. You can flag a correction, outdated information, an unclear explanation, a missing topic, or a site problem.
 - **Make a change:** small fixes can go straight into a PR. For a new article or navigation change, start with a [content proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) so we can coordinate.
-- **Pass it on:** if the notes helped you learn or prepare, share the link with a friend or classmate. Sharing an employer or job-search outcome is never required. Meet the contributors in [Behind the notes](contributors.en.md); map locations are optional too.
+- **Pass it on:** if the notes helped you learn or prepare, share the link with a friend or classmate. Sharing an employer or job-search outcome is never required. The people behind the notes are listed under [Contributors and reviewers](#contributors).
 
 These are our working notes, not an official curriculum. Our experience is mainly in ML / LLM and MLE / research preparation, and it shapes what we cover. Some material will be incomplete or out of date. We share public knowledge and preparation methods, not company-specific interview information or question banks. We can't predict questions or promise an offer.
 

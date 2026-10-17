@@ -191,7 +191,7 @@ class LanguageEntryTests(unittest.TestCase):
             route_section = re.split(r'(?m)^## ', text)[1]
             self.assertEqual(len(re.findall(r'(?m)^- \*\*\[', route_section)), 5)
             local = {target.split('#')[0] for target in re.findall(r'\]\(([^)]+)\)', text)
-                     if not target.startswith(('https:', 'http:'))}
+                     if not target.startswith(('https:', 'http:', '#'))}
             for target in local:
                 self.assertTrue((build.ROOT / target).is_file(), target)
             routes[language] = {target.replace('.en.md', '.md') for target in local
@@ -236,7 +236,7 @@ class LanguageEntryTests(unittest.TestCase):
     def test_new_home_details_do_not_shift_legacy_chinese_anchors(self):
         page = self.home['zh']
         build.build_page(page, [], self.nav['site']['repo'], self.known)
-        expected = [('_1', '从哪里开始'), ('_2', '内容一览'), ('roadmap', '路线图'), ('contributors', '贡献者与审稿人（Contributors）'), ('_3', '加入我们！'),
+        expected = [('_1', '从哪里开始'), ('_2', '内容一览'), ('roadmap', '路线图'), ('contributors-reviewers', '贡献者与审稿人（Contributors / Reviewers）'), ('_3', '加入我们！'),
                     ('_4', '本地阅读与检查'), ('_5', '为什么整理这些'), ('_6', '更新记录')]
         self.assertEqual([(heading['id'], heading['name']) for heading in page.toc], expected)
         self.assertIn('id="how-to-use-the-notes"', page.body)

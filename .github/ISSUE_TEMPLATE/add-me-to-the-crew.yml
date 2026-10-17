@@ -1,10 +1,10 @@
-name: 贡献记录与地图 · Credit and map
-description: 补充贡献署名，或添加、更改、移除自愿提供的位置。 / Add a credit or manage an optional location.
+name: 贡献署名 · Credit
+description: 补充审阅、纠错等没有出现在提交记录里的贡献署名。 / Add a credit for a review, correction or other contribution.
 title: "[Credit] @your-github-login"
 body:
   - type: markdown
     attributes:
-      value: 提交作者会自动出现在幕后。这里也接收审阅、纠错等贡献记录；位置可不填，请勿填写地址。 / Commit authors appear automatically. Reviews and corrections count too. Location is optional; do not share an address.
+      value: 提交作者会自动出现在 README 的贡献者卡片里。这里补充审阅、纠错等不在提交记录里的贡献。 / Commit authors appear automatically on the README's contributor card. Use this form for reviews, corrections and other contributions git does not record.
   - type: input
     id: login
     attributes:
@@ -15,14 +15,9 @@ body:
     id: evidence
     attributes:
       label: 贡献与依据 · Contribution and evidence
-      description: 附本仓库 issue / PR 链接；只改位置可写“不适用”。 / Link issues or PRs here; write N/A for location-only requests.
+      description: 附本仓库 issue / PR 链接。 / Link the issues or PRs.
     validations:
       required: true
-  - type: input
-    id: country
-    attributes:
-      label: 位置（可选）· Location (optional)
-      description: 国家/地区两位代码，如 US 或 CN, US；也可以写 remove。 / Two-letter country/region codes or remove.
   - type: checkboxes
     id: consent
     attributes:

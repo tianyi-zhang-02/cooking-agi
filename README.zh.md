@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><img src=".github/media/hero.zh.svg" width="100%" alt="AGI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"></a></p>
 
-<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><b>在线阅读 →</b></a> &nbsp;·&nbsp; <a href="README.md">English</a> &nbsp;·&nbsp; <a href="#贡献者与审稿人contributors">贡献者</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md">加入我们</a></p>
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><b>在线阅读 →</b></a> &nbsp;·&nbsp; <a href="README.md">English</a> &nbsp;·&nbsp; <a href="#contributors">贡献者</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md">加入我们</a></p>
 
 <p align="center"><a href="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml"><img src="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main" alt="Build"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/notes-CC%20BY%204.0-e8a672" alt="笔记：CC BY 4.0"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/code-MIT-e8a672" alt="代码：MIT"></a></p>
 
@@ -125,7 +125,9 @@
 
 每次合并的细节，见页面最下方的[更新记录](README.zh.md#changelog)。
 
-## 贡献者与审稿人（Contributors）
+<span id="contributors"></span>
+
+## 贡献者与审稿人（Contributors / Reviewers）
 
 <!-- repository-only -->
 
@@ -133,7 +135,7 @@
 
 <!-- /repository-only -->
 
-所有提交过或署名合作的人、负责批准各领域改动的审稿人，以及读者自愿分享的下一站。卡片每次部署和每天都会根据 git 记录、GitHub 和 `site/collaboration.toml` 重新生成。提交数不是排名：提问、审阅和纠错同样算数。想标出所在城市，或分享你的下一站（只显示你愿意公开的部分），可以开一个 issue：[加入名单](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。
+所有提交过或署名合作的人、负责批准各领域改动的审稿人，以及读者自愿分享的下一站。卡片每次部署和每天都会根据 git 记录、GitHub 和 `site/collaboration.toml` 重新生成。提交数不是排名：提问、审阅和纠错同样算数。想为审阅、纠错补一个署名，或分享你的下一站（只显示你愿意公开的部分），可以开一个 issue：[补充署名](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。
 
 ## 加入我们！
 
@@ -141,7 +143,7 @@
 
 - **提反馈：**开一个 [issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，附上相关段落。内容纠错、信息过时、解释不清、想加主题、网站问题，都有对应选项。
 - **一起改：**小改动直接提 PR 就好；想写新文章或调整目录，先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，方便大家商量，避免重复做。
-- **分享给朋友：**如果这里的笔记帮到了你，欢迎把链接发给同学，或正在找工、转方向的朋友。不用公开公司或求职结果。也可以去[幕后](contributors.md)看看参与整理的朋友；地图位置是自愿填写的。
+- **分享给朋友：**如果这里的笔记帮到了你，欢迎把链接发给同学，或正在找工、转方向的朋友。不用公开公司或求职结果。参与整理的朋友列在[贡献者与审稿人](#contributors)里。
 
 这些是我们一边学、一边改的笔记，不是官方课程。选题受自身经验影响，目前更偏 ML / LLM 和 MLE / research 方向，也难免有遗漏和过时的地方。我们分享公开知识和准备方法，不收录针对某家公司的面试信息或题库，也没办法预测题目、保证 offer。
 
