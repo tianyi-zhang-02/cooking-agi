@@ -189,8 +189,13 @@ def contributors(repo: str):
     ai_models = {}
     log = git(
         "log",
-        "--format=%an%x09%ae%x09%cI%x09%(trailers:key=Co-authored-by,valueonly,separator=%x1f)",
-    )
+        "--format=%aN%x09%aE%x09%cI%x09%(trailers:key=Co-authored-by,valueonly,separator=%x1f)",
+    )  # %aN/%aE: names as .mailmap maps them, so one person who committed under two names counts once
+    trailers = [line.split("\t", 3)[3] for line in log.splitlines() if line.count("\t") >= 3]
+    credited = sorted({c.strip() for trailer in trailers for c in trailer.split("\x1f") if c.strip()})
+    mapped = git("check-mailmap", *credited).splitlines() if credited else []
+    mailmap = (dict(zip(credited, mapped)) if len(mapped) == len(credited)
+               and all(re.fullmatch(r"[^\t]+<[^>]+>", line) for line in mapped) else {})
     for line in log.splitlines():
         parts = line.split("\t", 3)
         if len(parts) < 3:
@@ -199,6 +204,7 @@ def contributors(repo: str):
         identities = [(name, email)]
         credits = parts[3] if len(parts) == 4 else ""
         for credit in credits.split("\x1f"):
+            credit = mailmap.get(credit.strip(), credit)  # co-author trailers through .mailmap too
             match = re.match(r"\s*(.*?)\s*<([^>]+)>\s*$", credit)
             if match:
                 identities.append(match.groups())

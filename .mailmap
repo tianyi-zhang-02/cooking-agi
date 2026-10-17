@@ -1,0 +1,3 @@
+# One name per person on the README contributor card (site/build.py reads names through this file).
+# Format: Proper Name <proper email> Name used in a commit <email used in that commit>
+Michael Wang <96035871+Juggernaut0825@users.noreply.github.com> Zijian Wang <zijianwang@Zijians-MacBook-Pro.local>

@@ -3,6 +3,8 @@ from pathlib import Path
 import re
 import sys
 import unittest
+import urllib.error
+from unittest import mock
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -63,6 +65,19 @@ class ReadmeCardTests(unittest.TestCase):
     def test_roadmap_has_all_four_columns(self):
         for key in ("done", "now", "next", "open"):
             self.assertTrue(self.milestones.get(key), key)
+
+
+class ContributorIdentityTests(unittest.TestCase):
+    def test_one_entry_per_person_through_mailmap(self):
+        # Michael Wang (Juggernaut0825) also committed as "Zijian Wang"; .mailmap makes it one person,
+        # for authors and for Co-authored-by credits alike
+        offline = mock.patch("urllib.request.urlopen", side_effect=urllib.error.URLError("offline"))
+        with offline:
+            people = build.contributors("tianyi-zhang-02/cooking-agi")
+        names = [p["name"] for p in people]
+        self.assertNotIn("Zijian Wang", names)
+        self.assertEqual(names.count("Michael Wang"), 1)
+        self.assertEqual(next(p for p in people if p["name"] == "Michael Wang")["login"], "Juggernaut0825")
 
 
 class ReadmeHeroTests(unittest.TestCase):

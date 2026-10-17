@@ -9,7 +9,8 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '17 1 * * *'
+    # hourly, so review counts and avatars on the README cards stay current between merges
+    - cron: '17 * * * *'
 
 permissions:
   contents: read
