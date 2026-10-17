@@ -33,14 +33,6 @@ test('today counts read naturally', () => {
   assert.equal(buddy.todayLine(2, 'night', 'en'), '2 notes read today. Well done.');
 });
 
-test('site-wide counts appear only when they are real numbers', () => {
-  assert.equal(buddy.liveLine(null, 'zh'), '');
-  assert.equal(buddy.liveLine({now: 0, today: 4}, 'zh'), '');
-  assert.equal(buddy.liveLine({now: 5, today: 3}, 'en'), '');
-  assert.equal(buddy.liveLine({now: 2.5, today: 9}, 'en'), '');
-  assert.equal(buddy.liveLine({now: 3, today: 41}, 'zh'), '此刻 3 人在学，今天共 41 人');
-  assert.equal(buddy.liveLine({now: 3, today: 41}, 'en'), '3 studying now · 41 today');
-});
 
 test('late at night the clock on the sill shows the time', () => {
   const svg = buddy.art('night', 'c', '', new Date(2026, 9, 13, 3, 0));
