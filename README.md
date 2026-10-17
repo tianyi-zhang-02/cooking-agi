@@ -161,7 +161,7 @@ Details of every merge are in the [changelog](README.md#changelog) at the bottom
 
 <!-- /repository-only -->
 
-Everyone with a commit or co-author credit, the reviewers who approve changes in each area, and where readers went next if they chose to share it. The card is rebuilt from git history, GitHub and `site/collaboration.toml` on every deploy and once a day. Commit counts are not a ranking: questions, reviews and corrections count too. To be credited for a review or correction, or to share your next stop (only what you choose to show), open an issue: [credit me](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [share my next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml).
+Everyone with a commit or co-author credit, the reviewers who approve changes in each area, and where readers went next if they chose to share it. The card is rebuilt from git history, GitHub and `site/collaboration.toml` on every deploy and every hour. Commit counts are not a ranking: questions, reviews and corrections count too. To be credited for a review or correction, or to share your next stop (only what you choose to show), open an issue: [credit me](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [share my next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml).
 
 <span id="_3"></span>
 

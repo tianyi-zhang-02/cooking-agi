@@ -157,7 +157,7 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 <!-- /repository-only -->
 
-所有提交过或署名合作的人、负责批准各领域改动的审稿人，以及读者自愿分享的下一站。卡片每次部署和每天都会根据 git 记录、GitHub 和 `site/collaboration.toml` 重新生成。提交数不是排名：提问、审阅和纠错同样算数。想为审阅、纠错补一个署名，或分享你的下一站（只显示你愿意公开的部分），可以开一个 issue：[补充署名](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。
+所有提交过或署名合作的人、负责批准各领域改动的审稿人，以及读者自愿分享的下一站。卡片每次部署和每小时都会根据 git 记录、GitHub 和 `site/collaboration.toml` 重新生成。提交数不是排名：提问、审阅和纠错同样算数。想为审阅、纠错补一个署名，或分享你的下一站（只显示你愿意公开的部分），可以开一个 issue：[补充署名](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。
 
 ## 加入我们！
 
