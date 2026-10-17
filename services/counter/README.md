@@ -5,7 +5,7 @@
 给站点提供两样数字，都跑在 Cloudflare 免费额度上：
 
 - **此刻在学 / 今天在学**：学习小伙伴显示的人数。
-- **笔记的阅读与收藏**：每篇笔记底部的计数，协议和含义见 [`site/tools/note-metrics.md`](../../site/tools/note-metrics.md)（读者主动开启后才会上报）。
+- **笔记的阅读与收藏**：每篇笔记的计数接口（`/api/note-metrics/`）。网站从 2026-10-17 起不再显示这些计数，也不再上报；接口暂时保留在服务里。
 
 主站仍然放在 GitHub Pages，这个服务只是一个旁边的接口；它挂了，网站和本地收藏照常能用。
 
@@ -66,7 +66,7 @@
 Two kinds of numbers for the site, on Cloudflare's free tier:
 
 - **Studying now / today**, shown by the study buddy.
-- **Reads and saves per note**, as specified in [`site/tools/note-metrics.md`](../../site/tools/note-metrics.md) (sent only after a reader opts in).
+- **Reads and saves per note** (`/api/note-metrics/`). Since 2026-10-17 the site no longer shows or sends these counts; the endpoint stays in the service for now.
 
 The site stays on GitHub Pages; this is a side endpoint. If it is down, the site and local bookmarks keep working.
 
