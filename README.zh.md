@@ -4,11 +4,28 @@
 
 <!-- repository-only -->
 
-[**在线阅读 →**](https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html) · [English](README.md) · [幕后](contributors.md) · [加入我们](CONTRIBUTING.md)
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><img src=".github/media/hero.zh.svg" width="100%" alt="AGI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"></a></p>
 
-[![Build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><b>在线阅读 →</b></a> &nbsp;·&nbsp; <a href="README.md">English</a> &nbsp;·&nbsp; <a href="#贡献者与审稿人contributors">贡献者</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md">加入我们</a></p>
 
-<a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><img src=".github/media/promo.zh.webp" width="100%" alt="49 秒看一遍网站：可交互的图；从基础到应用的 261 篇笔记，实拍多模态、后训练与 RL、推理、Agent 和工程实践；面试准备；全文搜索；阅读记录"></a>
+<p align="center"><a href="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml"><img src="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main" alt="Build"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/notes-CC%20BY%204.0-e8a672" alt="笔记：CC BY 4.0"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/code-MIT-e8a672" alt="代码：MIT"></a></p>
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/zh-figure-light.webp"><img src=".github/media/tour/zh-figure-dark.webp" width="280" alt="roofline 动画逐步展示三个操作"></picture>
+      <br><b>一步一步</b><br>每张动画都用笔记自己的算例，停在它算出的结果上。
+    </td>
+    <td align="center" width="33%">
+      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/zh-paper-light.webp"><img src=".github/media/tour/zh-paper-dark.webp" width="280" alt="笔记里嵌入的 BEVFormer 结构图"></picture>
+      <br><b>论文原图</b><br>原图就放在讲它的地方，注明出处和许可。
+    </td>
+    <td align="center" width="33%">
+      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/zh-frontier-light.webp"><img src=".github/media/tour/zh-frontier-dark.webp" width="280" alt="比较确定、还在变化、接下来看什么的对照表"></picture>
+      <br><b>前沿观察</b><br>哪些已经定了、哪些还在变、接下来看什么，都有日期和出处。
+    </td>
+  </tr>
+</table>
 
 <!-- /repository-only -->
 
@@ -48,13 +65,20 @@
 
 图解直接展示主要过程；想换个条件、比较结果时，再试试交互部分，不需要每个按钮都点一遍。
 
-## 内容地图
+## 内容一览
+
+<!-- repository-only -->
+
+<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-zh-light.svg" width="100%" alt="按板块列出的主题、篇数和哪些是待审核草稿；随网站每次部署更新"></picture></a>
+
+<!-- /repository-only -->
 
 想现在就读一篇，可以从这几组里挑：
 
 - **模型怎么工作**：[Transformer 交互图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html) · [BERT](00-foundations/core/bert.md) · [CLIP 与多模态](03-multimodal-learning/clip.md)。
 - **模型怎么学**：[训练基础](learn/pretraining/README.md) · [Deep RL](05-post-training/deep-rl/README.md) · [Post-training](05-post-training/README.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.md)。
 - **模型怎么用起来**：[推理](learn/inference/README.md) · [搜索与检索](04-search/README.md) · [Agents 与工具](10-agents/README.md)。
+- **正在变化的方向**：[前沿观察](11-frontier/README.md)（世界模型、递归自我改进（RSI）、测试时计算）· [AI 基础设施](12-infra/README.md)和[感知、机器人与自动驾驶](13-embodied/README.md)，后两块是待审核草稿。
 
 想动手练习，可以直接去 [ML Coding](learn/ml-exercises/README.md)、[Python](interview/python.md)、[算法方法](interview/leetcode.md)或[系统设计](learn/system-design/README.md)。
 
@@ -62,11 +86,17 @@
 
 ## 路线图
 
+<!-- repository-only -->
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-roadmap-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-roadmap-zh-light.svg" width="100%" alt="路线图：已完成、现在、接下来和欢迎参与，内容来自 site/milestones.toml"></picture>
+
+<!-- /repository-only -->
+
 ### 现在在做
 
-**通读全部笔记的中英文表达。** 第一遍已经读完（约 250 篇），之后新写或大改的笔记也照这样再读。一篇篇读下来，改掉生硬的句子和跳步的解释，补上缺的例子和内容。中文和英文分开读，各自读着顺，不是逐句对译。读到哪里觉得别扭、看不懂，或者觉得少了点什么，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇文章末尾也有反馈按钮。
+**把笔记写好，而不是写多。** 全部笔记的中英文已经各读过一遍；10 月又对照一手资料把事实重新核了一遍：改错、更新过时的数字，把重复的解释合到一处。最新的几组（AI 基础设施、感知与自动驾驶、三组前沿系列，以及 Scaling、扩散语言模型和量化）在站主读完之前都标着待审核。读到哪里觉得别扭、看不懂或者不对，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇文章末尾也有反馈按钮。
 
-**接下来：** 给更多章节补分步图解和论文原图。CV、自动驾驶、Jetson、物理仿真和机器人，想请做过的朋友一起写，先从一篇讲解、一个小项目开始。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
+**接下来：** 让人更快找到答案：先把搜索和页面速度做好，再把笔记接进大家已经在用的 AI 工具里（面试练习 skill 和 MCP 服务，读的是同一份数据）。Jetson、物理仿真，以及视觉、驾驶、机器人这几组草稿的审稿，想请做过的朋友一起来。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
 
 ### 主题覆盖
 
@@ -91,8 +121,19 @@
 | 10 月 9 日到 11 日 | 双语路线整理成体系，例子逐个核对；补上训练、推理和 ML 系统指南 |
 | 10 月 13 日 | 编年史世界树（143 个有来源的节点）、阅读记录、每页反馈和安全加固 |
 | 10 月 14 日 | LeetCode 笔记加上分步动画；收藏和阅读记录合并到「我的阅读」；四个章节加上分步图解；全部笔记的中英文通读完第一遍 |
+| 10 月 15 日到 16 日 | 前沿观察、AI 基础设施和具身智能三块（配论文原图和 26 张分步动画）；全部笔记逐篇审查错误、过时事实和重复；Scaling、扩散语言模型和量化三组草稿 |
 
 每次合并的细节，见页面最下方的[更新记录](README.zh.md#changelog)。
+
+## 贡献者与审稿人（Contributors）
+
+<!-- repository-only -->
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-zh-light.svg" width="100%" alt="按提交数排列的贡献者、各领域审稿人和读者的下一站；每天更新"></picture>
+
+<!-- /repository-only -->
+
+所有提交过或署名合作的人、负责批准各领域改动的审稿人，以及读者自愿分享的下一站。卡片每次部署和每天都会根据 git 记录、GitHub 和 `site/collaboration.toml` 重新生成。提交数不是排名：提问、审阅和纠错同样算数。想标出所在城市，或分享你的下一站（只显示你愿意公开的部分），可以开一个 issue：[加入名单](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。
 
 ## 加入我们！
 
@@ -157,6 +198,8 @@ python3 site/build.py
 
 | 日期 | 大更新 | 小更新 |
 | --- | --- | --- |
+| 2026-10-16 | 全部笔记逐篇审查：改正错误，面试页不再写具体公司的招聘流程（[#99](https://github.com/tianyi-zhang-02/cooking-agi/pull/99)）；事实更新到 2026 年 10 月（[#100](https://github.com/tianyi-zhang-02/cooking-agi/pull/100)）；重复的解释合到一处，补上到新板块的链接（[#101](https://github.com/tianyi-zhang-02/cooking-agi/pull/101)）· Scaling、扩散语言模型和量化三组草稿（[#102](https://github.com/tianyi-zhang-02/cooking-agi/pull/102)） | 删除未发布的 quant 笔记（[#98](https://github.com/tianyi-zhang-02/cooking-agi/pull/98)） |
+| 2026-10-15 | 前沿观察、AI 基础设施和具身智能三块，配论文原图和 26 张分步动画（[#97](https://github.com/tianyi-zhang-02/cooking-agi/pull/97)） | — |
 | 2026-10-14 | LeetCode 笔记加上分步动画讲解（[#78](https://github.com/tianyi-zhang-02/cooking-agi/pull/78)）· 四个章节加上分步图解和论文原图（[#83](https://github.com/tianyi-zhang-02/cooking-agi/pull/83)）· 全部笔记的中英文通读一遍，逐句核对事实、算例和表达（[#84](https://github.com/tianyi-zhang-02/cooking-agi/pull/84) [#85](https://github.com/tianyi-zhang-02/cooking-agi/pull/85) [#87](https://github.com/tianyi-zhang-02/cooking-agi/pull/87) [#88](https://github.com/tianyi-zhang-02/cooking-agi/pull/88) [#89](https://github.com/tianyi-zhang-02/cooking-agi/pull/89) [#90](https://github.com/tianyi-zhang-02/cooking-agi/pull/90)）· 训练与系统的 16 篇笔记加上分步图解（[#94](https://github.com/tianyi-zhang-02/cooking-agi/pull/94)） | 收藏、阅读记录和备份合并到「我的阅读」，去掉学习台，练习移到「按计划学习」（[#81](https://github.com/tianyi-zhang-02/cooking-agi/pull/81)）· README 宣传动图换成新版（[#79](https://github.com/tianyi-zhang-02/cooking-agi/pull/79)）· README 加上路线图、主题覆盖和更新记录（[#82](https://github.com/tianyi-zhang-02/cooking-agi/pull/82)）· 中文段落里的换行不再显示成空格（[#86](https://github.com/tianyi-zhang-02/cooking-agi/pull/86)）· 复核清单与更新记录（[#91](https://github.com/tianyi-zhang-02/cooking-agi/pull/91)）· 面试准备首页改成普通目录（[#93](https://github.com/tianyi-zhang-02/cooking-agi/pull/93)）· 私有仓库归档后，泄漏检查成为唯一一道闸门（[#92](https://github.com/tianyi-zhang-02/cooking-agi/pull/92)）· 门控注意力的例子改用不相加为 1 的门（[#95](https://github.com/tianyi-zhang-02/cooking-agi/pull/95)） |
 | 2026-10-13 | 编年史：技术世界树，143 个有来源的节点，之后改成竖向年表（[#65](https://github.com/tianyi-zhang-02/cooking-agi/pull/65) [#71](https://github.com/tianyi-zhang-02/cooking-agi/pull/71)）· 学习台与阅读记录（[#64](https://github.com/tianyi-zhang-02/cooking-agi/pull/64) [#67](https://github.com/tianyi-zhang-02/cooking-agi/pull/67)） | 阅读面板：今天、本周、累计（[#66](https://github.com/tianyi-zhang-02/cooking-agi/pull/66) [#70](https://github.com/tianyi-zhang-02/cooking-agi/pull/70)）· 每页一键反馈（[#72](https://github.com/tianyi-zhang-02/cooking-agi/pull/72)）· 安全加固（[#73](https://github.com/tianyi-zhang-02/cooking-agi/pull/73)）· 学习小伙伴（[#74](https://github.com/tianyi-zhang-02/cooking-agi/pull/74)）· 匿名计数（[#75](https://github.com/tianyi-zhang-02/cooking-agi/pull/75) [#76](https://github.com/tianyi-zhang-02/cooking-agi/pull/76)）· vLLM / SGLang 对照（[#68](https://github.com/tianyi-zhang-02/cooking-agi/pull/68)）· README 动图（[#69](https://github.com/tianyi-zhang-02/cooking-agi/pull/69)） |
 | 2026-10-11 | 双语入口、README 与学习路线；工程练习和更多算例（[#61](https://github.com/tianyi-zhang-02/cooking-agi/pull/61) [#62](https://github.com/tianyi-zhang-02/cooking-agi/pull/62)） | 训练、推理、SigLIP 与 ML 系统指南（[#63](https://github.com/tianyi-zhang-02/cooking-agi/pull/63)） |

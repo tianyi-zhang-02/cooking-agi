@@ -80,7 +80,7 @@ class LanguageEntryTests(unittest.TestCase):
                 r'<!-- repository-only -->(.*?)<!-- /repository-only -->',
                 source, re.S).group(1)
             self.assertIn('badge.svg', repository_block)
-            self.assertIn(f'.github/media/promo.{language}.webp', repository_block)
+            self.assertIn(f'.github/media/hero.{language}.svg', repository_block)
             self.assertIn('https://tianyi-zhang-02.github.io/cooking-agi/', repository_block)
             build.build_page(page, [], self.nav['site']['repo'], self.known)
             self.assertNotIn('repository-only', page.body)
@@ -221,7 +221,7 @@ class LanguageEntryTests(unittest.TestCase):
     def test_new_home_details_do_not_shift_legacy_chinese_anchors(self):
         page = self.home['zh']
         build.build_page(page, [], self.nav['site']['repo'], self.known)
-        expected = [('_1', '从哪里开始'), ('_2', '内容地图'), ('roadmap', '路线图'), ('_3', '加入我们！'),
+        expected = [('_1', '从哪里开始'), ('_2', '内容一览'), ('roadmap', '路线图'), ('contributors', '贡献者与审稿人（Contributors）'), ('_3', '加入我们！'),
                     ('_4', '本地阅读与检查'), ('_5', '为什么整理这些'), ('_6', '更新记录')]
         self.assertEqual([(heading['id'], heading['name']) for heading in page.toc], expected)
         self.assertIn('id="how-to-use-the-notes"', page.body)

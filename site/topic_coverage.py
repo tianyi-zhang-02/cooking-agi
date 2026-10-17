@@ -9,9 +9,8 @@ import tomllib
 CATEGORIES = ("learn", "interview", "practice")
 SKIP_GROUPS = {"study", "practice"}          # navigation pages, not topics
 # Areas we would like contributors to start (community/roadmap.md#future); none has notes yet.
-PROPOSED = (("计算机视觉", "Computer vision"), ("自动驾驶", "Autonomous driving"),
-            ("Jetson 与边缘部署", "Jetson & edge deployment"), ("物理仿真", "Physical simulation"),
-            ("机器人", "Robotics"))
+# Vision, driving and robotics now have draft notes in 13-embodied/.
+PROPOSED = (("Jetson 与边缘部署", "Jetson & edge deployment"), ("物理仿真", "Physical simulation"))
 PALETTES = {
     "light": {"ink": "#1f2328", "muted": "#59636e", "bar": "#98512b", "rule": "#d1d9e0"},
     "dark": {"ink": "#e6edf3", "muted": "#9198a1", "bar": "#e8a672", "rule": "#3d444d"},

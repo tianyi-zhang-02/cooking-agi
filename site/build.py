@@ -40,6 +40,7 @@ import markdown
 import collaboration
 import curriculum
 import prep_progress
+import readme_cards
 import topic_coverage
 import note_metrics
 import next_stop
@@ -2323,6 +2324,19 @@ def main():
         for palette in topic_coverage.PALETTES:
             (OUT / f"static/topic-coverage-{language}-{palette}.svg").write_text(
                 topic_coverage.svg(coverage, language, palette, built[:10]), encoding="utf-8")
+    # README cards: what's inside, roadmap, contributors and reviewers (site/readme_cards.py)
+    topics = readme_cards.topic_rows(NAV, NAV.get("_sections", []))
+    milestones = readme_cards.load_milestones(SITE / "milestones.toml")
+    outcomes = json.loads((ROOT / "community/outcomes.json").read_text(encoding="utf-8"))
+    team = readme_cards.people_data(people, collaboration.load_config(), nav["site"]["repo"], outcomes)
+    signals = {"reviewed": len(topic_coverage.load_reviewed(SITE / "expression-review.toml", BY_SRC)[1]),
+               "figures": len(FIGURE_LAB) + len(ALGO_LAB) + len(TX_LAB), "paper": len(PAPER_FIGURES)}
+    for language in ("zh", "en"):
+        for palette in readme_cards.PALETTES:
+            for name, card in (("topics", readme_cards.topics_svg(topics, language, palette, built[:10], signals)),
+                               ("roadmap", readme_cards.roadmap_svg(milestones, language, palette, built[:10])),
+                               ("people", readme_cards.people_svg(team, language, palette, built[:10]))):
+                (OUT / f"static/readme-{name}-{language}-{palette}.svg").write_text(card, encoding="utf-8")
     for d in ROOT.glob("*/assets"):
         shutil.copytree(d, OUT / d.relative_to(ROOT))
         print(f"  assets: {d.relative_to(ROOT)}")

@@ -4,11 +4,28 @@
 
 <!-- repository-only -->
 
-[**Read the notes →**](https://tianyi-zhang-02.github.io/cooking-agi/) · [中文](README.zh.md) · [Behind the notes](contributors.en.md) · [Contribute](CONTRIBUTING.md#english)
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><img src=".github/media/hero.en.svg" width="100%" alt="A tour of AGI Study Notes: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search"></a></p>
 
-[![Build](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main)](https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml)
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><b>Read the notes →</b></a> &nbsp;·&nbsp; <a href="README.zh.md">中文</a> &nbsp;·&nbsp; <a href="#contributors">Contributors</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md#english">Contribute</a></p>
 
-<a href="https://tianyi-zhang-02.github.io/cooking-agi/"><img src=".github/media/promo.en.webp" width="100%" alt="A 49-second tour of the site: interactive figures; 261 notes from first principles to applications, shown live in multimodal, post-training and RL, inference, agents, and engineering practice; interview prep; full-text search; and reading history"></a>
+<p align="center"><a href="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml"><img src="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main" alt="Build"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/notes-CC%20BY%204.0-e8a672" alt="Notes: CC BY 4.0"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/code-MIT-e8a672" alt="Code: MIT"></a></p>
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/en-figure-light.webp"><img src=".github/media/tour/en-figure-dark.webp" width="280" alt="A roofline figure stepping through three operations"></picture>
+      <br><b>Step by step</b><br>Each figure replays the note's own worked example and stops on its result.
+    </td>
+    <td align="center" width="33%">
+      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/en-paper-light.webp"><img src=".github/media/tour/en-paper-dark.webp" width="280" alt="BEVFormer's architecture figure embedded in a note"></picture>
+      <br><b>From the papers</b><br>The original figure where it is explained, with credit and licence.
+    </td>
+    <td align="center" width="33%">
+      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/en-frontier-light.webp"><img src=".github/media/tour/en-frontier-dark.webp" width="280" alt="A table of settled, still moving and signals to watch"></picture>
+      <br><b>Frontier watch</b><br>What is settled, what is still moving, and what to watch, dated and sourced.
+    </td>
+  </tr>
+</table>
 
 <!-- /repository-only -->
 
@@ -52,13 +69,20 @@ Diagrams show the main idea without requiring interaction. The controls are ther
 
 <span id="_2"></span>
 
-## Content map
+## What's inside
+
+<!-- repository-only -->
+
+<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-en-light.svg" width="100%" alt="Topics by area: how many notes each has and which are drafts; numbers update on every deploy"></picture></a>
+
+<!-- /repository-only -->
 
 A few articles to start reading now:
 
 - **How models work:** [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [BERT](00-foundations/core/bert.en.md) · [CLIP and multimodal learning](03-multimodal-learning/clip.en.md).
 - **How models learn:** [Training basics](learn/pretraining/README.en.md) · [Deep RL](05-post-training/deep-rl/README.en.md) · [Post-training](05-post-training/README.en.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.en.md).
 - **How models get used:** [Inference](learn/inference/README.en.md) · [Search and retrieval](04-search/README.en.md) · [Agents and tools](10-agents/README.en.md).
+- **What's moving:** [Frontier watch](11-frontier/README.en.md) (world models, self-improvement, test-time compute) · [AI infrastructure](12-infra/README.en.md) and [perception, robots and driving](13-embodied/README.en.md), both drafts pending review.
 
 For practice, head to [ML coding](learn/ml-exercises/README.en.md), [Python](interview/python.en.md), [algorithm patterns](interview/leetcode.en.md), or [system design](learn/system-design/README.en.md).
 
@@ -66,11 +90,17 @@ For practice, head to [ML coding](learn/ml-exercises/README.en.md), [Python](int
 
 ## Roadmap
 
+<!-- repository-only -->
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-roadmap-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-roadmap-en-light.svg" width="100%" alt="Roadmap: done, now, next and help wanted, from site/milestones.toml"></picture>
+
+<!-- /repository-only -->
+
 ### Now
 
-**Reading every note again, in both languages.** The first pass is done (about 250 notes); new or heavily revised notes get the same reading. Note by note, we're fixing stiff sentences and explanations that skip steps, and filling in missing examples and content. The Chinese and English are read separately so each reads naturally on its own, rather than as a sentence-by-sentence translation. If something reads awkwardly, is hard to follow, or seems to be missing, please [tell us](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml); every article also ends with a feedback button.
+**Better notes, not more of them.** Every note has been re-read once in both languages, and in October the facts were checked again against primary sources: errors fixed, stale numbers updated, repeated explanations folded into one place. The newest series (AI infrastructure, perception and driving, three frontier series, scaling, diffusion LMs and quantization) are drafts until the site owner has read them. If something reads awkwardly, is hard to follow, or seems wrong, please [tell us](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml); every article also ends with a feedback button.
 
-**Next:** more step-by-step figures and original paper figures in more chapters. For computer vision, autonomous driving, Jetson, physical simulation and robotics, we'd like people who have worked in those areas to write with us, starting with one explanation and one small project. See the [roadmap](community/roadmap.en.md) for the full plan; the scope of the upcoming v1.0 interview-prep release is in [release scope](community/updates.en.md).
+**Next:** a faster way to the answer: better search and quicker pages, then the notes inside the AI tools you already use (an interview coach and an MCP server reading the same data). For Jetson, physical simulation, and reviewing the vision, driving and robotics drafts, we'd like people who have worked in those areas to join us. See the [roadmap](community/roadmap.en.md) for the full plan; the scope of the upcoming v1.0 interview-prep release is in [release scope](community/updates.en.md).
 
 ### Topic coverage
 
@@ -95,8 +125,21 @@ How many notes each topic has, and how far this review pass has got. The numbers
 | October 9–11 | Bilingual routes organized into a system, examples checked one by one; training, inference and ML systems guides |
 | October 13 | The chronicle world tree (143 sourced milestones), reading history, page feedback and security hardening |
 | October 14 | Step-by-step animations in the LeetCode notes; saved notes and reading history folded into “My reading”; step-by-step figures in four chapters; first full read-through of every note in both languages |
+| October 15–16 | Frontier watch, AI infrastructure and embodied AI (with the papers' own figures and 26 step-by-step figures); every note audited for errors, stale facts and repetition; drafts on scaling, diffusion LMs and quantization |
 
 Details of every merge are in the [changelog](README.md#changelog) at the bottom of this page.
+
+<span id="contributors"></span>
+
+## Contributors and reviewers
+
+<!-- repository-only -->
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-en-light.svg" width="100%" alt="Contributors by commits, the reviewer for each area, and where readers went next; rebuilt every day"></picture>
+
+<!-- /repository-only -->
+
+Everyone with a commit or co-author credit, the reviewers who approve changes in each area, and where readers went next if they chose to share it. The card is rebuilt from git history, GitHub and `site/collaboration.toml` on every deploy and once a day. Commit counts are not a ranking: questions, reviews and corrections count too. To add a location, or to share your next stop (only what you choose to show), open an issue: [add me](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [share my next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml).
 
 <span id="_3"></span>
 
@@ -167,6 +210,8 @@ Every change merged into the main branch, by date, split into major and minor up
 
 | Date | Major | Minor |
 | --- | --- | --- |
+| 2026-10-16 | Every note audited: errors fixed, interview pages kept free of company hiring processes ([#99](https://github.com/tianyi-zhang-02/cooking-agi/pull/99)), facts updated to October 2026 ([#100](https://github.com/tianyi-zhang-02/cooking-agi/pull/100)), repeated explanations folded together and links to the new areas ([#101](https://github.com/tianyi-zhang-02/cooking-agi/pull/101)) · Draft series on scaling laws, diffusion LMs and quantization ([#102](https://github.com/tianyi-zhang-02/cooking-agi/pull/102)) | The unpublished quant notes removed ([#98](https://github.com/tianyi-zhang-02/cooking-agi/pull/98)) |
+| 2026-10-15 | Frontier watch, AI infrastructure and embodied AI, with the papers' own figures and 26 step-by-step figures ([#97](https://github.com/tianyi-zhang-02/cooking-agi/pull/97)) | — |
 | 2026-10-14 | Step-by-step animations in the LeetCode notes ([#78](https://github.com/tianyi-zhang-02/cooking-agi/pull/78)) · Step-by-step figures and the papers' own figures in four chapters ([#83](https://github.com/tianyi-zhang-02/cooking-agi/pull/83)) · Every note read through once in both languages, checking facts, worked examples and wording ([#84](https://github.com/tianyi-zhang-02/cooking-agi/pull/84) [#85](https://github.com/tianyi-zhang-02/cooking-agi/pull/85) [#87](https://github.com/tianyi-zhang-02/cooking-agi/pull/87) [#88](https://github.com/tianyi-zhang-02/cooking-agi/pull/88) [#89](https://github.com/tianyi-zhang-02/cooking-agi/pull/89) [#90](https://github.com/tianyi-zhang-02/cooking-agi/pull/90)) · Step-by-step figures in 16 training and systems notes ([#94](https://github.com/tianyi-zhang-02/cooking-agi/pull/94)) | Saved notes, reading history and backups fold into “My reading”; the study dashboard goes and its exercises move to the study plan ([#81](https://github.com/tianyi-zhang-02/cooking-agi/pull/81)) · New README promo ([#79](https://github.com/tianyi-zhang-02/cooking-agi/pull/79)) · README roadmap, topic coverage and changelog ([#82](https://github.com/tianyi-zhang-02/cooking-agi/pull/82)) · Line breaks inside Chinese paragraphs no longer render as spaces ([#86](https://github.com/tianyi-zhang-02/cooking-agi/pull/86)) · Review list and changelog ([#91](https://github.com/tianyi-zhang-02/cooking-agi/pull/91)) · The interview-prep home becomes a plain directory ([#93](https://github.com/tianyi-zhang-02/cooking-agi/pull/93)) · With the private repo archived, the leak check is the only gate ([#92](https://github.com/tianyi-zhang-02/cooking-agi/pull/92)) · The gated-attention example uses gates that do not sum to 1 ([#95](https://github.com/tianyi-zhang-02/cooking-agi/pull/95)) |
 | 2026-10-13 | Chronicle: a technology world tree with 143 sourced milestones, later a vertical timeline ([#65](https://github.com/tianyi-zhang-02/cooking-agi/pull/65) [#71](https://github.com/tianyi-zhang-02/cooking-agi/pull/71)) · Study dashboard and reading history ([#64](https://github.com/tianyi-zhang-02/cooking-agi/pull/64) [#67](https://github.com/tianyi-zhang-02/cooking-agi/pull/67)) | Reading panel: today, this week, all time ([#66](https://github.com/tianyi-zhang-02/cooking-agi/pull/66) [#70](https://github.com/tianyi-zhang-02/cooking-agi/pull/70)) · One-click page feedback ([#72](https://github.com/tianyi-zhang-02/cooking-agi/pull/72)) · Security hardening ([#73](https://github.com/tianyi-zhang-02/cooking-agi/pull/73)) · Study buddy ([#74](https://github.com/tianyi-zhang-02/cooking-agi/pull/74)) · Anonymous counts ([#75](https://github.com/tianyi-zhang-02/cooking-agi/pull/75) [#76](https://github.com/tianyi-zhang-02/cooking-agi/pull/76)) · vLLM / SGLang comparison ([#68](https://github.com/tianyi-zhang-02/cooking-agi/pull/68)) · README animation ([#69](https://github.com/tianyi-zhang-02/cooking-agi/pull/69)) |
 | 2026-10-11 | Bilingual entry, README and learning routes; engineering labs and more worked examples ([#61](https://github.com/tianyi-zhang-02/cooking-agi/pull/61) [#62](https://github.com/tianyi-zhang-02/cooking-agi/pull/62)) | Training, inference, SigLIP and ML systems guides ([#63](https://github.com/tianyi-zhang-02/cooking-agi/pull/63)) |
