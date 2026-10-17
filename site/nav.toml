@@ -12,10 +12,6 @@ tagline_en  = "From first principles to AI systems that work"
 base_url    = "/cooking-agi"
 origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 
-# The notes stand on their own. The maintainer only appears in the contributor universe.
-owner_login = "tianyi-zhang-02"
-owner_url   = "https://tianyi-zhang-02.github.io/"
-
 # Keep previously shared public URLs working after notes move into topic folders.
 [redirects]
 "index.en.html" = "index.html"
@@ -33,6 +29,13 @@ owner_url   = "https://tianyi-zhang-02.github.io/"
 # the study dashboard was folded into the reading drawer on 2026-10-14
 "interview/dashboard.html" = "interview/index.html"
 "interview/dashboard.en.html" = "interview/index.en.html"
+# the contributors and next-stop pages moved to the GitHub README on 2026-10-16
+"contributors.html" = "index.zh.html#contributors"
+"contributors.en.html" = "index.html#contributors"
+"community/next-stop.html" = "index.zh.html#contributors"
+"community/next-stop.en.html" = "index.html#contributors"
+"community/next-stop-guide.html" = "index.zh.html#contributors"
+"community/next-stop-guide.en.html" = "index.html#contributors"
 
 # home 是这个大类的落地页；每个 [[group]] 用 category 指到这里的 id。
 [[category]]
@@ -373,14 +376,14 @@ dir   = "."
 group = "start"
 zh    = "开始"
 en    = "Start here"
-order = ["README.md", "contributors.md"]
+order = ["README.md"]
 
 [[section]]
 dir = "community"
 group = "start"
 zh = "一起参与"
 en = "Contributing together"
-order = ["README.md", "roadmap.md", "updates.md", "next-stop.md", "next-stop-guide.md"]
+order = ["README.md", "roadmap.md", "updates.md"]
 
 [[section]]
 dir = "learn"
@@ -1060,7 +1063,6 @@ en  = "Templates"
 "09-personal-agi/README.md"                             = ["Personal AGI", "Personal AGI"]
 "10-agents/prompting.md" = ["Prompt、ICL 与 CoT", "Prompting, ICL & CoT"]
 "10-agents/deep-research.md" = ["Deep Research：问题与证据", "Deep Research: questions & evidence"]
-"contributors.md"                                      = ["幕后", "Behind the notes"]
 "community/roadmap.md" = ["接下来一起做什么", "Roadmap"]
 "community/updates.md" = ["版本与更新", "Releases & updates"]
 "interview/README.md"                                   = ["准备首页", "Preparation home"]

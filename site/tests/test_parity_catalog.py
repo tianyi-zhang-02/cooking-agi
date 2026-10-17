@@ -17,7 +17,7 @@ class ParityCatalogTests(unittest.TestCase):
         actual = {ROOT / 'README.zh.md' if source == ROOT / 'README.md' else source
                   for source in paritycheck.published_sources(build.load_nav(), ROOT)}
         self.assertEqual(actual, expected)
-        self.assertIn(ROOT / 'contributors.md', actual)
+        self.assertIn(ROOT / 'README.zh.md', actual)
         self.assertIn(ROOT / 'templates/paper-note.md', actual)
 
     def test_root_order_includes_templates_and_excludes_private_notes(self):

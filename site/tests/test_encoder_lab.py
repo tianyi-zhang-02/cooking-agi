@@ -61,7 +61,7 @@ class EncoderLabTests(unittest.TestCase):
                 for language in ["zh", "en"]:
                     page = build.BY_SRC[source][language]
                     build.build_page(page, [], nav["site"]["repo"], known)
-                    output = build.assemble(page, sections, [], nav, "test",
+                    output = build.assemble(page, sections, nav, "test",
                                             (ROOT / "site/template.html").read_text())
                     self.assertEqual("static/encoder-lab.js" in output, expected)
                     self.assertEqual("static/encoder-lab.css" in output, expected)

@@ -76,7 +76,7 @@ class PrepHubTests(unittest.TestCase):
                 for language in ('zh', 'en'):
                     page = build.BY_SRC[f'interview/{chapter}.md'][language]
                     build.build_page(page, [], navigation['site']['repo'], urls)
-                    result = build.assemble(page, sections, [], navigation, 'test', template)
+                    result = build.assemble(page, sections, navigation, 'test', template)
                     self.assertEqual('page-prep-hub' in result, chapter == 'README')
                     self.assertNotIn('static/prep-hub.js', result)
                     self.assertEqual('static/prep-hub.css' in result, chapter == 'README')

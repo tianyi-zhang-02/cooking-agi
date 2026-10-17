@@ -48,7 +48,7 @@ python site/build.py --serve
 
 原创代码按 MIT、原创笔记按 CC BY 4.0 许可，见[许可范围](LICENSE.md)。提交贡献前请确认有权按对应许可分享；保留已有署名，第三方素材单独标明来源和许可。旧贡献没有明确授权的，需要先确认，不能直接替原作者同意。
 
-代码与笔记署名来自 main 的提交和 `Co-authored-by`；合并时请保留。审阅、提问、翻译和纠错也可以在[贡献记录](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)里附链接，经本人同意后补到[幕后](contributors.md)。提交数不是质量排名，也不决定权限。
+代码与笔记署名来自 main 的提交和 `Co-authored-by`；合并时请保留。审阅、提问、翻译和纠错也可以在[贡献记录](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml)里附链接，经本人同意后补到[首页的贡献者名单](README.zh.md#contributors)。提交数不是质量排名，也不决定权限。
 
 AI 协助没有单独提交署名时，维护者可以在 `crew.toml` 的 `[[ai]]` 条目中补充工具名称和中英文参与说明。不填猜测的提交数、日期或 GitHub 账号；之后出现对应的提交署名，会自动合并到同一个身份。
 
@@ -108,7 +108,7 @@ For new navigation groups or reviewers, update `site/collaboration.toml`, run `p
 
 Original code uses MIT; original notes use CC BY 4.0. See the [license scope](LICENSE.md). Submit only contributions you have authority to share under the relevant license. Preserve existing credit and identify third-party materials and their terms. Earlier contributions without clear permission need confirmation rather than assumed consent.
 
-Preserve main-branch authors and `Co-authored-by` trailers when merging. Reviews, questions, translations, and corrections can also receive credit on [Behind the notes](contributors.en.md): submit a [contribution record](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) with evidence and the person's consent. Commit counts do not determine quality or access.
+Preserve main-branch authors and `Co-authored-by` trailers when merging. Reviews, questions, translations, and corrections can also receive credit in the [contributor list on the home page](README.md#contributors): submit a [contribution record](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) with evidence and the person's consent. Commit counts do not determine quality or access.
 
 When confirmed AI assistance has no separate commit credit, a maintainer can add its name and bilingual contribution description under `[[ai]]` in `crew.toml`. Do not invent counts, dates, or GitHub accounts. Later commit credits merge into the same identity.
 

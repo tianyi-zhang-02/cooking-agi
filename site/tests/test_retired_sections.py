@@ -40,7 +40,7 @@ class RetiredSectionsTests(unittest.TestCase):
                     continue
                 with self.subTest(url=page.url):
                     build.build_page(page, [], nav["site"]["repo"], known)
-                    output = build.assemble(page, sections, [], nav, "test", template)
+                    output = build.assemble(page, sections, nav, "test", template)
                     for marker in ("discussions/", "discussions.js", "discussions.css",
                                    "data-discussion-widget", "page-talk"):
                         self.assertNotIn(marker, output)

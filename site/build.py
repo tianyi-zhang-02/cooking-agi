@@ -32,7 +32,7 @@ import tomllib
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -42,7 +42,6 @@ import curriculum
 import prep_progress
 import topic_coverage
 import note_metrics
-import next_stop
 import technology_chronicle
 from markdown.extensions.toc import TocExtension, slugify
 
@@ -152,13 +151,6 @@ def crew_countries():
         if login and codes:
             out[str(login).strip().lower()] = tuple(dict.fromkeys(codes))
     return out
-
-
-@functools.lru_cache(maxsize=1)
-def world_dots():
-    """The baked country grid (site/tools/bake_world.py), or {} when it is missing."""
-    path = SITE / "static" / "world-dots.json"
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
 def contributor_name(name: str, email: str) -> str:
@@ -1285,23 +1277,29 @@ def discover(nav):
 
 
 def write_redirects(nav, known):
-    """Generate small redirect pages for published URLs moved into topic folders."""
+    """Generate small redirect pages for published URLs moved into topic folders.
+
+    A target may name a section (`index.html#contributors`); the old page's own
+    anchors mean nothing there, so only a target without one keeps the reader's hash."""
     redirects = nav.get("redirects", {})
     for old_url, target_url in redirects.items():
-        if target_url not in known:
+        target_page, _, fragment = target_url.partition("#")
+        if target_page not in known:
             raise ValueError(f"redirect target is not a generated page: {target_url}")
         old_path = Path(old_url)
-        relative_target = os.path.relpath(target_url, old_path.parent).replace(os.sep, "/")
-        if old_url == "index.en.html" and target_url == "index.html":
+        relative_target = os.path.relpath(target_page, old_path.parent).replace(os.sep, "/")
+        if old_url.endswith(".en.html") and target_page == "index.html":
             relative_target += "?lang=en"
+        if fragment:
+            relative_target += f"#{fragment}"
         escaped_target = html.escape(relative_target, quote=True)
-        script_target = json.dumps(relative_target)
+        script_target = json.dumps(relative_target) + ("" if fragment else " + location.hash")
         page = f"""<!doctype html>
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="0; url={escaped_target}">
 <link rel="canonical" href="{escaped_target}">
 <title>Moved</title>
-<script>location.replace({script_target} + location.hash)</script>
+<script>location.replace({script_target})</script>
 <p>This page moved to <a href="{escaped_target}">{escaped_target}</a>.</p>
 """
         dest = OUT / old_path
@@ -1732,9 +1730,6 @@ def chapter_home(page):
 
 def page_header_html(page):
     zh = page.lang == "zh"
-    if page.url in {"contributors.html", "contributors.en.html"}:
-        return (f'<header class="crew-heading"><p>BEHIND THE NOTES</p>'
-                f'<h1>{html.escape(page.title)}</h1></header>')
     section = page.section["zh" if zh else "en"]
     labels = {
         "home": "学习笔记" if zh else "Study notes",
@@ -1818,19 +1813,10 @@ def page_nav_html(page):
     return f'<nav class="page-turn" aria-label="{"继续阅读" if zh else "Continue reading"}">' + context + "".join(items) + "</nav>"
 
 
-def footer_html(page, people, repo, built):
+def footer_html(page, repo, built):
     when = page.updated[:10] if page.updated else built[:10]
     src = f"https://github.com/{repo}/blob/main/{page.src.relative_to(ROOT)}"
     zh = page.lang == "zh"
-    portal = page.rel("contributors.html" if zh else "contributors.en.html")
-    contributor_portal = "" if page.url in {"contributors.html", "contributors.en.html"} else f"""
-  <div class="crew-footer">
-    <a class="contributor-portal" href="{portal}">
-      <span aria-hidden="true">✧</span>
-      <span>{'幕后' if zh else 'Behind the notes'}</span>
-      <span aria-hidden="true">↗</span>
-    </a>
-  </div>"""
     return f"""
 <footer class="page-foot">
   {collaboration.page_panel(page, collaboration.load_config(), repo)}
@@ -1840,194 +1826,8 @@ def footer_html(page, people, repo, built):
     <span class="sep">·</span>
     <a href="{src}">{'查看源文件' if zh else 'View source'}</a>
   </div>
-  {contributor_portal}
 </footer>"""
 
-
-def contributor_avatar_html(person, page):
-    asset = {
-        "Claude Code": "static/crew-icons/claude.svg",
-        "Codex": "static/company-icons/openai.svg",
-    }.get(person["name"]) if person.get("kind") == "ai" else None
-    source = page.rel(asset) if asset else person.get("avatar")
-    image = (f'<img class="crew-src{" crew-mark" if asset else ""}" '
-             f'src="{html.escape(source, quote=True)}" alt="" crossorigin="anonymous" '
-             f'loading="lazy" decoding="async">' if source else "")
-    initials = html.escape(person["name"][:2].upper(), quote=True)
-    return (f'<span class="crew-face" data-crew-avatar data-initials="{initials}" aria-hidden="true">'
-            f'{image}<canvas class="crew-bits" width="72" height="72"></canvas></span>')
-
-
-def contributor_universe_html(people, page, site):
-    """The contributors page: the 1-bit sky, then the credits, the board and the map.
-
-    Avatars are dithered to two colours in the browser (static/app.js), so the page keeps
-    the same black-and-white language as the sky it floats in. Everything below the first
-    screen is plain HTML: it reads fine with no JavaScript at all."""
-    zh = page.lang == "zh"
-    today = datetime.now(timezone.utc).date()
-    week_start = today - timedelta(days=today.weekday())
-    countries = world_dots().get("countries", {})
-
-    crew, board, credits, tally, weight = [], [], {}, {}, {}
-    ranked = sorted(people, key=lambda p: (-(p.get("commits") or 0), p["name"]))
-    for index, person in enumerate(people):
-        login = person.get("login")
-        is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
-        url = site.get("owner_url") if is_owner else person.get("url")
-        handle = f"@{login}" if login else person["name"]
-        role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
-                else ("笔记与代码" if zh else "Notes & code"))
-        description = person.get("description", {}).get(page.lang, "")
-        detail = f'<small>{html.escape(description)}</small>' if description else ""
-        title = html.escape(person["name"])
-        face = contributor_avatar_html(person, page)
-        link = (f'<a class="crew-name" href="{html.escape(url, quote=True)}">{title} <span aria-hidden="true">↗</span></a>'
-                if url else f'<strong class="crew-name">{title}</strong>')
-        active = week_start.isoformat() <= person["last"] <= today.isoformat()
-        crew.append(
-            f'<div class="crew-drifter{" is-recent" if active else ""}" '
-            f'data-crew-id="{html.escape(login or person["name"], quote=True)}" '
-            f'data-last="{person["last"]}" style="--start-x:{(17 + index * 37) % 74 + 13}%;'
-            f'--start-y:{(23 + index * 29) % 56 + 22}%">'
-            f'<button class="crew-pilot" type="button" aria-label="{html.escape(handle, quote=True)}" '
-            f'aria-expanded="false" aria-controls="crew-label-{index}">'
-            f'{face}</button>'
-            f'<div class="crew-label" id="crew-label-{index}">'
-            f'<span class="crew-handle">{person["crew_id"]} · {html.escape(handle)}</span>'
-            f'{link}<small>{role}</small>{detail}</div></div>')
-        since = (f'{person["first"][:7]} {"起" if zh else "onwards"}' if person["first"]
-                 else ("补充署名" if zh else "Acknowledged contribution"))
-        # the credits roll, grouped by what someone did, in the order the roles are listed
-        credits.setdefault(role, []).append(
-            f'<li>{face}<span class="credit-name">{link}</span>'
-            f'{f"<span class=\"credit-handle\">{html.escape(handle)}</span>" if login else ""}'
-            f'<span class="credit-note">{person["crew_id"]} · '
-            f'{since}</span>{detail}</li>')
-        mine = [c for c in person.get("countries", ()) if c in countries]
-        for code in mine:                      # two places: half the weight to each
-            tally.setdefault(code, []).append(person["name"])
-            weight[code] = weight.get(code, 0.0) + max(person.get("commits") or 0, 1) / len(mine)
-
-    top = max([p.get("commits") or 0 for p in people] + [1])
-    for person in ranked:
-        login = person.get("login")
-        is_owner = bool(login and login.lower() == site.get("owner_login", "").lower())
-        url = site.get("owner_url") if is_owner else person.get("url")
-        handle = f"@{login}" if login else person["name"]
-        title = html.escape(person["name"])
-        link = (f'<a class="crew-name" href="{html.escape(url, quote=True)}">{title}</a>' if url
-                else f'<strong class="crew-name">{title}</strong>')
-        role = (("AI 协作者" if zh else "AI collaborator") if person.get("kind") == "ai"
-                else ("笔记与代码" if zh else "Notes & code"))
-        active = week_start.isoformat() <= person["last"] <= today.isoformat()
-        commits = person.get("commits", 0)
-        count = (f'<span class="bar" style="--fill:{commits / top:.3f}" '
-                 f'aria-hidden="true"></span><b>{commits}</b>' if commits is not None
-                 else f'<span title="{"未单独统计" if zh else "Not separately tracked"}">—</span>')
-        first = (f'<time datetime="{person["first"]}">{person["first"]}</time>'
-                 if person["first"] else "—")
-        last = (f'<time datetime="{person["last"]}">{person["last"]}</time>'
-                if person["last"] else "—")
-        week = (f'<span class="crew-weekly">{"本周" if zh else "This week"}</span>'
-                if active else "")
-        board.append(
-            f'<tr class="{"is-recent" if active else ""}">'
-            f'<td class="crew-id">{person["crew_id"]}</td>'
-            f'<th scope="row"><div class="board-identity">{contributor_avatar_html(person, page)}'
-            f'<div>{link}<small>{html.escape(handle)}</small></div></div></th>'
-            f'<td class="role">{role}</td>'
-            f'<td class="count">{count}</td>'
-            f'<td>{first}</td>'
-            f'<td>{last}{week}</td></tr>')
-
-    # five steps of brightness: a single commit already lights a country, more burns
-    # brighter up to a ceiling, and the first few stay clearly ahead of the rest
-    order = sorted(weight, key=lambda c: (-weight[c], countries[c]["en"]))
-    peak = weight[order[0]] if order else 1.0
-
-    def step(rank, w):
-        if rank == 0:
-            return 5
-        if rank <= 2:
-            return 4
-        share = w / peak
-        return 3 if share >= 0.5 else (2 if share >= 0.2 else 1)
-
-    lit = [f"{c}:{step(i, weight[c])}" for i, c in enumerate(order)]
-    map_list = "".join(
-        f'<li><b>{html.escape(countries[c]["zh" if zh else "en"])}</b>'
-        f'<span>{len(tally[c])} {"位" if zh else ("person" if len(tally[c]) == 1 else "people")}</span></li>'
-        for c in order)
-    crew_issue = (f'https://github.com/{html.escape(site["repo"], quote=True)}'
-                  f'/issues/new?template=add-me-to-the-crew.yml')
-    home = page.rel("index.zh.html" if zh else "index.html?lang=en")
-    language = page.rel("contributors.en.html" if zh else "contributors.html")
-    prefix = "../" * page.depth
-    roles = [r for r in (("笔记与代码" if zh else "Notes & code"),
-                         ("AI 协作者" if zh else "AI collaborator")) if r in credits]
-    roll = "".join(f'<div class="credit-group"><p class="credit-role">{role}</p>'
-                   f'<ul>{"".join(credits[role])}</ul></div>' for role in roles)
-    return f"""
-<section class="contributor-universe" aria-label="{'贡献者' if zh else 'Contributors'}"
-  style="background-image:url('{prefix}static/crew-sky-1bit.png')">
-  <nav class="orbit-nav" aria-label="{'页面导航' if zh else 'Page navigation'}">
-    <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
-    <div><a href="{page.rel('community/next-stop.html' if zh else 'community/next-stop.en.html')}">{'下一站' if zh else 'Next stop'}</a><a href="#crew-board">{'榜单' if zh else 'Board'}</a>
-    <button class="crew-motion" type="button" aria-pressed="false" hidden
-      data-pause="{'暂停' if zh else 'Pause'}" data-play="{'继续' if zh else 'Resume'}">{'暂停' if zh else 'Pause'}</button>
-    <a href="{language}" data-language-switch="{'en' if zh else 'zh'}">{'EN' if zh else '中文'}</a></div>
-  </nav>
-  <header class="orbit-title">
-    <p>THE PEOPLE BEHIND THE NOTES</p>
-    <h1>{'谢谢一起参与的你们。' if zh else 'A little universe, made together.'}</h1>
-  </header>
-  <div class="crew-field">{"".join(crew)}</div>
-  <footer class="orbit-footer">
-    <p class="orbit-status" role="status" aria-live="polite"></p>
-    <p><span class="orbit-desktop">{'鼠标靠近，打个招呼' if zh else 'Hover over someone to say hello'}</span>
-    <span class="orbit-touch">{'轻点头像，打个招呼' if zh else 'Tap someone to say hello'}</span></p>
-    <a class="orbit-more" href="#crew-credits">{'往下看 ↓' if zh else 'Scroll down ↓'}</a>
-  </footer>
-</section>
-<section class="crew-credits" id="crew-credits" aria-label="{'演职员表' if zh else 'Credits'}">
-  <p class="credits-kicker">{'演职员表' if zh else 'Credits'}</p>
-  <div class="credits-roll">{roll}</div>
-  <p class="credits-end">{'谢谢大家的分享、纠错和帮助。' if zh else 'Thank you to everyone who came through and left something behind.'}</p>
-</section>
-<section class="crew-board" id="crew-board" aria-labelledby="board-title">
-  <div class="board-head">
-    <h2 id="board-title">{'贡献榜单' if zh else 'Contribution board'}</h2>
-    <p>{'按可追溯的提交数排序，包括 Co-authored-by 共同署名；补充署名但未单独统计的贡献显示为 —。' if zh else 'Ordered by traceable commits, including Co-authored-by credits. A dash means acknowledged work without a separate commit count.'}</p>
-  </div>
-  <div class="board-scroll"><table class="board-table">
-    <thead><tr><th class="crew-id">{'编号' if zh else 'No.'}</th><th>{'贡献者' if zh else 'Contributor'}</th>
-      <th>{'参与方式' if zh else 'Role'}</th><th class="count">{'提交' if zh else 'Commits'}</th>
-      <th>{'第一次' if zh else 'First'}</th><th>{'最近' if zh else 'Latest'}</th></tr></thead>
-    <tbody>{"".join(board)}</tbody>
-  </table></div>
-  <p class="board-note">{'更新于' if zh else 'Updated'} {today.isoformat()} · {'提交数不是质量排名，也不决定审核权限。' if zh else 'Commit counts are not a quality ranking or review authority.'}</p>
-</section>
-<section class="crew-board" id="community-credits">
-  <div class="board-head"><h2>{'也谢谢这些帮助' if zh else 'Thanks beyond commits'}</h2></div>
-  {collaboration.acknowledgements_html(collaboration.load_config(), zh)}
-  <p><a href="{page.rel('community/index.html' if zh else 'community/index.en.html')}">{'参与方式与板块分工 →' if zh else 'How to contribute & review contacts →'}</a></p>
-</section>
-<section class="crew-map" id="crew-map" aria-labelledby="map-title"
-  data-world="{prefix}static/world-dots.json" data-lit="{",".join(lit)}">
-  <div class="board-head">
-    <h2 id="map-title">{'大家在哪儿' if zh else 'Where the crew is'}</h2>
-  </div>
-  <canvas class="world-dots" width="800" height="400" role="img"
-    aria-label="{'点亮了 ' + str(len(order)) + ' 个国家或地区的世界地图' if zh else f'A world map with {len(order)} countries or regions lit up'}"></canvas>
-  <ul class="map-list">{map_list or f'<li class="map-empty">{"还没人填。" if zh else "Nobody yet."}</li>'}</ul>
-  <p class="map-how"><a href="{crew_issue}">{'提交或移除所在地区' if zh else 'Add or remove a location'}</a>{'，维护者核实后更新。' if zh else ' — maintainers will review the request.'}</p>
-</section>
-<footer class="crew-end">
-  <a href="{page.rel('community/next-stop.html' if zh else 'community/next-stop.en.html')}">{'看看大家的下一站 ↗' if zh else 'See where readers go next ↗'}</a>
-  <a href="https://github.com/{html.escape(site["repo"], quote=True)}/blob/main/CONTRIBUTING.md">{'欢迎加入我们 ↗' if zh else 'Room for one more ↗'}</a>
-  <a href="{home}">← {'回到笔记' if zh else 'Back to notes'}</a>
-</footer>"""
 
 def share_description(page) -> str:
     """The line a chat app or social card shows under the title: the note's own
@@ -2131,7 +1931,7 @@ def with_csp(output, template, prefix, lang, built):
     return output.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n' + meta, 1)
 
 
-def assemble(page, sections, people, nav, built, template):
+def assemble(page, sections, nav, built, template):
     site = nav["site"]
     if page.section.get("group") == "career":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{page.rel("static/career.css")}?v={built}">\n</head>')
@@ -2197,23 +1997,7 @@ def assemble(page, sections, people, nav, built, template):
                               collaboration.areas_html(config, site['repo'], zh))
     content = content.replace('<div data-community-credits></div>',
                               collaboration.acknowledgements_html(config, zh))
-    is_next_stop = 'data-next-stop' in page.body
-    is_community_scene = 'data-contributors-universe' in page.body or is_next_stop
-    if is_community_scene:
-        content = (next_stop.render(page, site['repo']) if is_next_stop
-                   else contributor_universe_html(people, page, site))
-        if is_next_stop:
-            template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/next-stop.css?v={built}">\n<script defer src="{prefix}static/next-stop.js?v={built}"></script>\n</head>')
-        template = re.sub(r'<header class="topbar">.*?</header>', "", template, count=1, flags=re.S)
-        # this page has its own still sky, so the animated one is never loaded here
-        template = template.replace('<canvas class="sky" aria-hidden="true"></canvas>\n', "")
-        template = re.sub(r'<script defer src="\{\{prefix\}\}static/sky\.js[^>]*></script>\n?', "", template)
-        template = re.sub(
-            r'<div class="shell">.*?(?=<script>window.SITE)',
-            '<main id="content" class="crew-space">{{content}}</main>\n',
-            template, count=1, flags=re.S,
-        )
-    page_class = "page-crew page-next-stop" if is_next_stop else "page-crew" if is_community_scene else f"page-{page.kind}"
+    page_class = f"page-{page.kind}"
     if is_prep_hub:
         page_class += " page-prep-hub"
     if 'data-technology-tree' in page.body:
@@ -2254,16 +2038,13 @@ def assemble(page, sections, people, nav, built, template):
             .replace("{{lang_cls}}", lang_cls)
             .replace("{{lang_label}}", "EN" if zh else "中文")
             .replace("{{reading_controls}}", reading_controls_html(page))
-            .replace("{{crew_href}}", page.rel("contributors.html" if zh else "contributors.en.html"))
-            .replace("{{crew_label}}", "幕后" if zh else "Behind the notes")
-            .replace("{{crew_aria}}", "幕后" if zh else "Behind the notes")
             .replace("{{repo}}", site["repo"])
             .replace("{{content}}", content)
             .replace("{{page_header}}", page_header_html(page))
-            .replace("{{page_nav}}", "" if is_community_scene or is_prep_hub else page_nav_html(page))
+            .replace("{{page_nav}}", "" if is_prep_hub else page_nav_html(page))
             .replace("{{note_metrics}}", note_metrics.panel(page, ROOT))
             .replace("{{glossary}}", glossary_html(page))
-            .replace("{{footer}}", footer_html(page, people, site["repo"], built))
+            .replace("{{footer}}", footer_html(page, site["repo"], built))
             .replace("{{built}}", built))
     return with_csp(output, template, prefix, html_lang, built)
 
@@ -2284,10 +2065,6 @@ def main():
     pages, sections = discover(nav)
     print(f"  {len(pages)} pages in {len(sections)} sections")
 
-    print("collecting contributors...")
-    people = contributors(nav["site"]["repo"])
-    print(f"  {len(people)}: " + ", ".join(p["name"] for p in people[:6]))
-
     template = (SITE / "template.html").read_text(encoding="utf-8")
 
     if OUT.exists():
@@ -2302,7 +2079,7 @@ def main():
         build_page(page, terms, nav['site']['repo'], known)
         dest = OUT / page.out_rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(assemble(page, sections, people, nav, built, template),
+        dest.write_text(assemble(page, sections, nav, built, template),
                         encoding="utf-8")
         index.append({"u": page.url, "t": page.title, "l": page.lang,
                       "s": page.section["zh" if page.lang == "zh" else "en"],

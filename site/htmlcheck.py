@@ -26,7 +26,8 @@ OUT = ROOT / "_site"
 SCRIPT_ORIGINS = ("https://cdn.jsdelivr.net/npm/katex@0.16.9/",)
 URL_ATTRIBUTES = {"href", "src", "action", "formaction", "xlink:href", "poster", "data", "background", "cite"}
 BANNED_TAGS = {"iframe", "frame", "object", "embed", "base", "applet"}
-REDIRECT_SCRIPT = re.compile(r'location\.replace\("[^"<>\\]*" \+ location\.hash\)')
+# a redirect to a section of the new page has no use for the old page's anchor
+REDIRECT_SCRIPT = re.compile(r'location\.replace\("[^"<>\\]*"(?: \+ location\.hash)?\)')
 HASH = re.compile(r"'sha256-([A-Za-z0-9+/=]+)'")
 
 

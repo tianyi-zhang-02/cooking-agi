@@ -45,7 +45,7 @@ class PageTitleTests(unittest.TestCase):
                     build.build_page(page, [], navigation['site']['repo'], known)
                     self.assertNotIn('{#', page.title)
                     self.assertIn(f'<span id="{anchor}"></span>', page.body)
-                    output = build.assemble(page, sections, [], navigation, 'test',
+                    output = build.assemble(page, sections, navigation, 'test',
                                             (build.SITE / 'template.html').read_text())
                     self.assertNotIn('{#' + anchor + '}', output)
         finally:

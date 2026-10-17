@@ -1,11 +1,9 @@
 import io
 import json
-import re
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.error import URLError
 
@@ -109,90 +107,6 @@ class ContributorTests(unittest.TestCase):
         self.assertEqual(codex["models"], ["Codex", "OpenAI Codex"])
         self.assertEqual(codex["description"]["en"], "Tests")
         self.assertEqual(claude["models"], ["Claude Opus 5"])
-
-    def test_bilingual_manual_credit_renders_in_sky_credits_and_board(self):
-        people = self.collect("", credits={"Codex": {"zh": "测试 <script>", "en": "Tests <script>"}})
-        for language, explanation in (("zh", "未单独统计"), ("en", "Not separately tracked")):
-            page = SimpleNamespace(lang=language, depth=0, rel=lambda path: path)
-            with patch.object(build, "world_dots", return_value={}), \
-                    patch.object(build.collaboration, "load_config", return_value={}):
-                output = build.contributor_universe_html(people, page, {"repo": "example/notes"})
-            self.assertEqual(output.count('data-crew-id="Codex"'), 1)
-            self.assertIn('<span class="credit-name"><strong class="crew-name">Codex</strong>', output)
-            self.assertIn('<div class="board-identity">', output)
-            self.assertEqual(output.count('src="static/company-icons/openai.svg"'), 3)
-            self.assertEqual(output.count('class="crew-bits"'), 3)
-            self.assertEqual(output.count('data-crew-avatar'), 3)
-            self.assertEqual(output.count('class="crew-name"'), 3)
-            self.assertIn(explanation, output)
-            self.assertIn('&lt;script&gt;', output)
-            self.assertNotIn('<script>', output)
-            self.assertNotIn('<time datetime="">', output)
-            self.assertNotIn('crew-drifter is-recent', output)
-            row = re.search(r'<tr class="">.*?</tr>', output, re.S).group()
-            self.assertNotIn('<b>0</b>', row)
-
-    def test_distinct_local_icons_render_for_both_ai_collaborators(self):
-        people = self.collect(
-            "Claude\tnoreply@anthropic.com\t2026-09-30T12:00:00+00:00",
-            credits={"Codex": {"zh": "测试", "en": "Tests"}},
-        )
-        for language in ("zh", "en"):
-            page = SimpleNamespace(lang=language, depth=1, rel=lambda path: "../" + path)
-            with patch.object(build, "world_dots", return_value={}), \
-                    patch.object(build.collaboration, "load_config", return_value={}):
-                output = build.contributor_universe_html(people, page, {"repo": "example/notes"})
-            for asset in ("crew-icons/claude.svg", "company-icons/openai.svg"):
-                self.assertEqual(output.count(f'src="../static/{asset}"'), 3)
-                self.assertTrue((build.SITE / "static" / asset).is_file())
-            self.assertEqual(output.count('class="crew-bits"'), 6)
-            self.assertEqual(output.count('class="crew-src crew-mark"'), 6)
-            self.assertIn('aria-label="Claude Code"', output)
-            self.assertIn('aria-label="Codex"', output)
-
-    def test_brand_icons_do_not_replace_human_or_unknown_ai_avatars(self):
-        page = SimpleNamespace(rel=lambda path: path)
-        for name, kind in (("Codex", "human"), ("Claude Code", "human"), ("Another AI", "ai")):
-            markup = build.contributor_avatar_html({"name": name, "kind": kind}, page)
-            self.assertIn('class="crew-bits"', markup)
-            self.assertNotIn('crew-mark', markup)
-        people = self.collect("Writer\twriter@example.org\t2026-09-30T12:00:00+00:00")
-        page = SimpleNamespace(lang="zh", depth=0, rel=lambda path: path)
-        with patch.object(build, "world_dots", return_value={}), \
-                patch.object(build.collaboration, "load_config", return_value={}):
-            output = build.contributor_universe_html(people, page, {"repo": "example/notes"})
-        self.assertIn('class="crew-bits"', output)
-        self.assertNotIn('class="crew-brand-icon"', output)
-
-    def test_all_names_use_one_style_and_grids_keep_large_rosters(self):
-        page = SimpleNamespace(lang="zh", depth=0, rel=lambda path: path)
-        site = {"repo": "example/notes", "owner_login": "writer-0", "owner_url": "https://example.org"}
-        for count in (1, 2, 25, 80):
-            people = [dict(name=f"Writer {index}", login=f"writer-{index}", kind="human", commits=index,
-                           first="2026-01-01", last="2026-01-01", crew_id=f"CG {index:03}",
-                           url=f"https://github.com/writer-{index}") for index in range(count)]
-            with self.subTest(count=count), patch.object(build, "world_dots", return_value={}), \
-                    patch.object(build.collaboration, "load_config", return_value={}):
-                output = build.contributor_universe_html(people, page, site)
-                credits = output.split('id="crew-credits"', 1)[1].split('</section>', 1)[0]
-                self.assertEqual(credits.count('<li>'), count)
-                self.assertEqual(credits.count('class="crew-name"'), count)
-                self.assertEqual(output.count('data-crew-avatar'), count * 3)
-                self.assertIn('href="https://example.org"', credits)
-                self.assertNotIn('<br', credits)
-        css = (build.SITE / 'static/style.css').read_text()
-        self.assertIn('repeat(auto-fit, minmax(min(100%, 14rem), 1fr))', css)
-        self.assertIn('.page-crew .crew-name', css)
-
-    def test_avatar_sources_are_escaped_and_pixel_renderer_is_shared(self):
-        person = dict(name='Writer "<&', kind='human', avatar='https://example.org/face.png?x="&y=1')
-        markup = build.contributor_avatar_html(person, SimpleNamespace(rel=lambda path: path))
-        self.assertIn('&quot;&amp;y=1', markup)
-        self.assertIn('width="72" height="72"', markup)
-        script = (build.SITE / 'static/app.js').read_text()
-        self.assertIn('$$("[data-crew-avatar]")', script)
-        self.assertIn('face.classList.add("is-dithered")', script)
-        self.assertNotIn('if (canvas) {', script)
 
     def test_registry_requires_bilingual_unique_entries(self):
         with tempfile.TemporaryDirectory() as directory:
