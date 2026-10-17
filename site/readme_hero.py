@@ -259,7 +259,7 @@ def compose(shots, lang):
         css.append(f"@keyframes k{i}{{0%{{transform:scale(1)}}{100 * start / total:.3f}%{{transform:scale(1)}}"
                    f"{100 * min(end, total) / total:.3f}%{{transform:scale(1.045) translateY(-6px)}}100%{{transform:scale(1)}}}}")
         css.append(f".k{i}{{animation:k{i} {total}s linear infinite both;transform-box:view-box;transform-origin:{x + w / 2}px {y + bar}px}}")
-        body.append(f'<g class="s{i}"><image class="k{i}" href="{uri}" x="{x}" y="{y + bar}" width="{w}" height="{sh}" preserveAspectRatio="xMidYMin slice"/></g>')
+        body.append(f'<g class="scene s{i}"><image class="k{i}" href="{uri}" x="{x}" y="{y + bar}" width="{w}" height="{sh}" preserveAspectRatio="xMidYMin slice"/></g>')
     # sheen sweeping across the screen at each scene change
     css.append(f"@keyframes sheen{{0%{{transform:translateX(-{w}px)}}{100 * 1.2 / SCENE:.2f}%{{transform:translateX({w + 200}px)}}100%{{transform:translateX({w + 200}px)}}}}")
     css.append(f".sheen{{animation:sheen {SCENE}s ease-in-out infinite both}}")
@@ -268,7 +268,7 @@ def compose(shots, lang):
     for i, (name, paths, _) in enumerate(SCENES):
         path = paths[li].replace("index.en.html", "").replace("index.zh.html", "")
         url = "…/cooking-agi/" + (path if len(path) <= 44 else path[:43] + "…")
-        body.append(f'<text class="s{i}" x="{x + w / 2}" y="{y + bar / 2 + 4}" text-anchor="middle" font-size="10.5" fill="{muted}">{esc(url)}</text>')
+        body.append(f'<text class="scene s{i}" x="{x + w / 2}" y="{y + bar / 2 + 4}" text-anchor="middle" font-size="10.5" fill="{muted}">{esc(url)}</text>')
     # phone for the bilingual scene
     px, py, pw, ph = PHONE["x"], PHONE["y"], PHONE["w"], PHONE["h"]
     phone_uri = data_uri(shots / f"{lang}-phone.png", round((pw - 12) * 2.2), round((ph - 12) * 2.2))
@@ -287,13 +287,13 @@ def compose(shots, lang):
     # captions
     for i, (_, _, captions) in enumerate(SCENES):
         number, title, sub = captions[lang]
-        start, end = i * SCENE + 0.15, (i + 1) * SCENE - 0.1
+        start, end = (i * SCENE + 0.15 if i else 0), (i + 1) * SCENE - 0.1
         css.append(keyframes(f"c{i}", start, end, total, 0.5, "opacity:{o}"))
         css.append(f".c{i}{{animation:c{i} {total}s ease-in-out infinite both}}")
         size = 34 if lang == "en" else 33
         lines = "".join(f'<tspan x="56" y="{224 + j * (size + 8)}">{esc(t)}</tspan>' for j, t in enumerate(title))
         subs = "".join(f'<tspan x="56" y="{224 + len(title) * (size + 8) + 22 + j * 23}">{esc(t)}</tspan>' for j, t in enumerate(sub))
-        body.append(f'<g class="c{i}"><text x="56" y="176" fill="{accent}" font-size="13" font-weight="650" letter-spacing=".05em">{esc(number)}</text>'
+        body.append(f'<g class="cap c{i}"><text x="56" y="176" fill="{accent}" font-size="13" font-weight="650" letter-spacing=".05em">{esc(number)}</text>'
                     f'<text fill="{ink}" font-size="{size}" font-weight="650" letter-spacing="-.02em">{lines}</text>'
                     f'<text fill="{muted}" font-size="14.5">{subs}</text></g>')
     # progress bars
@@ -303,7 +303,7 @@ def compose(shots, lang):
         css.append(f"@keyframes p{i}{{0%{{transform:scaleX(0)}}{100 * i * SCENE / total:.3f}%{{transform:scaleX(0)}}"
                    f"{100 * (i + 1) * SCENE / total:.3f}%{{transform:scaleX(1)}}99.95%{{transform:scaleX(1)}}100%{{transform:scaleX(0)}}}}")
         css.append(f".p{i}{{animation:p{i} {total}s linear infinite both;transform-box:fill-box;transform-origin:left center}}")
-        body.append(f'<rect class="p{i}" x="{bx}" y="452" width="36" height="3" rx="1.5" fill="{accent}"/>')
+        body.append(f'<rect class="pg p{i}" x="{bx}" y="452" width="36" height="3" rx="1.5" fill="{accent}"/>')
     body.append(f'<text x="56" y="486" font-size="12" fill="{muted}">{esc(FOOTER[lang])}</text>')
     body.append(f'<path d="M0 {H - 0.5}H{W}" stroke="#fff" stroke-opacity=".06"/>')
     defs = ('<defs>'
@@ -322,7 +322,10 @@ def compose(shots, lang):
     font = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif"
     label = {"en": "A tour of AGI Study Notes: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search",
              "zh": "AGI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"}[lang]
-    style = "<style>" + "@media (prefers-reduced-motion: reduce){*{animation:none!important}}" + "".join(css) + "</style>"
+    # without animation (reduced motion, or a renderer that ignores CSS) only the first scene shows
+    base = (".scene,.cap,.ph{opacity:0}.s0,.c0{opacity:1}"
+            ".pg{transform:scaleX(0);transform-box:fill-box;transform-origin:left center}.p0{transform:scaleX(1)}")
+    style = "<style>" + base + "".join(css) + "@media (prefers-reduced-motion: reduce){*{animation:none!important}}</style>"
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" '
             f'aria-label="{esc(label)}" font-family="{esc(font)}">{style}{defs}{"".join(body)}</svg>\n')
 
