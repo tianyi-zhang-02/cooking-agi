@@ -148,8 +148,13 @@ def render(data, language):
     hook = lambda node: node.get("hook", {}).get(language) or split_title(node["title"][language])[1]
 
     first, last = data["eras"][0]["start"], data["eras"][-1]["end"]
+    latest = data["eras"][-1]
+    # most readers come for the last few years: one link straight there
+    jump = (f'<a class="ch-jump" href="#era-{latest["id"]}">'
+            f'{say(f"直接看最近：{latest["start"]} – {latest["end"]}", f"Jump to the latest: {latest["start"]} – {latest["end"]}")} ↓</a>')
     stage = (f'<div class="ch-stage" data-tree-stage data-first="{first}" data-last="{last}"><p class="ch-year" data-year aria-hidden="true"></p>'
-             f'<p class="ch-hint">{say(f"{first} 年到今天，往下读。", f"From {first} to today. Scroll to read.")}</p></div>')
+             f'<p class="ch-hint">{say(f"{first} 年到今天，往下读。", f"From {first} to today. Scroll to read.")}{jump}</p></div>')
+    ongoing = int(data["reviewed"][:4])
 
     count = lambda topic: sum(node["topic"] == topic for node in data["nodes"])
     chips = ''.join(f'<button type="button" class="ch-field" id="field-{topic["id"]}" data-layer="{topic["layer"]}" data-field="{topic["id"]}" '
@@ -177,7 +182,8 @@ def render(data, language):
         more = (f'<button type="button" class="ch-more" data-more hidden data-more-label="{escape(say(f"展开这个年代的全部 {len(works)} 个", f"Show all {len(works)} in this period"), quote=True)}" '
                 f'data-less-label="{escape(say("收起", "Show fewer"), quote=True)}"></button>') if len(works) > len(keys) else ''
         periods.append(f'<section class="ch-era" id="era-{era["id"]}" data-era="{era["id"]}" aria-labelledby="era-{era["id"]}-title">'
-                       f'<header class="ch-era-head">{twigs}<p class="ch-era-years">{era["start"]} – {era["end"]}</p>'
+                       f'<header class="ch-era-head">{twigs}<p class="ch-era-years">{era["start"]} – {era["end"]}'
+                       f'{f"<span class=\"ch-era-live\">{say("还在发生", "Still unfolding")}</span>" if era["end"] >= ongoing else ""}</p>'
                        f'<h2 id="era-{era["id"]}-title">{text(era["title"])}</h2><p class="ch-era-summary">{text(era["summary"])}</p></header>'
                        f'<div class="ch-era-body"><ol class="ch-spine">{"".join(item(node, node["id"] in keys) for node in works)}</ol>{more}</div></section>')
     empty = f'<p class="ch-empty" data-filter-empty hidden>{say("这个领域还没有节点。", "No milestones in this field yet.")}</p>'

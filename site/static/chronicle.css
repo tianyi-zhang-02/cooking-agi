@@ -39,6 +39,8 @@
 :root[data-theme="light"] .prose .ch-year { color: #8a5a1a; text-shadow: none; }
 .prose .ch-year.is-done { color: var(--muted); font-size: 1rem; font-weight: 500; letter-spacing: .02em; text-shadow: none; }
 .prose .ch-hint { position: absolute; left: 0; bottom: 1.4rem; margin: 0; color: var(--muted); font-size: .82rem; }
+.prose .ch-jump { margin-left: .9rem; color: #e9a23b; text-decoration: none; border-bottom: 1px solid color-mix(in srgb, #e9a23b 40%, transparent); }
+.prose .ch-jump:hover { border-bottom-color: #e9a23b; }
 
 /* Field filter: pinned right under the 52px top bar, on an opaque strip. */
 .ch-bar { position: sticky; top: 52px; z-index: 5; margin: 0 calc(-1 * var(--ch-gutter)); padding: .8rem var(--ch-gutter); background: var(--paper);
@@ -61,6 +63,7 @@
 .ch-era[hidden] { display: none; }
 .ch-era-head { align-self: start; position: sticky; top: 8.5rem; }
 .prose .ch-era-years { margin: 0; color: var(--muted); font: 600 .78rem/1 var(--mono); letter-spacing: .04em; }
+.ch-era-live { margin-left: .7rem; padding: .15rem .5rem; border: 1px solid color-mix(in srgb, #e9a23b 45%, transparent); border-radius: 999px; color: #e9a23b; font: 600 .7rem/1 var(--sans); letter-spacing: 0; vertical-align: .1em; }
 .prose .ch-era-head h2 { margin: .65rem 0 0; padding: 0; border: 0; font-size: clamp(1.35rem, 2.1vw, 1.7rem); font-weight: 600; letter-spacing: -.025em; line-height: 1.3; }
 .prose .ch-era-head h2::before { display: none; }
 .prose .ch-era-summary { margin: .85rem 0 0; color: var(--muted); font-size: .9rem; line-height: 1.85; }
