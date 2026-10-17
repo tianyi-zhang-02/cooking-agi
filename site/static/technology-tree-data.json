@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "reviewed": "2026-10-12",
+  "reviewed": "2026-10-17",
   "nodes": [
     {
       "id": "mycin",
@@ -5487,6 +5487,542 @@
           "https://deepmind.google/discover/blog/graphcast-ai-model-for-faster-and-more-accurate-global-weather-forecasting/"
         ]
       ]
+    },
+    {
+      "id": "o1-2024",
+      "year": 2024,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "post-training",
+      "title": {
+        "zh": "o1 · 先想一阵再回答",
+        "en": "o1 · Thinking before answering"
+      },
+      "hook": {
+        "zh": "用强化学习教模型先写一长串思路，再给答案。",
+        "en": "Reinforcement learning taught a model to work through a long chain of thought before answering."
+      },
+      "body": {
+        "zh": "o1 用大规模强化学习训练：回答之前，先在内部写一长串思路，学着发现错误、换个办法。OpenAI 报告，训练时多做强化学习、回答时多想一会儿，成绩都会往上走。2024 年 AIME 数学竞赛题上，GPT-4o 平均做对 12%，o1 单次作答做对 74%。",
+        "en": "o1 was trained with large-scale reinforcement learning to work through a long internal chain of thought before answering, learning to catch its mistakes and try other approaches. OpenAI reported that scores rose both with more RL during training and with more thinking time when answering. On 2024 AIME competition problems, GPT-4o solved 12% on average; o1 solved 74% in a single attempt."
+      },
+      "limit": {
+        "zh": "有些写作类任务上，人们反而更喜欢别的模型；原始思路也只给用户看摘要。",
+        "en": "On some writing tasks people preferred other models, and users see only a summary of its reasoning."
+      },
+      "sources": [
+        [
+          "OpenAI · Learning to reason with LLMs, 2024-09-12",
+          "https://openai.com/index/learning-to-reason-with-llms/"
+        ]
+      ]
+    },
+    {
+      "id": "gemini-1-5-2024",
+      "year": 2024,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "language",
+      "title": {
+        "zh": "Gemini 1.5 · 一次读进百万词元",
+        "en": "Gemini 1.5 · Reading a million tokens at once"
+      },
+      "hook": {
+        "zh": "上下文从 3.2 万词元拉到 100 万，研究里试到了 1000 万。",
+        "en": "The context window went from 32,000 tokens to one million, with 10 million tried in research."
+      },
+      "body": {
+        "zh": "Gemini 1.0 一次只能读 3.2 万个词元。1.5 Pro 换成 MoE 架构，向部分用户开放了 100 万词元的上下文，一小时的视频也能整段放进去。把一句话藏进这么长的输入里，它几乎每次都能找回来。",
+        "en": "Gemini 1.0 could read 32,000 tokens at a time. Gemini 1.5 Pro moved to a mixture-of-experts architecture and opened a one-million-token context to some users, enough for an hour of video in one prompt. Hide one sentence anywhere in that much input and it found it almost every time."
+      },
+      "limit": {
+        "zh": "藏一句话再找出来，是最简单的长文测试；同时藏 100 句，召回率只有六成多。",
+        "en": "Finding one hidden sentence is the simplest long-context test; with 100 hidden sentences, recall fell to just over 60%."
+      },
+      "sources": [
+        [
+          "Google · Our next-generation model: Gemini 1.5, 2024-02-15",
+          "https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/"
+        ],
+        [
+          "Gemini Team · Gemini 1.5 technical report, arXiv v1, 2024-03-08",
+          "https://arxiv.org/abs/2403.05530v1"
+        ]
+      ]
+    },
+    {
+      "id": "nvidia-gb200-nvl72-2024",
+      "year": 2024,
+      "kind": "system",
+      "status": "historical",
+      "topic": "networks",
+      "track": "interconnect",
+      "title": {
+        "zh": "GB200 NVL72 · 一整柜当一块 GPU 用",
+        "en": "GB200 NVL72 · A whole rack acting as one GPU"
+      },
+      "hook": {
+        "zh": "72 块 Blackwell GPU 用 NVLink 连成一体，装进一个液冷机柜。",
+        "en": "72 Blackwell GPUs joined by NVLink into one domain, liquid-cooled in a single rack."
+      },
+      "body": {
+        "zh": "大模型拆到很多 GPU 上训练和推理，卡与卡之间的通信常常卡住整体速度。GB200 NVL72 把 72 块 Blackwell GPU 装进一个液冷机柜，用第五代 NVLink 连成一个域，每块 GPU 的双向带宽 1.8 TB/s。新的 Transformer Engine 还加入了 4 位浮点推理。",
+        "en": "Training and serving large models across many GPUs often stalls on communication between them. GB200 NVL72 puts 72 Blackwell GPUs in one liquid-cooled rack and joins them with fifth-generation NVLink into a single domain, at 1.8 TB/s of bidirectional bandwidth per GPU. Its new Transformer Engine also adds 4-bit floating-point inference."
+      },
+      "limit": {
+        "zh": "宣传的推理提速，是特定输入长度和延迟设定下的估算；发布时还写着规格可能调整。",
+        "en": "The headline inference speed-ups are estimates for set input lengths and latency targets, and the launch said specs could change."
+      },
+      "sources": [
+        [
+          "NVIDIA · Blackwell platform announcement, 2024-03-18",
+          "https://nvidianews.nvidia.com/news/nvidia-blackwell-platform-arrives-to-power-a-new-era-of-computing"
+        ],
+        [
+          "NVIDIA · GB200 NVL72 product page",
+          "https://www.nvidia.com/en-us/data-center/gb200-nvl72/"
+        ]
+      ]
+    },
+    {
+      "id": "alphafold3-2024",
+      "year": 2024,
+      "kind": "research",
+      "status": "historical",
+      "topic": "applications",
+      "track": "science-health",
+      "title": {
+        "zh": "AlphaFold 3 · 从单个蛋白到分子组合",
+        "en": "AlphaFold 3 · From single proteins to molecular complexes"
+      },
+      "hook": {
+        "zh": "把蛋白质、DNA、RNA 和小分子放在一起，预测它们怎么结合。",
+        "en": "It predicts how proteins, DNA, RNA and small molecules fit together."
+      },
+      "body": {
+        "zh": "细胞里的蛋白质、DNA 和其他分子从不单独工作，要看懂生物，得看它们怎么相互作用。AlphaFold 3 一次预测整个复合物的三维结构：扩散模块从一团原子出发，一步步收拢成最终的坐标。在蛋白质和其他分子的相互作用上，它比已有方法至少准 50%。",
+        "en": "Inside a cell, proteins, DNA and other molecules never work alone, so understanding biology means seeing how they interact. AlphaFold 3 predicts the 3D structure of a whole complex: a diffusion module starts from a cloud of atoms and refines it step by step into final coordinates. For interactions between proteins and other molecule types, it was at least 50% more accurate than existing methods."
+      },
+      "limit": {
+        "zh": "它给出的是静态结构，看不到分子怎么动；在无序区域还会编出不存在的结构。",
+        "en": "It predicts static structures, not how molecules move, and it can invent structure in disordered regions."
+      },
+      "sources": [
+        [
+          "Nature · Accurate structure prediction of biomolecular interactions with AlphaFold 3, 2024-05-08",
+          "https://www.nature.com/articles/s41586-024-07487-w"
+        ],
+        [
+          "Google · AlphaFold 3 announcement, 2024-05-08",
+          "https://blog.google/technology/ai/google-deepmind-isomorphic-alphafold-3-ai-model/"
+        ]
+      ]
+    },
+    {
+      "id": "llama-3-1-2024",
+      "year": 2024,
+      "kind": "product",
+      "status": "historical",
+      "topic": "ecosystem",
+      "track": "open-source",
+      "title": {
+        "zh": "Llama 3.1 · 把 405B 的权重放出来",
+        "en": "Llama 3.1 · Releasing weights at 405B"
+      },
+      "hook": {
+        "zh": "最大的 405B 版本也能下载权重，自己部署、自己微调。",
+        "en": "Even the largest, 405B version came with weights to download, run and fine-tune yourself."
+      },
+      "body": {
+        "zh": "Meta 说，开放模型的能力此前大多落后于闭源模型。Llama 3.1 放出了三个尺寸的权重，最大的 405B 用超过 15 万亿词元训练，还量化到 FP8，一台服务器就能跑起来。",
+        "en": "Meta noted that open models had mostly trailed closed ones in capability. Llama 3.1 released weights in three sizes; the largest, at 405B parameters, was trained on more than 15 trillion tokens and quantized to FP8 so it runs on a single server."
+      },
+      "limit": {
+        "zh": "许可证是 Meta 自定的社区许可：月活超过 7 亿的公司要另行申请，衍生模型名字得带 Llama。",
+        "en": "The licence is Meta's own: companies above 700 million monthly users must ask separately, and derived models must carry the Llama name."
+      },
+      "sources": [
+        [
+          "Meta · Introducing Llama 3.1, 2024-07-23",
+          "https://ai.meta.com/blog/meta-llama-3-1/"
+        ],
+        [
+          "Meta · Llama 3.1 Community License, 2024-07-23",
+          "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama3_1/LICENSE"
+        ]
+      ]
+    },
+    {
+      "id": "nobel-ai-2024",
+      "year": 2024,
+      "kind": "research",
+      "status": "historical",
+      "topic": "ecosystem",
+      "track": "community",
+      "title": {
+        "zh": "诺贝尔奖 · 物理和化学奖都给了 AI",
+        "en": "Nobel Prizes · Physics and chemistry honour AI"
+      },
+      "hook": {
+        "zh": "物理奖颁给神经网络的奠基工作，化学奖颁给蛋白质设计与结构预测。",
+        "en": "Physics honoured the foundations of neural networks; chemistry honoured protein design and structure prediction."
+      },
+      "body": {
+        "zh": "2024 年 10 月，诺贝尔物理学奖授予 Hopfield 和 Hinton，表彰让人工神经网络能够学习的奠基性发现。第二天，化学奖一半给了做计算蛋白质设计的 Baker，另一半给了做蛋白质结构预测的 Hassabis 和 Jumper。评奖说明写到，AlphaFold2 已被 190 个国家的两百多万人用过。",
+        "en": "In October 2024 the Nobel Prize in Physics went to John Hopfield and Geoffrey Hinton for foundational discoveries that let artificial neural networks learn. A day later, half of the Chemistry prize went to David Baker for computational protein design, and half to Demis Hassabis and John Jumper for protein structure prediction. The announcement notes that AlphaFold2 had been used by more than two million people in 190 countries."
+      },
+      "limit": {
+        "zh": "奖项回顾的是已有的成果；AI 还能给物理和化学带来什么，要靠之后的研究回答。",
+        "en": "The prizes recognise work already done; what AI adds to physics and chemistry next is for later research to show."
+      },
+      "sources": [
+        [
+          "Nobel Prize in Physics 2024 · press release, 2024-10-08",
+          "https://www.nobelprize.org/prizes/physics/2024/press-release/"
+        ],
+        [
+          "Nobel Prize in Chemistry 2024 · press release, 2024-10-09",
+          "https://www.nobelprize.org/prizes/chemistry/2024/press-release/"
+        ]
+      ]
+    },
+    {
+      "id": "mcp-2024",
+      "year": 2024,
+      "kind": "system",
+      "status": "historical",
+      "topic": "software",
+      "track": "systems",
+      "title": {
+        "zh": "MCP · 给 AI 工具一个统一接口",
+        "en": "MCP · One standard connector for AI tools"
+      },
+      "hook": {
+        "zh": "数据源做成 MCP 服务器，AI 应用当客户端，接一次就能通用。",
+        "en": "Data sources run as MCP servers and AI apps connect as clients, so one integration works across tools."
+      },
+      "body": {
+        "zh": "模型被挡在数据孤岛外面，每接一个新数据源都要单独写一套集成，很难扩展。2024 年 11 月，Anthropic 开放了 Model Context Protocol：数据和工具做成 MCP 服务器，AI 应用作为客户端去连。发布时附带了规范、SDK，以及 Google Drive、Slack、GitHub 等六个现成的服务器。",
+        "en": "Models were cut off from data behind silos, and every new data source needed its own custom integration, which was hard to scale. In November 2024 Anthropic opened the Model Context Protocol: data and tools are exposed as MCP servers, and AI applications connect to them as clients. The launch came with the specification, SDKs, and six ready-made servers, including Google Drive, Slack and GitHub."
+      },
+      "limit": {
+        "zh": "发布时只能在本地连 MCP 服务器，远程部署的工具包还在路上。",
+        "en": "At launch, MCP servers could only be connected locally; toolkits for remote deployment were still to come."
+      },
+      "sources": [
+        [
+          "Anthropic · Introducing the Model Context Protocol, 2024-11-25",
+          "https://www.anthropic.com/news/model-context-protocol"
+        ]
+      ]
+    },
+    {
+      "id": "deepseek-v3-2024",
+      "year": 2024,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "language",
+      "title": {
+        "zh": "DeepSeek-V3 · 用 FP8 训练大 MoE",
+        "en": "DeepSeek-V3 · Training a large MoE in FP8"
+      },
+      "hook": {
+        "zh": "每个词只用到一小部分参数，整套训练用 FP8 跑完。",
+        "en": "Each token uses a small share of the parameters, and the whole run trained in FP8."
+      },
+      "body": {
+        "zh": "低精度训练省显存、省时间，但激活、权重和梯度里的离群值容易把训练带偏。DeepSeek-V3 是一个 MoE 模型，每个词只激活 6710 亿参数中的 370 亿。报告说它首次在这么大的模型上验证了 FP8 混合精度训练，整套正式训练用了 278.8 万个 H800 GPU 小时。",
+        "en": "Low-precision training saves memory and time, but outliers in activations, weights and gradients can throw it off. DeepSeek-V3 is a mixture-of-experts model that activates 37B of its 671B parameters for each token. Its report says it was the first to validate FP8 mixed-precision training at this scale; the full official run took 2.788 million H800 GPU hours."
+      },
+      "limit": {
+        "zh": "这个成本只算正式训练，之前的研究和消融实验不在里面；推荐的部署单元也偏大。",
+        "en": "That cost covers only the official run, not earlier research and ablations, and the recommended deployment unit is large."
+      },
+      "sources": [
+        [
+          "DeepSeek-AI · DeepSeek-V3 Technical Report, arXiv v1, 2024-12-27",
+          "https://arxiv.org/abs/2412.19437v1"
+        ]
+      ]
+    },
+    {
+      "id": "iea-energy-ai-2025",
+      "year": 2025,
+      "kind": "research",
+      "status": "historical",
+      "topic": "energy",
+      "track": "facilities",
+      "title": {
+        "zh": "IEA《能源与 AI》 · 给数据中心用电算总账",
+        "en": "IEA Energy and AI · Counting what data centres use"
+      },
+      "hook": {
+        "zh": "2024 年数据中心用了全球约 1.5% 的电，到 2030 年预计翻倍。",
+        "en": "Data centres used about 1.5% of the world's electricity in 2024, and the projection doubles by 2030."
+      },
+      "body": {
+        "zh": "AI 到底要用多少电，决策者和市场一直缺少看清的工具。国际能源署 2025 年 4 月的报告估算，2024 年全球数据中心用电约 415 太瓦时；到 2030 年预计翻一倍多，约 945 太瓦时，比日本今天全国的用电还略多。",
+        "en": "Policy makers and markets had lacked the tools to see how much electricity AI would need. The International Energy Agency's April 2025 report estimates that data centres used about 415 TWh in 2024 and projects more than double that, around 945 TWh, by 2030, slightly more than Japan uses today."
+      },
+      "limit": {
+        "zh": "越往后越难说准：到 2035 年，几种情景的估计从 700 到 1700 太瓦时不等。",
+        "en": "The further out, the less certain: by 2035, estimates across scenarios range from 700 to 1,700 TWh."
+      },
+      "sources": [
+        [
+          "IEA · Energy and AI, executive summary, 2025-04-10",
+          "https://www.iea.org/reports/energy-and-ai/executive-summary"
+        ],
+        [
+          "IEA · Energy and AI press release, 2025-04-10",
+          "https://www.iea.org/news/ai-is-set-to-drive-surging-electricity-demand-from-data-centres-while-offering-the-potential-to-transform-how-the-energy-sector-works"
+        ]
+      ]
+    },
+    {
+      "id": "coding-agents-2025",
+      "year": 2025,
+      "kind": "product",
+      "status": "evolving",
+      "topic": "applications",
+      "track": "assistants",
+      "title": {
+        "zh": "编程 agent · 把整件任务交给模型",
+        "en": "Coding agents · Handing over the whole task"
+      },
+      "hook": {
+        "zh": "模型自己读仓库、改文件、跑测试，再交给人审。",
+        "en": "The model reads the repository, edits files and runs the tests, then hands the result back for review."
+      },
+      "body": {
+        "zh": "2021 年的 Copilot 在编辑器里补全代码。2025 年 2 月，Anthropic 推出 Claude Code，在开发者自己的终端里搜代码、改文件、写测试、跑命令、提交。5 月，OpenAI 推出 Codex，把每个任务放进预装了仓库的云端沙箱，几个任务并行跑，通常 1 到 30 分钟做完，附上终端日志和测试结果。",
+        "en": "In 2021, Copilot completed code inside the editor. In February 2025 Anthropic released Claude Code, which searches code, edits files, writes and runs tests, and commits from the developer's own terminal. In May, OpenAI's Codex began running each task in its own cloud sandbox preloaded with the repository, several at once, usually finishing in 1 to 30 minutes with terminal logs and test results attached."
+      },
+      "limit": {
+        "zh": "生成的代码仍要人一一审过；工具调用不稳、长时间运行的命令，也还是难点。",
+        "en": "People still have to review every change, and unreliable tool calls and long-running commands remain hard."
+      },
+      "sources": [
+        [
+          "Anthropic · Claude 3.7 Sonnet and Claude Code, 2025-02-24",
+          "https://www.anthropic.com/news/claude-3-7-sonnet"
+        ],
+        [
+          "Anthropic · Introducing Claude 4 (Claude Code generally available), 2025-05-22",
+          "https://www.anthropic.com/news/claude-4"
+        ],
+        [
+          "OpenAI · Introducing Codex, 2025-05-16",
+          "https://openai.com/index/introducing-codex/"
+        ]
+      ]
+    },
+    {
+      "id": "imo-2025-gold",
+      "year": 2025,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "post-training",
+      "title": {
+        "zh": "IMO · 用自然语言写出金牌证明",
+        "en": "IMO · Gold-medal proofs in plain language"
+      },
+      "hook": {
+        "zh": "4.5 小时内读题、写证明，6 道题做对 5 道。",
+        "en": "Within 4.5 hours, two systems read the problems and wrote proofs that solved five of six."
+      },
+      "body": {
+        "zh": "2024 年，DeepMind 的系统还得先把题目译成 Lean 这样的形式语言，再算两三天。2025 年的国际数学奥林匹克上，Gemini Deep Think 直接读题、写自然语言证明，在考试时限内拿到 35 分（满分 42），由 IMO 协调员按学生标准评分认证。OpenAI 的实验模型也拿到 35 分，由三位前奖牌得主评分。",
+        "en": "In 2024, DeepMind's system still needed the problems translated into a formal language such as Lean and took two to three days. At the 2025 International Mathematical Olympiad, Gemini Deep Think read the problems and wrote natural-language proofs within the time limit, scoring 35 of 42, graded and certified by IMO coordinators. An experimental OpenAI model also scored 35, graded by three former medalists."
+      },
+      "limit": {
+        "zh": "IMO 只给答卷评分，不检验系统本身；两个模型当时都还没对外开放。",
+        "en": "The IMO graded the answers, not the systems behind them, and neither model was publicly available at the time."
+      },
+      "sources": [
+        [
+          "Google DeepMind · Gemini Deep Think reaches IMO gold-medal standard, 2025-07-21",
+          "https://deepmind.google/discover/blog/advanced-version-of-gemini-with-deep-think-officially-achieves-gold-medal-standard-at-the-international-mathematical-olympiad/"
+        ],
+        [
+          "Alexander Wei (OpenAI) · IMO 2025 results thread, 2025-07-19",
+          "https://x.com/alexwei_/status/1946477742855532918"
+        ],
+        [
+          "OpenAI IMO 2025 proofs · GitHub",
+          "https://github.com/aw31/openai-imo-2025-proofs"
+        ]
+      ]
+    },
+    {
+      "id": "genie-3-2025",
+      "year": 2025,
+      "kind": "research",
+      "status": "evolving",
+      "topic": "models",
+      "track": "generative",
+      "title": {
+        "zh": "Genie 3 · 生成能走进去的世界",
+        "en": "Genie 3 · Generating worlds you can walk through"
+      },
+      "hook": {
+        "zh": "输入一段文字，生成一个能实时走动的 720p 世界。",
+        "en": "A text prompt becomes a 720p world you can move through in real time."
+      },
+      "body": {
+        "zh": "一帧一帧往下生成、还要实时接住用户的操作，比一次生成整段视频更难。Genie 3 每生成一帧都参考之前走过的轨迹，不需要显式的 3D 表示，就能以每秒 24 帧实时生成。世界能保持几分钟前后一致，生成过程中还能用文字改变世界里发生的事。",
+        "en": "Generating frame by frame while responding to a user in real time is harder than generating a whole video at once. Genie 3 conditions each new frame on the trajectory so far and needs no explicit 3D representation, running in real time at 24 frames per second. Its worlds stay consistent for a few minutes, and text prompts can change events in them as they run."
+      },
+      "limit": {
+        "zh": "能做的动作还很有限；多个角色同时互动、几小时的连续体验，都还做不到。",
+        "en": "The actions available are still limited, and several interacting agents or hours of continuous play are out of reach."
+      },
+      "sources": [
+        [
+          "Google DeepMind · Genie 3: a new frontier for world models, 2025-08-05",
+          "https://deepmind.google/discover/blog/genie-3-a-new-frontier-for-world-models/"
+        ]
+      ]
+    },
+    {
+      "id": "ai-research-math-2026",
+      "year": 2026,
+      "kind": "research",
+      "status": "evolving",
+      "topic": "applications",
+      "track": "science-health",
+      "title": {
+        "zh": "AI 做数学研究 · 解开悬而未决的问题",
+        "en": "AI in maths research · Settling open problems"
+      },
+      "hook": {
+        "zh": "通用推理模型推翻了 Erdős 问题上的一个猜想，Lean 替机器证明把关。",
+        "en": "A general reasoning model disproved a conjecture on an Erdős problem, and Lean checked machine proofs at scale."
+      },
+      "body": {
+        "zh": "2025 年，AI 在竞赛题上拿到金牌线；2026 年，它开始碰没人解开的问题。5 月，OpenAI 的一个通用推理模型推翻了平面单位距离问题上的一个长期猜想，证明由外部数学家核对过。同月的一篇预印本让语言模型写 Lean 形式证明、再交给机器检查，在 353 个未解的 Erdős 问题里自主解决了 9 个。",
+        "en": "In 2025, AI reached gold-medal level on competition problems; in 2026 it began settling questions nobody had answered. In May, a general-purpose OpenAI reasoning model disproved a longstanding conjecture on the planar unit-distance problem, and outside mathematicians checked the proof. A preprint the same month had language models write formal proofs in Lean for a machine to check, and resolved 9 of 353 open Erdős problems on its own."
+      },
+      "limit": {
+        "zh": "语言模型单独写的证明还靠不住，得有人核对或交给 Lean 检查；成功率也只有几个百分点。",
+        "en": "Proofs written by language models alone are still unreliable, so people or Lean must check them, and the hit rate is a few percent."
+      },
+      "sources": [
+        [
+          "OpenAI · An OpenAI model has disproved a central conjecture in discrete geometry, 2026-05-20",
+          "https://openai.com/index/model-disproves-discrete-geometry-conjecture/"
+        ],
+        [
+          "Tsoukalas et al. · Advancing Mathematics Research with AI-Driven Formal Proof Search, arXiv v1, 2026-05-21",
+          "https://arxiv.org/abs/2605.22763"
+        ]
+      ]
+    },
+    {
+      "id": "deepseek-v4-2026",
+      "year": 2026,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "language",
+      "title": {
+        "zh": "DeepSeek-V4 · 让百万上下文变便宜",
+        "en": "DeepSeek-V4 · Making a million tokens cheap"
+      },
+      "hook": {
+        "zh": "改了注意力，长上下文的 KV cache 只剩一成；权重按 MIT 许可开放。",
+        "en": "Redesigned attention cuts the long-context KV cache to a tenth, with weights under the MIT licence."
+      },
+      "body": {
+        "zh": "上下文越长，每生成一个词要读的 KV cache 越大，长上下文一直很贵。2026 年 4 月的 DeepSeek-V4 预览版改了注意力的设计：在 100 万词元的上下文里，V4-Pro 每个词的推理计算只要 V3.2 的 27%，KV cache 只要 10%。DeepSeek 自己的服务也把 100 万上下文设成了默认。",
+        "en": "The longer the context, the bigger the KV cache each new token has to read, so long context stayed expensive. DeepSeek-V4 Preview, released in April 2026, redesigned attention: at a one-million-token context, V4-Pro needs 27% of V3.2's per-token inference compute and 10% of its KV cache. DeepSeek's own services made a one-million-token context the default."
+      },
+      "limit": {
+        "zh": "发布时是预览版，各项成绩都是 DeepSeek 自己报告的。",
+        "en": "It launched as a preview, and every score comes from DeepSeek's own reports."
+      },
+      "sources": [
+        [
+          "DeepSeek · DeepSeek V4 Preview Release, 2026-04-24",
+          "https://api-docs.deepseek.com/news/news260424"
+        ],
+        [
+          "DeepSeek · DeepSeek-V4-Pro model card",
+          "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro"
+        ]
+      ]
+    },
+    {
+      "id": "tpu-8-2026",
+      "year": 2026,
+      "kind": "system",
+      "status": "historical",
+      "topic": "chips",
+      "track": "accelerators",
+      "title": {
+        "zh": "TPU 8t 与 8i · 训练和推理分开造芯片",
+        "en": "TPU 8t and 8i · Separate chips for training and serving"
+      },
+      "hook": {
+        "zh": "同一代 TPU 拆成两颗：一颗管训练，一颗管推理。",
+        "en": "One TPU generation split into two chips: one for training, one for serving."
+      },
+      "body": {
+        "zh": "训练要大量芯片一起算，推理要低延迟地回应，尤其是 agent 之间频繁往来的时候。2026 年 4 月，Google 的第八代 TPU 分成专做训练的 TPU 8t 和专做低延迟推理、内存带宽更大的 TPU 8i。一个 8t 超节点能连 9600 颗芯片；两颗芯片的每瓦性能都比上一代 Ironwood 最多高一倍。",
+        "en": "Training needs many chips computing together, while serving needs low latency, especially when agents trade many messages. In April 2026, Google's eighth-generation TPU split into TPU 8t for training and TPU 8i for low-latency inference with more memory bandwidth. One TPU 8t superpod links 9,600 chips, and both chips deliver up to twice the performance per watt of the previous generation, Ironwood."
+      },
+      "limit": {
+        "zh": "发布时还没正式上市，不少数字是“最多”的情况。",
+        "en": "They were not yet generally available at launch, and several figures are best cases."
+      },
+      "sources": [
+        [
+          "Google · Our eighth generation TPUs: two chips for the agentic era, 2026-04-22",
+          "https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/eighth-generation-tpu-agentic-era/"
+        ]
+      ]
+    },
+    {
+      "id": "cyber-release-2026",
+      "year": 2026,
+      "kind": "product",
+      "status": "evolving",
+      "topic": "ecosystem",
+      "track": "responsibility",
+      "title": {
+        "zh": "网络安全能力过线 · 先交给防守的一方",
+        "en": "Cyber capability crosses a line · Defenders first"
+      },
+      "hook": {
+        "zh": "模型能自己找出并利用未知漏洞后，几家公司改了发布方式。",
+        "en": "Once models could find and exploit unknown flaws on their own, labs changed how they released them."
+      },
+      "body": {
+        "zh": "2026 年，几家实验室报告，新模型已经能自己找出未知漏洞、写出利用方法。Anthropic 的 Claude Mythos Preview 不对公众开放，只给维护关键软件的组织用来修漏洞；Google 先把 Gemini 4 Argon 交给经过筛选的防守方。OpenAI 的 GPT-6 Astra 是它第一个达到网络安全“严重”级别的模型，公开发布时加强了防护。",
+        "en": "In 2026, several labs reported that their new models could find unknown vulnerabilities and write exploits for them. Anthropic kept Claude Mythos Preview out of general release and gave it to organisations that maintain critical software, to fix flaws; Google rolled Gemini 4 Argon out first to vetted defenders. OpenAI's GPT-6 Astra, its first model at the Critical level of cybersecurity capability, was released broadly with strengthened protections."
+      },
+      "limit": {
+        "zh": "这些能力和漏洞数量，都来自各家自己的报告。",
+        "en": "These capabilities and vulnerability counts all come from the labs' own reports."
+      },
+      "sources": [
+        [
+          "Anthropic · Project Glasswing (Claude Mythos Preview), 2026-04-07",
+          "https://www.anthropic.com/glasswing"
+        ],
+        [
+          "OpenAI · Safety overview: GPT-6 Astra, 2026-09-03",
+          "https://openai.com/index/safety-overview-gpt-6-astra/"
+        ],
+        [
+          "Google · Gemini 4 Argon, 2026-09-30",
+          "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/"
+        ]
+      ]
     }
   ],
   "eras": [
@@ -6807,18 +7343,19 @@
     {
       "id": "reasoning",
       "start": 2024,
-      "end": 2025,
+      "end": 2026,
       "title": {
-        "zh": "用强化学习练推理",
-        "en": "Training reasoning with RL"
+        "zh": "想得更久，也开始动手",
+        "en": "Thinking longer, starting to act"
       },
       "summary": {
-        "zh": "预训练模型已能做一些多步推理，研究者继续尝试用 RL 改进这类表现。DeepSeekMath 提出 GRPO，DeepSeek-R1 用它做推理训练；题目、奖励和采样怎么配，仍没有适合所有任务的答案。",
-        "en": "Pretrained models already show some multi-step reasoning ability. Researchers explored RL to improve it: DeepSeekMath introduced GRPO, and DeepSeek-R1 used it for reasoning training. The choice of problems, rewards, and sampling still has no recipe that fits every task."
+        "zh": "从 2024 年起，模型被教着在回答前多想一会儿：2025 年在数学奥赛上写出金牌线的证明，2026 年开始解决没人解开的问题。它们也开始读仓库、调工具，替人做完整件事，有的还能自己找出软件漏洞。算力和电力跟着成了要算的账，数据中心用电预计到 2030 年翻倍。",
+        "en": "From 2024, models were trained to think longer before answering: in 2025 they wrote gold-medal-level proofs at a mathematics olympiad, and in 2026 they began settling open problems. They also started reading repositories, calling tools and finishing whole tasks, and some could find software vulnerabilities on their own. Compute and power became part of the bill, with data-centre electricity projected to double by 2030."
       },
       "featured": [
-        "grpo",
-        "deepseek-r1"
+        "o1-2024",
+        "coding-agents-2025",
+        "ai-research-math-2026"
       ],
       "branches": [
         {
@@ -6828,12 +7365,119 @@
             "en": "RL for language models"
           },
           "summary": {
-            "zh": "GRPO 的出发点很直观：同一道题做几遍，再用奖励比较这几份回答。R1 则说明，RL 更新还得和数据准备、SFT、评估一起设计。",
-            "en": "GRPO starts with several answers to the same problem and compares their rewards. R1 shows how those updates fit alongside data preparation, SFT, and evaluation."
+            "zh": "o1 发现，训练时多做强化学习、回答时多想一会儿，成绩都会涨。GRPO 让同一道题的几份回答互相比；R1 把这些更新和数据、SFT、评估配在一起。到 2025 年的 IMO，这条路线写出了金牌线的证明。",
+            "en": "o1 found that scores rise with more RL in training and more thinking when answering. GRPO compares several answers to the same problem; R1 fits those updates together with data, SFT and evaluation. By IMO 2025 this line of work wrote gold-medal-level proofs."
           },
           "works": [
+            "o1-2024",
             "grpo",
-            "deepseek-r1"
+            "deepseek-r1",
+            "imo-2025-gold"
+          ]
+        },
+        {
+          "id": "context-efficiency",
+          "title": {
+            "zh": "读得更长，训得更省",
+            "en": "Longer inputs, cheaper training"
+          },
+          "summary": {
+            "zh": "Gemini 1.5 把一次能读的长度拉到百万词元；DeepSeek-V3 每个词只用一小部分参数，又用 FP8 压低训练成本；V4 再改注意力，让百万上下文变便宜。",
+            "en": "Gemini 1.5 stretched a single prompt to a million tokens; DeepSeek-V3 used a small share of its parameters per token and cut training cost with FP8; V4 redesigned attention to make a million tokens cheap."
+          },
+          "works": [
+            "gemini-1-5-2024",
+            "deepseek-v3-2024",
+            "deepseek-v4-2026"
+          ]
+        },
+        {
+          "id": "agents-tools",
+          "title": {
+            "zh": "接上工具，做完整件事",
+            "en": "Connecting tools, finishing tasks"
+          },
+          "summary": {
+            "zh": "MCP 给数据源和工具定了统一的接法；编程 agent 在终端或云端沙箱里读仓库、改代码、跑测试，再交给人审。",
+            "en": "MCP set one way to connect data sources and tools; coding agents read repositories, change code and run tests in a terminal or cloud sandbox, then hand the work back for review."
+          },
+          "works": [
+            "mcp-2024",
+            "coding-agents-2025"
+          ]
+        },
+        {
+          "id": "field-compute-power",
+          "title": {
+            "zh": "算力和电力",
+            "en": "Compute and power"
+          },
+          "summary": {
+            "zh": "一个机柜里的 72 块 GPU 用 NVLink 连成一体；Google 把 TPU 拆成训练和推理两颗芯片；国际能源署估算，数据中心用电到 2030 年会翻一倍多。",
+            "en": "72 GPUs in one rack are joined by NVLink into a single domain; Google split its TPU into a training chip and a serving chip; the IEA projects data-centre electricity to more than double by 2030."
+          },
+          "works": [
+            "nvidia-gb200-nvl72-2024",
+            "iea-energy-ai-2025",
+            "tpu-8-2026"
+          ]
+        },
+        {
+          "id": "science",
+          "title": {
+            "zh": "科学里的 AI",
+            "en": "AI in science"
+          },
+          "summary": {
+            "zh": "AlphaFold 3 从单个蛋白走到分子组合；同一年，诺贝尔物理和化学奖都颁给了与 AI 相关的工作。到 2026 年，模型开始解开数学里悬而未决的问题。",
+            "en": "AlphaFold 3 moved from single proteins to molecular complexes, and the same year the Nobel Prizes in Physics and Chemistry went to AI-related work. By 2026, models were settling open problems in mathematics."
+          },
+          "works": [
+            "alphafold3-2024",
+            "nobel-ai-2024",
+            "ai-research-math-2026"
+          ]
+        },
+        {
+          "id": "open-weights",
+          "title": {
+            "zh": "开放权重",
+            "en": "Open weights"
+          },
+          "summary": {
+            "zh": "Llama 3.1 把 405B 的权重放出来，附带 Meta 自己定的许可条件。",
+            "en": "Llama 3.1 released 405B weights under a licence with Meta's own conditions."
+          },
+          "works": [
+            "llama-3-1-2024"
+          ]
+        },
+        {
+          "id": "world-models",
+          "title": {
+            "zh": "能走进去的世界",
+            "en": "Worlds you can enter"
+          },
+          "summary": {
+            "zh": "Genie 3 一帧一帧生成可以实时走动的世界，还能保持几分钟前后一致。",
+            "en": "Genie 3 generates a world frame by frame that you can move through in real time, consistent for a few minutes."
+          },
+          "works": [
+            "genie-3-2025"
+          ]
+        },
+        {
+          "id": "staged-release",
+          "title": {
+            "zh": "先给谁用",
+            "en": "Who gets it first"
+          },
+          "summary": {
+            "zh": "模型能自己找出软件漏洞以后，有的实验室只把它交给防守方，有的加强防护再公开。",
+            "en": "Once models could find software vulnerabilities on their own, some labs gave them only to defenders and others released them with stronger protections."
+          },
+          "works": [
+            "cyber-release-2026"
           ]
         },
         {
@@ -8040,6 +8684,56 @@
         "en": "To tune its laser mapper, Stanley used obstacle-free ground driven by a person as drivable labels, which the paper calls similar in spirit to Pomerleau's work; its vision-based road finding also cites the 1991 ALVINN follow-up. Unlike ALVINN, Stanley steered through a path planner and controller, and used its vision results only to set speed."
       },
       "source": "https://robots.stanford.edu/papers/thrun.stanley05.pdf"
+    },
+    {
+      "from": "deepseek-r1",
+      "to": "deepseek-v3-2024",
+      "type": "uses",
+      "description": {
+        "zh": "R1-Zero 和 R1 都从 DeepSeek-V3-Base 出发，再用 GRPO 做强化学习。",
+        "en": "Both R1-Zero and R1 start from DeepSeek-V3-Base and then train with GRPO."
+      },
+      "source": "https://arxiv.org/html/2501.12948v1"
+    },
+    {
+      "from": "alphafold3-2024",
+      "to": "alphafold2",
+      "type": "adapts",
+      "description": {
+        "zh": "沿用 AlphaFold 2 的框架，但把 evoformer 换成更简单的 pairformer，结构模块换成扩散模块。",
+        "en": "It builds on AlphaFold 2 but replaces the evoformer with a simpler pairformer and the structure module with a diffusion module."
+      },
+      "source": "https://www.nature.com/articles/s41586-024-07487-w"
+    },
+    {
+      "from": "alphafold3-2024",
+      "to": "diffusion",
+      "type": "adapts",
+      "description": {
+        "zh": "用扩散的思路直接生成原子坐标：从带噪声的原子位置一步步去噪。",
+        "en": "It uses diffusion to generate atom coordinates directly, denoising noisy atom positions step by step."
+      },
+      "source": "https://www.nature.com/articles/s41586-024-07487-w"
+    },
+    {
+      "from": "nobel-ai-2024",
+      "to": "alphafold2",
+      "type": "complements",
+      "description": {
+        "zh": "化学奖一半表彰的蛋白质结构预测，评奖说明里讲的就是 AlphaFold2。",
+        "en": "The half of the Chemistry prize for protein structure prediction is explained through AlphaFold2."
+      },
+      "source": "https://www.nobelprize.org/prizes/chemistry/2024/press-release/"
+    },
+    {
+      "from": "nvidia-gb200-nvl72-2024",
+      "to": "networks-nvlink-p100-2016",
+      "type": "adapts",
+      "description": {
+        "zh": "第五代 NVLink 把 GPU 之间的直连扩成一整柜 72 块 GPU 的一个域。",
+        "en": "Fifth-generation NVLink extends direct GPU links into one domain across a 72-GPU rack."
+      },
+      "source": "https://www.nvidia.com/en-us/data-center/gb200-nvl72/"
     }
   ]
 }
