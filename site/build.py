@@ -43,7 +43,6 @@ import curriculum
 import prep_progress
 import readme_cards
 import topic_coverage
-import note_metrics
 import technology_chronicle
 from markdown.extensions.toc import TocExtension, slugify
 
@@ -1921,7 +1920,7 @@ INLINE_SCRIPT = re.compile(r"<script>(.*?)</script>", re.S)
 
 
 def metrics_origin():
-    """The opt-in note-metrics endpoint, when one is configured, needs connect-src."""
+    """The counter service endpoint (the study buddy's live counts), when one is configured, needs connect-src."""
     try:
         endpoint = json.loads((ROOT / "site/static/note-metrics-config.json").read_text())["endpoint"]
     except (OSError, ValueError, KeyError, TypeError):
@@ -2061,7 +2060,6 @@ def assemble(page, sections, nav, built, template):
             .replace("{{content}}", content)
             .replace("{{page_header}}", page_header_html(page))
             .replace("{{page_nav}}", "" if is_prep_hub else page_nav_html(page))
-            .replace("{{note_metrics}}", note_metrics.panel(page, ROOT))
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, site["repo"], built))
             .replace("{{built}}", built))
