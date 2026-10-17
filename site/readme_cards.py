@@ -381,7 +381,9 @@ def review_counts(repo, logins):
 
 
 def next_stops(outcomes):
-    """[(company name, count, logo data URI or None)] from community/outcomes.json, consented records only."""
+    """[{"name", "logo": SVG text or None, "native": full colour?}] for each company in
+    community/outcomes.json with a consented record, most frequent first. The card shows marks only,
+    no counts; a company without a local mark is shown by name."""
     import company_icons
     from pathlib import Path
     counts, names = {}, outcomes.get("companies", {})
@@ -389,13 +391,12 @@ def next_stops(outcomes):
         if record.get("consent"):
             counts[record["company"]] = counts.get(record["company"], 0) + 1
     out = []
-    for key, n in sorted(counts.items(), key=lambda kv: -kv[1]):
-        entry = company_icons.resolve(key, names.get(key, key))
+    for key, _ in sorted(counts.items(), key=lambda kv: -kv[1]):
+        entry = company_icons.resolve(key, names.get(key, key)) or {}
         logo = None
-        if entry and entry.get("asset") and entry.get("native"):
-            svg = (Path(company_icons.ROOT) / "site/static/company-icons" / entry["asset"]).read_bytes()
-            logo = "data:image/svg+xml;base64," + base64.b64encode(svg).decode("ascii")
-        out.append(((entry or {}).get("name") or names.get(key, key), n, logo))
+        if entry.get("asset"):
+            logo = (Path(company_icons.ROOT) / "site/static/company-icons" / entry["asset"]).read_text(encoding="utf-8")
+        out.append({"name": entry.get("name") or names.get(key, key), "logo": logo, "native": bool(entry.get("native"))})
     return out
 
 
@@ -493,17 +494,20 @@ def people_svg(data, lang, palette, built):
               colors["muted"], 12)
         y += 14
         x = INSET
-        for name, count, logo in data["next"]:
-            label = f"{name} · {count}"
-            w = _width(label, 13) + (54 if logo else 28)
-            out.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="36" rx="18" fill="{colors["tile"]}" stroke="{colors["tile_rule"]}"/>')
-            tx = x + 14
-            if logo:
-                out.append(f'<image href="{logo}" x="{x + 11}" y="{y + 9}" width="18" height="18"/>')
-                tx = x + 37
-            _text(out, tx, y + 23, label, colors["ink"], 13, 600)
-            x += w + 8
-        y += 44
+        for company in data["next"]:
+            # white tiles in both themes, so full-colour marks keep their colours on the dark card
+            w = 52 if company["logo"] else _width(company["name"], 13) + 30
+            out.append(f'<g><title>{esc(company["name"])}</title>'
+                       f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="52" rx="13" fill="#ffffff" stroke="{colors["tile_rule"]}"/>')
+            if company["logo"]:
+                svg = company["logo"] if company["native"] else company["logo"].replace("<svg ", '<svg fill="#1f2328" ', 1)
+                uri = "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode("ascii")
+                out.append(f'<image href="{uri}" x="{x + 12:.1f}" y="{y + 12}" width="28" height="28"/>')
+            else:
+                _text(out, x + w / 2, y + 31, company["name"], "#1f2328", 13, 650, "middle")
+            out.append("</g>")
+            x += w + 10
+        y += 60
     y += 22
     for line in wrap(_pick(zh, f"{built} 构建 · 来自 git 记录、GitHub 与 site/collaboration.toml，随网站每次部署更新",
                              f"Built {built} · from git history, GitHub and site/collaboration.toml, updated on every deploy"), inner, 11.5):

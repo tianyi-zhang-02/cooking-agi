@@ -58,7 +58,7 @@ class ReadmeCardTests(unittest.TestCase):
             self.assertIn(part, self.cards[("topics", "en", "dark")])
 
     def test_next_stop_counts_only_consented_records(self):
-        self.assertEqual([(name, count) for name, count, _ in self.team["next"]], [("Example", 1)])
+        self.assertEqual([company["name"] for company in self.team["next"]], ["Example"])
 
     def test_roadmap_has_all_four_columns(self):
         for key in ("done", "now", "next", "open"):

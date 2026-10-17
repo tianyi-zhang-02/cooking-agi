@@ -1,7 +1,9 @@
 {
   "version": 1,
   "companies": {
-    "linkedin": "LinkedIn"
+    "linkedin": "LinkedIn",
+    "tiktok": "TikTok",
+    "amazon": "Amazon"
   },
   "records": [
     {
@@ -16,6 +18,18 @@
       "employment": "internship",
       "milestone": "completed",
       "github": "tianyi-zhang-02",
+      "consent": true,
+      "owner_submission": true
+    },
+    {
+      "id": "NS-0002",
+      "company": "tiktok",
+      "consent": true,
+      "owner_submission": true
+    },
+    {
+      "id": "NS-0003",
+      "company": "amazon",
       "consent": true,
       "owner_submission": true
     }
