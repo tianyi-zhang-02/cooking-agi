@@ -18,7 +18,7 @@ For a concrete small task, see the [roadmap](roadmap.en.md). This version focuse
 | Help maintain a topic | Propose a scope and rough availability; daily attendance is not expected |
 | Add a credit or an optional map location | Use the [contribution record](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) and link an issue or PR |
 
-Reader updates live in [Next stop](next-stop.en.md): voluntary internship, full-time, and career-change milestones. These are separate from contribution records; where someone works does not determine contributor status.
+Reader updates (voluntary internship, full-time, and career-change milestones) appear next to the contributor list on the [home page](../README.md#contributors). These are separate from contribution records; where someone works does not determine contributor status.
 
 Discussions live in GitHub Issues; reviews of specific edits live in PRs. Chinese and English versions share a discussion entry. Search first and continue an existing thread when possible. We won't maintain a separate comments system.
 
@@ -69,7 +69,7 @@ No committee or weekly meetings required. Ordinary content uses the normal PR pr
 
 <div data-community-credits></div>
 
-[Behind the notes](../contributors.en.md) keeps the astronauts, rolling credits, and commit history. Commit counts describe only part of the activity; they are neither a quality ranking nor voting rights. Preserve co-author credit for shared writing. Helpful reviews and corrections in issues can be acknowledged above with the person's consent. Map locations are optional and can be removed on request.
+The contributor list and commit history are on the [home page](../README.md#contributors). Commit counts describe only part of the activity; they are neither a quality ranking nor voting rights. Preserve co-author credit for shared writing. Helpful reviews and corrections in issues can be acknowledged above with the person's consent. Map locations are optional and can be removed on request.
 
 ## A few boundaries
 

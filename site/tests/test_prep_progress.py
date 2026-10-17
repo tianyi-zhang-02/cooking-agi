@@ -69,7 +69,7 @@ class PrepProgressTests(unittest.TestCase):
             for language in ('zh', 'en'):
                 page = build.BY_SRC['interview/study-plan.md'][language]
                 build.build_page(page, [], navigation['site']['repo'], {item.url for item in pages})
-                rendered = build.assemble(page, sections, [], navigation, 'test', template)
+                rendered = build.assemble(page, sections, navigation, 'test', template)
                 tools = next(attrs for _, attrs in Markup(rendered).elements if attrs.get('class') == 'note-tools')
                 identifiers.append(tools['data-progress-id'])
                 order = [rendered.index('static/' + name) for name in

@@ -104,7 +104,7 @@ class TechnologyTreeTests(unittest.TestCase):
                     page = build.BY_SRC[f"{source}.md"][language]
                     self.assertEqual(sum(item.src == page.src for item in pages), 1)
                     build.build_page(page, [], nav["site"]["repo"], known)
-                    output = build.assemble(page, sections, [], nav, "test",
+                    output = build.assemble(page, sections, nav, "test",
                                             (ROOT / "site/template.html").read_text())
                     for retired in ("technology-tree.js", "technology-atlas.js", "world-exhibit.js", "world-grove.js"):
                         self.assertNotIn(f"static/{retired}", output)

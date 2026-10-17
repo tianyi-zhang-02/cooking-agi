@@ -89,7 +89,7 @@ class BertStoryTests(unittest.TestCase):
                     with self.subTest(source=source, language=language):
                         page = build.BY_SRC[source][language]
                         build.build_page(page, [], nav["site"]["repo"], known)
-                        output = build.assemble(page, sections, [], nav, "test",
+                        output = build.assemble(page, sections, nav, "test",
                                                 (ROOT / "site/template.html").read_text())
                         self.assertEqual("static/bert-story.js" in output, expected)
                         self.assertEqual("static/bert-story.css" in output, expected)

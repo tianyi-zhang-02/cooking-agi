@@ -74,7 +74,9 @@ class HtmlCheckTests(unittest.TestCase):
         stub = ('<!doctype html>\n<meta charset="utf-8">\n<meta http-equiv="refresh" content="0; url=new.html">\n'
                 '<script>location.replace("new.html" + location.hash)</script>\n')
         self.assertEqual(htmlcheck.check(stub), [])
+        self.assertEqual(htmlcheck.check(stub.replace('"new.html" + location.hash', '"new.html#part"')), [])
         self.assertTrue(htmlcheck.check(stub.replace("location.replace", "alert(1);location.replace")))
+        self.assertTrue(htmlcheck.check(stub.replace("location.hash", "location.search")))
 
     def test_page_without_csp_fails(self):
         self.assertIn("missing Content-Security-Policy", htmlcheck.check("<!doctype html><p>x</p>"))

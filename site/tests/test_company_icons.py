@@ -7,11 +7,10 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import company_icons
-import next_stop
 
 
 class CompanyIconTests(unittest.TestCase):
-    def test_presets_cover_multiple_fields_without_creating_outcomes(self):
+    def test_presets_cover_multiple_fields(self):
         entries, aliases = company_icons.load()
         self.assertGreaterEqual(len(entries), 70)
         self.assertEqual({entry["group"] for entry in entries}, set(company_icons.GROUPS))
@@ -19,11 +18,8 @@ class CompanyIconTests(unittest.TestCase):
             entry = aliases[company_icons.normalize(name)]
             self.assertIn("asset", entry)
         self.assertEqual(aliases["servicenow"]["id"], "servicenow")
-        page = SimpleNamespace(lang="en", depth=1, rel=lambda path: "../" + path)
-        output = next_stop.render(page, "example/notes", {"version": 1, "companies": {}, "records": []})
+        output = company_icons.catalog(SimpleNamespace(lang="en", depth=1), "https://example.com/request")
         self.assertEqual(output.count("data-company-preset "), len(entries))
-        self.assertNotIn("data-stop-record", output)
-        self.assertNotIn("data-stop-company=", output)
 
     def test_all_svg_assets_are_local_static_and_attributed(self):
         entries = company_icons.load()[0]
@@ -66,20 +62,6 @@ class CompanyIconTests(unittest.TestCase):
         self.assertNotIn('>O</span>', catalog)
         self.assertNotIn('>C</span>', catalog)
         self.assertNotIn('>B</span>', catalog)
-
-    def test_marks_are_reused_in_all_record_views(self):
-        page = SimpleNamespace(lang="en", depth=1, rel=lambda path: "../" + path)
-        data = {"version": 1, "companies": {"nvidia": "NVIDIA"}, "records": [{
-            "id": "NS-0001", "start_date": "2027", "company": "nvidia", "role": "ml",
-            "employment": "full-time", "milestone": "offer", "consent": True, "source_issue": 1,
-        }]}
-        output = next_stop.render(page, "example/notes", data)
-        self.assertEqual(output.count('src="../static/company-icons/nvidia.svg"'), 4)
-        self.assertIn("stop-company-disc", output)
-        self.assertIn('data-stop-count>1</b>', output)
-        data["companies"]["alias"] = "英伟达"
-        with self.assertRaisesRegex(ValueError, "canonical company ID"):
-            next_stop.validate(data)
 
     def test_catalog_has_request_link_and_bilingual_controls(self):
         for language in ("zh", "en"):

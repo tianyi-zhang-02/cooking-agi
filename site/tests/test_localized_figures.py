@@ -149,7 +149,7 @@ class LocalizedFigureTests(unittest.TestCase):
                     with self.subTest(source=source, language=language):
                         page = build.BY_SRC[source][language]
                         build.build_page(page, [], nav["site"]["repo"], known)
-                        output = build.assemble(page, sections, [], nav, "test", template)
+                        output = build.assemble(page, sections, nav, "test", template)
                         self.assertEqual("static/method-map.css" in output, expected)
 
     def test_local_diagram_versions_follow_content_not_build_time(self):

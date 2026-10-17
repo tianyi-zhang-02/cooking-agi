@@ -54,7 +54,7 @@ class LanguageEntryTests(unittest.TestCase):
         for language, target in [('en', 'index.zh.html'), ('zh', 'index.html?lang=en')]:
             page = self.home[language]
             build.build_page(page, [], self.nav['site']['repo'], self.known)
-            output = build.assemble(page, self.sections, [], self.nav, 'test',
+            output = build.assemble(page, self.sections, self.nav, 'test',
                                     (build.SITE / 'template.html').read_text())
             elements = Elements(output).elements
             self.assertIn(('html', {'lang': 'en' if language == 'en' else 'zh-Hans',
@@ -132,7 +132,7 @@ class LanguageEntryTests(unittest.TestCase):
                              '<a href="index.html?lang=en#start-here">English</a>')
         for page in [self.home['en'], self.home['zh'], build.BY_SRC['learn/README.md']['en']]:
             build.build_page(page, [], self.nav['site']['repo'], self.known)
-            output = build.assemble(page, self.sections, [], self.nav, 'test',
+            output = build.assemble(page, self.sections, self.nav, 'test',
                                     (build.SITE / 'template.html').read_text())
             for tag, attrs in Elements(output).elements:
                 href = attrs.get('href', '')
@@ -161,6 +161,21 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertIn('url=index.html?lang=en', output)
             self.assertIn('location.hash', output)
             self.assertIn('href="index.html?lang=en"', output)
+
+    def test_redirect_to_a_home_section_keeps_language_and_drops_old_anchor(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(build, 'OUT', Path(folder)):
+            build.write_redirects({'redirects': {
+                'community/old.en.html': 'index.html#contributors',
+                'community/old.html': 'index.zh.html#contributors',
+            }}, self.known)
+            english = (Path(folder) / 'community/old.en.html').read_text()
+            chinese = (Path(folder) / 'community/old.html').read_text()
+            self.assertIn('url=../index.html?lang=en#contributors', english)
+            self.assertIn('url=../index.zh.html#contributors', chinese)
+            for output in (english, chinese):
+                self.assertNotIn('location.hash', output)
+            with self.assertRaises(ValueError):
+                build.write_redirects({'redirects': {'old.html': 'missing.html#contributors'}}, self.known)
 
     def test_readme_parity_checks_actual_bilingual_content(self):
         english = (build.ROOT / 'README.md').read_text()

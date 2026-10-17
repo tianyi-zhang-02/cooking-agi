@@ -47,7 +47,7 @@ class CurriculumTests(unittest.TestCase):
         urls = [page.url for page in self.pages]
         redirects = self.navigation.get('redirects', {})
         self.assertFalse(set(expected) - set(urls) - set(redirects))
-        self.assertFalse(set(redirects.values()) - set(urls))
+        self.assertFalse({target.partition('#')[0] for target in redirects.values()} - set(urls))
         self.assertFalse(set(redirects) & set(urls))
         self.assertEqual(len(urls), len(set(urls)))
 

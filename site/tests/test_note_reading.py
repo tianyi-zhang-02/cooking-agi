@@ -81,7 +81,7 @@ class NoteReadingTests(unittest.TestCase):
                 if canonical not in selected:
                     continue
                 build.build_page(page, [], nav['site']['repo'], known)
-                output = build.assemble(page, sections, [], nav, 'test', template)
+                output = build.assemble(page, sections, nav, 'test', template)
                 for marker in ('chapter-review', 'review.js', 'review.css', '{{review}}', 'data-review-action'):
                     self.assertNotIn(marker, output)
                 self.assertIn(page.body, output)
