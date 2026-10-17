@@ -108,13 +108,21 @@ How many notes each topic has, and how far this review pass has got. The numbers
 
 <!-- repository-only -->
 
+<details>
+<summary>Show each topic's review progress</summary>
+
 <a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-en-light.svg" width="100%" alt="Notes per topic and how many this review pass has covered"></picture></a>
+
+</details>
 
 <!-- /repository-only -->
 
 <!-- widget:topic-coverage -->
 
 ### How we got here
+
+<details markdown="1">
+<summary>By date: August 2026 to now</summary>
 
 | When | What happened |
 | --- | --- |
@@ -126,6 +134,8 @@ How many notes each topic has, and how far this review pass has got. The numbers
 | October 13 | The chronicle world tree (143 sourced milestones), reading history, page feedback and security hardening |
 | October 14 | Step-by-step animations in the LeetCode notes; saved notes and reading history folded into “My reading”; step-by-step figures in four chapters; first full read-through of every note in both languages |
 | October 15–16 | Frontier watch, AI infrastructure and embodied AI (with the papers' own figures and 26 step-by-step figures); every note audited for errors, stale facts and repetition; drafts on scaling, diffusion LMs and quantization |
+
+</details>
 
 Details of every merge are in the [changelog](README.md#changelog) at the bottom of this page.
 

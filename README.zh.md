@@ -104,13 +104,21 @@
 
 <!-- repository-only -->
 
+<details>
+<summary>展开每个主题的复核进度</summary>
+
 <a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-zh-light.svg" width="100%" alt="各主题的笔记数和本轮已复核的篇数"></picture></a>
+
+</details>
 
 <!-- /repository-only -->
 
 <!-- widget:topic-coverage -->
 
 ### 走到现在
+
+<details markdown="1">
+<summary>按时间看：2026 年 8 月至今</summary>
 
 | 时间 | 做了什么 |
 | --- | --- |
@@ -122,6 +130,8 @@
 | 10 月 13 日 | 编年史世界树（143 个有来源的节点）、阅读记录、每页反馈和安全加固 |
 | 10 月 14 日 | LeetCode 笔记加上分步动画；收藏和阅读记录合并到「我的阅读」；四个章节加上分步图解；全部笔记的中英文通读完第一遍 |
 | 10 月 15 日到 16 日 | 前沿观察、AI 基础设施和具身智能三块（配论文原图和 26 张分步动画）；全部笔记逐篇审查错误、过时事实和重复；Scaling、扩散语言模型和量化三组草稿 |
+
+</details>
 
 每次合并的细节，见页面最下方的[更新记录](README.zh.md#changelog)。
 
@@ -141,9 +151,9 @@
 
 哪里没讲明白、哪条信息过时了，或者你想看一个还没有的主题，都可以告诉我们。不用先找到答案，才能提问题。
 
-- **提反馈：**开一个 [issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，附上相关段落。内容纠错、信息过时、解释不清、想加主题、网站问题，都有对应选项。
-- **一起改：**小改动直接提 PR 就好；想写新文章或调整目录，先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，方便大家商量，避免重复做。
-- **分享给朋友：**如果这里的笔记帮到了你，欢迎把链接发给同学，或正在找工、转方向的朋友。不用公开公司或求职结果。参与整理的朋友列在[贡献者与审稿人](#contributors)里。
+- **提反馈**：开一个 [issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，附上相关段落。内容纠错、信息过时、解释不清、想加主题、网站问题，都有对应选项。
+- **一起改**：小改动直接提 PR 就好；想写新文章或调整目录，先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，方便大家商量，避免重复做。
+- **分享给朋友**：如果这里的笔记帮到了你，欢迎把链接发给同学，或正在找工、转方向的朋友。不用公开公司或求职结果。参与整理的朋友列在[贡献者与审稿人](#contributors)里。
 
 这些是我们一边学、一边改的笔记，不是官方课程。选题受自身经验影响，目前更偏 ML / LLM 和 MLE / research 方向，也难免有遗漏和过时的地方。我们分享公开知识和准备方法，不收录针对某家公司的面试信息或题库，也没办法预测题目、保证 offer。
 
