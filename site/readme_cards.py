@@ -551,16 +551,20 @@ def people_svg(data, lang, palette, built):
     if data.get("next"):
         _say(out, WIDTH / 2, y, say("读者的下一站", "WHERE READERS WENT NEXT"), CREW_FAINT, 10.5, 600, spacing=".22em")
         y += 30
-        widths = [(28 if c["logo"] else 0) + _width(c["name"], 14) for c in data["next"]]
-        x = WIDTH / 2 - (sum(widths) + 28 * (len(widths) - 1)) / 2
+        # marks only; a company without a local mark is written out by name, never drawn as an invented logo
+        widths = [26 if c["logo"] else _width(c["name"], 14) for c in data["next"]]
+        x = WIDTH / 2 - (sum(widths) + 30 * (len(widths) - 1)) / 2
         for company, w in zip(data["next"], widths):
+            out.append(f'<g><title>{esc(company["name"])}</title>')
             if company["logo"]:
                 mark = re.sub(r'\sfill="[^"]*"', "", company["logo"]).replace("<svg ", f'<svg fill="{CREW_INK}" ', 1)
                 uri = "data:image/svg+xml;base64," + base64.b64encode(mark.encode("utf-8")).decode("ascii")
-                out.append(f'<image href="{uri}" x="{x:.1f}" y="{y - 15}" width="18" height="18"/>')
-            _say(out, x + (28 if company["logo"] else 0), y, company["name"], CREW_INK, 14, 600, anchor="start")
-            x += w + 28
-        y += 22
+                out.append(f'<image href="{uri}" x="{x:.1f}" y="{y - 20}" width="26" height="26"/>')
+            else:
+                _say(out, x, y, company["name"], CREW_INK, 14, 600, anchor="start")
+            out.append("</g>")
+            x += w + 30
+        y += 30
         _say(out, WIDTH / 2, y, say("读者自愿分享，不代表笔记促成了这些机会", "Self-reported; not a claim that the notes got anyone a job"),
              CREW_FAINT, 10.5)
         y += 34
