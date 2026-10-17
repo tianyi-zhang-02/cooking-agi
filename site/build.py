@@ -1797,9 +1797,18 @@ def mobile_toc_html(page):
             f'<span>{len(page.toc)}</span></summary><nav>{toc}</nav></details>')
 
 
+HOME_NEXT = "learn/README.md"   # where "Next" on the home page leads: the study map (issue #77)
+
+
 def page_nav_html(page):
     if page.kind == "home":
-        return ""
+        target = BY_SRC.get(HOME_NEXT, {}).get(page.lang)
+        if not target:
+            return ""
+        zh = page.lang == "zh"
+        return (f'<nav class="page-turn" aria-label="{"继续阅读" if zh else "Continue reading"}"><span class="page-turn-empty"></span>'
+                f'<a class="page-turn-next" href="{page.rel(target.url)}"><small>→ {"开始读" if zh else "Start reading"}</small>'
+                f'<strong>{html.escape(target.title)}</strong></a></nav>')
     if not page.previous and not page.next:
         return ""
     zh = page.lang == "zh"
