@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import sys
 import unittest
+from datetime import date
 import urllib.error
 from unittest import mock
 import xml.etree.ElementTree as ET
@@ -22,15 +23,14 @@ class ReadmeCardTests(unittest.TestCase):
         build.discover(nav)
         cls.topics = readme_cards.topic_rows(build.NAV, build.NAV["_sections"])
         cls.milestones = readme_cards.load_milestones(ROOT / "site/milestones.toml")
-        people = [{"name": "Ada", "login": None, "commits": 3, "kind": "human"},
-                  {"name": "Codex", "login": None, "commits": None, "kind": "ai"}]
+        people = [{"name": "Codex", "login": None, "commits": 1, "kind": "ai", "first": "2026-10-13", "last": "2026-10-13"},
+                  {"name": "Ada Lovelace", "login": "ada", "commits": 3, "kind": "human", "first": "2026-08-01", "last": "2026-09-01"}]
         collaboration = {"area": [{"zh": "评估", "en": "Evaluation", "reviewers": ["someone"]}]}
         outcomes = {"companies": {"example": "Example"}, "records": [{"company": "example", "consent": True},
                                                                       {"company": "example", "consent": False}]}
-        cls.team = {"contributors": [{"name": "Ada", "login": None, "commits": 3, "avatar": None}],
-                    "ai": ["Codex"], "reviewers": [{"login": "someone", "areas": [("评估", "Evaluation")],
-                                                    "reviews": 0, "avatar": None}],
-                    "next": readme_cards.next_stops(outcomes)}
+        with mock.patch.object(readme_cards, "avatar_uri", return_value=None), \
+                mock.patch.object(readme_cards, "review_counts", return_value={}):
+            cls.team = readme_cards.people_data(people, collaboration, "example/notes", outcomes, today=date(2026, 10, 17))
         cls.signals = {"reviewed": 10, "figures": 20, "paper": 30}
         cls.cards = {}
         for lang in ("zh", "en"):
@@ -58,6 +58,16 @@ class ReadmeCardTests(unittest.TestCase):
         # the label wraps onto two lines of the stat column
         for part in ("notes re-read in", "both languages"):
             self.assertIn(part, self.cards[("topics", "en", "dark")])
+
+    def test_crew_is_numbered_by_first_participation_and_shown_by_username(self):
+        crew = self.team["crew"]
+        self.assertEqual([(m["cg"], m["handle"]) for m in crew], [("CG 001", "@ada"), ("CG 002", "Codex")])
+        self.assertEqual([m["this_week"] for m in crew], [False, True])  # week of 2026-10-12
+        self.assertTrue(crew[1].get("mark"))  # AI collaborators carry their mark, not an avatar
+        for lang in ("zh", "en"):
+            card = self.cards[("people", lang, "dark")]
+            self.assertIn("@ada", card)
+            self.assertNotIn("Lovelace", card)  # GitHub usernames, not real names
 
     def test_next_stop_counts_only_consented_records(self):
         self.assertEqual([company["name"] for company in self.team["next"]], ["Example"])
