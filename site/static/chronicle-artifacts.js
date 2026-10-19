@@ -512,6 +512,7 @@
       const metal = night ? mix([226, 220, 208], this.colour, .28) : mix([86, 78, 66], this.colour, .35);
       const starlight = night ? [255, 246, 226] : [120, 82, 30];
       const light = [-.45, .65, -.62];  // from the upper left, in front
+      const ink = night ? 1 : 1.8;  // dark lines on a light page need more weight than light lines on a dark one
       const view = ([x, y, z]) => {
         const x1 = x * ca + z * sa, z1 = -x * sa + z * ca;
         const y2 = y * ct - z1 * st, z2 = y * st + z1 * ct;
@@ -525,14 +526,14 @@
       c.globalCompositeOperation = night ? 'lighter' : 'source-over';
       if (t < .995) {  // at rest: fine luminous lines, brighter where they face the light and the viewer
         const points = this.model.p.map(view);
-        c.lineCap = 'round'; c.lineWidth = unit * .75;
+        c.lineCap = 'round'; c.lineWidth = unit * (night ? .75 : .9);
         for (const [a, b] of this.model.e) {
           const pa = points[a], pb = points[b], near = (pa[2] + pb[2]) / 2, lit = (pa[3] + pb[3]) / 2;
-          c.strokeStyle = `rgba(${metal.join(',')},${((1 - t) * (.12 + .5 * near) * (.45 + .55 * lit)).toFixed(3)})`;
+          c.strokeStyle = `rgba(${metal.join(',')},${Math.min(1, ink * (1 - t) * (.12 + .5 * near) * (.45 + .55 * lit)).toFixed(3)})`;
           c.beginPath(); c.moveTo(pa[0], pa[1]); c.lineTo(pb[0], pb[1]); c.stroke();
         }
         for (const [x, y, near, lit] of points) {  // a small highlight at each corner
-          c.fillStyle = `rgba(${mix(metal, starlight, .5).join(',')},${((1 - t) * (.2 + .6 * near) * lit).toFixed(3)})`;
+          c.fillStyle = `rgba(${mix(metal, starlight, .5).join(',')},${Math.min(1, ink * (1 - t) * (.2 + .6 * near) * lit).toFixed(3)})`;
           c.beginPath(); c.arc(x, y, unit * (.45 + .45 * near), 0, TAU); c.fill();
         }
       }
@@ -545,7 +546,7 @@
           const loose = (.02 + (still ? 0 : .02 * Math.sin(time * .9 + phase))) * t;
           const q = samples[i], [x, y, near, lit] = view([q[0] + dir[0] * loose, q[1] + dir[1] * loose, q[2] + dir[2] * loose]);
           const twinkle = still ? .8 : .55 + .45 * Math.sin(time * speed + phase);
-          const bright = shown * (.25 + .75 * twinkle) * (.45 + .55 * near) * (.6 + .4 * lit);
+          const bright = Math.min(1, (night ? 1 : 1.5) * shown * (.25 + .75 * twinkle) * (.45 + .55 * near) * (.6 + .4 * lit));
           const colour = mix(metal, starlight, .55 + .45 * magnitude);
           const radius = unit * (.32 + .5 * magnitude) * (.75 + .45 * near);
           if (magnitude > .55) {  // the brightest few get a soft halo and a four-point glint
