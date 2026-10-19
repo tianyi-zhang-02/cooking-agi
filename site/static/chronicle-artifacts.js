@@ -570,6 +570,8 @@
   const shown = new Set();
   let last = 0, running = false;
   function frame(now) {
+    // 30 frames a second are plenty for slow turning, and halve the work of a screenful of cards
+    if (last && now - last < 32) { scope.requestAnimationFrame(frame); return; }
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
     const still = reduce();
     for (const art of shown) {

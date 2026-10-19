@@ -284,10 +284,24 @@
     const mix = (a, b, u) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * u)).join(',')})`;
     const wood = depth => mix([122, 112, 98], [243, 232, 210], .35 + .65 * depth / 6);
     const woodLight = depth => mix([226, 212, 190], [158, 116, 66], .3 + .7 * depth / 6);
+    // Once the tree has grown, its wood never changes: draw it once (with its glow) and reuse the picture,
+    // and let the lights twinkle from small pre-drawn sprites instead of blurring every frame.
+    let grownTree = null, sprites = null;
+    function sprite(colour, night) {
+      const size = 48, c = document.createElement('canvas'); c.width = c.height = size;
+      const s = c.getContext('2d');
+      s.shadowColor = night ? colour : 'transparent'; s.shadowBlur = night ? 12 : 0;
+      s.fillStyle = colour; s.beginPath(); s.arc(size / 2, size / 2, 6, 0, 6.283); s.fill();
+      return c;
+    }
     function draw(G, time) {
+      const night = dark();
+      if (G >= 1) return drawGrown(time, night);
+      drawGrowing(G, time, night);
+    }
+    function drawGrowing(G, time, night) {
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
-      const night = dark();
       if (night) {
         const halo = g.createRadialGradient(base[0], H * .45, 0, base[0], H * .45, H * .62);
         halo.addColorStop(0, `rgba(255,206,140,${.1 * G})`); halo.addColorStop(1, 'rgba(255,206,140,0)');
@@ -315,6 +329,29 @@
         g.globalAlpha = (night ? tw : .55) * pop;
         g.fillStyle = colors[n.kind];
         g.beginPath(); g.arc(n.x, n.y, n.r * (.6 + .4 * pop), 0, 6.283); g.fill();
+      }
+      g.globalAlpha = 1;
+    }
+    function drawGrown(time, night) {
+      if (!grownTree || grownTree.night !== night || grownTree.width !== canvas.width || grownTree.height !== canvas.height) {
+        // render the full-grown tree once, without its lights, into an offscreen picture
+        const keep = nodes; nodes = [];
+        drawGrowing(1, time, night);
+        nodes = keep;
+        const c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height;
+        c.getContext('2d').drawImage(canvas, 0, 0);
+        grownTree = Object.assign(c, {night});
+        const colors = night ? ['#f5b83d', '#5ad1c0', '#fff6df'] : ['#c88a12', '#2a9c8c', '#8a6a3a'];
+        sprites = colors.map((colour) => sprite(colour, night));
+      }
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, canvas.width, canvas.height);
+      g.drawImage(grownTree, 0, 0);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const n of nodes) {
+        const tw = .7 + .3 * Math.sin(time * 1.6 + n.p), size = n.r * 2 * 4;
+        g.globalAlpha = night ? tw : .55;
+        g.drawImage(sprites[n.kind], n.x - size / 2, n.y - size / 2, size, size);
       }
       g.globalAlpha = 1;
     }

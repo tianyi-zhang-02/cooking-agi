@@ -23,7 +23,7 @@
   }
   function gauss(r) { return (r() + r() + r() + r() - 2) / 2; }   // roughly normal, |x| < 2
 
-  var W = 0, H = 0, DPR = 1, R = 0, pole = null, stars = [], layer = null, layerScale = 1;
+  var W = 0, H = 0, DPR = 1, R = 0, pole = null, stars = [], layer = null, layerScale = 1, faint = [], bright = [], fore = null, halos = {};
 
   function tint(r) {                         // colour temperature: mostly white, some blue-white, some warm
     var t = r();
@@ -48,9 +48,31 @@
       if (m < 0.80) { size = 0.55 + m * 0.5; alpha = 0.28 + m * 0.55; }            // the dust of faint stars
       else if (m < 0.965) { size = 0.95 + (m - 0.80) * 4.2; alpha = 0.72 + (m - 0.80) * 1.4; }
       else { size = 1.7 + (m - 0.965) * 40; alpha = 1; tw = 0.5 + r() * 1.3; }   // a few bright ones, with halo and twinkle
-      stars.push({ a: a, d: d, s: size * DPR, al: Math.min(1, alpha), c: tint(r), tw: tw, ph: r() * 6.2832 });
+      var c = tint(r);
+      stars.push({ x: Math.cos(a) * d, y: Math.sin(a) * d, s: size * DPR, al: Math.min(1, alpha), c: c, tw: tw, ph: r() * 6.2832,
+                   col: c[0] + ',' + c[1] + ',' + c[2], fill: 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + Math.min(1, alpha).toFixed(2) + ')' });
     }
     layer = buildLayer(r);
+    // the faint stars never change: draw them into the Milky Way layer's coordinates as one batch per colour
+    faint = [];
+    var groups = {};                                               // one path per colour and brightness step
+    stars.forEach(function (st) {
+      if (!(st.s < 1.15 * DPR && !st.tw)) return;
+      var key = st.col + '|' + Math.round(st.al * 10);
+      if (!groups[key]) { groups[key] = { fill: 'rgba(' + st.col + ',' + (Math.round(st.al * 10) / 10).toFixed(1) + ')', path: typeof Path2D !== 'undefined' ? new Path2D() : null, list: [] }; faint.push(groups[key]); }
+      if (groups[key].path) groups[key].path.rect(st.x, st.y, st.s, st.s); else groups[key].list.push(st);
+    });
+    bright = stars.filter(function (st) { return !(st.s < 1.15 * DPR && !st.tw); });
+    fore = buildForeground();
+  }
+
+  // The planet, the sunrise and the vignette do not move: render them once per size and lay them on top.
+  function buildForeground() {
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    var g = c.getContext('2d');
+    drawForeground(g);
+    return c;
   }
 
   // The Milky Way and the background haze, rendered once at a capped resolution and drawn scaled:
@@ -120,6 +142,22 @@
     return c;
   }
 
+  function halo(st) {
+    var key = st.col + (st.s > 2.9 * DPR ? '+' : '');
+    if (halos[key]) return halos[key];
+    var n = 64, c = document.createElement('canvas'); c.width = c.height = n;
+    var g = c.getContext('2d'), m = n / 2;
+    var grd = g.createRadialGradient(m, m, 0, m, m, m);
+    grd.addColorStop(0, 'rgba(' + st.col + ',0.42)'); grd.addColorStop(0.35, 'rgba(' + st.col + ',0.10)'); grd.addColorStop(1, 'rgba(' + st.col + ',0)');
+    g.fillStyle = grd; g.fillRect(0, 0, n, n);
+    if (key.slice(-1) === '+') {                                  // a faint spike on the very brightest
+      var h = g.createLinearGradient(0, m, n, m), v = g.createLinearGradient(m, 0, m, n);
+      [h, v].forEach(function (s) { s.addColorStop(0, 'rgba(' + st.col + ',0)'); s.addColorStop(0.5, 'rgba(' + st.col + ',0.55)'); s.addColorStop(1, 'rgba(' + st.col + ',0)'); });
+      g.fillStyle = h; g.fillRect(0, m - 0.5, n, 1); g.fillStyle = v; g.fillRect(m - 0.5, 0, 1, n);
+    }
+    return (halos[key] = c);
+  }
+
   function resize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(window.innerWidth * DPR); canvas.height = Math.round(window.innerHeight * DPR);
@@ -141,85 +179,80 @@
     ctx.translate(pole.x, pole.y);
     ctx.rotate(rot);
     ctx.drawImage(layer, -R, -R, R * 2, R * 2);
-    for (var i = 0; i < stars.length; i++) {
-      var st = stars[i], x = Math.cos(st.a) * st.d, y = Math.sin(st.a) * st.d, al = st.al;
-      if (st.tw && !reduced) al *= 0.8 + 0.2 * Math.sin(now * 0.0012 * st.tw + st.ph);
-      var col = st.c[0] + ',' + st.c[1] + ',' + st.c[2];
-      if (st.s < 1.15 * DPR) {
-        ctx.fillStyle = 'rgba(' + col + ',' + al.toFixed(2) + ')';
-        ctx.fillRect(x, y, st.s, st.s);
-      } else {
-        if (st.s > 2.0 * DPR) {                                    // bloom on the bright ones
-          var hr = st.s * 3.2;
-          var halo = ctx.createRadialGradient(x, y, 0, x, y, hr);
-          halo.addColorStop(0, 'rgba(' + col + ',' + (al * 0.42).toFixed(2) + ')');
-          halo.addColorStop(0.35, 'rgba(' + col + ',' + (al * 0.10).toFixed(2) + ')');
-          halo.addColorStop(1, 'rgba(' + col + ',0)');
-          ctx.fillStyle = halo; ctx.fillRect(x - hr, y - hr, hr * 2, hr * 2);
-          if (st.s > 2.9 * DPR) {                                  // a faint spike on the very brightest
-            var sp = st.s * 7, spk = ctx.createLinearGradient(x - sp, y, x + sp, y);
-            spk.addColorStop(0, 'rgba(' + col + ',0)'); spk.addColorStop(0.5, 'rgba(' + col + ',' + (al * 0.55).toFixed(2) + ')'); spk.addColorStop(1, 'rgba(' + col + ',0)');
-            ctx.fillStyle = spk; ctx.fillRect(x - sp, y - 0.5 * DPR, sp * 2, DPR);
-            var spv = ctx.createLinearGradient(x, y - sp, x, y + sp);
-            spv.addColorStop(0, 'rgba(' + col + ',0)'); spv.addColorStop(0.5, 'rgba(' + col + ',' + (al * 0.55).toFixed(2) + ')'); spv.addColorStop(1, 'rgba(' + col + ',0)');
-            ctx.fillStyle = spv; ctx.fillRect(x - 0.5 * DPR, y - sp, DPR, sp * 2);
-          }
-        }
-        ctx.fillStyle = 'rgba(' + col + ',' + al.toFixed(2) + ')';
-        ctx.beginPath(); ctx.arc(x, y, st.s / 2, 0, 6.2832); ctx.fill();
-      }
+    var k, st;
+    for (k = 0; k < faint.length; k++) {                            // the faint stars: a few dozen fills
+      var grp = faint[k]; ctx.fillStyle = grp.fill;
+      if (grp.path) ctx.fill(grp.path); else for (var q = 0; q < grp.list.length; q++) ctx.fillRect(grp.list[q].x, grp.list[q].y, grp.list[q].s, grp.list[q].s);
     }
+    for (k = 0; k < bright.length; k++) {
+      st = bright[k];
+      var al = st.al;
+      if (st.tw && !reduced) al *= 0.8 + 0.2 * Math.sin(now * 0.0012 * st.tw + st.ph);
+      if (st.s < 1.15 * DPR) { ctx.globalAlpha = al; ctx.fillStyle = 'rgb(' + st.col + ')'; ctx.fillRect(st.x, st.y, st.s, st.s); continue; }
+      if (st.s > 2.0 * DPR) {                                      // bloom on the bright ones, from a cached sprite
+        var hr = st.s * 3.2;
+        ctx.globalAlpha = al; ctx.drawImage(halo(st), st.x - hr, st.y - hr, hr * 2, hr * 2);
+      }
+      ctx.globalAlpha = al; ctx.fillStyle = 'rgb(' + st.col + ')';
+      ctx.beginPath(); ctx.arc(st.x, st.y, st.s / 2, 0, 6.2832); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
     ctx.restore();
 
+    if (fore) ctx.drawImage(fore, 0, 0);
+  }
+
+  function drawForeground(g) {
     // ---- the planet: a limb the width of the screen, the sun just behind it on the left
     var Rp = W * 1.45, cx = W / 2, cy = H * 0.80 + Rp;
     function limbY(px) { return cy - Math.sqrt(Math.max(0, Rp * Rp - (px - cx) * (px - cx))); }
     // sunrise glare: warm, low on the left, most of it hidden by the body drawn afterwards
     var sx = W * 0.14, sy = limbY(W * 0.14) + H * 0.02, sr = H * 0.62;
-    var sun = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+    var sun = g.createRadialGradient(sx, sy, 0, sx, sy, sr);
     sun.addColorStop(0, 'rgba(255,246,232,0.80)'); sun.addColorStop(0.06, 'rgba(255,220,180,0.42)');
     sun.addColorStop(0.20, 'rgba(255,170,110,0.13)'); sun.addColorStop(0.45, 'rgba(200,120,90,0.04)'); sun.addColorStop(1, 'rgba(120,80,80,0)');
-    ctx.fillStyle = sun; ctx.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+    g.fillStyle = sun; g.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
     // atmosphere, wide layer: blue haze that reaches well above the limb
     var GW = Math.max(150 * DPR, H * 0.26);
-    var haze = ctx.createRadialGradient(cx, cy, Rp - 2 * DPR, cx, cy, Rp + GW);
+    var haze = g.createRadialGradient(cx, cy, Rp - 2 * DPR, cx, cy, Rp + GW);
     haze.addColorStop(0, 'rgba(150,190,255,0.34)'); haze.addColorStop(0.10, 'rgba(110,150,240,0.16)');
     haze.addColorStop(0.35, 'rgba(80,110,210,0.06)'); haze.addColorStop(1, 'rgba(60,90,180,0)');
-    ctx.fillStyle = haze; ctx.fillRect(0, cy - Rp - GW, W, H - (cy - Rp - GW));
+    g.fillStyle = haze; g.fillRect(0, cy - Rp - GW, W, H - (cy - Rp - GW));
     // atmosphere, thin layer: the bright edge itself
     var EW = Math.max(9 * DPR, H * 0.012);
-    var edge = ctx.createRadialGradient(cx, cy, Rp - 1.5 * DPR, cx, cy, Rp + EW);
+    var edge = g.createRadialGradient(cx, cy, Rp - 1.5 * DPR, cx, cy, Rp + EW);
     edge.addColorStop(0, 'rgba(255,252,246,0.98)'); edge.addColorStop(0.18, 'rgba(210,228,255,0.75)');
     edge.addColorStop(0.55, 'rgba(150,190,255,0.28)'); edge.addColorStop(1, 'rgba(120,160,240,0)');
-    ctx.fillStyle = edge; ctx.fillRect(0, cy - Rp - EW, W, H - (cy - Rp - EW));
+    g.fillStyle = edge; g.fillRect(0, cy - Rp - EW, W, H - (cy - Rp - EW));
     // the night side: everything above the limb dies away towards the right; clipped to the ring
-    ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, Rp + GW, 0, 6.2832); ctx.arc(cx, cy, Rp - 1, 0, 6.2832, true); ctx.clip('evenodd');
-    var term = ctx.createLinearGradient(0, 0, W, 0);
+    g.save();
+    g.beginPath(); g.arc(cx, cy, Rp + GW, 0, 6.2832); g.arc(cx, cy, Rp - 1, 0, 6.2832, true); g.clip('evenodd');
+    var term = g.createLinearGradient(0, 0, W, 0);
     term.addColorStop(0, 'rgba(0,0,0,0)'); term.addColorStop(0.5, 'rgba(0,0,0,0.10)'); term.addColorStop(1, 'rgba(0,0,0,0.70)');
-    ctx.fillStyle = term; ctx.fillRect(0, cy - Rp - GW, W, H - (cy - Rp - GW));
-    ctx.restore();
+    g.fillStyle = term; g.fillRect(0, cy - Rp - GW, W, H - (cy - Rp - GW));
+    g.restore();
     // the body: dark, with earthshine on the sunward side and the atmosphere seen from inside the limb
-    var body = ctx.createLinearGradient(0, 0, W, 0);
+    var body = g.createLinearGradient(0, 0, W, 0);
     body.addColorStop(0, '#0b1222'); body.addColorStop(0.35, '#050912'); body.addColorStop(1, '#010204');
-    ctx.fillStyle = body; ctx.beginPath(); ctx.arc(cx, cy, Rp, 0, 6.2832); ctx.fill();
+    g.fillStyle = body; g.beginPath(); g.arc(cx, cy, Rp, 0, 6.2832); g.fill();
     var IW = Math.max(70 * DPR, H * 0.10);
-    var inner = ctx.createRadialGradient(cx, cy, Rp - IW, cx, cy, Rp);
+    var inner = g.createRadialGradient(cx, cy, Rp - IW, cx, cy, Rp);
     inner.addColorStop(0, 'rgba(60,95,170,0)'); inner.addColorStop(0.7, 'rgba(80,120,200,0.10)'); inner.addColorStop(1, 'rgba(120,160,230,0.30)');
-    ctx.fillStyle = inner; ctx.beginPath(); ctx.arc(cx, cy, Rp, 0, 6.2832); ctx.fill();
+    g.fillStyle = inner; g.beginPath(); g.arc(cx, cy, Rp, 0, 6.2832); g.fill();
 
     // ---- vignette
-    var vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.hypot(W, H) * 0.62);
+    var vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.hypot(W, H) * 0.62);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.55)');
-    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    g.fillStyle = vg; g.fillRect(0, 0, W, H);
   }
 
-  // 30 fps while the sky is the picture, 10 fps once it has stepped back behind the reading
+  // The sky turns about a degree every 38 s: 12 frames a second keep that and the twinkle smooth.
+  // Once it has stepped back behind the reading (12% opacity) it is drawn once and left still.
   var handle = null, last = 0;
   function frame(now) {
+    if (document.documentElement.classList.contains('sky-back')) { draw(now); handle = null; return; }
     handle = requestAnimationFrame(frame);
-    var every = document.documentElement.classList.contains('sky-back') ? 100 : 33;
-    if (now - last < every) return;
+    if (now - last < 83) return;
     last = now; draw(now);
   }
   function start() { if (handle == null && !reduced && !document.hidden) handle = requestAnimationFrame(frame); }
@@ -240,6 +273,7 @@
   if (hero && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       document.documentElement.classList.toggle('sky-back', !entries[0].isIntersecting);
+      if (entries[0].isIntersecting) start();               // back at the hero: the sky turns again
     }, { threshold: 0.12 }).observe(hero);
   }
 })();
