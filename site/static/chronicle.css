@@ -53,6 +53,21 @@
 .ch-field:not(:disabled):hover { border-color: color-mix(in srgb, var(--ink) 40%, transparent); color: var(--ink); }
 .ch-field[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
 .ch-field[aria-pressed="true"] small { color: inherit; opacity: .7; }
+/* timeline / star map switch (chronicle-starmap.js) */
+.ch-bar:has(.ch-views:not([hidden])) { display: flex; align-items: flex-start; gap: 1rem; }
+.ch-bar .ch-fields { flex: 1; min-width: 0; }
+.ch-views { display: inline-flex; flex: none; padding: 3px; border: 1px solid var(--rule); border-radius: 999px; }
+.ch-views[hidden] { display: none; }
+.ch-views button { padding: .36rem .85rem; border: 0; border-radius: 999px; background: none; color: var(--muted); font: 600 .78rem/1 var(--sans); cursor: pointer; }
+.ch-views button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.ch-starmap { position: relative; margin: 1.2rem 0 2rem; }
+.ch-starmap[hidden] { display: none; }
+.ch-starmap canvas { display: block; width: 100%; height: min(72vh, 680px); cursor: grab; touch-action: none; border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 52%, color-mix(in srgb, var(--paper) 70%, #000) 0%, var(--paper) 75%); border: 1px solid var(--rule); }
+/* while the star map is open the tree behind the page steps back */
+body:has(.technology-chronicle.is-starmap) .ch-tree { opacity: .12 !important; }
+.ch-starmap canvas:active { cursor: grabbing; }
+.prose .ch-starmap-hint { margin: .6rem 0 0; color: var(--muted); font-size: .8rem; text-align: center; }
 .ch-field:disabled { cursor: default; }
 .ch-field:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
@@ -157,6 +172,8 @@
   .page-technology-tree .article-head { margin-top: 1.8rem; }
   .ch-fields { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .ch-fields::-webkit-scrollbar { display: none; }
+  .ch-bar:has(.ch-views:not([hidden])) { flex-direction: column-reverse; gap: .6rem; }
+  .ch-starmap canvas { height: 60vh; }
   .ch-item-hook { padding-left: 0; }
   .ch-art { width: 48px; height: 48px; margin-top: -24px; right: .5rem; }
   .prose .ch-art-ready .ch-item { padding-right: 4.2rem; }

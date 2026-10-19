@@ -160,8 +160,15 @@ def render(data, language):
     chips = ''.join(f'<button type="button" class="ch-field" id="field-{topic["id"]}" data-layer="{topic["layer"]}" data-field="{topic["id"]}" '
                     f'aria-pressed="false" aria-controls="chronicle-content" disabled><i aria-hidden="true"></i>{text(topic["title"])}<small>{count(topic["id"])}</small></button>'
                     for layer in data["layers"] for topic in data["topics"] if topic["layer"] == layer["id"])
+    # the timeline / star map switch (chronicle-starmap.js shows it; without JavaScript there is only the timeline)
+    switch = (f'<div class="ch-views" data-views role="group" aria-label="{say("视图", "View")}" hidden>'
+              f'<button type="button" data-view="timeline" aria-pressed="true" disabled>{say("时间线", "Timeline")}</button>'
+              f'<button type="button" data-view="map" aria-pressed="false" disabled>{say("星图", "Star map")}</button></div>')
     bar = (f'<div class="ch-bar"><div class="ch-fields" role="group" aria-label="{say("按领域看", "Filter by field")}">'
-           f'<button type="button" class="ch-field ch-field-all" data-filter-reset aria-pressed="true" disabled>{say("全部", "All")}</button>{chips}</div></div>')
+           f'<button type="button" class="ch-field ch-field-all" data-filter-reset aria-pressed="true" disabled>{say("全部", "All")}</button>{chips}</div>{switch}</div>')
+    starmap = (f'<div class="ch-starmap" data-starmap hidden><canvas role="img" aria-label="'
+               f'{say("全部节点组成的星图：领域是旋臂，越靠外越新，连线是有来源的关联", "All milestones as a star map: fields are the arms, newer works sit further out, lines are sourced connections")}"></canvas>'
+               f'<p class="ch-starmap-hint">{say("拖动旋转 · 停在一颗星上看它的关联 · 点一下打开", "Drag to turn · hover a star to see its connections · click to open it")}</p></div>')
 
     def item(node, key):
         name = node["id"]
@@ -234,7 +241,7 @@ def render(data, language):
                f'{"".join(article(nodes[name]) for name in canonical)}</div>')
     return ('<section class="technology-chronicle" id="tree-map" data-chronicle>'
             '<span id="branch-overview"></span><span id="selection"></span><span id="connections"></span><span id="turning-points"></span>'
-            f'{stage}{bar}'
+            f'{stage}{bar}{starmap}'
             f'<div class="ch-periods" id="chronicle-content">{"".join(periods)}{empty}</div>{library}</section>')
 
 

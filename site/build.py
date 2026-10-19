@@ -1986,6 +1986,7 @@ def assemble(page, sections, nav, built, template):
         template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle.js?v={built}"></script>\n</head>')
         template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle-designs.js?v={built}"></script>\n</head>')
         template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle-artifacts.js?v={built}"></script>\n</head>')
+        template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle-starmap.js?v={built}"></script>\n</head>')
         template = template.replace('<canvas class="sky" aria-hidden="true"></canvas>\n', "")
         template = re.sub(r'<script defer src="\{\{prefix\}\}static/sky\.js[^>]*></script>\n?', "", template)
     if 'class="paper-fig' in page.body:
