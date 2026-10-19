@@ -64,6 +64,17 @@
     const rect = canvas.getBoundingClientRect(), ratio = Math.min(2, devicePixelRatio || 1);
     canvas.width = Math.round(rect.width * ratio); canvas.height = Math.round(rect.height * ratio);
   }
+  const halos = new Map();
+  function haloSprite(c) {  // one soft disc per colour, drawn once
+    const key = String(c);
+    if (!halos.has(key)) {
+      const n = 64, sprite = document.createElement('canvas'); sprite.width = sprite.height = n;
+      const s = sprite.getContext('2d'), grd = s.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+      grd.addColorStop(0, `rgba(${c},.32)`); grd.addColorStop(1, `rgba(${c},0)`);
+      s.fillStyle = grd; s.fillRect(0, 0, n, n); halos.set(key, sprite);
+    }
+    return halos.get(key);
+  }
   function project(p) {
     const w = canvas.width, h = canvas.height, scale = Math.min(w * .46, h * .62);
     const x1 = p.x * Math.cos(yaw) + p.z * Math.sin(yaw), z1 = -p.x * Math.sin(yaw) + p.z * Math.cos(yaw);
@@ -109,9 +120,9 @@
       const base = colours[s.layer] || [201, 133, 0], c = night ? base.map((v) => Math.round(v + (255 - v) * .45)) : base;
       const r = (1.6 + Math.min(4, degree.get(s.id)) * .55 + (featured.has(s.id) ? 1.2 : 0)) * k * unit * 1.3;
       const alpha = dim ? .18 : .55 + .45 * near;
-      const halo = g.createRadialGradient(x, y, 0, x, y, r * 5);
-      halo.addColorStop(0, `rgba(${c},${alpha * (night ? .32 : .18)})`); halo.addColorStop(1, `rgba(${c},0)`);
-      g.fillStyle = halo; g.beginPath(); g.arc(x, y, r * 5, 0, TAU); g.fill();
+      g.globalAlpha = alpha * (night ? .32 : .18) / .32;
+      g.drawImage(haloSprite(c), x - r * 5, y - r * 5, r * 10, r * 10);
+      g.globalAlpha = 1;
       g.fillStyle = `rgba(${c},${alpha})`; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
       if ((featured.has(s.id) && !dim) || s === hover) {
         g.strokeStyle = `rgba(${white},${(s === hover ? .8 : .4) * near})`; g.lineWidth = unit;
@@ -133,6 +144,7 @@
     }
   }
   function frame(now) {
+    if (last && now - last < 32 && !drag) { raf = requestAnimationFrame(frame); return; }  // about 30 frames a second
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
     if (!drag && !hover && !reduce()) yaw += dt * .05;
     draw();
