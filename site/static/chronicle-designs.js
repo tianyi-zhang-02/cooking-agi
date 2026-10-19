@@ -816,6 +816,244 @@
     m.arrow([-.35, .45, 0], [.55, .35, 0], .07);
   };
 
+  /* ------------------------------------------------ pivotal works added after the gap review */
+  const ringX = (m, x, cy, cz, radius, n = 12) => m.path(range(n).map((i) => [x, cy + Math.cos(i / n * TAU) * radius, cz + Math.sin(i / n * TAU) * radius]), true);
+  const ellipse = (m, cx, cy, z, rx, ry, turn = 0, n = 18) => m.path(range(n).map((i) => {
+    const a = i / n * TAU, x = Math.cos(a) * rx, y = Math.sin(a) * ry;
+    return [cx + x * Math.cos(turn) - y * Math.sin(turn), cy + x * Math.sin(turn) + y * Math.cos(turn), z];
+  }), true);
+  const prism = (m, outline, z0, z1) => {  // an outline in the x-y plane, extruded between two depths
+    const front = m.path(outline.map(([x, y]) => [x, y, z0]), true), back = m.path(outline.map(([x, y]) => [x, y, z1]), true);
+    front.forEach((id, i) => m.link(id, back[i]));
+  };
+  const toward = (a, b, cut = .14) => [a.map((v, k) => v + (b[k] - v) * cut), b.map((v, k) => v - (b[k] - v) * cut)];
+
+  D['ac-niagara-1895'] = (m) => {  // a powerhouse at the falls; towers carry AC lines into the distance
+    m.box(-1.15, -.35, 0, .5, .5, .6); m.path([[-1.4, -.1, -.3], [-1.15, .12, -.3], [-.9, -.1, -.3]]); m.path([[-1.4, -.1, .3], [-1.15, .12, .3], [-.9, -.1, .3]]);
+    spread(5, .5).forEach((z) => m.line([-1.48, .1, z], [-1.48, -.6, z], 4));  // falling water
+    const towers = [[-.55, 0], [0, -.35], [.55, -.7], [1.1, -1.05]];
+    towers.forEach(([x, z]) => { m.path([[x - .12, -.6, z], [x, .45, z], [x + .12, -.6, z]]); m.line([x - .22, .3, z], [x + .22, .3, z]); });
+    for (const s of [-.22, .22]) {
+      m.arc([-.9, -.1, 0], [towers[0][0] + s, .3, towers[0][1]], -.08, 6, 1);
+      for (let i = 0; i + 1 < towers.length; i += 1) m.arc([towers[i][0] + s, .3, towers[i][1]], [towers[i + 1][0] + s, .3, towers[i + 1][1]], -.1, 7, 1);
+    }
+    m.path(range(13).map((i) => [-1.4 + i * .05, .55 + .1 * Math.sin(i / 12 * TAU), 0]));
+  };
+  D['edvac-1945'] = (m) => {  // five organs; the memory holds the instructions as well as the numbers
+    m.box(0, -.45, 0, 1.2, .45, .5); m.dashes(-.45, -.33, .26, .9, 3, .11, (i) => [1, .55, .8][i]);
+    m.box(-.35, .4, 0, .5, .35, .4); m.box(.35, .4, 0, .5, .35, .4);  // control, arithmetic
+    m.box(-1.15, -.05, 0, .35, .3, .35); m.box(1.15, -.05, 0, .35, .3, .35);  // input, output
+    m.arrow([-.95, -.1, 0], [-.62, -.32, 0], .08); m.arrow([.62, -.32, 0], [.95, -.1, 0], .08);
+    m.line([-.35, .22, 0], [-.35, -.22, 0], 3); m.line([.35, .22, 0], [.35, -.22, 0], 3); m.line([-.1, .4, 0], [.1, .4, 0]);
+  };
+  D['turing-test-1950'] = (m) => {  // an interrogator types to two hidden players through a wall
+    m.box(0, 0, 0, .06, 1.2, 1.6);
+    m.box(-.95, -.35, 0, .4, .25, .35); m.ringXY(-1.05, .15, 0, .14, 10);
+    m.box(.95, -.35, -.55, .35, .25, .3); m.ringXY(.95, .08, -.55, .12, 10);  // a person
+    m.box(.95, -.35, .55, .35, .25, .3); m.cube(.95, .1, .55, .22);  // a machine
+    m.arc([-.75, -.2, 0], [.78, -.2, -.55], .3, 9, 1); m.arc([-.75, -.2, 0], [.78, -.2, .55], .3, 9, 1);
+  };
+  D['integrated-circuit-1959'] = (m) => {  // one slab of semiconductor; the parts are made in it and joined on top
+    m.box(0, -.15, 0, 2, .2, 1.1);
+    const y = -.05;
+    m.path(range(9).map((i) => [-.8 + .07 * i, y, -.2 + (i % 2 ? .12 : -.12)]));  // resistor
+    m.rectXZ(.1, y, .25, .3, .3); m.rectXZ(.1, y + .08, .25, .3, .3);  // capacitor
+    m.box(.65, y + .06, -.15, .25, .12, .25);  // transistor
+    m.path([[-.24, y, -.2], [-.24, y, .25], [-.05, y, .25]]); m.path([[.25, y + .08, .25], [.65, y, .25], [.65, y, -.02]]);
+    m.arc([-.85, y, -.25], [-1.3, -.35, -.25], .3, 7, 1); m.arc([.78, y, -.15], [1.3, -.35, -.15], .3, 7, 1);
+  };
+  D['mosfet-1960'] = (m) => {  // a gate over a thin oxide; its field opens a channel from source to drain
+    m.box(0, -.45, 0, 2, .6, .9);
+    m.box(-.7, -.25, 0, .45, .2, .7); m.box(.7, -.25, 0, .45, .2, .7);  // source, drain
+    m.box(0, -.12, 0, 1, .04, .7);  // oxide
+    m.box(0, .1, 0, .9, .36, .6);  // gate
+    spread(5, .7).forEach((x) => m.line([x, -.08, .36], [x, -.3, .36], 4));
+    m.arrow([-.5, -.36, .4], [.5, -.36, .4], .1);
+    m.line([-.7, -.15, 0], [-.7, .55, 0], 3); m.line([.7, -.15, 0], [.7, .55, 0], 3); m.line([0, .28, 0], [0, .65, 0], 3);
+  };
+  D['lisp-1960'] = (m) => {  // a list of cons cells, one holding a nested list, between parentheses
+    const cell = (x, y, z) => { m.rectXY(x - .1, y, z, .2, .2); m.rectXY(x + .1, y, z, .2, .2); };
+    const top = [-.8, -.1, .6];
+    top.forEach((x, i) => { cell(x, .5, 0); if (i < 2) m.arrow([x + .1, .5, 0], [x + .5, .5, 0], .07); });
+    m.line([.6, .4, 0], [.8, .6, 0]);  // nil
+    m.arrow([-.9, .4, 0], [-.9, -.02, 0], .07); m.ringXY(-.9, -.14, 0, .11, 10);
+    m.arrow([.5, .4, 0], [.5, -.02, 0], .07); m.ringXY(.5, -.14, 0, .11, 10);
+    m.arrow([-.2, .4, 0], [-.3, -.3, .5], .07);
+    cell(-.3, -.42, .5); cell(.4, -.42, .5); m.arrow([-.2, -.42, .5], [.2, -.42, .5], .07);
+    m.ringXY(-.4, -.85, .5, .09, 10); m.line([-.4, -.52, .5], [-.4, -.75, .5]);
+    m.arc([-1.2, .85, 0], [-1.2, -.95, 0], -.18, 11, 0); m.arc([1.05, .85, 0], [1.05, -.95, 0], .18, 11, 0);
+  };
+  D['kalman-filter-1960'] = (m) => {  // along a track: predict (wide), measure (×), correct (narrow)
+    const xs = [-1.1, -.4, .3, 1], ys = [-.35, .05, .2, .5];
+    xs.forEach((x, i) => {
+      ellipse(m, x, ys[i], 0, .12, .09);
+      if (i) { ellipse(m, x - .04, ys[i] - .06, -.3, .28, .2); m.star(x + .1, ys[i] + .14, .3, .07); }
+    });
+    m.path(xs.map((x, i) => [x, ys[i], 0]));
+    for (let i = 0; i + 1 < xs.length; i += 1) m.arc([xs[i], ys[i] - .1, 0], [xs[i + 1] - .04, ys[i + 1] - .26, -.3], -.12, 6, 1);
+  };
+  D['atlas-virtual-memory-1962'] = (m) => {  // one long address space above; each page lives in core or on the drum
+    const pages = m.tokens(8, .75, 0, 2, .18);
+    m.gridXY(2, 2, .6, .6, .1, -.7, -.35);  // core: four page frames
+    m.cyl(.7, -.4, -.2, .38, .6, 16); m.circle(16, .38, -.25, .7, -.2);  // drum
+    pages.forEach(([x, y, z], i) => {
+      const core = i % 3 === 0, target = core ? [-.85 + .3 * (i % 2), -.2, .1] : [.7 + Math.cos(i) * .3, -.1, -.2 + Math.sin(i) * .3];
+      m.line([x, y - .09, z], target);
+    });
+    m.arrow([-.35, -.25, .1], [.28, -.25, 0], .07); m.arrow([.28, -.5, 0], [-.35, -.5, .1], .07);
+  };
+  D['packet-switching-1964'] = (m) => {  // a distributed mesh; message blocks route around a lost node
+    const at = (i, j) => [-1 + i * .66, -.6 + j * .6, (i + j) % 2 ? .25 : -.25], lost = '1,1';
+    for (let i = 0; i < 4; i += 1) for (let j = 0; j < 3; j += 1) {
+      if (`${i},${j}` !== lost) m.node(...at(i, j), .06);
+      for (const [a, b] of [[1, 0], [0, 1], [1, 1]]) {
+        const k = `${i + a},${j + b}`;
+        if (i + a < 4 && j + b < 3 && k !== lost && `${i},${j}` !== lost) m.line(...toward(at(i, j), at(i + a, j + b), .1), 3);
+      }
+    }
+    const [x, y, z] = at(1, 1); m.line([x - .1, y - .1, z], [x + .1, y + .1, z]); m.line([x - .1, y + .1, z], [x + .1, y - .1, z]);
+    [[0, 0, 1, 0], [1, 0, 2, 1], [0, 1, 0, 2], [0, 2, 1, 2], [2, 1, 3, 2]].forEach(([a, b, c, d]) => {
+      const p = at(a, b), q = at(c, d); m.rectXY((p[0] + q[0]) / 2, (p[1] + q[1]) / 2 + .07, (p[2] + q[2]) / 2, .1, .08);
+    });
+  };
+  D['optical-fibre-1966'] = (m) => {  // light bouncing along a glass fibre: a core inside its cladding
+    spread(7, 2.2).forEach((x) => { ringX(m, x, 0, 0, .3); ringX(m, x, 0, 0, .14, 10); });
+    for (const s of [-.3, .3]) { m.line([-1.1, s, 0], [1.1, s, 0], 8); m.line([-1.1, 0, s], [1.1, 0, s], 8); }
+    m.path(range(12).map((i) => [-1.1 + i * .2, i % 2 ? .12 : -.12, 0]));
+    m.star(-1.35, -.12, 0, .12);
+  };
+  D['dennard-scaling-1974'] = (m) => {  // the same area holds more, smaller transistors at the same power density
+    [-1.05, 0, 1.05].forEach((cx, k) => {
+      m.rectXZ(cx, -.2, 0, .8, .8);
+      const n = k + 1, s = .6 / n;
+      for (let i = 0; i < n; i += 1) for (let j = 0; j < n; j += 1) {
+        const x = cx - .3 + s * (i + .5), z = -.3 + s * (j + .5);
+        m.box(x, -.2 + s * .2, z, s * .7, s * .4, s * .7); m.line([x, -.2 + s * .4, z], [x, -.2 + s * .75, z]);
+      }
+    });
+    m.arrow([-.75, .5, 0], [.75, .5, 0], .1);
+  };
+  D['em-algorithm-1977'] = (m, r) => {  // points from two hidden groups; the fit alternates E and M steps
+    [[-.5, .2, .5], [.45, -.25, -.6]].forEach(([cx, cy, turn]) => {
+      range(14).forEach(() => {
+        const u = (r() - .5) * .9, v = (r() - .5) * .35;
+        m.add(cx + u * Math.cos(turn) - v * Math.sin(turn), cy + u * Math.sin(turn) + v * Math.cos(turn), (r() - .5) * .3);
+      });
+      ellipse(m, cx, cy, 0, .5, .2, turn); ellipse(m, cx + .12, cy - .06, -.25, .36, .3, turn * .4);
+    });
+    m.arc([.75, .75, 0], [1.3, .75, 0], .22, 8, 1); m.arc([1.3, .75, 0], [.75, .75, 0], -.22, 8, 1);
+    m.arrow([1.22, .82, 0], [1.3, .75, 0], .06); m.arrow([.83, .68, 0], [.75, .75, 0], .06);
+  };
+  D['risc-1980'] = (m) => {  // simple instructions overlapped in a pipeline, on one chip
+    range(4).forEach((i) => range(5).forEach((s) => m.rectXY(-.95 + .3 * (i + s), .5 - .3 * i, -.18 * i, .26, .22)));
+    m.arrow([-1.1, -.55, 0], [1.3, -.55, -.5], .08);
+    m.rectXZ(.15, -.8, -.3, 2.2, .9);
+  };
+  D['flash-memory-1984'] = (m) => {  // a block of floating-gate cells, all erased together
+    for (let i = 0; i < 4; i += 1) for (let j = 0; j < 3; j += 1) {
+      const x = -.75 + .5 * i, z = -.4 + .4 * j;
+      m.box(x, -.3, z, .3, .08, .22); m.box(x, -.13, z, .3, .1, .22);  // floating gate, control gate
+    }
+    m.rectXZ(0, -.42, 0, 2.1, 1.3); m.rectXZ(0, -.42, 0, 2.2, 1.4);
+    spread(4, 1.5).forEach((x) => { m.arrow([x, .02, 0], [x, .55, 0], .08); m.add(x - .08, .3, .15); m.add(x + .08, .4, -.15); });
+  };
+  D['bayesian-networks-1985'] = (m) => {  // a dependency graph; beliefs pass along the arrows, tables at the nodes
+    const P = [[-.7, .7, .2], [.6, .75, -.2], [0, .1, 0], [-.85, -.45, -.25], [.8, -.25, .3], [0, -.85, 0]];
+    P.forEach((p) => m.node(...p, .1));
+    [[0, 2], [1, 2], [0, 3], [2, 4], [2, 5], [3, 5], [1, 4]].forEach(([a, b]) => {
+      const [s, e] = toward(P[a], P[b], .16); m.arrow(s, e, .07);
+      const mid = s.map((v, k) => v + (e[k] - v) * .45); m.ringXY(mid[0] + .06, mid[1], mid[2], .03, 6);
+    });
+    m.gridXY(2, 2, .26, .2, .2, -1.15, .85); m.gridXY(2, 4, .26, .34, 0, .45, .2);
+  };
+  D['tsmc-foundry-1987'] = (m) => {  // designs from many companies go into one fab; wafers come out
+    m.rectXY(-1.15, .45, 0, .32, .3); m.gridXY(2, 2, .2, .18, 0, -1.15, .45);
+    m.rectXY(-1.15, 0, 0, .32, .3); m.dashes(-1.27, .07, 0, .24, 3, .07);
+    m.rectXY(-1.15, -.45, 0, .32, .3); m.ringXY(-1.15, -.45, 0, .09, 10);
+    [.45, 0, -.45].forEach((y) => m.arrow([-.95, y, 0], [-.5, -.1, 0], .06));
+    m.box(0, -.2, 0, .9, .5, .8);
+    m.path(range(7).map((i) => [-.45 + .15 * i, .05 + (i % 2 ? .18 : 0), .4])); m.path(range(7).map((i) => [-.45 + .15 * i, .05 + (i % 2 ? .18 : 0), -.4]));
+    m.arrow([.5, -.25, 0], [.78, -.35, .1], .07);
+    [[1.1, .15], [1.25, -.15]].forEach(([x, z]) => m.ringXY(x, -.35, z, .3, 20)); m.gridXY(4, 4, .36, .36, .15, 1.1, -.35);
+  };
+  D['neural-language-model-2003'] = (m) => {  // three previous words become vectors; a network scores every next word
+    const words = m.tokens(3, -.95, 0, 1.2, .2);
+    m.gridXY(6, 4, 1.4, .55, -.45, 0, -.6);  // the shared table of word vectors
+    words.forEach(([x]) => { range(4).forEach((k) => m.rectXY(x, -.6 + .13 * k, 0, .1, .1)); m.line([x, -.85, 0], [x, -.67, 0]); });
+    const hidden = spread(5, 1.3).map((x) => m.add(x, .3, .1));
+    words.forEach(([x]) => hidden.forEach((h, i) => { if ((i + x * 10) % 2 < 1.2) m.link(m.add(x, -.15, 0), h); }));
+    const bars = [.1, .25, .5, .15, .35, .8, .2, .1, .3, .15, .05, .2];
+    spread(12, 2.1).forEach((x, i) => m.line([x, .6, .1], [x, .6 + bars[i] * .5, .1], 3));
+    hidden.forEach((h) => m.link(h, m.add(0, .58, .1)));
+  };
+  D['gan-2014'] = (m, r) => {  // noise → generator → a sample; the discriminator judges it against real data
+    range(10).forEach(() => m.add(-1.35 + r() * .25, -.35 + r() * .3, (r() - .5) * .3));
+    prism(m, [[-.95, -.3], [-.5, -.5], [-.5, .1], [-.95, -.1]], -.18, .18);  // generator widens
+    m.rectXY(-.05, -.2, 0, .3, .3); m.ringXY(-.05, -.2, 0, .08, 8);  // its sample
+    range(3).forEach((i) => m.rectXY(-.05 + .04 * i, .45, -.12 * i, .3, .3)); m.ringXY(-.05, .45, 0, .1, 10);  // real data
+    prism(m, [[.35, -.4], [.8, -.15], [.8, .15], [.35, .55]], -.18, .18);  // discriminator narrows
+    m.arrow([.15, -.2, 0], [.33, -.15, 0], .06); m.arrow([.15, .45, 0], [.33, .4, 0], .06);
+    m.node(1.1, 0, 0, .09); m.line([.82, 0, 0], [1.01, 0, 0]);
+    m.arc([1.05, -.15, 0], [-.7, -.55, 0], -.35, 13, 1);  // the generator learns from the judge
+  };
+  D['gender-shades-2018'] = (m) => {  // faces in four groups; one group's error bar towers over the rest
+    const heights = [.06, .3, .45, 1.25];
+    heights.forEach((h, g) => {
+      const cx = -1 + g * .66;
+      for (let i = 0; i < 2; i += 1) for (let j = 0; j < 2; j += 1) {
+        m.ringXY(cx - .12 + .24 * i, -.55 + .26 * j, .3, .09, 10); m.arc([cx - .2 + .24 * i, -.68 + .26 * j, .3], [cx - .04 + .24 * i, -.68 + .26 * j, .3], -.04, 4, 1);
+      }
+      m.box(cx, -.75 + h / 2, -.2, .3, h, .25);
+    });
+    m.line([-1.3, -.75, -.2], [1.3, -.75, -.2], 6);
+  };
+  D['rag-2020'] = (m) => {  // a question pulls a few passages from an index; the generator answers from them
+    range(6).forEach((i) => m.rectXZ(-.65, -.75 + .1 * i, 0, .75, .5));  // the index
+    m.rectXY(-.65, .6, 0, .6, .16); m.dashes(-.88, .6, .01, .45, 1);  // the question
+    m.arrow([-.65, .5, 0], [-.65, -.15, 0], .08);
+    [[.05, .35], [.05, -.05]].forEach(([x, y]) => { m.rectXY(x, y, .1, .4, .3); m.dashes(x - .14, y + .08, .11, .28, 3, .08); });
+    m.arc([-.3, -.3, 0], [-.15, .2, .1], .15, 5, 0);
+    m.box(.85, .15, 0, .4, .55, .4);  // the generator
+    m.arrow([.27, .3, .1], [.63, .25, 0], .06); m.arrow([.27, -.05, .1], [.63, .05, 0], .06);
+    m.dashes(1.1, .2, 0, .3, 3, .1, (i) => [1, .8, .5][i]);
+  };
+  D['waymo-driverless-2020'] = (m) => {  // a car with an empty driver's seat and a spinning sensor on the roof
+    m.box(0, -.35, 0, 1.6, .32, .8);
+    for (const z of [-.4, .4]) m.path([[-.55, -.19, z], [-.3, .18, z], [.35, .18, z], [.6, -.19, z]]);
+    [[-.3, .18], [.35, .18]].forEach(([x, y]) => m.line([x, y, -.4], [x, y, .4]));
+    m.path([[-.25, -.18, .2], [.05, -.18, .2], [.05, .08, .2]]);  // the driver's seat, empty
+    m.path([[-.25, -.18, -.2], [.05, -.18, -.2], [.05, .08, -.2]]);
+    m.cyl(0, .27, 0, .1, .12, 10);
+    range(10).forEach((i) => { const a = i / 10 * TAU; m.line([Math.cos(a) * .14, .28, Math.sin(a) * .14], [Math.cos(a) * 1.1, .05, Math.sin(a) * 1.1], 4); });
+    [[-.5, -.42], [-.5, .42], [.5, -.42], [.5, .42]].forEach(([x, z]) => m.ringXY(x, -.52, z, .15, 10));
+  };
+  D['lora-2021'] = (m) => {  // a large frozen weight matrix, plus a small trained update B·A
+    m.gridXY(6, 6, 1.1, 1.1, 0, -.6, 0);
+    m.box(-1.05, .65, .02, .2, .14, .06); m.arc([-1.12, .72, .02], [-.98, .72, .02], .1, 6, 1);  // a lock: frozen
+    m.line([.03, 0, 0], [.23, 0, 0]); m.line([.13, -.1, 0], [.13, .1, 0]);
+    m.gridXY(1, 6, .18, 1.1, .25, .45, 0);  // B: tall and thin
+    m.gridXY(6, 1, 1.1, .18, -.25, 1.15, .46);  // A: short and wide
+    m.line([.54, .46, .25], [.6, .46, -.25]);
+  };
+  D['chain-of-thought-2022'] = (m) => {  // a question, then written steps one after another, then the answer
+    m.rectXY(-1, .8, 0, .6, .24); m.dashes(-1.22, .82, .01, .44, 1);
+    let prev = [-1, .68, 0];
+    range(4).forEach((i) => {
+      const c = [-.55 + .33 * i, .35 - .33 * i, .18 * i];
+      m.rectXY(c[0], c[1], c[2], .5, .2); m.dashes(c[0] - .18, c[1] + .03, c[2] + .01, .36, 2, .07, (k) => [1, .6][k]);
+      m.arrow(prev, [c[0] - .1, c[1] + .1, c[2]], .06); prev = [c[0] + .1, c[1] - .1, c[2]];
+    });
+    m.arrow(prev, [.98, -.9, .72], .06); m.ringXY(1.08, -1, .72, .12, 12); m.ringXY(1.08, -1, .72, .07, 10);
+  };
+  D['eu-ai-act-2024'] = (m) => {  // a pyramid of risk tiers beside a legal text under a ring of twelve stars
+    const base = -.8, apex = [-.45, .6, 0], size = 1.3;
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [apex[0] + a * size / 2, base, b * size / 2]);
+    m.square(apex[0], base, 0, size); corners.forEach((c) => m.line(c, apex, 5));
+    [.35, .6, .82].forEach((t) => m.square(apex[0], base + (apex[1] - base) * t, 0, size * (1 - t)));
+    m.rectXY(.85, -.25, .2, .6, .8); m.dashes(.62, -.02, .21, .46, 5, .1, (i) => [1, .9, 1, .7, .5][i]);
+    range(12).forEach((i) => { const a = i / 12 * TAU; m.star(.85 + Math.cos(a) * .26, .55 + Math.sin(a) * .26, .2, .035); });
+  };
+
   const api = {designs: D};
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   scope.ChronicleDesigns = D;
