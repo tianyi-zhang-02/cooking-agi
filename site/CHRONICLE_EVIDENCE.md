@@ -212,3 +212,99 @@ The tree had three nodes after 2023. This pass adds sixteen, extends the last pe
 New connections (each sourced from its origin node): `deepseek-r1` → `deepseek-v3-2024` (R1 v1: DeepSeek-V3-Base as the base model), `alphafold3-2024` → `alphafold2` and → `diffusion` (Nature: pairformer and diffusion module replace the AF2 evoformer and structure module), `nobel-ai-2024` → `alphafold2` (chemistry press release), `nvidia-gb200-nvl72-2024` → `networks-nvlink-p100-2016` (product page).
 
 Considered and left out for now: International AI Safety Report 2026, Samsung HBM4, NVIDIA Vera Rubin, IEA's April 2026 update, and a self-hosted personal agent project. Each was sourced, but the tree favours one node per idea. Claims seen only in press coverage (for example AI scores at IMO 2026) were not used.
+
+## Forty links between existing milestones (Claude Code, 2026-10-19)
+
+80 of 159 milestones had no connection. This pass adds 40, leaving 26 unlinked. No milestone was added. Each link is stated or clearly shown in a source already listed on its origin node, and the origin node's source was opened during this pass. Four were rechecked directly against the source text: TPU 8 → TPU v3 liquid cooling ("fourth-generation liquid cooling"), R1 → o1 ("comparable to OpenAI-o1-1217"), TCP/IP → ARPANET (RFC 801 is the NCP/TCP transition plan), and MPI → FORTRAN (MPI-1 bindings for Fortran 77 and C). Pages that refused automated fetches (openai.com, ai.meta.com) were read through Internet Archive captures of the same URLs.
+
+| Link | Type | What the origin's source says | Source on the origin node |
+| --- | --- | --- | --- |
+| `instructgpt` → `gpt3` | adapts | It starts from the pretrained GPT-3 models and fine-tunes them with human demonstrations and rankings. | https://arxiv.org/abs/2203.02155 |
+| `instructgpt` → `ppo` | uses | Its reinforcement-learning step maximises the reward model's score with PPO. | https://arxiv.org/abs/2203.02155 |
+| `chatgpt` → `instructgpt` | adapts | Trained with RLHF using InstructGPT's methods, with a different data-collection setup. | https://openai.com/index/chatgpt/ |
+| `grpo` → `ppo` | adapts | A PPO variant that drops the critic and uses group scores as the baseline, saving memory. | https://arxiv.org/html/2402.03300v3 |
+| `deepseek-r1` → `o1-2024` | complements | The R1 report takes o1 as its reference point and reports parity with o1-1217 on reasoning tasks. | https://arxiv.org/html/2501.12948v1 |
+| `dpo` → `instructgpt` | adapts | It keeps the RLHF objective of the InstructGPT line but replaces reward modelling plus RL with one direct loss. | https://arxiv.org/abs/2305.18290 |
+| `posttraining-open` → `vllm` | uses | Tülu 3's verifiable-reward stage generates rollouts with vLLM and syncs weights to it after each update. | https://arxiv.org/html/2411.15124v3 |
+| `llama-3-1-2024` → `dpo` | uses | Each alignment round combines supervised fine-tuning, rejection sampling and DPO. | https://ai.meta.com/blog/meta-llama-3-1/ |
+| `o1-2024` → `mmlu-2020` | uses | OpenAI reports o1 ahead of GPT-4o on 54 of 57 MMLU subcategories. | https://openai.com/index/learning-to-reason-with-llms/ |
+| `gemini-1-5-2024` → `sparse-moe-2017` | adapts | Its report describes Gemini 1.5 as built on the mixture-of-experts architecture of Shazeer et al. | https://arxiv.org/abs/2403.05530v1 |
+| `flash` → `chips-roofline-report-2008` | uses | It sorts operations into compute- or memory-bound by arithmetic intensity, citing Roofline. | https://arxiv.org/abs/2205.14135 |
+| `amd-cdna3-mi300-2023` → `hbm-gpu-packaging-2015` | uses | MI300X carries 192 GB of HBM3 and MI300A 128 GB. | https://www.amd.com/en/newsroom/press-releases/2023-12-6-amd-delivers-leadership-portfolio-of-data-center-a.html |
+| `nvidia-hopper-2022` → `transformer` | complements | Hopper adds a Transformer Engine aimed at Transformer models. | https://nvidianews.nvidia.com/news/nvidia-announces-hopper-architecture-the-next-generation-of-accelerated-computing |
+| `nvidia-ampere-2020` → `nvidia-volta-2017` | adapts | The A100 whitepaper presents its SM, Tensor Core and memory changes as gains over V100. | https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf |
+| `amd-rdna-2019` → `amd-gcn-2011` | adapts | RDNA's dual compute unit replaces the GCN compute unit and stays compatible with GCN. | https://www.igorslab.de/wp-content/uploads/2019/08/rdna-whitepaper.pdf |
+| `amd-cdna-2020` → `amd-gcn-2011` | adapts | CDNA's compute units derive from GCN, with added Matrix Core engines. | https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/white-papers/amd-cdna-white-paper.pdf |
+| `chips-intel-trigate-22nm-2011` → `transistor-1947` | adapts | Intel calls Tri-Gate a reinvention of the transistor: a thin 3-D fin replaces the flat gate. | https://www.intc.com/news-events/press-releases/detail/655/intel-reinvents-transistors-using-new-3-d-structure |
+| `chips-euv-volume-production-2019` → `chips-moore-cramming-1965` | complements | ASML presents EUV as what keeps Moore's Law going with ever smaller transistors. | https://www.asml.com/en/products/euv-lithography-systems |
+| `tpu-8-2026` → `energy-tpu-v3-liquid-cooling-2018` | uses | Both eighth-generation TPUs rely on Google's fourth-generation liquid cooling. | https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/eighth-generation-tpu-agentic-era/ |
+| `dennard-dram-patent-1967` → `memory-whirlwind-core-1953` | complements | The patent contrasts its refreshed capacitor storage with remanent storage such as magnetic cores. | https://patents.google.com/patent/US3387286A/en |
+| `networks-tcp-ip-transition-1983` → `networks-arpanet-1969` | adapts | RFC 801 plans moving the operational ARPANET from its original host protocol to TCP/IP. | https://www.rfc-editor.org/rfc/rfc801 |
+| `networks-ethernet-paper-1976` → `networks-arpanet-1969` | complements | Metcalfe and Boggs place Ethernet after the ARPA network's work on packet switching and resource sharing. | https://www.cl.cam.ac.uk/teaching/1920/CompNet/files/p395-metcalfe.pdf |
+| `networks-rdmap-rfc-2007` → `networks-tcp-ip-transition-1983` | uses | RDMAP runs over DDP/MPA on TCP to avoid the copies TCP/IP normally needs. | https://www.rfc-editor.org/rfc/rfc5040.html |
+| `energy-warehouse-scale-computing-2009` → `energy-pue-metric-2007` | uses | Its efficiency breakdown starts with PUE, citing The Green Grid. | https://zhjwpku.com/assets/pdf/TheDatacenterAsaComputer.pdf |
+| `distributed-mpi-1994` → `software-fortran-1957` | uses | MPI-1 standardised bindings for Fortran 77 and C. | https://www.mpi-forum.org/docs/mpi-1.1/mpi-11-html/node5.html |
+| `dqn` → `qlearning` | adapts | DQN is a convolutional network trained with a variant of Q-learning. | https://arxiv.org/abs/1312.5602 |
+| `sac` → `ppo` | complements | SAC is an off-policy alternative to on-policy PPO, which it also uses as a baseline. | https://arxiv.org/abs/1801.01290 |
+| `graphsage` → `gcn` | adapts | Its convolutional aggregator is an inductive version of Kipf and Welling's GCN. | https://arxiv.org/abs/1706.02216 |
+| `gat` → `transformer` | adapts | GAT brings Transformer-style self-attention to graph neighbourhoods and names Vaswani et al. as its inspiration. | https://arxiv.org/abs/1710.10903 |
+| `svm` → `perceptron-1958` | adapts | Cortes and Vapnik start from Rosenblatt's perceptron: a fixed non-linear map, then a linear surface. | https://homepages.math.uic.edu/~lreyzin/papers/cortes95.pdf |
+| `hopfield-network-1982` → `perceptron-1958` | complements | Hopfield sets his model against perceptrons: strong backward coupling and asynchronous units. | https://authors.library.caltech.edu/records/w41x7-8bn13/files/HOPpnas82.pdf |
+| `lenet5-1998` → `backprop` | uses | It names backprop-trained multilayer networks as the leading example of gradient-based learning. | https://leon.bottou.org/publications/pdf/ieee-1998.pdf |
+| `alphago` → `deep-blue-1997` | complements | AlphaGo evaluated thousands of times fewer positions than Deep Blue, chosen by its networks. | https://storage.googleapis.com/deepmind-media/alphago/AlphaGoNaturePaper.pdf |
+| `alexnet` → `sift-2004` | complements | Its results tables compare against SIFT + Fisher Vector pipelines, the previous best. | https://papers.nips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf |
+| `google-search-prototype-1998` → `networks-web-proposal-1989` | uses | The prototype crawls and indexes the Web and exploits its hypertext links. | https://snap.stanford.edu/class/cs224w-readings/Brin98Anatomy.pdf |
+| `gnmt-2016` → `ibm-smt-1993` | complements | GNMT names statistical MT (citing Brown et al. 1993) as the dominant paradigm it is measured against. | https://arxiv.org/pdf/1609.08144v1 |
+| `wavenet-2016` → `resnet` | adapts | WaveNet uses residual connections (He et al.) plus skip connections throughout. | https://arxiv.org/pdf/1609.03499v1 |
+| `elmo-2018` → `penn-treebank-1993` | uses | ELMo tests its representations with part-of-speech tagging on the WSJ Penn Treebank. | https://arxiv.org/pdf/1802.05365v1 |
+| `dartmouth` → `shannon-information-theory-1948` | complements | Shannon's part of the proposal applies information theory to computers and brain models. | https://www-formal.stanford.edu/jmc/history/dartmouth/dartmouth.html |
+| `dendral-1969` → `mycin` | complements | Buchanan and Shortliffe call MYCIN an outgrowth of DENDRAL that reused its lessons on encoding knowledge. | https://www.shortliffe.net/Buchanan-Shortliffe-1984/Chapter-01.pdf |
+
+Left unlinked on purpose: FFT, Dijkstra, Metropolis, RAMAC, `symbolic`, IEA *Energy and AI*, Genie 3 and others. No source read in this pass states a relation for them, and chronology alone is not a link. Candidate new milestones (24 pivotal works, 15 underdog works) were researched in the same pass but not added; the owner chose links only for now.
+
+## Linking the last unlinked milestones (Claude Code, 2026-10-19)
+
+After the forty links above, 26 milestones still had no connection. This pass adds 25 links and leaves 2 unlinked. Every link is stated in a source on its origin node; where no listed source stated a relation, one primary source that does was opened and added to that node. Three of the new sources were rechecked directly: Feng et al. 2026 (Aletheia "is powered by an advanced version of Gemini Deep Think"), Nogueira & Cho 2019 (BERT re-ranking BM25 candidates), and Pérez et al. 2021 (Transformers with hard attention are Turing complete). Several links are marked in their own wording as a later analysis or an organisation's own claim (RAMAC → relational model, 4004 → Moore's curves, Transformer → Turing machines).
+
+New sources:
+- `dartmouth`: McCarthy · History of Lisp, 1979, "LISP prehistory" — https://www-formal.stanford.edu/jmc/history/lisp/node2.html
+- `intel-4004-1971`: Moore · No Exponential Is Forever, ISSCC plenary, 2003-02-10 (ETHW archive) — https://ethw.org/Archives:No_Exponential_is_Forever
+- `transformer`: Pérez, Barceló & Marinković · Attention is Turing-Complete, JMLR 22(75), 2021 — https://jmlr.org/papers/v22/20-302.html
+- `networks-arpanet-1969`: McQuillan, Richer & Rosen · The New Routing Algorithm for the ARPANET, IEEE Trans. Communications, 1980 — https://www.cs.yale.edu/homes/lans/readings/routing/mcquillan-darpa_routing-1980.pdf
+- `bert`: Nogueira & Cho · Passage Re-ranking with BERT, arXiv v1, 2019-01-13 — https://arxiv.org/abs/1901.04085v1
+- `iea-energy-ai-2025`: IEA · Energy and AI, full report, April 2025, §2.2, §2.3.1 and Annex A — https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf
+- `ai-research-math-2026`: Feng et al. (Google DeepMind) · Towards Autonomous Mathematics Research, arXiv v1, 2026-02-10 — https://arxiv.org/abs/2602.10177v1
+- `stable-diffusion`: CompVis · stable-diffusion README (GitHub), 2022 — https://github.com/CompVis/stable-diffusion
+- `coding-agents-2025`: Claude Code docs · Connect Claude Code to tools via MCP — https://code.claude.com/docs/en/mcp
+
+Source labels extended to cover the cited pages: RAMAC manual p. 18; Chinchilla App. D.2.
+
+| Link | Type | What the origin's source says | Source on the origin node |
+| --- | --- | --- | --- |
+| `rt2` → `vit` | uses | RT-2's PaLI-X backbone reads camera images with a ViT-22B vision encoder. | https://arxiv.org/abs/2307.15818 |
+| `stable-diffusion` → `laion-5b-2022` | uses | The model was trained on a subset of LAION-5B. | https://github.com/CompVis/stable-diffusion |
+| `stable-diffusion` → `clip` | uses | Prompts are read by a frozen CLIP ViT-L/14 text encoder. | https://github.com/CompVis/stable-diffusion |
+| `graphcast-2023` → `transformer` | complements | GraphCast passes messages on a multi-mesh instead of using Transformers, whose all-to-all attention needs quadratic memory over a million-plus grid points. | https://arxiv.org/abs/2212.12794v2 |
+| `coding-agents-2025` → `mcp-2024` | uses | Claude Code connects to external tools and data sources through MCP. | https://code.claude.com/docs/en/mcp |
+| `cyber-release-2026` → `software-linux-kernel-1991` | complements | Anthropic reports that Mythos Preview found several Linux-kernel flaws on its own and chained them into a full privilege escalation; they have been patched. | https://www.anthropic.com/glasswing |
+| `youtube-dnn-recsys-2016` → `netflix-prize-matrix-factorization-2009` | adapts | Its candidate generator began by imitating a matrix-factorisation recommender and is framed as a non-linear generalisation of factorisation. | https://research.google.com/pubs/archive/45530.pdf |
+| `applications-sojourner-1997` → `software-c-language-1973` | uses | All of Sojourner's flight software was written in C and ran on an Intel 8085. | https://www-robotics.jpl.nasa.gov/what-we-do/flight-projects/pathfinder/software-electronics/ |
+| `memory-ibm-ramac-disk-1956` → `databases-relational-model-1970` | complements | IBM's history page credits RAMAC's random-access disk with paving the way for the relational database; this is IBM's own claim. | https://www.ibm.com/history/ramac |
+| `memory-ibm-ramac-disk-1956` → `memory-whirlwind-core-1953` | uses | Every data transfer in the 305 RAMAC passed through a 100-character magnetic-core unit. | https://bitsavers.org/pdf/ibm/305_ramac/22-6264-1_305_RAMAC_Manual_of_Operation_Apr57.pdf |
+| `software-tvm-paper-2018` → `metropolis-monte-carlo-1953` | uses | TVM searches schedules with simulated annealing: moves that lower predicted cost are kept and most that raise it are rejected, the Metropolis rule. | https://www.usenix.org/system/files/osdi18-chen.pdf |
+| `nvidia-cuda-2006` → `cooley-tukey-fft-1965` | uses | CUDA 1.0 shipped two maths libraries, one of them the FFT library CUFFT. | https://developer.download.nvidia.com/compute/cuda/1.0/NVIDIA_CUDA_Programming_Guide_1.0.pdf |
+| `software-numpy-2005` → `cooley-tukey-fft-1965` | uses | NumPy provides a suite of FFT and inverse-FFT functions. | https://arxiv.org/pdf/2006.10256v1 |
+| `scaling-laws-2020` → `robbins-monro-stochastic-approximation-1951` | uses | Chinchilla treats the data-limited part of the loss as a stochastic-approximation term falling at the rate of stochastic first-order methods, citing Robbins and Monro. | https://arxiv.org/pdf/2203.15556v1 |
+| `shakey-1971` → `software-fortran-1957` | uses | Shakey's software was mostly LISP but could call FORTRAN subroutines, and its camera pictures were stored as FORTRAN binary files. | https://ai.stanford.edu/~nilsson/OnlinePubs-Nils/shakey-the-robot.pdf |
+| `netflix-prize-matrix-factorization-2009` → `grouplens-1994` | complements | The article presents matrix factorisation as the alternative to neighbourhood methods, the like-minded-users approach GroupLens used. | https://doi.org/10.1109/MC.2009.263 |
+| `coding-agents-2025` → `copilot-codex-2021` | complements | The Claude 4 announcement says GitHub will use Sonnet 4 to power Copilot's new coding agent. | https://www.anthropic.com/news/claude-4 |
+| `deepseek-v4-2026` → `grpo` | uses | Post-training first trains domain experts with SFT and RL by GRPO, then merges them by distillation. | https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro |
+| `dartmouth` → `symbolic` | complements | At the 1956 Dartmouth project, Newell, Shaw and Simon presented IPL 2, the list language they had written the Logic Theorist in. | https://www-formal.stanford.edu/jmc/history/lisp/node2.html |
+| `intel-4004-1971` → `chips-moore-cramming-1965` | complements | In a 2003 retrospective, Moore placed the 4004 at the start of the microprocessor series on his complexity and performance curves. | https://ethw.org/Archives:No_Exponential_is_Forever |
+| `transformer` → `turing-computability-1936` | complements | Later theory proves that a Transformer with positional encodings and hard attention can simulate any Turing machine. | https://jmlr.org/papers/v22/20-302.html |
+| `networks-arpanet-1969` → `dijkstra-shortest-path-1959` | uses | From May 1979 every ARPANET node computed its routes with shortest-path-first, based on Dijkstra's algorithm. | https://www.cs.yale.edu/homes/lans/readings/routing/mcquillan-darpa_routing-1980.pdf |
+| `bert` → `okapi-bm25-1994` | uses | Nogueira and Cho fine-tune BERT to re-rank BM25's top 1,000 passages, beating BM25 and earlier neural rankers. | https://arxiv.org/abs/1901.04085v1 |
+| `iea-energy-ai-2025` → `energy-pue-metric-2007` | uses | The IEA multiplies IT demand by PUE to get data-centre electricity, and in its Base Case the global average PUE falls from 1.41 to 1.29. | https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf |
+| `ai-research-math-2026` → `imo-2025-gold` | adapts | DeepMind's Aletheia research agent runs on an advanced version of the IMO-gold Gemini Deep Think and takes it from competition problems to open Erdős problems. | https://arxiv.org/abs/2602.10177v1 |
+
+Left unlinked: Pearl Street (1882) — no source on any node, nor the full IEA report, refers to it; Genie 3 — its post names only predecessors that are not on the tree and does not disclose the architecture. A Stable Diffusion → Model Cards link (a documentation relation) was set aside for the two technical links above; AlexNet → Netflix Prize (an ensembling citation) and DeepSeek-V4 → sparse MoE (no citation) were not used.

@@ -109,6 +109,9 @@ class TechnologyTreeTests(unittest.TestCase):
                     for retired in ("technology-tree.js", "technology-atlas.js", "world-exhibit.js", "world-grove.js"):
                         self.assertNotIn(f"static/{retired}", output)
                     self.assertEqual("static/chronicle.js" in output, source == CHAPTERS[0])
+                    self.assertEqual("static/chronicle-artifacts.js" in output, source == CHAPTERS[0])
+                    self.assertEqual("static/chronicle-designs.js" in output, source == CHAPTERS[0])
+                    self.assertEqual("static/chronicle-starmap.js" in output, source == CHAPTERS[0])
                     self.assertEqual("static/chronicle.css" in output, source == CHAPTERS[0])
                     self.assertEqual("static/technology-tree.css" in output, source == CHAPTERS[1])
                     self.assertEqual("page-technology-tree" in output, source == CHAPTERS[0])
@@ -342,13 +345,33 @@ class TechnologyTreeTests(unittest.TestCase):
             self.assertTrue({name for era in data["eras"] for name in era["featured"]}.issubset(shown))
 
     def test_chronicle_script_stays_local_and_parses(self):
-        script = (ROOT / "site/static/chronicle.js").read_text()
-        for forbidden in ("localStorage", "sessionStorage", "fetch(", "XMLHttpRequest", "innerHTML"):
-            self.assertNotIn(forbidden, script)
+        names = ("chronicle.js", "chronicle-designs.js", "chronicle-artifacts.js", "chronicle-starmap.js")
+        for name in names:
+            script = (ROOT / "site/static" / name).read_text()
+            for forbidden in ("localStorage", "sessionStorage", "fetch(", "XMLHttpRequest", "innerHTML"):
+                self.assertNotIn(forbidden, script, name)
         node = shutil.which("node")
         if not node:
             self.skipTest("Node.js unavailable")
-        subprocess.run([node, "--check", str(ROOT / "site/static/chronicle.js")], check=True)
+        for name in names:
+            subprocess.run([node, "--check", str(ROOT / "site/static" / name)], check=True)
+
+    def test_star_map_and_its_switch_wait_for_javascript(self):
+        data = json.loads((ROOT / "site/static/technology-tree-data.json").read_text(encoding="utf-8"))
+        for language in ("zh", "en"):
+            output = technology_chronicle.render(data, language)
+            self.assertRegex(output, r'<div class="ch-views" data-views[^>]* hidden>')
+            self.assertEqual(output.count('data-view="'), 2)
+            self.assertRegex(output, r'<div class="ch-starmap" data-starmap hidden><canvas role="img" aria-label="[^"]+">')
+            # the map is drawn from the library: every milestone and its links are in the page
+            self.assertEqual(output.count('class="chronicle-work"'), len(data["nodes"]))
+
+    def test_every_milestone_card_has_a_hidden_object_canvas(self):
+        data = json.loads((ROOT / "site/static/technology-tree-data.json").read_text(encoding="utf-8"))
+        for language in ("zh", "en"):
+            output = technology_chronicle.render(data, language)
+            canvases = re.findall(r'<canvas class="ch-art" data-art="([a-z0-9-]+)"[^>]* hidden></canvas>', output)
+            self.assertEqual(sorted(canvases), sorted(node["id"] for node in data["nodes"]))
 
     def test_chronicle_language_and_history_navigation(self):
         node = shutil.which("node")
