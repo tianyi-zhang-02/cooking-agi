@@ -41,10 +41,6 @@
     range(5).forEach((i) => m.add(-.6 + .3 * i, .25, 0));
     m.path(range(8).map((i) => [-.2 + .06 * i, -.35 + (i % 2 ? .12 : -.12), 0]));  // noise
   };
-  D['robbins-monro-stochastic-approximation-1951'] = (m) => {  // noisy steps shrinking towards a target
-    m.ringXY(0, 0, 0, .12, 12); m.ringXY(0, 0, 0, .25, 16);
-    m.path(range(16).map((i) => { const s = 1.2 * Math.pow(.8, i), a = i * 2.4; return [Math.cos(a) * s, Math.sin(a) * s, (i % 2 ? .1 : -.1) * s]; }));
-  };
   D['metropolis-monte-carlo-1953'] = (m, r) => {  // particles in a box; one tries a random move
     m.cube(0, 0, 0, 1.8);
     range(18).forEach(() => m.add(r() * 1.6 - .8, r() * 1.6 - .8, r() * 1.6 - .8));
@@ -109,11 +105,6 @@
     m.path(range(10).map((i) => [-.9 + .2 * i, -.95 + .19 * i, 0]));
     range(10).forEach((i) => m.ringXY(-.9 + .2 * i, -.95 + .19 * i, 0, .04, 6));
   };
-  D['dennard-dram-patent-1967'] = (m) => {  // one transistor and one capacitor on crossing lines
-    m.line([-1, .6, 0], [1, .6, 0], 6); m.line([-.6, -1, 0], [-.6, 1, 0], 6);  // word line, bit line
-    m.rectXY(0, .2, 0, .4, .3); m.line([-.6, .2, 0], [-.2, .2, 0]); m.line([0, .35, 0], [0, .6, 0]);
-    m.line([.2, .2, 0], [.55, .2, 0]); m.line([.55, -.1, 0], [.55, .5, 0], 4); m.line([.7, -.1, 0], [.7, .5, 0], 4); m.line([.7, .2, 0], [.9, .2, 0]);
-  };
   D['ibm-model85-cache-1968'] = (m) => {  // a small fast store beside the processor, a large slow one behind
     m.box(-.8, 0, 0, .5, .5, .5); m.box(0, 0, 0, .35, .35, .35); m.box(.9, 0, 0, .9, .9, .9);
     m.line([-.55, 0, 0], [-.18, 0, 0]); m.line([.18, 0, 0], [.45, 0, 0]);
@@ -161,16 +152,6 @@
     pts.forEach((a, i) => pts.forEach((b, j) => { if (j > i) m.link(a, b); }));
     range(7).forEach((i) => { const a = i / 7 * TAU; m.ringXY(Math.cos(a) * .9, Math.sin(a) * .9, (i % 2 ? .15 : -.15), .08, 8); });
   };
-  D['networks-tcp-ip-transition-1983'] = (m) => {  // a stack of protocol layers, a packet passing down
-    range(4).forEach((i) => m.rectXZ(0, -.75 + .5 * i, 0, 1.6, 1));
-    m.cube(.4, .55, 0, .16); m.arrow([.4, .45, 0], [.4, -.6, 0]);
-  };
-  D['software-gnu-announcement-1983'] = (m) => {  // copyleft: a reversed C in a ring, shared outward
-    m.ringXY(0, 0, 0, .7, 30);
-    m.path(range(16).map((i) => { const a = -1.1 + 2.2 * i / 15; return [-Math.cos(a) * .4 + .05, Math.sin(a) * .4, 0]; }));
-    range(4).forEach((i) => { const a = i / 4 * TAU + .4; m.arrow([Math.cos(a) * .75, Math.sin(a) * .75, 0], [Math.cos(a) * 1.1, Math.sin(a) * 1.1, 0]); });
-  };
-
   /* ------------------------------------------------ 1986–1997: learning */
   D['backprop'] = (m, r) => {  // layers forward, errors arcing back
     layers(m, [3, 4, 4, 2], .65, .8, r);
@@ -189,15 +170,6 @@
     const xs = spread(4, 1.8);
     xs.forEach((x, i) => { m.ringXY(x, .45, 0, .16, 12); m.rectXY(x, -.55, 0, .22, .22); m.line([x, .29, 0], [x, -.44, 0], 4); if (i) m.arrow([xs[i - 1] + .17, .45, 0], [x - .17, .45, 0], .08); });
     m.arc([xs[1] - .1, .62, 0], [xs[1] + .1, .62, 0], .3, 8, 1);
-  };
-  D['gpl-v1-1989'] = (m) => {  // a licence that travels with the source: a page and a chain
-    m.rectXY(-.4, 0, 0, .8, 1.1); m.dashes(-.65, .35, 0, .5, 5, .15);
-    range(3).forEach((i) => m.ringXY(.35 + .3 * i, -.2 + .15 * i, (i % 2) * .05, .14, 12));
-  };
-  D['software-linux-kernel-1991'] = (m) => {  // a kernel at the centre, layers around it
-    m.sphere(0, 0, 0, .3, 2, 3, 14);
-    [.6, .9].forEach((rad, k) => { m.circle(32, rad, 0); m.ringXY(0, 0, 0, rad, 32); });
-    range(6).forEach((i) => { const a = i / 6 * TAU; m.line([Math.cos(a) * .3, 0, Math.sin(a) * .3], [Math.cos(a) * .9, 0, Math.sin(a) * .9], 4); });
   };
   D['software-python-0-9-1991'] = (m) => {  // a coiled snake: a flat spiral with a head
     m.path(range(40).map((i) => { const a = i / 39 * 3 * TAU, rad = .15 + .8 * i / 39; return [Math.cos(a) * rad, Math.sin(a) * rad, .05 * Math.sin(i)]; }));
@@ -293,25 +265,11 @@
     for (let i = 0; i < 4; i += 1) for (let j = 0; j < 4; j += 1) { const x = -.45 + .3 * i, y = -.45 + .3 * j, a = (i * 3 + j * 5) % 8 / 8 * TAU; m.line([x, y, .05], [x + Math.cos(a) * .1, y + Math.sin(a) * .1, .05]); }
     m.gridXY(4, 4, 1.2, 1.2, .04);
   };
-  D['software-numpy-2005'] = (m) => {  // an n-dimensional array of cells
-    for (let i = 0; i < 3; i += 1) for (let j = 0; j < 3; j += 1) for (let k = 0; k < 3; k += 1) if (i === 2 || j === 2 || k === 0) m.cube(-.5 + .5 * i, -.5 + .5 * j, -.5 + .5 * k, .4);
-  };
-  D['stanley-grand-challenge-2005'] = (m) => {  // a car with spinning lasers on a desert track
-    m.box(0, -.2, 0, 1.2, .35, .6); m.box(-.1, .1, 0, .6, .25, .55);
-    [-.4, .4].forEach((x) => [-.32, .32].forEach((z) => m.ringXY(x, -.4, z, .14, 10)));
-    m.cyl(.1, .32, 0, .1, .08, 10); range(5).forEach((i) => { const a = -.6 + .3 * i; m.line([.1, .32, 0], [.1 + Math.cos(a) * 1, .32 - .5, Math.sin(a) * .6], 4); });
-    m.path(range(12).map((i) => [-1.2 + .22 * i, -.6, .4 * Math.sin(i * .6)]));
-  };
   D['nvidia-cuda-2006'] = (m) => {  // a grid of blocks, each a grid of threads
     for (let i = 0; i < 3; i += 1) for (let j = 0; j < 2; j += 1) {
       const x = -.8 + .8 * i, y = -.4 + .8 * j; m.rectXY(x, y, 0, .65, .65);
       for (let a = 0; a < 3; a += 1) for (let b = 0; b < 3; b += 1) m.add(x - .2 + .2 * a, y - .2 + .2 * b, 0);
     }
-  };
-  D['distributed-amazon-ec2-beta-2006'] = (m) => {  // a cloud of rented servers, started by one call
-    [[-.5, 0, .45], [0, .25, .55], [.5, 0, .45], [0, -.15, .4]].forEach(([x, y, rad]) => m.ringXY(x, y, 0, rad, 24));
-    spread(3, .9).forEach((x) => m.box(x, .05, .15, .22, .3, .2));
-    m.arrow([0, -1, 0], [0, -.55, 0]);
   };
   D['ecosystem-differential-privacy-2006'] = (m, r) => {  // two crowds that differ by one person look the same
     const crowd = range(14).map(() => [r() * 1.2 - .6, r() * 1.2 - .6]);
@@ -371,10 +329,6 @@
   };
 
   /* ------------------------------------------------ 2012–2015: deep learning */
-  D['alexnet'] = (m) => {  // two GPUs, each with its half of the convolutional pyramid
-    for (const side of [-.35, .35]) [0, 1, 2, 3].forEach((i) => { const s = .9 - .18 * i; m.rectXY(-.9 + .55 * i, side, 0, .1, s * .9); m.rectXZ(-.9 + .55 * i, side + s * .45, 0, .1, s * .4); });
-    m.line([-.35, .35, 0], [-.35, -.35, 0], 4);
-  };
   D['dnn-acoustic-2012'] = (m, r) => {  // a spectrogram feeding a deep stack in place of the old model
     for (let i = 0; i < 8; i += 1) { const h = .2 + .6 * Math.abs(Math.sin(i * 1.3)); m.line([-1.2 + .12 * i, -h / 2, 0], [-1.2 + .12 * i, h / 2, 0], 3); }
     range(5).forEach((k) => m.rectXY(-.1 + .3 * k, 0, 0, .18, 1.2 - .1 * k));
@@ -427,10 +381,6 @@
   D['hbm-gpu-packaging-2015'] = (m) => {  // a GPU die with memory stacks beside it on an interposer
     m.rectXZ(0, -.25, 0, 2, 1.3); m.box(0, -.1, 0, .7, .2, .7);
     [[-.7, -.35], [-.7, .35], [.7, -.35], [.7, .35]].forEach(([x, z]) => range(4).forEach((k) => m.rectXZ(x, -.2 + .1 * k, z, .3, .25)));
-  };
-  D['faster-rcnn-2015'] = (m) => {  // anchor boxes of several shapes around points on an image
-    m.rectXY(0, 0, 0, 1.9, 1.4);
-    [[-.4, .1], [.45, -.2]].forEach(([x, y]) => { m.star(x, y, .02, .05); [[.5, .3], [.3, .5], [.4, .4]].forEach(([w, h]) => m.rectXY(x, y, .02, w, h)); });
   };
   D['software-tensorflow-2015'] = (m) => {  // a dataflow graph: operations, parameters and updates as nodes
     const at = [[-.9, .5], [-.9, -.5], [-.2, 0], [.4, .5], [.4, -.5], [1, 0]];
@@ -486,11 +436,6 @@
   D['transformer'] = (m, r) => {  // positions linked directly by attention, layer above layer
     const rows = [.8, 0, -.8].map((y) => m.tokens(6, y, 0, 1.8, .14));
     for (let l = 0; l < 2; l += 1) rows[l].forEach(([x], i) => [i, (i + 2) % 6, (i + 5) % 6].forEach((j) => m.arc([x, rows[l][0][1] - .07, 0], [rows[l + 1][j][0], rows[l + 1][0][1] + .07, 0], .15 + .2 * r(), 7)));
-  };
-  D['ppo'] = (m) => {  // the clipped objective: gains stop counting outside a band
-    m.line([-1, -.8, 0], [1, -.8, 0], 6); m.line([0, -1, 0], [0, 1, 0], 6);
-    m.path([[-1, -.6, 0], [-.3, -.25, 0], [.3, .25, 0], [1, .25, 0]]);
-    m.line([-.3, -1, .02], [-.3, 1, .02], 8); m.line([.3, -1, .02], [.3, 1, .02], 8);
   };
   D['graphsage'] = (m, r) => {  // a target node and a sample of its two-hop neighbourhood
     m.ringXY(0, 0, 0, .12, 12);
@@ -557,11 +502,6 @@
     spread(9, 1.8).forEach((x, i) => m.rectXY(x, -.6 + (.3 + .08 * ((i * 5) % 7)) / 2, 0, .14, .3 + .08 * ((i * 5) % 7)));
     m.line([-1, -.6, 0], [1, -.6, 0], 8); m.line([-1, -.13, .05], [1, -.13, .05], 12);
   };
-  D['energy-tpu-v3-liquid-cooling-2018'] = (m) => {  // cold plates on hot chips, water looping through
-    spread(2, 1).forEach((x) => { m.box(x, -.2, 0, .5, .1, .5); m.box(x, -.08, 0, .4, .12, .4); });
-    m.path(range(20).map((i) => { const t = i / 19; return [-1 + 2 * t, .15 + .05 * Math.sin(t * 12), Math.sin(t * TAU * 2) * .3]; }));
-    m.line([-1, .15, 0], [-1, .7, 0], 4); m.line([1, .15, 0], [1, .7, 0], 4);
-  };
   D['zero'] = (m) => {  // training state cut into slices, one slice per GPU
     range(4).forEach((k) => { m.box(-.75 + .5 * k, -.6, 0, .38, .3, .38); m.box(-.75 + .5 * k, .35, 0, .38, .55, .3); });
     m.rectXY(0, .35, .2, 2, .6); spread(3, 1).forEach((x) => m.line([x, .05, .2], [x, .65, .2], 4));
@@ -604,11 +544,6 @@
       range(14).forEach((i) => { const a = i / 14 * TAU; m.add(x, Math.sin(a) * .5 + (r() - .5) * mess, Math.cos(a) * .5 + (r() - .5) * mess); });
     });
     m.path(range(14).map((i) => { const a = i / 14 * TAU; return [1, Math.sin(a) * .5, Math.cos(a) * .5]; }), true);
-  };
-  D['alphafold2'] = (m) => {  // a protein chain folding into helices and a sheet
-    m.path(range(40).map((i) => { const t = i / 39; return [-1 + 1.1 * t, .5 + .25 * Math.sin(t * 22), .25 * Math.cos(t * 22)]; }));
-    m.path([[.1, .5, 0], [.4, 0, .2], [-.2, -.3, .1], [.6, -.5, -.1], [-.1, -.8, 0], [.8, -.9, .2]]);
-    range(4).forEach((i) => m.line([-.5 + .25 * i, -.2, -.2], [-.5 + .25 * i, -.75, -.2], 4));
   };
   D['nvidia-ampere-2020'] = (m) => {  // one A100 split into seven separate instances
     m.box(0, 0, 0, 1.9, .1, 1.1);
@@ -661,11 +596,6 @@
     m.rectXY(.75, 0, 0, .8, .8); m.ringXY(.6, .1, 0, .15, 12); m.path([[.4, -.3, 0], [.65, -.05, 0], [.85, -.25, 0], [1.1, .05, 0]]);
     range(3).forEach((k) => m.rectXY(-.2 + .2 * k, 0, 0, .1, .4 - .08 * k));
   };
-  D['nvidia-hopper-2022'] = (m) => {  // a die with six memory stacks and its Transformer Engine
-    m.box(0, 0, 0, .9, .12, 1.1); m.gridXY(4, 5, .7, .9, 0, 0, 0);
-    [-.65, .65].forEach((x) => spread(3, 1).forEach((z) => m.box(x, .05, z, .3, .22, .25)));
-    m.rectXZ(0, .08, 0, .25, .25);
-  };
   D['whisper-2022'] = (m) => {  // a waveform turned into a line of text
     m.path(range(30).map((i) => { const t = i / 29; return [-1 + 1 * t, .45 * Math.sin(t * 30) * Math.sin(t * Math.PI), 0]; }));
     m.arrow([.05, 0, 0], [.3, 0, 0], .06); m.tokens(4, 0, 0, .55, .1).forEach(([x]) => m.line([x + .4, -.12, 0], [x + .6, -.12, 0]));
@@ -682,11 +612,6 @@
     m.gridXY(6, 4, 1.5, 1, 0, .3, .1);
     [[0, 0], [3, 1], [5, 2], [1, 3]].forEach(([i, j]) => m.box(.3 - .75 + .125 + .25 * i, .1 - .5 + .125 + .25 * j, .05, .2, .2, .1));
     spread(3, .9).forEach((y, k) => { m.rectXY(-.95, y, 0, .3, .2); m.arc([-.8, y, 0], [.3 - .75 + .125 + .25 * [0, 3, 5][k], .1 - .5 + .125 + .25 * [0, 1, 2][k], 0], .2, 7); });
-  };
-  D['rt2'] = (m) => {  // a vision-language model whose words become robot actions
-    m.ringXY(-.7, .7, 0, .25, 18); m.dashes(-.85, .75, .01, .3, 2, .1);
-    m.circle(14, .35, -.9, .4, 0); m.line([.4, -.9, 0], [.4, -.2, 0], 4); m.line([.4, -.2, 0], [.85, .15, 0], 4); m.line([.85, .15, 0], [.65, .45, 0], 3);
-    m.arrow([-.5, .5, 0], [.3, -.1, 0], .07);
   };
   D['amd-cdna3-mi300-2023'] = (m) => {  // CPU and GPU chiplets stacked on base dies, memory around
     m.rectXZ(0, -.3, 0, 2, 1.3);
@@ -800,6 +725,95 @@
   D['cyber-release-2026'] = (m) => {  // a shield with a lock: capability handed to defenders first
     for (const z of [-.1, .1]) m.path([[-.8, .9, z], [.8, .9, z], [.8, .1, z], [.45, -.5, z], [0, -.95, z], [-.45, -.5, z], [-.8, .1, z]], true);
     m.rectXY(0, -.05, .12, .5, .4); m.arc([-.18, .15, .12], [.18, .15, .12], .3, 9, 1); m.ringXY(0, -.05, .13, .06, 8);
+  };
+
+  /* ------------------------------------------------ redrawn after review: clearer forms */
+  D['robbins-monro-stochastic-approximation-1951'] = (m) => {  // noisy steps, each smaller, closing in on the target
+    m.ringXY(0, 0, 0, .1, 12); m.ringXY(0, 0, 0, .22, 16); m.star(0, 0, 0, .06);
+    const steps = range(9).map((i) => { const s = Math.pow(.72, i), a = i * 2.2 + .6; return [Math.cos(a) * s, Math.sin(a) * s, 0]; });
+    steps.forEach((p, i) => { m.ringXY(...p, .045, 8); if (i) m.arrow(steps[i - 1], p, .07 * Math.pow(.85, i)); });
+  };
+  D['dennard-dram-patent-1967'] = (m) => {  // one cell: a transistor switch and a capacitor, on the word and bit lines
+    m.line([-1.1, .75, 0], [1.1, .75, 0], 8); m.line([-.75, -1, 0], [-.75, 1, 0], 8);
+    m.box(-.15, .25, 0, .45, .3, .25); m.line([-.75, .25, 0], [-.375, .25, 0], 3); m.line([-.15, .4, 0], [-.15, .75, 0], 3);
+    m.line([.075, .25, 0], [.45, .25, 0], 3);
+    m.box(.45, -.15, 0, .5, .05, .4); m.box(.45, -.4, 0, .5, .05, .4); m.line([.45, .25, 0], [.45, -.13, 0], 3); m.line([.45, -.42, 0], [.45, -.8, 0], 3);
+  };
+  D['software-gnu-announcement-1983'] = (m) => {  // copyleft: a reversed C inside a ring, copies passed on
+    m.ringXY(0, 0, 0, .55, 30); m.ringXY(0, 0, .06, .55, 30);
+    m.path(range(18).map((i) => { const a = -1.15 + 2.3 * i / 17; return [-Math.cos(a) * .3 + .04, Math.sin(a) * .3, 0]; }));
+    for (const x of [-1.05, 1.05]) { m.rectXY(x, -.15, -.2, .32, .42); m.dashes(x - .1, -.02, -.19, .2, 3, .1); }
+    m.arc([.6, .1, 0], [.9, .1, -.2], .15, 6, 1); m.arc([-.6, .1, 0], [-.9, .1, -.2], .15, 6, 1);
+  };
+  D['networks-tcp-ip-transition-1983'] = (m) => {  // four protocol layers, a packet wrapped in headers as it goes down
+    range(4).forEach((i) => { const y = .75 - .5 * i; m.rectXY(-.45, y, 0, .9, .32); m.dashes(-.8, y + .05, .01, .3, 1); });
+    range(4).forEach((i) => { const y = .75 - .5 * i, w = .18 + .1 * i; m.rectXY(.55, y, 0, w, .18); if (i) m.arrow([.55, y + .38, 0], [.55, y + .12, 0], .05); });
+  };
+  D['gpl-v1-1989'] = (m) => {  // the licence travels with the source: a page linked to every copy
+    m.rectXY(0, .25, 0, .7, .9); m.dashes(-.25, .5, .01, .5, 4, .14, (i) => [1, .8, 1, .6][i]);
+    [-.9, 0, .9].forEach((x) => { m.rectXY(x, -.75, 0, .38, .45); m.dashes(x - .12, -.65, .01, .24, 2, .12); m.line([x * .3, -.2, 0], [x, -.52, 0], 4); });
+  };
+  D['software-linux-kernel-1991'] = (m) => {  // a kernel at the centre, the system built around it in rings
+    m.sphere(0, 0, 0, .3, 2, 3, 16);
+    m.circle(36, .62, 0); m.circle(36, .95, 0);
+    range(8).forEach((i) => { const a = i / 8 * TAU; m.cube(Math.cos(a) * .95, 0, Math.sin(a) * .95, .1); m.line([Math.cos(a) * .3, 0, Math.sin(a) * .3], [Math.cos(a) * .62, 0, Math.sin(a) * .62], 3); });
+  };
+  D['software-numpy-2005'] = (m) => {  // a three-dimensional array, its axes marked
+    m.box(0, 0, 0, 1.2, 1.2, 1.2);
+    for (const v of [-.2, .2]) { m.line([v, -.6, .6], [v, .6, .6], 5); m.line([-.6, v, .6], [.6, v, .6], 5); m.line([.6, v, -.6], [.6, v, .6], 5); m.line([.6, -.6, v], [.6, .6, v], 5); m.line([-.6, .6, v], [.6, .6, v], 5); m.line([v, .6, -.6], [v, .6, .6], 5); }
+    m.arrow([-.6, -.6, .6], [-1, -.6, .6], .07); m.arrow([-.6, -.6, .6], [-.6, -1, .6], .07); m.arrow([-.6, -.6, .6], [-.6, -.6, 1], .07);
+  };
+  D['stanley-grand-challenge-2005'] = (m) => {  // a car with a laser scanner on its roof, sweeping the track ahead
+    m.box(0, -.25, 0, 1.2, .3, .6); m.box(-.15, .02, 0, .6, .25, .55);
+    [-.4, .4].forEach((x) => [-.32, .32].forEach((z) => m.ringXY(x, -.45, z, .13, 10)));
+    m.box(-.05, .22, 0, .14, .1, .14);
+    range(5).forEach((i) => { const z = -.5 + .25 * i; m.line([-.05, .22, 0], [1.2, -.55, z], 6); });
+    m.line([1.2, -.55, -.5], [1.2, -.55, .5], 5);
+  };
+  D['distributed-amazon-ec2-beta-2006'] = (m) => {  // servers rented by the hour: a row of machines under one call
+    spread(4, 1.6).forEach((x, i) => { m.box(x, -.25, 0, .3, .55, .35); m.line([x - .1, -.1, .18], [x + .1, -.1, .18]); m.line([x - .1, -.3, .18], [x + .1, -.3, .18]); m.line([0, .55, 0], [x, .03, 0], 4); });
+    m.rectXY(0, .65, 0, .5, .2); m.path([[-.12, .65, .01], [.12, .65, .01]]);
+    m.ringXY(.75, .7, 0, .16, 14); m.line([.75, .7, 0], [.75, .8, 0]); m.line([.75, .7, 0], [.83, .7, 0]);  // a clock: paid by the hour
+  };
+  D['alexnet'] = (m) => {  // two GPUs side by side, each with half the network, crossing at a few layers
+    for (const z of [-.35, .35]) [0, 1, 2, 3, 4].forEach((i) => { const s = .8 - .14 * i; m.rectXY(-1 + .5 * i, 0, z, .12, s); m.rectXY(-1 + .5 * i, s / 2 - .05, z, .12, .1); });
+    for (const i of [1, 3]) { m.line([-1 + .5 * i, .1, -.35], [-.5 + .5 * i, -.1, .35], 4); m.line([-1 + .5 * i, -.1, .35], [-.5 + .5 * i, .1, -.35], 4); }
+    for (const z of [-.35, .35]) m.box(-.1, -.75, z, 2, .08, .25);
+  };
+  D['faster-rcnn-2015'] = (m) => {  // the network proposes boxes; a car and a person are found
+    m.rectXY(0, 0, 0, 2, 1.4);
+    m.box(-.45, -.25, .05, .7, .25, .2); [-.65, -.25].forEach((x) => m.ringXY(x, -.4, .15, .08, 8));
+    m.rectXY(-.45, -.22, .02, .9, .5); m.ringXY(.55, .25, .05, .09, 10); m.line([.55, .16, .05], [.55, -.25, .05], 4); m.rectXY(.55, 0, .02, .35, .75);
+    [[.2, .3, .3, .25], [-.1, .45, .4, .2]].forEach(([x, y, w, h]) => m.rectXY(x, y, .03, w, h));
+  };
+  D['ppo'] = (m) => {  // a step held inside a trust band: small updates keep the policy close
+    m.path(range(25).map((i) => { const x = -1 + 2 * i / 24; return [x, -.5 + 1 * Math.exp(-x * x / .3), 0]; }));
+    m.path(range(25).map((i) => { const x = -1 + 2 * i / 24; return [x, -.5 + 1 * Math.exp(-(x - .25) * (x - .25) / .3), .15]; }));
+    m.line([-.25, -.7, .08], [-.25, .7, .08], 6); m.line([.5, -.7, .08], [.5, .7, .08], 6);
+    m.arrow([0, .62, .08], [.25, .62, .08], .06); m.line([-1.05, -.5, 0], [1.05, -.5, 0], 8);
+  };
+  D['energy-tpu-v3-liquid-cooling-2018'] = (m) => {  // cold plates on two chips, water flowing in and out through them
+    for (const x of [-.5, .5]) { m.box(x, -.3, 0, .55, .1, .55); m.box(x, -.15, 0, .5, .15, .5); m.path(range(9).map((i) => [x - .2 + .05 * i, -.06, (i % 2 ? .18 : -.18)])); }
+    m.path([[-1.1, .3, 0], [-.7, .3, 0], [-.7, -.06, -.18]]); m.path([[.7, -.06, .18], [.7, .3, 0], [1.1, .3, 0]]); m.line([-.3, -.06, .18], [.3, -.06, -.18], 4);
+    m.arrow([-1.1, .45, 0], [-.8, .45, 0], .06); m.arrow([.8, .45, 0], [1.1, .45, 0], .06);
+  };
+  D['alphafold2'] = (m) => {  // a protein chain: two helices and a sheet, folded together
+    for (const [x0, z0] of [[-.55, .1], [.1, -.15]]) m.path(range(36).map((i) => { const t = i / 35, a = t * 4 * TAU; return [x0 + .18 * Math.cos(a), -.7 + 1.4 * t, z0 + .18 * Math.sin(a)]; }));
+    range(3).forEach((k) => { const x = .55 + .17 * k; m.path([[x, -.7, .2], [x + .05, -.35, .2], [x, 0, .2], [x + .05, .35, .2], [x, .7, .2]]); });
+    m.arc([-.55, .7, .1], [.1, .7, -.15], .3, 7, 1); m.arc([.1, -.7, -.15], [.55, -.7, .2], -.25, 7, 1);
+  };
+  D['nvidia-hopper-2022'] = (m) => {  // the H100: one die between six memory stacks on a package
+    m.rectXZ(0, -.2, 0, 2, 1.4); m.box(0, -.1, 0, .8, .14, 1);
+    m.gridXZ(4, 6, .6, .85, -.02, 0, 0);
+    [-.7, .7].forEach((x) => spread(3, 1).forEach((z) => { m.box(x, -.08, z, .32, .18, .28); m.line([x - .16, -.02, z], [x + .16, -.02, z]); }));
+  };
+  D['rt2'] = (m) => {  // words from a vision-language model become the arm's next move
+    m.rectXY(-.75, .55, 0, .7, .45); m.dashes(-1, .65, .01, .5, 3, .12, (i) => [1, .7, .85][i]);
+    m.ringXY(-.75, .55, 0, .08, 8);
+    m.circle(16, .3, -.95, .5, 0); m.line([.5, -.95, 0], [.5, -.35, 0], 4); m.ringXY(.5, -.35, 0, .06, 8);
+    m.line([.5, -.35, 0], [.95, .05, 0], 4); m.ringXY(.95, .05, 0, .06, 8); m.line([.95, .05, 0], [.75, .3, 0], 3);
+    m.line([.75, .3, 0], [.62, .38, 0]); m.line([.75, .3, 0], [.7, .45, 0]);
+    m.arrow([-.35, .45, 0], [.55, .35, 0], .07);
   };
 
   const api = {designs: D};
