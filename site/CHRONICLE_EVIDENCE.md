@@ -261,3 +261,50 @@ Considered and left out for now: International AI Safety Report 2026, Samsung HB
 | `dendral-1969` → `mycin` | complements | Buchanan and Shortliffe call MYCIN an outgrowth of DENDRAL that reused its lessons on encoding knowledge. | https://www.shortliffe.net/Buchanan-Shortliffe-1984/Chapter-01.pdf |
 
 Left unlinked on purpose: FFT, Dijkstra, Metropolis, RAMAC, `symbolic`, IEA *Energy and AI*, Genie 3 and others. No source read in this pass states a relation for them, and chronology alone is not a link. Candidate new milestones (24 pivotal works, 15 underdog works) were researched in the same pass but not added; the owner chose links only for now.
+
+## Linking the last unlinked milestones (Claude Code, 2026-10-19)
+
+After the forty links above, 26 milestones still had no connection. This pass adds 25 links and leaves 2 unlinked. Every link is stated in a source on its origin node; where no listed source stated a relation, one primary source that does was opened and added to that node. Three of the new sources were rechecked directly: Feng et al. 2026 (Aletheia "is powered by an advanced version of Gemini Deep Think"), Nogueira & Cho 2019 (BERT re-ranking BM25 candidates), and Pérez et al. 2021 (Transformers with hard attention are Turing complete). Several links are marked in their own wording as a later analysis or an organisation's own claim (RAMAC → relational model, 4004 → Moore's curves, Transformer → Turing machines).
+
+New sources:
+- `dartmouth`: McCarthy · History of Lisp, 1979, "LISP prehistory" — https://www-formal.stanford.edu/jmc/history/lisp/node2.html
+- `intel-4004-1971`: Moore · No Exponential Is Forever, ISSCC plenary, 2003-02-10 (ETHW archive) — https://ethw.org/Archives:No_Exponential_is_Forever
+- `transformer`: Pérez, Barceló & Marinković · Attention is Turing-Complete, JMLR 22(75), 2021 — https://jmlr.org/papers/v22/20-302.html
+- `networks-arpanet-1969`: McQuillan, Richer & Rosen · The New Routing Algorithm for the ARPANET, IEEE Trans. Communications, 1980 — https://www.cs.yale.edu/homes/lans/readings/routing/mcquillan-darpa_routing-1980.pdf
+- `bert`: Nogueira & Cho · Passage Re-ranking with BERT, arXiv v1, 2019-01-13 — https://arxiv.org/abs/1901.04085v1
+- `iea-energy-ai-2025`: IEA · Energy and AI, full report, April 2025, §2.2, §2.3.1 and Annex A — https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf
+- `ai-research-math-2026`: Feng et al. (Google DeepMind) · Towards Autonomous Mathematics Research, arXiv v1, 2026-02-10 — https://arxiv.org/abs/2602.10177v1
+- `stable-diffusion`: CompVis · stable-diffusion README (GitHub), 2022 — https://github.com/CompVis/stable-diffusion
+- `coding-agents-2025`: Claude Code docs · Connect Claude Code to tools via MCP — https://code.claude.com/docs/en/mcp
+
+Source labels extended to cover the cited pages: RAMAC manual p. 18; Chinchilla App. D.2.
+
+| Link | Type | What the origin's source says | Source on the origin node |
+| --- | --- | --- | --- |
+| `rt2` → `vit` | uses | RT-2's PaLI-X backbone reads camera images with a ViT-22B vision encoder. | https://arxiv.org/abs/2307.15818 |
+| `stable-diffusion` → `laion-5b-2022` | uses | The model was trained on a subset of LAION-5B. | https://github.com/CompVis/stable-diffusion |
+| `stable-diffusion` → `clip` | uses | Prompts are read by a frozen CLIP ViT-L/14 text encoder. | https://github.com/CompVis/stable-diffusion |
+| `graphcast-2023` → `transformer` | complements | GraphCast passes messages on a multi-mesh instead of using Transformers, whose all-to-all attention needs quadratic memory over a million-plus grid points. | https://arxiv.org/abs/2212.12794v2 |
+| `coding-agents-2025` → `mcp-2024` | uses | Claude Code connects to external tools and data sources through MCP. | https://code.claude.com/docs/en/mcp |
+| `cyber-release-2026` → `software-linux-kernel-1991` | complements | Anthropic reports that Mythos Preview found several Linux-kernel flaws on its own and chained them into a full privilege escalation; they have been patched. | https://www.anthropic.com/glasswing |
+| `youtube-dnn-recsys-2016` → `netflix-prize-matrix-factorization-2009` | adapts | Its candidate generator began by imitating a matrix-factorisation recommender and is framed as a non-linear generalisation of factorisation. | https://research.google.com/pubs/archive/45530.pdf |
+| `applications-sojourner-1997` → `software-c-language-1973` | uses | All of Sojourner's flight software was written in C and ran on an Intel 8085. | https://www-robotics.jpl.nasa.gov/what-we-do/flight-projects/pathfinder/software-electronics/ |
+| `memory-ibm-ramac-disk-1956` → `databases-relational-model-1970` | complements | IBM's history page credits RAMAC's random-access disk with paving the way for the relational database; this is IBM's own claim. | https://www.ibm.com/history/ramac |
+| `memory-ibm-ramac-disk-1956` → `memory-whirlwind-core-1953` | uses | Every data transfer in the 305 RAMAC passed through a 100-character magnetic-core unit. | https://bitsavers.org/pdf/ibm/305_ramac/22-6264-1_305_RAMAC_Manual_of_Operation_Apr57.pdf |
+| `software-tvm-paper-2018` → `metropolis-monte-carlo-1953` | uses | TVM searches schedules with simulated annealing: moves that lower predicted cost are kept and most that raise it are rejected, the Metropolis rule. | https://www.usenix.org/system/files/osdi18-chen.pdf |
+| `nvidia-cuda-2006` → `cooley-tukey-fft-1965` | uses | CUDA 1.0 shipped two maths libraries, one of them the FFT library CUFFT. | https://developer.download.nvidia.com/compute/cuda/1.0/NVIDIA_CUDA_Programming_Guide_1.0.pdf |
+| `software-numpy-2005` → `cooley-tukey-fft-1965` | uses | NumPy provides a suite of FFT and inverse-FFT functions. | https://arxiv.org/pdf/2006.10256v1 |
+| `scaling-laws-2020` → `robbins-monro-stochastic-approximation-1951` | uses | Chinchilla treats the data-limited part of the loss as a stochastic-approximation term falling at the rate of stochastic first-order methods, citing Robbins and Monro. | https://arxiv.org/pdf/2203.15556v1 |
+| `shakey-1971` → `software-fortran-1957` | uses | Shakey's software was mostly LISP but could call FORTRAN subroutines, and its camera pictures were stored as FORTRAN binary files. | https://ai.stanford.edu/~nilsson/OnlinePubs-Nils/shakey-the-robot.pdf |
+| `netflix-prize-matrix-factorization-2009` → `grouplens-1994` | complements | The article presents matrix factorisation as the alternative to neighbourhood methods, the like-minded-users approach GroupLens used. | https://doi.org/10.1109/MC.2009.263 |
+| `coding-agents-2025` → `copilot-codex-2021` | complements | The Claude 4 announcement says GitHub will use Sonnet 4 to power Copilot's new coding agent. | https://www.anthropic.com/news/claude-4 |
+| `deepseek-v4-2026` → `grpo` | uses | Post-training first trains domain experts with SFT and RL by GRPO, then merges them by distillation. | https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro |
+| `dartmouth` → `symbolic` | complements | At the 1956 Dartmouth project, Newell, Shaw and Simon presented IPL 2, the list language they had written the Logic Theorist in. | https://www-formal.stanford.edu/jmc/history/lisp/node2.html |
+| `intel-4004-1971` → `chips-moore-cramming-1965` | complements | In a 2003 retrospective, Moore placed the 4004 at the start of the microprocessor series on his complexity and performance curves. | https://ethw.org/Archives:No_Exponential_is_Forever |
+| `transformer` → `turing-computability-1936` | complements | Later theory proves that a Transformer with positional encodings and hard attention can simulate any Turing machine. | https://jmlr.org/papers/v22/20-302.html |
+| `networks-arpanet-1969` → `dijkstra-shortest-path-1959` | uses | From May 1979 every ARPANET node computed its routes with shortest-path-first, based on Dijkstra's algorithm. | https://www.cs.yale.edu/homes/lans/readings/routing/mcquillan-darpa_routing-1980.pdf |
+| `bert` → `okapi-bm25-1994` | uses | Nogueira and Cho fine-tune BERT to re-rank BM25's top 1,000 passages, beating BM25 and earlier neural rankers. | https://arxiv.org/abs/1901.04085v1 |
+| `iea-energy-ai-2025` → `energy-pue-metric-2007` | uses | The IEA multiplies IT demand by PUE to get data-centre electricity, and in its Base Case the global average PUE falls from 1.41 to 1.29. | https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf |
+| `ai-research-math-2026` → `imo-2025-gold` | adapts | DeepMind's Aletheia research agent runs on an advanced version of the IMO-gold Gemini Deep Think and takes it from competition problems to open Erdős problems. | https://arxiv.org/abs/2602.10177v1 |
+
+Left unlinked: Pearl Street (1882) — no source on any node, nor the full IEA report, refers to it; Genie 3 — its post names only predecessors that are not on the tree and does not disclose the architecture. A Stable Diffusion → Model Cards link (a documentation relation) was set aside for the two technical links above; AlexNet → Netflix Prize (an ensembling citation) and DeepSeek-V4 → sparse MoE (no citation) were not used.

@@ -89,6 +89,10 @@
         [
           "Dartmouth proposal · 1955",
           "https://www-formal.stanford.edu/jmc/history/dartmouth/dartmouth.html"
+        ],
+        [
+          "McCarthy · History of Lisp, 1979, \"LISP prehistory\"",
+          "https://www-formal.stanford.edu/jmc/history/lisp/node2.html"
         ]
       ]
     },
@@ -361,6 +365,10 @@
         [
           "ViT · 2020",
           "https://arxiv.org/abs/2010.11929"
+        ],
+        [
+          "Pérez, Barceló & Marinković · Attention is Turing-Complete, JMLR 22(75), 2021",
+          "https://jmlr.org/papers/v22/20-302.html"
         ]
       ]
     },
@@ -425,6 +433,10 @@
         [
           "BERT · 2018",
           "https://arxiv.org/abs/1810.04805"
+        ],
+        [
+          "Nogueira & Cho · Passage Re-ranking with BERT, arXiv v1, 2019-01-13",
+          "https://arxiv.org/abs/1901.04085v1"
         ]
       ]
     },
@@ -1123,6 +1135,10 @@
         [
           "Stable Diffusion · public release",
           "https://stability.ai/news-updates/stable-diffusion-public-release"
+        ],
+        [
+          "CompVis · stable-diffusion README (GitHub), 2022",
+          "https://github.com/CompVis/stable-diffusion"
         ]
       ]
     },
@@ -1217,6 +1233,10 @@
         [
           "Leonard Kleinrock: UCLA IMP log and participant account of October 29, 1969",
           "https://www.lk.cs.ucla.edu/internet_first_words.html"
+        ],
+        [
+          "McQuillan, Richer & Rosen · The New Routing Algorithm for the ARPANET, IEEE Trans. Communications, 1980",
+          "https://www.cs.yale.edu/homes/lans/readings/routing/mcquillan-darpa_routing-1980.pdf"
         ]
       ]
     },
@@ -1655,6 +1675,10 @@
         [
           "Intel MCS-4 announcement, 1971-11-15; original advertisement archive",
           "https://4004.com/history/1971-announcement/"
+        ],
+        [
+          "Moore · No Exponential Is Forever, ISSCC plenary, 2003-02-10 (ETHW archive)",
+          "https://ethw.org/Archives:No_Exponential_is_Forever"
         ]
       ]
     },
@@ -2975,7 +2999,7 @@
           "https://arxiv.org/abs/2005.14165"
         ],
         [
-          "Chinchilla · Training Compute-Optimal Large Language Models, arXiv v1, 2022-03-29, abstract, §§1–2 and Table 2",
+          "Chinchilla · Training Compute-Optimal Large Language Models, arXiv v1, 2022-03-29, abstract, §§1–2 and Table 2, App. D.2",
           "https://arxiv.org/pdf/2203.15556v1"
         ]
       ]
@@ -4817,7 +4841,7 @@
       },
       "sources": [
         [
-          "IBM 305 RAMAC Manual of Operation, Form 22-6264-1, April 1957, pp. 5–13 and 59 (bitsavers scan)",
+          "IBM 305 RAMAC Manual of Operation, Form 22-6264-1, April 1957, pp. 5–13 and 59 (bitsavers scan), p. 18",
           "https://bitsavers.org/pdf/ibm/305_ramac/22-6264-1_305_RAMAC_Manual_of_Operation_Apr57.pdf"
         ],
         [
@@ -5779,6 +5803,10 @@
         [
           "IEA · Energy and AI press release, 2025-04-10",
           "https://www.iea.org/news/ai-is-set-to-drive-surging-electricity-demand-from-data-centres-while-offering-the-potential-to-transform-how-the-energy-sector-works"
+        ],
+        [
+          "IEA · Energy and AI, full report, April 2025, §2.2, §2.3.1 and Annex A",
+          "https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf"
         ]
       ]
     },
@@ -5817,6 +5845,10 @@
         [
           "OpenAI · Introducing Codex, 2025-05-16",
           "https://openai.com/index/introducing-codex/"
+        ],
+        [
+          "Claude Code docs · Connect Claude Code to tools via MCP",
+          "https://code.claude.com/docs/en/mcp"
         ]
       ]
     },
@@ -5919,6 +5951,10 @@
         [
           "Tsoukalas et al. · Advancing Mathematics Research with AI-Driven Formal Proof Search, arXiv v1, 2026-05-21",
           "https://arxiv.org/abs/2605.22763"
+        ],
+        [
+          "Feng et al. (Google DeepMind) · Towards Autonomous Mathematics Research, arXiv v1, 2026-02-10",
+          "https://arxiv.org/abs/2602.10177v1"
         ]
       ]
     },
@@ -9134,6 +9170,256 @@
         "en": "Buchanan and Shortliffe call MYCIN an outgrowth of DENDRAL that reused its lessons on encoding knowledge."
       },
       "source": "https://www.shortliffe.net/Buchanan-Shortliffe-1984/Chapter-01.pdf"
+    },
+    {
+      "from": "rt2",
+      "to": "vit",
+      "type": "uses",
+      "description": {
+        "zh": "RT-2 用的 PaLI-X 靠一个 ViT-22B 视觉编码器读摄像头画面。",
+        "en": "RT-2's PaLI-X backbone reads camera images with a ViT-22B vision encoder."
+      },
+      "source": "https://arxiv.org/abs/2307.15818"
+    },
+    {
+      "from": "stable-diffusion",
+      "to": "laion-5b-2022",
+      "type": "uses",
+      "description": {
+        "zh": "模型在 LAION-5B 的一个子集上训练。",
+        "en": "The model was trained on a subset of LAION-5B."
+      },
+      "source": "https://github.com/CompVis/stable-diffusion"
+    },
+    {
+      "from": "stable-diffusion",
+      "to": "clip",
+      "type": "uses",
+      "description": {
+        "zh": "文字提示由冻结的 CLIP ViT-L/14 文本编码器读入。",
+        "en": "Prompts are read by a frozen CLIP ViT-L/14 text encoder."
+      },
+      "source": "https://github.com/CompVis/stable-diffusion"
+    },
+    {
+      "from": "graphcast-2023",
+      "to": "transformer",
+      "type": "complements",
+      "description": {
+        "zh": "GraphCast 在多层网格上做图消息传递，没用 Transformer：上百万个格点做全局注意力，内存是平方级的。",
+        "en": "GraphCast passes messages on a multi-mesh instead of using Transformers, whose all-to-all attention needs quadratic memory over a million-plus grid points."
+      },
+      "source": "https://arxiv.org/abs/2212.12794v2"
+    },
+    {
+      "from": "coding-agents-2025",
+      "to": "mcp-2024",
+      "type": "uses",
+      "description": {
+        "zh": "Claude Code 通过 MCP 连接外部工具和数据源。",
+        "en": "Claude Code connects to external tools and data sources through MCP."
+      },
+      "source": "https://code.claude.com/docs/en/mcp"
+    },
+    {
+      "from": "cyber-release-2026",
+      "to": "software-linux-kernel-1991",
+      "type": "complements",
+      "description": {
+        "zh": "Anthropic 报告，Mythos Preview 自己找到几个 Linux 内核漏洞，并串成一次完整的提权；这些漏洞已经修复。",
+        "en": "Anthropic reports that Mythos Preview found several Linux-kernel flaws on its own and chained them into a full privilege escalation; they have been patched."
+      },
+      "source": "https://www.anthropic.com/glasswing"
+    },
+    {
+      "from": "youtube-dnn-recsys-2016",
+      "to": "netflix-prize-matrix-factorization-2009",
+      "type": "adapts",
+      "description": {
+        "zh": "候选生成一开始模仿矩阵分解推荐，作者把它写成矩阵分解的非线性推广。",
+        "en": "Its candidate generator began by imitating a matrix-factorisation recommender and is framed as a non-linear generalisation of factorisation."
+      },
+      "source": "https://research.google.com/pubs/archive/45530.pdf"
+    },
+    {
+      "from": "applications-sojourner-1997",
+      "to": "software-c-language-1973",
+      "type": "uses",
+      "description": {
+        "zh": "Sojourner 的飞行软件全部用 C 写成，跑在一颗 Intel 8085 上。",
+        "en": "All of Sojourner's flight software was written in C and ran on an Intel 8085."
+      },
+      "source": "https://www-robotics.jpl.nasa.gov/what-we-do/flight-projects/pathfinder/software-electronics/"
+    },
+    {
+      "from": "memory-ibm-ramac-disk-1956",
+      "to": "databases-relational-model-1970",
+      "type": "complements",
+      "description": {
+        "zh": "IBM 的历史页面说，RAMAC 的随机存取磁盘为关系数据库铺了路；这是 IBM 自己的说法。",
+        "en": "IBM's history page credits RAMAC's random-access disk with paving the way for the relational database; this is IBM's own claim."
+      },
+      "source": "https://www.ibm.com/history/ramac"
+    },
+    {
+      "from": "memory-ibm-ramac-disk-1956",
+      "to": "memory-whirlwind-core-1953",
+      "type": "uses",
+      "description": {
+        "zh": "RAMAC 的每一次数据传送，都经过一个 100 字符的磁芯存储单元。",
+        "en": "Every data transfer in the 305 RAMAC passed through a 100-character magnetic-core unit."
+      },
+      "source": "https://bitsavers.org/pdf/ibm/305_ramac/22-6264-1_305_RAMAC_Manual_of_Operation_Apr57.pdf"
+    },
+    {
+      "from": "software-tvm-paper-2018",
+      "to": "metropolis-monte-carlo-1953",
+      "type": "uses",
+      "description": {
+        "zh": "TVM 用模拟退火搜索调度：降低预测成本的移动总接受，升高的多半拒绝，正是 Metropolis 的接受规则。",
+        "en": "TVM searches schedules with simulated annealing: moves that lower predicted cost are kept and most that raise it are rejected, the Metropolis rule."
+      },
+      "source": "https://www.usenix.org/system/files/osdi18-chen.pdf"
+    },
+    {
+      "from": "nvidia-cuda-2006",
+      "to": "cooley-tukey-fft-1965",
+      "type": "uses",
+      "description": {
+        "zh": "CUDA 1.0 自带两套数学库，其中之一是 FFT 库 CUFFT。",
+        "en": "CUDA 1.0 shipped two maths libraries, one of them the FFT library CUFFT."
+      },
+      "source": "https://developer.download.nvidia.com/compute/cuda/1.0/NVIDIA_CUDA_Programming_Guide_1.0.pdf"
+    },
+    {
+      "from": "software-numpy-2005",
+      "to": "cooley-tukey-fft-1965",
+      "type": "uses",
+      "description": {
+        "zh": "NumPy 提供一整套 FFT 与逆 FFT 函数。",
+        "en": "NumPy provides a suite of FFT and inverse-FFT functions."
+      },
+      "source": "https://arxiv.org/pdf/2006.10256v1"
+    },
+    {
+      "from": "scaling-laws-2020",
+      "to": "robbins-monro-stochastic-approximation-1951",
+      "type": "uses",
+      "description": {
+        "zh": "Chinchilla 把损失里受数据限制的部分看作随机逼近项，按随机一阶方法的收敛速度下降，引的是 Robbins 和 Monro。",
+        "en": "Chinchilla treats the data-limited part of the loss as a stochastic-approximation term falling at the rate of stochastic first-order methods, citing Robbins and Monro."
+      },
+      "source": "https://arxiv.org/pdf/2203.15556v1"
+    },
+    {
+      "from": "shakey-1971",
+      "to": "software-fortran-1957",
+      "type": "uses",
+      "description": {
+        "zh": "Shakey 的软件主要用 LISP，但能在 LISP 下调用 FORTRAN 子程序，摄像画面也存成 FORTRAN 二进制文件。",
+        "en": "Shakey's software was mostly LISP but could call FORTRAN subroutines, and its camera pictures were stored as FORTRAN binary files."
+      },
+      "source": "https://ai.stanford.edu/~nilsson/OnlinePubs-Nils/shakey-the-robot.pdf"
+    },
+    {
+      "from": "netflix-prize-matrix-factorization-2009",
+      "to": "grouplens-1994",
+      "type": "complements",
+      "description": {
+        "zh": "文章把矩阵分解当作邻居法之外的另一条路；GroupLens 用的正是找口味相近用户的邻居法。",
+        "en": "The article presents matrix factorisation as the alternative to neighbourhood methods, the like-minded-users approach GroupLens used."
+      },
+      "source": "https://doi.org/10.1109/MC.2009.263"
+    },
+    {
+      "from": "coding-agents-2025",
+      "to": "copilot-codex-2021",
+      "type": "complements",
+      "description": {
+        "zh": "Claude 4 的发布说明写到，GitHub 将用 Sonnet 4 驱动 Copilot 新的编程 agent。",
+        "en": "The Claude 4 announcement says GitHub will use Sonnet 4 to power Copilot's new coding agent."
+      },
+      "source": "https://www.anthropic.com/news/claude-4"
+    },
+    {
+      "from": "deepseek-v4-2026",
+      "to": "grpo",
+      "type": "uses",
+      "description": {
+        "zh": "后训练先用 SFT 和 GRPO 强化学习培养各领域专家，再蒸馏合并。",
+        "en": "Post-training first trains domain experts with SFT and RL by GRPO, then merges them by distillation."
+      },
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro"
+    },
+    {
+      "from": "dartmouth",
+      "to": "symbolic",
+      "type": "complements",
+      "description": {
+        "zh": "1956 年的 Dartmouth 会上，Newell、Shaw 和 Simon 介绍了他们写 Logic Theorist 用的表处理语言 IPL 2。",
+        "en": "At the 1956 Dartmouth project, Newell, Shaw and Simon presented IPL 2, the list language they had written the Logic Theorist in."
+      },
+      "source": "https://www-formal.stanford.edu/jmc/history/lisp/node2.html"
+    },
+    {
+      "from": "intel-4004-1971",
+      "to": "chips-moore-cramming-1965",
+      "type": "complements",
+      "description": {
+        "zh": "Moore 在 2003 年的回顾报告里，把 4004 放在他集成度和处理器性能曲线上微处理器那一段的起点。",
+        "en": "In a 2003 retrospective, Moore placed the 4004 at the start of the microprocessor series on his complexity and performance curves."
+      },
+      "source": "https://ethw.org/Archives:No_Exponential_is_Forever"
+    },
+    {
+      "from": "transformer",
+      "to": "turing-computability-1936",
+      "type": "complements",
+      "description": {
+        "zh": "后来的理论工作证明，带位置编码和硬注意力的 Transformer 能模拟任意图灵机。",
+        "en": "Later theory proves that a Transformer with positional encodings and hard attention can simulate any Turing machine."
+      },
+      "source": "https://jmlr.org/papers/v22/20-302.html"
+    },
+    {
+      "from": "networks-arpanet-1969",
+      "to": "dijkstra-shortest-path-1959",
+      "type": "uses",
+      "description": {
+        "zh": "从 1979 年 5 月起，ARPANET 每个节点都用基于 Dijkstra 算法的最短路径优先来算路由。",
+        "en": "From May 1979 every ARPANET node computed its routes with shortest-path-first, based on Dijkstra's algorithm."
+      },
+      "source": "https://www.cs.yale.edu/homes/lans/readings/routing/mcquillan-darpa_routing-1980.pdf"
+    },
+    {
+      "from": "bert",
+      "to": "okapi-bm25-1994",
+      "type": "uses",
+      "description": {
+        "zh": "Nogueira 和 Cho 让 BERT 对 BM25 检索出的前 1000 段重新排序，超过了 BM25 和此前的神经排序。",
+        "en": "Nogueira and Cho fine-tune BERT to re-rank BM25's top 1,000 passages, beating BM25 and earlier neural rankers."
+      },
+      "source": "https://arxiv.org/abs/1901.04085v1"
+    },
+    {
+      "from": "iea-energy-ai-2025",
+      "to": "energy-pue-metric-2007",
+      "type": "uses",
+      "description": {
+        "zh": "IEA 用 IT 用电乘以 PUE 算数据中心总用电，基准情景下全球平均 PUE 从 1.41 降到 1.29。",
+        "en": "The IEA multiplies IT demand by PUE to get data-centre electricity, and in its Base Case the global average PUE falls from 1.41 to 1.29."
+      },
+      "source": "https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf"
+    },
+    {
+      "from": "ai-research-math-2026",
+      "to": "imo-2025-gold",
+      "type": "adapts",
+      "description": {
+        "zh": "DeepMind 的 Aletheia 研究 agent 跑在拿到 IMO 金牌线的 Gemini Deep Think 的进阶版上，把它从竞赛题带到未解的 Erdős 问题。",
+        "en": "DeepMind's Aletheia research agent runs on an advanced version of the IMO-gold Gemini Deep Think and takes it from competition problems to open Erdős problems."
+      },
+      "source": "https://arxiv.org/abs/2602.10177v1"
     }
   ]
 }
