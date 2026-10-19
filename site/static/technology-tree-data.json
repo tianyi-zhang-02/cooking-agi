@@ -3127,6 +3127,10 @@
         [
           "Harris et al. · Array programming with NumPy, arXiv v1, 2020-06-18, section on NumPy arrays",
           "https://arxiv.org/pdf/2006.10256v1"
+        ],
+        [
+          "Backus · Can Programming Be Liberated from the von Neumann Style?, 1977 Turing Award lecture, CACM 21(8), August 1978, §§3–4",
+          "https://www.cs.cmu.edu/~crary/819-f09/Backus78.pdf"
         ]
       ]
     },
@@ -6059,6 +6063,754 @@
           "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/"
         ]
       ]
+    },
+    {
+      "id": "ac-niagara-1895",
+      "year": 1895,
+      "kind": "system",
+      "status": "historical",
+      "topic": "energy",
+      "track": "supply",
+      "title": {
+        "zh": "尼亚加拉 · 把交流电送到远处",
+        "en": "Niagara · Sending AC power far away"
+      },
+      "hook": {
+        "zh": "高压交流电让电站可以建在离用户很远的地方。",
+        "en": "High-voltage AC let power stations stand far from the people they served."
+      },
+      "body": {
+        "zh": "珍珠街的直流电只能送到附近几栋楼。1895 年，尼亚加拉瀑布的 Adams 水电站投入运行，用高压交流电把电送到远处，电站从此不必挨着用户。IEEE 把它记作交流电胜过直流电的关键一役。",
+        "en": "Pearl Street's direct current reached only nearby buildings. In 1895 the Adams hydroelectric plant at Niagara Falls went into operation, sending power far away as high-voltage alternating current, so stations no longer had to sit next to their customers. IEEE records it as a key victory for AC over DC."
+      },
+      "limit": {
+        "zh": "它解决了把电送远；电从哪里来、电网怎么调度，留给了后来一代代电站和电网。",
+        "en": "It solved sending power far; where power comes from and how a grid is run were left to later plants and grids."
+      },
+      "sources": [
+        [
+          "IEEE Milestone · Adams Hydroelectric Generating Plant, 1895",
+          "https://ethw.org/Milestones:Adams_Hydroelectric_Generating_Plant,_1895"
+        ],
+        [
+          "Tesla · US patent 382,280, electrical transmission of power, 1888-05-01",
+          "https://patents.google.com/patent/US382280A/en"
+        ]
+      ]
+    },
+    {
+      "id": "edvac-1945",
+      "year": 1945,
+      "kind": "research",
+      "status": "historical",
+      "topic": "chips",
+      "track": "processors",
+      "title": {
+        "zh": "EDVAC 报告 · 把程序存进存储器",
+        "en": "EDVAC report · Keeping the program in memory"
+      },
+      "hook": {
+        "zh": "运算、控制、存储、输入、输出分开，指令也放进存储器。",
+        "en": "Arithmetic, control, memory, input and output as separate parts, with the instructions held in memory."
+      },
+      "body": {
+        "zh": "一台通用机器要做很长的计算，指令放在哪里？1945 年 6 月，冯·诺伊曼在 EDVAC 报告的草稿里把机器分成运算、控制、存储、输入和输出几部分，并把指令当作存储器要装的内容。这份草稿流传很广，影响了此后许多计算机的设计。",
+        "en": "Where should a general-purpose machine keep the instructions for a long computation? In June 1945, von Neumann's draft report on the EDVAC divided the machine into arithmetic, control, memory, input and output, and treated instructions as something the memory must hold. The draft circulated widely and shaped the design of many later computers."
+      },
+      "limit": {
+        "zh": "它是一份没写完的草稿，许多工程细节要等真正造机器时才解决。",
+        "en": "It was an unfinished draft; many engineering details waited for the machines that were actually built."
+      },
+      "sources": [
+        [
+          "von Neumann · First Draft of a Report on the EDVAC, 1945-06-30 (Godfrey's edited text, IEEE Annals 1993)",
+          "https://web.mit.edu/sts.035/www/PDFs/edvac.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "turing-test-1950",
+      "year": 1950,
+      "kind": "research",
+      "status": "historical",
+      "topic": "algorithms",
+      "track": "theory",
+      "title": {
+        "zh": "图灵 1950 · 用模仿游戏问机器能否思考",
+        "en": "Turing 1950 · Asking about thinking machines through a game"
+      },
+      "hook": {
+        "zh": "把含糊的“机器能思考吗”，换成一个能检验的模仿游戏。",
+        "en": "He replaced the vague “Can machines think?” with an imitation game that can be tested."
+      },
+      "body": {
+        "zh": "“机器能思考吗”这个问题太含糊，没法研究。1950 年，图灵把它换成模仿游戏：只靠文字交流，提问的人能不能分辨对面是人还是机器。文章还指出数字计算机是通用机器，并设想让机器像孩子一样学习。",
+        "en": "“Can machines think?” was too vague to study. In 1950 Turing replaced it with the imitation game: talking only in writing, can an interrogator tell a person from a machine? The paper also points out that digital computers are universal machines and sketches machines that learn, the way a child does."
+      },
+      "limit": {
+        "zh": "模仿游戏测的是像不像人，不等于测出了理解或智能本身。",
+        "en": "The game measures whether a machine passes for a person, not understanding or intelligence itself."
+      },
+      "sources": [
+        [
+          "Turing · Computing Machinery and Intelligence, Mind 59, 1950, §§1, 5, 7",
+          "https://redirect.cs.umbc.edu/courses/471/papers/turing.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "integrated-circuit-1959",
+      "year": 1959,
+      "kind": "research",
+      "status": "historical",
+      "topic": "chips",
+      "track": "devices",
+      "title": {
+        "zh": "集成电路 · 把整个电路做进一块半导体",
+        "en": "Integrated circuit · A whole circuit in one piece of semiconductor"
+      },
+      "hook": {
+        "zh": "不再一个个焊元件，整块电路做在同一块半导体上。",
+        "en": "Instead of wiring parts together, the whole circuit is built in one piece of semiconductor."
+      },
+      "body": {
+        "zh": "以前的电路由一个个分立元件和导线组装而成。1959 年，Kilby 申请的专利把电路的全部元件做进同一块半导体；同年 Noyce 的专利在氧化层上沉积金属引线，把元件连起来。Moore 1965 年的预测，讲的就是这种集成电路。",
+        "en": "Circuits used to be assembled from separate components and wires. In 1959 Kilby filed a patent for a circuit with every component built into one body of semiconductor; the same year Noyce's patent laid metal leads on an oxide layer to connect them. Moore's 1965 forecast is about these integrated circuits."
+      },
+      "limit": {
+        "zh": "元件越挤越密，怎么散热、怎么把线做得更细，留给了后来几十年。",
+        "en": "Packing parts ever closer left heat and ever finer wiring to the decades that followed."
+      },
+      "sources": [
+        [
+          "Kilby · US patent 3,138,743, filed 1959-02-06",
+          "https://patents.google.com/patent/US3138743A/en"
+        ],
+        [
+          "Noyce · US patent 2,981,877, filed 1959-07-30",
+          "https://patents.google.com/patent/US2981877A/en"
+        ]
+      ]
+    },
+    {
+      "id": "mosfet-1960",
+      "year": 1960,
+      "kind": "research",
+      "status": "historical",
+      "topic": "chips",
+      "track": "devices",
+      "title": {
+        "zh": "MOSFET · 隔着氧化层用电场控制电流",
+        "en": "MOSFET · Controlling current through an oxide"
+      },
+      "hook": {
+        "zh": "硅上长一层二氧化硅，上面放电极，用电场开关电流。",
+        "en": "An electrode over a thin oxide layer switches the current with an electric field."
+      },
+      "body": {
+        "zh": "1960 年 5 月，Kahng 申请专利：在硅上热生长一层二氧化硅，再在上面放电极，用电场控制下面的电流。这就是 MOSFET。后来的单管 DRAM 和 Dennard 的缩放规则，都建立在这种器件上。",
+        "en": "In May 1960 Kahng filed a patent: grow a thin layer of silicon dioxide on silicon, put an electrode on top, and use the electric field to control the current beneath. This is the MOSFET. The one-transistor DRAM cell and Dennard's scaling rules both build on it."
+      },
+      "limit": {
+        "zh": "器件越做越小，漏电和发热越来越难控制。",
+        "en": "As the devices shrank, leakage and heat grew harder to control."
+      },
+      "sources": [
+        [
+          "Kahng · US patent 3,102,230, electric field controlled semiconductor device, filed 1960-05-31",
+          "https://patents.google.com/patent/US3102230A/en"
+        ]
+      ]
+    },
+    {
+      "id": "lisp-1960",
+      "year": 1960,
+      "kind": "research",
+      "status": "historical",
+      "topic": "software",
+      "track": "languages",
+      "title": {
+        "zh": "LISP · 给符号推理一门语言",
+        "en": "LISP · A language for reasoning with symbols"
+      },
+      "hook": {
+        "zh": "用递归函数处理符号表达式，成了 AI 研究常用的语言。",
+        "en": "Recursive functions over symbolic expressions; it became AI research's working language."
+      },
+      "body": {
+        "zh": "要让程序推理，就得处理符号，而不只是数字。1960 年 4 月，McCarthy 发表 LISP 的论文：用递归函数处理符号表达式，最早在 IBM 704 上为“建议接受者”实验而写。十年后，造 Shakey 机器人的团队仍把它当作主要编程工具。",
+        "en": "Reasoning programs have to handle symbols, not just numbers. In April 1960 McCarthy published LISP: recursive functions over symbolic expressions, first built on the IBM 704 for the Advice Taker experiments. A decade later the team behind the Shakey robot still called it their principal programming tool."
+      },
+      "limit": {
+        "zh": "它方便写符号推理，数值计算还是交给 FORTRAN 这样的语言。",
+        "en": "It made symbolic reasoning easy to write, while numerical work still went to languages such as FORTRAN."
+      },
+      "sources": [
+        [
+          "McCarthy · Recursive Functions of Symbolic Expressions and Their Computation by Machine, CACM, April 1960",
+          "https://www-formal.stanford.edu/jmc/recursive.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "kalman-filter-1960",
+      "year": 1960,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "algorithms",
+      "track": "probability",
+      "title": {
+        "zh": "卡尔曼滤波 · 边测量边修正估计",
+        "en": "Kalman filter · Correcting an estimate with each measurement"
+      },
+      "hook": {
+        "zh": "每来一个新测量，就按各自的误差修正一次状态估计。",
+        "en": "Each new measurement corrects the state estimate, weighted by how uncertain each is."
+      },
+      "body": {
+        "zh": "维纳滤波要求统计特性不变，算起来也麻烦。1960 年，卡尔曼换成状态空间的写法：每来一个新测量，就递推地更新一次状态估计和它的误差协方差，不用保存全部历史。它后来成了导航和机器人里的标准工具。",
+        "en": "Wiener-style filters assumed unchanging statistics and were hard to compute. In 1960 Kalman recast the problem in state-space form: each new measurement updates the state estimate and its error covariance recursively, with no need to keep the full history. It became a standard tool in navigation and robotics."
+      },
+      "limit": {
+        "zh": "原始形式假设系统是线性的、噪声是高斯的，非线性问题要另作近似。",
+        "en": "The original form assumes linear systems and Gaussian noise; nonlinear problems need approximations."
+      },
+      "sources": [
+        [
+          "Kalman · A New Approach to Linear Filtering and Prediction Problems, J. Basic Engineering 82, 1960",
+          "https://www.cs.yale.edu/homes/yry/readings/general/Kalman1960.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "atlas-virtual-memory-1962",
+      "year": 1962,
+      "kind": "system",
+      "status": "historical",
+      "topic": "memory",
+      "track": "memory",
+      "title": {
+        "zh": "Atlas 虚拟内存 · 两层存储看起来像一层",
+        "en": "Atlas virtual memory · Two stores that look like one"
+      },
+      "hook": {
+        "zh": "程序员不用再自己在磁芯和磁鼓之间搬数据。",
+        "en": "Programmers no longer moved data between core and drum by hand."
+      },
+      "body": {
+        "zh": "快的磁芯存储小，慢的磁鼓大，程序员得自己决定什么时候把代码和数据搬进搬出。1962 年，曼彻斯特的 Atlas 让硬件和监控程序自动完成这件事，在用户看来只有一层存储，这就是虚拟内存。六十年后，vLLM 用同样的分页思路管理 KV cache。",
+        "en": "Fast core memory was small and the drum was large but slow, so programmers decided by hand when to move code and data between them. In 1962 Manchester's Atlas had the hardware and supervisor do it automatically, so users saw a single level of store: virtual memory. Sixty years later, vLLM manages the KV cache with the same paging idea."
+      },
+      "limit": {
+        "zh": "要用的内容不在快存储里时，程序还是得停下来等慢存储。",
+        "en": "When the data is not in the fast store, the program still waits on the slow one."
+      },
+      "sources": [
+        [
+          "Kilburn, Edwards, Lanigan & Sumner · One-Level Storage System, IRE Trans. EC-11(2), April 1962 (CHM reprint)",
+          "https://tcm.computerhistory.org/ComputerTimeline/Chap23_atlas_CS1_10CS2.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "packet-switching-1964",
+      "year": 1964,
+      "kind": "research",
+      "status": "historical",
+      "topic": "networks",
+      "track": "internet",
+      "title": {
+        "zh": "分组交换 · 把消息切成小块各自寻路",
+        "en": "Packet switching · Messages cut into blocks that find their own way"
+      },
+      "hook": {
+        "zh": "标准大小的消息块逐站存储转发，坏掉几个节点也能绕过去。",
+        "en": "Standard message blocks are stored and forwarded hop by hop, routing around lost nodes."
+      },
+      "body": {
+        "zh": "集中式或分层的网络，关键节点一坏就会断。1964 年，兰德公司的 Baran 提出分布式网络：消息切成标准大小的块，每个节点先存下再转发，按自适应路由绕开坏掉的节点和线路。十几年后的 Ethernet 论文，题目里就写着“分组交换”。",
+        "en": "Centralised and hierarchical networks fail when key nodes or links are lost. In 1964 RAND's Paul Baran proposed a distributed network: messages are cut into standard blocks, stored and forwarded at each node, and routed adaptively around damage. Twelve years later the Ethernet paper put “packet switching” in its title."
+      },
+      "limit": {
+        "zh": "每一跳都要存储再转发，延迟和拥塞留给了后来的协议去处理。",
+        "en": "Storing and forwarding at every hop left delay and congestion for later protocols."
+      },
+      "sources": [
+        [
+          "Baran · On Distributed Communications, RAND RM-3420, 1964",
+          "https://www.rand.org/pubs/research_memoranda/RM3420.html"
+        ]
+      ]
+    },
+    {
+      "id": "optical-fibre-1966",
+      "year": 1966,
+      "kind": "research",
+      "status": "historical",
+      "topic": "networks",
+      "track": "interconnect",
+      "title": {
+        "zh": "低损耗光纤 · 用纯净玻璃把光送远",
+        "en": "Low-loss optical fibre · Sending light far through pure glass"
+      },
+      "hook": {
+        "zh": "高锟算出：玻璃只要够纯，光信号就能传上百公里。",
+        "en": "Charles Kao calculated that light could travel a hundred kilometres in glass that was pure enough."
+      },
+      "body": {
+        "zh": "1960 年代的光纤只能把光信号传 20 米左右。1966 年，在英国 STL 工作的高锟算出：用最纯的玻璃，光信号能传 100 公里。四年后的 1970 年，第一根超纯光纤做了出来，2009 年他因此获得诺贝尔物理学奖。",
+        "en": "Fibres of the 1960s carried light signals only about 20 metres. In 1966 Charles Kao, at STL in the UK, calculated that fibre of the purest glass could carry them 100 kilometres. The first ultrapure fibre was made four years later, in 1970, and he shared the 2009 Nobel Prize in Physics for the work."
+      },
+      "limit": {
+        "zh": "光纤解决了传输，路由和交换仍在电子设备里完成。",
+        "en": "Fibre solved transmission; routing and switching still happened in electronics."
+      },
+      "sources": [
+        [
+          "Nobel Prize in Physics 2009 · press release, 2009-10-06",
+          "https://www.nobelprize.org/prizes/physics/2009/press-release/"
+        ]
+      ]
+    },
+    {
+      "id": "dennard-scaling-1974",
+      "year": 1974,
+      "kind": "research",
+      "status": "historical",
+      "topic": "chips",
+      "track": "devices",
+      "title": {
+        "zh": "Dennard 缩放 · 越做越小，功率密度不变",
+        "en": "Dennard scaling · Smaller, at the same power density"
+      },
+      "hook": {
+        "zh": "尺寸和电压一起按比例缩小，单位面积的功耗保持不变。",
+        "en": "Scale dimensions and voltage together, and power per unit area stays the same."
+      },
+      "body": {
+        "zh": "MOSFET 要缩小，怎样缩才还能正常工作？1974 年，IBM 的 Dennard 等人给出一套比例规则：尺寸和电压一起按同一个比例缩小，器件更快，单位面积的功耗却不变。同样大小的芯片能放下更多电路，发热却不跟着变多。",
+        "en": "How should a MOSFET shrink and still work? In 1974 Dennard and colleagues at IBM gave scaling rules: shrink dimensions and voltage by the same factor, and devices get faster while power per unit area stays the same. A chip of the same size holds more circuits without running hotter."
+      },
+      "limit": {
+        "zh": "它要求电压跟着降；电压降不动时，功率密度就会上升。",
+        "en": "It needs the voltage to fall too; when voltage stops falling, power density rises."
+      },
+      "sources": [
+        [
+          "Dennard et al. · Design of Ion-Implanted MOSFETs with Very Small Physical Dimensions, IEEE JSSC SC-9(5), 1974",
+          "https://www.eng.auburn.edu/~agrawvd/COURSE/READING/LOWP/Design%20of%20ion-implanted%20MOSFETs%20with%20very%20small%20physical%20dimensions.pdf"
+        ],
+        [
+          "IBM Research · publication record",
+          "https://research.ibm.com/publications/design-of-ion-implanted-mosfets-with-very-small-physical-dimensions"
+        ]
+      ]
+    },
+    {
+      "id": "em-algorithm-1977",
+      "year": 1977,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "algorithms",
+      "track": "probability",
+      "title": {
+        "zh": "EM 算法 · 数据缺一块也能做最大似然",
+        "en": "EM algorithm · Maximum likelihood with part of the data hidden"
+      },
+      "hook": {
+        "zh": "先估计缺的部分，再更新参数，两步交替直到收敛。",
+        "en": "Estimate the hidden part, update the parameters, and alternate until they settle."
+      },
+      "body": {
+        "zh": "数据有一部分看不到时，最大似然估计很难直接算。1977 年，Dempster、Laird 和 Rubin 给出通用做法：E 步按当前参数估计缺失部分，M 步据此更新参数，两步交替。HMM 的 Baum-Welch 训练是它的特例，IBM 的翻译模型也用它训练。",
+        "en": "When part of the data is hidden, maximum likelihood is hard to compute directly. In 1977 Dempster, Laird and Rubin gave a general recipe: the E step estimates the hidden part from the current parameters, the M step updates the parameters, and the two alternate. Baum–Welch training for HMMs is a special case, and IBM's statistical translation models were trained with it."
+      },
+      "limit": {
+        "zh": "每一步都不会变差，但可能停在局部最优，起点不好就会卡住。",
+        "en": "No step makes things worse, but it can stop at a local optimum, so a poor start can leave it stuck."
+      },
+      "sources": [
+        [
+          "Dempster, Laird & Rubin · Maximum Likelihood from Incomplete Data via the EM Algorithm, JRSS-B 39(1), 1977",
+          "https://www.ms.uky.edu/~mai/sta705/DLR.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "risc-1980",
+      "year": 1980,
+      "kind": "research",
+      "status": "historical",
+      "topic": "chips",
+      "track": "processors",
+      "title": {
+        "zh": "RISC · 用精简指令集造处理器",
+        "en": "RISC · Reduced instructions for single-chip processors"
+      },
+      "hook": {
+        "zh": "少数几条简单指令做了大部分工作，那就把指令集做简单。",
+        "en": "A few simple instructions do most of the work, so keep the instruction set simple."
+      },
+      "body": {
+        "zh": "指令集越加越复杂，实际跑的却大多是几条简单指令：一个 IBM 360 编译器里，10 条指令就占了 80% 的执行。1980 年，Patterson 和 Ditzel 主张，单芯片的 VLSI 处理器应该围绕精简的指令集来设计。",
+        "en": "Instruction sets kept growing, yet most of the work was done by a few simple instructions: in one IBM 360 compiler, 10 instructions accounted for 80% of execution. In 1980 Patterson and Ditzel argued that single-chip VLSI processors should be built around reduced instruction sets."
+      },
+      "limit": {
+        "zh": "指令简单了，程序会变长，更多负担转给了编译器。",
+        "en": "Simpler instructions make programs longer and shift more of the work to the compiler."
+      },
+      "sources": [
+        [
+          "Patterson & Ditzel · The Case for the Reduced Instruction Set Computer, SIGARCH CAN, 1980",
+          "https://cs.utexas.edu/~fussell/courses/cs352h/papers/risc.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "flash-memory-1984",
+      "year": 1984,
+      "kind": "research",
+      "status": "historical",
+      "topic": "memory",
+      "track": "storage",
+      "title": {
+        "zh": "闪存 · 一整块一起用电擦除",
+        "en": "Flash memory · Erasing a whole block electrically at once"
+      },
+      "hook": {
+        "zh": "不用紫外线，也不用每位两个晶体管，按块一次擦掉。",
+        "en": "No ultraviolet light, no two transistors per bit: erase a whole block at once."
+      },
+      "body": {
+        "zh": "EPROM 要用紫外线擦除，能电擦的 EEPROM 每位又要两个晶体管。1984 年 12 月，东芝的舛冈富士雄在 IEDM 上发表闪存：用电把一整块存储单元一次擦掉。几年后又有了 NAND 闪存。",
+        "en": "EPROMs had to be erased with ultraviolet light, and electrically erasable EEPROMs needed two transistors per bit. In December 1984 Fujio Masuoka of Toshiba presented flash memory at IEDM: a whole block of cells erased electrically at once. NAND flash followed a few years later."
+      },
+      "limit": {
+        "zh": "每个单元能擦写的次数有限，用久了会磨损。",
+        "en": "Each cell can be erased only so many times before it wears out."
+      },
+      "sources": [
+        [
+          "Semiconductor History Museum of Japan · flash memory record (Masuoka, Toshiba, IEDM 1984)",
+          "https://shmj.or.jp/english/pdf/ic/exhibi741E.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "bayesian-networks-1985",
+      "year": 1985,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "models",
+      "track": "statistical",
+      "title": {
+        "zh": "贝叶斯网络 · 在依赖图上传递信念",
+        "en": "Bayesian networks · Passing beliefs over a dependency graph"
+      },
+      "hook": {
+        "zh": "每个节点只和邻居交换消息，整张图的判断仍然前后一致。",
+        "en": "Each node exchanges messages only with its neighbours, yet the whole graph stays consistent."
+      },
+      "body": {
+        "zh": "证据不确定时，推理容易前后矛盾。1985 年，Pearl 用一张依赖图表示变量之间的关系，让每个节点只和邻居传递消息，最后收敛到全局一致的信念。这成了概率图模型的基础。",
+        "en": "Reasoning from uncertain evidence easily contradicts itself. In 1985 Pearl represented the relations between variables as a dependency graph in which each node passes messages only to its neighbours, converging to beliefs that are consistent overall. It became the basis of probabilistic graphical models."
+      },
+      "limit": {
+        "zh": "图里有环时，局部传消息不一定收敛，精确推理也可能很难算。",
+        "en": "When the graph has loops, local message passing may not converge, and exact inference can be intractable."
+      },
+      "sources": [
+        [
+          "Pearl · Bayesian Networks: A Model of Self-Activated Memory for Evidential Reasoning, UCLA CSD-850017, April 1985",
+          "https://ftp.cs.ucla.edu/tech-report/198_-reports/850017.pdf"
+        ],
+        [
+          "Same paper · Cognitive Science Society proceedings, 1985",
+          "https://journalpub.escholarship.org/cognitivesciencesociety/article/30452/galley/20301/download"
+        ],
+        [
+          "Heckerman & Shortliffe · From Certainty Factors to Belief Networks, Artificial Intelligence in Medicine, 1992",
+          "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/From-Certainty-Factors-to-Belief-Networks.pdf"
+        ],
+        [
+          "Smyth, Heckerman & Jordan · Probabilistic Independence Networks for Hidden Markov Probability Models, Neural Computation 9, 1997",
+          "https://authors.library.caltech.edu/records/925sy-akr15/files/SMYnc97.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "tsmc-foundry-1987",
+      "year": 1987,
+      "kind": "product",
+      "status": "historical",
+      "topic": "chips",
+      "track": "devices",
+      "title": {
+        "zh": "台积电 · 只替别人造芯片",
+        "en": "TSMC · Making only other companies' chips"
+      },
+      "hook": {
+        "zh": "设计芯片不必自建晶圆厂，制造交给专门的代工厂。",
+        "en": "Designing chips no longer required owning a fab."
+      },
+      "body": {
+        "zh": "以前要做芯片，基本得自己有晶圆厂。1987 年，张忠谋创立台积电，只按客户的设计制造，自己不卖芯片，开创了纯代工模式。2022 年的 H100 就造在台积电的 4N 工艺上。",
+        "en": "Making chips used to mean owning a fab. In 1987 Morris Chang founded TSMC to manufacture only its customers' designs and sell no chips of its own, pioneering the pure-play foundry model. NVIDIA's 2022 H100 is built on TSMC's 4N process."
+      },
+      "limit": {
+        "zh": "设计和制造分开以后，最先进的工艺集中在少数代工厂手里。",
+        "en": "With design and manufacturing separated, the most advanced processes sit with a few foundries."
+      },
+      "sources": [
+        [
+          "TSMC · company profile",
+          "https://www.tsmc.com/english/aboutTSMC/company_profile"
+        ]
+      ]
+    },
+    {
+      "id": "neural-language-model-2003",
+      "year": 2003,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "language",
+      "title": {
+        "zh": "神经语言模型 · 给每个词学一个向量",
+        "en": "Neural language model · Learning a vector for every word"
+      },
+      "hook": {
+        "zh": "词向量和下一个词的概率一起学，没见过的句子也能估计。",
+        "en": "Word vectors and next-word probabilities learned together, so unseen sentences can still be scored."
+      },
+      "body": {
+        "zh": "n-gram 模型只认得见过的词组，换个说法就不会了。2003 年，Bengio 等人用神经网络同时学两样东西：每个词的向量，以及根据前几个词的向量预测下一个词的概率。意思相近的词向量相近，没见过的句子也能估计。word2vec 就从这个模型出发。",
+        "en": "N-gram models know only the word sequences they have seen. In 2003 Bengio and colleagues trained a neural network to learn two things at once: a vector for each word, and the probability of the next word given the vectors of the previous ones. Similar words get similar vectors, so unseen sentences can still be scored. word2vec started from this model."
+      },
+      "limit": {
+        "zh": "要对整个词表算概率，词表一大，训练就很慢。",
+        "en": "Computing probabilities over the whole vocabulary made training slow for large vocabularies."
+      },
+      "sources": [
+        [
+          "Bengio, Ducharme, Vincent & Jauvin · A Neural Probabilistic Language Model, JMLR 3, 2003",
+          "https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "gan-2014",
+      "year": 2014,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "generative",
+      "title": {
+        "zh": "GAN · 让生成器和判别器对抗",
+        "en": "GANs · A generator trained against a discriminator"
+      },
+      "hook": {
+        "zh": "一个网络造样本，另一个网络辨真假，两边一起练。",
+        "en": "One network makes samples, another tells real from fake, and they train together."
+      },
+      "body": {
+        "zh": "怎么让神经网络学会生成像真的一样的样本？2014 年，Goodfellow 等人让两个网络对抗：生成器造样本，判别器判断样本来自真实数据还是生成器，生成器的目标是让判别器出错。整个系统用反向传播就能训练。后来的扩散模型拿 GAN 作对照来比生成质量。",
+        "en": "How can a neural network learn to generate samples that look real? In 2014 Goodfellow and colleagues set two networks against each other: a generator makes samples, a discriminator judges whether a sample came from the data or the generator, and the generator tries to make it wrong. The whole system trains with backpropagation. Diffusion models later measured their sample quality against GANs."
+      },
+      "limit": {
+        "zh": "两个网络一起练不稳定，有时生成器只会造几种样本。",
+        "en": "Training two networks together is unstable, and the generator can collapse to a few kinds of samples."
+      },
+      "sources": [
+        [
+          "Goodfellow et al. · Generative Adversarial Networks, arXiv, 2014-06-10",
+          "https://arxiv.org/abs/1406.2661"
+        ]
+      ]
+    },
+    {
+      "id": "gender-shades-2018",
+      "year": 2018,
+      "kind": "research",
+      "status": "historical",
+      "topic": "ecosystem",
+      "track": "responsibility",
+      "title": {
+        "zh": "Gender Shades · 按人群分开看准确率",
+        "en": "Gender Shades · Accuracy broken down by group"
+      },
+      "hook": {
+        "zh": "深肤色女性错误率达 34.7%，浅肤色男性至多 0.8%。",
+        "en": "Error rates reached 34.7% for darker-skinned women but at most 0.8% for lighter-skinned men."
+      },
+      "body": {
+        "zh": "商用人脸分类器通常只报一个总体准确率。2018 年，Buolamwini 和 Gebru 按肤色和性别交叉分组，审查了三家商用系统：深肤色女性的错误率高达 34.7%，浅肤色男性最高只有 0.8%。",
+        "en": "Commercial face classifiers were sold with a single overall accuracy. In 2018 Buolamwini and Gebru audited three commercial systems by skin type and gender together and found darker-skinned women misclassified most, with error rates up to 34.7%, against at most 0.8% for lighter-skinned men."
+      },
+      "limit": {
+        "zh": "它审查的是性别分类这一个任务，别的任务要各自分组再测。",
+        "en": "It audited gender classification alone; other tasks need their own breakdowns."
+      },
+      "sources": [
+        [
+          "Buolamwini & Gebru · Gender Shades, PMLR 81 (FAT* 2018)",
+          "https://proceedings.mlr.press/v81/buolamwini18a/buolamwini18a.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "rag-2020",
+      "year": 2020,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "applications",
+      "track": "search-recsys",
+      "title": {
+        "zh": "RAG · 生成之前先去查资料",
+        "en": "RAG · Looking things up before generating"
+      },
+      "hook": {
+        "zh": "生成模型配一个文档索引，答案有出处，知识也能更新。",
+        "en": "A generator paired with a document index: answers with sources, and knowledge that can be updated."
+      },
+      "body": {
+        "zh": "预训练模型把知识记在参数里，要精确调用、给出出处、更新知识都不方便。2020 年，Lewis 等人把一个 seq2seq 生成器和一个维基百科的稠密向量索引接在一起：先检索相关段落，再据此生成答案。它在三个开放域问答任务上刷新了最好成绩。",
+        "en": "Pretrained models store knowledge in their parameters, which makes precise recall, provenance and updates hard. In 2020 Lewis and colleagues connected a seq2seq generator to a dense vector index of Wikipedia: retrieve relevant passages first, then generate the answer from them. It set the state of the art on three open-domain QA tasks."
+      },
+      "limit": {
+        "zh": "检索不到或检索错了，生成的答案也跟着错。",
+        "en": "If retrieval misses or fetches the wrong passage, the answer goes wrong with it."
+      },
+      "sources": [
+        [
+          "Lewis et al. · Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, arXiv v1, 2020-05-22",
+          "https://arxiv.org/abs/2005.11401v1"
+        ]
+      ]
+    },
+    {
+      "id": "waymo-driverless-2020",
+      "year": 2020,
+      "kind": "product",
+      "status": "historical",
+      "topic": "applications",
+      "track": "robotics",
+      "title": {
+        "zh": "Waymo · 驾驶座上没人的公开服务",
+        "en": "Waymo · Public rides with nobody at the wheel"
+      },
+      "hook": {
+        "zh": "在凤凰城，普通乘客可以叫到驾驶座上没人的车。",
+        "en": "In Phoenix, members of the public could hail cars with nobody in the driver's seat."
+      },
+      "body": {
+        "zh": "自动驾驶长期停在演示和带安全员的试点。2020 年 10 月，Waymo 在凤凰城向公众开放完全无人驾驶的叫车服务，驾驶座上没有人。在这之前，早期乘客当年的行程里已有 5% 到 10% 是完全无人的。",
+        "en": "Self-driving had long stayed at demos and pilots with safety drivers. In October 2020 Waymo opened fully driverless rides to the public in Phoenix, with nobody in the driver's seat. Before that, 5–10% of early riders' trips that year had already been fully driverless."
+      },
+      "limit": {
+        "zh": "服务一开始只覆盖凤凰城的一片区域，不是哪里都能开。",
+        "en": "The service first covered one area around Phoenix, not anywhere."
+      },
+      "sources": [
+        [
+          "Waymo · Waymo is opening its fully driverless service to the general public in Phoenix, 2020-10-08",
+          "https://waymo.com/blog/2020/10/waymo-is-opening-its-fully-driverless/"
+        ],
+        [
+          "Thrun · What we're driving at, Official Google Blog, 2010-10-09",
+          "https://googleblog.blogspot.com/2010/10/what-were-driving-at.html"
+        ]
+      ]
+    },
+    {
+      "id": "lora-2021",
+      "year": 2021,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "models",
+      "track": "post-training",
+      "title": {
+        "zh": "LoRA · 冻住大模型，只训一小块",
+        "en": "LoRA · Freezing the model, training a small update"
+      },
+      "hook": {
+        "zh": "在每层加低秩矩阵来训练，可训练参数少一万倍。",
+        "en": "Train small low-rank matrices in each layer: 10,000 times fewer trainable parameters."
+      },
+      "body": {
+        "zh": "为每个任务都存一份完整微调过的 1750 亿参数模型，代价太高。2021 年，Hu 等人提出 LoRA：冻住预训练权重，只在每层加入可训练的低秩分解矩阵。对 GPT-3，可训练参数少一万倍，硬件需求降到三分之一，效果与全量微调相当或更好。",
+        "en": "Keeping a full fine-tuned copy of a 175-billion-parameter model for every task is too expensive. In 2021 Hu and colleagues proposed LoRA: freeze the pretrained weights and inject trainable low-rank matrices into each layer. For GPT-3 it cut trainable parameters 10,000-fold and hardware needs threefold, matching or beating full fine-tuning."
+      },
+      "limit": {
+        "zh": "低秩更新能改的东西有限，任务离原模型太远时未必够用。",
+        "en": "A low-rank update can only change so much; tasks far from the original model may need more."
+      },
+      "sources": [
+        [
+          "Hu et al. · LoRA: Low-Rank Adaptation of Large Language Models, arXiv v1, 2021-06-17",
+          "https://arxiv.org/abs/2106.09685v1"
+        ]
+      ]
+    },
+    {
+      "id": "chain-of-thought-2022",
+      "year": 2022,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "models",
+      "track": "language",
+      "title": {
+        "zh": "思维链提示 · 让模型先写推理步骤",
+        "en": "Chain-of-thought prompting · Writing out the steps first"
+      },
+      "hook": {
+        "zh": "示例里写出推理过程，大模型的多步推理明显变好。",
+        "en": "Show worked reasoning in the examples, and large models do much better at multi-step problems."
+      },
+      "body": {
+        "zh": "模型越做越大，数学应用题、符号操作这类多步推理的成绩却几乎不涨。2022 年，Wei 等人在提示的示例里写出一步步的推理过程，让模型照着先写思路再给答案，足够大的模型在这些任务上明显变好。后来的 o1 和 R1，用强化学习来训练这条思维链。",
+        "en": "As models grew, scores on multi-step tasks such as math word problems and symbolic manipulation stayed nearly flat. In 2022 Wei and colleagues put step-by-step reasoning into the prompt's examples, so the model wrote out its reasoning before answering, and sufficiently large models did markedly better. o1 and R1 later trained this chain of thought with reinforcement learning."
+      },
+      "limit": {
+        "zh": "写出来的思路不一定是模型真正的计算过程，也可能一本正经地推错。",
+        "en": "The written reasoning is not necessarily how the model computed the answer, and it can reason confidently to a wrong one."
+      },
+      "sources": [
+        [
+          "Wei et al. · Chain-of-Thought Prompting Elicits Reasoning in Large Language Models, arXiv v1, 2022-01-28",
+          "https://arxiv.org/abs/2201.11903v1"
+        ]
+      ]
+    },
+    {
+      "id": "eu-ai-act-2024",
+      "year": 2024,
+      "kind": "system",
+      "status": "evolving",
+      "topic": "ecosystem",
+      "track": "responsibility",
+      "title": {
+        "zh": "欧盟 AI 法案 · 按风险高低给 AI 定规矩",
+        "en": "EU AI Act · Rules scaled to risk"
+      },
+      "hook": {
+        "zh": "分阶段生效；通用模型的提供者要留存训练和测试文档。",
+        "en": "It applies in stages, and providers of general-purpose models must keep training and testing documentation."
+      },
+      "body": {
+        "zh": "AI 用到招聘、信贷和执法这些地方以后，欧盟想用一套统一的法律来管。2024 年 6 月通过的 AI 法案按风险高低定义务，分阶段生效。通用模型的提供者要保存技术文档，写明训练、测试过程和评估结果；法案还把训练用的累计算力当作衡量模型能力的一个近似指标。",
+        "en": "As AI moved into hiring, lending and law enforcement, the EU wanted one set of rules for it. The AI Act, adopted in June 2024, sets obligations by level of risk and applies in stages. Providers of general-purpose models must keep technical documentation covering training, testing and evaluation results, and the Act treats cumulative training compute as one approximation of a model's capability."
+      },
+      "limit": {
+        "zh": "法律写的是义务，具体怎么测、怎么执行，还要靠后续的标准和指南。",
+        "en": "The law sets obligations; how to measure and enforce them depends on later standards and guidance."
+      },
+      "sources": [
+        [
+          "Regulation (EU) 2024/1689 (AI Act), 2024-06-13, OJ 2024-07-12 (Publications Office text)",
+          "https://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0006.03/DOC_1"
+        ]
+      ]
     }
   ],
   "eras": [
@@ -6071,8 +6823,8 @@
         "en": "Power, computation, the transistor"
       },
       "summary": {
-        "zh": "电站把电送进楼里，图灵问什么能算，贝尔实验室造出了晶体管。这些当时互不相干的事，后来成了计算机的地基。",
-        "en": "A power station wired up a city block, Turing asked what can be computed, and Bell Labs built the transistor. Unrelated at the time, they became the ground computers stand on."
+        "zh": "电站把电送进楼里，交流电又把电送到远处；图灵问什么能算，冯·诺伊曼把程序放进存储器，贝尔实验室造出了晶体管。这些当时互不相干的事，后来成了计算机的地基。",
+        "en": "Power stations wired up city blocks and AC carried power far away; Turing asked what can be computed, von Neumann put the program in memory, and Bell Labs built the transistor. Unrelated at the time, they became the ground computers stand on."
       },
       "featured": [
         "energy-pearl-street-1882",
@@ -6087,11 +6839,12 @@
             "en": "Power & facilities"
           },
           "summary": {
-            "zh": "珍珠街电站把发电和配电合成一项大家共用的服务：用户不用自己发电，接上供电线路就行。先从这里看计算之外的基础设施问题。",
-            "en": "Pearl Street bundled generation and distribution into a shared service: customers hooked up to a supply instead of making their own electricity. Infrastructure is a good place to start, before computing enters the story."
+            "zh": "珍珠街电站把发电和配电合成一项大家共用的服务：用户不用自己发电，接上供电线路就行。可直流电只能送到附近；尼亚加拉的交流电站让电站可以建在远处。",
+            "en": "Pearl Street bundled generation and distribution into a shared service: customers hooked up to a supply instead of making their own electricity. Its direct current reached only nearby; the AC plant at Niagara let stations stand far from their customers."
           },
           "works": [
-            "energy-pearl-street-1882"
+            "energy-pearl-street-1882",
+            "ac-niagara-1895"
           ]
         },
         {
@@ -6101,11 +6854,12 @@
             "en": "Math & algorithms"
           },
           "summary": {
-            "zh": "要问机器能有多聪明，得先说清“执行一个算法”是什么意思。图灵用一个极简的机器模型，让这个问题可以严格地讨论。",
-            "en": "Before asking how intelligent a machine could be, we need to define what it means to execute an algorithm. Turing made that question precise with a deliberately simple machine model."
+            "zh": "要问机器能有多聪明，得先说清“执行一个算法”是什么意思。图灵用一个极简的机器模型，让这个问题可以严格地讨论；1950 年，他又把“机器能否思考”换成一个可以检验的模仿游戏。",
+            "en": "Before asking how intelligent a machine could be, we need to define what it means to execute an algorithm. Turing made that question precise with a deliberately simple machine model; in 1950 he replaced “Can machines think?” with an imitation game that can be tested."
           },
           "works": [
-            "turing-computability-1936"
+            "turing-computability-1936",
+            "turing-test-1950"
           ]
         },
         {
@@ -6115,10 +6869,11 @@
             "en": "Chips & compute"
           },
           "summary": {
-            "zh": "电话网需要可靠的放大器件。点接触晶体管证明了半导体能放大信号；但离后来装下大量晶体管的芯片，还有很多工程工作要做。",
-            "en": "The telephone network needed reliable amplifiers. The point-contact transistor showed that a semiconductor could amplify a signal; packing huge numbers of transistors onto a chip took a great deal more engineering."
+            "zh": "EDVAC 报告把机器分成运算、控制、存储、输入和输出，指令也放进存储器。电话网需要可靠的放大器件，点接触晶体管证明了半导体能放大信号；但离后来装下大量晶体管的芯片，还有很多工程工作要做。",
+            "en": "The EDVAC report divided the machine into arithmetic, control, memory, input and output, with instructions held in memory. The telephone network needed reliable amplifiers, and the point-contact transistor showed that a semiconductor could amplify a signal; packing huge numbers of transistors onto a chip took a great deal more engineering."
           },
           "works": [
+            "edvac-1945",
             "transistor-1947"
           ]
         },
@@ -6164,12 +6919,12 @@
         "en": "Networked machines, knowledge as rules"
       },
       "summary": {
-        "zh": "编程语言、磁盘和网络让计算机越来越好用。AI 在 1956 年起步，主流做法是把专家知识写成一条条规则。",
-        "en": "Programming languages, disks and networks made computers easier to use. AI began in 1956, and the main approach was to write expert knowledge down as rules."
+        "zh": "集成电路把整块电路做进一块半导体，编程语言、磁盘和网络让计算机越来越好用。AI 在 1956 年起步，主流做法是把专家知识写成一条条规则。",
+        "en": "Integrated circuits put whole circuits on one piece of semiconductor, while programming languages, disks and networks made computers easier to use. AI began in 1956, and the main approach was to write expert knowledge down as rules."
       },
       "featured": [
         "dartmouth",
-        "dennard-dram-patent-1967",
+        "integrated-circuit-1959",
         "software-unix-1969"
       ],
       "branches": [
@@ -6180,14 +6935,15 @@
             "en": "Symbolic AI & expert systems"
           },
           "summary": {
-            "zh": "如果专家能说出自己的判断规则，能不能把规则交给机器？从证明搜索、解读质谱的 DENDRAL 到 MYCIN，这条路线尝试显式表达知识，再让程序据此推理。",
-            "en": "If experts can state their reasoning as rules, could a machine use them? From proof search through DENDRAL, which read mass spectra, to MYCIN, this approach represented knowledge explicitly and built programs that reasoned with it."
+            "zh": "如果专家能说出自己的判断规则，能不能把规则交给机器？从证明搜索、解读质谱的 DENDRAL 到 MYCIN，这条路线尝试显式表达知识，再让程序据此推理。1985 年的贝叶斯网络换了个办法处理不确定的证据：把变量画成依赖图，在图上传递信念。",
+            "en": "If experts can state their reasoning as rules, could a machine use them? From proof search through DENDRAL, which read mass spectra, to MYCIN, this approach represented knowledge explicitly and built programs that reasoned with it. Bayesian networks, in 1985, handled uncertain evidence another way: draw the variables as a dependency graph and pass beliefs along it."
           },
           "works": [
             "dartmouth",
             "symbolic",
             "dendral-1969",
-            "mycin"
+            "mycin",
+            "bayesian-networks-1985"
           ]
         },
         {
@@ -6197,10 +6953,12 @@
             "en": "Networks & interconnects"
           },
           "summary": {
-            "zh": "先让两台相隔很远的主机互相通信，再解决附近许多机器怎样共用线路，最后让不同的网络也能互通。ARPANET、Ethernet 和 TCP/IP 解决的是不同层次的问题。",
-            "en": "Getting distant hosts to talk, letting nearby machines share one cable, and joining different networks together are separate problems. ARPANET, Ethernet, and TCP/IP each tackle a different layer."
+            "zh": "分组交换把消息切成小块逐站转发，低损耗光纤让光信号在玻璃里传得更远。之后，ARPANET 让相隔很远的主机互相通信，Ethernet 让附近许多机器共用线路，TCP/IP 让不同的网络也能互通。",
+            "en": "Packet switching cut messages into blocks forwarded hop by hop, and low-loss fibre carried light far through glass. Then ARPANET got distant hosts talking, Ethernet let nearby machines share one cable, and TCP/IP joined different networks together."
           },
           "works": [
+            "packet-switching-1964",
+            "optical-fibre-1966",
             "networks-arpanet-1969",
             "networks-ethernet-paper-1976",
             "networks-tcp-ip-transition-1983"
@@ -6213,11 +6971,12 @@
             "en": "Systems software"
           },
           "summary": {
-            "zh": "FORTRAN 让科学计算按公式来写，由编译器生成够快的机器码；C 让 Unix 内核也能用高级语言写。Unix 把文件、进程和命令组织成交互式工作环境，GNU 又问：这套日常依赖的软件，能不能由使用者自由分享和修改？",
-            "en": "FORTRAN let scientific programs be written as formulas, with a compiler producing fast enough machine code; C let even the Unix kernel be written in a high-level language. Unix organized files, processes, and commands into an interactive working environment, and GNU then asked who should be able to share and modify the software people depended on."
+            "zh": "FORTRAN 让科学计算按公式来写，由编译器生成够快的机器码；LISP 让程序处理符号表达式，成了 AI 研究的常用语言；C 让 Unix 内核也能用高级语言写。Unix 把文件、进程和命令组织成交互式工作环境，GNU 又问：这套日常依赖的软件，能不能由使用者自由分享和修改？",
+            "en": "FORTRAN let scientific programs be written as formulas, with a compiler producing fast enough machine code; LISP let programs work on symbolic expressions and became AI research's working language; C let even the Unix kernel be written in a high-level language. Unix organized files, processes, and commands into an interactive working environment, and GNU then asked who should be able to share and modify the software people depended on."
           },
           "works": [
             "software-fortran-1957",
+            "lisp-1960",
             "software-unix-1969",
             "software-c-language-1973",
             "software-gnu-announcement-1983"
@@ -6230,13 +6989,15 @@
             "en": "Memory & storage"
           },
           "summary": {
-            "zh": "磁盘让大文件里的任意一条记录可以直接取用；DRAM 关心怎样把更多位放进芯片，缓存关心怎样减少处理器等待。存得多、找得到、取得快，是不同层次的改进。",
-            "en": "Disk storage let any record in a large file be fetched directly; DRAM packed more bits into chips; caches cut processor waits. Capacity, direct access, and speed are improvements at different levels."
+            "zh": "磁盘让大文件里的任意一条记录可以直接取用；Atlas 让快慢两层存储看起来像一层；DRAM 关心怎样把更多位放进芯片，缓存关心怎样减少处理器等待；闪存可以用电整块擦除。存得多、找得到、取得快，是不同层次的改进。",
+            "en": "Disk storage let any record in a large file be fetched directly; Atlas made a fast and a slow store look like one; DRAM packed more bits into chips; caches cut processor waits; flash could be erased electrically a block at a time. Capacity, direct access, and speed are improvements at different levels."
           },
           "works": [
             "memory-ibm-ramac-disk-1956",
+            "atlas-virtual-memory-1962",
             "dennard-dram-patent-1967",
-            "ibm-model85-cache-1968"
+            "ibm-model85-cache-1968",
+            "flash-memory-1984"
           ]
         },
         {
@@ -6246,13 +7007,17 @@
             "en": "Chips & compute"
           },
           "summary": {
-            "zh": "System/360 把程序看到的指令集和各型号的硬件实现分开；Moore 估计一块电路上最省钱的元件数每年约翻一倍；4004 把 CPU 做进一颗芯片。兼容、集成度和单芯片处理器，是不同层次的问题。",
-            "en": "System/360 separated the instruction set programs see from each model's hardware; Moore estimated that the cheapest number of components per circuit doubled about every year; the 4004 put a CPU on one chip. Compatibility, integration density, and single-chip processors are problems at different levels."
+            "zh": "集成电路把整块电路做进一块半导体，MOSFET 用电场开关电流。System/360 把指令集和各型号的硬件分开；Moore 估计集成度每年约翻一倍；Dennard 给出器件怎样按比例缩小；4004 把 CPU 做进一颗芯片；RISC 主张单芯片处理器只用精简的指令。",
+            "en": "The integrated circuit built a whole circuit in one piece of semiconductor, and the MOSFET switched current with an electric field. System/360 separated the instruction set from each model's hardware; Moore estimated that integration roughly doubled every year; Dennard showed how devices should shrink; the 4004 put a CPU on one chip; RISC argued for single-chip processors with reduced instruction sets."
           },
           "works": [
+            "integrated-circuit-1959",
+            "mosfet-1960",
             "chips-ibm-system360-1964",
             "chips-moore-cramming-1965",
-            "intel-4004-1971"
+            "intel-4004-1971",
+            "dennard-scaling-1974",
+            "risc-1980"
           ]
         },
         {
@@ -6262,12 +7027,14 @@
             "en": "Math & algorithms"
           },
           "summary": {
-            "zh": "求最短路，直觉上像是把所有路线都试一遍；算 N 点傅里叶级数，直觉上要做 N² 次乘加。换个好的计算顺序，两者都能省掉大部分工作：进步可以来自算法，不一定靠更多硬件。",
-            "en": "Finding a shortest path sounds like trying every route, and an N-point Fourier sum sounds like N² multiply-adds. A smarter order of work skips most of that in both cases: progress can come from the algorithm, not from more hardware."
+            "zh": "求最短路，直觉上像是把所有路线都试一遍；算 N 点傅里叶级数，直觉上要做 N² 次乘加。换个好的计算顺序，两者都能省掉大部分工作。卡尔曼滤波和 EM 算法处理的是另一类问题：测量有噪声、数据缺一块时，怎样一步步逼近最好的估计。",
+            "en": "Finding a shortest path sounds like trying every route, and an N-point Fourier sum sounds like N² multiply-adds. A smarter order of work skips most of that in both cases. The Kalman filter and the EM algorithm handle another kind of problem: reaching the best estimate step by step when measurements are noisy or part of the data is hidden."
           },
           "works": [
             "dijkstra-shortest-path-1959",
-            "cooley-tukey-fft-1965"
+            "kalman-filter-1960",
+            "cooley-tukey-fft-1965",
+            "em-algorithm-1977"
           ]
         },
         {
@@ -6493,6 +7260,20 @@
             "grouplens-1994",
             "okapi-bm25-1994"
           ]
+        },
+        {
+          "id": "field-chips",
+          "title": {
+            "zh": "芯片与计算",
+            "en": "Chips & compute"
+          },
+          "summary": {
+            "zh": "1987 年起，设计芯片的公司可以不建晶圆厂，把制造交给台积电这样只做代工的工厂。",
+            "en": "From 1987, chip designers could skip building a fab and hand manufacturing to a pure-play foundry such as TSMC."
+          },
+          "works": [
+            "tsmc-foundry-1987"
+          ]
         }
       ]
     },
@@ -6717,6 +7498,20 @@
           "works": [
             "netflix-prize-matrix-factorization-2009"
           ]
+        },
+        {
+          "id": "neural-language",
+          "title": {
+            "zh": "用神经网络预测下一个词",
+            "en": "Predicting the next word with a neural network"
+          },
+          "summary": {
+            "zh": "n-gram 模型只认得见过的词组。神经语言模型给每个词学一个向量，意思相近的词向量相近，没见过的句子也能估计。",
+            "en": "N-gram models know only the word sequences they have seen. A neural language model learns a vector for every word, so similar words sit close together and unseen sentences can still be scored."
+          },
+          "works": [
+            "neural-language-model-2003"
+          ]
         }
       ]
     },
@@ -6869,6 +7664,20 @@
           "works": [
             "adam-optimizer-2014"
           ]
+        },
+        {
+          "id": "generative",
+          "title": {
+            "zh": "让网络生成样本",
+            "en": "Networks that generate samples"
+          },
+          "summary": {
+            "zh": "GAN 让生成器和判别器对抗着训练：生成器学着造出判别器分不出真假的样本。",
+            "en": "GANs train a generator against a discriminator: the generator learns to make samples the discriminator cannot tell from real ones."
+          },
+          "works": [
+            "gan-2014"
+          ]
         }
       ]
     },
@@ -6974,12 +7783,13 @@
             "en": "People & institutions"
           },
           "summary": {
-            "zh": "数据和模型都牵涉到具体的人。联邦学习让手机上的数据留在本地、只上传模型更新，但更新本身仍可能泄露信息；Model Cards 提醒，模型总分不错，也可能在某些人群或场景上很差，发布时要交代评估条件和使用边界。一个管训练数据放在哪，一个管发布时说清什么。",
-            "en": "Data and models both involve real people. Federated learning keeps phone data on the device and uploads only model updates, though updates can still leak information. Model Cards point out that a model with a good overall score may still do badly for some groups or settings, so a release should state evaluation conditions and intended uses. One concerns where training data lives, the other what a release discloses."
+            "zh": "数据和模型都牵涉到具体的人。联邦学习让手机上的数据留在本地、只上传模型更新，但更新本身仍可能泄露信息；Gender Shades 按肤色和性别分组，发现商用人脸分类器在深肤色女性上错得最多；Model Cards 提醒，发布模型时要交代评估条件和使用边界。",
+            "en": "Data and models both involve real people. Federated learning keeps phone data on the device and uploads only model updates, though updates can still leak information. Gender Shades broke results down by skin type and gender and found commercial face classifiers erred most on darker-skinned women. Model Cards ask that a release state its evaluation conditions and intended uses."
           },
           "works": [
             "ecosystem-federated-learning-2016",
-            "model-cards-2018"
+            "model-cards-2018",
+            "gender-shades-2018"
           ]
         },
         {
@@ -7124,12 +7934,13 @@
             "en": "Large language models"
           },
           "summary": {
-            "zh": "给同一个 GPT-3 换上不同的指令和示例，它就能去试不同的任务，变的是上下文，权重没有跟着任务更新。缩放定律想回答另一个问题：算力一定时，模型该多大、数据该多少。",
-            "en": "Give the same GPT-3 different instructions and examples and it will attempt different tasks; what changes is the context, not the weights. Scaling laws asked a different question: for a fixed compute budget, how big should the model be and how much data should it see?"
+            "zh": "给同一个 GPT-3 换上不同的指令和示例，它就能去试不同的任务，变的是上下文，权重没有跟着任务更新。缩放定律想回答另一个问题：算力一定时，模型该多大、数据该多少。RAG 则让模型生成之前先去文档库里查。",
+            "en": "Give the same GPT-3 different instructions and examples and it will attempt different tasks; what changes is the context, not the weights. Scaling laws asked a different question: for a fixed compute budget, how big should the model be and how much data should it see? RAG had the model look things up in a document index before generating."
           },
           "works": [
             "gpt3",
             "scaling-laws-2020",
+            "rag-2020",
             "copilot-codex-2021"
           ]
         },
@@ -7170,12 +7981,13 @@
             "en": "Making larger models trainable"
           },
           "summary": {
-            "zh": "训练要保存的不只是权重，还有梯度和优化器状态。Megatron-LM 把每层 Transformer 的矩阵乘法切到服务器内的多张卡上；ZeRO 拆分数据并行中重复保存的状态。两者处理的是不同的部分，ZeRO 论文也把它们组合起来用。",
-            "en": "Training stores gradients and optimizer state as well as weights. Megatron-LM split each Transformer layer's matrix multiplications across the GPUs of a server; ZeRO partitioned redundant data-parallel state. They address different parts of the problem, and the ZeRO paper combines them."
+            "zh": "训练要保存的不只是权重，还有梯度和优化器状态。Megatron-LM 把每层 Transformer 的矩阵乘法切到服务器内的多张卡上；ZeRO 拆分数据并行中重复保存的状态。LoRA 管的是训完以后：冻住大模型，每个任务只训一小块低秩更新。",
+            "en": "Training stores gradients and optimizer state as well as weights. Megatron-LM split each Transformer layer's matrix multiplications across the GPUs of a server; ZeRO partitioned redundant data-parallel state. LoRA works after pretraining: freeze the large model and train only a small low-rank update for each task."
           },
           "works": [
             "zero",
-            "distributed-megatron-lm-2019"
+            "distributed-megatron-lm-2019",
+            "lora-2021"
           ]
         },
         {
@@ -7235,6 +8047,20 @@
           },
           "works": [
             "software-triton-mapl-2019"
+          ]
+        },
+        {
+          "id": "driverless",
+          "title": {
+            "zh": "驾驶座上没人",
+            "en": "Nobody at the wheel"
+          },
+          "summary": {
+            "zh": "2020 年，Waymo 在凤凰城向公众开放完全无人驾驶的叫车服务。",
+            "en": "In 2020 Waymo opened fully driverless rides to the public in Phoenix."
+          },
+          "works": [
+            "waymo-driverless-2020"
           ]
         }
       ]
@@ -7300,6 +8126,20 @@
           "works": [
             "flash",
             "vllm"
+          ]
+        },
+        {
+          "id": "prompting",
+          "title": {
+            "zh": "把推理写出来",
+            "en": "Writing out the reasoning"
+          },
+          "summary": {
+            "zh": "思维链提示在示例里写出推理步骤，足够大的模型在多步推理上明显变好。",
+            "en": "Chain-of-thought prompting shows worked reasoning in the examples, and sufficiently large models do much better at multi-step problems."
+          },
+          "works": [
+            "chain-of-thought-2022"
           ]
         },
         {
@@ -7514,6 +8354,20 @@
           },
           "works": [
             "cyber-release-2026"
+          ]
+        },
+        {
+          "id": "ai-law",
+          "title": {
+            "zh": "用法律管 AI",
+            "en": "Governing AI by law"
+          },
+          "summary": {
+            "zh": "欧盟 AI 法案按风险高低给 AI 定义务，通用模型的提供者要留存训练和测试文档。",
+            "en": "The EU AI Act sets obligations by level of risk, and providers of general-purpose models must keep training and testing documentation."
+          },
+          "works": [
+            "eu-ai-act-2024"
           ]
         },
         {
@@ -9420,6 +10274,346 @@
         "en": "DeepMind's Aletheia research agent runs on an advanced version of the IMO-gold Gemini Deep Think and takes it from competition problems to open Erdős problems."
       },
       "source": "https://arxiv.org/abs/2602.10177v1"
+    },
+    {
+      "from": "chips-moore-cramming-1965",
+      "to": "integrated-circuit-1959",
+      "type": "uses",
+      "description": {
+        "zh": "Moore 1965 年的文章预测的就是集成电路：一块电路上最省钱的元件数会怎样增长。",
+        "en": "Moore's 1965 paper forecasts integrated circuits: how the cheapest number of components per circuit will grow."
+      },
+      "source": "https://www.cs.utexas.edu/~fussell/courses/cs352h/papers/moore.pdf"
+    },
+    {
+      "from": "intel-4004-1971",
+      "to": "integrated-circuit-1959",
+      "type": "uses",
+      "description": {
+        "zh": "MCS-4 的发布广告把这套芯片组介绍为四颗新的集成电路。",
+        "en": "The MCS-4 announcement presents the chip set as four new ICs."
+      },
+      "source": "https://4004.com/history/1971-announcement/"
+    },
+    {
+      "from": "integrated-circuit-1959",
+      "to": "transistor-1947",
+      "type": "uses",
+      "description": {
+        "zh": "Kilby 的专利把晶体管、二极管、电阻和电容都做进同一块半导体。",
+        "en": "Kilby's patent builds transistors, diodes, resistors and capacitors into one body of semiconductor."
+      },
+      "source": "https://patents.google.com/patent/US3138743A/en"
+    },
+    {
+      "from": "dennard-dram-patent-1967",
+      "to": "mosfet-1960",
+      "type": "uses",
+      "description": {
+        "zh": "Dennard 的单管 DRAM 专利题为“场效应晶体管存储器”，每一位用一个场效应管加一个电容存储。",
+        "en": "Dennard's one-transistor DRAM patent, “Field-effect transistor memory”, stores each bit with one field-effect transistor and a capacitor."
+      },
+      "source": "https://patents.google.com/patent/US3387286A/en"
+    },
+    {
+      "from": "dennard-scaling-1974",
+      "to": "mosfet-1960",
+      "type": "uses",
+      "description": {
+        "zh": "这篇论文给出 MOSFET 按比例缩小的规则：尺寸、电压一起缩，功率密度不变。",
+        "en": "The paper gives the rules for shrinking a MOSFET: scale dimensions and voltage together and power density stays the same."
+      },
+      "source": "https://www.eng.auburn.edu/~agrawvd/COURSE/READING/LOWP/Design%20of%20ion-implanted%20MOSFETs%20with%20very%20small%20physical%20dimensions.pdf"
+    },
+    {
+      "from": "chips-tpu-v1-paper-2017",
+      "to": "risc-1980",
+      "type": "complements",
+      "description": {
+        "zh": "TPU 论文说它的指令沿用 CISC 传统，一条指令平均要跑 10 到 20 个时钟周期。",
+        "en": "The TPU paper says its instructions follow the CISC tradition, averaging 10 to 20 clock cycles each."
+      },
+      "source": "https://arxiv.org/pdf/1704.04760v1"
+    },
+    {
+      "from": "risc-1980",
+      "to": "chips-ibm-system360-1964",
+      "type": "complements",
+      "description": {
+        "zh": "RISC 论文引用一个 IBM 360 编译器的统计：10 条指令占了 80% 的执行。",
+        "en": "The RISC paper cites one IBM 360 compiler in which 10 instructions accounted for 80% of execution."
+      },
+      "source": "https://cs.utexas.edu/~fussell/courses/cs352h/papers/risc.pdf"
+    },
+    {
+      "from": "nvidia-hopper-2022",
+      "to": "tsmc-foundry-1987",
+      "type": "uses",
+      "description": {
+        "zh": "H100 有 800 亿个晶体管，用台积电的 4N 工艺制造。",
+        "en": "H100 has 80 billion transistors and is built on TSMC's 4N process."
+      },
+      "source": "https://nvidianews.nvidia.com/news/nvidia-announces-hopper-architecture-the-next-generation-of-accelerated-computing"
+    },
+    {
+      "from": "chips-euv-volume-production-2019",
+      "to": "tsmc-foundry-1987",
+      "type": "complements",
+      "description": {
+        "zh": "台积电宣布，N7+ 是第一个大批量为客户交付产品的 EUV 工艺。",
+        "en": "TSMC announced N7+ as the first EUV process delivering customer products to market in high volume."
+      },
+      "source": "https://pr.tsmc.com/english/news/2010"
+    },
+    {
+      "from": "diffusion",
+      "to": "gan-2014",
+      "type": "complements",
+      "description": {
+        "zh": "DDPM 把 GAN 列为此前的生成模型之一，并拿 ProgressiveGAN 比较样本质量。",
+        "en": "DDPM lists GANs among earlier generative models and compares its sample quality with ProgressiveGAN."
+      },
+      "source": "https://arxiv.org/abs/2006.11239"
+    },
+    {
+      "from": "word2vec-2013",
+      "to": "neural-language-model-2003",
+      "type": "adapts",
+      "description": {
+        "zh": "word2vec 从 Bengio 等人的前馈神经网络语言模型讲起，去掉其中最费时的非线性隐藏层，专门学词向量。",
+        "en": "word2vec starts from the feedforward neural network language model of Bengio et al. and drops its costly non-linear hidden layer to learn word vectors alone."
+      },
+      "source": "https://arxiv.org/pdf/1301.3781v1"
+    },
+    {
+      "from": "networks-ethernet-paper-1976",
+      "to": "packet-switching-1964",
+      "type": "complements",
+      "description": {
+        "zh": "Ethernet 论文的题目就是“局域网的分布式分组交换”，开头还说 ARPA 网络推动了把计算机当分组交换机来用。",
+        "en": "The Ethernet paper is titled “Distributed Packet Switching for Local Computer Networks”, and its introduction credits the ARPA network with advancing computers as packet switches."
+      },
+      "source": "https://www.cl.cam.ac.uk/teaching/1920/CompNet/files/p395-metcalfe.pdf"
+    },
+    {
+      "from": "shakey-1971",
+      "to": "lisp-1960",
+      "type": "uses",
+      "description": {
+        "zh": "Shakey 的技术报告说，LISP 是团队的主要编程工具。",
+        "en": "Shakey's technical note names LISP as the team's principal programming tool."
+      },
+      "source": "https://ai.stanford.edu/~nilsson/OnlinePubs-Nils/shakey-the-robot.pdf"
+    },
+    {
+      "from": "dartmouth",
+      "to": "lisp-1960",
+      "type": "complements",
+      "description": {
+        "zh": "McCarthy 回忆，他想要一门做 AI 用的代数式表处理语言，这个念头起于 1956 年夏天的 Dartmouth 会议。",
+        "en": "McCarthy recalled that his wish for an algebraic list-processing language for AI arose during the 1956 Dartmouth summer project."
+      },
+      "source": "https://www-formal.stanford.edu/jmc/history/lisp/node2.html"
+    },
+    {
+      "from": "o1-2024",
+      "to": "chain-of-thought-2022",
+      "type": "uses",
+      "description": {
+        "zh": "o1 用强化学习训练模型怎样用思维链思考，学着发现错误、换个办法。",
+        "en": "o1 uses reinforcement learning to train how the model thinks with its chain of thought, learning to catch mistakes and try other approaches."
+      },
+      "source": "https://openai.com/index/learning-to-reason-with-llms/"
+    },
+    {
+      "from": "deepseek-r1",
+      "to": "chain-of-thought-2022",
+      "type": "uses",
+      "description": {
+        "zh": "R1 论文开头说，o1 靠加长思维链在推理时多用算力；R1-Zero 只用强化学习，思维链就越写越长。",
+        "en": "The R1 paper opens by noting that o1 scaled inference by lengthening the chain of thought; R1-Zero, trained with RL alone, learned to write ever longer chains."
+      },
+      "source": "https://arxiv.org/html/2501.12948v1"
+    },
+    {
+      "from": "vllm",
+      "to": "atlas-virtual-memory-1962",
+      "type": "adapts",
+      "description": {
+        "zh": "PagedAttention 借用操作系统的虚拟内存和分页，论文引了 Kilburn 等人 1962 年的 Atlas 论文。",
+        "en": "PagedAttention borrows virtual memory and paging from operating systems, citing Kilburn et al.'s 1962 Atlas paper."
+      },
+      "source": "https://arxiv.org/abs/2309.06180"
+    },
+    {
+      "from": "stanley-grand-challenge-2005",
+      "to": "kalman-filter-1960",
+      "type": "uses",
+      "description": {
+        "zh": "Stanley 用一个无迹卡尔曼滤波器估计车的位置、朝向和速度。",
+        "en": "Stanley estimates the vehicle's position, orientation and velocity with an unscented Kalman filter."
+      },
+      "source": "https://robots.stanford.edu/papers/thrun.stanley05.pdf"
+    },
+    {
+      "from": "ibm-smt-1993",
+      "to": "em-algorithm-1977",
+      "type": "uses",
+      "description": {
+        "zh": "IBM 的五个翻译模型用 EM 算法反复迭代来估计参数。",
+        "en": "IBM's five translation models estimate their parameters by iterating the EM algorithm."
+      },
+      "source": "https://aclanthology.org/J93-2003.pdf"
+    },
+    {
+      "from": "hmm-rabiner-tutorial-1989",
+      "to": "em-algorithm-1977",
+      "type": "complements",
+      "description": {
+        "zh": "Rabiner 指出，HMM 的 Baum-Welch 重估计和 EM 算法是等价的。",
+        "en": "Rabiner notes that Baum–Welch re-estimation for HMMs is equivalent to the EM algorithm."
+      },
+      "source": "https://web.mit.edu/6.435/www/Rabiner89.pdf"
+    },
+    {
+      "from": "rag-2020",
+      "to": "okapi-bm25-1994",
+      "type": "complements",
+      "description": {
+        "zh": "RAG 的消融实验把可学习的稠密检索器换成固定的 BM25；在 FEVER 上，BM25 反而最好。",
+        "en": "RAG's ablations swap its learned dense retriever for a fixed BM25 one; on FEVER, BM25 did best."
+      },
+      "source": "https://arxiv.org/abs/2005.11401v1"
+    },
+    {
+      "from": "rag-2020",
+      "to": "bert",
+      "type": "uses",
+      "description": {
+        "zh": "RAG 的检索器里，查询和文档各用一个 BERT 编码成向量。",
+        "en": "In RAG's retriever, queries and documents are each encoded into vectors by a BERT model."
+      },
+      "source": "https://arxiv.org/abs/2005.11401v1"
+    },
+    {
+      "from": "ac-niagara-1895",
+      "to": "energy-pearl-street-1882",
+      "type": "complements",
+      "description": {
+        "zh": "IEEE 把 Adams 电站记作交流电胜过直流电的关键一役；珍珠街供的是直流电。",
+        "en": "IEEE records the Adams plant as a key victory of AC over DC; Pearl Street supplied DC."
+      },
+      "source": "https://ethw.org/Milestones:Adams_Hydroelectric_Generating_Plant,_1895"
+    },
+    {
+      "from": "turing-test-1950",
+      "to": "turing-computability-1936",
+      "type": "adapts",
+      "description": {
+        "zh": "文章第 5 节说，数字计算机能模仿任何离散状态机，所以是通用机器。",
+        "en": "Section 5 argues that digital computers can mimic any discrete-state machine, which makes them universal machines."
+      },
+      "source": "https://redirect.cs.umbc.edu/courses/471/papers/turing.pdf"
+    },
+    {
+      "from": "lora-2021",
+      "to": "gpt3",
+      "type": "adapts",
+      "description": {
+        "zh": "LoRA 主要在 GPT-3 175B 上检验：冻住它的权重，只训低秩更新。",
+        "en": "LoRA is tested chiefly on GPT-3 175B, freezing its weights and training only low-rank updates."
+      },
+      "source": "https://arxiv.org/abs/2106.09685v1"
+    },
+    {
+      "from": "model-cards-2018",
+      "to": "gender-shades-2018",
+      "type": "uses",
+      "description": {
+        "zh": "Model Cards 的引言引用 Gender Shades，说明人脸属性检测在不同人群上表现不一。",
+        "en": "The Model Cards introduction cites Gender Shades on face-attribute detection performing unevenly across groups."
+      },
+      "source": "https://arxiv.org/html/1810.03993v2"
+    },
+    {
+      "from": "datasheets-2018",
+      "to": "gender-shades-2018",
+      "type": "uses",
+      "description": {
+        "zh": "Datasheets 开头举 Gender Shades 为例：商用性别分类系统在深肤色女性上错误率更高。",
+        "en": "Datasheets opens with Gender Shades as an example: commercial gender classifiers err more on darker-skinned women."
+      },
+      "source": "https://arxiv.org/html/1803.09010v8"
+    },
+    {
+      "from": "eu-ai-act-2024",
+      "to": "model-cards-2018",
+      "type": "complements",
+      "description": {
+        "zh": "法案要求通用模型的提供者保存并提供技术文档；Model Cards 提议的是随模型发布的说明。",
+        "en": "The Act requires providers of general-purpose models to keep and supply technical documentation; Model Cards proposed documentation released alongside a model."
+      },
+      "source": "https://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0006.03/DOC_1"
+    },
+    {
+      "from": "software-fortran-1957",
+      "to": "edvac-1945",
+      "type": "adapts",
+      "description": {
+        "zh": "Backus 后来把 FORTRAN 这类语言叫作“冯·诺伊曼语言”：变量模仿存储单元，赋值模仿一次次取数和存数。",
+        "en": "Backus later called FORTRAN and its successors “von Neumann languages”: variables imitate storage cells, and assignment imitates fetching and storing one word at a time."
+      },
+      "source": "https://www.cs.cmu.edu/~crary/819-f09/Backus78.pdf"
+    },
+    {
+      "from": "energy-warehouse-scale-computing-2009",
+      "to": "flash-memory-1984",
+      "type": "complements",
+      "description": {
+        "zh": "书里说，闪存和 DRAM 每 GB 太贵，放不下大量或很少访问的数据，所以机房里仍以磁盘为主。",
+        "en": "The book notes that flash, like DRAM, cost too much per gigabyte for large or rarely used data, so disks still dominated."
+      },
+      "source": "https://zhjwpku.com/assets/pdf/TheDatacenterAsaComputer.pdf"
+    },
+    {
+      "from": "bayesian-networks-1985",
+      "to": "mycin",
+      "type": "complements",
+      "description": {
+        "zh": "MYCIN 的主要作者 Shortliffe 和 Heckerman 后来写道，贝叶斯网络克服了 MYCIN 确定性因子的许多局限，他们的实验室也早已不再用确定性因子。",
+        "en": "Shortliffe, MYCIN's lead author, and Heckerman later wrote that belief networks overcome many limits of MYCIN's certainty factors, which their lab had long stopped using."
+      },
+      "source": "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/From-Certainty-Factors-to-Belief-Networks.pdf"
+    },
+    {
+      "from": "bayesian-networks-1985",
+      "to": "hmm-rabiner-tutorial-1989",
+      "type": "complements",
+      "description": {
+        "zh": "Smyth、Heckerman 和 Jordan 把 HMM 画成一张贝叶斯网络，Rabiner 讲的前向-后向和 Viterbi 算法，都是图上通用推理的特例。",
+        "en": "Smyth, Heckerman and Jordan draw the HMM as a belief network and show that Rabiner's forward–backward and Viterbi algorithms are special cases of general graph inference."
+      },
+      "source": "https://authors.library.caltech.edu/records/925sy-akr15/files/SMYnc97.pdf"
+    },
+    {
+      "from": "waymo-driverless-2020",
+      "to": "stanley-grand-challenge-2005",
+      "type": "complements",
+      "description": {
+        "zh": "Waymo 的前身是 Google 的无人车项目。Thrun 说，团队从 DARPA 挑战赛招来工程师，其中就有 Stanley 的软件负责人 Montemerlo。",
+        "en": "Waymo grew out of Google's self-driving project, which Thrun said recruited engineers from the DARPA Challenges, among them Montemerlo, Stanley's software lead."
+      },
+      "source": "https://googleblog.blogspot.com/2010/10/what-were-driving-at.html"
+    },
+    {
+      "from": "networks-ethernet-paper-1976",
+      "to": "optical-fibre-1966",
+      "type": "complements",
+      "description": {
+        "zh": "Ethernet 论文说，作为传输介质的 Ether 可以用同轴电缆、双绞线或光纤来做。",
+        "en": "The Ethernet paper says the Ether, its transmission medium, can be built from coaxial cable, twisted pairs or optical fibres."
+      },
+      "source": "https://www.cl.cam.ac.uk/teaching/1920/CompNet/files/p395-metcalfe.pdf"
     }
   ]
 }
