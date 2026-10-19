@@ -83,6 +83,11 @@
 .ch-item time { flex: none; color: var(--muted); font: 600 .76rem/1.4 var(--mono); }
 .ch-item-name { font-size: .98rem; font-weight: 640; line-height: 1.4; letter-spacing: -.005em; }
 .ch-item-hook { display: block; margin-top: .25rem; padding-left: 3.05rem; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+/* the 3D object beside each card (chronicle-artifacts.js); the space is kept only once the script runs */
+.ch-art { position: absolute; right: .7rem; top: 50%; width: 64px; height: 64px; margin-top: -32px; cursor: grab; touch-action: none; }
+.ch-art:active { cursor: grabbing; }
+.ch-art[hidden] { display: none; }
+.ch-art-ready .prose .ch-item, .prose .ch-art-ready .ch-item { padding-right: 5.6rem; }
 .ch-more { display: inline-flex; align-items: center; gap: .4rem; margin: .4rem 0 0 1.6rem; padding: .48rem .9rem; border: 1px solid var(--rule); border-radius: 999px; background: none;
   color: var(--ink-soft); font: 500 .8rem/1 var(--body); cursor: pointer; }
 .ch-more::after { content: "↓"; font-family: var(--mono); }
@@ -153,6 +158,8 @@
   .ch-fields { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .ch-fields::-webkit-scrollbar { display: none; }
   .ch-item-hook { padding-left: 0; }
+  .ch-art { width: 48px; height: 48px; margin-top: -24px; right: .5rem; }
+  .prose .ch-art-ready .ch-item { padding-right: 4.2rem; }
   .ch-panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: min(82vh, 760px); border-radius: 20px; animation-name: ch-sheet-in; }
   @keyframes ch-sheet-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   .ch-panel-body { padding: .4rem 1.2rem 1.4rem; }

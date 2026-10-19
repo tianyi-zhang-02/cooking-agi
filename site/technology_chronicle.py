@@ -169,8 +169,11 @@ def render(data, language):
         title = split_title(node["title"][language])[0]
         line = hook(node)
         line = f'<span class="ch-item-hook">{escape(line)}</span>' if line else ''
+        # chronicle-artifacts.js draws a small 3D object for each milestone in this canvas; hidden without JavaScript
+        art = (f'<canvas class="ch-art" data-art="{name}" data-topic="{node["topic"]}" data-track="{node.get("track", "")}" '
+               f'width="128" height="128" aria-hidden="true" hidden></canvas>')
         return (f'<li data-work-topic="{node["topic"]}" data-layer="{layer}"{" data-key" if key else ""}><a class="ch-item" href="#event-{name}" data-node="{name}" data-topic="{node["topic"]}" data-layer="{layer}">'
-                f'<span class="ch-item-top"><time>{node["year"]}</time><span class="ch-item-name">{escape(title)}</span></span>{line}</a></li>')
+                f'<span class="ch-item-top"><time>{node["year"]}</time><span class="ch-item-name">{escape(title)}</span></span>{line}</a>{art}</li>')
 
     periods = []
     for era in data["eras"]:
