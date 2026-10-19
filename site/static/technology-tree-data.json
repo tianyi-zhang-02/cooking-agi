@@ -8734,6 +8734,406 @@
         "en": "Fifth-generation NVLink extends direct GPU links into one domain across a 72-GPU rack."
       },
       "source": "https://www.nvidia.com/en-us/data-center/gb200-nvl72/"
+    },
+    {
+      "from": "instructgpt",
+      "to": "gpt3",
+      "type": "adapts",
+      "description": {
+        "zh": "从预训练好的 GPT-3 出发，再用人写的示范和排序微调。",
+        "en": "It starts from the pretrained GPT-3 models and fine-tunes them with human demonstrations and rankings."
+      },
+      "source": "https://arxiv.org/abs/2203.02155"
+    },
+    {
+      "from": "instructgpt",
+      "to": "ppo",
+      "type": "uses",
+      "description": {
+        "zh": "强化学习那一步用 PPO 去提高奖励模型给的分。",
+        "en": "Its reinforcement-learning step maximises the reward model's score with PPO."
+      },
+      "source": "https://arxiv.org/abs/2203.02155"
+    },
+    {
+      "from": "chatgpt",
+      "to": "instructgpt",
+      "type": "adapts",
+      "description": {
+        "zh": "用 InstructGPT 的 RLHF 方法训练，只是数据收集的方式不同。",
+        "en": "Trained with RLHF using InstructGPT's methods, with a different data-collection setup."
+      },
+      "source": "https://openai.com/index/chatgpt/"
+    },
+    {
+      "from": "grpo",
+      "to": "ppo",
+      "type": "adapts",
+      "description": {
+        "zh": "GRPO 是 PPO 的变体：去掉价值模型，用同组回答的分数当基线，省显存。",
+        "en": "A PPO variant that drops the critic and uses group scores as the baseline, saving memory."
+      },
+      "source": "https://arxiv.org/html/2402.03300v3"
+    },
+    {
+      "from": "deepseek-r1",
+      "to": "o1-2024",
+      "type": "complements",
+      "description": {
+        "zh": "R1 的报告以 o1 为参照，在推理任务上报告与 o1-1217 相当。",
+        "en": "The R1 report takes o1 as its reference point and reports parity with o1-1217 on reasoning tasks."
+      },
+      "source": "https://arxiv.org/html/2501.12948v1"
+    },
+    {
+      "from": "dpo",
+      "to": "instructgpt",
+      "type": "adapts",
+      "description": {
+        "zh": "保留 InstructGPT 这条 RLHF 路线的目标，但把奖励模型加强化学习换成一个直接的损失。",
+        "en": "It keeps the RLHF objective of the InstructGPT line but replaces reward modelling plus RL with one direct loss."
+      },
+      "source": "https://arxiv.org/abs/2305.18290"
+    },
+    {
+      "from": "posttraining-open",
+      "to": "vllm",
+      "type": "uses",
+      "description": {
+        "zh": "Tülu 3 的可验证奖励训练用 vLLM 生成回答，每次更新后把权重同步过去。",
+        "en": "Tülu 3's verifiable-reward stage generates rollouts with vLLM and syncs weights to it after each update."
+      },
+      "source": "https://arxiv.org/html/2411.15124v3"
+    },
+    {
+      "from": "llama-3-1-2024",
+      "to": "dpo",
+      "type": "uses",
+      "description": {
+        "zh": "每一轮对齐都把 SFT、拒绝采样和 DPO 组合起来。",
+        "en": "Each alignment round combines supervised fine-tuning, rejection sampling and DPO."
+      },
+      "source": "https://ai.meta.com/blog/meta-llama-3-1/"
+    },
+    {
+      "from": "o1-2024",
+      "to": "mmlu-2020",
+      "type": "uses",
+      "description": {
+        "zh": "OpenAI 报告 o1 在 MMLU 的 57 个子类里有 54 个超过 GPT-4o。",
+        "en": "OpenAI reports o1 ahead of GPT-4o on 54 of 57 MMLU subcategories."
+      },
+      "source": "https://openai.com/index/learning-to-reason-with-llms/"
+    },
+    {
+      "from": "gemini-1-5-2024",
+      "to": "sparse-moe-2017",
+      "type": "adapts",
+      "description": {
+        "zh": "技术报告说 Gemini 1.5 建立在 Shazeer 等人的混合专家架构上。",
+        "en": "Its report describes Gemini 1.5 as built on the mixture-of-experts architecture of Shazeer et al."
+      },
+      "source": "https://arxiv.org/abs/2403.05530v1"
+    },
+    {
+      "from": "flash",
+      "to": "chips-roofline-report-2008",
+      "type": "uses",
+      "description": {
+        "zh": "按算术强度把操作分成算力受限和内存受限，引的是 Roofline。",
+        "en": "It sorts operations into compute- or memory-bound by arithmetic intensity, citing Roofline."
+      },
+      "source": "https://arxiv.org/abs/2205.14135"
+    },
+    {
+      "from": "amd-cdna3-mi300-2023",
+      "to": "hbm-gpu-packaging-2015",
+      "type": "uses",
+      "description": {
+        "zh": "MI300X 带 192 GB HBM3，MI300A 带 128 GB。",
+        "en": "MI300X carries 192 GB of HBM3 and MI300A 128 GB."
+      },
+      "source": "https://www.amd.com/en/newsroom/press-releases/2023-12-6-amd-delivers-leadership-portfolio-of-data-center-a.html"
+    },
+    {
+      "from": "nvidia-hopper-2022",
+      "to": "transformer",
+      "type": "complements",
+      "description": {
+        "zh": "Hopper 加了一个专门服务 Transformer 模型的 Transformer Engine。",
+        "en": "Hopper adds a Transformer Engine aimed at Transformer models."
+      },
+      "source": "https://nvidianews.nvidia.com/news/nvidia-announces-hopper-architecture-the-next-generation-of-accelerated-computing"
+    },
+    {
+      "from": "nvidia-ampere-2020",
+      "to": "nvidia-volta-2017",
+      "type": "adapts",
+      "description": {
+        "zh": "A100 白皮书把 SM、Tensor Core 和内存的改动都写成相对 V100 的提升。",
+        "en": "The A100 whitepaper presents its SM, Tensor Core and memory changes as gains over V100."
+      },
+      "source": "https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf"
+    },
+    {
+      "from": "amd-rdna-2019",
+      "to": "amd-gcn-2011",
+      "type": "adapts",
+      "description": {
+        "zh": "RDNA 的双计算单元取代了 GCN 的计算单元，同时保持与 GCN 兼容。",
+        "en": "RDNA's dual compute unit replaces the GCN compute unit and stays compatible with GCN."
+      },
+      "source": "https://www.igorslab.de/wp-content/uploads/2019/08/rdna-whitepaper.pdf"
+    },
+    {
+      "from": "amd-cdna-2020",
+      "to": "amd-gcn-2011",
+      "type": "adapts",
+      "description": {
+        "zh": "CDNA 的计算单元从 GCN 演变而来，另加了矩阵核心。",
+        "en": "CDNA's compute units derive from GCN, with added Matrix Core engines."
+      },
+      "source": "https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/white-papers/amd-cdna-white-paper.pdf"
+    },
+    {
+      "from": "chips-intel-trigate-22nm-2011",
+      "to": "transistor-1947",
+      "type": "adapts",
+      "description": {
+        "zh": "Intel 称 Tri-Gate 重新发明了晶体管：用立起来的薄鳍取代平面栅。",
+        "en": "Intel calls Tri-Gate a reinvention of the transistor: a thin 3-D fin replaces the flat gate."
+      },
+      "source": "https://www.intc.com/news-events/press-releases/detail/655/intel-reinvents-transistors-using-new-3-d-structure"
+    },
+    {
+      "from": "chips-euv-volume-production-2019",
+      "to": "chips-moore-cramming-1965",
+      "type": "complements",
+      "description": {
+        "zh": "ASML 把 EUV 说成让摩尔定律继续、晶体管继续变小的手段。",
+        "en": "ASML presents EUV as what keeps Moore's Law going with ever smaller transistors."
+      },
+      "source": "https://www.asml.com/en/products/euv-lithography-systems"
+    },
+    {
+      "from": "tpu-8-2026",
+      "to": "energy-tpu-v3-liquid-cooling-2018",
+      "type": "uses",
+      "description": {
+        "zh": "两颗第八代 TPU 都靠 Google 的第四代液冷。",
+        "en": "Both eighth-generation TPUs rely on Google's fourth-generation liquid cooling."
+      },
+      "source": "https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/eighth-generation-tpu-agentic-era/"
+    },
+    {
+      "from": "dennard-dram-patent-1967",
+      "to": "memory-whirlwind-core-1953",
+      "type": "complements",
+      "description": {
+        "zh": "专利拿要刷新的电容存储，和磁芯这类断电也能保持的存储对比。",
+        "en": "The patent contrasts its refreshed capacitor storage with remanent storage such as magnetic cores."
+      },
+      "source": "https://patents.google.com/patent/US3387286A/en"
+    },
+    {
+      "from": "networks-tcp-ip-transition-1983",
+      "to": "networks-arpanet-1969",
+      "type": "adapts",
+      "description": {
+        "zh": "RFC 801 规划把正在运行的 ARPANET 从原来的主机协议迁到 TCP/IP。",
+        "en": "RFC 801 plans moving the operational ARPANET from its original host protocol to TCP/IP."
+      },
+      "source": "https://www.rfc-editor.org/rfc/rfc801"
+    },
+    {
+      "from": "networks-ethernet-paper-1976",
+      "to": "networks-arpanet-1969",
+      "type": "complements",
+      "description": {
+        "zh": "Metcalfe 和 Boggs 把以太网放在 ARPA 网络的分组交换与资源共享工作之后。",
+        "en": "Metcalfe and Boggs place Ethernet after the ARPA network's work on packet switching and resource sharing."
+      },
+      "source": "https://www.cl.cam.ac.uk/teaching/1920/CompNet/files/p395-metcalfe.pdf"
+    },
+    {
+      "from": "networks-rdmap-rfc-2007",
+      "to": "networks-tcp-ip-transition-1983",
+      "type": "uses",
+      "description": {
+        "zh": "RDMAP 跑在 TCP 之上的 DDP/MPA 层，省掉 TCP/IP 通常要做的拷贝。",
+        "en": "RDMAP runs over DDP/MPA on TCP to avoid the copies TCP/IP normally needs."
+      },
+      "source": "https://www.rfc-editor.org/rfc/rfc5040.html"
+    },
+    {
+      "from": "energy-warehouse-scale-computing-2009",
+      "to": "energy-pue-metric-2007",
+      "type": "uses",
+      "description": {
+        "zh": "书里拆解能效的第一项就是 PUE，引自 The Green Grid。",
+        "en": "Its efficiency breakdown starts with PUE, citing The Green Grid."
+      },
+      "source": "https://zhjwpku.com/assets/pdf/TheDatacenterAsaComputer.pdf"
+    },
+    {
+      "from": "distributed-mpi-1994",
+      "to": "software-fortran-1957",
+      "type": "uses",
+      "description": {
+        "zh": "MPI-1 给 Fortran 77 和 C 定了标准接口。",
+        "en": "MPI-1 standardised bindings for Fortran 77 and C."
+      },
+      "source": "https://www.mpi-forum.org/docs/mpi-1.1/mpi-11-html/node5.html"
+    },
+    {
+      "from": "dqn",
+      "to": "qlearning",
+      "type": "adapts",
+      "description": {
+        "zh": "DQN 是一个用 Q-learning 变体训练的卷积网络。",
+        "en": "DQN is a convolutional network trained with a variant of Q-learning."
+      },
+      "source": "https://arxiv.org/abs/1312.5602"
+    },
+    {
+      "from": "sac",
+      "to": "ppo",
+      "type": "complements",
+      "description": {
+        "zh": "SAC 是同策略 PPO 之外的异策略选择，实验里也拿 PPO 作对照。",
+        "en": "SAC is an off-policy alternative to on-policy PPO, which it also uses as a baseline."
+      },
+      "source": "https://arxiv.org/abs/1801.01290"
+    },
+    {
+      "from": "graphsage",
+      "to": "gcn",
+      "type": "adapts",
+      "description": {
+        "zh": "GraphSAGE 的卷积式聚合，是 Kipf 和 Welling 的 GCN 的归纳版。",
+        "en": "Its convolutional aggregator is an inductive version of Kipf and Welling's GCN."
+      },
+      "source": "https://arxiv.org/abs/1706.02216"
+    },
+    {
+      "from": "gat",
+      "to": "transformer",
+      "type": "adapts",
+      "description": {
+        "zh": "GAT 把 Transformer 式的自注意力用到图的邻居上，明说受 Vaswani 等人启发。",
+        "en": "GAT brings Transformer-style self-attention to graph neighbourhoods and names Vaswani et al. as its inspiration."
+      },
+      "source": "https://arxiv.org/abs/1710.10903"
+    },
+    {
+      "from": "svm",
+      "to": "perceptron-1958",
+      "type": "adapts",
+      "description": {
+        "zh": "Cortes 和 Vapnik 从 Rosenblatt 的感知机出发：先做固定的非线性映射，再分一个线性面。",
+        "en": "Cortes and Vapnik start from Rosenblatt's perceptron: a fixed non-linear map, then a linear surface."
+      },
+      "source": "https://homepages.math.uic.edu/~lreyzin/papers/cortes95.pdf"
+    },
+    {
+      "from": "hopfield-network-1982",
+      "to": "perceptron-1958",
+      "type": "complements",
+      "description": {
+        "zh": "Hopfield 拿自己的模型和感知机对照：强反向连接，单元异步更新。",
+        "en": "Hopfield sets his model against perceptrons: strong backward coupling and asynchronous units."
+      },
+      "source": "https://authors.library.caltech.edu/records/w41x7-8bn13/files/HOPpnas82.pdf"
+    },
+    {
+      "from": "lenet5-1998",
+      "to": "backprop",
+      "type": "uses",
+      "description": {
+        "zh": "论文把用反向传播训练的多层网络当作基于梯度学习的代表。",
+        "en": "It names backprop-trained multilayer networks as the leading example of gradient-based learning."
+      },
+      "source": "https://leon.bottou.org/publications/pdf/ieee-1998.pdf"
+    },
+    {
+      "from": "alphago",
+      "to": "deep-blue-1997",
+      "type": "complements",
+      "description": {
+        "zh": "AlphaGo 评估的局面比深蓝少几千倍，靠网络挑出值得看的那些。",
+        "en": "AlphaGo evaluated thousands of times fewer positions than Deep Blue, chosen by its networks."
+      },
+      "source": "https://storage.googleapis.com/deepmind-media/alphago/AlphaGoNaturePaper.pdf"
+    },
+    {
+      "from": "alexnet",
+      "to": "sift-2004",
+      "type": "complements",
+      "description": {
+        "zh": "AlexNet 的结果表拿 SIFT 加 Fisher Vector 的流水线作对照，那是此前最好的方法。",
+        "en": "Its results tables compare against SIFT + Fisher Vector pipelines, the previous best."
+      },
+      "source": "https://papers.nips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf"
+    },
+    {
+      "from": "google-search-prototype-1998",
+      "to": "networks-web-proposal-1989",
+      "type": "uses",
+      "description": {
+        "zh": "原型抓取并索引整个 Web，排序时用上了网页之间的超链接。",
+        "en": "The prototype crawls and indexes the Web and exploits its hypertext links."
+      },
+      "source": "https://snap.stanford.edu/class/cs224w-readings/Brin98Anatomy.pdf"
+    },
+    {
+      "from": "gnmt-2016",
+      "to": "ibm-smt-1993",
+      "type": "complements",
+      "description": {
+        "zh": "GNMT 把统计机器翻译（引 Brown 等 1993）当作要比的主流方法。",
+        "en": "GNMT names statistical MT (citing Brown et al. 1993) as the dominant paradigm it is measured against."
+      },
+      "source": "https://arxiv.org/pdf/1609.08144v1"
+    },
+    {
+      "from": "wavenet-2016",
+      "to": "resnet",
+      "type": "adapts",
+      "description": {
+        "zh": "WaveNet 通篇用了 He 等人的残差连接，再加跳连。",
+        "en": "WaveNet uses residual connections (He et al.) plus skip connections throughout."
+      },
+      "source": "https://arxiv.org/pdf/1609.03499v1"
+    },
+    {
+      "from": "elmo-2018",
+      "to": "penn-treebank-1993",
+      "type": "uses",
+      "description": {
+        "zh": "ELMo 用 Penn Treebank 里《华尔街日报》部分的词性标注来检验表示。",
+        "en": "ELMo tests its representations with part-of-speech tagging on the WSJ Penn Treebank."
+      },
+      "source": "https://arxiv.org/pdf/1802.05365v1"
+    },
+    {
+      "from": "dartmouth",
+      "to": "shannon-information-theory-1948",
+      "type": "complements",
+      "description": {
+        "zh": "香农在提案里写的那部分，是把信息论用到计算机和大脑模型上。",
+        "en": "Shannon's part of the proposal applies information theory to computers and brain models."
+      },
+      "source": "https://www-formal.stanford.edu/jmc/history/dartmouth/dartmouth.html"
+    },
+    {
+      "from": "dendral-1969",
+      "to": "mycin",
+      "type": "complements",
+      "description": {
+        "zh": "Buchanan 和 Shortliffe 说 MYCIN 脱胎于 DENDRAL，沿用了它编码知识的经验。",
+        "en": "Buchanan and Shortliffe call MYCIN an outgrowth of DENDRAL that reused its lessons on encoding knowledge."
+      },
+      "source": "https://www.shortliffe.net/Buchanan-Shortliffe-1984/Chapter-01.pdf"
     }
   ]
 }
