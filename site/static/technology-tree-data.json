@@ -5921,6 +5921,10 @@
         [
           "Google DeepMind · Genie 3: a new frontier for world models, 2025-08-05",
           "https://deepmind.google/discover/blog/genie-3-a-new-frontier-for-world-models/"
+        ],
+        [
+          "Google DeepMind · Genie 2: a large-scale foundation world model, 2024-12-04 (the predecessor named in the Genie 3 post)",
+          "https://deepmind.google/discover/blog/genie-2-a-large-scale-foundation-world-model/"
         ]
       ]
     },
@@ -11357,6 +11361,16 @@
         "en": "Baidu's ring-allreduce library requires CUDA and MPI."
       },
       "source": "https://github.com/baidu-research/baidu-allreduce"
+    },
+    {
+      "from": "genie-3-2025",
+      "to": "diffusion",
+      "type": "complements",
+      "description": {
+        "zh": "Genie 3 的架构没有公开；它的前作 Genie 2 是自回归的潜空间扩散模型：先用自编码器压缩画面，再由 Transformer 一帧帧往下预测。",
+        "en": "Genie 3's architecture is not disclosed; its predecessor Genie 2 is an autoregressive latent diffusion model, compressing frames with an autoencoder and predicting them one after another with a transformer."
+      },
+      "source": "https://deepmind.google/discover/blog/genie-2-a-large-scale-foundation-world-model/"
     }
   ]
 }
