@@ -382,3 +382,63 @@ Branches: four existing branches in 1956–1985 and one each in 1882–1955 took
 | `networks-ethernet-paper-1976` → `optical-fibre-1966` | complements | The Ethernet paper says the Ether, its transmission medium, can be built from coaxial cable, twisted pairs or optical fibres. | https://www.cl.cam.ac.uk/teaching/1920/CompNet/files/p395-metcalfe.pdf |
 
 Not used: EDVAC → Turing 1936 rests on Frankel's recollection, which McCarthy disputed (Randell 1972); flash → DRAM ('technology driver') and fibre → TCP/IP were too loose; DNN acoustic models → Bayesian networks and Shannon → Bayesian networks cite Pearl's 1988 book rather than the 1985 paper. Genie 3 remains the only unlinked milestone.
+
+## Fifteen underdog works (Claude Code, 2026-10-19)
+
+Works that later milestones quietly rest on but that usually get little credit: reverse-mode differentiation, BLAS, the Neocognitron, WordNet, mixtures of experts, Paxos, BLEU, UCT, Common Crawl, Theano, IDSIA's multi-column GPU CNNs, U-Net, HNSW, learning from human preferences, and Baidu's ring-allreduce. Every claim in the new nodes and links was checked against its source in a separate pass (46 claims: 33 supported as drafted, 11 reworded, none unsupported). The rewordings that matter:
+- Griewank credits Linnainmaa's thesis with the reverse mode but does not call it the first; the entry says neither "first" nor that it invented backpropagation, only that backpropagation is a special case (Griewank's wording).
+- LeNet says the Neocognitron had already implemented convolution with subsampling, not that LeNet came from it.
+- Paxos is described through the paper's own abstract (consistent records despite absent legislators and forgetful messengers), not as "progress whenever a majority works".
+- AlexNet's comparison with a "columnar" CNN cites the IDSIA group's 2011 paper; the link says so.
+- U-Net won the transmitted-light categories of the 2015 ISBI cell tracking challenge, not the whole challenge.
+- Theano's speed is given as the paper's like-for-like MLP figure (GPU 11× NumPy on CPU), not the 44× headline, which compares against Torch 5 on a CPU.
+- Common Crawl was founded in 2007 and has crawled since 2008; it is described as serving researchers without their own crawlers, not as breaking a big-company monopoly.
+- The UCT source is the DOI record; the course-hosted PDF used during checking failed TLS.
+
+Branches: new works joined eight existing branches; new branches are `word-meanings` (1956–1985), `search-planning` (1998–2011), `vector-search` and `human-feedback` (2016–2018). The 2012–2015 detection branch now reads "Detection and segmentation".
+
+| Milestone | Period · branch | Sources |
+| --- | --- | --- |
+| `reverse-mode-ad-1970` | early-ai · field-algorithms | Linnainmaa · Taylor expansion of the accumulated rounding error, BIT 16, 1976 (cites the 1970 Helsinki thesis) — https://papers.baulab.info/papers/also/Linnainmaa-1976.pdf; Griewank · Who Invented the Reverse Mode of Differentiation?, Documenta Mathematica Extra Volume ISMP, 2012 — https://papers.baulab.info/papers/also/Griewank-2012.pdf |
+| `blas-1979` | early-ai · field-software | Netlib · BLAS (Basic Linear Algebra Subprograms) — https://www.netlib.org/blas/; Netlib · BLAS FAQ (Lawson et al., ACM TOMS 5, 1979) — https://www.netlib.org/blas/faq.html |
+| `neocognitron-1980` | early-ai · early-neural | Fukushima · Neocognitron, Biological Cybernetics 36, 1980 — https://www.rctn.org/bruno/public/papers/Fukushima1980.pdf |
+| `wordnet-1985` | early-ai · word-meanings | Miller et al. · Introduction to WordNet: An On-line Lexical Database (Five Papers on WordNet, revised 1993) — https://wordnetcode.princeton.edu/5papers.pdf |
+| `mixture-of-experts-1991` | learning · neural | Jacobs, Jordan, Nowlan & Hinton · Adaptive Mixtures of Local Experts, Neural Computation 3, 1991 — https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf |
+| `paxos-1998` | connected-computing · field-distributed | Lamport · The Part-Time Parliament, ACM TOCS 16(2), 1998 — https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf; Lamport · notes on his publications (The Part-Time Parliament; Paxos Made Simple, 2001) — https://lamport.azurewebsites.net/pubs/pubs.html |
+| `bleu-2002` | connected-computing · field-data | Papineni, Roukos, Ward & Zhu · BLEU, ACL 2002 — https://aclanthology.org/P02-1040.pdf |
+| `uct-2006` | connected-computing · search-planning | Kocsis & Szepesvári · Bandit Based Monte-Carlo Planning, ECML 2006, LNCS 4212 — https://doi.org/10.1007/11871842_29 |
+| `common-crawl-2007` | connected-computing · field-data | Common Crawl · About — https://commoncrawl.org/about |
+| `theano-2010` | connected-computing · field-software | Bergstra et al. · Theano: A CPU and GPU Math Expression Compiler, SciPy 2010 — https://papers.baulab.info/papers/also/Bergstra-2010.pdf |
+| `multi-column-cnn-2012` | deep-learning · cnn | Cireşan, Meier & Schmidhuber · Multi-column Deep Neural Networks for Image Classification, arXiv v1, 2012-02-13 — https://arxiv.org/abs/1202.2745 |
+| `unet-2015` | deep-learning · detection | Ronneberger, Fischer & Brox · U-Net, arXiv v1, 2015-05-18 — https://arxiv.org/abs/1505.04597 |
+| `hnsw-2016` | branching · vector-search | Malkov & Yashunin · Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs, arXiv v1, 2016-03-30 — https://arxiv.org/abs/1603.09320 |
+| `human-preferences-2017` | branching · human-feedback | Christiano et al. · Deep reinforcement learning from human preferences, arXiv v1, 2017-06-12 — https://arxiv.org/abs/1706.03741 |
+| `ring-allreduce-2017` | branching · training-code | Baidu Research · baidu-allreduce (README) — https://github.com/baidu-research/baidu-allreduce; Sergeev & Del Balso · Horovod, arXiv v1, 2018-02-15, §3 — https://arxiv.org/pdf/1802.05799v1 |
+
+21 links touch the new works (163 → 184 in all). Every source is already on the origin node.
+
+| Link | Type | What the origin's source says | Source on the origin node |
+| --- | --- | --- | --- |
+| `reverse-mode-ad-1970` → `backprop` | complements | Griewank credits Linnainmaa's 1970 thesis with what is now called the reverse mode, and treats back-propagation in neural networks as a special case of it. | https://papers.baulab.info/papers/also/Griewank-2012.pdf |
+| `lenet5-1998` → `neocognitron-1980` | complements | The LeNet paper notes that the Neocognitron had already implemented convolution with subsampling, though no supervised procedure such as backpropagation existed then. | https://leon.bottou.org/publications/pdf/ieee-1998.pdf |
+| `sparse-moe-2017` → `mixture-of-experts-1991` | adapts | Sparse MoE scales the experts into the thousands and traces the idea to Jacobs et al. 1991. | https://arxiv.org/pdf/1701.06538v1 |
+| `mixture-of-experts-1991` → `backprop` | complements | The paper opens by noting that one network trained by backpropagation on several subtasks suffers strong interference; the mixture splits the work among networks. | https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf |
+| `software-numpy-2005` → `blas-1979` | uses | NumPy accelerates its linear algebra with back-ends such as OpenBLAS or Intel MKL. | https://arxiv.org/pdf/2006.10256v1 |
+| `software-triton-mapl-2019` → `blas-1979` | complements | Triton benchmarks against NVIDIA's cuBLAS: matrix multiplication is on par, and cuBLAS stays faster on shallow Transformers. | https://www.eecs.harvard.edu/~htk/publication/2019-mapl-tillet-kung-cox.pdf |
+| `gpt3` → `common-crawl-2007` | uses | GPT-3 drew 60% of its training mix from Common Crawl after quality filtering and deduplication, about 410 billion tokens. | https://arxiv.org/abs/2005.14165 |
+| `laion-5b-2022` → `common-crawl-2007` | uses | LAION-5B started from Common Crawl, parsing images with alt-text to build its image-text pairs. | https://arxiv.org/abs/2210.08402v1 |
+| `distributed-borg-paper-2015` → `paxos-1998` | uses | Borgmaster keeps its state in a highly available, Paxos-based distributed store and elects its master with Paxos. | https://research.google.com/pubs/archive/43438.pdf |
+| `imagenet-2009` → `wordnet-1985` | uses | ImageNet uses WordNet's hierarchy and aims to fill about 80,000 noun synsets with images. | https://www.image-net.org/static_files/papers/imagenet_cvpr09.pdf |
+| `instructgpt` → `human-preferences-2017` | adapts | InstructGPT's RLHF cites Christiano et al. 2017. | https://arxiv.org/abs/2203.02155 |
+| `diffusion` → `unet-2015` | uses | DDPM's denoising network uses a U-Net backbone. | https://arxiv.org/abs/2006.11239 |
+| `software-tensorflow-2015` → `theano-2010` | complements | TensorFlow's related-work section says Theano's programming model is the closest to its own. | https://www.usenix.org/system/files/conference/osdi16/osdi16-abadi.pdf |
+| `software-pytorch-2017` → `theano-2010` | complements | The PyTorch paper groups Theano with frameworks that build a static dataflow graph, at the cost of ease of use, debugging and flexibility. | https://arxiv.org/pdf/1912.01703v1 |
+| `transformer` → `bleu-2002` | uses | The Transformer reports its results in BLEU: 28.4 for English–German and 41.0 for English–French. | https://arxiv.org/pdf/1706.03762v1 |
+| `gnmt-2016` → `bleu-2002` | uses | GNMT reports its results in BLEU, alongside human side-by-side ratings. | https://arxiv.org/pdf/1609.08144v1 |
+| `alphago` → `uct-2006` | uses | AlphaGo's introduction cites Kocsis and Szepesvári's UCT for Monte Carlo tree search. | https://storage.googleapis.com/deepmind-media/alphago/AlphaGoNaturePaper.pdf |
+| `alexnet` → `multi-column-cnn-2012` | complements | AlexNet calls its two-GPU layout somewhat similar to the “columnar” CNN of Cireşan et al., citing the group's 2011 GPU CNN paper. | https://papers.nips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf |
+| `rag-2020` → `hnsw-2016` | uses | RAG builds a single MIPS index with FAISS and speeds it up with an HNSW approximation. | https://arxiv.org/abs/2005.11401v1 |
+| `distributed-horovod-2018` → `ring-allreduce-2017` | adapts | Horovod started from Baidu's draft ring-allreduce implementation, repackaged it as a standalone Python package, swapped in NVIDIA's NCCL and added several GPUs per server. | https://arxiv.org/pdf/1802.05799v1 |
+| `ring-allreduce-2017` → `distributed-mpi-1994` | uses | Baidu's ring-allreduce library requires CUDA and MPI. | https://github.com/baidu-research/baidu-allreduce |
+
+Not included, though worth a later check: Samuel's checkers (1959), TD-Gammon, TIMIT, Mechanical Turk, Open Compute Project (2011), and Davies at NPL.
