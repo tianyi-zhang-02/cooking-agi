@@ -6811,6 +6811,472 @@
           "https://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0006.03/DOC_1"
         ]
       ]
+    },
+    {
+      "id": "reverse-mode-ad-1970",
+      "year": 1970,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "algorithms",
+      "track": "numerical",
+      "title": {
+        "zh": "反向模式求导 · 倒着扫一遍得到每步的影响",
+        "en": "Reverse-mode differentiation · One backward sweep for every step's effect"
+      },
+      "hook": {
+        "zh": "记下每步运算，再从结果倒着扫一遍，就知道每步对结果的影响。",
+        "en": "Record every operation, then sweep back from the result to get each step's effect on it."
+      },
+      "body": {
+        "zh": "一个算法要算成千上万步，每步都有一点舍入误差，结果会偏多少？1970 年，芬兰的 Linnainmaa 在硕士论文里给出办法：先记下每一步运算，再从结果倒着扫一遍，算出每一步对结果的影响。这就是今天的反向模式求导，神经网络的反向传播是它的一个特例。",
+        "en": "An algorithm may run thousands of steps, each adding a little rounding error; how far off is the result? In his 1970 master's thesis in Finland, Seppo Linnainmaa recorded every operation, then swept back from the result to get how much each step affected it. This is what is now called reverse-mode differentiation, and backpropagation in neural networks is a special case of it."
+      },
+      "limit": {
+        "zh": "每一步的中间值都得存下来，算得越长，占的内存越多。",
+        "en": "Every intermediate value must be kept, so longer computations need more memory."
+      },
+      "sources": [
+        [
+          "Linnainmaa · Taylor expansion of the accumulated rounding error, BIT 16, 1976 (cites the 1970 Helsinki thesis)",
+          "https://papers.baulab.info/papers/also/Linnainmaa-1976.pdf"
+        ],
+        [
+          "Griewank · Who Invented the Reverse Mode of Differentiation?, Documenta Mathematica Extra Volume ISMP, 2012",
+          "https://papers.baulab.info/papers/also/Griewank-2012.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "blas-1979",
+      "year": 1979,
+      "kind": "system",
+      "status": "adopted",
+      "topic": "software",
+      "track": "frameworks",
+      "title": {
+        "zh": "BLAS · 一套人人调用的基础运算",
+        "en": "BLAS · Basic routines every library calls"
+      },
+      "hook": {
+        "zh": "厂商把这几个基础运算优化一次，上面所有数值库都受益。",
+        "en": "Vendors tune a few basic routines once, and every numerical library above them benefits."
+      },
+      "body": {
+        "zh": "数值程序里反复出现同样的向量运算，每个库各写一遍，又慢又难移植。1979 年，Lawson 等人把它们定成一套标准子程序 BLAS，后来又扩展到矩阵与向量、矩阵与矩阵的运算。各家厂商针对自己的硬件优化同一套接口，LAPACK 这样的库就建在它上面。",
+        "en": "Numerical programs kept repeating the same vector operations, and every library wrote its own slow, unportable version. In 1979 Lawson and colleagues standardised them as a set of subprograms, BLAS, later extended to matrix-vector and matrix-matrix operations. Vendors tune the same interface for their own hardware, and libraries such as LAPACK are built on top of it."
+      },
+      "limit": {
+        "zh": "它只管基础运算，解方程、求特征值要靠上面的 LAPACK 等库。",
+        "en": "It covers only basic operations; solving equations or finding eigenvalues is left to libraries such as LAPACK."
+      },
+      "sources": [
+        [
+          "Netlib · BLAS (Basic Linear Algebra Subprograms)",
+          "https://www.netlib.org/blas/"
+        ],
+        [
+          "Netlib · BLAS FAQ (Lawson et al., ACM TOMS 5, 1979)",
+          "https://www.netlib.org/blas/faq.html"
+        ]
+      ]
+    },
+    {
+      "id": "neocognitron-1980",
+      "year": 1980,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "vision",
+      "title": {
+        "zh": "Neocognitron · 图形挪了位置也认得出",
+        "en": "Neocognitron · Recognising patterns wherever they sit"
+      },
+      "hook": {
+        "zh": "提取特征的层和容忍位移的层交替堆叠，不用老师也能学。",
+        "en": "Feature layers alternate with shift-tolerant layers, and it learns without a teacher."
+      },
+      "body": {
+        "zh": "图形挪个位置，此前的识别网络就认不出了。1980 年，NHK 的福岛邦彦提出 Neocognitron：提取特征的层和容忍位移的层交替堆叠，不用老师标注，自己组织起来，图形换了位置、稍有变形也能认出。LeNet 论文提到，卷积加下采样的组合，Neocognitron 早已实现。",
+        "en": "Shift a pattern, and earlier recognition networks failed. In 1980 Kunihiko Fukushima of NHK proposed the Neocognitron: layers that extract features alternate with layers that tolerate shifts, and the network organises itself without a teacher, recognising a pattern despite shifts and small distortions. The LeNet paper notes that the Neocognitron had already implemented convolution with subsampling."
+      },
+      "limit": {
+        "zh": "它不用反向传播这样的监督训练，每层靠专门设计的自组织规则来学。",
+        "en": "It had no supervised training such as backpropagation; each layer learned through a purpose-built self-organising rule."
+      },
+      "sources": [
+        [
+          "Fukushima · Neocognitron, Biological Cybernetics 36, 1980",
+          "https://www.rctn.org/bruno/public/papers/Fukushima1980.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "wordnet-1985",
+      "year": 1985,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "data",
+      "track": "datasets",
+      "title": {
+        "zh": "WordNet · 把英语词按意思连成网",
+        "en": "WordNet · English words linked by meaning"
+      },
+      "hook": {
+        "zh": "同义词归成一组，组与组之间按上下位等关系相连。",
+        "en": "Synonyms are grouped into sets, and the sets are linked by relations such as is-a."
+      },
+      "body": {
+        "zh": "词典按字母排，意思相近的词散落各处。1985 年起，Princeton 的 Miller 等人编 WordNet：把英语名词、动词和形容词按意思归成同义词集，每个集合代表一个概念，再用上下位、部分与整体等关系把集合连起来。ImageNet 的类别树，用的就是 WordNet 的名词层级。",
+        "en": "Alphabetical dictionaries scatter words with related meanings. From 1985 George Miller and colleagues at Princeton built WordNet: English nouns, verbs and adjectives grouped into synonym sets, each standing for one concept, and the sets linked by relations such as is-a and part-of. ImageNet's category tree is WordNet's noun hierarchy."
+      },
+      "limit": {
+        "zh": "它是人工编的，收哪些词、怎么连，取决于编者的判断。",
+        "en": "It was compiled by hand, so which words appear and how they link depends on its editors."
+      },
+      "sources": [
+        [
+          "Miller et al. · Introduction to WordNet: An On-line Lexical Database (Five Papers on WordNet, revised 1993)",
+          "https://wordnetcode.princeton.edu/5papers.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "mixture-of-experts-1991",
+      "year": 1991,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "models",
+      "track": "neural",
+      "title": {
+        "zh": "混合专家 · 让门控网络分派任务",
+        "en": "Mixture of experts · A gate that routes each case"
+      },
+      "hook": {
+        "zh": "一个门控网络决定每个样本交给哪几个专家网络。",
+        "en": "A gating network decides which expert networks handle each case."
+      },
+      "body": {
+        "zh": "用反向传播训练一个网络去做几种子任务，它们会互相干扰。1991 年，Jacobs、Jordan、Nowlan 和 Hinton 让几个专家网络分工：一个门控网络看输入，决定交给哪一个或哪几个专家，每个专家只学一部分样本。2017 年的稀疏 MoE 把这个想法放大到上千个专家。",
+        "en": "Train one network by backpropagation on several subtasks and they interfere with each other. In 1991 Jacobs, Jordan, Nowlan and Hinton split the work among expert networks: a gating network looks at the input and hands it to one or a few experts, so each expert learns only a subset of the cases. The sparse MoE of 2017 scaled the idea to thousands of experts."
+      },
+      "limit": {
+        "zh": "论文只在一个小的元音识别任务上做了试验。",
+        "en": "It was tested only on a small vowel-recognition task."
+      },
+      "sources": [
+        [
+          "Jacobs, Jordan, Nowlan & Hinton · Adaptive Mixtures of Local Experts, Neural Computation 3, 1991",
+          "https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "paxos-1998",
+      "year": 1998,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "distributed",
+      "track": "clusters",
+      "title": {
+        "zh": "Paxos · 有机器坏了也能达成一致",
+        "en": "Paxos · Agreement despite failed machines"
+      },
+      "hook": {
+        "zh": "有机器宕机、消息丢失，各份副本也不会给出矛盾的结果。",
+        "en": "Even with crashed machines and lost messages, the replicas never give conflicting answers."
+      },
+      "body": {
+        "zh": "几台机器各存一份状态，有的会宕机、消息会丢，怎样让它们对同一个值达成一致？Lamport 把答案写成一个希腊小岛议会的故事：议员常常离开议事厅，信使也会忘事，各人手里的议事记录却始终一致。这篇论文 1990 年投稿，审稿人觉得不太重要，1998 年才发表。",
+        "en": "Several machines each keep a copy of the state; some crash and messages get lost. How can they agree on one value? Lamport told the answer as the story of a parliament on a Greek island whose legislators kept wandering out and whose messengers forgot things, yet every copy of the record stayed consistent. Submitted in 1990 and judged not very important by referees, the paper appeared only in 1998."
+      },
+      "limit": {
+        "zh": "原文太难读，2001 年 Lamport 又写了《Paxos Made Simple》重讲一遍。",
+        "en": "The original was hard to read, so in 2001 Lamport retold it plainly in “Paxos Made Simple”."
+      },
+      "sources": [
+        [
+          "Lamport · The Part-Time Parliament, ACM TOCS 16(2), 1998",
+          "https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf"
+        ],
+        [
+          "Lamport · notes on his publications (The Part-Time Parliament; Paxos Made Simple, 2001)",
+          "https://lamport.azurewebsites.net/pubs/pubs.html"
+        ]
+      ]
+    },
+    {
+      "id": "bleu-2002",
+      "year": 2002,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "data",
+      "track": "benchmarks",
+      "title": {
+        "zh": "BLEU · 机器给翻译自动打分",
+        "en": "BLEU · Scoring translations automatically"
+      },
+      "hook": {
+        "zh": "数机器译文和人工译文有多少相同的词组，快而便宜。",
+        "en": "Count the word sequences a machine translation shares with human ones: quick and cheap."
+      },
+      "body": {
+        "zh": "评价机器翻译要请人来看，又贵又慢，一轮可能要好几个月。2002 年，IBM 的 Papineni 等人提出 BLEU：数机器译文和几份人工参考译文有多少相同的词组，再惩罚过短的译文。它和人的判断高度相关，每多跑一次几乎不花成本。Transformer 报告成绩，用的就是 BLEU。",
+        "en": "Human evaluation of machine translation was expensive and could take months. In 2002 Kishore Papineni and colleagues at IBM proposed BLEU: count the word sequences a machine translation shares with several human reference translations, and penalise translations that are too short. It correlates highly with human judgement and costs almost nothing per run. The Transformer reported its results in BLEU."
+      },
+      "limit": {
+        "zh": "它要靠参考译文来比，参考译文越少，合理的不同译法越容易被扣分。",
+        "en": "It compares against reference translations, and with fewer references, valid alternative wordings are more likely to be penalised."
+      },
+      "sources": [
+        [
+          "Papineni, Roukos, Ward & Zhu · BLEU, ACL 2002",
+          "https://aclanthology.org/P02-1040.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "uct-2006",
+      "year": 2006,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "algorithms",
+      "track": "search",
+      "title": {
+        "zh": "UCT · 用老虎机的办法挑分支",
+        "en": "UCT · Choosing branches like a bandit"
+      },
+      "hook": {
+        "zh": "在搜索树里平衡两件事：多走看好的分支，也试试走得少的。",
+        "en": "In a search tree it balances promising branches against rarely tried ones."
+      },
+      "body": {
+        "zh": "状态太多时，没法把搜索树全展开，只能随机模拟一部分。模拟时该多走哪条分支？2006 年，匈牙利科学院的 Kocsis 和 Szepesvári 把多臂老虎机的 UCB 规则用到树的每个节点：常赢的分支多走，试得少的也给机会。AlphaGo 的蒙特卡洛树搜索引用了这项工作。",
+        "en": "With too many states, a search tree cannot be expanded in full, so only part of it is sampled by random simulation. Which branch deserves more simulations? In 2006 Levente Kocsis and Csaba Szepesvári of the Hungarian Academy of Sciences applied the bandit rule UCB at every node: branches that win often get more visits, and rarely tried ones still get a chance. AlphaGo's Monte Carlo tree search cites this work."
+      },
+      "limit": {
+        "zh": "模拟足够多时，它保证选到最好的动作；模拟少时就没有这个保证。",
+        "en": "It is guaranteed to pick the best action only as simulations grow; with few simulations there is no such promise."
+      },
+      "sources": [
+        [
+          "Kocsis & Szepesvári · Bandit Based Monte-Carlo Planning, ECML 2006, LNCS 4212",
+          "https://doi.org/10.1007/11871842_29"
+        ]
+      ]
+    },
+    {
+      "id": "common-crawl-2007",
+      "year": 2007,
+      "kind": "open",
+      "status": "adopted",
+      "topic": "data",
+      "track": "datasets",
+      "title": {
+        "zh": "Common Crawl · 人人可以下载的网页存档",
+        "en": "Common Crawl · A web archive anyone can download"
+      },
+      "hook": {
+        "zh": "免费公开的网页抓取数据，后来成了大模型训练语料的底子。",
+        "en": "A free public crawl of the web that later became the base of large-model training data."
+      },
+      "body": {
+        "zh": "很多研究者没有能力自己抓取网页。2007 年成立的非营利组织 Common Crawl，从 2008 年起定期抓取网页，把数据免费公开，累计超过 10 PB。GPT-3 训练时 60% 的数据来自过滤后的 Common Crawl，LAION-5B 的图文对也从这里提取。",
+        "en": "Many researchers lack the means to crawl the web themselves. Common Crawl, a non-profit founded in 2007, has crawled the web regularly since 2008 and gives the data away, more than 10 petabytes so far. GPT-3 drew 60% of its training mix from filtered Common Crawl, and LAION-5B extracted its image-text pairs from it."
+      },
+      "limit": {
+        "zh": "抓来的网页什么都有，要经过大量过滤和去重才能拿来训练。",
+        "en": "The crawl holds everything, so it needs heavy filtering and deduplication before training."
+      },
+      "sources": [
+        [
+          "Common Crawl · About",
+          "https://commoncrawl.org/about"
+        ]
+      ]
+    },
+    {
+      "id": "theano-2010",
+      "year": 2010,
+      "kind": "system",
+      "status": "historical",
+      "topic": "software",
+      "track": "frameworks",
+      "title": {
+        "zh": "Theano · 把数学表达式编译到 GPU",
+        "en": "Theano · Compiling maths expressions for the GPU"
+      },
+      "hook": {
+        "zh": "用 Python 写表达式，它自动求导，再编译成 C++ 或 CUDA。",
+        "en": "Write expressions in Python; it differentiates them and compiles them to C++ or CUDA."
+      },
+      "body": {
+        "zh": "用 Python 写数值代码方便，跑起来却慢，要用 GPU 还得手写 CUDA。2010 年，蒙特利尔大学的 Theano 让人像写 NumPy 一样写数学表达式，由它做符号求导、优化计算图，再编译成 C++ 或 CUDA 代码。论文里的多层感知机，在 GPU 上比 CPU 上的 NumPy 快 11 倍。",
+        "en": "Numerical code is easy to write in Python but slow to run, and using a GPU meant writing CUDA by hand. In 2010 Theano, from the Université de Montréal, let people write maths expressions as in NumPy; it differentiated them symbolically, optimised the graph and compiled it to C++ or CUDA. In the paper's benchmark, a multilayer perceptron ran 11 times faster on a GPU than NumPy did on a CPU."
+      },
+      "limit": {
+        "zh": "要先建好整张计算图再编译，调试和写动态结构都不方便。",
+        "en": "The whole graph had to be built before compiling, which made debugging and dynamic structures awkward."
+      },
+      "sources": [
+        [
+          "Bergstra et al. · Theano: A CPU and GPU Math Expression Compiler, SciPy 2010",
+          "https://papers.baulab.info/papers/also/Bergstra-2010.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "multi-column-cnn-2012",
+      "year": 2012,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "vision",
+      "title": {
+        "zh": "多列 GPU CNN · 在 AlexNet 之前刷新纪录",
+        "en": "Multi-column GPU CNNs · Records before AlexNet"
+      },
+      "hook": {
+        "zh": "几个用 GPU 训练的深度 CNN 一起投票，交通标志认得比人还准。",
+        "en": "Several GPU-trained deep CNNs vote together, and on traffic signs they beat humans."
+      },
+      "body": {
+        "zh": "传统视觉方法认手写数字和交通标志，比不过人。2012 年初，瑞士 IDSIA 的 Cireşan、Meier 和 Schmidhuber 用 GPU 训练好几列深度 CNN，每列看经过不同预处理的输入，最后把预测平均。MNIST 手写数字上，它第一次接近人的水平；交通标志识别上，错误率只有人的一半。",
+        "en": "Traditional vision methods could not match people at reading handwritten digits or traffic signs. In early 2012 Dan Cireşan, Ueli Meier and Jürgen Schmidhuber at IDSIA in Switzerland trained several columns of deep CNNs on GPUs, each seeing the input preprocessed differently, and averaged their predictions. On MNIST it was the first to come near human performance; on traffic signs it beat humans by a factor of two."
+      },
+      "limit": {
+        "zh": "它的成绩都在小图数据集上，ImageNet 这样的大规模图片还没有碰。",
+        "en": "Its results were on small-image datasets; large-scale collections such as ImageNet were not attempted."
+      },
+      "sources": [
+        [
+          "Cireşan, Meier & Schmidhuber · Multi-column Deep Neural Networks for Image Classification, arXiv v1, 2012-02-13",
+          "https://arxiv.org/abs/1202.2745"
+        ]
+      ]
+    },
+    {
+      "id": "unet-2015",
+      "year": 2015,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "models",
+      "track": "vision",
+      "title": {
+        "zh": "U-Net · 给每个像素标上类别",
+        "en": "U-Net · A label for every pixel"
+      },
+      "hook": {
+        "zh": "先缩小抓上下文，再放大还原位置，很少的图也能训好。",
+        "en": "Shrink to gather context, grow back to place every pixel, and train from very few images."
+      },
+      "body": {
+        "zh": "生物医学图像要标出每个像素属于什么，可标好的训练图往往很少。2015 年，Freiburg 大学的 Ronneberger 等人提出 U-Net：一路缩小抓上下文，一路放大还原位置，两边对应的层直接接上，再配合大量数据增强。它在 2015 年 ISBI 细胞追踪比赛的透射光类别里大比分胜出。",
+        "en": "Biomedical images need a label for every pixel, yet few annotated training images are usually available. In 2015 Olaf Ronneberger and colleagues at the University of Freiburg proposed U-Net: a contracting path gathers context, a symmetric expanding path restores position, matching layers are joined across, and heavy data augmentation makes up for the small data. It won the transmitted-light categories of the 2015 ISBI cell tracking challenge by a large margin."
+      },
+      "limit": {
+        "zh": "挨在一起的同类细胞容易连成一片，要靠给边界加权的损失才能分开。",
+        "en": "Touching cells of the same class tend to merge, and separating them takes a loss that weights the borders between them."
+      },
+      "sources": [
+        [
+          "Ronneberger, Fischer & Brox · U-Net, arXiv v1, 2015-05-18",
+          "https://arxiv.org/abs/1505.04597"
+        ]
+      ]
+    },
+    {
+      "id": "hnsw-2016",
+      "year": 2016,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "algorithms",
+      "track": "search",
+      "title": {
+        "zh": "HNSW · 在分层图上找最近的向量",
+        "en": "HNSW · Nearest vectors on a layered graph"
+      },
+      "hook": {
+        "zh": "从稀疏的上层图往下层走，很快找到近似最近邻。",
+        "en": "Start on a sparse top layer and descend to find approximate nearest neighbours fast."
+      },
+      "body": {
+        "zh": "向量越来越多，逐个比较找最相近的那些太慢。2016 年，Malkov 和 Yashunin 提出 HNSW：把向量连成多层的邻近图，上层稀疏、下层稠密，查询从最上层开始，一层层往下细找，复杂度随数据量按对数增长。RAG 的检索就用了 FAISS 里的 HNSW 近似来加速。",
+        "en": "With more and more vectors, comparing against each one to find the closest is too slow. In 2016 Yury Malkov and Dmitry Yashunin proposed HNSW: vectors are joined into layered proximity graphs, sparse on top and dense below, and a query starts at the top layer and works its way down, with cost growing logarithmically with the data. RAG's retriever used FAISS's HNSW approximation for speed."
+      },
+      "limit": {
+        "zh": "它找的是近似最近邻，偶尔会漏掉真正最近的那个。",
+        "en": "It finds approximate neighbours and can occasionally miss the true nearest one."
+      },
+      "sources": [
+        [
+          "Malkov & Yashunin · Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs, arXiv v1, 2016-03-30",
+          "https://arxiv.org/abs/1603.09320"
+        ]
+      ]
+    },
+    {
+      "id": "human-preferences-2017",
+      "year": 2017,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "post-training",
+      "title": {
+        "zh": "从人类偏好学习 · 让人比较两段行为",
+        "en": "Learning from human preferences · People compare two clips"
+      },
+      "hook": {
+        "zh": "人只要比较两段行为哪段更好，模型就从中学出奖励。",
+        "en": "People pick the better of two clips, and a model learns a reward from their choices."
+      },
+      "body": {
+        "zh": "很多任务写不出奖励函数。2017 年，OpenAI 和 DeepMind 的 Christiano 等人让人比较两段行为片段、选出更好的一段，用这些选择训练一个奖励模型，再交给强化学习去优化。人只需对不到 1% 的交互给出反馈。InstructGPT 的 RLHF 就沿用了这个做法。",
+        "en": "Many tasks have no reward function anyone can write down. In 2017 Paul Christiano and colleagues at OpenAI and DeepMind had people compare pairs of behaviour clips and pick the better one, trained a reward model on those choices, and optimised it with reinforcement learning. People gave feedback on less than 1% of the agent's interactions. InstructGPT's RLHF follows this recipe."
+      },
+      "limit": {
+        "zh": "它只在 Atari 游戏和模拟机器人上做了试验。",
+        "en": "It was tried only on Atari games and simulated robots."
+      },
+      "sources": [
+        [
+          "Christiano et al. · Deep reinforcement learning from human preferences, arXiv v1, 2017-06-12",
+          "https://arxiv.org/abs/1706.03741"
+        ]
+      ]
+    },
+    {
+      "id": "ring-allreduce-2017",
+      "year": 2017,
+      "kind": "open",
+      "status": "historical",
+      "topic": "distributed",
+      "track": "parallel",
+      "title": {
+        "zh": "Ring-allreduce · 让梯度沿环传两圈",
+        "en": "Ring-allreduce · Gradients passed twice around a ring"
+      },
+      "hook": {
+        "zh": "每块 GPU 只和相邻的卡收发小块数据，带宽不会挤在一处。",
+        "en": "Each GPU exchanges small chunks with its neighbours, so no single link gets crowded."
+      },
+      "body": {
+        "zh": "多卡训练要把每张卡的梯度汇总再平均。2017 年初，百度把高性能计算里的 ring-allreduce 带到深度学习：GPU 连成一个环，每张卡把梯度切成小块，只和相邻的卡收发，传两圈就完成汇总。Uber 的 Horovod 就是从百度的实现改出来的。",
+        "en": "Multi-GPU training has to sum and average every card's gradients. In early 2017 Baidu brought ring-allreduce from high-performance computing to deep learning: the GPUs form a ring, each splits its gradients into chunks and exchanges them only with its neighbours, and two passes round the ring complete the sum. Uber's Horovod grew out of Baidu's implementation."
+      },
+      "limit": {
+        "zh": "百度放出的只是一个演示用的小 C++ 库，给框架作者当模板。",
+        "en": "Baidu released only a small demonstration C++ library, meant as a template for framework authors."
+      },
+      "sources": [
+        [
+          "Baidu Research · baidu-allreduce (README)",
+          "https://github.com/baidu-research/baidu-allreduce"
+        ],
+        [
+          "Sergeev & Del Balso · Horovod, arXiv v1, 2018-02-15, §3",
+          "https://arxiv.org/pdf/1802.05799v1"
+        ]
+      ]
     }
   ],
   "eras": [
@@ -6971,14 +7437,15 @@
             "en": "Systems software"
           },
           "summary": {
-            "zh": "FORTRAN 让科学计算按公式来写，由编译器生成够快的机器码；LISP 让程序处理符号表达式，成了 AI 研究的常用语言；C 让 Unix 内核也能用高级语言写。Unix 把文件、进程和命令组织成交互式工作环境，GNU 又问：这套日常依赖的软件，能不能由使用者自由分享和修改？",
-            "en": "FORTRAN let scientific programs be written as formulas, with a compiler producing fast enough machine code; LISP let programs work on symbolic expressions and became AI research's working language; C let even the Unix kernel be written in a high-level language. Unix organized files, processes, and commands into an interactive working environment, and GNU then asked who should be able to share and modify the software people depended on."
+            "zh": "FORTRAN 让科学计算按公式来写，由编译器生成够快的机器码；LISP 让程序处理符号表达式，成了 AI 研究的常用语言；C 让 Unix 内核也能用高级语言写；BLAS 把常用的向量运算定成标准接口，由厂商各自优化。Unix 把文件、进程和命令组织成交互式工作环境，GNU 又问：这套日常依赖的软件，能不能由使用者自由分享和修改？",
+            "en": "FORTRAN let scientific programs be written as formulas, with a compiler producing fast enough machine code; LISP let programs work on symbolic expressions and became AI research's working language; C let even the Unix kernel be written in a high-level language; BLAS made common vector operations a standard interface for vendors to tune. Unix organized files, processes, and commands into an interactive working environment, and GNU then asked who should be able to share and modify the software people depended on."
           },
           "works": [
             "software-fortran-1957",
             "lisp-1960",
             "software-unix-1969",
             "software-c-language-1973",
+            "blas-1979",
             "software-gnu-announcement-1983"
           ]
         },
@@ -7027,13 +7494,14 @@
             "en": "Math & algorithms"
           },
           "summary": {
-            "zh": "求最短路，直觉上像是把所有路线都试一遍；算 N 点傅里叶级数，直觉上要做 N² 次乘加。换个好的计算顺序，两者都能省掉大部分工作。卡尔曼滤波和 EM 算法处理的是另一类问题：测量有噪声、数据缺一块时，怎样一步步逼近最好的估计。",
-            "en": "Finding a shortest path sounds like trying every route, and an N-point Fourier sum sounds like N² multiply-adds. A smarter order of work skips most of that in both cases. The Kalman filter and the EM algorithm handle another kind of problem: reaching the best estimate step by step when measurements are noisy or part of the data is hidden."
+            "zh": "求最短路，直觉上像是把所有路线都试一遍；算 N 点傅里叶级数，直觉上要做 N² 次乘加。换个好的计算顺序，两者都能省掉大部分工作；反向模式求导也是一种计算顺序：记下每一步，再从结果倒着扫一遍。卡尔曼滤波和 EM 算法处理的是另一类问题：测量有噪声、数据缺一块时，怎样一步步逼近最好的估计。",
+            "en": "Finding a shortest path sounds like trying every route, and an N-point Fourier sum sounds like N² multiply-adds. A smarter order of work skips most of that in both cases; reverse-mode differentiation is another such order, recording every step and sweeping back once from the result. The Kalman filter and the EM algorithm handle another kind of problem: reaching the best estimate step by step when measurements are noisy or part of the data is hidden."
           },
           "works": [
             "dijkstra-shortest-path-1959",
             "kalman-filter-1960",
             "cooley-tukey-fft-1965",
+            "reverse-mode-ad-1970",
             "em-algorithm-1977"
           ]
         },
@@ -7058,11 +7526,12 @@
             "en": "Early neural networks"
           },
           "summary": {
-            "zh": "写规则之外，另一种想法是让机器靠连接强度记住东西。感知机用随机连线加强化来学分类，Hopfield 网络让相互连接的单元自己落回存好的状态。两者离后来的深度网络都很远，各自的边界原文也写得清楚。",
-            "en": "Besides writing rules, another idea was to let machines remember through connection strengths. The perceptron learned to classify with random wiring and reinforcement; the Hopfield network let interconnected units settle back into stored states. Both are far from later deep networks, and their original papers state their limits plainly."
+            "zh": "写规则之外，另一种想法是让机器靠连接强度记住东西。感知机用随机连线加强化来学分类，Hopfield 网络让相互连接的单元自己落回存好的状态，两者离后来的深度网络都很远。Neocognitron 把提取特征的层和容忍位移的层交替堆叠，这个结构后来被卷积网络继承。",
+            "en": "Besides writing rules, another idea was to let machines remember through connection strengths. The perceptron learned to classify with random wiring and reinforcement, and the Hopfield network let interconnected units settle back into stored states; both are far from later deep networks. The Neocognitron alternated feature layers with shift-tolerant layers, a structure later convolutional networks inherited."
           },
           "works": [
             "perceptron-1958",
+            "neocognitron-1980",
             "hopfield-network-1982"
           ]
         },
@@ -7078,6 +7547,20 @@
           },
           "works": [
             "shakey-1971"
+          ]
+        },
+        {
+          "id": "word-meanings",
+          "title": {
+            "zh": "按意思整理词汇",
+            "en": "Organising words by meaning"
+          },
+          "summary": {
+            "zh": "词典按字母排，意思相近的词散落各处。WordNet 把英语词按意思归成同义词集，再用上下位等关系连成一张网。",
+            "en": "Dictionaries sort words alphabetically and scatter related meanings. WordNet grouped English words into synonym sets and linked the sets by relations such as is-a."
+          },
+          "works": [
+            "wordnet-1985"
           ]
         }
       ]
@@ -7107,11 +7590,12 @@
             "en": "Neural networks & sequences"
           },
           "summary": {
-            "zh": "隐藏层该学什么，可以拿任务的误差倒回来调；可序列一长，信息和梯度又容易衰减。反向传播和 LSTM 分别针对这两个问题。",
-            "en": "The error on a task can be sent back to shape what hidden layers learn. Long sequences add another difficulty: information and useful gradients tend to fade. Backpropagation tackles the first problem, LSTM the second."
+            "zh": "隐藏层该学什么，可以拿任务的误差倒回来调；可序列一长，信息和梯度又容易衰减。反向传播和 LSTM 分别针对这两个问题。混合专家走另一条路：几个网络分工，由一个门控网络决定谁来处理。",
+            "en": "The error on a task can be sent back to shape what hidden layers learn. Long sequences add another difficulty: information and useful gradients tend to fade. Backpropagation tackles the first problem, LSTM the second. Mixtures of experts took another route: several networks share the work, and a gating network decides which one handles each case."
           },
           "works": [
             "backprop",
+            "mixture-of-experts-1991",
             "lstm"
           ]
         },
@@ -7330,10 +7814,11 @@
             "en": "Distributed systems"
           },
           "summary": {
-            "zh": "统计海量文档中的词频不难写，难的是把它分给很多机器，还能处理失败。MapReduce 把这些协调工作交给运行系统，写程序的人主要描述数据怎么变换就行。",
-            "en": "Counting words is straightforward; coordinating that count across many machines and failures is harder. MapReduce put much of that coordination in the runtime so application authors could focus on the transformation."
+            "zh": "统计海量文档中的词频不难写，难的是把它分给很多机器，还能处理失败。Paxos 让几份副本在有机器宕机时仍对同一个值达成一致；MapReduce 把协调工作交给运行系统，写程序的人主要描述数据怎么变换就行。",
+            "en": "Counting words is straightforward; coordinating that count across many machines and failures is harder. Paxos lets replicas agree on one value even when some machines fail; MapReduce put much of the coordination in the runtime so application authors could focus on the transformation."
           },
           "works": [
+            "paxos-1998",
             "distributed-mapreduce-paper-2004"
           ]
         },
@@ -7360,13 +7845,14 @@
             "en": "Systems software"
           },
           "summary": {
-            "zh": "程序怎样变成硬件能执行的工作，有不同层次的问题。LLVM 组织可复用的代码表示与优化；CUDA 让开发者更直接地表达 GPU 线程和内存操作；NumPy 结束了 Python 两个数组包的分裂，给数值计算一个公共数组。",
-            "en": "Turning programs into executable work involves several layers. LLVM organizes reusable code representations and transformations; CUDA exposes GPU threads and memory operations; NumPy ended a split between two Python array packages and gave numerical code one shared array."
+            "zh": "程序怎样变成硬件能执行的工作，有不同层次的问题。LLVM 组织可复用的代码表示与优化；CUDA 让开发者更直接地表达 GPU 线程和内存操作；NumPy 结束了 Python 两个数组包的分裂，给数值计算一个公共数组；Theano 再把这样写的数学表达式自动求导，编译到 GPU 上。",
+            "en": "Turning programs into executable work involves several layers. LLVM organizes reusable code representations and transformations; CUDA exposes GPU threads and memory operations; NumPy ended a split between two Python array packages and gave numerical code one shared array; Theano differentiated maths expressions written that way and compiled them for the GPU."
           },
           "works": [
             "software-llvm-paper-2004",
             "software-numpy-2005",
-            "nvidia-cuda-2006"
+            "nvidia-cuda-2006",
+            "theano-2010"
           ]
         },
         {
@@ -7392,10 +7878,12 @@
             "en": "Data & evaluation"
           },
           "summary": {
-            "zh": "要比较模型是否真的更会识图，需要足够多、经过整理的图片。ImageNet 的贡献也在类别设计、采集和人工核验，不只是一个更大的下载包。",
-            "en": "Comparing image models required a large, organized collection of examples. ImageNet involved category design, collection, and human verification—not just a bigger file to download."
+            "zh": "要比较模型是否真的更好，需要便宜可靠的评估和足够多的数据。BLEU 让翻译质量能自动打分；Common Crawl 把网页抓取数据免费公开；ImageNet 的贡献也在类别设计、采集和人工核验，不只是一个更大的下载包。",
+            "en": "Comparing models needs cheap, reliable evaluation and enough data. BLEU scored translations automatically; Common Crawl gave away crawled web data; ImageNet involved category design, collection, and human verification—not just a bigger file to download."
           },
           "works": [
+            "bleu-2002",
+            "common-crawl-2007",
             "imagenet-2009"
           ]
         },
@@ -7512,6 +8000,20 @@
           "works": [
             "neural-language-model-2003"
           ]
+        },
+        {
+          "id": "search-planning",
+          "title": {
+            "zh": "搜索与规划",
+            "en": "Search and planning"
+          },
+          "summary": {
+            "zh": "状态太多、搜不完时，只能随机模拟一部分。UCT 用多臂老虎机的规则，决定模拟时多走哪条分支。",
+            "en": "When there are too many states to search, only part can be sampled by simulation. UCT used a bandit rule to decide which branch deserves more simulations."
+          },
+          "works": [
+            "uct-2006"
+          ]
         }
       ]
     },
@@ -7540,11 +8042,12 @@
             "en": "CNN → ResNet"
           },
           "summary": {
-            "zh": "AlexNet 让人看到，数据、GPU 和深层卷积网络放在一起能做成什么。ResNet 接着处理另一个难题：层数一多，网络有时连训练集都更难拟合。",
-            "en": "AlexNet brought together data, GPUs, and deep convolutional networks. ResNet tackled another problem: adding layers could make even the training set harder to fit."
+            "zh": "2012 年初，IDSIA 用 GPU 训练的多列 CNN 在手写数字和交通标志上追平甚至超过了人；同年的 AlexNet 让人看到，数据、GPU 和深层卷积网络放在一起，在 ImageNet 上能做成什么。ResNet 接着处理另一个难题：层数一多，网络有时连训练集都更难拟合。",
+            "en": "In early 2012, IDSIA's GPU-trained multi-column CNNs came near or beyond human performance on digits and traffic signs; later that year AlexNet showed what data, GPUs and deep convolutional networks could do together on ImageNet. ResNet tackled another problem: adding layers could make even the training set harder to fit."
           },
           "works": [
             "alexnet",
+            "multi-column-cnn-2012",
             "resnet"
           ]
         },
@@ -7626,15 +8129,16 @@
         {
           "id": "detection",
           "title": {
-            "zh": "物体检测：是什么，在哪里",
-            "en": "Object detection: what and where"
+            "zh": "检测与分割：是什么，在哪里",
+            "en": "Detection and segmentation: what and where"
           },
           "summary": {
-            "zh": "分类只回答图里是什么，检测还要把每个物体框出来。卷积网络判断候选框已经很快，提出候选框的老算法却还在 CPU 上慢慢跑，成了整个系统最慢的一步。",
-            "en": "Classification says what is in an image; detection must also put a box around each object. Convolutional networks could already score candidate boxes quickly, but the older algorithms that proposed those boxes still ran slowly on CPUs and became the slowest step."
+            "zh": "分类只回答图里是什么，检测还要把每个物体框出来，分割更进一步，给每个像素标类别。卷积网络判断候选框已经很快，提出候选框的老算法却还在 CPU 上慢慢跑；U-Net 用一缩一放的结构，从很少的医学图像里学会逐像素分割。",
+            "en": "Classification says what is in an image; detection must also box each object, and segmentation labels every pixel. Convolutional networks could already score candidate boxes quickly, but the older algorithms that proposed them still ran slowly on CPUs; U-Net learned pixel-level segmentation from very few medical images with a shrink-then-grow design."
           },
           "works": [
-            "faster-rcnn-2015"
+            "faster-rcnn-2015",
+            "unet-2015"
           ]
         },
         {
@@ -7827,11 +8331,12 @@
             "en": "Writing and scaling training code"
           },
           "summary": {
-            "zh": "静态图框架便于优化，却难调试；多卡训练又常要大改程序，还要忍受通信开销。PyTorch 让模型回到普通的 Python 程序，Horovod 用 allreduce 和几行改动把单卡程序扩到多机。两者解决的是不同的麻烦。",
-            "en": "Static-graph frameworks helped optimization but made debugging hard, and multi-GPU training often meant restructuring programs and absorbing communication overhead. PyTorch made models ordinary Python programs again, and Horovod scaled single-GPU programs across machines with allreduce and a few changed lines. They address different problems."
+            "zh": "静态图框架便于优化，却难调试；多卡训练又常要大改程序，还要忍受通信开销。PyTorch 让模型回到普通的 Python 程序。百度把 ring-allreduce 带到深度学习，Horovod 在它的基础上，用几行改动把单卡程序扩到多机。",
+            "en": "Static-graph frameworks helped optimization but made debugging hard, and multi-GPU training often meant restructuring programs and absorbing communication overhead. PyTorch made models ordinary Python programs again. Baidu brought ring-allreduce to deep learning, and Horovod built on it to scale single-GPU programs across machines with a few changed lines."
           },
           "works": [
             "software-pytorch-2017",
+            "ring-allreduce-2017",
             "distributed-horovod-2018"
           ]
         },
@@ -7905,6 +8410,34 @@
           },
           "works": [
             "energy-tpu-v3-liquid-cooling-2018"
+          ]
+        },
+        {
+          "id": "vector-search",
+          "title": {
+            "zh": "按向量找最近的邻居",
+            "en": "Finding the nearest vectors"
+          },
+          "summary": {
+            "zh": "向量一多，逐个比较太慢。HNSW 把向量连成分层的邻近图，查询从稀疏的上层一路往下找。",
+            "en": "With many vectors, comparing against each one is too slow. HNSW joins them into layered proximity graphs and searches from the sparse top layer down."
+          },
+          "works": [
+            "hnsw-2016"
+          ]
+        },
+        {
+          "id": "human-feedback",
+          "title": {
+            "zh": "从人的偏好里学",
+            "en": "Learning from people's preferences"
+          },
+          "summary": {
+            "zh": "很多任务写不出奖励函数。Christiano 等人改让人比较两段行为，从这些选择里学出奖励。",
+            "en": "Many tasks have no reward function anyone can write. Christiano and colleagues had people compare pairs of behaviour clips and learned a reward from their choices."
+          },
+          "works": [
+            "human-preferences-2017"
           ]
         }
       ]
@@ -10614,6 +11147,216 @@
         "en": "The Ethernet paper says the Ether, its transmission medium, can be built from coaxial cable, twisted pairs or optical fibres."
       },
       "source": "https://www.cl.cam.ac.uk/teaching/1920/CompNet/files/p395-metcalfe.pdf"
+    },
+    {
+      "from": "reverse-mode-ad-1970",
+      "to": "backprop",
+      "type": "complements",
+      "description": {
+        "zh": "Griewank 认为 Linnainmaa 1970 年的论文提出了今天所说的反向模式，并把神经网络的反向传播看作它的一个特例。",
+        "en": "Griewank credits Linnainmaa's 1970 thesis with what is now called the reverse mode, and treats back-propagation in neural networks as a special case of it."
+      },
+      "source": "https://papers.baulab.info/papers/also/Griewank-2012.pdf"
+    },
+    {
+      "from": "lenet5-1998",
+      "to": "neocognitron-1980",
+      "type": "complements",
+      "description": {
+        "zh": "LeNet 论文说，卷积加下采样的组合在 Neocognitron 里已经实现，只是那时还没有反向传播这样的监督训练。",
+        "en": "The LeNet paper notes that the Neocognitron had already implemented convolution with subsampling, though no supervised procedure such as backpropagation existed then."
+      },
+      "source": "https://leon.bottou.org/publications/pdf/ieee-1998.pdf"
+    },
+    {
+      "from": "sparse-moe-2017",
+      "to": "mixture-of-experts-1991",
+      "type": "adapts",
+      "description": {
+        "zh": "稀疏 MoE 把专家数放大到上千个，论文把这条思路追溯到 Jacobs 等人 1991 年的工作。",
+        "en": "Sparse MoE scales the experts into the thousands and traces the idea to Jacobs et al. 1991."
+      },
+      "source": "https://arxiv.org/pdf/1701.06538v1"
+    },
+    {
+      "from": "mixture-of-experts-1991",
+      "to": "backprop",
+      "type": "complements",
+      "description": {
+        "zh": "论文开头说，用反向传播训练一个网络去做几种子任务，会有很强的相互干扰；混合专家把任务分给不同的网络。",
+        "en": "The paper opens by noting that one network trained by backpropagation on several subtasks suffers strong interference; the mixture splits the work among networks."
+      },
+      "source": "https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf"
+    },
+    {
+      "from": "software-numpy-2005",
+      "to": "blas-1979",
+      "type": "uses",
+      "description": {
+        "zh": "NumPy 的线性代数交给 OpenBLAS 或 Intel MKL 这样的后端来加速。",
+        "en": "NumPy accelerates its linear algebra with back-ends such as OpenBLAS or Intel MKL."
+      },
+      "source": "https://arxiv.org/pdf/2006.10256v1"
+    },
+    {
+      "from": "software-triton-mapl-2019",
+      "to": "blas-1979",
+      "type": "complements",
+      "description": {
+        "zh": "Triton 拿 NVIDIA 的 cuBLAS 作对照：矩阵乘法和它不相上下，浅层 Transformer 上 cuBLAS 仍然更快。",
+        "en": "Triton benchmarks against NVIDIA's cuBLAS: matrix multiplication is on par, and cuBLAS stays faster on shallow Transformers."
+      },
+      "source": "https://www.eecs.harvard.edu/~htk/publication/2019-mapl-tillet-kung-cox.pdf"
+    },
+    {
+      "from": "gpt3",
+      "to": "common-crawl-2007",
+      "type": "uses",
+      "description": {
+        "zh": "GPT-3 的训练数据有 60% 来自经过质量过滤和去重的 Common Crawl，约 4100 亿词元。",
+        "en": "GPT-3 drew 60% of its training mix from Common Crawl after quality filtering and deduplication, about 410 billion tokens."
+      },
+      "source": "https://arxiv.org/abs/2005.14165"
+    },
+    {
+      "from": "laion-5b-2022",
+      "to": "common-crawl-2007",
+      "type": "uses",
+      "description": {
+        "zh": "LAION-5B 从 Common Crawl 出发，解析其中带替代文字的图片，构建图文对。",
+        "en": "LAION-5B started from Common Crawl, parsing images with alt-text to build its image-text pairs."
+      },
+      "source": "https://arxiv.org/abs/2210.08402v1"
+    },
+    {
+      "from": "distributed-borg-paper-2015",
+      "to": "paxos-1998",
+      "type": "uses",
+      "description": {
+        "zh": "Borgmaster 的状态存在一个基于 Paxos 的高可用分布式存储里，主节点也用 Paxos 选出。",
+        "en": "Borgmaster keeps its state in a highly available, Paxos-based distributed store and elects its master with Paxos."
+      },
+      "source": "https://research.google.com/pubs/archive/43438.pdf"
+    },
+    {
+      "from": "imagenet-2009",
+      "to": "wordnet-1985",
+      "type": "uses",
+      "description": {
+        "zh": "ImageNet 沿用 WordNet 的层级结构，目标是给约 8 万个名词同义词集配上图片。",
+        "en": "ImageNet uses WordNet's hierarchy and aims to fill about 80,000 noun synsets with images."
+      },
+      "source": "https://www.image-net.org/static_files/papers/imagenet_cvpr09.pdf"
+    },
+    {
+      "from": "instructgpt",
+      "to": "human-preferences-2017",
+      "type": "adapts",
+      "description": {
+        "zh": "InstructGPT 用的 RLHF，引的就是 Christiano 等人 2017 年的工作。",
+        "en": "InstructGPT's RLHF cites Christiano et al. 2017."
+      },
+      "source": "https://arxiv.org/abs/2203.02155"
+    },
+    {
+      "from": "diffusion",
+      "to": "unet-2015",
+      "type": "uses",
+      "description": {
+        "zh": "DDPM 的去噪网络用的是 U-Net 骨架。",
+        "en": "DDPM's denoising network uses a U-Net backbone."
+      },
+      "source": "https://arxiv.org/abs/2006.11239"
+    },
+    {
+      "from": "software-tensorflow-2015",
+      "to": "theano-2010",
+      "type": "complements",
+      "description": {
+        "zh": "TensorFlow 论文的相关工作一节说，Theano 的编程模型和 TensorFlow 最接近。",
+        "en": "TensorFlow's related-work section says Theano's programming model is the closest to its own."
+      },
+      "source": "https://www.usenix.org/system/files/conference/osdi16/osdi16-abadi.pdf"
+    },
+    {
+      "from": "software-pytorch-2017",
+      "to": "theano-2010",
+      "type": "complements",
+      "description": {
+        "zh": "PyTorch 论文把 Theano 归为先建静态数据流图的框架，说这样做牺牲了易用、易调试和灵活。",
+        "en": "The PyTorch paper groups Theano with frameworks that build a static dataflow graph, at the cost of ease of use, debugging and flexibility."
+      },
+      "source": "https://arxiv.org/pdf/1912.01703v1"
+    },
+    {
+      "from": "transformer",
+      "to": "bleu-2002",
+      "type": "uses",
+      "description": {
+        "zh": "Transformer 用 BLEU 报告成绩：英德翻译 28.4，英法翻译 41.0。",
+        "en": "The Transformer reports its results in BLEU: 28.4 for English–German and 41.0 for English–French."
+      },
+      "source": "https://arxiv.org/pdf/1706.03762v1"
+    },
+    {
+      "from": "gnmt-2016",
+      "to": "bleu-2002",
+      "type": "uses",
+      "description": {
+        "zh": "GNMT 用 BLEU 报告成绩，另外还请人做了并排评分。",
+        "en": "GNMT reports its results in BLEU, alongside human side-by-side ratings."
+      },
+      "source": "https://arxiv.org/pdf/1609.08144v1"
+    },
+    {
+      "from": "alphago",
+      "to": "uct-2006",
+      "type": "uses",
+      "description": {
+        "zh": "AlphaGo 介绍蒙特卡洛树搜索时，引了 Kocsis 和 Szepesvári 的 UCT。",
+        "en": "AlphaGo's introduction cites Kocsis and Szepesvári's UCT for Monte Carlo tree search."
+      },
+      "source": "https://storage.googleapis.com/deepmind-media/alphago/AlphaGoNaturePaper.pdf"
+    },
+    {
+      "from": "alexnet",
+      "to": "multi-column-cnn-2012",
+      "type": "complements",
+      "description": {
+        "zh": "AlexNet 说它的双 GPU 结构有点像 Cireşan 等人的“分列”CNN，引的是这组人 2011 年的 GPU CNN 论文。",
+        "en": "AlexNet calls its two-GPU layout somewhat similar to the “columnar” CNN of Cireşan et al., citing the group's 2011 GPU CNN paper."
+      },
+      "source": "https://papers.nips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf"
+    },
+    {
+      "from": "rag-2020",
+      "to": "hnsw-2016",
+      "type": "uses",
+      "description": {
+        "zh": "RAG 用 FAISS 建一个最大内积检索索引，并用 HNSW 近似来加速。",
+        "en": "RAG builds a single MIPS index with FAISS and speeds it up with an HNSW approximation."
+      },
+      "source": "https://arxiv.org/abs/2005.11401v1"
+    },
+    {
+      "from": "distributed-horovod-2018",
+      "to": "ring-allreduce-2017",
+      "type": "adapts",
+      "description": {
+        "zh": "Horovod 从百度的 ring-allreduce 草稿实现出发，做成独立的 Python 包，换上 NVIDIA 的 NCCL，并支持一台服务器上多块 GPU。",
+        "en": "Horovod started from Baidu's draft ring-allreduce implementation, repackaged it as a standalone Python package, swapped in NVIDIA's NCCL and added several GPUs per server."
+      },
+      "source": "https://arxiv.org/pdf/1802.05799v1"
+    },
+    {
+      "from": "ring-allreduce-2017",
+      "to": "distributed-mpi-1994",
+      "type": "uses",
+      "description": {
+        "zh": "百度的 ring-allreduce 库要靠 CUDA 和 MPI 才能运行。",
+        "en": "Baidu's ring-allreduce library requires CUDA and MPI."
+      },
+      "source": "https://github.com/baidu-research/baidu-allreduce"
     }
   ]
 }

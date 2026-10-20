@@ -1054,6 +1054,136 @@
     range(12).forEach((i) => { const a = i / 12 * TAU; m.star(.85 + Math.cos(a) * .26, .55 + Math.sin(a) * .26, .2, .035); });
   };
 
+  /* ------------------------------------------------ underdogs: works that later milestones quietly rest on */
+  D['reverse-mode-ad-1970'] = (m) => {  // each operation written to a tape on the way down, then swept back up
+    const ys = spread(5, 1.8).reverse();
+    ys.forEach((y, i) => {
+      m.ringXY(-.55, y, 0, .11, 10); m.rectXY(.35, y, 0, .34, .2); m.line([-.43, y, 0], [.18, y, 0], 3);
+      if (i < 4) m.arrow([-.55, y - .12, 0], [-.55, ys[i + 1] + .13, 0], .06);
+    });
+    m.ringXY(-1.05, ys[0] - .2, 0, .08, 8); m.line([-.98, ys[0] - .15, 0], [-.65, ys[1] + .05, 0]);
+    m.arc([.6, ys[4], 0], [.6, ys[0], 0], .55, 13, 2); m.arrow([.62, ys[0] - .12, .12], [.6, ys[0], 0], .07);
+  };
+  D['blas-1979'] = (m) => {  // three tiers of routines: vector, matrix-vector, matrix-matrix
+    m.tokens(5, -.75, .3, 1.1, .14); m.tokens(5, -.95, .3, 1.1, .14);  // level 1: two vectors
+    m.gridXY(4, 4, .55, .55, 0, -.25, .05); range(4).forEach((k) => m.rectXY(.3, -.15 + .14 * k, 0, .12, .12));  // level 2
+    m.gridXY(4, 4, .5, .5, -.3, -.4, .75); m.gridXY(4, 4, .5, .5, -.3, .35, .75);  // level 3
+    [-.85, .05, .75].forEach((y, i) => m.line([-1.05, y - .3, .3 - .3 * i], [-1.05, y + .2, .3 - .3 * i], 3));
+  };
+  D['wordnet-1985'] = (m) => {  // synonym sets joined into a tree of broader and narrower meanings
+    const syn = (x, y, z) => { m.rectXY(x, y, z, .42, .22); m.dashes(x - .15, y + .05, z + .01, .3, 2, .09, (k) => [1, .6][k]); return [x, y, z]; };
+    const top = syn(0, .85, 0), mid = [syn(-.6, .2, .25), syn(.6, .2, -.25)];
+    const low = [syn(-.95, -.5, .4), syn(-.3, -.5, .1), syn(.35, -.5, -.1), syn(.95, -.5, -.4)];
+    mid.forEach((p) => m.arrow([p[0], p[1] + .12, p[2]], [top[0] + p[0] * .3, top[1] - .12, top[2]], .06));
+    low.forEach((p, i) => { const q = mid[i < 2 ? 0 : 1]; m.arrow([p[0], p[1] + .12, p[2]], [q[0] + (p[0] - q[0]) * .3, q[1] - .12, q[2]], .06); });
+    m.arc([-.3, -.62, .1], [.35, -.62, -.1], -.2, 7, 1);  // a part-of link across the tree
+  };
+  D['neocognitron-1980'] = (m) => {  // an input pattern, then feature (S) and shift-tolerant (C) layers in turn
+    m.rectXY(0, 0, -1.1, 1, 1); m.path([[-.25, -.3, -1.1], [0, .3, -1.1], [.25, -.3, -1.1]]); m.line([-.13, -.05, -1.1], [.13, -.05, -1.1]);
+    [[-.55, .36, 3, false], [0, .26, 3, true], [.55, .26, 2, false], [1.05, .16, 2, true]].forEach(([z, s, n, pool]) => {
+      spread(n, n === 3 ? .9 : .5).forEach((x) => { m.rectXY(x, 0, z, s, s); if (pool) m.gridXY(2, 2, s, s, z, x, 0); m.line([x * .6, 0, z - .5], [x, 0, z], 2); });
+    });
+    m.node(0, 0, 1.4, .08); m.line([0, 0, 1.13], [0, 0, 1.32]);
+  };
+  D['mixture-of-experts-1991'] = (m) => {  // a gating network weighs three small expert networks for each case
+    m.rectXY(-1.15, 0, 0, .2, .5);  // the input
+    const experts = [[-.45, .45], [0, 0], [.45, -.45]];
+    experts.forEach(([z, y]) => {
+      const cols = [spread(3, .4), spread(2, .25)].map((ys, l) => ys.map((dy) => m.add(-.35 + .45 * l, y + dy, z)));
+      cols[0].forEach((a) => cols[1].forEach((b) => m.link(a, b))); m.line([-1.05, 0, 0], [-.4, y, z], 3); m.line([.1, y, z], [.75, 0, 0], 3);
+    });
+    m.ringXY(-.2, .95, 0, .16, 12); m.line([-1.05, .2, 0], [-.35, .9, 0], 3);  // the gate
+    [.7, .2, .1].forEach((w, i) => { const [z, y] = experts[i]; m.line([-.1, .82, 0], [-.05, y + .25, z], 3); m.line([.95, .7 - .12 * i, 0], [.95 + w * .5, .7 - .12 * i, 0]); });
+    m.node(.85, 0, 0, .1);
+  };
+  D['paxos-1998'] = (m) => {  // five replicas; with one down, a majority still agrees on the same value
+    const at = range(5).map((i) => { const a = i / 5 * TAU + .3; return [Math.cos(a) * .95, -.3, Math.sin(a) * .95]; });
+    at.forEach(([x, y, z], i) => {
+      m.box(x, y, z, .28, .32, .28);
+      if (i === 3) { m.line([x - .2, y - .2, z], [x + .2, y + .2, z]); m.line([x - .2, y + .2, z], [x + .2, y - .2, z]); return; }
+      m.ringXY(x, y + .35, z, .08, 8); m.line([0, .45, 0], [x, y + .44, z], 4);
+    });
+    m.cube(0, .55, 0, .22); m.circle(30, .95, -.48);
+  };
+  D['bleu-2002'] = (m) => {  // a candidate translation matched word by word against two references, and a gauge
+    const cand = m.tokens(6, .65, 0, 1.6, .17), refs = [m.tokens(6, -.05, .25, 1.6, .17), m.tokens(5, -.55, -.25, 1.4, .17)];
+    [[0, 0], [1, 2], [2, 1], [4, 3], [5, 5]].forEach(([a, b]) => m.line([cand[a][0], .56, 0], [refs[0][b][0], .04, .25], 3));
+    [[0, 0], [3, 2], [5, 4]].forEach(([a, b]) => m.line([cand[a][0], .56, 0], [refs[1][b][0], -.46, -.25], 4));
+    m.path(range(11).map((i) => { const a = Math.PI * i / 10; return [1.3 + Math.cos(a) * .35, -.35 + Math.sin(a) * .35, 0]; }));
+    m.line([1.3, -.35, 0], [1.3 + Math.cos(.9) * .3, -.35 + Math.sin(.9) * .3, 0], 3);
+  };
+  D['uct-2006'] = (m, r) => {  // a search tree grown unevenly toward good moves, with one random playout below
+    const kids = (p, n, depth, w) => spread(n, w).map((dx, i) => {
+      const q = [p[0] + dx, p[1] - .4, p[2] + (i - (n - 1) / 2) * .15 * depth];
+      m.node(...q, .06); m.line([p[0], p[1] - .06, p[2]], [q[0], q[1] + .06, q[2]]); return q;
+    });
+    const root = [0, .9, 0]; m.node(...root, .08);
+    const l1 = kids(root, 3, 1, 1.4), l2 = kids(l1[1], 3, 2, .7), l3 = kids(l2[0], 2, 3, .4); kids(l1[2], 1, 2, 0);
+    m.path(range(6).map((i) => [l3[1][0] + (r() - .5) * .15, l3[1][1] - .14 - .1 * i, l3[1][2]]));  // the playout
+    [.2, .7, .35].forEach((h, i) => m.line([l1[i][0] + .12, l1[i][1] - .1, l1[i][2]], [l1[i][0] + .12, l1[i][1] - .1 + h * .5, l1[i][2]]));
+  };
+  D['common-crawl-2007'] = (m) => {  // pages gathered from the web and kept in a public archive
+    m.sphere(-.7, .1, 0, .55, 3, 4, 16);
+    [[-.05, .55], [.1, .2], [-.1, -.15]].forEach(([x, y], i) => { m.rectXY(x, y, .1 * i, .2, .26); m.dashes(x - .06, y + .06, .1 * i + .01, .12, 3, .06); });
+    m.arrow([.15, .2, 0], [.45, .05, 0], .06);
+    [-.45, -.15, .15].forEach((y) => m.cyl(.85, y, 0, .35, .22, 16));
+  };
+  D['theano-2010'] = (m) => {  // an expression graph, its derivative, compiled into code for a GPU
+    const g = (z, s) => { const o = [-.7, .6, z], a = [-1, .1, z], b = [-.4, .1, z]; [o, a, b].forEach((p) => m.ringXY(...p, .1 * s, 8)); m.line([-.95, .18, z], [-.75, .52, z]); m.line([-.45, .18, z], [-.65, .52, z]); m.ringXY(-1.15, -.35, z, .08 * s, 8); m.line([-1.12, -.27, z], [-1.02, .02, z]); };
+    g(0, 1); g(-.45, .8); m.line([-.7, .6, 0], [-.7, .6, -.45], 3);  // the graph and its symbolic derivative
+    m.arrow([-.25, .2, -.2], [.15, .2, -.1], .07);
+    m.rectXY(.55, .45, 0, .6, .5); m.dashes(.3, .62, .01, .45, 4, .1, (i) => [1, .7, .85, .5][i]);
+    m.box(.55, -.45, 0, .7, .1, .5); spread(4, .4).forEach((z) => { m.line([.2, -.45, z], [.08, -.55, z]); m.line([.9, -.45, z], [1.02, -.55, z]); });
+    m.line([.55, .2, 0], [.55, -.39, 0], 3);
+  };
+  D['multi-column-cnn-2012'] = (m) => {  // several deep columns see differently prepared inputs; their votes are averaged
+    spread(4, 2).forEach((x, c) => {
+      m.rectXY(x, .7, 0, .34, .34); m.line([x - .12 + .04 * c, .58, 0], [x + .1 - .03 * c, .82, 0]);  // the same input, prepared differently
+      [.45, .3, .18].forEach((s, l) => m.rectXY(x, .7 - .45 * (l + 1), .15 * (l + 1), s, s));
+      m.line([x, -.75, .45], [0, -1.05, .7], 3);
+    });
+    m.node(0, -1.12, .7, .1);
+  };
+  D['unet-2015'] = (m) => {  // the U: shrink to see context, grow back to place every pixel, skips across
+    const levels = [[.8, .55], [.4, .4], [0, .28], [-.4, .2]];
+    levels.forEach(([y, h], i) => {
+      const x = .9 - .2 * i;
+      m.box(-x, y, 0, .08 + .04 * i, h, h); m.box(x, y, 0, .08 + .04 * i, h, h);
+      if (i < 3) { m.arrow([-x, y - h / 2 - .02, 0], [-x + .2, levels[i + 1][0] + levels[i + 1][1] / 2 + .02, 0], .05); m.arrow([x - .2, levels[i + 1][0] + levels[i + 1][1] / 2 + .02, 0], [x, y - h / 2 - .02, 0], .05); m.line([-x + .1, y, h / 2], [x - .1, y, h / 2], 6); }
+    });
+    m.box(0, -.75, 0, .3, .16, .16);
+  };
+  D['hnsw-2016'] = (m, r) => {  // layered graphs, sparse on top: a search drops down layer by layer
+    const layer = (y, n) => {
+      const pts = range(n).map(() => [r() * 1.8 - .9, y, r() * 1.2 - .6]); m.rectXZ(0, y, 0, 2.1, 1.5);
+      pts.forEach((p) => m.add(...p));
+      pts.forEach((p, i) => { const near = pts.map((q, k) => [Math.hypot(p[0] - q[0], p[2] - q[2]), k]).sort((a, b) => a[0] - b[0]).slice(1, 3); near.forEach(([, k]) => { if (k > i) m.line(p, pts[k]); }); });
+      return pts;
+    };
+    const top = layer(.8, 3), mid = layer(0, 7), low = layer(-.8, 14);
+    const path = [top[0], top[1], [top[1][0], 0, top[1][2]], mid[0], [mid[0][0], -.8, mid[0][2]], low[0]];
+    for (let i = 0; i + 1 < path.length; i += 1) m.arrow(path[i].map((v) => v + .02), path[i + 1].map((v) => v + .02), .06);
+  };
+  D['human-preferences-2017'] = (m) => {  // a person picks the better of two clips; a reward model learns from the picks
+    [-.55, .55].forEach((x, i) => {
+      m.rectXY(x, .6, 0, .7, .5);
+      m.path([[x - .15, .45, 0], [x - .05 + .1 * i, .65, 0], [x + .15, .45, 0]]); m.ringXY(x - .05 + .1 * i, .74, 0, .06, 8);
+    });
+    m.path([[-.08, .7, 0], [.06, .6, 0], [-.08, .5, 0]]);  // "better than"
+    m.arrow([-.55, .32, 0], [-.2, -.15, .2], .07);
+    m.box(0, -.35, .2, .6, .35, .35); m.dashes(-.2, -.3, .38, .4, 2, .1);
+    m.arc([.32, -.35, .2], [.6, .3, 0], .4, 9, 0);  // the policy improves and makes new clips
+  };
+  D['ring-allreduce-2017'] = (m) => {  // GPUs in a ring, gradients cut into chunks, passed round twice
+    const n = 4, at = range(n).map((i) => { const a = i / n * TAU + .4; return [Math.cos(a) * .9, -.4, Math.sin(a) * .9]; });
+    at.forEach(([x, y, z], i) => {
+      m.box(x, y, z, .34, .1, .26);
+      range(n).forEach((k) => m.cube(x, y + .14 + .14 * k, z, k === i ? .14 : .1));  // its gradient, in chunks
+      const q = at[(i + 1) % n];
+      for (const h of [.05, .75]) m.arc([x, y + h, z], [q[0], y + h, q[2]], .18, 7, 1);
+    });
+  };
+
   const api = {designs: D};
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   scope.ChronicleDesigns = D;
