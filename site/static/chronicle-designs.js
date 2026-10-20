@@ -1184,6 +1184,46 @@
     });
   };
 
+  /* ------------------------------------------------ the last five: games, speech data, crowds and open racks */
+  D['samuel-checkers-1959'] = (m) => {  // a checkerboard, a short look-ahead above it, and the weights it tunes
+    m.gridXZ(5, 5, 1.2, 1.2, -.6, -.35, 0);
+    [[-.83, -.48], [-.35, -.48], [.13, -.24], [-.59, .24], [-.11, .48]].forEach(([x, z], i) => m.cyl(x, -.55, z, .09, .06, 8));
+    const root = [-.35, .05, 0]; m.node(...root, .06);
+    spread(3, .8).forEach((dx, i) => { const q = [-.35 + dx, .45, (i - 1) * .2]; m.node(...q, .05); m.line(root, q); spread(2, .3).forEach((ex) => { const s = [q[0] + ex, .8, q[2]]; m.add(...s); m.line(q, s); }); });
+    [.55, .3, .75, .2].forEach((w, i) => { const x = .75 + .16 * i; m.line([x, -.6, 0], [x, -.6 + w, 0], 4); m.line([x - .05, -.6 + w, 0], [x + .05, -.6 + w, 0]); });
+    m.arrow([.95, .45, 0], [.95, .7, 0], .05); m.arrow([1.12, .7, 0], [1.12, .45, 0], .05);
+  };
+  D['td-gammon-1991'] = (m) => {  // a backgammon board under a small network that plays itself
+    for (const side of [-1, 1]) {
+      m.rectXZ(side * .55, -.6, 0, 1, 1.1);
+      spread(5, .8).forEach((x) => { m.path([[side * .55 + x - .08, -.6, .55], [side * .55 + x, -.6, .15], [side * .55 + x + .08, -.6, .55]]); m.path([[side * .55 + x - .08, -.6, -.55], [side * .55 + x, -.6, -.15], [side * .55 + x + .08, -.6, -.55]]); });
+    }
+    layers(m, [4, 3, 1], .45, 1).flat();
+    m.arc([.55, .1, 0], [-.55, .1, 0], .45, 11, 2); m.arrow([-.48, .12, .12], [-.55, .1, 0], .06);
+  };
+  D['timit-1990'] = (m) => {  // a speech waveform with its time-aligned phone labels, recorded from many speakers
+    m.path(range(48).map((i) => [-1.2 + i * .05, .35 + Math.sin(i * 1.3) * .25 * (.3 + Math.abs(Math.sin(i * .17))), 0]));
+    const cuts = [-1.2, -.75, -.45, .05, .4, .8, 1.15];
+    for (let i = 0; i + 1 < cuts.length; i += 1) { m.rectXY((cuts[i] + cuts[i + 1]) / 2, -.12, 0, cuts[i + 1] - cuts[i] - .04, .16); m.line([cuts[i], .02, 0], [cuts[i], .7, 0], 4); }
+    range(8).forEach((i) => { const a = Math.PI * (.15 + .7 * i / 7); m.ringXY(Math.cos(a) * 1.1, -.65, -Math.sin(a) * .6, .07, 8); });
+  };
+  D['mechanical-turk-2005'] = (m) => {  // one big job cut into small tasks, each done by a person in the crowd
+    m.rectXY(-1.05, .2, 0, .45, .6); m.dashes(-1.2, .38, .01, .3, 4, .1);
+    const tasks = range(6).map((i) => [-.35, .55 - .22 * i, 0]);
+    tasks.forEach((t) => { m.rectXY(...t, .18, .14); m.line([-.82, .2, 0], [t[0] - .1, t[1], 0]); });
+    range(6).forEach((i) => {
+      const p = [.55 + .3 * (i % 2), .55 - .22 * i, -.25 + .5 * (i % 2)];
+      m.ringXY(p[0], p[1] + .05, p[2], .05, 8); m.arc([p[0] - .08, p[1] - .07, p[2]], [p[0] + .08, p[1] - .07, p[2]], .06, 5, 1);
+      m.arrow([-.25, tasks[i][1], 0], [p[0] - .1, p[1], p[2]], .05);
+    });
+  };
+  D['open-compute-2011'] = (m) => {  // an open rack, server sleds pulled out, its drawings published beside it
+    m.box(0, 0, 0, .7, 1.6, .7);
+    spread(6, 1.3).forEach((y, i) => { const out = i % 3 === 1 ? .35 : 0; m.box(0, y, out, .62, .14, .66); });
+    m.gridXY(4, 5, .8, 1, -.5, 1.05, .1); m.dashes(.75, .5, -.49, .5, 3, .12, (i) => [1, .7, .85][i]);
+    [-.4, .1, .6].forEach((y) => m.arrow([-.85, y, .2], [-.4, y, .2], .06));
+  };
+
   const api = {designs: D};
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   scope.ChronicleDesigns = D;

@@ -452,3 +452,31 @@ The Genie 3 post names only predecessors that are not on the tree (Genie 1 and 2
 | `genie-3-2025` → `diffusion` | complements | Genie 3's architecture is not disclosed; its predecessor Genie 2 is an autoregressive latent diffusion model, compressing frames with an autoencoder and predicting them one after another with a transformer. | https://deepmind.google/discover/blog/genie-2-a-large-scale-foundation-world-model/ |
 
 Every milestone now has at least one sourced connection.
+
+## The last candidates from the gap review (Claude Code, 2026-10-20)
+
+Five works the earlier review had set aside for a later check: Samuel's checkers, TD-Gammon, TIMIT, Amazon Mechanical Turk and the Open Compute Project. Donald Davies was added to the existing packet-switching entry instead of getting one of his own, because he and Baran reached the same idea independently. Every claim was checked against its source. Corrections made in that pass:
+- TD-Gammon: the strongest versions used hand-designed input features, so the entry does not say it started from zero knowledge; its weights are adjusted "by gradient" with TD(λ), the article's own description. The year is 1991, the earliest milestone the article dates (version 1.0's games in late 1991).
+- Open Compute: the post says Prineville used 38% less energy for the same work at 24% lower cost, with PUE 1.07 against about 1.5 for Facebook's existing facilities; it does not say "38% more efficient".
+- Mechanical Turk: the "artificial artificial intelligence" phrase was not found in a 2005 Amazon source and is not used. The service's home page states it closed permanently on 30 September 2026; the entry is marked historical.
+- Davies: ETHW says Baran and Davies invented packet switching independently and that Davies used the term "packet" in his June 1966 proposal; NPL's own network dates (1970 or 1971) differ by source, so the entry gives no date for it.
+
+| Milestone | Period · branch | Sources |
+| --- | --- | --- |
+| `samuel-checkers-1959` | early-ai · game-learning | Samuel · Some Studies in Machine Learning Using the Game of Checkers, IBM J. Res. Dev. 3(3), July 1959 — https://doi.org/10.1147/rd.33.0210; Same paper · reprint — https://people.csail.mit.edu/brooks/idocs/Samuel.pdf; IBM · history: early games — https://www.ibm.com/history/early-games |
+| `td-gammon-1991` | learning · feedback | Tesauro · Temporal Difference Learning and TD-Gammon, Communications of the ACM 38(3), 1995 — https://doi.org/10.1145/203330.203343; Same article · full text — https://bkgm.com/articles/tesauro/tdl.html |
+| `timit-1990` | learning · field-data | LDC · TIMIT Acoustic-Phonetic Continuous Speech Corpus (LDC93S1) — https://catalog.ldc.upenn.edu/LDC93S1; Garofolo et al. · DARPA TIMIT Acoustic-Phonetic Continuous Speech Corpus CD-ROM, NISTIR 4930, 1993 — https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4930.pdf |
+| `mechanical-turk-2005` | connected-computing · field-data | Jeff Barr · Amazon's Mechanical Turk: The First Three Weeks, AWS blog, 2005-11-21 — https://aws.amazon.com/blogs/aws/amazons_mechani/; Amazon Mechanical Turk · home page (closure notice) — https://www.mturk.com/ |
+| `open-compute-2011` | connected-computing · field-energy | Heiliger · Building Efficient Data Centers with the Open Compute Project, Facebook Engineering, 2011-04-07 — https://engineering.fb.com/2011/04/07/data-center-engineering/building-efficient-data-centers-with-the-open-compute-project/; Open Compute Project Foundation · About — https://www.opencompute.org/about |
+| `packet-switching-1964` | early-ai · field-networks | Baran · On Distributed Communications, RAND RM-3420, 1964 — https://www.rand.org/pubs/research_memoranda/RM3420.html; Davies · Proposal for a Digital Communication Network, NPL, June 1966 — https://www.dcs.gla.ac.uk/~wpc/grcs/Davies05.pdf; ETHW · Packet Switching — https://ethw.org/Packet_Switching |
+
+6 links touch the new works (185 → 191).
+
+| Link | Type | What the origin's source says | Source on the origin node |
+| --- | --- | --- | --- |
+| `dqn` → `td-gammon-1991` | complements | The DQN paper calls TD-Gammon perhaps the best-known success story of reinforcement learning, learnt entirely by RL and self-play. | https://arxiv.org/abs/1312.5602 |
+| `td-gammon-1991` → `samuel-checkers-1959` | complements | Tesauro's article opens with Samuel's checkers-learning program as a precedent. | https://bkgm.com/articles/tesauro/tdl.html |
+| `dnn-acoustic-2012` → `timit-1990` | uses | Hinton et al. call TIMIT a simple, convenient test for new approaches; deep networks first won on TIMIT from 2009 before moving to large-vocabulary recognition. | https://research.google.com/pubs/archive/38131.pdf |
+| `imagenet-2009` → `mechanical-turk-2005` | uses | ImageNet had people on Mechanical Turk vote on candidate images: at least 10 votes per category at first, then as many as a confidence threshold required. | https://www.image-net.org/static_files/papers/imagenet_cvpr09.pdf |
+| `squad-2016` → `mechanical-turk-2005` | uses | SQuAD's questions were written by crowdworkers on the Daemo platform, which ran on Mechanical Turk. | https://arxiv.org/abs/1606.05250v1 |
+| `open-compute-2011` → `energy-pue-metric-2007` | uses | Facebook measured the new facility by PUE: 1.07 at Prineville, against about 1.5 for its existing ones. | https://engineering.fb.com/2011/04/07/data-center-engineering/building-efficient-data-centers-with-the-open-compute-project/ |

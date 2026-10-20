@@ -6332,8 +6332,8 @@
         "en": "Standard message blocks are stored and forwarded hop by hop, routing around lost nodes."
       },
       "body": {
-        "zh": "集中式或分层的网络，关键节点一坏就会断。1964 年，兰德公司的 Baran 提出分布式网络：消息切成标准大小的块，每个节点先存下再转发，按自适应路由绕开坏掉的节点和线路。十几年后的 Ethernet 论文，题目里就写着“分组交换”。",
-        "en": "Centralised and hierarchical networks fail when key nodes or links are lost. In 1964 RAND's Paul Baran proposed a distributed network: messages are cut into standard blocks, stored and forwarded at each node, and routed adaptively around damage. Twelve years later the Ethernet paper put “packet switching” in its title."
+        "zh": "集中式或分层的网络，关键节点一坏就会断。1964 年，兰德公司的 Baran 提出分布式网络：消息切成标准大小的块，每个节点先存下再转发，按自适应路由绕开坏掉的节点和线路。英国 NPL 的 Davies 独立想到同样的办法，1966 年给这些小块起名“packet”。",
+        "en": "Centralised and hierarchical networks fail when key nodes or links are lost. In 1964 RAND's Paul Baran proposed a distributed network: messages are cut into standard blocks, stored and forwarded at each node, and routed adaptively around damage. In the UK, Donald Davies of the National Physical Laboratory reached the same idea independently and in 1966 named the blocks “packets”."
       },
       "limit": {
         "zh": "每一跳都要存储再转发，延迟和拥塞留给了后来的协议去处理。",
@@ -6343,6 +6343,14 @@
         [
           "Baran · On Distributed Communications, RAND RM-3420, 1964",
           "https://www.rand.org/pubs/research_memoranda/RM3420.html"
+        ],
+        [
+          "Davies · Proposal for a Digital Communication Network, NPL, June 1966",
+          "https://www.dcs.gla.ac.uk/~wpc/grcs/Davies05.pdf"
+        ],
+        [
+          "ETHW · Packet Switching",
+          "https://ethw.org/Packet_Switching"
         ]
       ]
     },
@@ -7281,6 +7289,180 @@
           "https://arxiv.org/pdf/1802.05799v1"
         ]
       ]
+    },
+    {
+      "id": "samuel-checkers-1959",
+      "year": 1959,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "rl",
+      "title": {
+        "zh": "Samuel 跳棋 · 程序下得比作者还好",
+        "en": "Samuel's checkers · A program that outplayed its author"
+      },
+      "hook": {
+        "zh": "只给规则和一张不完整的特征表，程序自己练到胜过作者。",
+        "en": "Given the rules and an incomplete list of features, it learned to beat its author."
+      },
+      "body": {
+        "zh": "计算机能不能不靠逐条编程，自己学会一件事？1959 年，IBM 的 Samuel 拿跳棋来试：程序往前看几步，用一个多项式给局面打分；它背下见过的局面，也让两份自己对下，据此调整多项式的系数。只练了八到十小时机器时间，它就下得比编写它的人还好。",
+        "en": "Could a computer learn a task instead of being programmed step by step? In 1959 Arthur Samuel of IBM tried checkers: the program looked a few moves ahead and scored positions with a polynomial, memorised positions it had seen, and played two copies of itself against each other to adjust the polynomial's coefficients. After 8 to 10 hours of machine time, it played better than the person who wrote it."
+      },
+      "limit": {
+        "zh": "多项式能用哪些特征，还得由人先列出来。",
+        "en": "People still had to list the features the scoring polynomial could use."
+      },
+      "sources": [
+        [
+          "Samuel · Some Studies in Machine Learning Using the Game of Checkers, IBM J. Res. Dev. 3(3), July 1959",
+          "https://doi.org/10.1147/rd.33.0210"
+        ],
+        [
+          "Same paper · reprint",
+          "https://people.csail.mit.edu/brooks/idocs/Samuel.pdf"
+        ],
+        [
+          "IBM · history: early games",
+          "https://www.ibm.com/history/early-games"
+        ]
+      ]
+    },
+    {
+      "id": "td-gammon-1991",
+      "year": 1991,
+      "kind": "research",
+      "status": "historical",
+      "topic": "models",
+      "track": "rl",
+      "title": {
+        "zh": "TD-Gammon · 自己和自己下出高手水平",
+        "en": "TD-Gammon · Self-play to expert level"
+      },
+      "hook": {
+        "zh": "神经网络靠自我对弈和时间差分学习，下到接近世界最强。",
+        "en": "A neural network learned backgammon by self-play and temporal-difference learning, nearly matching the world's best."
+      },
+      "body": {
+        "zh": "双陆棋要掷骰子，走法组合又多，很难靠深度搜索下好。IBM 的 Tesauro 让一个神经网络自己和自己下，用时间差分学习 TD(λ) 按梯度调权重。2.1 版练了 150 万盘，和前世界冠军 Robertie 下了 40 盘，只输 1 分。",
+        "en": "Backgammon has dice and many possible moves, which makes deep search impractical. Gerald Tesauro at IBM had a neural network play against itself and adjusted its weights by gradient descent with temporal-difference learning, TD(λ). Version 2.1, after 1.5 million games, lost to former world champion Bill Robertie by just one point over 40 games."
+      },
+      "limit": {
+        "zh": "最强的几个版本还用了人设计的输入特征，并不是从零知识学起。",
+        "en": "The strongest versions still used hand-designed input features; they did not start from zero knowledge."
+      },
+      "sources": [
+        [
+          "Tesauro · Temporal Difference Learning and TD-Gammon, Communications of the ACM 38(3), 1995",
+          "https://doi.org/10.1145/203330.203343"
+        ],
+        [
+          "Same article · full text",
+          "https://bkgm.com/articles/tesauro/tdl.html"
+        ]
+      ]
+    },
+    {
+      "id": "timit-1990",
+      "year": 1990,
+      "kind": "research",
+      "status": "adopted",
+      "topic": "data",
+      "track": "datasets",
+      "title": {
+        "zh": "TIMIT · 逐个音素标好的语音库",
+        "en": "TIMIT · Speech labelled phone by phone"
+      },
+      "hook": {
+        "zh": "630 人朗读的句子，每个音素的起止时间都标了出来。",
+        "en": "Sentences read by 630 speakers, with the start and end of every phone marked."
+      },
+      "body": {
+        "zh": "比较语音识别方法，得用同一批录好、标好的语音。TIMIT 由 DARPA 资助，MIT、SRI 和德州仪器共同设计：630 位说话人来自美国八个主要方言区，每人读十句，词和音素都按时间对齐标注。1990 年 10 月，NIST 把它做成光盘发布。",
+        "en": "Comparing speech recognisers needs one shared set of recorded, labelled speech. TIMIT, sponsored by DARPA and designed jointly by MIT, SRI and Texas Instruments, has 630 speakers from eight major dialect regions of American English, each reading ten sentences, with words and phones time-aligned. NIST released it on CD-ROM in October 1990."
+      },
+      "limit": {
+        "zh": "录的都是朗读句子，一共约 5 小时，不是自然对话。",
+        "en": "It holds only read sentences, about 5 hours in all, not natural conversation."
+      },
+      "sources": [
+        [
+          "LDC · TIMIT Acoustic-Phonetic Continuous Speech Corpus (LDC93S1)",
+          "https://catalog.ldc.upenn.edu/LDC93S1"
+        ],
+        [
+          "Garofolo et al. · DARPA TIMIT Acoustic-Phonetic Continuous Speech Corpus CD-ROM, NISTIR 4930, 1993",
+          "https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4930.pdf"
+        ]
+      ]
+    },
+    {
+      "id": "mechanical-turk-2005",
+      "year": 2005,
+      "kind": "product",
+      "status": "historical",
+      "topic": "data",
+      "track": "datasets",
+      "title": {
+        "zh": "Mechanical Turk · 把小任务分给网上的人",
+        "en": "Mechanical Turk · Small tasks for people online"
+      },
+      "hook": {
+        "zh": "请求方发布小任务，网上的人逐个完成，审核通过后拿报酬。",
+        "en": "Requesters post small tasks; people online complete them and are paid once approved."
+      },
+      "body": {
+        "zh": "有些判断计算机做不好，人却很快就能做完。2005 年 11 月，亚马逊推出 Mechanical Turk 测试版：请求方把工作拆成一个个“人类智能任务”发布出去，网上的人逐个完成，审核通过后拿报酬。ImageNet 就靠它请人核验候选图片。2026 年 9 月 30 日，这项服务永久关闭。",
+        "en": "Some judgements are hard for computers but quick for people. In November 2005 Amazon opened a beta of Mechanical Turk: requesters split work into Human Intelligence Tasks, people online completed them one by one, and were paid once the work was approved. ImageNet used it to have people verify candidate images. The service closed permanently on 30 September 2026."
+      },
+      "limit": {
+        "zh": "一个人的答案常常不可靠，同一道题往往要好几个人做，再投票决定。",
+        "en": "One person's answer is often unreliable, so the same task usually goes to several people and is settled by vote."
+      },
+      "sources": [
+        [
+          "Jeff Barr · Amazon's Mechanical Turk: The First Three Weeks, AWS blog, 2005-11-21",
+          "https://aws.amazon.com/blogs/aws/amazons_mechani/"
+        ],
+        [
+          "Amazon Mechanical Turk · home page (closure notice)",
+          "https://www.mturk.com/"
+        ]
+      ]
+    },
+    {
+      "id": "open-compute-2011",
+      "year": 2011,
+      "kind": "open",
+      "status": "adopted",
+      "topic": "energy",
+      "track": "facilities",
+      "title": {
+        "zh": "Open Compute · 把机房设计公开出来",
+        "en": "Open Compute · Data-centre designs made open"
+      },
+      "hook": {
+        "zh": "Facebook 把服务器、机架和机房的设计规格公开，谁都能用。",
+        "en": "Facebook published the specifications of its servers, racks and data centre for anyone to use."
+      },
+      "body": {
+        "zh": "Facebook 原来的机房，PUE 平均约 1.5。2011 年 4 月，它发起 Open Compute Project，公开了俄勒冈州 Prineville 新机房的主板、电源、机箱、机架和电池柜规格，以及电气和机械设计。新机房的 PUE 是 1.07。做同样的工作，它少用 38% 的电，成本也低 24%。",
+        "en": "Facebook's existing data centres ran at an average PUE of about 1.5. In April 2011 it launched the Open Compute Project, publishing the specifications of the motherboards, power supplies, chassis, racks and battery cabinets of its new Prineville, Oregon facility, along with its electrical and mechanical designs. The new facility ran at a PUE of 1.07. It used 38% less energy for the same work, at 24% lower cost."
+      },
+      "limit": {
+        "zh": "它省下的主要是供电和散热的损耗，服务器计算本身的耗电还在。",
+        "en": "It mainly cut power-delivery and cooling losses; the energy the servers spend computing remains."
+      },
+      "sources": [
+        [
+          "Heiliger · Building Efficient Data Centers with the Open Compute Project, Facebook Engineering, 2011-04-07",
+          "https://engineering.fb.com/2011/04/07/data-center-engineering/building-efficient-data-centers-with-the-open-compute-project/"
+        ],
+        [
+          "Open Compute Project Foundation · About",
+          "https://www.opencompute.org/about"
+        ]
+      ]
     }
   ],
   "eras": [
@@ -7540,6 +7722,20 @@
           ]
         },
         {
+          "id": "game-learning",
+          "title": {
+            "zh": "让程序自己学下棋",
+            "en": "Programs that learn to play"
+          },
+          "summary": {
+            "zh": "Samuel 让跳棋程序背下见过的局面，又和自己对下来调整打分方式，练到下得比作者还好。",
+            "en": "Samuel's checkers program memorised positions and played itself to tune how it scored them, until it beat its author."
+          },
+          "works": [
+            "samuel-checkers-1959"
+          ]
+        },
+        {
           "id": "robot-planning",
           "title": {
             "zh": "让机器人自己排动作",
@@ -7626,10 +7822,11 @@
             "en": "Learning decisions from feedback"
           },
           "summary": {
-            "zh": "有些任务没有每一步的标准答案，只有做完动作后的奖励。Q-learning 要估计的是：现在做这个动作，之后也都做较好的选择，长期下来能拿到多少回报？",
-            "en": "Some tasks have rewards rather than a correct label for every step. Q-learning estimates the return from an action followed by good future choices."
+            "zh": "有些任务没有每一步的标准答案，只有做完动作后的奖励。Q-learning 要估计的是：现在做这个动作，之后也都做较好的选择，长期下来能拿到多少回报？TD-Gammon 让神经网络和自己下双陆棋，用时间差分学习练到接近世界最强。",
+            "en": "Some tasks have rewards rather than a correct label for every step. Q-learning estimates the return from an action followed by good future choices. TD-Gammon had a neural network play backgammon against itself and, with temporal-difference learning, came close to the world's best."
           },
           "works": [
+            "td-gammon-1991",
             "qlearning"
           ]
         },
@@ -7723,14 +7920,15 @@
         {
           "id": "field-data",
           "title": {
-            "zh": "大规模语言标注",
-            "en": "Annotating language at scale"
+            "zh": "语言数据：录音与标注",
+            "en": "Language data: recordings and annotation"
           },
           "summary": {
-            "zh": "统计方法要从大量真实文本里学语言，得先有标好词性和句法的语料，而纯手工标注又慢又难一致。Penn Treebank 让程序先标、人再改，把标注做到了几百万词。",
-            "en": "Statistical methods needed real text annotated with parts of speech and syntax, and annotating entirely by hand was slow and inconsistent. The Penn Treebank had programs annotate first and people correct, reaching millions of words."
+            "zh": "统计方法要从大量真实语言里学，得先有标注好的数据。TIMIT 把 630 人朗读的语音按音素对齐标注，成了比较语音识别的共同基准；Penn Treebank 让程序先标、人再改，把词性和句法标注做到了几百万词。",
+            "en": "Statistical methods needed real language data, annotated. TIMIT aligned the speech of 630 readers phone by phone and became a shared benchmark for speech recognition; the Penn Treebank had programs annotate first and people correct, reaching millions of words of part-of-speech and syntax labels."
           },
           "works": [
+            "timit-1990",
             "penn-treebank-1993"
           ]
         },
@@ -7833,13 +8031,14 @@
             "en": "Power & facilities"
           },
           "summary": {
-            "zh": "服务器少做事时，功耗未必跟着降。能耗比例性讨论低负载效率，PUE 只问机房的电有多少到了 IT 设备，仓库级计算则把服务器、网络、供电与冷却一起考虑；三者看的是不同尺度的成本。",
-            "en": "A lightly loaded server may still draw substantial power. Energy proportionality addresses low-load efficiency, PUE asks only how much facility energy reaches IT equipment, and warehouse-scale computing designs servers, networking, power, and cooling together; each looks at cost at a different scale."
+            "zh": "服务器少做事时，功耗未必跟着降。能耗比例性讨论低负载效率，PUE 只问机房的电有多少到了 IT 设备，仓库级计算则把服务器、网络、供电与冷却一起考虑。Open Compute 把一座 PUE 1.07 的机房连同服务器设计一起公开。",
+            "en": "A lightly loaded server may still draw substantial power. Energy proportionality addresses low-load efficiency, PUE asks only how much facility energy reaches IT equipment, and warehouse-scale computing designs servers, networking, power, and cooling together. Open Compute published a facility running at PUE 1.07, servers and all."
           },
           "works": [
             "energy-proportional-computing-2007",
             "energy-pue-metric-2007",
-            "energy-warehouse-scale-computing-2009"
+            "energy-warehouse-scale-computing-2009",
+            "open-compute-2011"
           ]
         },
         {
@@ -7882,11 +8081,12 @@
             "en": "Data & evaluation"
           },
           "summary": {
-            "zh": "要比较模型是否真的更好，需要便宜可靠的评估和足够多的数据。BLEU 让翻译质量能自动打分；Common Crawl 把网页抓取数据免费公开；ImageNet 的贡献也在类别设计、采集和人工核验，不只是一个更大的下载包。",
-            "en": "Comparing models needs cheap, reliable evaluation and enough data. BLEU scored translations automatically; Common Crawl gave away crawled web data; ImageNet involved category design, collection, and human verification—not just a bigger file to download."
+            "zh": "要比较模型是否真的更好，需要便宜可靠的评估和足够多的数据。BLEU 让翻译质量能自动打分；Common Crawl 把网页抓取数据免费公开；Mechanical Turk 让人工标注能分给网上很多人；ImageNet 的贡献也在类别设计、采集和人工核验，不只是一个更大的下载包。",
+            "en": "Comparing models needs cheap, reliable evaluation and enough data. BLEU scored translations automatically; Common Crawl gave away crawled web data; Mechanical Turk spread human labelling across many people online; ImageNet involved category design, collection, and human verification—not just a bigger file to download."
           },
           "works": [
             "bleu-2002",
+            "mechanical-turk-2005",
             "common-crawl-2007",
             "imagenet-2009"
           ]
@@ -11371,6 +11571,66 @@
         "en": "Genie 3's architecture is not disclosed; its predecessor Genie 2 is an autoregressive latent diffusion model, compressing frames with an autoencoder and predicting them one after another with a transformer."
       },
       "source": "https://deepmind.google/discover/blog/genie-2-a-large-scale-foundation-world-model/"
+    },
+    {
+      "from": "dqn",
+      "to": "td-gammon-1991",
+      "type": "complements",
+      "description": {
+        "zh": "DQN 论文说，强化学习最有名的成功大概是 TD-Gammon，完全靠强化学习和自我对弈学会。",
+        "en": "The DQN paper calls TD-Gammon perhaps the best-known success story of reinforcement learning, learnt entirely by RL and self-play."
+      },
+      "source": "https://arxiv.org/abs/1312.5602"
+    },
+    {
+      "from": "td-gammon-1991",
+      "to": "samuel-checkers-1959",
+      "type": "complements",
+      "description": {
+        "zh": "Tesauro 的文章一开头就把 Samuel 的跳棋学习程序当作先例。",
+        "en": "Tesauro's article opens with Samuel's checkers-learning program as a precedent."
+      },
+      "source": "https://bkgm.com/articles/tesauro/tdl.html"
+    },
+    {
+      "from": "dnn-acoustic-2012",
+      "to": "timit-1990",
+      "type": "uses",
+      "description": {
+        "zh": "Hinton 等人说，TIMIT 是试新方法的简单方便的基准；深度网络 2009 年起先在 TIMIT 上胜出，才推广到大词汇量识别。",
+        "en": "Hinton et al. call TIMIT a simple, convenient test for new approaches; deep networks first won on TIMIT from 2009 before moving to large-vocabulary recognition."
+      },
+      "source": "https://research.google.com/pubs/archive/38131.pdf"
+    },
+    {
+      "from": "imagenet-2009",
+      "to": "mechanical-turk-2005",
+      "type": "uses",
+      "description": {
+        "zh": "ImageNet 请 Mechanical Turk 上的人给候选图片投票：每类先由至少 10 人投票，再按置信度门槛决定还要多少人。",
+        "en": "ImageNet had people on Mechanical Turk vote on candidate images: at least 10 votes per category at first, then as many as a confidence threshold required."
+      },
+      "source": "https://www.image-net.org/static_files/papers/imagenet_cvpr09.pdf"
+    },
+    {
+      "from": "squad-2016",
+      "to": "mechanical-turk-2005",
+      "type": "uses",
+      "description": {
+        "zh": "SQuAD 的问题由众包工人在 Daemo 平台上写出，平台后台用的就是 Mechanical Turk。",
+        "en": "SQuAD's questions were written by crowdworkers on the Daemo platform, which ran on Mechanical Turk."
+      },
+      "source": "https://arxiv.org/abs/1606.05250v1"
+    },
+    {
+      "from": "open-compute-2011",
+      "to": "energy-pue-metric-2007",
+      "type": "uses",
+      "description": {
+        "zh": "Facebook 用 PUE 衡量新机房：Prineville 是 1.07，原有机房平均约 1.5。",
+        "en": "Facebook measured the new facility by PUE: 1.07 at Prineville, against about 1.5 for its existing ones."
+      },
+      "source": "https://engineering.fb.com/2011/04/07/data-center-engineering/building-efficient-data-centers-with-the-open-compute-project/"
     }
   ]
 }
