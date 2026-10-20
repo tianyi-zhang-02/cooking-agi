@@ -442,3 +442,13 @@ Branches: new works joined eight existing branches; new branches are `word-meani
 | `ring-allreduce-2017` → `distributed-mpi-1994` | uses | Baidu's ring-allreduce library requires CUDA and MPI. | https://github.com/baidu-research/baidu-allreduce |
 
 Not included, though worth a later check: Samuel's checkers (1959), TD-Gammon, TIMIT, Mechanical Turk, Open Compute Project (2011), and Davies at NPL.
+
+## Genie 3, the last unlinked milestone (Claude Code, 2026-10-20)
+
+The Genie 3 post names only predecessors that are not on the tree (Genie 1 and 2, Veo, GameNGen, SIMA) and does not disclose its architecture. It does name Genie 2 as the model it follows, and the Genie 2 post (2024-12-04) describes Genie 2 as an autoregressive latent diffusion model: frames are encoded by an autoencoder and a large transformer dynamics model with causal masking predicts them. That post was added as a source on `genie-3-2025`, and the link is worded so it attributes the architecture to Genie 2 only.
+
+| Link | Type | What the origin's source says | Source on the origin node |
+| --- | --- | --- | --- |
+| `genie-3-2025` → `diffusion` | complements | Genie 3's architecture is not disclosed; its predecessor Genie 2 is an autoregressive latent diffusion model, compressing frames with an autoencoder and predicting them one after another with a transformer. | https://deepmind.google/discover/blog/genie-2-a-large-scale-foundation-world-model/ |
+
+Every milestone now has at least one sourced connection.
