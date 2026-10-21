@@ -223,6 +223,17 @@ test('SwiGLU: h = [0, 1.4621], y ≈ -1.4621, gate gradient 1.5', () => {
   assert.deepEqual([end.h, end.y, end.gradU, end.gradG], [[0, 1.4621], -1.4621, 0, 1.5]);
 });
 
+test('prefill/decode: 7 positions with the cache, 18 without; the new positions read 6 and 7 K/V', () => {
+  const frames = F.prefillDecode();
+  assert.deepEqual(frames.map(f => f.withCache), [0, 5, 6, 7, 7, 7]);
+  assert.deepEqual(frames.map(f => f.without), [0, 5, 11, 18, 18, 18]);
+  assert.deepEqual(frames.slice(1, 4).map(f => f.reads), [5, 6, 7]);
+  assert.deepEqual(frames.map(f => f.cached), [0, 5, 6, 7, 7, 7]);
+  assert.equal(last(frames).made, 3);
+  const longer = last(F.prefillDecode(5, 4));
+  assert.deepEqual([longer.withCache, longer.without], [8, 26]);
+});
+
 test('depth merge: averaging gives 2, the stored sums give 3', () => {
   const end = last(F.depthMerge());
   assert.deepEqual([end.naive, end.merged, end.full], [2, 3, 3]);

@@ -870,6 +870,38 @@
     ]);
   };
 
+  /* 00-foundations/core/decoder-only §prefill-decode: a 5-token prompt, 3 new tokens.
+     With the KV cache the model processes 5 + 1 + 1 = 7 positions; recomputing the prefix
+     every step processes 5 + 6 + 7 = 18. */
+  F.prefillDecode = function (prompt = 5, generate = 3) {
+    const steps = [];  // one entry per forward pass: positions fed, K/V read by the newest position
+    for (let k = 0; k < generate; k += 1) {
+      const length = prompt + k;  // prefix length the token is predicted from
+      steps.push({fed: k === 0 ? prompt : 1, reads: length, recompute: length});
+    }
+    const sum = (list, key, n) => list.slice(0, n).reduce((a, x) => a + x[key], 0);
+    const state = (stage, done) => ({stage, prompt, generate, total: prompt + generate - 1, done: Boolean(done),
+      cached: stage >= 1 ? Math.min(prompt + Math.max(0, Math.min(stage, generate) - 1), prompt + generate - 1) : 0,
+      withCache: sum(steps, 'fed', Math.min(stage, generate)), without: sum(steps, 'recompute', Math.min(stage, generate)),
+      reads: stage >= 1 && stage <= generate ? steps[stage - 1].reads : null, made: Math.min(stage, generate)});
+    const P = prompt, G = generate;
+    const withAll = sum(steps, 'fed', G), withoutAll = sum(steps, 'recompute', G);
+    return frames([
+      {...state(0), zh: `Prompt 有 ${P} 个 token，要生成 ${G} 个新 token。先数一数，有没有 KV cache，模型一共要处理多少个位置。`,
+        en: `The prompt has ${P} tokens and we want ${G} new ones. Count how many positions the model processes, with and without the KV cache.`},
+      {...state(1), zh: `Prefill：${P} 个位置一次并行算完，每层的 K/V 都存进 cache。最后一个位置的 logits 选出第 1 个新 token ①。这一步有没有缓存都一样。`,
+        en: `Prefill: all ${P} positions are computed together in one pass, and every layer stores their K/V in the cache. The logits at the last position pick the first new token ①. With or without a cache, this step is the same.`},
+      {...state(2), zh: `Decode 1：只把刚生成的 ①（位置 ${P + 1}）送进模型。它从 cache 里读前 ${P} 个位置的 K/V，加上自己的，一共 ${P + 1} 个，算出第 2 个新 token ②。不缓存的话，这一步要把 ${P + 1} 个位置全部重算。`,
+        en: `Decode 1: only the new token ① (position ${P + 1}) goes into the model. It reads the K/V of the first ${P} positions from the cache plus its own, ${P + 1} in all, and produces the second new token ②. Without a cache, this step would recompute all ${P + 1} positions.`},
+      {...state(3), zh: `Decode 2：再把 ②（位置 ${P + 2}）送进去，读 ${P + 2} 个 K/V，得到第 3 个新 token ③。每步只算一个新位置，cache 每步多一格。`,
+        en: `Decode 2: feed ② (position ${P + 2}), read ${P + 2} K/V entries, and get the third new token ③. Each step computes one new position, and the cache grows by one.`},
+      {...state(4), zh: `合计：有缓存一共处理 ${P} + 1 + 1 = ${withAll} 个位置；每步重算整段前缀，是 ${steps.map(x => x.recompute).join(' + ')} = ${withoutAll} 个。生成得越长，差距越大。`,
+        en: `In total: with the cache the model processes ${P} + 1 + 1 = ${withAll} positions; recomputing the prefix every step takes ${steps.map(x => x.recompute).join(' + ')} = ${withoutAll}. The longer the output, the wider the gap.`},
+      {...state(5, true), zh: 'Decode 每步只算一个位置，却要把全部权重和越来越长的 KV cache 从显存里读一遍。所以单条请求的 decode 常卡在显存带宽上，算力反而闲着；缓存省的是重复计算，换来的是显存。',
+        en: 'Each decode step computes one position, yet reads all the weights and an ever longer KV cache from memory. That is why single-request decoding is usually limited by memory bandwidth while compute sits idle; the cache saves recomputation and costs memory.'}
+    ]);
+  };
+
   /* 00-foundations/deep-dives/attention-residuals: a depth softmax split into two batches, merged with the stored sums. */
   F.depthMerge = function () {
     const batches = [[0], [4, 4, 4]], scores = [[0], [0, 0, 0]];
@@ -3017,6 +3049,49 @@
       out.set(frame.stage >= 3 ? `≈ ${fixed(base.y, 4).replace('-', '−')}` : '', frame.stage >= 3 ? 'is-look' : 'algo-ghost'); show(outHead, frame.stage >= 3);
       gu.set(frame.stage >= 4 ? '1 × SiLU(0) = 0' : '', frame.stage >= 4 ? 'is-bad' : 'is-hidden'); guHead.classList.toggle('is-hidden', frame.stage < 4);
       gg.set(frame.done ? '1 × 3 × 0.5 = 1.5' : '', frame.done ? 'is-keep' : 'is-hidden'); ggHead.classList.toggle('is-hidden', !frame.done);
+    };
+  }});
+
+  FIGURES['step-prefill-decode'] = name => stepper(name, F.prefillDecode(), {height: 214, readouts: f => [
+    [t('已处理位置 · 有缓存', 'positions · with cache'), f.stage >= 1 ? String(f.withCache) : '—', f.stage >= 4 ? 'good' : ''],
+    [t('不缓存要处理', 'positions · without'), f.stage >= 1 ? String(f.without) : '—', f.stage >= 2 ? 'bad' : ''],
+    [t('这一步读 K/V', 'K/V read this step'), f.reads ? String(f.reads) : '—'],
+    [t('已生成', 'generated'), `${f.made} / ${f.generate}`, f.done ? 'key' : '']], setup(svg) {
+    const base = F.prefillDecode()[0], n = base.total, P = base.prompt, w = 50, gap = 8, x0 = 176, ht = 32;
+    const X = i => x0 + i * (w + gap);
+    const words = t('我 想 去 北 京', 'The cat sat on the').split(' ');
+    const marks = ['①', '②', '③'];
+    const label = i => (i < P ? words[i] : marks[i - P]);
+    for (let i = 0; i < n; i += 1) V.text(svg, X(i) + w / 2, 18, t(`位置 ${i + 1}`, `pos ${i + 1}`), i < P ? 'algo-head' : 'algo-head is-dim', 'middle');
+    V.text(svg, X(0) + (P * (w + gap) - gap) / 2, 34, 'prompt', 'algo-idx', 'middle');
+    V.text(svg, X(P) + ((n - P) * (w + gap) - gap) / 2, 34, t('新生成', 'generated'), 'algo-idx', 'middle');
+    const names = [t('这一步送进模型', 'fed this step'), t('KV cache（读取）', 'KV cache (read)'), t('不缓存：要重算', 'no cache: recompute')];
+    const rows = names.map((title, r) => {
+      const y = 46 + r * 52;
+      return {head: V.text(svg, x0 - 14, y + 21, title, 'algo-head', 'end'), cells: Array.from({length: n}, (_, i) => cell(svg, X(i), y, w, ht, '', 'algo-note')),
+        count: V.text(svg, X(n - 1) + w + 14, y + 21, '', 'algo-idx')};
+    });
+    const out = V.text(svg, X(n - 1) + w + 14, 46 + 21, '', 'algo-head');
+    return frame => {
+      const s = frame.stage, step = Math.min(s, frame.generate);  // forward passes so far
+      const fedLo = s === 1 ? 0 : P + s - 2, fedHi = s === 1 ? P - 1 : P + s - 2;  // positions fed this step
+      const live = s >= 1 && s <= frame.generate;
+      rows[0].cells.forEach((c, i) => {
+        const known = i < P || i < P + step - 1;
+        c.set(known ? label(i) : '', live && i >= fedLo && i <= fedHi ? 'is-look' : known ? '' : 'algo-ghost');
+      });
+      rows[1].cells.forEach((c, i) => c.set(i < frame.cached ? 'K/V' : '', i < frame.cached ? 'is-keep' : 'algo-ghost'));
+      const redo = live && s >= 2 ? P + s - 1 : 0;  // positions a cache-less model recomputes now
+      rows[2].cells.forEach((c, i) => {
+        const same = s === 1 && i < P;
+        c.set(i < redo || same ? label(i) : '', i < redo ? 'is-bad' : same ? '' : 'algo-ghost');
+      });
+      rows[2].head.classList.toggle('is-dim', !(live && s >= 2));
+      rows[0].count.textContent = live ? t(`${fedHi - fedLo + 1} 个`, `${fedHi - fedLo + 1}`) : '';
+      rows[1].count.textContent = live ? t(`读 ${frame.reads} 个`, `${frame.reads} read`) : '';
+      rows[2].count.textContent = live && s >= 2 ? t(`${redo} 个`, `${redo}`) : '';
+      out.textContent = live ? `→ ${marks[s - 1]}` : '';
+      rows[0].count.setAttribute('x', X(n - 1) + w + 52);
     };
   }});
 
