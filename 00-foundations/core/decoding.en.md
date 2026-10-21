@@ -85,7 +85,7 @@ Use probabilities `0.40, 0.25, 0.15, 0.08, 0.05, 0.03, 0.025, 0.015`, convert th
 | 1.0 | 5 | 5 |
 | 1.5 | **6** | 5 |
 
-With the order reversed, the same parameters give a different candidate pool. At $T=1$ temperature leaves the distribution unchanged, so the two are necessarily equal, so testing only at the default temperature will never reveal this difference.
+Reversing the order gives a different candidate pool with the same parameters. At $T=1$, temperature leaves the distribution unchanged, so both orders necessarily give the same result. Testing only at the default temperature will therefore miss the difference.
 
 Record temperature and top-p together. Fix the processing order before tuning so you can distinguish flattening the distribution from truncating its support.
 
@@ -102,7 +102,7 @@ Here $c_i$ counts occurrences of token $i$ in the generated text. Assume nonnega
 
 These penalties track tokens, not topics. Suppressing previously used tokens does not guarantee new ideas; paraphrasing the same idea may evade the penalty.
 
-⚠️ Both are blunt instruments, because **some repetition is supposed to happen**. Punctuation, pronouns, indentation and brackets in code, and a person's name that the text keeps mentioning are all meant to occur frequently. Turn the penalties up too far and the model starts avoiding these necessary tokens; the output becomes awkward or even ungrammatical. Code generation is especially intolerant of this.
+⚠️ Neither rule distinguishes pointless repetition from **necessary repetition**. Punctuation, pronouns, indentation and brackets in code, and recurring names may all need to appear frequently. Excessive penalties make the model avoid these necessary tokens, producing awkward or ungrammatical output. Code generation is especially vulnerable to such errors.
 
 Keep an unpenalized baseline and compare outputs on the same prompts. Check the framework's parameter ranges and whether counts include the prompt; there is no universal step size or useful maximum across models.
 
@@ -276,7 +276,7 @@ In ordinary PPO, the denominator is the old policy that collected the batch, not
 ## Quick learning: model probabilities and the decoding policy are two layers {#quick-learning-model-probabilities-and-the-decoding-policy-are-two-layers}
 
 <details class="interview" markdown="1">
-<summary>The spine of temperature, top-k, and top-p, and the order they compose in</summary>
+<summary>How temperature, top-k, and top-p work, and why their order matters</summary>
 
 **Quick memory**: the model produces logits; temperature changes their relative sharpness; top-k/top-p truncate the candidate set; sampling is the step that actually makes the random choice.
 

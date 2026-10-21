@@ -17,17 +17,17 @@
 
 ## 先交换位置信息，再逐位置变换 {#_1}
 
-先忘掉那张塞满箭头的大框图。Transformer 一层其实只反复做两件事：**attention 去别的位置拿信息，FFN 留在当前位置加工信息。** 原版仍然是 encoder–decoder，但 recurrence 被彻底拿掉了。
+读结构图时，可以先抓住一层里的两类操作：**attention 从其他位置读取信息，FFN 在当前位置变换这些信息。** 原版仍然采用 encoder–decoder 结构，但已经移除了循环计算（recurrence）。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
 <div class="concept-title-en concept-title-h2" role="heading" aria-level="2">Move information, then transform it</div>
 
-Forget the arrow-heavy architecture diagram for a moment. A Transformer layer
-repeats two operations: **attention reads information from other positions; the FFN
-transforms that information at the current position.** The original architecture is
-still an encoder–decoder, but recurrence is removed completely.
+To read the architecture diagram, start with two operations in each layer:
+**attention reads information from other positions; the FFN transforms that
+information at the current position.** The original architecture remains an
+encoder–decoder, but removes recurrence entirely.
 
 </div>
 </section>
@@ -40,7 +40,7 @@ still an encoder–decoder, but recurrence is removed completely.
 1. **Attention mixing**：不同 token 之间交换信息。
 2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
 
-外面再套 residual connection 与 normalization。堆很多层，也还是在反复“出去找信息 → 回来加工信息”。这样记，比背整张结构图轻松很多。
+这两类操作分别配有残差连接（residual connection）与归一化（normalization）。堆叠多层，就是反复进行跨位置的信息交换和逐位置的特征变换。先理解这两类计算，再看完整结构图，更容易分清各个模块的职责。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -50,9 +50,10 @@ still an encoder–decoder, but recurrence is removed completely.
 1. **Attention mixing** exchanges information across token positions.
 2. **Channel mixing / FFN** transforms each token's channels independently.
 
-Residual connections and normalization wrap those two operations. Stacking layers
-means repeating “go out and read → come back and transform.” This mental model is
-more useful than memorizing the full block diagram.
+Residual connections and normalization accompany each operation. Stacking layers
+repeats cross-position information exchange and position-wise feature transformation.
+Understanding these two computations first makes each module's role in the full
+diagram easier to follow.
 
 </div>
 </section>
@@ -364,7 +365,7 @@ $$C=\operatorname{Encoder}(X)\in\mathbb{R}^{S\times512}.$$
 
 <div class="concept-title-en" role="heading" aria-level="3">2. What one encoder layer computes</div>
 
-The original model stacks six identical encoder layers:
+The original model stacks six encoder layers with the same structure:
 
 ```text
 X -> multi-head self-attention -> Add & Norm -> FFN -> Add & Norm
@@ -713,11 +714,11 @@ predicted.
 <details class="interview" markdown="1">
 <summary>Encoder、Decoder 与现代 Decoder-only 的分界</summary>
 
-**快速记忆**：Encoder 是 self-attention + FFN；Decoder 把 self-attention 换成 masked self-attention，再多一段 cross-attention；每段外面都有 residual 与 norm。
+**快速记忆**：Encoder 由自注意力（self-attention）和 FFN 组成；Decoder 使用带掩码的自注意力（masked self-attention），并增加一段交叉注意力（cross-attention）；每个子层都配有残差连接与归一化。
 
 **面试回答**
 
-> Source tokens 经 embedding 与 position encoding 后进入 encoder；decoder 用右移后的 target 做 masked self-attention，再通过 cross-attention 读取 encoder states，最后由 linear vocabulary head 与 softmax 预测下一个 token。训练能并行所有 target positions，生成仍需自回归。
+> 源文本的 token 经嵌入与位置编码后进入 encoder；decoder 对右移后的目标序列做带掩码的自注意力，再通过交叉注意力读取 encoder 的输出状态，最后经线性词表输出层与 softmax 预测下一个 token。训练时可以并行计算所有目标位置，生成时仍需自回归地逐步预测。
 
 <details markdown="1">
 <summary><b>深挖</b>：为什么 target 右移和 causal mask 两个都需要？</summary>

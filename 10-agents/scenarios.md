@@ -43,7 +43,9 @@
 
 ## 客服：可靠性比单次成功率重要
 
-同一个问题，这次答对、下次答错，在客服场景里是不能接受的。τ-bench 模拟用户和受政策约束的工具环境，用 pass^k 衡量可靠性：同一个任务独立跑 k 次、k 次全部成功的概率，再对任务取平均。它比只看一次成功率更接近真实要求：单次成功率 90% 的任务，8 次全对的概率只有 $0.9^8\approx0.43$（见[上面的表](#retry-math)）。它的后续版本 [τ²-bench](https://arxiv.org/abs/2506.07982) 加了电信客服场景：用户也要自己动手操作设备（dual control），agent 得指导用户一起完成。截至 2026-10-21，[仓库](https://github.com/sierra-research/tau2-bench)的[最新发布](https://github.com/sierra-research/tau2-bench/releases)是 2026-10 的 τ-bench 2.0，加入了同一批客服任务的六种语言版本。在它之前，τ³-bench（v1.0）加入了语音全双工评估和 banking_knowledge 领域；2026-07 的 v1.0.1 修正了这个领域的评分，仓库说明这个领域在 1.0.1 之前和之后的结果不能直接比较。
+同一个问题，这次答对、下次答错，在客服场景里是不能接受的。τ-bench 模拟用户和受政策约束的工具环境，用 pass^k 衡量可靠性：先计算同一个任务独立运行 k 次、全部成功的概率，再对任务取平均。它比只看一次成功率更接近实际要求：单次成功率 90% 的任务，8 次全对的概率只有 $0.9^8\approx0.43$（见[上面的表](#retry-math)）。
+
+后续版本 [τ²-bench](https://arxiv.org/abs/2506.07982) 加了电信客服场景：用户也要自己动手操作设备（dual control），agent 得指导用户一起完成。截至 2026-10-21，[仓库](https://github.com/sierra-research/tau2-bench)的[最新发布](https://github.com/sierra-research/tau2-bench/releases)是 2026-10 的 τ-bench 2.0，加入了同一批客服任务的六种语言版本。在它之前，τ³-bench（v1.0）加入了语音全双工评估和 banking_knowledge 领域；2026-07 的 v1.0.1 修正了这个领域的评分。仓库说明，这个领域在 1.0.1 之前和之后的结果不能直接比较。
 
 ## 读外部内容的 agent：小心注入
 

@@ -54,7 +54,9 @@ Compare erroneous approvals, missed failures, abstention, latency, and cost on t
 
 For offline observation, the judge is a measurement. When used to select training data, choose best-of-N outputs, or provide RL rewards, its preferences start influencing which outputs get produced or selected.
 
-A weakness can then become more common: verbosity, particular formatting, copying references, or appealing to the evaluator. A rising judge score establishes improvement against that scoring procedure, not automatically against the actual task. Reward hacking already measured in agent RL, and ways to bring a reward closer to real success, are covered in [environments and rewards](../../11-frontier/agentic-rl/environments-and-rewards.en.md); what a reward still misses once it becomes a checkable rule is covered in [verifiable rewards](../../05-post-training/verifiable-rewards.en.md).
+An occasional scoring weakness can then be exploited repeatedly: verbosity, particular formatting, copying references, or appealing to the evaluator. A rising judge score establishes improvement against that scoring procedure, not automatically against the actual task.
+
+For examples observed in agent RL and ways to make rewards better reflect task success, see [environments and rewards](../../11-frontier/agentic-rl/environments-and-rewards.en.md). For the limitations that remain when rewards use checkable rules, see [verifiable rewards](../../05-post-training/verifiable-rewards.en.md).
 
 Keep evaluation data out of reward construction and prompt tuning. Cross-check with independent human slices, deterministic outcomes, and new failure cases. A teacher labeling training data and then serving as the only judge of its student risks circular validation. Another model adds a perspective, not guaranteed independence.
 
@@ -62,6 +64,6 @@ Keep evaluation data out of reward construction and prompt tuning. Cross-check w
 
 Retain input and evidence snapshots, candidates, criterion and prompt versions, judge version, generation settings, answer order, raw output, parse status, verdict, latency, and cost. Public notes should contain no real personal or confidential workplace data; access and retention controls still apply to private logs.
 
-When judgments disagree, inspect examples first. Lowering temperature can simply make the same mistake more repeatable.
+When judgments disagree, inspect examples first: is evidence missing, is the rubric ambiguous, or are the scores varying across samples? Lowering temperature may reduce sampling variation, but it won't solve the first two problems.
 
 Next: [Calibrate against human judgments](calibration.en.md)

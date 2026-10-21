@@ -4,7 +4,9 @@
 
 > Reading time: ~7 min · Last reviewed: 2026-10
 
-"AI is improving itself" can mean quite different things: a model retrains on the problems it solved; an agent rewrites its own code; a lab has models write most of its code. These differ in how strong the evidence is and in how far they are from "a system builds its own next generation". **Whenever you read a self-improvement claim, ask three things first: what object changes, who proposes and applies the change, and what signal decides that the change is kept.**
+A model retrains on its correct answers, an agent edits its own code, or researchers use AI to run experiments faster. All three may be called “self-improvement,” though they automate different parts of the work and require different evidence of success.
+
+To understand a system, follow one proposed change. What changes? Who proposes and implements it? Who decides to keep it, and based on what result? We use these questions to compare the approaches without treating them all as systems that build their own successors.
 
 ## Where the idea comes from
 

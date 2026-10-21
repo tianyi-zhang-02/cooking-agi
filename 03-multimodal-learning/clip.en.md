@@ -4,7 +4,7 @@
 
 > Reading time: about 9 minutes · Last reviewed: 2026-10
 
-Take three images—a cat, a bicycle, and a coffee—and their three captions. Instead of asking for an essay, ask: **which image belongs with which caption?** This is a useful starting point for CLIP.
+Take three images—a cat, a bicycle, and a cup of coffee—and their three captions. Start with a matching task: **which image belongs with which caption?** This is a useful starting point for CLIP.
 
 First review [vectors, cosine, and softmax](../00-foundations/core/embeddings-and-similarity.en.md). This note covers the original 2021 CLIP objective, not a universal recipe for multimodal models.
 
@@ -26,7 +26,7 @@ flowchart TD
     H --> I["Symmetric loss updates both encoders"]
 ```
 
-Image tokens do not cross-attend to every caption here. Independent encoding helps retrieval, at the cost of compressing interaction details into vectors.
+Image tokens do not cross-attend to every caption here. The two inputs can be encoded independently, which is useful for retrieval. However, matching relies on the resulting compressed vectors, which may lose some details.
 
 ## Start with a score table
 

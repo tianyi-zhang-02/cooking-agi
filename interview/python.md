@@ -48,7 +48,7 @@ assert result == [("beta", 1), ("beta", 3), ("alpha", 1), ("alpha", 2)]
 
 <!-- widget:tx-py-sort -->
 
-`sorted(x)` 返回一个新列表，原列表不变；`x.sort()` 在原地排序，返回的是 `None`。所以写成 `x = x.sort()` 会把 x 变成 None，这是很常见的 bug。
+`sorted(x)` 返回一个新列表，原列表不变；`x.sort()` 在原地排序，返回的是 `None`。所以写成 `x = x.sort()` 后，列表虽然排好了，变量 x 却被重新绑定到了 None，这是很常见的 bug。
 
 还有一个坑：在循环里建 lambda，它记住的是变量本身，不是当时的值，见文末第 2 题。
 

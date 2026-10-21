@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-Have a model that writes Python functions generate a few solutions per problem, run the tests, fine-tune only on the ones that pass, and use the new model for the next round. No one writes answers, so the loop looks as if it could run forever. But if the tests accept some wrong solutions, those go into the training set too. **Each round can learn at most what the verifier knows beyond the model; errors the verifier cannot tell apart are not removed by the loop, and are learned along with everything else.**
+Have a model that writes Python functions generate a few solutions per problem, run the tests, fine-tune only on the ones that pass, and use the new model for the next round. No one needs to write the answers, so the loop looks as if it could continue indefinitely. But if the tests accept some wrong solutions, those enter the training set too.
+
+This note uses the generation-verification gap to analyse each round's improvement. Under the stated update assumptions, the gain is constrained by the quality difference the verifier can identify through selection. Errors the verifier cannot distinguish are retained too; repeating the same loop cannot be relied on to remove them automatically.
 
 ## One loop, three parts
 
@@ -74,7 +76,7 @@ $\bar r_{\rm solve}$ is the solver's average success over $G$ Monte Carlo attemp
 | Task 3 | 4 | 1 | 0 |
 | Task 4 | 1 | 0.25 | 0.75 |
 
-The first three rows are the paper's intuition: a task that is never solved and one that is always solved give the solver no learning signal, so the proposer earns nothing. The fourth row comes straight from the formula: the reward peaks not at a 0.5 success rate but at tasks that are solved only occasionally; with $G=4$ the maximum is $1-1/4=0.75$. This is the same difficulty STaR faced: no success at all means no signal.
+The first three rows express the paper's intuition: tasks that are never solved or always solved provide no success-versus-failure contrast under this within-group binary-reward comparison, and the proposer earns nothing. Other training objectives may still learn from those samples. The fourth row comes straight from the formula: the reward peaks not at a 0.5 success rate but at tasks that are solved only occasionally; with $G=4$ the maximum is $1-1/4=0.75$. This resembles STaR's difficulty when filtering for successful samples alone: no success means no positive example for that filtering update.
 
 <!-- paper-figure:azr-loop -->
 
@@ -94,7 +96,7 @@ $$
 J(f_{t+1})-J(f_t)\;\ge\;\operatorname{gap}(f_t,g)-\varepsilon_{\rm update}
 $$
 
-The same premise also caps the improvement at $\operatorname{gap}+\varepsilon_{\rm update}$, so **one round is worth about one gap**; when the model verifies no better than it generates (gap ≤ 0), the loop has nothing to learn. The paper also notes that fine-tuning sometimes beats this amount, for example when the model learns the required answer format, and that this part is not self-improvement.
+The same premise also caps the improvement at $\operatorname{gap}+\varepsilon_{\rm update}$. A round's gain is therefore approximately the gap, allowing for update error. When the model verifies no better than it generates (gap ≤ 0), reweighting by verification provides no positive expected quality gain under these update assumptions; this does not mean every training objective has nothing to learn. The paper also notes that fine-tuning sometimes beats this amount, for example when the model learns the required answer format, and that this part is not self-improvement.
 
 <!-- paper-figure:gv-gap-definitions -->
 
@@ -121,13 +123,15 @@ Run another round. At $f=10\%$, the new model's solutions are 87% correct and 13
 
 What fine-tuning can do is concentrate the model on solutions the tests accept; if correct solutions share a learnable pattern, it may also transfer to new problems, which is the kind of gain STaR shows on its dev sets. What it cannot do is learn to separate "correct" from "wrong but passing", because that information is not in the training signal. Worse: if wrong solutions pass because of a reusable trick, such as special-casing the visible test inputs, fine-tuning may spread that trick to problems where it was not used before. That last point is a mechanistic conjecture; the measured cases below show agents do find such tricks.
 
-What moves the ceiling is $f$: lowering it from 10% to 2% raises the ceiling from 87.0% to 97.1%. Hidden tests, edge cases and property tests all strengthen the verifier, not the generator. Conversely, if the tests reject some correct solutions, say an unusual but valid style, precision is unaffected, but you lose data and diversity.
+As long as all correct solutions are still accepted, lowering $f$ raises this ceiling: going from 10% to 2% raises it from 87.0% to 97.1%. Hidden tests, edge cases and property tests all strengthen the verifier, not the generator. Conversely, rejecting some correct solutions, such as an unusual but valid style, can reduce accepted-set precision as well as data volume and diversity.
+
+Let $r$ be the probability that a correct solution is accepted. Keeping the original proportions of 0.4 correct and 0.6 incorrect solutions gives accepted-set precision $0.4r/(0.4r+0.6f)$. The original table assumes $r=1$. If $f=10\%$ but $r$ falls to 0.5, precision becomes $0.2/(0.2+0.06)\approx76.9\%$, below the original 87.0%. Rejecting correct solutions leaves precision at 100% only under conditions such as $f=0$ with a nonempty accepted set; the losses of data and diversity remain.
 
 <!-- widget:step-verifier-ceiling -->
 
 ## Feeding your own outputs back: model collapse
 
-Shumailov et al. reported in [Nature (2024-07-24)](https://www.nature.com/articles/s41586-024-07566-y) that training indiscriminately on recursively generated data leaves irreversible defects, with the tails of the original distribution disappearing. A filtered loop is not exactly that case: the verifier brings in outside information, which is why the loop can gain at all. But filtering also favours typical, passing solutions and drops rare ones; Song et al. saw pass@k at large $k$ fall and suggested that the model fails to verify rare but correct answers. Both point to the same limit: without new information from outside, the loop has nothing to learn, and diversity can shrink with each round.
+Shumailov et al. reported in [Nature (2024-07-24)](https://www.nature.com/articles/s41586-024-07566-y) that training indiscriminately on recursively generated data leaves irreversible defects, with the tails of the original distribution disappearing. A filtered loop is not exactly that case: its verifier supplies a selection signal and can support improvement when it identifies samples better than the current generation distribution; the verifier need not be external. But filtering also favours typical, passing solutions and drops rare ones; Song et al. saw pass@k at large $k$ fall and suggested that the model fails to verify rare but correct answers. Both results warn that reusing a signal with no discriminatory value cannot guarantee further gains and may reduce diversity. They do not establish a general rule that learning is impossible without new external information.
 
 ## When the signal gets gamed: measured cases
 
@@ -154,10 +158,12 @@ The [survey by Chen, Wang and Qu (2026-07)](https://arxiv.org/abs/2607.07663) or
 
 | Try | Observe | What it does not establish |
 | --- | --- | --- |
-| Manually review a small batch of passing solutions | How far true precision is below the pass rate, i.e. an estimate of $f$ | A clean spot check means the tests have no blind spots |
+| Manually review a small batch of passing solutions | Accepted-set precision and the fraction of accepted solutions that are wrong, $1-\mathrm{precision}$ | This directly estimates $f$; a clean spot check means the tests have no blind spots |
 | Add hidden tests and rerun a round | How much the pass rate drops, and on which problems | The hidden tests are themselves complete |
 | Log pass@1 and pass@k at large $k$ every round | A drop at large $k$ means diversity is being lost | A rising pass@1 equals rising ability |
 | Run more rounds and note when gains stop | Where saturation sets in | No gain means the model has peaked; it may be the verifier |
+
+The two conditional probabilities have different denominators. Reviewing only passing solutions estimates $P(\text{wrong}\mid\text{accepted})$, whose denominator is all accepted solutions. Here $f=P(\text{accepted}\mid\text{wrong})$ has all wrong solutions as its denominator. To estimate $f$, label correctness in a representative sample drawn before filtering, then measure the acceptance rate among all wrong solutions in that sample, not just those that passed.
 
 ## What to watch on this line next
 

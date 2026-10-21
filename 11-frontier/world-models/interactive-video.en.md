@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-Give a video model the prompt "a robot arm pushes the cup 5 cm toward the table edge" and you get a clip a few seconds long. But if you want to stop halfway, push only 2 cm instead, and then turn to look at the other side of the table, you need a model that accepts actions, returns the next frame in real time, and remembers what is out of view. **The hard part of an interactive world model is not single-frame quality: causal generation, a latency budget and memory must all hold at once. As of October 2026, Genie 3, the most watched system on this line, still has no public paper or architecture.**
+Give a video model the prompt "a robot arm pushes the cup 5 cm toward the table edge" and you get a clip a few seconds long. But if you want to stop halfway, push only 2 cm instead, and then turn to look at the other side of the table, you need a model that accepts actions, returns the next frame in real time, and remembers what is out of view.
+
+Alongside single-frame quality, an interactive world model must meet three constraints at once: causal generation, a latency budget and memory. As of October 2026, Genie 3, a closely watched system on this line, still has no public paper or architecture.
 
 ## From "generate a clip" to "press a key, get a frame"
 

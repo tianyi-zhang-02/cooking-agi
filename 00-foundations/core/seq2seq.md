@@ -4,11 +4,13 @@
 
 > 阅读时间：约 10 分钟 · 最近审阅：2026-10
 
-把“明天见”翻成 “See you tomorrow”，输入和输出既不等长，也不用逐字对应。Seq2Seq 用一个 encoder 读取输入，再让 decoder 逐步生成输出。问题是：写到 `tomorrow` 时，decoder 怎样找到输入里与时间有关的信息？这正是 attention 要解决的问题。**Seq2Seq 把“读输入”和“逐步写输出”分给两个模块；只靠一个固定向量传递输入，decoder 生成时就不能再单独查某个输入位置，attention 让它每一步都能回头查。**
+把“明天见”翻成 “See you tomorrow”，输入和输出既不等长，也不用逐字对应。Seq2Seq 用 encoder 编码输入，再由 decoder 逐步生成输出。
+
+写到 `tomorrow` 时，decoder 怎样找到输入里与时间有关的信息？如果 encoder 只交给它一个固定向量，它就不能再单独读取某个输入位置。下面先看这种做法的限制，再看 attention 怎样让 decoder 在每一步重新读取输入，以及训练和生成时的前文为什么不同。
 
 ## 先建立整体结构 {#_1}
 
-输入和输出不一定一样长。翻译、摘要、问答都是“先读完一段，再写出另一段”。Seq2Seq 做的第一件事，就是很干脆地把这两件事拆开：encoder 负责读，decoder 负责写。
+翻译、摘要和问答都可以写成“给定一段输入，生成另一段输出”的任务，输出长度不必和输入相同。Encoder 负责把输入编码成表示，decoder 根据这些表示和已经生成的内容，继续预测下一个 token。
 
 ## 固定长度向量形成信息瓶颈 {#_2}
 
@@ -60,7 +62,7 @@ $$\mathcal{L} = -\sum_{t=1}^{T}\log p_\theta(y_t \mid y_{<t}, x)$$
 | 3 | 4 | 7 |
 | 4 | 7 | EOS |
 
-如果生成时第 2 步误出了 `5`，第 3 步吃到的就是 `5`，而不是表里的 `4`。teacher forcing 下 loss 很低，不保证接着自己的回答还能写对。评估时要另做自由生成（free-running generation），同时看逐 token 正确率和整段是否全对。
+如果生成时第 2 步错误地输出了 `5`，第 3 步收到的就是 `5`，而不是表里的 `4`。模型在正确前缀下的 loss 很低，不代表接着自己的错误输出还能生成正确答案。评估时要另做自由生成（free-running generation），同时看逐 token 正确率和整段是否全对。
 
 ## 训练与生成的输入分布不同 {#_3}
 
@@ -78,7 +80,7 @@ Beam search 只改变推理时怎样保留候选序列，不改变模型训练�
 - 任意两位置之间的信息路径仍可能很长；
 - attention 提供了动态读取，但 recurrent state 仍限制时间维的并行。
 
-Attention 在 Transformer 之前就有了；Transformer 的关键动作是把 recurrence 全部拿掉，只保留 attention 与逐位置计算。
+Attention 在 Transformer 之前就已经用于 Seq2Seq。原始 Transformer 不再依靠 RNN 的逐步状态更新，而是用 attention 在位置之间交换信息，配合逐位置计算。
 
 ## 实验：学习序列反转 {#_5}
 

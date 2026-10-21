@@ -6,15 +6,15 @@
 
 ## What these questions have in common {#what-these-questions-have-in-common}
 
-These questions look scattered — losses, masks, normalization, RNNs, CNNs — but they fall into three groups: **does the gradient have an undamped path back**, **are training and inference the same thing**, and **is the invariance structural or paid for**. Recognize the group and you don't have to memorize the answer.
+Questions about losses, masks, normalization, RNNs, and CNNs often turn on three ideas: **preserving gradient signals**, **keeping training consistent with inference**, and **distinguishing invariance built into the architecture from invariance that needs additional training or design**. Identifying the relevant idea makes it easier to derive an answer and handle follow-ups.
 
-Each question below gets three layers: **what to say first** → **surviving the first follow-up** → **the layer that separates you**.
+Each question below has three levels: **state the conclusion** → **explain why** → **discuss deeper connections and boundary conditions**.
 
 ---
 
 ## The skeleton first: how attention is actually computed {#the-skeleton-first-how-attention-is-actually-computed}
 
-Three of the questions below hang on this diagram.
+Three of the questions below refer to this computation. Start by matching each operation to its tensor shape.
 
 ```
 X                                   [B, T, d_model]
@@ -38,7 +38,7 @@ $QK^\top$ sums exactly $d_k$ products. Q and K must share their last dimension; 
 dimension may differ, although standard MHA usually sets $d_v=d_k$. At model width 768 with
 12 heads, a head has $d_k=64$, so the divisor is $\sqrt{64}$. The variance derivation is in [multi-head attention](core/multi-head-attention.en.md#why-divide-by-sqrtd_k), and the $Q=K$ follow-up is in that note's [interview questions](core/multi-head-attention.en.md#common-interview-questions).
 
-Time $O(T^2 d)$, memory $O(T^2)$. That $T \times T$ matrix is the long-context bottleneck and the whole motivation for FlashAttention: **never materialize it**.
+Considering only the attention core, excluding projections such as Q/K/V, a conventional implementation uses $O(T^2 d)$ computation and $O(T^2)$ GPU memory to store scores or probabilities explicitly. [FlashAttention §3.1](https://arxiv.org/html/2205.14135v2) still computes attention scores, but does so in tiles in on-chip SRAM and combines the softmax results **without writing the full $T\times T$ intermediate matrix to GPU HBM**. It reduces intermediate storage and data movement; dense attention's computation still grows quadratically with $T$, rather than eliminating all $QK^\top$ computation.
 
 Reference implementation in [`00-foundations/code/attention_numpy.py`](code/).
 
@@ -141,11 +141,11 @@ x = LN(x + FFN(x))           x = x + FFN(LN(x))
 <details class="interview" markdown="1">
 <summary>Why a causal mask? Which step does it go in, and why there?</summary>
 
-**Say first**: it's what makes training all $T$ positions in one forward pass equivalent to training them one at a time.
+**Say first**: with fixed parameters, dropout disabled, and the same causal visibility in every layer, computing all $T$ positions in one forward pass is mathematically equivalent to computing each position's prediction from its prefix. This compares prediction computations, not training that updates parameters after each position.
 
 The autoregressive objective is $\prod_t p(x_t\mid x_{<t})$. In a common implementation, position $t$ receives $x_t$ and predicts $x_{t+1}$. Seeing itself is allowed; seeing the future token $x_{t+1}$ leaks the target. The causal mask allows the current and earlier positions, matching the information available during generation.
 
-**So the mask isn't there to make the model stronger. It's there so training and inference are the same model.** Without it you'd need $T$ separate forward passes.
+**Causality matches the information available during training and generation**, as described for decoder masking in [§3.2.3 of the Transformer paper](https://arxiv.org/html/1706.03762v7). A naive implementation that recomputes each of the $T$ prefixes separately does make $T$ forward passes, but omitting an explicit mask argument does not necessarily require this. For square self-attention, for example, [PyTorch SDPA's `is_causal=True`](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.scaled_dot_product_attention.html) expresses causality without a manually constructed mask tensor. Conversely, running a fully bidirectional multi-layer model on each prefix need not reproduce the same causal Transformer: every layer must still obey the same visibility rules.
 
 **It goes at step ② of the skeleton**: after the scaled dot product, before the softmax.
 
@@ -181,12 +181,12 @@ Shift the input and the feature map shifts by the same amount. **Invariance** �
 
 **Rotation is neither.** The kernel has a fixed orientation, so a 45-degree edge and a 135-degree edge activate entirely different filters. **Nothing in the architecture makes them the same object.**
 
-**Why the asymmetry is structural**: translation equivariance falls out of **weight sharing plus locality** — the operator gives it to you free. Rotation equivariance isn't in the operator, so you have exactly two options:
+**Why they differ**: translation equivariance follows from convolution's **weight sharing and locality**, whereas ordinary convolution is not rotation-equivariant. Two approaches address rotation:
 
-1. **Buy it with data**: rotation augmentation. The network learns redundant filters, one set per orientation. You're **spending model capacity on invariance**, and only over the range you augmented.
+1. **Add data**: rotation augmentation lets the network learn filters for different orientations. This uses **additional model capacity** and covers only the range of angles included in augmentation.
 2. **Change the operator**: group-equivariant CNNs, steerable CNNs, harmonic networks — or a spatial transformer that learns to canonicalize the pose.
 
-**One line**: translation equivariance comes free with convolution; rotation equivariance or invariance costs, and you pay in either data or the operator.
+**In short**: translation equivariance follows from convolution's structure; rotation equivariance or invariance requires additional data augmentation or operator design.
 
 **To make the conversation interesting**: even translation invariance is weaker than assumed — strided downsampling aliases, so a one-pixel shift can flip the prediction. One mitigation is low-pass blurring before downsampling (anti-aliasing): it makes outputs more stable under small shifts but does not guarantee full shift invariance ([Zhang, ICML 2019](https://arxiv.org/abs/1904.11486)).
 
@@ -289,7 +289,7 @@ When asked to "walk through the architecture," don't recite the figure. **Go com
 | FFN (≈4× expansion) | **most of the parameters live here**; one common interpretation reads it as key-value memory ([Geva et al., EMNLP 2021](https://arxiv.org/abs/2012.14913)) |
 | Causal mask | see above — train/inference consistency |
 
-**Then volunteer this**, which separates "read the 2017 paper" from "knows what current models look like":
+**Then compare the original architecture with common modern designs** to explain how these components have evolved:
 
 | 2017 original | Modern LLM | Why |
 | --- | --- | --- |

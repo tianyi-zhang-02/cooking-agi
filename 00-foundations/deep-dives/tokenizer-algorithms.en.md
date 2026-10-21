@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisite: [Text to IDs](../core/tokenization.en.md)
 
-A model can usually accept an unfamiliar name without reporting “word not found.” The tokenizer has not understood the name; it has broken a new string into existing pieces. Whether those pieces are useful or excessively long is a separate question.
+A model can usually accept an unfamiliar name without reporting “word not found.” The tokenizer has not understood the name; it has broken a new string into existing pieces. Whether that segmentation is useful, and how many tokens it produces, are separate questions.
 
 We will work through BPE, compare WordPiece and Unigram, and check why a small tokenizer change can break a model. All vocabularies and numbers below are teaching examples, not outputs from a particular commercial model.
 
@@ -88,7 +88,7 @@ Keep WordPiece **training** separate from **encoding**. Tutorials often use `fre
 
 ## Unigram scores complete segmentations
 
-Unigram assigns probabilities to pieces. In a simplified model, a segmentation's probability is the product of its piece probabilities, or the sum of their log probabilities.
+Unigram assigns probabilities to pieces. In a simplified model, a segmentation's probability is the product of its piece probabilities. Taking the logarithm turns that product into a sum of log probabilities.
 
 Suppose the vocabulary has probabilities `a: 0.3`, `b: 0.2`, and `ab: 0.5`. For `ab`:
 

@@ -56,7 +56,9 @@ DDP 是 Distributed Data Parallel（分布式数据并行）；FSDP 是 Fully Sh
 
 $$M_{\text{peak}}=\max_t\left(M_{\text{persistent}}(t)+M_{\text{activation}}(t)+M_{\text{temporary}}(t)\right).$$
 
-接着上面的 10 亿参数例子填一次数，下面的数都是假设：模型有 20 个同样大的 block，每个 5,000 万参数。反向算到某个 block 时，每卡常驻 4 GB 分片；这个 block 的完整 FP32 参数刚聚合回来，占 $5\times10^7\times4=0.2$ GB，它的完整梯度在 reduce-scatter 之前又占 0.2 GB；这时还留着 3 GB 激活和 0.5 GB workspace。这一刻就是 $4+3+0.2+0.2+0.5=7.9$ GB。$M_{\text{peak}}$ 是所有时刻里最大的那个值，比只数常驻分片的 4 GB 高出将近一倍。
+继续用上面的 10 亿参数模型代入计算，以下数值都是假设。模型有 20 个同样大的 block，每个 5,000 万参数。反向算到某个 block 时，每卡常驻 4 GB 分片。这个 block 的完整 FP32 参数刚聚合回来，占 $5\times10^7\times4=0.2$ GB；它的完整梯度在 reduce-scatter 之前又占 0.2 GB。
+
+如果此时还保留着 3 GB 激活和 0.5 GB workspace，总占用就是 $4+3+0.2+0.2+0.5=7.9$ GB，已经比只数常驻分片的 4 GB 高出将近一倍。$M_{\text{peak}}$ 则要取所有时刻中的最大值。
 
 不要把不同时间各自出现的最大值随便相加，当成精确峰值；也不要只数常驻分片，就认定能训练。先记录时间线，再看哪几项同时存在。混合精度下参数、梯度和通信可能是不同 dtype，需要重新列账。
 

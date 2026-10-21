@@ -10,7 +10,7 @@
 
 The fictional examples cover a return question, a booking agent, and reading preferences. Look at each before revealing the reference judgment. **These judgments are authored teaching examples, not live model outputs.**
 
-Hiding evidence should change what we claim to know. Passing relevance should not silently mean passing everything else.
+Once the policy is hidden, the judge lacks the evidence needed to check policy claims and should keep the verdict unknown. An answer can also be relevant but incorrect, so passing relevance does not settle the other criteria.
 
 ## Write a rubric someone can check
 
@@ -79,7 +79,7 @@ Return JSON:
 Do not invent evidence IDs or provide a lengthy thought process.
 ~~~
 
-Supply task, candidate, evidence, and reference in a separate JSON payload. Delimiters help organization, not guaranteed injection resistance. [Bias testing](bias-and-workflow.en.md) deliberately includes candidate text demanding a pass verdict.
+Supply task, candidate, evidence, and reference in a separate JSON payload. Delimiters help organize the input, but do not guarantee protection against prompt injection. [Bias testing](bias-and-workflow.en.md) deliberately includes candidate text demanding a pass verdict.
 
 ## Have two people try it first
 
@@ -90,7 +90,7 @@ Independently label ordinary cases and difficult boundary cases, then inspect di
 <details markdown="1">
 <summary>My reading</summary>
 
-Accurately repeated policy claims can pass the grounding rubric above while failing relevance or task completion. Don't quietly redefine grounding to cover every aspect of quality.
+Accurately repeated policy claims can pass the grounding rubric above while failing relevance or task completion. Keeping the judgments separate tells us whether the answer misrepresented the policy or failed to address the task.
 
 </details>
 

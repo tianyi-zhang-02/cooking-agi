@@ -126,11 +126,11 @@ $$
 \sum_{\ell=0}^{L-1}\operatorname{Var}\big(f_\ell(x_\ell)\big).
 $$
 
-这解释了为什么残差流的尺度可能随深度增长。但真实网络里各项相关、权重也会适应，所以它不是“方差必然线性增长”的定理。更准确的说法是：**深度带来了 scale drift，Norm 负责让每个分支面对一个受控的输入尺度。**
+这解释了为什么残差流的尺度可能随深度增长。但真实网络里各项相关、权重也会适应，所以它不是“方差必然线性增长”的定理。更准确的说法是：**深度可能带来尺度漂移（scale drift），Norm 则控制送入每个分支的输入尺度。**
 
-从优化角度看，如果 Hessian 在不同方向的特征值跨度很大，一个学习率会在高曲率方向发散、在低曲率方向又走得太慢。Normalization 不能保证全局 Hessian 一定漂亮，但它减少了层与层之间的尺度差异，通常让梯度对参数扰动更平滑、有效 conditioning 更好。
+从优化角度看，如果 Hessian 在不同方向的特征值跨度很大，同一个学习率可能在高曲率方向引起发散，在低曲率方向又走得太慢。归一化不能保证全局 Hessian 的条件数一定良好，但它减少了层间尺度差异，通常能让梯度随参数扰动的变化更平滑，改善有效条件数（effective conditioning）。
 
-还要注意：Pre-LN 并没有让残差流 $x_\ell$ 自身始终保持单位方差；它只是先把 $\operatorname{Norm}(x_\ell)$ 送进 Attn / FFN。因此末尾仍需要 final LN 把交给输出头的尺度收回来。
+还要注意：Pre-LN 并没有让残差流 $x_\ell$ 自身始终保持单位方差；它只是先把 $\operatorname{Norm}(x_\ell)$ 送进 Attn / FFN。常见配方会在末尾加入 final LN，控制交给输出头的尺度，例如 [Xiong 等论文表 1](https://proceedings.mlr.press/v119/xiong20b/xiong20b.pdf) 的 Pre-LN 结构。这是具体架构的选择，不能仅由“分支前做 Norm”推出末尾在数学上必须有 LN；复现已有模型时仍应保留其配置要求的 final norm。
 
 </details>
 
@@ -141,10 +141,10 @@ $$
 
 **快速学习**
 
-1. **Variable length + padding**：普通 `BatchNorm1d` 不接收 padding mask，填充值会混入统计。若自己实现有效 token 的 pooled statistics，长度 `[3,1]` 会贡献 4 个 token；只有“每个位置单独统计”的实现，才会在后部位置只剩一个有效样本。
-2. **依赖 batch composition**：训练时换一组同行样本，同一个 token 的输出也会改变；小 batch 的统计量尤其噪。
-3. **Train / inference mismatch**：训练用当前 batch statistics，推理通常改用 running statistics。自回归解码常是小 batch 或 batch size 1，不能依赖现场批统计量。
-4. **可能破坏 causality**：若用当前序列计算统计量，并把 time 轴也算进去，未来 token 会影响过去 token，绕过 causal attention mask。使用冻结的 running statistics 没有这条旁路。
+1. **变长序列与填充（padding）**：普通 `BatchNorm1d` 不接收 padding mask，填充值会混入统计。若自己汇总有效 token 来计算统计量（pooled statistics），长度 `[3,1]` 会贡献 4 个 token；只有“每个位置单独统计”的实现，才会在后部位置只剩一个有效样本。
+2. **依赖批次组成（batch composition）**：训练时换一组同批样本，同一个 token 的输出也会改变；小 batch 的统计量尤其容易受噪声影响。
+3. **训练与推理不一致（train / inference mismatch）**：训练用当前批次的统计量，推理通常改用运行统计量（running statistics）。自回归解码常是小 batch 或 batch size 1，不能依赖当前批次提供可靠的统计量。
+4. **可能破坏因果性（causality）**：若用当前序列计算统计量，并把时间轴也算进去，未来 token 会影响过去 token，绕过因果注意力掩码。使用冻结的 running statistics 没有这条旁路。
 
 Transformer 常用的 `LayerNorm(d)` 只统计每个 token 的 hidden features，不依赖 batch、其他位置或 train/eval 模式。`LayerNorm((T,d))` 则不是这个行为：修改最后一个 token，也会影响第一个 token 的输出。
 
@@ -184,7 +184,7 @@ x = LN(x + FFN(x))              x = x + FFN(LN(x))
 
 **面试版回答**
 
-> Post-LN 把 LayerNorm 放在残差相加之后，因此残差主干的梯度每层都要穿过一次 LN。Pre-LN 把 LN 移进分支，主干保留直接的 identity path；每个 block 的 Jacobian 都显式包含 identity 项，所以深层梯度传播更稳定。代价是残差流本身不被逐层归一化，标准 Pre-LN 架构需要在所有 block 后补 final LN。
+> Post-LN 把 LayerNorm 放在残差相加之后，因此残差主干的梯度每层都要穿过一次 LN。Pre-LN 把 LN 移进分支，主干保留直接的 identity path；每个 block 的 Jacobian 都显式包含 identity 项，所以深层梯度传播更稳定。代价是残差流本身不被逐层归一化，本文所示的标准 Pre-LN 配方在所有 block 后使用 final LN。
 
 <details markdown="1">
 <summary><b>深挖</b>：用 Jacobian 看 identity path</summary>
@@ -203,7 +203,7 @@ $$
 J_{\operatorname{LN}}\big(I+J_{f_\ell}\big).
 $$
 
-跨很多层时，梯度反复乘上 $J_{\operatorname{LN}}$。它不代表梯度必然每层缩小，但会打断纯粹的 identity highway，使深层训练更依赖初始化、residual scaling 和 learning-rate warmup。
+跨很多层时，梯度反复乘上 $J_{\operatorname{LN}}$。这不代表梯度必然逐层缩小，但主路径不再是纯恒等映射，深层训练也就更依赖初始化、残差缩放（residual scaling）和学习率预热（learning-rate warmup）。
 
 Pre-LN 写成
 
@@ -221,7 +221,7 @@ $$
 
 即使分支梯度很小，$I$ 仍提供一条直接路径。更严谨的说法是 Pre-LN **显著降低**深层训练对 warmup 的依赖，而不是保证所有配置都完全不需要 warmup。[Xiong 等（2020）](https://arxiv.org/abs/2002.04745)用 mean-field 分析得出：初始化时，Post-LN 靠近输出层的参数期望梯度较大，warmup 能避免初期更新过猛；Pre-LN 的梯度在初始化时表现良好，他们的实验里去掉 warmup 也能训练。这是论文设定下的结论，不是所有配置都“必须 / 不必 warmup”的定理。
 
-Pre-LN 也有 trade-off：残差流尺度会增长，后期层的增量相对主干可能越来越小，产生“effective depth”不足的问题。final LN 解决输出尺度，不自动解决所有表达效率问题。
+Pre-LN 也有取舍：残差流尺度会增长，后期层的增量相对主干可能越来越小，产生“有效深度（effective depth）”不足的问题。final LN 控制输出尺度，并不能自动解决所有表达效率问题。
 
 </details>
 

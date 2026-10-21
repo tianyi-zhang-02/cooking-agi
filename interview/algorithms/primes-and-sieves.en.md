@@ -69,7 +69,7 @@ def prime_flags(limit):
     return flags
 ```
 
-The contract covers **0 through `limit`, inclusive**. A flag of 1 means prime. A `bytearray` uses one byte per position, not a one-bit bitset, and avoids representing each flag as a separate Python integer object.
+The contract covers **0 through `limit`, inclusive**. A flag of 1 means prime. A `bytearray` uses one byte per position, not a one-bit bitset. Unlike a list, it needs no object reference in each slot; a list of 0s and 1s can reuse integer objects rather than allocating a separate integer for every flag.
 
 Explicit assignments make the marking process visible. For larger inputs, consider slices, odd-only storage, or bit arrays, while accounting for temporary allocations rather than judging only by code length. [Princeton's course implementation](https://introcs.cs.princeton.edu/java/14array/PrimeSieve.java.html) is another classic sieve reference. Our interface explicitly includes the upper endpoint; check a problem's contract before substituting it.
 

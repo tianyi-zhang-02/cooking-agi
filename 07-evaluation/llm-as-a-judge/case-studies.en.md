@@ -64,7 +64,7 @@ A screenshot contains a price table and the answer picks the wrong column. If th
 
 Record resolution, cropping, OCR, and image-text ordering. Compare text-only, image-only, combined, and conflicting inputs. Decide which questions should become harder when the image is removed, and which should be unaffected.
 
-This tests use of visual evidence, not the presence of a multimodal label. Allow unknown when crucial text is unreadable instead of forcing a precise factual verdict.
+These tests check whether the judge uses visual evidence correctly. Supporting image input doesn't mean it read the table correctly. Allow unknown when crucial text is unreadable rather than forcing a definite verdict.
 
 ## A result should point back to a component
 

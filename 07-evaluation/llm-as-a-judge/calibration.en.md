@@ -27,7 +27,7 @@ These 12 examples are **deliberately constructed teaching data**, split into RAG
 
 Follow the individual tiles instead of watching only the percentages:
 
-1. Keep all cases, a 3.5 threshold, and review off. R4, A4 and A5 are approved although the human marked them as failures; R4 (4.1) and A4 (4.5) even score high. **A high score isn't evidence of correctness.**
+1. Keep all cases, a 3.5 threshold, and review off. R4, A4 and A5 are approved although the human marked them as failures; R4 (4.1) and A4 (4.5) even score high. **A high score alone doesn't establish correctness.**
 2. Raise the threshold to 4.0. False approvals fall from 3 to 2, while false rejections rise from 2 to 3. Accuracy stays at 7/12. The total looks unchanged, but the mistakes differ.
 3. Turn on human review. Six cases leave the automatic decision set, so only six remain in the table. You haven't eliminated six errors; you've handed six decisions to a person.
 
@@ -62,7 +62,11 @@ If 95 of 100 cases are passes, an always-pass judge achieves 95% accuracy while 
 - **Calibration:** whether predictions interpreted as 0.8 pass probability actually pass about 80% of the time.
 - **Reliability / stability:** repeatability across runs or order changes; consistently wrong is still consistent.
 
-Cohen's kappa can supplement raw agreement but depends on class distribution and annotation assumptions. Work it once on the 12 cases above: at threshold 3.5 the judge and the human agree on 7, so raw agreement is $p_o=7/12$; the judge approves 7/12 and the human passes 6/12, so chance agreement is $p_e=\tfrac{7}{12}\cdot\tfrac{6}{12}+\tfrac{5}{12}\cdot\tfrac{6}{12}=0.5$ and $\kappa=(7/12-0.5)/0.5\approx0.17$. At threshold 4.0 they still agree on 7, the judge approves 5/12, $p_e$ is again 0.5, and κ is again 0.17. The two thresholds share a kappa but make different mixes of false approvals and false rejections. Weighted kappa may suit ordinal labels; Spearman or Kendall suit rankings. Don't choose whichever metric looks best and discard the rest.
+Cohen's kappa can supplement raw agreement but depends on class distribution and annotation assumptions. Weighted kappa may suit ordinal labels.
+
+Using the 12 cases above: at threshold 3.5 the judge and the human agree on 7, so raw agreement is $p_o=7/12$; the judge approves 7/12 and the human passes 6/12, so chance agreement is $p_e=\tfrac{7}{12}\cdot\tfrac{6}{12}+\tfrac{5}{12}\cdot\tfrac{6}{12}=0.5$ and $\kappa=(7/12-0.5)/0.5\approx0.17$.
+
+At threshold 4.0 they still agree on 7, the judge approves 5/12, $p_e$ is again 0.5, and κ is again 0.17. The two thresholds share a kappa but make different mixes of false approvals and false rejections. The confusion matrix shows which errors increased. For ranking comparisons, consider Spearman or Kendall instead. Choose the metric for the question you need to answer, not whichever value looks best.
 
 Without additional calibration, 4/5, token probability, and self-reported confidence are not correctness probabilities. Agreement among models is not automatically independent evidence.
 

@@ -17,7 +17,7 @@
 | 先把问题写对 | [MDP 与 Bellman](mdp-bellman.md) → [MC、TD 与终止条件](returns-and-td.md) | 从一段轨迹算出 return 和训练 target |
 | 直接改策略 | [Policy Gradient](policy-gradients.md) → [Actor–Critic 与 GAE](actor-critic-gae.md) → [Natural Gradient 与 TRPO](trust-region.md) | 解释梯度方向、baseline、两个 mask，以及步长为什么需要约束 |
 | 通过价值选动作 | [Fitted Q 与收敛边界](fitted-q.md) → [DQN](dqn.md) → [DDPG / TD3](continuous-control.md) → [SAC](soft-actor-critic.md) | 分清回归 loss 与策略表现，画出各个网络的梯度路径 |
-| 用模型想几步 | [Model-based RL](model-based.md) → [学什么样的模型](model-types.md) → [规划与 LQR](planning-and-control.md) → [规划和学习怎样互相喂](planning-and-learning.md) | 分清学 dynamics、规划动作和训练 policy，说出模型该预测什么、搜索结果怎样变成训练标签 |
+| 用模型想几步 | [Model-based RL](model-based.md) → [学什么样的模型](model-types.md) → [规划与 LQR](planning-and-control.md) → [规划与学习怎样配合](planning-and-learning.md) | 分清学习动力学、规划动作和训练策略，说出模型该预测什么、搜索结果怎样变成训练标签 |
 | 数据与奖励从哪里来 | [Offline RL 与 OPE](offline-and-ope.md) → [逐步权重、双重稳健与 LSTD](ope-estimators.md) · [探索与层级](exploration-and-hierarchy.md) · [模仿与奖励](imitation-and-rewards.md) | 说出各自增加的假设，而不只是记名字 |
 | 真正跑一个实验 | [实验与排错](experiments.md) → [接到 LLM](llm-bridge.md) | 检查实现，再判断 reward 是否代表任务进步 |
 

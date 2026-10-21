@@ -74,7 +74,7 @@ torch.testing.assert_close(
 
 减去最大值只限制了每个指数项，还要留意**求和用什么精度**。例如 65,536 个 FP16 零 logits 对应的指数项全是 1；若求和结果仍存成 FP16，就会溢出，尽管正确 loss 只有 $\log 65536\approx11.09035$。因此代码先把 FP16/BF16 提升到 FP32 再计算，已有 FP64 则保留。这个转换不切断计算图：梯度仍回到原始 logits，并按原始 dtype 存储，不能因此免除低精度梯度的舍入或下溢。
 
-直接调用库函数也不等于自动开启 autocast：在本文核对的 PyTorch 2.8 CPU 上，直接给 `functional.cross_entropy` 传入上述 FP16 输入也会得到 `inf`；显式转 FP32，或在 CPU autocast 中调用库 CE，结果才是有限的。[CPU autocast 策略](https://docs.pytorch.org/docs/2.14/amp.html#cpu-ops-that-can-autocast-to-float32)会把库 CE 放到 FP32（2026-10 对照 2.14 文档，`cross_entropy_loss` 仍在这张 FP32 列表里，但上面的 `inf` 结果没有在 2.14 上重跑），但不会自动把任意手写 `exp → sum → log` 组合都提升。不同设备的策略不同，这里不把 CPU 结果外推到 CUDA。
+直接调用库函数也不等于自动开启 autocast：在本文核对的 PyTorch 2.8 CPU 上，直接给 `functional.cross_entropy` 传入上述 FP16 输入也会得到 `inf`；显式转 FP32，或在 CPU autocast 中调用库 CE，结果才是有限的。[CPU autocast 策略](https://docs.pytorch.org/docs/2.14/amp.html#cpu-ops-that-can-autocast-to-float32)会让库 CE 使用 FP32，但不会自动提升任意手写的 `exp → sum → log` 组合。2026-10 对照 2.14 文档时，`cross_entropy_loss` 仍在 FP32 列表里；上面的 `inf` 结果则没有在 2.14 上重跑。不同设备的策略不同，这里不把 CPU 结果外推到 CUDA。
 
 ## 硬标签和软标签，差在哪里？ {#soft-targets}
 

@@ -29,7 +29,9 @@
      返回文本 ← DetokenizerManager ← 输出 token IDs
 ```
 
-TokenizerManager 管输入与请求结果，Scheduler 决定当前批次，执行路径完成 forward，DetokenizerManager 把 token 转回文本。图里省略了多卡拓扑与跨实例路由，不是在承诺每次部署都只有三个进程。这个拆法也帮你排错：GPU 没满、请求却很慢时，可以检查输入处理和输出回传，而不只盯着 attention kernel。
+TokenizerManager 处理输入与请求结果，Scheduler 决定当前批次，模型执行部分完成前向计算，DetokenizerManager 再把 token 转回文本。图中省略了多卡拓扑和跨实例路由，实际进程数取决于部署方式。
+
+这个划分也方便排错。如果 GPU 利用率不高，请求却很慢，除了 attention kernel，还应检查输入处理和输出回传是否让 GPU 等待。
 
 ## 把两套实现放在同一张图里 {#engine-map}
 
@@ -53,7 +55,11 @@ TokenizerManager 管输入与请求结果，Scheduler 决定当前批次，执�
 <figcaption>未结束的请求继续下一轮。两列是职责对照，不是一一对应的进程图；特别是 SGLang 的 ModelRunner 属于 scheduler 的执行路径，不能凭一个框就给它增加独立进程。</figcaption>
 </figure>
 
-vLLM 的进程边界可查[官方架构](https://docs.vllm.ai/en/v0.31.0/design/arch_overview/)，执行入口可跟 [EngineCore](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/engine/core.py)。它把 `SchedulerOutput` 交给 executor；worker 里的 model runner 再结合本地请求状态准备 token、位置与 attention 元数据，不是由调度器提前拼好全部模型输入张量。该固定 commit 在兼容配置下优先用 [Model Runner V2](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu/model_runner.py)，不支持的功能、缺少 Triton、部分 ROCm 模型默认设置，或显式配置，都可能改走旧的 [GPUModelRunner](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu_model_runner.py)；之后的 [v0.32.0](https://github.com/vllm-project/vllm/releases/tag/v0.32.0) 把 ROCm 也改成默认用 V2，去掉了按模型保留旧 runner 的例外。SGLang 这条路径核对到固定 commit：从 [Scheduler.run_batch](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/scheduler.py#L4405)，到 [worker 的批次转换与 forward](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/tp_worker.py#L598)，再到 [ModelRunner](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/model_executor/model_runner.py)。这些是阅读坐标，不是要求背下类名。
+vLLM 的进程边界可查[官方架构](https://docs.vllm.ai/en/v0.31.0/design/arch_overview/)，执行入口可跟 [EngineCore](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/engine/core.py)。它把 `SchedulerOutput` 交给 executor；worker 里的 model runner 再结合本地请求状态准备 token、位置与 attention 元数据。调度器不会提前拼好全部模型输入张量。
+
+该固定 commit 在兼容配置下优先用 [Model Runner V2](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu/model_runner.py)。遇到不支持的功能、缺少 Triton、部分 ROCm 模型的默认设置，或显式配置时，都可能改走旧的 [GPUModelRunner](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu_model_runner.py)。之后的 [v0.32.0](https://github.com/vllm-project/vllm/releases/tag/v0.32.0) 把 ROCm 也改成默认用 V2，去掉了按模型保留旧 runner 的例外。
+
+SGLang 这条路径也核对到了固定 commit：从 [Scheduler.run_batch](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/scheduler.py#L4405)，到 [worker 的批次转换与 forward](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/tp_worker.py#L598)，再到 [ModelRunner](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/model_executor/model_runner.py)。沿这些入口可以追踪请求如何执行，不必单独背下类名。
 
 假设 request R 有 6 个 prompt token，其中前 4 个对应可复用的完整缓存块。Scheduler 不能简单说“命中了就结束”：它还要确认复用有效、剩余 2 个 token 有位置可写、本轮有预算。算完后采样出第一个新 token X；**这不表示 X 的 KV 已经写好了**。下一轮把 X 作为输入，才会生成它自己的 KV，再预测下一个 token。全前缀命中时如何得到下一 token 的 logits，还要看具体实现是否需要计算末位置等路径，不能把缓存直接当答案。
 
@@ -191,9 +197,13 @@ PP 可以减少跨卡协作的频率，但也带来顺序依赖：只有一条�
 | JSON 常不合法 | 是否真的启用了输出约束 | 结构化解码与校验 | 格式合法仍不代表内容正确 |
 | 使用了推测解码却更慢 | 草拟成本、接受率、验证 batch | 改草拟方法或关闭 | 辅助状态和验证开销 |
 
-在这次核对的版本中，两套引擎支持的机制有不少重合：分页管理 KV、默认开启的前缀复用、continuous batching 与 chunked prefill、CPU 调度与 GPU 执行重叠、CUDA Graph、EAGLE / MTP / n-gram 推测解码、xgrammar 等结构化输出、TP / PP / DP + EP、P/D 分离与 KV 分层存储，两边都有。但不能因此说两者只差默认参数。调度路径、缓存结构与功能兼容性也会影响取舍：前缀索引一个是块哈希、一个是 radix 树，基础默认粒度是 16 个 token 对 1 个 token，实际要看后端与模型；vLLM 每轮先排 decode，再把 prefill 分块塞进同一批，SGLang 默认有新 prefill 就先跑 prefill 批，要混合得开 `--enable-mixed-chunk`；vLLM 默认用 torch.compile，SGLang 默认不开；P/D 分离在 SGLang 是内置的 prefill / decode 角色加 router，在 vLLM 走 KV connector，文档仍标为实验性。
+在这次核对的版本中，两套引擎支持的机制有不少重合：分页管理 KV、默认开启的前缀复用、continuous batching 与 chunked prefill、CPU 调度与 GPU 执行重叠、CUDA Graph、EAGLE / MTP / n-gram 推测解码、xgrammar 等结构化输出、TP / PP / DP + EP、P/D 分离与 KV 分层存储，两边都有。
 
-比较的仍是**固定版本、模型、硬件和功能组合**，不是记住“Agent 选这个，高并发选那个”。FSDP 属于[训练状态分片](training-frameworks.md)，不是这张表里另一个生成引擎。
+相同的功能名仍可能对应不同的调度路径、缓存结构和兼容性要求。vLLM 的前缀索引用块哈希，SGLang 用 radix 树；基础默认粒度分别是 16 个 token 和 1 个 token，实际粒度要看后端与模型。vLLM 每轮先排 decode，再把 prefill 分块加入同一批。SGLang 默认在有新 prefill 工作时先运行 prefill 批，需要混合两者时再开启 `--enable-mixed-chunk`。
+
+其他差异也要分别检查：vLLM 默认用 torch.compile，SGLang 默认不开；P/D 分离在 SGLang 中通过内置的 prefill / decode 角色和 router 实现，在 vLLM 中则通过 KV connector 实现，其文档仍标为实验性。因此，不能把两者的差别归结为几个默认参数。
+
+选型时，要**固定两套软件的版本，用相同的模型、硬件和所需功能做比较**，不能只按“适合 Agent”或“适合高并发”这样的标签决定。FSDP 处理的是[训练状态分片](training-frameworks.md)，与这里比较的生成引擎用途不同。
 
 ## 跑一个有意义的对照 {#benchmark}
 

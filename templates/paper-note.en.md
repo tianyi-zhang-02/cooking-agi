@@ -4,7 +4,7 @@
 - **Venue / year:**
 - **Links:** [paper]() · [code]()
 - **Read on:** YYYY-MM-DD
-- **Threads:**
+- **Related topics:**
 
 ## One-sentence claim
 
@@ -30,7 +30,7 @@
 ## Place in the wider system
 
 
-## Connection to my research map
+## Connections to other research {#connection-to-my-research-map}
 
 
 ## Ideas to test

@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-You read "over 80% of a lab's merged code is written by AI" and "a model can complete tasks that take humans 12 hours". Which one shows AI R&D is accelerating? Neither, directly: the first is a code share, the second a task-level capability, and how much faster research as a whole goes is a third quantity. **Ask first who measured it and in what unit. As of October 2026, externally checkable task-level measurements are still rising but have hit the limits of the measuring tools; numbers for overall R&D acceleration come almost entirely from the labs themselves, and every estimate that gives an overall progress multiplier is below 2x.**
+"Over 80% of a lab's merged code is written by AI" and "a model can complete tasks that take humans 12 hours": do either of these claims show that AI R&D is accelerating? Neither answers the question directly. The first measures a share of code, the second measures task-level capability, and the pace of research as a whole is a separate quantity.
+
+Start by identifying who made the measurement and its units. As of October 2026, externally checkable task-level measurements are still rising but have reached the limits of the measuring tools. Numbers for overall R&D acceleration come almost entirely from the labs themselves; every estimate of an overall progress multiplier is below 2x.
 
 ## Sort the evidence into four kinds
 

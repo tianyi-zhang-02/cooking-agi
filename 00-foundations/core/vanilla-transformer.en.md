@@ -8,19 +8,20 @@ For translation, an encoder can read the entire source sentence at once. A decod
 
 ## Move information, then transform it {#move-information-then-transform-it}
 
-Forget the arrow-heavy architecture diagram for a moment. A Transformer layer
-repeats only two operations: **attention goes to other positions to fetch
-information; the FFN stays at the current position and processes it.** The original
-architecture is still an encoder–decoder, but recurrence is removed completely.
+To read the architecture diagram, start with two operations in each layer:
+**attention reads information from other positions; the FFN transforms that
+information at the current position.** The original architecture remains an
+encoder–decoder, but removes recurrence entirely.
 
 ## A layer has only two jobs {#a-layer-has-only-two-jobs}
 
 1. **Attention mixing** exchanges information across token positions.
 2. **Channel mixing / FFN** transforms each token's channels independently.
 
-Residual connections and normalization wrap those two operations. Stacking many
-layers still means repeating “go out and find information → come back and process
-it.” This is much easier to remember than the full block diagram.
+Residual connections and normalization accompany each operation. Stacking layers
+repeats cross-position information exchange and position-wise feature transformation.
+Understanding these two computations first makes each module's role in the full
+diagram easier to follow.
 
 ## The three attention sites ask different questions {#the-three-attention-sites-ask-different-questions}
 

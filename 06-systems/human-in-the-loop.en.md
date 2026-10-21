@@ -45,7 +45,7 @@ Change one condition at a time and the answer can flip:
 | Reviewers mostly approve what they see | 100 | 5% | 4% | 1 | 0 |
 | A draft the user can easily fix | 10 | 5% | 1% | 1 | −0.6 |
 
-In the second row the review happens but hardly reduces errors, so its cost buys nothing. People shown a model's conclusion tend to go along with it (automation bias; see [LLM decision support](decision-support.en.md)), so estimate the after-review error rate from reviewers' actual correction records instead of assuming they catch every mistake. In the third row the error is cheap: review costs more than the loss it can prevent, so it is better to finish automatically and let the user edit.
+In the second row, the reduction in expected loss exactly offsets the review cost: the net benefit is zero, but review still corrects some errors. People shown a model's conclusion tend to go along with it (automation bias; see [LLM decision support](decision-support.en.md)), so estimate the after-review error rate from reviewers' actual correction records instead of assuming they catch every mistake. In the third row the error is cheap: review costs more than the loss it can prevent, so it is better to finish automatically and let the user edit.
 
 This is not a formula for bypassing authorization. An action that requires user approval still requires it, even when its estimated cost is low. Irreversibility affects the loss and response options; it does not need an arbitrary extra multiplier. Include waiting time in the cost as well.
 
@@ -96,8 +96,8 @@ User rejects or confirmation times out → do not send; record why
 These are state constraints, not a sending implementation. Resuming a paused workflow does
 not necessarily mean “run the next line exactly once”: for example,
 [LangGraph interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts#side-effects-called-before-interrupt-must-be-idempotent)
-resume by rerunning the node from its beginning. Put the external write awaiting approval
-after valid approval, and still follow the tool's idempotency contract on retries.
+resume by rerunning the node from its beginning. Perform the external write only after
+valid approval, and follow the tool's idempotency rules when retrying.
 
 ### After-the-fact spot checks {#after-the-fact-spot-checks}
 
@@ -122,7 +122,7 @@ As models and tasks change, re-examine the rubric, escalation thresholds, permis
 
 ## What good HITL should ultimately reduce {#what-good-hitl-should-ultimately-reduce}
 
-The goal is not to make more and more tasks depend on people. It is to put the most valuable human judgment in the right place, and then turn that judgment into:
+HITL should make effective use of human judgement where it is needed, without making more and more tasks depend on manual handling. Decisions collected during review can inform:
 
 - new deterministic rules;
 - better eval cases;
@@ -142,7 +142,7 @@ The goal is not to make more and more tasks depend on people. It is to put the m
 <details class="interview" markdown="1">
 <summary>Consider risk, uncertainty, and whether the action can be undone</summary>
 
-**Quick memory**: it is not “ask a human whenever the model is uncertain.” Escalate when the potential loss is high, the action is irreversible or permission-sensitive, or the evidence conflicts; and the human's feedback has to flow back as structure the system can learn from.
+**In brief**: model confidence alone does not determine whether to ask for confirmation. Consider the potential loss, reversibility, permissions, and conflicting evidence. Record what the person changed and why, so those decisions can guide later improvements.
 
 **Interview answer**
 

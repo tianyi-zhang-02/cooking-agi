@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-If you want to train a code-fixing agent with RL, the first thing to prepare is not the algorithm but a few thousand tasks: for each one, a reproducible sandbox and a check that decides "is it fixed?". In single-turn RLVR, the checker looks at the answer from outside the model; an agent's checker often sits inside the very sandbox the agent can act on, where test files, git history and the network may all be within its reach. **The environment decides what the agent can learn, and the reward decides what it turns into. RL does not repair the failures a checker misses; it amplifies whatever path passes the check. So measure training reward and true success separately, and test the environment itself the way you test code.**
+To train a code-fixing agent with RL, start by preparing a few thousand tasks. Each needs a reproducible sandbox and a check that decides whether the bug is fixed; the algorithm comes next. In single-turn RLVR, the checker examines the answer from outside the model. An agent's checker often sits inside the sandbox the agent can act on, where test files, git history and the network may all be within reach.
+
+The environment determines which behaviours the agent has an opportunity to learn, while the reward determines which ones training encourages. We cannot rely on RL to correct failures the checker misses: any approach that passes the check may be reinforced. Measure training reward and true success separately, and test the environment itself as you would test code.
 
 ## What an agent environment has to provide
 
@@ -74,7 +76,7 @@ The following is a teaching assumption with made-up numbers. On a batch of bug-f
 | W2 | Wrong fix that the visible tests do not cover, for example a missed empty input |
 | H | Edited the test files, or special-cased the visible tests |
 
-Two checkers. v1: run the visible tests directly in the agent's workspace, where the agent can edit test files. v2: restore the test files from the original repository before scoring and add a set of hidden tests; the hidden tests catch 80% of W2, and H always fails. Let $q_{\rm miss}$ be the probability that W2 slips through and $q_{\rm tamper}$ the probability that H slips through:
+Compare two checkers. v1 runs the visible tests directly in the agent's workspace, where the agent can edit test files. v2 restores the test files from the original repository before scoring and adds a set of hidden tests. Assume that the hidden tests catch 80% of W2 and H always fails. Let $q_{\rm miss}$ be the probability that W2 slips through and $q_{\rm tamper}$ the probability that H slips through:
 
 $$
 \mathbb E[r]=P(\mathrm C)+q_{\rm miss}\,P(\mathrm{W2})+q_{\rm tamper}\,P(\mathrm H),\qquad S=P(\mathrm C)
@@ -112,7 +114,7 @@ The [Claude 4 system card](https://www-cdn.anthropic.com/6d8a8055020700718b0c493
 
 **Every score costs time too.** DeepSeek-R1 ([paper](https://arxiv.org/abs/2501.12948), 2025-01) wrote in its limitations section that because evaluation took too long and slowed RL down, they had not yet applied large-scale RL to software-engineering tasks. DeepSWE (2025-07-02) started 512 containers in parallel per iteration, with a 5-minute test timeout. A rough sum, where the 2 minutes is an assumption: if each test run takes one CPU core for 2 minutes on average, the 512 scorings of one iteration take 1,024 core-minutes, about 17 core-hours, not counting the tests the agent runs itself during the episode.
 
-**Interfaces are being contested too.** Prime Intellect's [Environments Hub](https://www.primeintellect.ai/blog/environments) (2025-08-27) and Meta and Hugging Face's [OpenEnv](https://huggingface.co/blog/openenv) (2025-10-23) both push shared environment formats. The Kimi K3 report says that training with a single agent harness can overfit the model to one tool schema, system prompt or context-management scheme, so it built a configurable environment that can instantiate several harnesses, including Claude Code and Codex.
+**Teams are also developing shared environment interfaces.** Prime Intellect's [Environments Hub](https://www.primeintellect.ai/blog/environments) (2025-08-27) and Meta and Hugging Face's [OpenEnv](https://huggingface.co/blog/openenv) (2025-10-23) both promote shared environment formats. The Kimi K3 report says that training with a single agent harness can overfit the model to one tool schema, system prompt or context-management scheme. The team therefore built a configurable environment that can instantiate several harnesses, including Claude Code and Codex.
 
 ## What to watch next on this line
 

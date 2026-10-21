@@ -136,7 +136,7 @@ print("oracle:", [chunk.chunk_id for chunk in oracle])
 - **本地能用，部署后不对。** 检查加载的基座、adapter、tokenizer、模板和停止条件是不是同一套；不要拿本地 checkpoint 的名字代替服务端 revision。
 - **总是提前结束或重复。** 看 EOS、终止原因、最大输出长度和真实上下文，再比较解码设置。提高 temperature 可能增加变化，但不会修复丢掉的证据或错误的标签。
 
-一个常见的小坑是先渲染 chat template，再次分词时又自动加了特殊 token。[Transformers 的模板文档](https://huggingface.co/docs/transformers/chat_templating)专门提醒过这种重复。查这些便宜的小问题，通常比立刻换训练方法更有方向。
+一个常见的小坑是先渲染 chat template，再次分词时又自动加了特殊 token。[Transformers 的模板文档](https://huggingface.co/docs/transformers/chat_templating)专门提醒过这种重复。先检查这些排查成本低的问题，通常比立刻换训练方法更容易找到下一步方向。
 
 ## 改哪里，要由错例来决定 {#choose-a-fix}
 

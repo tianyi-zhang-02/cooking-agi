@@ -8,7 +8,7 @@
 
 ## 先看岗位做什么，再决定练多深 {#routes}
 
-RE 是 Research Engineer，MLE 是 Machine Learning Engineer，RS 是 Research Scientist。同一个 title，在不同团队可能做很不一样的事。先看职位描述，再向 recruiter 确认轮次、编码环境、是否允许查文档和使用 AI。不要从“某人没被考过”推导出“这个不用准备”。
+RE 是 Research Engineer，MLE 是 Machine Learning Engineer，RS 是 Research Scientist。同一个职位名称，在不同团队可能对应很不一样的工作。先看职位描述，再向招聘联系人（recruiter）确认轮次、编码环境、是否允许查文档和使用 AI。不要从“某人没被考过”推导出“这个不用准备”。
 
 | 目标工作 | 先准备的内容 | 再往下练 | 时间紧时先放一放 |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ RE 是 Research Engineer，MLE 是 Machine Learning Engineer，RS 是 Research S
 | GPU 利用率低，先改什么？ | 分开检查 CPU 输入、队列、执行、HBM 带宽、通信和输出缓冲；先[取 trace](../12-infra/performance.md#profiling)，再改一个变量 |
 | 什么时候拆 prefill / decode？ | 在测出的干扰之外，算上 KV 传输、两端队列与失败恢复成本 |
 
-准备 inference 方向，至少挑一层准备到能讲细节：调度策略、KV cache 管理，或者你拿得出的性能证据。传统系统设计也别丢；轮次还是要问清楚。
+准备推理服务（inference）方向时，至少选一层深入到能讲清细节：比如调度策略、KV cache 管理，或一项有测量结果支持的性能改进。传统系统设计也需要准备；具体轮次仍要向招聘方确认。
 
 ## 项目、研究讨论和 BQ，别拖到最后 {#projects}
 
@@ -88,7 +88,7 @@ RE 是 Research Engineer，MLE 是 Machine Learning Engineer，RS 是 Research S
 - **预算砍半怎么办？** 先决定保留哪个假设检验，再缩数据、模型或实验数量，讲清哪些结论因此无法支持。不是所有项目都只能回答“上 LoRA”。
 - **结果与预期相反呢？** 区分实现错误、测量问题和假设不成立；给一个能区分它们的后续实验，而不只说继续调参。
 
-BQ 可以准备合作分歧、失败、模糊需求各一个真实故事：当时有哪些选择，你怎么处理，结果与后来改变了什么。不要求把所有经历包装成成功。项目范围与职位有关；校园项目也能讲清责任，不需要编出跨团队领导经历。
+BQ（行为面试）可以准备合作分歧、失败、模糊需求各一个真实故事：当时有哪些选择，你怎么处理，结果如何，后来又做了哪些改变。不要求把所有经历包装成成功。项目范围与职位有关；校园项目也能讲清责任，不需要编出跨团队领导经历。
 
 ## 免费资料怎么接着用 {#resources}
 

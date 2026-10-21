@@ -89,7 +89,7 @@ This is amortized analysis, not a claim that every character is compared only on
 
 - This finds a contiguous substring, not a subsequence that may skip characters. See [sequence DP](sequence-dp.en.md).
 - Define case handling, Unicode normalization, and what counts as a character. Python indices are not displayed-glyph indices; normalization can also change the mapping to original offsets.
-- Ordinary rolling hashes need collision handling. KMP uses exact equality. Searching many patterns at once calls for a different data-structure comparison.
+- Ordinary rolling hashes need collision handling. KMP uses exact equality. When searching many patterns at once, compare data structures suited to that task rather than applying this single-pattern template unchanged.
 - Try `aaaa` / `aa` → `[0,1,2]`, then empty strings, a longer pattern, and no match.
 
 Runnable code: [deeper_patterns.py](../code/deeper_patterns.py). Tests enumerate small strings and compare with direct slicing. Further reading: [Princeton substring search](https://algs4.cs.princeton.edu/53substring/). Its DFA presentation and this prefix-table presentation express the same reuse after a mismatch.

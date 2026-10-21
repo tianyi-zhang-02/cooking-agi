@@ -137,7 +137,7 @@ print(losses.detach().tolist(), current_log_probs.grad.tolist())
 这不是说每个实现都有 KL 和 entropy bonus；有没有、权重多大，要看实际配置。想看具体的梯度，可以展开下面的二选一例子。
 
 <details markdown="1">
-<summary>Policy 项为 0，其他路径还能给出多大的梯度？</summary>
+<summary>Policy 项的梯度为 0，其他路径还能给出多大的梯度？</summary>
 
 [配套 CPU 脚本](../code/policy_gradient_checks.py)分别检查了这两种情况：
 

@@ -79,7 +79,7 @@ assert math.isclose(siglip_loss(scores), 2 * math.log1p(math.exp(-2)))
 
 对二值标签 $q\in\{0,1\}$，一个未归一化配对 loss 的导数是 $\sigma(z)-q$。正例得分太低，梯度下降会提高它；负例得分太高，会降低它。整个目标还要乘上 $1/B$。
 
-假设所有相似度暂时为零，只学习共同 bias。每行 1 个正例、$B-1$ 个负例，令梯度为零得到 $B\sigma(b)-1=0$，即 $b=-\log(B-1)$（$B>1$）。这是解释类别比例的简化推导，不是在指定官方模型的初始化值，也不是实际训练的最终 bias。负例采样比例变了，这笔账也会变。
+假设所有相似度暂时为零，只学习共同 bias。每行 1 个正例、$B-1$ 个负例，令梯度为零得到 $B\sigma(b)-1=0$，即 $b=-\log(B-1)$（$B>1$）。这是解释类别比例的简化推导，不是在指定官方模型的初始化值，也不是实际训练的最终 bias。负例采样比例变了，计算结果也会变。
 
 </details>
 
@@ -91,7 +91,7 @@ assert math.isclose(siglip_loss(scores), 2 * math.log1p(math.exp(-2)))
 
 ## SigLIP 2 多了什么 {#siglip2}
 
-[SigLIP 2 论文](https://arxiv.org/html/2502.14786v1)不只是给 sigmoid loss 换名字：它扩展了多语言数据与训练配方，结合 captioning 类任务、自蒸馏、masked prediction，并提供不同图像尺寸处理路线。**这些阶段并非每个变体都完全相同**；论文里的 NaFlex 路径没有采用标准变体的 self-distillation / masked-prediction 阶段。
+[SigLIP 2 论文](https://arxiv.org/html/2502.14786v1)在 sigmoid loss 的基础上扩展了多语言数据与训练配方，结合图像描述生成、自蒸馏、掩码预测等任务，并提供不同的图像尺寸处理路线。**这些阶段并非每个变体都完全相同**；论文里的 NaFlex 路径没有采用标准变体的自蒸馏和掩码预测阶段。
 
 <!-- paper-figure:siglip2-recipe -->
 

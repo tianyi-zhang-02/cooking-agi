@@ -21,7 +21,7 @@ $$
 K=\begin{bmatrix}f_x&s&c_x\\0&f_y&c_y\\0&0&1\end{bmatrix}.
 $$
 
-$f_x,f_y$ are focal lengths in pixels, $(c_x,c_y)$ is the principal point, and $s$ is the skew term for pixel axes that are not perpendicular, usually set to 0. $\lambda$ is the point's depth $Z_c$ in the camera frame: the two sides agree only up to a scale, and that is exactly where depth is lost. [Zhang 2000](https://doi.org/10.1109/34.888718), Section 2, uses this pinhole model (he writes $K$ as $A$; the [technical-report version](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr98-71.pdf) is free to read). The [Hartley & Zisserman sample chapter 9](https://www.robots.ox.ac.uk/~vgg/hzbook/) writes the camera matrix as $P=K[R\mid t]$.
+$f_x,f_y$ are focal lengths in pixels, $(c_x,c_y)$ is the principal point, and $s$ is the skew term for pixel axes that are not perpendicular, usually set to 0. $\lambda$ is the point's depth $Z_c$ in the camera frame: multiplying the homogeneous pixel vector by this scale makes it equal to the right-hand side. Dividing out that scale during projection discards depth. [Zhang 2000](https://doi.org/10.1109/34.888718), Section 2, uses this pinhole model (he writes $K$ as $A$; the [technical-report version](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr98-71.pdf) is free to read). The [Hartley & Zisserman sample chapter 9](https://www.robots.ox.ac.uk/~vgg/hzbook/) writes the camera matrix as $P=K[R\mid t]$.
 
 $R$ rotates the world axes onto the camera axes; $t=-RC$, where $C$ is the optical centre's position in the world frame. Reading $t$ directly as "where the camera is mounted" is an easy mistake.
 
@@ -66,7 +66,7 @@ Any positive $Z_c$ projects to the same pixel. There are three ways to pin it do
 
 - **A known plane.** Assume the point is on the ground. The camera is 1.5 m up and its y axis points down, so the ground is $Y_c=1.5$; then $0.15\,Z_c=1.5$ and $Z_c=10$ m, which is correct. But the point 0.5 m above the ground sits at v=640, and the same assumption gives $Z_c=1.5/0.1=15$ m, 50% too far. The plane assumption holds only for points that really are on the plane.
 - **A second view.** The point is where the two rays meet; see triangulation below.
-- **A learned prior.** A monocular depth network learns from many images "how far things usually are". Relative depth gives only order and ratios; metric depth gives metres. Those models are in [note 4](foundation-models.en.md).
+- **A learned prior.** A monocular depth network learns from many images "how far things usually are". Relative depth cannot be read directly in metres: scale-only outputs preserve depth ratios, while other outputs also have an unknown shift or are defined in inverse depth. Metric depth gives metres directly. These distinctions and models are covered in [note 4](foundation-models.en.md).
 
 The 1° pitch change from the table turns 10 m into about 8.9 m or 11.3 m under the ground assumption (depending on the direction). A system that measures distance from the ground plane must either estimate camera pitch online or use a cue that does not depend on the ground.
 
@@ -106,7 +106,7 @@ In practice $E$ or $F$ is estimated from matched points. Each match gives one li
 
 ## Triangulation: getting depth back
 
-The 3D point is where the two rays meet. A stereo pair with only a horizontal shift is the easiest case: HZ eq. 9.6 gives $x'=x+Kt/Z$ for pure translation, and substituting $t=(-b,0,0)$ gives
+The 3D point is where the two rays meet. A stereo pair with identical intrinsics and only a horizontal shift is the easiest case: depth is the same in both cameras, so the homogeneous relation in HZ eq. 9.6 becomes the ordinary equality $x'=x+Kt/Z$. Substituting $t=(-b,0,0)$ gives
 
 $$
 d=u-u'=\frac{f\,b}{Z}\quad\Longrightarrow\quad Z=\frac{f\,b}{d}.
@@ -114,7 +114,7 @@ $$
 
 Our point has disparity $d=860-810=50$ px, so $Z=1000\times0.5/50=10$ m, matching where we started.
 
-Now the error. Differentiating $Z=fb/d$ with respect to $d$ gives $|\partial Z/\partial d|=Z^2/(fb)$. At 10 m, a 1 px disparity error is a 0.2 m depth error; at 40 m the disparity is only 12.5 px and a 1 px error becomes 3.2 m. **Triangulated depth error grows with the square of distance**, which is the direct reason stereo and multi-view ranging get worse far away. A longer baseline $b$ or focal length $f$ helps, at a price: the two cameras share less field of view up close, and the two images look more different, so matching gets harder.
+Now the error. Differentiating $Z=fb/d$ with respect to $d$ gives $|\partial Z/\partial d|=Z^2/(fb)$. For a small disparity error, $|\Delta d|\ll d$, the first-order approximation is $|\Delta Z|\approx Z^2|\Delta d|/(fb)$. At 10 m, a 1 px disparity error gives approximately 0.2 m of depth error; at 40 m the disparity is only 12.5 px, and the same 1 px error gives approximately 3.2 m. Both are local approximations: the exact finite change is $\Delta Z=-fb\,\Delta d/[d(d+\Delta d)]$, so positive and negative 1 px errors do not have symmetric effects. **For fixed baseline, focal length and small disparity error, the first-order depth error grows with the square of distance.** This explains why stereo and multi-view ranging get worse far away. A longer baseline $b$ or focal length $f$ helps, at a price: the two cameras share less field of view up close, and the two images look more different, so matching gets harder.
 
 <!-- widget:step-pixel-ray -->
 
@@ -122,12 +122,19 @@ The general case (rotation, more than two views) has no formula this tidy. With 
 
 ## When one homography is enough
 
-HZ eq. 9.7 writes the second image's pixel as two terms: $x'=K'RK^{-1}x+K't/Z$. The first term depends only on rotation and intrinsics; the second changes with depth $Z$. Which term vanishes, or becomes predictable, decides which relation you need:
+HZ eq. 9.7 expresses the second image's homogeneous pixel coordinates as two terms. The scale convention matters: if $x=(u,v,1)^\top$ and $x'=(u',v',1)^\top$ both have third component 1, and the point has depths $Z,Z'$ in the two cameras, then
+
+$$
+\frac{Z'}{Z}x'=K'RK^{-1}x+\frac{K't}{Z},
+\qquad x'\sim K'RK^{-1}x+\frac{K't}{Z}.
+$$
+
+Here $\sim$ means equality up to a nonzero scale. To recover $x'$ with third component 1, divide the right-hand side by its third component. Its first term depends only on rotation and intrinsics; the second changes with depth $Z$. Which term vanishes, or becomes predictable, decides which relation you need:
 
 | Case | Relation between the two images | Degrees of freedom | Examples |
 | --- | --- | --- | --- |
-| All points lie on one plane | Point to point: $x'=Hx$, $H$ is 3×3 | 8 | The ground, a calibration board, a document; Zhang's calibration uses $H=K[r_1\;r_2\;t]$ |
-| The camera only rotates, $t=0$ | Point to point: $x'=K'RK^{-1}x$, independent of depth | Set by $K,K',R$ | Panoramas taken by turning in place |
+| All points lie on one plane | Point to point: $x'\sim Hx$, $H$ is 3×3 | 8 | The ground, a calibration board, a document; Zhang's calibration uses $H=K[r_1\;r_2\;t]$ |
+| The camera only rotates, $t=0$ | Point to point: $x'\sim K'RK^{-1}x$, independent of depth | Set by $K,K',R$ | Panoramas taken by turning in place |
 | Translation and a scene with relief | Point to line: $x'^{\top}Fx=0$ | 7 for $F$, 5 for $E$ | Stereo, a monocular camera on a moving car, a camera on a robot arm |
 
 The ground-plane ranging above uses the first row: points on the ground map one-to-one to pixels, and the mapping breaks as soon as a point leaves the ground.

@@ -10,7 +10,7 @@ I'm still learning system design too. This page keeps the public resources and i
 
 ## There is no fixed formula
 
-My sense is that system design has no template you can memorize and apply. What is really being probed is two things: **do you know the trade-off behind each choice**, and **can you connect the whole system end to end**.
+In my experience, there is no system-design template you can memorize and apply unchanged. In an interview, you need to explain two things: **the trade-offs behind each choice** and **how the parts work together as a complete system**.
 
 So start from the basics:
 
@@ -26,13 +26,13 @@ Say you are building recommendations. Start from what you have:
 - **If follows, friendships, or interactions are available**, use those relationships to find candidates. A graph need not be a social graph: [PinSage](https://arxiv.org/abs/1806.01973) uses Pinterest's item–board relationships. Keep these different data structures distinct.
 - **And if there is no relationship data?** Fall back to behavior itself: item–item co-occurrence, two-tower retrieval, content features (titles, categories, multimodal embeddings). In cold start, content features and a popularity fallback often beat a complicated model.
 
-Every layer below that is a trade-off: how fast retrieval has to be, how large a model ranking can afford, how fresh the features must be, whether an offline gain will show up online, and whether the complexity is worth maintaining. Saying those clearly is worth more than reciting an architecture diagram.
+Each subsequent layer involves trade-offs: how fast retrieval has to be, how large a model the ranking stage can afford, how fresh the features must be, whether an offline gain will show up online, and whether the complexity is worth maintaining. Explaining these choices is more useful than reciting an architecture diagram.
 
 ## Public resources
 
 General system design:
 
-- [System Design Primer](https://github.com/donnemartin/system-design-primer): free, broad, good for building the skeleton
+- [System Design Primer](https://github.com/donnemartin/system-design-primer): free and broad, with a useful overview of system design
 - [ByteByteGo](https://bytebytego.com): Alex Xu's *System Design Interview* series, heavily illustrated and easy to read
 - [Designing Data-Intensive Applications](https://www.dataintensive.net): the one worth real time if you want to understand the underlying trade-offs. As of October 2026 the latest is the [second edition, published in March 2026](https://martin.kleppmann.com/2026/03/24/designing-data-intensive-applications-2e.html) (Martin Kleppmann and Chris Riccomini, O'Reilly); the book's website still describes the first edition
 

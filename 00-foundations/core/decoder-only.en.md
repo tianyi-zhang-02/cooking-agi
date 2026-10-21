@@ -8,7 +8,7 @@ When generating “It is raining,” the model needs the prefix before choosing 
 
 ## Everything goes into one sequence {#everything-goes-into-one-sequence}
 
-Put the instruction, the context, and the answer into one token sequence, block the future with a causal mask, and then have every position do exactly one thing: guess the next token. This is what I find most appealing about decoder-only: the structure ends up more uniform than encoder–decoder.
+The instruction, context, and answer form one token sequence. Each position predicts the next token, and a causal mask restricts it to the current and earlier positions. Instead of encoding the input and decoding the output in separate modules, the model processes the whole sequence with the same architecture.
 
 ## A sequence is its own training data {#a-sequence-is-its-own-training-data}
 
@@ -114,9 +114,9 @@ As of October 2026, open models show three more common changes: Qwen3 and Gemma 
 
 ### 2. The other eight parts, and what each one changes {#2-the-other-eight-parts-and-what-each-one-changes}
 
-The changes listed in the previous card sit in different parts of the block. Each row records only what the part changes and the point most often stated wrong; the derivations live in the linked notes.
+The changes listed in the previous card affect different parts of the block. Each row identifies the change and a common misconception; the linked notes provide the derivations.
 
-| Part | What it changes | The point most often stated wrong | Where it is explained |
+| Part | What it changes | Common misconception to avoid | Where it is explained |
 | --- | --- | --- | --- |
 | RoPE | Rotates Q/K by position in every layer; V is not rotated | Position enters the dot product only as $n-m$, while the score still depends on content; far beyond the training length you still need RoPE scaling | [The Transformer architecture](../transformer.en.md#positional-encoding-from-sinusoids-to-rope), [RoPE and long context](../deep-dives/position-and-context.en.md) |
 | Pre-norm + RMSNorm | Moves the norm into the branch; divides by the root mean square without centering or bias | The trunk keeps an identity path and the stack still ends with a final norm; using RMSNorm does not by itself make a model better | [Normalization](normalization.en.md#four-concepts-answer-first-then-go-deeper) |
@@ -249,7 +249,9 @@ Counting once shows where the two phases differ. The prompt has 5 tokens, and we
 | Decode 1 | Position 6, the token just generated | 6 | New token 2 |
 | Decode 2 | Position 7 | 7 | New token 3 |
 
-With the cache, the model processes only $5+1+1=7$ positions in total. Without it, recomputing the whole prefix at every step processes $5+6+7=18$, and the gap widens as sequences grow. Each decode step computes a single position, yet it still reads every weight and the growing KV cache from GPU memory, so a single request's decode is often limited by memory bandwidth while compute sits idle.
+With the cache, the model processes only $5+1+1=7$ positions in total. Without it, recomputing the whole prefix at every step processes $5+6+7=18$, and the gap widens as sequences grow. For a single request through a conventional dense, full-attention model, each decode step computes one new position. When weights and the KV cache cannot stay in fast on-chip memory, the main projection and FFN weights still have to be read from GPU memory, along with the visible history's K/V. Small-batch decode is therefore often bandwidth-limited, leaving compute units underused; [§2.4.1 of the MQA paper](https://arxiv.org/abs/1911.02150) analyzes the memory traffic from projection weights and K/V separately.
+
+This does not mean every architecture reads “all weights and the entire historical KV cache” at each step: a token in an MoE uses only the selected experts, while a fixed-state layer does not maintain a KV cache that grows token by token with the history. Analyze hybrid models by layer type. Batch size, cache hits, and the particular kernel also affect the bottleneck, which ultimately needs to be measured with a profiler.
 
 <!-- widget:step-prefill-decode -->
 
@@ -316,7 +318,7 @@ assert torch.equal(last_valid_logits(scores, left_mask), scores[:, -1, :])
 
 `mask.sum(-1) - 1` works only when valid tokens are contiguous and start at position zero. A left-padded row with three valid tokens ends at index 4, not 2. This helper finds the last nonzero position instead of assuming a padding direction.
 
-It fixes one readout, not an entire generation loop. Right-padded generation also needs correct positions, growing masks, and KV-cache handling at later steps. An API that already returns only the final step's logits does not fit this helper's contract.
+It fixes one readout, not an entire generation loop. Right-padded generation also needs correct positions, mask expansion, and KV-cache handling at later steps. This helper cannot be applied to an API that already returns only the final step's logits.
 
 </details>
 

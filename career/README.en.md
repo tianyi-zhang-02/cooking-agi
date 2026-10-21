@@ -6,13 +6,13 @@
 
 When I started looking for internships last year, I had spent most of college doing research and knew very little about industry roles. I wanted to see my work become something people could use. Working out which jobs to apply for, and how to prepare for them, took longer than I expected.
 
-These pages are about that part: the gaps in my preparation, things I only figured out after an interview, and decisions I changed along the way. I'm still looking for work myself, so this isn't a guide written from the other side of a finished search.
+These pages cover the gaps in my preparation, things I only figured out after an interview, and times I changed my mind. I'm still looking for work myself, so I'm writing as I go rather than presenting a method that has everything figured out.
 
 If you're preparing for an ML internship or a new-grad role, take whatever is useful. I'd be happy if this saved you some time searching for resources, or made a frustrating part of the process feel a little less lonely :)
 
 ## Where to start
 
-Getting ready to apply? Start with [what to prepare](prepare.en.md). Use [the goal-based routes](../learn/choose-your-path.en.md#applications) to connect that to technical practice; reading every personal account is optional.
+Getting ready to apply? Start with [what to prepare](prepare.en.md). For technical practice, pick a route that fits your plans from [the study guide](../learn/choose-your-path.en.md#applications). You don't need to read all the personal entries first.
 
 ### My experience
 

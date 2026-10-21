@@ -4,7 +4,9 @@
 
 > Reading time: ~11 min · Last reviewed: 2026-10
 
-Take a group of 8 weights and compress them to INT4 with one shared scale: the mean squared error (MSE) is 0.0042. Replace one 1.40 with 14.0 and the other 7 values all become 0. **Quantization error is set by the step between grid points, and the step is set by the largest value among the numbers sharing a scale. The format decides how the grid is laid out (evenly spaced for integers, proportional for floating point), and the granularity decides who shares a scale; the damage an outlier does is that it stretches the step for its whole group.**
+Take a group of 8 weights and compress them to INT4 with one shared scale: the mean squared error (MSE) is 0.0042. Replace the value 1.40 with 14.0 and the other 7 values all become 0. Why does changing one value affect all the others?
+
+In this example, quantization error depends on the step between grid points, which is set by the largest value in the group sharing a scale. The format determines how the grid is laid out: evenly spaced for integers, proportional for floating point. Granularity determines which values share a scale. An outlier increases the step for its whole group, increasing the rounding error for the other values too.
 
 The bit layouts and rounding of FP16 and BF16 are in [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md); the table of formats each Tensor Core generation supports and a small NVFP4 example are in [GPU architecture](../gpu-architecture.en.md). They are not repeated here. Except where a source is given, the numbers in this note are teaching examples you can work out by hand.
 
@@ -25,7 +27,7 @@ For an all-zero tensor, either scheme can use $s=1$, $z=0$, with all codes zero,
 
 As long as $x$ is in range, the rounding error is at most $s/2$; if the error is uniform on $[-s/2,s/2]$, the MSE is about $s^2/12$. **Halve the step and the squared error drops to a quarter.**
 
-Work it once. Six non-negative numbers, $[0,\ 0.2,\ 0.5,\ 0.9,\ 1.3,\ 2.0]$ (for example, values after an activation function). Symmetric: $s=2.0/7\approx0.286$, the codes only use 0 to 7, the negative half of the grid sits empty, and the MSE is about 0.00514. Asymmetric: $s=2.0/15\approx0.133$, $z=0$, the codes are $[0,2,4,7,10,15]$, and the MSE is about 0.00130, roughly a quarter of the former, close to the squared ratio of steps $(0.286/0.133)^2\approx4.6$ (with only 6 numbers, $s^2/12$ is only an approximation).
+Consider six non-negative numbers, $[0,\ 0.2,\ 0.5,\ 0.9,\ 1.3,\ 2.0]$, such as values after an activation function. With symmetric quantization, $s=2.0/7\approx0.286$: the codes use only 0 to 7, leaving the negative half of the grid unused, and the MSE is about 0.00514. With asymmetric quantization, $s=2.0/15\approx0.133$ and $z=0$: the codes are $[0,2,4,7,10,15]$, and the MSE is about 0.00130. That is roughly a fourfold reduction, close to the squared ratio of steps $(0.286/0.133)^2\approx4.6$; with only 6 numbers, $s^2/12$ is only an approximation.
 
 ## Eight weights by hand: how much error does grouping save?
 
@@ -82,11 +84,13 @@ $\bar X$ and $\bar W$ are the integer codes, $\Delta_X$ has one scale per token,
 
 An INT grid is evenly spaced; an FP grid divides each power-of-two interval evenly, so it is denser near 0. There are two 8-bit floating-point formats ([Micikevicius et al., 2022-09](https://arxiv.org/abs/2209.05433); values from Table 2 of the [OCP MX specification v1.0](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf), which reproduces the OCP FP8 specification):
 
-| Format | Sign / exponent / mantissa bits | Exponent bias | Maximum | Smallest normal | Relative gap between neighbors |
+| Format | Sign / exponent / mantissa bits | Exponent bias | Maximum | Smallest normal | Neighbor spacing (reference specified) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| E4M3 | 1 / 4 / 3 | 7 | 448 | $2^{-6}$ | $2^{-3}$, i.e. 12.5% |
-| E5M2 | 1 / 5 / 2 | 15 | 57,344 | $2^{-14}$ | $2^{-2}$, i.e. 25% |
-| INT8 (symmetric, for comparison) | — | — | $127s$ | — | $s$ everywhere |
+| E4M3 | 1 / 4 / 3 | 7 | 448 | $2^{-6}$ | $2^{-3}$, i.e. 12.5%, relative to the normal interval's lower endpoint |
+| E5M2 | 1 / 5 / 2 | 15 | 57,344 | $2^{-14}$ | $2^{-2}$, i.e. 25%, relative to the normal interval's lower endpoint |
+| INT8 (symmetric, for comparison) | — | — | $127s$ | — | absolute spacing $s$ everywhere |
+
+The floating-point percentages use the normal interval's lower endpoint $2^e$ as their denominator, not each value itself. With $m$ mantissa bits, the spacing within $[2^e,2^{e+1})$ is $\Delta=2^{e-m}$. Relative to a positive value $u$ in that interval, $\Delta/u\le2^{-m}$ and decreases as $u$ grows. INT8 has constant absolute spacing $s$, but its spacing relative to a nonzero dequantized value $\hat x$ is $s/|\hat x|$, which is not constant.
 
 E4M3 has no infinities and uses only one mantissa pattern for NaN, and the encodings saved push its maximum to 448; E5M2 keeps the IEEE 754 special values. E4M3 has a gap of 1 between 8 and 16 and a gap of 4 between 32 and 64. **For scaled values in the normal range, without overflow or clipping**, round-to-nearest has a relative error bounded by about 6.25%; the absolute error grows with magnitude.
 
@@ -101,9 +105,9 @@ Compare by hand. Four numbers, $[0.02,\ -0.3,\ 1.7,\ 12.0]$, each with a per-ten
 | 1.7 | 63.47 → 64 → 1.714 | 0.84% | 18 → 1.701 | 0.05% |
 | 12.0 | 448 → 448 → 12.0 | 0 | 127 → 12.0 | 0 |
 
-Near the maximum INT8 is more accurate; far below the maximum FP8 is. [Van Baalen et al. of Qualcomm AI Research (2023-03)](https://arxiv.org/abs/2303.17951) sum it up as "all about the outliers": when a distribution has significant outliers FP8 gives the smaller error, and when it is well behaved INT8 is more accurate. They also estimate that in dedicated hardware an FP8 multiply-accumulate unit is 50%–180% less efficient than an INT8 one, and conclude that edge inference does not justify a dedicated FP8 implementation. On datacenter GPUs the choice also depends on what the Tensor Cores support; see the hardware section below.
+Near the maximum INT8 is more accurate; far below the maximum FP8 is. [Van Baalen et al. of Qualcomm AI Research (2023-03)](https://arxiv.org/abs/2303.17951) sum it up as "all about the outliers": when a distribution has significant outliers FP8 gives the smaller error, and when it is well behaved INT8 is more accurate. In their dedicated-hardware estimate, the roughly 50%–180% figure describes the FP8 multiply-accumulate unit's **additional gate-count cost** over INT8, not a throughput or efficiency loss exceeding 100%. Specifically, Figure 3 compares against INT8 with a 27-bit fixed-point accumulator: FP8 E4 with FP16 and FP32 accumulators needs 53% and 183% more gates, respectively. Gate count is a first-order proxy for area and power, not a measured GPU speed. The authors conclude that edge inference does not justify a dedicated FP8 implementation. On datacenter GPUs the choice also depends on what the Tensor Cores support; see the hardware section below.
 
-Being called FP8 does not mean the bit patterns are the same. AMD's [HIP 7.16 documentation](https://rocm.docs.amd.com/projects/HIP/en/latest/reference/fp8_numbers.html) states that CDNA 3 (the MI300 series) supports the FNUZ variant in hardware and CDNA 4 (the MI350 series) supports the OCP variant. As defined in the [ONNX float8 notes](https://onnx.ai/onnx/technical/float8.html), E4M3FNUZ has exponent bias 8 (7 for OCP), no infinities and no negative zero, with NaN taking the negative-zero pattern, so the all-ones `S.1111.111` is an ordinary number too. That definition gives a maximum of $1.875\times2^{15-8}=240$ (the ONNX table gives only the bit pattern), against 448 for OCP E4M3. Read as FNUZ, the same bit pattern means exactly half the value, so an OCP checkpoint needs its scales doubled and its negative zeros handled separately before it can be used as FNUZ (this is derived from the bit definitions).
+Being called FP8 does not mean the bit patterns are the same. AMD's [HIP 7.16 documentation](https://rocm.docs.amd.com/projects/HIP/en/latest/reference/fp8_numbers.html) states that CDNA 3 (the MI300 series) supports the FNUZ variant in hardware and CDNA 4 (the MI350 series) supports the OCP variant. As defined in the [ONNX float8 notes](https://onnx.ai/onnx/technical/float8.html), E4M3FNUZ has exponent bias 8 (7 for OCP), no infinities and no negative zero, with NaN taking the negative-zero pattern, so the all-ones `S.1111.111` is an ordinary number too. That definition gives a maximum of $1.875\times2^{15-8}=240$ (the ONNX table gives only the bit pattern), against 448 for OCP E4M3. For finite nonzero OCP E4M3FN values, reading the same bits as FNUZ halves the value, so doubling the scale preserves the dequantized value. Special encodings require separate conversion: OCP negative zero becomes NaN in FNUZ and should map to positive zero, while OCP NaN patterns become ordinary $\pm240$ values and must map to the target NaN. Doubling the scale is therefore not a conversion rule for every bit pattern (these conclusions follow from the bit definitions).
 
 ## Why 4-bit formats need block scaling: MXFP4 and NVFP4
 
@@ -200,4 +204,4 @@ Change `bits` to 8, or change the group length to 2, and watch the MSE. Python's
 | Switch the same block from MXFP4 to NVFP4 | MSE about 43 times lower in this example | That end-to-end quality differs by 43 times; NVFP4 also spends 0.25 more bits per value |
 | Give the group holding the outlier its own scale | Only that group is damaged | That outliers can simply be clipped: LLM.int8() shows that zeroing those dimensions badly worsens perplexity |
 
-The MSE of one tensor is only a starting point. It does not tell you how the error accumulates through dozens of layers, whether errors within one output cancel or add up (in the GPTQ example in the next note, two errors in the same direction double the output error), how many bits the accumulation uses (note 3 covers the problem DeepSeek-V3 hit in FP8 GEMMs), or which layers are most sensitive. Next: [Weight-only quantization and post-training quantization](weight-only-and-ptq.en.md).
+The MSE of one tensor is only a starting point. We also need to examine how error accumulates through dozens of layers and whether errors within one output cancel or add up. In the GPTQ example in the next note, two errors in the same direction double the output error. A single tensor's MSE also says nothing about accumulation precision or which layers are most sensitive; note 3 covers the accumulation problem DeepSeek-V3 encountered in FP8 GEMMs. Next: [Weight-only quantization and post-training quantization](weight-only-and-ptq.en.md).

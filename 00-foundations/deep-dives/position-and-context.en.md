@@ -88,7 +88,7 @@ Test evidence position, distractors, and dependency span as well as total length
 
 ## Interpolation, frequency scaling, and continued training
 
-Simple position interpolation replaces $p$ with $p/s$. For a fourfold extension, $s=4$ compresses positions, including adjacent positions now separated by 0.25. It reduces extrapolation while changing local resolution.
+Simple position interpolation replaces $p$ with $p/s$. For a fourfold extension, $s=4$ keeps the expanded positions within the range seen during training. Adjacent positions are now separated by 0.25, so the angular separation between them is also reduced.
 
 | Method | What changes | What is not guaranteed |
 | --- | --- | --- |
@@ -175,7 +175,7 @@ Let the original window be $c$, chunk size $s<c$, query position $i$, and visibl
 | Previous chunk | $\min(s+i\bmod s,c-1)$ | Continuity near the boundary |
 | Earlier chunk | $c-1$ | Avoiding unfamiliar large position differences |
 
-Subtract the local key position to obtain the RoPE distance. Distant positions lose fine-grained separation; the scheme does not recover unlimited exact positions.
+Subtract the local key position to obtain the RoPE distance. Clamping to $c-1$ loses fine-grained separation for more distant positions in the previous chunk and for earlier chunks. DCA does not preserve exact distances indefinitely.
 
 Take $c=8,s=5$. Position 5 attending to 4 should see distance 1. Resetting both positions modulo the chunk size gives $0-4=-4$. The adjacent-chunk rule gives $5-4=1$. Later, position 8 attending to 4 gets $7-4=3$, not the true distance 4: restricting the position range has a cost.
 

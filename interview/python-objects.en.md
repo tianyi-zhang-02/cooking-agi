@@ -141,7 +141,7 @@ Accepting arbitrary keywords is convenient for forwarding configuration, but may
 
 ## 6. Defaults and closures: when is the value chosen? {#defaults-and-closures}
 
-Default arguments are evaluated when the definition executes, not recreated on each call. If each omitted argument should produce a new list, create it inside the function:
+Default arguments are evaluated when the definition executes, not recreated on each call. If you need a fresh list whenever the caller omits the argument, create it inside the function:
 
 ```python
 def add_tag(tag, tags=None):
@@ -175,7 +175,7 @@ The second version uses definition-time defaults to retain each integer. It reta
 
 ## 7. `any`, `all`, and iterators: stopping also consumes input {#iteration-and-truth}
 
-`any` stops at the first truthy value; `all` stops at the first falsey value. Both short-circuit. With empty input, `any` is false and `all` is true: no witness, but no counterexample either. Checking that input is nonempty **and** every item passes requires more than `all`. [Built-in functions](https://docs.python.org/3.14/library/functions.html#all)
+`any` stops at the first truthy value; `all` stops at the first falsey value. Both short-circuit. With empty input, `any` is false because it finds no truthy value, while `all` is true because it finds no falsey value. Checking that input is nonempty **and** every item passes requires more than `all`. [Built-in functions](https://docs.python.org/3.14/library/functions.html#all)
 
 ```python
 events = []

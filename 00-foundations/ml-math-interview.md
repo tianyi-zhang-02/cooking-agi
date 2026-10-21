@@ -16,16 +16,16 @@
 <details class="interview" markdown="1">
 <summary>快速学习：七个公式其实沿着哪条主线</summary>
 
-**快速记忆**：Softmax/LSE/CE 是概率归一化与 likelihood；L1/L2 是几何约束与 prior；Bias–Variance 是泛化误差分账；MLE/MAP 是数据与先验的权衡；BLUE 是线性无偏估计中的最小方差结论。
+**快速记忆**：Softmax/LSE/CE 连接概率归一化与似然；L1/L2 可以从几何约束和先验解释；Bias–Variance 分解泛化误差；MLE/MAP 说明数据与先验的权衡；BLUE 则给出线性无偏估计中的最小方差结论。
 
 **面试回答**
 
-> 我会先定义随机变量、shape 和目标，再给核心梯度与稳定实现，最后明确 theorem assumptions。比如 CE 对 logits 的梯度是 $p-y$；L1 在 0 有 subgradient 区间所以可产生精确零；Gauss–Markov 不要求误差正态，只要求模型线性、$X$ 满列秩、误差条件均值为零、同方差且不相关。
+> 我会先定义随机变量、张量形状和目标，再给核心梯度与稳定实现，最后说明定理成立的假设。比如 CE 对 logits 的梯度是 $p-y$；L1 在 0 处的次梯度是一个区间，因此可以产生精确的零；Gauss–Markov 不要求误差正态，只要求模型线性、$X$ 满列秩、误差条件均值为零、同方差且不相关。
 
 <details markdown="1">
 <summary><b>深挖</b>：为什么“证明思路”比从头展开代数更重要？</summary>
 
-面试中的关键通常是能否指出结构：CE 由 negative log-likelihood 得到，L1 稀疏由 KKT/subgradient 或约束几何解释，证明 BLUE 时，把任意线性无偏估计量写成 OLS 加一个与 $X$ 正交的项，再证明多出来的 covariance 半正定。
+面试中通常需要说清证明的关键步骤：CE 来自负对数似然；L1 的稀疏性可以用 KKT 条件、次梯度或约束的几何形状解释；证明 BLUE 时，把任意线性无偏估计量写成 OLS 加一个与 $X$ 正交的项，再证明多出来的协方差矩阵是半正定的。
 
 </details>
 </details>
@@ -40,7 +40,7 @@
 
 ### 1. Softmax、Cross-Entropy 与 LogSumExp 是同一条计算
 
-输入 logits $z\in\mathbb R^K$，Softmax 输出 categorical distribution：
+输入 logits $z\in\mathbb R^K$，Softmax 输出各类别的概率，构成类别分布（categorical distribution）：
 
 $$p_i=\frac{e^{z_i}}{\sum_j e^{z_j}},\qquad \sum_i p_i=1.$$
 
@@ -110,7 +110,7 @@ probability.
 
 ### 2. 为什么最小化 CE 等价于最大似然
 
-独立样本的 conditional likelihood 是：
+独立样本的条件似然（conditional likelihood）是：
 
 $$L(\theta)=\prod_{n=1}^N p_\theta(y_n\mid x_n).$$
 
@@ -124,12 +124,11 @@ $$
 \arg\min_\theta-\sum_n\log p_\theta(y_n\mid x_n).
 $$
 
-对 one-hot classification，最后一项就是 empirical Cross-Entropy。准确说法是：
+对于使用 one-hot 标签的分类任务，最后一项就是经验交叉熵。准确说法是：
 
-> 最小化 one-hot Cross-Entropy，等价于对条件类别模型做 maximum conditional likelihood。
+> 最小化 one-hot 交叉熵，等价于对条件类别模型做最大条件似然估计。
 
-这个等价依赖于模型把输出解释成概率，并把训练样本的联合 likelihood 按通常的独立性
-假设分解。Label smoothing 后，目标不再是原始 hard labels 的同一个 MLE。
+这个等价关系要求把模型输出解释成概率，并按通常的独立性假设分解训练样本的联合似然。使用标签平滑（label smoothing）后，目标就不再是原始硬标签对应的那个最大似然估计（MLE）目标。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -220,8 +219,9 @@ the L2 boundary is smooth.
 
 ### 4. Bias–Variance 是泛化误差的分账
 
-若 $y=f(x)+\epsilon$、$\mathbb E[\epsilon]=0$、$\operatorname{Var}(\epsilon)=\sigma^2$，
-对 squared error 有：
+固定测试输入 $x$，设 $y=f(x)+\epsilon$，且 $\mathbb E[\epsilon\mid x]=0$、
+$\operatorname{Var}(\epsilon\mid x)=\sigma^2$。假设测试噪声在给定 $x$ 时独立于训练集和训练过程的随机性，
+并且噪声与预测都有有限二阶矩。于是对 squared error 有：
 
 $$
 \mathbb E[(y-\hat f(x))^2]
@@ -230,20 +230,21 @@ $$
 +\mathbb E\big[(\hat f(x)-\mathbb E[\hat f(x)])^2\big].
 $$
 
-三项分别是 irreducible noise、Bias$^2$ 和 Variance。Bias 问不同训练集平均得到的模型
-是否系统性偏离真函数；Variance 问换一份训练集，模型会不会变化很大。
+式中所有期望都以这个固定的 $x$ 为条件：左边同时对训练随机性和新的测试噪声取平均；右边涉及 $\hat f(x)$ 的期望只对训练随机性取平均。上述独立性和条件零均值使交叉项 $\mathbb E[\epsilon(\hat f(x)-f(x))\mid x]=0$，这是分解成立的关键。
 
-更复杂的模型通常降低 bias、提高 variance；正则化通常接受更多 bias 来换更小的
-variance。这个标准加法分解依赖 squared loss。分类问题可以讨论相似 trade-off，但不能
-不加说明地照搬同一个等式。
+三项分别是不可约噪声（irreducible noise）、偏差平方（Bias$^2$）和方差。偏差衡量不同训练集上所得模型的平均预测是否系统性偏离真实函数；方差衡量换一份训练集后，模型预测会变化多大。
+
+更复杂的模型通常降低偏差、提高方差；正则化通常以增加一些偏差为代价来降低方差。这个标准加法分解依赖平方损失。分类问题也可以讨论类似的取舍，但不能不加说明地照搬同一个等式。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
 <div class="concept-title-en" role="heading" aria-level="3">4. Bias–variance allocates generalization error</div>
 
-If $y=f(x)+\epsilon$, $\mathbb E[\epsilon]=0$, and
-$\operatorname{Var}(\epsilon)=\sigma^2$, then under squared error
+Fix a test input $x$ and let $y=f(x)+\epsilon$, with $\mathbb E[\epsilon\mid x]=0$
+and $\operatorname{Var}(\epsilon\mid x)=\sigma^2$. Assume that, conditional on $x$,
+the test noise is independent of the training data and training randomness, and that
+both the noise and prediction have finite second moments. Then under squared error
 
 $$
 \mathbb E[(y-\hat f(x))^2]
@@ -251,6 +252,12 @@ $$
 +\big(\mathbb E[\hat f(x)]-f(x)\big)^2
 +\mathbb E\big[(\hat f(x)-\mathbb E[\hat f(x)])^2\big].
 $$
+
+All expectations here are conditional on this fixed $x$: the left side averages over
+both training randomness and fresh test noise; expectations involving $\hat f(x)$ on
+the right average only over training randomness. Independence and conditional zero-mean
+noise give $\mathbb E[\epsilon(\hat f(x)-f(x))\mid x]=0$, so the cross term in the
+expansion vanishes.
 
 These are irreducible noise, squared bias, and variance. Bias measures systematic
 error averaged over possible training sets; variance measures sensitivity to which
@@ -267,27 +274,25 @@ trade-off discussion, but the same identity cannot be carried over without quali
 
 ### 5. MLE、MAP 与正则化的概率解释
 
-Maximum Likelihood Estimation 只问哪些参数最能解释数据：
+最大似然估计（Maximum Likelihood Estimation，MLE）只问哪些参数最能解释数据：
 
 $$\hat\theta_{\mathrm{MLE}}=\arg\max_\theta p(D\mid\theta).$$
 
-Maximum A Posteriori 再加入 prior：
+最大后验估计（Maximum A Posteriori，MAP）在此基础上加入先验：
 
 $$\hat\theta_{\mathrm{MAP}}
 =\arg\max_\theta p(D\mid\theta)p(\theta)
 =\arg\max_\theta\big[\log p(D\mid\theta)+\log p(\theta)\big].$$
 
-Gaussian prior：
+高斯先验（Gaussian prior）：
 
 $$p(w)\propto e^{-\frac\lambda2\|w\|_2^2}$$
 
-对应 L2 penalty；Laplace prior：
+对应 L2 惩罚；拉普拉斯先验（Laplace prior）：
 
 $$p(w)\propto e^{-\lambda\|w\|_1}$$
 
-对应 L1 penalty。因此 regularization 可以读成 MAP 的负 log-prior。MLE/MAP 都依赖
-likelihood 的模型假设；MAP 还依赖 prior。数据量很大且条件合适时 prior 的相对影响常会
-减弱，但不会因此自动修复模型错设或不可辨识。
+对应 L1 惩罚。因此，这些正则化项可以解释为 MAP 中的负对数先验。MLE 和 MAP 都依赖似然函数的模型假设，MAP 还依赖先验。数据量很大且条件合适时，先验的相对影响通常会减弱，但这不会自动修复模型错设或不可辨识问题。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -345,8 +350,7 @@ $$
 =\sigma^2CC^\top\succeq0.
 $$
 
-所以 OLS 在线性无偏估计量中 covariance 最小。若存在 heteroscedasticity 或相关误差，
-OLS 在条件零均值下仍可能无偏，但不再是 best；知道 covariance structure 时应考虑 GLS。
+所以 OLS 在线性无偏估计量中协方差最小。若存在异方差（heteroscedasticity）或相关误差，OLS 在条件零均值下仍可能无偏，但不再最优；已知协方差结构时，应考虑广义最小二乘（GLS）。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">

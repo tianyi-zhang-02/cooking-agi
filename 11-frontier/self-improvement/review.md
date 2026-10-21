@@ -23,7 +23,7 @@ STaR 把它看成对 0/1 奖励目标做 policy gradient 的近似：答错的�
 <details class="interview" markdown="1">
 <summary>为什么用自己的数据训练，几轮就饱和？</summary>
 
-Song 等定义了 generation–verification gap：按验证器重新加权后真实得分能涨多少。若更新能把重新加权的分布学到 $\varepsilon$ 以内，一轮的提升大约就是 gap 加减 $\varepsilon$。他们测到迭代时 gap 两三轮内降到接近 0，小模型在多数验证方式下 gap 不为正，大 $k$ 的 pass@k 还会下降。ReST-EM 两轮以后收益递减，Self-Rewarding 只跑了 3 轮、作者预计会饱和。没有来自外部的新信息，回路就没有东西可学。
+Song 等定义了 generation–verification gap：按验证器重新加权后真实得分能涨多少。若更新能把重新加权的分布学到 $\varepsilon$ 以内，一轮的提升大约就是 gap 加减 $\varepsilon$。他们测到迭代时 gap 两三轮内降到接近 0，小模型在多数验证方式下 gap 不为正，大 $k$ 的 pass@k 还会下降。ReST-EM 两轮以后收益递减，Self-Rewarding 只跑了 3 轮、作者预计会饱和。这些结果限制的是相应验证信号和更新方式下的持续收益，不能推广成“没有外部新信息就完全无法学习”。
 
 </details>
 
@@ -37,7 +37,7 @@ Song 等定义了 generation–verification gap：按验证器重新加权后真
 <details class="interview" markdown="1">
 <summary>Absolute Zero 的 learnability reward 为什么对“总能解出”和“从不能解出”的题都给 0？</summary>
 
-这两类题对解题者都没有学习信号。出题者的奖励是：平均成功率 $\bar r$ 为 0 时给 0，否则给 $1-\bar r$。$\bar r=0.5$ 得 0.5，$\bar r=1$ 得 0，$\bar r=0.25$ 得 0.75，所以奖励最高的是偶尔能解出的题；做 $G$ 次尝试时最多是 $1-1/G$。“Zero”指不用人工整理的题和答案，预训练模型和 Python 执行器仍然必需。
+这两类题在该组内二值奖励比较下都没有成功与失败的对比信号，不代表其他训练目标无法利用它们。出题者的奖励是：平均成功率 $\bar r$ 为 0 时给 0，否则给 $1-\bar r$。$\bar r=0.5$ 得 0.5，$\bar r=1$ 得 0，$\bar r=0.25$ 得 0.75，所以奖励最高的是偶尔能解出的题；做 $G$ 次尝试时最多是 $1-1/G$。“Zero”指不用人工整理的题和答案，预训练模型和 Python 执行器仍然必需。
 
 </details>
 
@@ -65,7 +65,7 @@ Song 等定义了 generation–verification gap：按验证器重新加权后真
 ## 自检
 
 <div class="taste-check">
-  <strong>如果真的理解了，你应该能解释：</strong>
+  <strong>可以用下面的问题检查理解：</strong>
   <ol>
     <li>给你一个“自我改进”系统，怎样说出它改的对象、谁提出改动、用什么信号接受，并判断它属于 (a)–(d) 哪一类？</li>
     <li>为什么 STaR 的筛选规则相当于 0/1 奖励？把“答对”换成“通过测试”后，回路实际在优化什么？</li>

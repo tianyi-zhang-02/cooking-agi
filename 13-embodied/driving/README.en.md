@@ -4,7 +4,9 @@
 
 > Reading time: ~7 min · Last reviewed: 2026-10
 
-A car carries 6–8 cameras, often lidar and radar as well, producing dozens of frames per second; yet every few tens of milliseconds it only has to hand over one thing: a trajectory for the next few seconds, or the steering, throttle and brake commands directly. What happens in between? **The classic approach splits the path into perception, prediction, planning and control, with interfaces that can each be checked on their own; the end-to-end approach trains them as one network and turns the intermediate outputs into optional auxiliary heads. Either way, the hard part is not driving like a human on a recorded log, but showing that the car stays safe when it drives itself.**
+A car with multiple cameras, and possibly lidar and radar, must continually turn sensor data into a trajectory for the next few seconds—or directly into steering, throttle, and brake commands. How should that computation be organized?
+
+A modular system separates perception, prediction, planning, and control, with inputs and outputs that can be checked individually. An end-to-end system trains several of those stages together, sometimes retaining intermediate predictions as auxiliary outputs. Both face the same evaluation problem: accurate predictions on historical logs do not establish that executing them will be safe. The examples below explain why.
 
 ## One scene, four questions
 
@@ -25,7 +27,7 @@ Start with one scene that lays out the problem; note 2's planning example uses i
 | Planning | Predictions, map, route, ego state | Ego trajectory for the next few seconds | Search, sample-and-score, optimisation | [Note 2](prediction-planning.en.md) |
 | Control | Target trajectory, ego state | Steering, throttle, brake | PID, LQR, MPC | [Planning and LQR](../../05-post-training/deep-rl/planning-and-control.en.md) |
 
-Splitting it up means every interface can be read, tested and replaced on its own, and after an incident you can find which layer was wrong. The cost is that people decide the interfaces: if perception only hands over boxes, planning cannot see what a box cannot describe, such as an oddly shaped piece of debris on the road; and errors upstream pass down layer by layer, while downstream modules cannot ask upstream ones to "optimise for planning". Occupancy grids were added for the first of these problems, as note 1 explains.
+Separating the modules makes their interfaces easier to inspect, test, and replace, and helps locate failures. The cost is that people define those interfaces. If perception supplies only boxes, planning cannot use information they do not describe, such as the shape of an irregular piece of road debris. Upstream errors also propagate through the system, while downstream modules cannot directly train upstream ones for the planning objective. Occupancy grids help represent information that boxes miss, as note 1 explains.
 
 ## End-to-end: replacing interfaces with gradients
 

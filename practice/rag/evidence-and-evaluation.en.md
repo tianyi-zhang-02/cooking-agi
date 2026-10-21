@@ -18,7 +18,7 @@ If evidence was retrieved but removed by context limits, inspect packing. If it 
 
 ## What goes into the model, and what comes back?
 
-A minimal input contains the question and evidence labeled with IDs. Ask the model to answer from that material and identify missing evidence. An output contract might be:
+A minimal input contains the question and evidence labeled with IDs. Ask the model to answer from that material and identify missing evidence. One possible output format is:
 
 ```json
 {

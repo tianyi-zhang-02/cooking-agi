@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisite: [LM objectives](language-model-objective.en.md) · Next: [one training step](training-step.en.md)
 
-Once next-token prediction makes sense, pretraining can look like a loop that feeds text into a loss. Yet identical models and objectives can learn different things because the documents, repetitions, and sequence boundaries differ.
+Once next-token prediction makes sense, pretraining can seem to be a loop of processing text, computing loss, and updating parameters. Yet identical models and objectives can learn different things because the documents, repetitions, and sequence boundaries differ.
 
 We will follow a fictional small corpus. The numbers illustrate the accounting; they are not a recommended recipe.
 
@@ -54,7 +54,7 @@ Packed:     [A, B, EOS, C, D, EOS]
 May C attend to A and B? That is part of the training definition:
 
 - **Continuous stream:** an ordinary causal mask allows cross-document attention. EOS indicates a boundary but does not enforce one.
-- **Independent-document packing:** a block-diagonal causal mask restricts C to document 2. Whether position IDs reset is a separate implementation contract.
+- **Independent-document packing:** a block-diagonal causal mask restricts C to document 2. Whether position IDs reset is a separate convention that must match the implementation.
 
 To avoid training the cross-document prediction of C after EOS, also mask that **loss term**. Attention masks determine visibility; loss masks determine scored targets. They are not interchangeable. The first token of a document may be unscored or predicted from its own BOS, depending on the format.
 

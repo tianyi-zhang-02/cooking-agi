@@ -15,7 +15,7 @@
 
 ## 先分清 Gemma 3 的几个尺寸 {#_1}
 
-Gemma 3 的一个关键选择是：多数层只读取附近的 token，少数层读取完整历史。它减少了长上下文的缓存需求，但不是让长上下文免费，也不是每个型号都支持图像。
+Gemma 3 的一个关键选择是：多数层只读取附近的 token，少数层读取完整历史。这样可以减少长上下文的缓存需求，但仍有存储和计算开销。图像支持也要按型号区分。
 
 先认准型号：[官方型号列表](https://ai.google.dev/gemma/docs/get_started)中的 Gemma 3 270M / 1B 是文本模型；4B / 12B / 27B 支持图文输入。前两者的上下文为 32K，后三者为 128K；输入和生成内容共用这份长度预算。[Gemma 3 model card](https://ai.google.dev/gemma/docs/core/model_card_3)
 

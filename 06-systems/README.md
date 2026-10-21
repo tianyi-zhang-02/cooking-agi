@@ -93,7 +93,9 @@
 
 <span id="_5"></span>
 
-确定性规则、参考答案或执行器、LLM judge、人工审查和线上指标，各适合回答什么、不能凭它断定什么，[评估分层](../07-evaluation/evaluation-stack.md#check-methods)用一张表列清了。原则是能用规则准确判断的条件，不交给模型猜。真要让模型打分，先写清标准，再决定给单个回答打分还是比较两个回答；成对比较要交换展示顺序，并允许“平局”和“两者都不好”，见 [LLM judge 的打分格式](../07-evaluation/llm-as-a-judge/scoring.md)；怎样用人工标注校准、分组核对一致性，见 [LLM-as-a-judge](../07-evaluation/llm-as-a-judge/README.md)。
+[评估分层](../07-evaluation/evaluation-stack.md#check-methods)用一张表比较了确定性规则、参考答案或执行器、LLM judge、人工审查和线上指标：各自适合判断什么，又有哪些局限。能用规则准确判断的条件，就不必交给模型猜。
+
+需要让模型打分时，先写清标准，再决定给单个回答打分还是比较两个回答。成对比较要交换展示顺序，并允许“平局”和“两者都不好”，见 [LLM judge 的打分格式](../07-evaluation/llm-as-a-judge/scoring.md)。怎样用人工标注校准、分组核对一致性，见 [LLM-as-a-judge](../07-evaluation/llm-as-a-judge/README.md)。
 
 ## 为什么要看完整链路 {#_6}
 

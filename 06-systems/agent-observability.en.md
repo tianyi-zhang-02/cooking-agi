@@ -6,7 +6,7 @@
 
 ## Observability has to explain the decision process {#observability-has-to-explain-the-decision-process}
 
-The goal of agent observability is not only to know whether a service threw an error, but to be able to reconstruct: **what the agent saw, which decisions it made, how state changed, and at which step the failure began.**
+Agent observability helps reconstruct **what the agent saw, which decisions it made, how state changed, and at which step the failure began**. Knowing only whether a service reported an error is not enough.
 
 The final answer and an error code are not enough. Failure may originate in retrieval, stale memory, tool behavior, state transitions, loops, evaluation mismatch, or an incorrect model decision over correct evidence.
 
@@ -50,7 +50,7 @@ Record the model, prompt, retriever, index, tools, memory policy, evaluator, dat
 
 ### Input evidence {#input-evidence}
 
-Which instructions, memory, retrieved results, and tool outputs the model saw; which content was truncated, filtered, or reordered.
+Record which instructions, memories, retrieved results, and tool outputs the model saw, and which content was truncated, filtered, or reordered.
 
 Also record token, latency, and cost budgets, so “nothing found” can be distinguished from “stopped because the budget ran out.”
 
@@ -74,11 +74,11 @@ Record the action taken, the rule that triggered continuation or stopping, and a
 
 ### State changes {#state-changes}
 
-What changed in the user state, the task state, and the external system state before and after execution.
+Record changes to user state, task state, and external system state across execution.
 
 ### Final outcome {#final-outcome}
 
-Whether the task was really completed, rather than only whether a plausible-looking piece of text was generated.
+Check whether the task was completed, not just whether the generated text looked plausible.
 
 Link deterministic checks, judge versions, user corrections, and subsequent outcomes to the run. Distinguish a tool reporting success from the task actually succeeding.
 
@@ -106,7 +106,7 @@ A trace connects call dependencies and state changes. It supports hypotheses abo
 
 ## What to do after recording {#what-to-do-after-recording}
 
-The end point of observability is not a dashboard. It is the ability to produce three things:
+Use the records to produce more than a dashboard:
 
 1. a failure case with explicit inputs, environment, and failure conditions;
 2. a complete trajectory that can be added to the offline eval set;
@@ -134,7 +134,7 @@ Replaying a trace must not place another booking, payment, or email by default. 
 <details class="interview" markdown="1">
 <summary>Traces, state transitions, and reproducible failures</summary>
 
-**Quick memory**: metrics reveal aggregate changes, logs record events, and traces connect model calls, retrieval, tools, and state changes within a run.
+**In brief**: metrics reveal aggregate changes, logs record events, and traces connect model calls, retrieval, tools, and state changes within a run.
 
 **Interview answer**
 

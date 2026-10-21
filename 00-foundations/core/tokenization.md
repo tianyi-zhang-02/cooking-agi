@@ -4,11 +4,11 @@
 
 > 阅读时间：约 12 分钟 · 最近审阅：2026-10
 
-同样一句话，换一个 tokenizer，可能就变成了不同长度的 ID 序列。比如把 `playing` 示意性地切成 `play` 和 `ing`，模型接收到的是两个编号，而不是一个英文单词。这种切法会影响序列长度、计算量，也会影响模型怎样处理没见过的词。下面从分词和查表开始，一步步走到模型的输入。**模型从头到尾只处理 token ID；切法一变，序列长度、计算量和模型看到的单位都会跟着变。**
+同样一句话，换一个 tokenizer，得到的 ID 序列可能就不一样长。比如把 `playing` 切成 `play` 和 `ing`，就需要两个编号，而不是给整个单词一个编号。这里的切分只是示意，但它说明了一个实际问题：分词方式会影响序列长度、计算量，也会影响没见过的词怎样表示。下面沿着文本输入的过程，看看分词、查表和对话模板各做了什么。
 
 ## 模型接收的是 Token ID {#token-id}
 
-我们天天说模型“读”了一句话，但它其实从没看见过文字。Tokenizer 先把字符串切成有限词表里的 token，再映射成整数 ID；模型真正收到的，从头到尾都只是这些数字。
+文本不能直接送进神经网络。Tokenizer 先把字符串切成词表里的 token，再映射成整数 ID；模型通过 embedding table 查出对应向量，后续的神经网络计算就在向量上进行。ID 用来查表，并不是模型内部始终使用的表示。
 
 ## 第一步：文本怎样被分成 Token {#token}
 
@@ -26,7 +26,7 @@ $|V|$ 是词表大小，$d$ 是模型维度。Tokenizer 决定序列有多长，
 
 ## 第二步：为什么不直接按单词切分 {#_1}
 
-这个直觉很好，但现实里的词表没有尽头：新名字、拼写变化、代码、emoji 和不同语言永远列不完。反过来，如果每个字符都是一个 token，序列又会变长；没收进基础字符表的字符，仍然可能是未知输入。
+按单词切分很直观，但很难把所有可能出现的词都列出来：新名字、拼写变化、代码、emoji，以及不同语言，都需要处理。反过来，如果每个字符都是一个 token，序列又会变长；没收进基础字符表的字符，仍然可能是未知输入。
 
 Subword tokenizer 在两者之间折中：高频片段保留为整体，低频词拆成更小单元。
 
@@ -92,7 +92,7 @@ l o w e r </w>
 ]
 ```
 
-Transformer 不会直接收到这个字典。Chat template 会先把消息序列化成模型训练时见过的格式。以 ChatML 风格为例：
+Transformer 不会直接处理这份消息列表。Chat template 会先把消息排列成模型训练时使用的格式。以 ChatML 风格为例：
 
 ```text
 <|im_start|>system
@@ -120,7 +120,7 @@ An application may represent a conversation as
 ]
 ```
 
-The Transformer does not receive that dictionary directly. A chat template first
+The Transformer does not process this message list directly. A chat template first
 serializes the messages into the format seen during training. A ChatML-style rendering
 might be
 
@@ -266,7 +266,7 @@ Tokenizer 结束于 `(B, T)`；神经网络从 `(B, T, d)` 开始。
 
 ## 继续阅读 {#_6}
 
-现在文字终于变成了向量，但每个位置还互不认识。下一页看 [RNN 与 LSTM](recurrent-models.md)：如果只能从左往右读，过去到底该装在哪里？
+查表后，每个位置都有了向量，但还没有结合其他位置的信息。下一页看 [RNN 与 LSTM](recurrent-models.md)：从左往右处理序列时，怎样把前面读到的信息传下去？
 
 ## 快速学习：Tokenizer 在模型边界做什么 {#tokenizer}
 

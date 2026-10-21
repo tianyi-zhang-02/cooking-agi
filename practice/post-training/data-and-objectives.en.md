@@ -8,9 +8,9 @@
 
 ## Group related examples before splitting train and test
 
-One original question can appear in two languages and several paraphrases. Splitting by row can put one phrasing in training and another in testing, making evaluation easier than genuinely new questions. Here we split by original question-family `group_id` so related paraphrases stay together.
+“What is the latest date I can register?” and “When is registration due?” may be paraphrases of the same original question, which can also appear in more than one language. Splitting by row can put one phrasing in training and another in testing, making evaluation easier than answering genuinely new questions. Here we split by original question-family `group_id` so related paraphrases stay together, including those in different languages.
 
-That isn't sufficient for every task: hold out document families if testing transfer to new documents; split by time and inspect cross-period near-duplicates if testing future requests. **Your generalization claim determines the split unit, not the random seed.**
+The grouping must also match what you want to evaluate. Hold out whole documents or document families when testing transfer to new documents. For future requests, split by time and inspect near-duplicates across periods. Define the evaluation question first, then choose the split unit accordingly.
 
 | Field | Why retain it |
 | --- | --- |
@@ -34,7 +34,7 @@ loss mask:    0     0     1     1
 valid mean: (0.8 + 0.4) / 2 = 0.6
 ```
 
-Ignoring the mask gives 2.05 and changes the objective. This doesn't prove answer-only loss is universally better; it shows the configurations are different experiments.
+Using only the answer positions gives a mean loss of 0.6; including all four positions gives 2.05 and also trains the model to predict the prompt. Which objective is better for the task needs a separate comparison, but these configurations are optimizing different objectives.
 
 Actual implementations must check next-token shifting: each prediction is paired with the next token, and the mask must align with the shifted targets. Check padding, end-of-sequence (EOS), and tool messages too. Our example accepts already-aligned losses and masks; it does not shift them again.
 

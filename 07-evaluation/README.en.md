@@ -26,7 +26,7 @@ No single evaluator can answer all of these alone.
 
 ## First write down what “good” means
 
-Before evaluating, define the task contract:
+Before evaluating, write down the success criteria. Use them to guide the metrics and tests you choose:
 
 ```text
 Goal        What does the user actually want to accomplish?

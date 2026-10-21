@@ -154,4 +154,4 @@ Bootstrap 也不能替你测训练方差。要比较训练方法，还需要独�
 
 更具体的偏差例子见 [LLM-as-a-Judge](llm-as-a-judge/README.md)。如果还不确定失败发生在检索、上下文还是生成，回到[分层评估](evaluation-stack.md)先拆开查。
 
-想把这些检查做成能运行的小项目，可以接着看[评估报告与 CI](../practice/web-lab/eval-report.md)。那里只按预先约定的规则拦截回归，不会因为 CI 变绿就替模型盖上“整体更好”的章。
+想把这些检查做成能运行的小项目，可以接着看[评估报告与 CI](../practice/web-lab/eval-report.md)。其中的 CI 按预先约定的规则拦截回归；检查通过，只能说明满足了这些规则，不能证明模型整体更好。

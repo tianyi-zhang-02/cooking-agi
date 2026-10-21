@@ -4,7 +4,9 @@
 
 > Reading time: ~10 min · Last reviewed: 2026-10
 
-The news keeps saying "AI chips are in short supply." Short of what, exactly? Is it that the fab cannot make the GPUs? Not quite. **The larger a die, the fewer fit on a wafer and the larger the fraction that is defective; and a single die cannot exceed the exposure limit. So AI chips increasingly package several dies together with HBM, a step that needs advanced packaging and HBM, both of which have limited capacity of their own.** This note starts with the production chain, works through the yield of one wafer, and then looks at packaging and HBM.
+The news keeps saying "AI chips are in short supply." Short of what, exactly? Is it that the fab cannot make the GPUs? Yield, packaging and memory supply matter too. The larger a die, the fewer fit on a wafer and the larger the fraction that is defective; a single die also faces an exposure limit.
+
+AI chips therefore increasingly package several dies together with HBM. Advanced packaging and HBM have limited capacity of their own and can become the next bottlenecks. This note starts with the production chain, works through the yield of one wafer, and then looks at packaging and HBM.
 
 ## From design to server: the steps one GPU goes through
 
@@ -73,7 +75,7 @@ An area 8x larger gives 20x fewer good dies: fewer dies per wafer is one factor,
 
 Split the 800 mm² die into two 400 mm² dies: the same wafer gives about 96 good dies, or 48 pairs, against about 29 for the monolithic die. This assumes you can tell which dies are good before packaging (known good die), so bad ones never get packaged.
 
-But this arithmetic leaves out several costs:
+This result also depends on defect density and leaves out die-to-die interfaces and packaging costs. Changing those conditions shows how the advantage of splitting varies:
 
 | Try | Observe | What it does not establish |
 | --- | --- | --- |
@@ -126,7 +128,7 @@ $$
 \min\left(\frac{12000}{2},\ \frac{60000}{8},\ 6500\right)=\min(6000,\ 7500,\ 6500)=6000.
 $$
 
-This month the limit is logic dies; if the fab supplies 2,000 more, the bottleneck moves to packaging (6,500); expand packaging and the next limit may be HBM (7,500). Expanding only one of the three does not raise shipments.
+This month the limit is logic dies. If the fab supplies 2,000 more, they form 7,000 pairs, raising the shipment ceiling from 6,000 to packaging's 6,500. Expanding packaging next reaches the limit of those 7,000 logic-die pairs; HBM's 7,500 sets become the next limit only if logic-die supply also reaches at least 15,000 and packaging capacity reaches at least 7,500. Expanding the current bottleneck can raise shipments. Expanding a non-bottleneck, or continuing to expand the old bottleneck after the constraint moves elsewhere, does not raise them further.
 
 Some signals from public sources, by date:
 

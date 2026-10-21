@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Suggested focused learning time, split across as many sessions as you need. Not a promise of instant proficiency.
 
-When you have less experience, the problem is often not a lack of material: it is not knowing which steps come before a new term. We will not start by asking you to implement a Transformer. Begin with Python inputs and outputs, then a prediction, loss, and update, before connecting them to models and interviews.
+When you are new to ML, terms such as parameters, loss, gradients, and training can arrive all at once. One small model lets you see how they fit together. Start with Python inputs and outputs, calculate a prediction and loss, then update a parameter. You can connect these steps to larger models and interview exercises later; there is no need to begin by implementing a Transformer.
 
 Skip familiar steps. If one example takes the evening, do not chase the schedule. Aim to understand a little more and know where to resume. Readers focused on SWE can use just the Python, algorithm, and code-reading parts.
 

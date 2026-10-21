@@ -6,13 +6,13 @@
 
 Post-training has a way of sending you back to the data, scoring rules, or environment. You have already picked SFT, DPO, or GRPO. Why is there still so much to figure out? The algorithm settles only part of the experiment: tasks, feedback, data updates, and generation budgets still affect whether the run improves the model.
 
-**We have effective methods, but not a universal recipe that transfers unchanged across models, tasks, and budgets.** SFT, preference optimization, and online RL have well-defined methods and implementations. Their combinations, data, feedback, and system settings are still evolving. Building data chooses what the model practices; evaluation checks what it learned. Neither replaces work on exploration, optimization, or systems.
+SFT, preference optimization, and online RL have well-defined methods and implementations. But a data mixture, reward, or training setup that works for one model may not suit another task or budget. Data determines which tasks the model practices; evaluation helps reveal what it learned and what it missed. Both need iteration, alongside work on exploration, optimization, and the training system.
 
 Start with [what public recipes are changing](#evolving-recipes), then [three demonstrations of the same question](#same-question). If you already run experiments, jump to [environment checks](#environment) and [testing a data change](#evaluation).
 
 ## What are public recipes still changing? {#evolving-recipes}
 
-A new acronym is not a reason to replace the entire system. Specific accounts help distinguish problems with working solutions from choices that still need experiments.
+The reports below describe different adjustments: changing prompts, adding responses, or revising scoring rules. Comparing the problems they address helps identify which lessons might apply to your own experiment.
 
 <!-- paper-figure:tulu3-recipe -->
 
@@ -23,7 +23,7 @@ A new acronym is not a reason to replace the entire system. Specific accounts he
 | [DR Tulu, first released 2025 / v3 in 2026](https://arxiv.org/html/2511.19399v3) | §3 updates long-form answer rubrics using search evidence and current responses | Detailed scoring is not an infallible judge; Appendix A still reports differences between training reward and external evaluation |
 | [Rufus-Air, 2026-09 v2](https://arxiv.org/html/2609.29421v2) | §§3.2–3.3 filter reasoning tasks online, but screen easy coding tasks beforehand while retaining all-wrong screening groups | Even one report uses different rules; §1 identifies some conclusions as training experience rather than complete ablations |
 
-These examples show that training data need not be a file completed before training: feedback and task selection may change with the model. This is a synthesis of the cited work, not advice to update tasks or rewards dynamically in every project. The last two papers are further reading; recency alone does not earn a place on the main branches of the [AI timeline](../learn/technology-timeline.en.md).
+In these projects, data preparation continues after training starts: feedback and task selection change as the model changes. The projects address different problems, though, so they do not imply that every run needs dynamic tasks or rewards. The last two papers are included as further reading; their place in the [AI timeline](../learn/technology-timeline.en.md) will depend on subsequent research and adoption.
 
 A small example shows the change. Sample a checkable problem four times: with rewards `0, 0, 1, 1`, subtracting the group mean still separates attempts worth encouraging, but an all-correct or all-wrong group has zero advantage for every attempt. The full worked example and the zero-variance handling are in [when the within-group signal disappears](../05-post-training/deep-rl/llm-bridge.en.md#group-signal).
 
@@ -137,7 +137,9 @@ One is getting the code to run: drivers, PyTorch, CUDA, attention backends, trai
 | GPU count or gradient accumulation | We only added more hardware | Effective batch size, gradient normalization, data order |
 | RL tools or test environment | The interface still responds | State resets, timeout semantics, scoring, success conditions |
 
-For instance, as of October 2026, TRL v1.16.0's `assistant_only_loss=True` still requires the chat template to mark assistant output with `{% generation %}` and `{% endgeneration %}`; for known model families such as Qwen3, TRL swaps in a patched training template on its own. [TRL SFT documentation, v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer) That training template need not render the same way as the inference template; Qwen3's, for example, keeps the thinking block in every assistant turn. [TRL Chat Templates, v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/chat_templates) So a `True` in a configuration file is not evidence that the labels are right. Decode a sample and inspect the actual supervised positions.
+For instance, as of October 2026, TRL v1.16.0's `assistant_only_loss=True` still requires the chat template to mark assistant output with `{% generation %}` and `{% endgeneration %}`; for known model families such as Qwen3, TRL swaps in a patched training template on its own. [TRL SFT documentation, v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer)
+
+The training and inference templates may produce different text. Qwen3's training template, for example, keeps the thinking block in every assistant turn. [TRL Chat Templates, v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/chat_templates) A `True` in a configuration file is therefore not enough: decode a sample and inspect which positions actually contribute to the loss.
 
 Fixing a random seed does not guarantee identical results across machines and versions either; PyTorch documents this limitation explicitly, and the statement is unchanged in the 2.14 docs checked in October 2026. [PyTorch 2.14: Reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html)
 
@@ -153,9 +155,11 @@ Review correctness and training usefulness separately:
 - **What does it add?** A new situation, a new failure, or dozens of paraphrases of the same template? How much is already easy for the model, and how much is not?
 - **What does selection cost?** Which labels become more trustworthy, and which languages, difficulty levels, or uncommon situations disappear?
 
-Apply the same questions to synthetic data. A teacher produces candidates for review, not guaranteed ground truth. Verify against calculators, executable tests, or source documents where possible; subjective preferences need a rubric and spot checks. If the same judge filters training data and establishes the improvement, check whether the model has simply learned to please that judge; how a verifier's blind spots stall the generate–verify–train loop is in [self-improvement: why the verifier is the bottleneck](../11-frontier/self-improvement/generate-verify-train.en.md).
+Apply the same questions to synthetic data. Teacher-generated examples still need review: verify against calculators, executable tests, or source documents where possible; subjective preferences need a rubric and spot checks.
 
-LIMA is often cited as evidence that a small curated set can help. Its main experiment and ablations used particular base models, tasks, and evaluation procedures; they do not establish that every post-training problem needs only 1,000 examples. The useful habit is to compare quality, coverage, and quantity separately, rather than memorize a magic dataset size. [LIMA, 2023, §§2, 5](https://arxiv.org/html/2305.11206v1)
+If the same judge filters training data and evaluates the trained model, check whether a higher score simply means the model learned to please that judge. For how verifier blind spots affect subsequent training, see [self-improvement: why the verifier is the bottleneck](../11-frontier/self-improvement/generate-verify-train.en.md).
+
+LIMA is often cited as evidence that a small curated set can help. Its main experiment and ablations used particular base models, tasks, and evaluation procedures; they do not establish that every post-training problem needs only 1,000 examples. For your own task, compare the effects of quality, coverage, and quantity separately rather than copying the sample count. [LIMA, 2023, §§2, 5](https://arxiv.org/html/2305.11206v1)
 
 ## How to tell whether a data change helped {#evaluation}
 

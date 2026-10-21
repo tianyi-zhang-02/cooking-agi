@@ -55,7 +55,7 @@ For syntax, start with our contributor's [Python notes](python.en.md). These pag
 | Many paths lead to the same subproblem | DP / memoization | Does the state capture everything affecting the future? |
 | Only the largest few values matter | Min-heap | Is a full sort necessary? |
 
-These signals narrow the choices; they don't decide for you. “Shortest” doesn't automatically imply BFS: fewest graph steps and fewest coins for an amount lead to different reasoning. Check the actual constraints.
+These signals narrow the choices; they don't decide for you. Before choosing BFS for a “shortest” problem, define the states and check whether transitions have equal cost. For minimum coins, amounts can be nodes and adding one coin an edge, so BFS finds the fewest steps; DP can also reuse the subproblems. Choose an implementation based on the amount range, coin values and memory cost.
 
 ## 3. A review session
 

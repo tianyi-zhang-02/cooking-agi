@@ -32,7 +32,7 @@ flowchart TD
     E -. Check objectives and constraints .-> B
 ```
 
-A dissatisfied user may reflect stale memory rather than a small model. A higher score may reflect an easier candidate set. Looking one stage upstream and downstream is often more useful than replacing the model immediately.
+A user may be dissatisfied because the system retrieved stale memory, not because the model is too small. A higher score may reflect an easier candidate set. Looking one stage upstream and downstream is often more useful than replacing the model immediately.
 
 ## Read each chapter in three passes
 

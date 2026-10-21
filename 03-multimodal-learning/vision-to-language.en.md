@@ -12,7 +12,7 @@ We follow **ViT + projector + decoder-only LLM**, not a universal VLM architectu
 
 [ViT](https://arxiv.org/abs/2010.11929) divides an image into patches, flattens and projects them, adds position information, and applies a Transformer.
 
-The shape arithmetic is worked in [ViT](vit.en.md): a $224\times224$ RGB image cut into $16\times16$ patches gives 196 patches of 768 raw values each. What matters here is that the 196 projected vectors can remain a sequence rather than immediately becoming one global vector. Original ViT classification adds a class token, so include one extra position when counting that sequence.
+The tensor shapes are worked out in [ViT](vit.en.md): a $224\times224$ RGB image cut into $16\times16$ patches gives 196 patches of 768 raw values each. What matters here is that the 196 projected vectors can remain a sequence rather than immediately becoming one global vector. Original ViT classification adds a class token, so include one extra position when counting that sequence.
 
 ```mermaid
 flowchart TD
@@ -68,7 +68,9 @@ $\mathcal A$ contains scored answer positions. This differs from the contrastive
 
 ## Test more than a plausible answer
 
-Make paired synthetic images with checkable answers. For “Is the red square left of the circle?”, swap only the shapes' positions; the answer should change. Hold the prompt and decoding settings fixed and compare. What removing the image, changing one piece of evidence, masking the key region, or an image–text conflict can and cannot show is listed once in [the multimodal overview's comparison table](README.en.md#modality-checks). Spatial questions add two more: supply a mismatched image and see whether the model blindly follows the question's suggestion; ask about an attribute that cannot be seen and see whether it admits the information is missing rather than giving a longer explanation.
+Make paired synthetic images with checkable answers. For “Is the red square left of the circle?”, swap only the shapes' positions; the answer should change. Hold the prompt and decoding settings fixed and compare.
+
+The [multimodal overview's comparison table](README.en.md#modality-checks) explains what four tests can and cannot show: removing the image, changing one piece of evidence, masking the key region, and introducing an image–text conflict. For spatial questions, add two more tests. Supply a mismatched image and check whether the model blindly follows the question's suggestion. Ask about an attribute that cannot be seen and check whether it acknowledges the missing information rather than giving a longer explanation.
 
 These are proposed teaching experiments, not measured claims about a model. Track small text, counting, and spatial relations separately rather than relying only on aggregate accuracy.
 

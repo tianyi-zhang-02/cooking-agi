@@ -19,18 +19,16 @@ What it looks like to train such a multi-step agent directly with RL is covered 
 
 A few things from the RL side are worth keeping, because they come back later:
 
-- **It counts what comes later, not just now.** The value function $V(s)$ is "how much is still to be had
-  from this square if I keep playing well", and the discount $\gamma$ says how much later
-  counts. Small $\gamma$ is short-sighted; large $\gamma$ will take the long way round. That
-  is the value map in the figure above.
+- **It counts what comes later, not just now.** For a given policy, the value function $V(s)$ is the expected sum of discounted future rewards from starting in this square and following that policy. Taking the maximum over policies gives the optimal value. A small discount $\gamma$ emphasizes near-term rewards; a large $\gamma$ gives later rewards more weight. Whether a detour is worthwhile still depends on rewards, risks, and the environment. [Value functions and optimal values](https://web.stanford.edu/class/archive/cs/cs234/cs234.1224/CS234Win2019/slides/lnotes2.pdf)
+  At each step, the figure treats the current dots and ghost positions as a fixed reward map, then approximates its optimal values with value iteration over the best neighboring square. This is a simplified planning illustration, not the optimal value of the full game with future dot consumption and ghost movement included in the state.
 - **Exploration against exploitation.** Always take the best known route and you never find a
   better one; always try new things and you never collect.
-- **It optimizes whatever you actually pay for.** The fun and frightening one. OpenAI's boat
+- **It optimizes the reward you specify.** This can be both fascinating and worrying. OpenAI's boat
   race is the classic ([Faulty reward functions in the wild](https://openai.com/index/faulty-reward-functions/),
   2016): the reward was the pickups along the course, so the agent found that spinning in a
   circle farming pickups scored better than finishing the race — and spun, catching fire, ramming
-  other boats and driving the wrong way, with a higher score than finishing normally. Reward hacking in RLHF is the same thing wearing a suit.
-- **LLM agents inherit it.** Reward "the tests pass" and you may get edited tests.
+  other boats and driving the wrong way, with a higher score than finishing normally. Reward hacking in RLHF is another instance of this problem.
+- **LLM agents can do this too.** If passing tests is rewarded, an agent may change the tests rather than fix the code.
 
 So when you see the word "agent", it is worth asking which one is meant. The field moves fast
 and the definition is genuinely contested — some people reserve it for systems that choose

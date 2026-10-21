@@ -10,7 +10,7 @@ Keeping just the current maximum isn't enough: when 4 leaves, who replaces it? A
 
 ## When an element can be discarded permanently
 
-Suppose an earlier 1 is followed by 3. Every future window still containing that 1 must also contain the later 3. The 3 is larger and expires later, so the 1 can never win again.
+Suppose an earlier 1 is followed by 3. Every future window still containing that 1 must also contain the later 3. The 3 is larger and expires later, so the 1 cannot be the maximum in any later window.
 
 This depends on a forward-moving, fixed-width window. The 1 hasn't disappeared from the data; it has stopped affecting this query. For sums, second-largest values, or every tied maximum's position, that deletion may be invalid.
 
@@ -33,7 +33,7 @@ Store indices, not just values, to detect expiry. Indices increase from front to
 
 <!-- widget:algo-window-max -->
 
-The last 5 removes the older 5 too. The newer copy is sufficient for the maximum value. To return the earliest tied position, remove only strictly smaller values and check the tie-breaking contract again.
+The last 5 removes the older 5 too. Keeping the newer one is enough when only the maximum value is needed. To return the earliest tied position, remove only strictly smaller values and check the tie-breaking rule again.
 
 ## Python implementation
 
@@ -54,7 +54,7 @@ def window_maxima(values, width):
     return maxima
 ```
 
-Import `deque` from `collections` first. This contract rejects empty input and widths outside `1…len(values)`. Values must be orderable and not NaN. Don't replace the queue with `list.pop(0)`: removing a list's first element shifts the rest; `deque` is designed for end operations. [Python collections documentation](https://docs.python.org/3/library/collections.html#collections.deque)
+Import `deque` from `collections` first. This implementation rejects empty input and widths outside `1…len(values)`. Values must be orderable and not NaN. Don't replace the queue with `list.pop(0)`: removing a list's first element shifts the rest; `deque` is designed for operations at either end. [Python collections documentation](https://docs.python.org/3/library/collections.html#collections.deque)
 
 `index - width` has just expired. The current left boundary is `index - width + 1`. Keep those two positions distinct.
 

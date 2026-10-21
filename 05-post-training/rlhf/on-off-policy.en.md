@@ -44,9 +44,9 @@ Do not replace the denominator with the newest model's log-probabilities after e
 
 ## Why call GRPO on-policy if an older model generated the answers? {#grpo-data-lifecycle}
 
-After the first parameter update, even a freshly sampled batch comes from an “older model.” Forbidding all reuse of old parameters would rule out the second update on that very batch.
+After the first parameter update, even a freshly sampled batch comes from an “older model.” Forbidding all reuse of data from older policies would rule out the second update on that very batch.
 
-What matters is **how far the generating policy has drifted, how long the batch is reused, and when fresh answers replace it**. Original GRPO samples a group of answers and performs a bounded set of updates; it does not require a new rollout after every gradient step. [Algorithm 1 in DeepSeekMath](https://arxiv.org/html/2402.03300v3) separates generation from the inner $\mu$ update iterations.
+What matters is **how far the current policy has moved from the generating policy, how long the batch is reused, and when fresh answers replace it**. Original GRPO samples a group of answers and performs a bounded set of updates; it does not require a new rollout after every gradient step. [Algorithm 1 in DeepSeekMath](https://arxiv.org/html/2402.03300v3) separates generation from the inner $\mu$ update iterations.
 
 | Step | What happens | What must not silently change |
 |---|---|---|

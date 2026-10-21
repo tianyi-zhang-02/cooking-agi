@@ -4,7 +4,9 @@
 
 > Reading time: ~11 min · Last reviewed: 2026-10
 
-A cup sits on the table. You teleoperate a robot arm around it to reach a box behind it and record 100 demonstrations: 50 pass on the left, 50 on the right. Train a policy with mean squared error and it drives straight into the cup. **Imitation learning on robots is hard in three places: one image can have several correct actions, small per-step deviations add up, and demonstrations are expensive and narrow. The common combination today is a generative action head (diffusion or flow matching) to represent "several answers are correct", action chunking to decide a short stretch at once and keep consecutive actions consistent, and cheaper ways to collect more data.**
+A cup sits on the table. You teleoperate a robot arm around it to reach a box behind it and record 100 demonstrations: 50 pass on the left, 50 on the right. Train a policy with mean squared error and it moves straight into the cup.
+
+Imitation learning on robots faces three difficulties: one image can admit several correct actions, small per-step deviations accumulate, and demonstrations are costly to collect and limited in coverage. A common approach combines a generative action head, such as diffusion or flow matching, to represent multiple valid actions; action chunking to plan a short, consistent sequence; and lower-cost ways to collect more data.
 
 ## What changes on a real robot
 
@@ -28,7 +30,7 @@ $$
 \mathbb E[(c-a)^2]=\tfrac12(c-1)^2+\tfrac12(c+1)^2=c^2+1 .
 $$
 
-The loss is smallest at $c=0$, where it equals 1; honestly predicting $+1$ costs 2. **The better the training, the more surely it picks 0, straight into the cup.** L1 does not help either: $\tfrac12|c-1|+\tfrac12|c+1|$ equals 1 everywhere on $[-1,1]$, so 0 is still one of the optima and the model has no reason to prefer a side.
+The loss is smallest at $c=0$, where it equals 1; predicting $+1$ instead gives a loss of 2. **Getting closer to this training objective's optimum makes the policy choose 0, straight into the cup.** L1 does not avoid the problem either: $\tfrac12|c-1|+\tfrac12|c+1|$ equals 1 everywhere on $[-1,1]$, so 0 is still one of the optima and the model has no reason to prefer a side.
 
 | Output | What it gives in this example | What happens |
 | --- | --- | --- |
@@ -89,10 +91,10 @@ Diffusion-type models are not the only heads that can represent "several answers
 
 ### Worked example: choosing the chunk length (teaching example)
 
-Setup: 50 Hz control, 20 ms per step. During the first 4 steps in front of the cup, the image does not yet show which side the arm has started toward, so each decision the policy makes is a fresh coin flip, half left and half right; after 4 steps the arm is clearly on one side and the policy follows through. Separately, at some moment someone bumps the cup, and the policy only notices at its next observation.
+Setup: 50 Hz control, 20 ms per step. During the first 4 steps in front of the cup, the image does not yet show which side the arm has started toward, so each decision the policy makes is a fresh coin flip, half left and half right; after 4 steps the arm is clearly on one side and the policy follows through. This ambiguous window starts at a chunk boundary. Separately, at some moment someone bumps the cup, and the policy only notices at its next observation.
 
 - **Probability of not switching sides during the ambiguous window.** With chunk length $k=1$ there are 4 flips in 4 steps, and the chance that the last 3 all match the first is $0.5^3=0.125$; with $k=2$ there are 2 flips, probability $0.5$; with $k\ge4$ one chunk covers the whole window, probability 1.
-- **Reaction delay.** Actions inside a chunk are already fixed, so after a disturbance the robot still executes on average $(k-1)/2$ old actions, at worst $k-1$, at 20 ms each.
+- **Reaction delay.** Use a discrete timing convention: the disturbance is equally likely to occur just after any of the chunk's actions, from the first to the $k$th, and before the next observation is read. An already completed action does not count toward delay. After action $j$, there are $k-j$ old actions left, giving a mean of $(k-1)/2$ and a worst case of $k-1$, at 20 ms each.
 
 | Chunk length $k$ | No side switch in the ambiguous window | Old actions still executed after a disturbance (mean) | In time (mean / worst) |
 | --- | --- | --- | --- |
@@ -103,7 +105,7 @@ Setup: 50 Hz control, 20 ms per step. During the first 4 steps in front of the c
 | 25 | 1 | 12 | 240 / 480 ms |
 | 50 | 1 | 24.5 | 490 / 980 ms |
 
-Going from 1 to 4 removes the jitter; going further only buys slower reactions. The example ignores inference time and assumes every action in the chunk is correct; longer chunks also mean longer sequences to predict, which are harder to learn accurately.
+In this example, increasing the chunk length from 1 to 4 eliminates side-switching. Longer chunks offer no further benefit on that measure but slow the response to disturbances. The table's times apply only to the discrete-boundary convention above. If disturbances instead arrive uniformly in continuous time throughout a chunk, including the unfinished portion of the current action gives a mean wait of $k/2$ control periods until the next observation and a worst case approaching $k$ periods. Even $k=1$ no longer gives zero delay. The example ignores inference time and assumes every action in the chunk is correct; longer chunks also mean longer sequences to predict, which are harder to learn accurately.
 
 How real systems handle this tension:
 

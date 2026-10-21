@@ -4,7 +4,9 @@
 
 > Reading time: ~10 min · Last reviewed: 2026-10
 
-A detector produces a pile of boxes every frame, each frame on its own. A planner needs something else: "the car ahead is at 12.75 m, moves about 2 m per frame, and here is how uncertain that is", and "this pedestrian is the same one as in the last frame". **Tracking splits into two jobs: predict with a motion model, then correct with a measurement weighted by both uncertainties (the Kalman filter); and decide which measurement belongs to which track (data association). The first has a closed-form optimal answer under linear-Gaussian assumptions; many identity switches come from the second.**
+A detector produces boxes independently in each frame, without automatically linking them across frames. A planner also needs to know: "The car ahead is at 12.75 m and moves about 2 m per frame—how uncertain is that estimate?" And: "Is this pedestrian the same person as in the last frame?"
+
+Tracking separates into two tasks. First, predict with a motion model, then correct the prediction using a measurement, accounting for the uncertainty in both; the Kalman filter does this. Second, decide which measurement belongs to which track: data association. The first has a closed-form optimal solution under linear-Gaussian assumptions; many identity switches arise from the second.
 
 ## Write "what you believe" as a Gaussian
 
@@ -142,17 +144,21 @@ Common pedestrian-tracking benchmarks: [MOT17](https://motchallenge.net/data/MOT
 
 Replace the state with the ego vehicle's pose (and a map) and you have visual odometry and SLAM. It is still "predict, then correct with measurements", but done in two ways.
 
-**Filters** keep only the current state and its covariance; each measurement is used once and then folded into the covariance. [MSCKF](https://doi.org/10.1109/ROBOT.2007.364024) (Mourikis & Roumeliotis 2007) is EKF-based vision-aided inertial navigation: it keeps several past camera poses in the state, leaves 3D feature points out, builds constraints from "one feature seen from several poses", and its cost grows linearly with the number of features (paper abstract).
+**Filters** recursively maintain the posterior mean and covariance of the retained state. In a standard recursive update, a measurement's information enters both, without requiring the raw measurement to be kept for repeated optimization. The earlier Kalman example updates both the position estimate and its variance. [MSCKF](https://doi.org/10.1109/ROBOT.2007.364024) (Mourikis & Roumeliotis 2007) is EKF-based vision-aided inertial navigation: it keeps several past camera poses in the state, leaves 3D feature points out, builds constraints from "one feature seen from several poses", and its cost grows linearly with the number of features (paper abstract).
 
-**Optimisation** keeps all states and raw measurements inside a window and repeatedly solves a nonlinear least-squares problem. [VINS-Mono (2017)](https://arxiv.org/abs/1708.03852) fuses pre-integrated IMU measurements and feature observations with tightly coupled nonlinear optimisation over a sliding window, marginalises old states into a prior to keep the cost constant, and uses loop closure plus a 4-degree-of-freedom pose graph for global consistency. [ORB-SLAM3 (2020)](https://arxiv.org/abs/2007.11898) is feature-based, uses maximum-a-posteriori estimation even during IMU initialisation, and can bring keyframes from long ago, or from a previous mapping session, into bundle adjustment; the authors report 3.5 cm average accuracy on EuRoC with stereo-inertial input. [DSO (2016)](https://arxiv.org/abs/1607.02565) takes another route: no keypoints, it minimises photometric error directly.
+**Optimisation** keeps all states and raw measurements inside a window and repeatedly solves a nonlinear least-squares problem. Several methods take different approaches:
+
+- [VINS-Mono (2017)](https://arxiv.org/abs/1708.03852) fuses pre-integrated IMU measurements and feature observations with tightly coupled nonlinear optimisation over a sliding window. It marginalises old states into a prior to keep the cost constant and uses loop closure plus a 4-degree-of-freedom pose graph for global consistency.
+- [ORB-SLAM3 (2020)](https://arxiv.org/abs/2007.11898) is feature-based and uses maximum-a-posteriori estimation even during IMU initialisation. It can bring keyframes from long ago, or from a previous mapping session, into bundle adjustment. The authors report 3.5 cm average accuracy on EuRoC with stereo-inertial input.
+- [DSO (2016)](https://arxiv.org/abs/1607.02565) takes another approach: rather than relying on keypoint detectors and descriptor matching, it selects sparse pixels using image gradients and spatial coverage, then minimizes photometric error directly. “Direct” does not mean no point selection; it changes how points are selected and how error is defined (§3.2 of the paper).
 
 In the linear-Gaussian case both give the same answer for the newest state: Barfoot, Section 3.3, derives the Kalman filter from the batch maximum-a-posteriori solution, and it is exactly the forward pass of the Rauch–Tung–Striebel smoother. The differences come from nonlinearity:
 
 | | Filtering (EKF, MSCKF) | Sliding-window or batch optimisation (VINS-Mono, ORB-SLAM3) |
 | --- | --- | --- |
-| What stays in the state | Current state and covariance (MSCKF also keeps a few poses) | All states and raw measurements in the window |
+| What stays in the state | Posterior mean and covariance of the retained state (MSCKF also keeps a few poses) | All states and raw measurements in the window |
 | Linearisation | Each measurement is linearised once, at the estimate of that moment | Re-linearised at every iteration |
-| Old information | Folded into the covariance and cannot be revised | Marginalised into a prior; loop closure can correct it via a pose graph or BA |
+| Old information | Incorporated into the posterior mean and covariance; a discarded raw measurement cannot be re-linearised | Marginalised into a prior; loop closure can correct it via a pose graph or BA |
 | What to watch | Linearisation errors stay in the estimate (Barfoot, Section 4.3.4) | Heavy computation, hard to run in real time on constrained platforms (VINS-Mono, related work) |
 
 The line is not absolute. VINS-Mono's related-work section mentions an MSCKF extension that uses an inverse filter with iterative re-linearisation, making it equivalent in effect to optimisation-based methods.

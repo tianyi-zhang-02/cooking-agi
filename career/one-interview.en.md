@@ -24,7 +24,7 @@ When asked whether it was deployed, I described the actual delivery scope: that 
 
 ## A moment I didn't handle well
 
-We got onto a direction that had been getting attention. I described problems we'd encountered while exploring it, and why we hadn't continued with it under our constraints and timeline. The interviewer said they already had an approach working in their setting.
+The conversation turned to an approach that had recently been getting attention. I described problems we'd encountered while exploring it, and why we hadn't pursued it further given our constraints and timeline. The interviewer said they already had an approach working in their setting.
 
 I paused and didn't respond very well.
 

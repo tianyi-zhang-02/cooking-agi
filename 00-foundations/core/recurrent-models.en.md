@@ -4,7 +4,9 @@
 
 > Reading time: ~10 min · Last reviewed: 2026-10
 
-In “It is raining; remember your umbrella,” the final word depends on earlier information. An RNN updates a hidden state as it reads each position. An LSTM adds controls for keeping, writing, and reading its state. First we follow the information forward, then examine why learning long dependencies is difficult. **An RNN squeezes all history into one fixed-size state and updates it step by step; LSTM gates make that state easier to keep, but the computation is still serial and the capacity still fixed.**
+In “It is raining; remember your umbrella,” the earlier mention of rain explains why an umbrella matters. An RNN carries earlier information forward by updating a hidden state at each position. An LSTM adds gates that control what is kept, written, and read.
+
+We will follow these state updates, then use numerical examples to compare how much gradient remains after 10 or 50 steps. LSTM improves the propagation path, but its state still has fixed capacity and its time steps still run sequentially.
 
 ## How the hidden state carries information {#how-the-hidden-state-carries-information}
 
@@ -33,7 +35,7 @@ During training, gradients to earlier states pass through a sequence of Jacobian
 
 Start with a one-dimensional RNN to see the scale: $h_t=\tanh(w\,h_{t-1}+u\,x_t)$ with $w=0.9$, and assume the state stays near $h_t\approx0.5$. Each step's derivative is $w\,(1-h_t^2)=0.9\times0.75=0.675$. Ten steps apart, the product is about $0.675^{10}\approx0.020$; fifty steps apart, only about $2.9\times10^{-9}$. Each step shrinks the signal by only a third, yet after 50 steps almost nothing gets back. Treating every step as the same number is only for seeing the scale of the product; in a real network each step's Jacobian differs and is a matrix. The derivation is in [BPTT and gates](../deep-dives/recurrent-dynamics.en.md).
 
-So this is not just a matter of “a few more parameters would fix it.” The real trouble is that **both information and gradients have to cross the same narrow state path over and over**; the farther apart two positions are, the more easily something is lost on the way.
+There are two related difficulties here. Earlier information must fit into a fixed-size state, while training signals must pass back through many state updates. More parameters may increase representation capacity, but they do not automatically prevent gradients from vanishing or exploding along that chain.
 
 ## LSTM manages information with gates {#lstm-manages-information-with-gates}
 
@@ -59,7 +61,7 @@ Continue the numbers from the previous section. With the gates held fixed, each 
 | LSTM, forget = 0.9 | 0.35 | 0.0052 |
 | LSTM, forget = 0.99 | 0.90 | 0.61 |
 
-A forget gate of 0.9 still leaves only half a percent after 50 steps; for gradients to travel far, the forget gate has to learn values very close to 1. Having gates is not the same as remembering; it depends on what training makes of them.
+In this fixed-gate example, multiplying by 0.9 for 50 steps leaves only about half a percent of the gradient. Preserving a stronger gradient along this path requires a forget gate close to 1. LSTM permits that behavior; whether it occurs depends on the gate values learned during training.
 
 ### Trace the three gates with one number {#gate-example}
 
@@ -109,7 +111,7 @@ Then change delay to 64 while keeping length = 96; require `0 < delay < length`.
 ## Self-check {#self-check}
 
 <div class="taste-check">
-  <strong>If you really understand this, you should be able to explain:</strong>
+  <strong>Use these three questions to check your understanding:</strong>
   <ol>
     <li>Why does adding parameters or stacking more RNN layers not automatically solve long-term memory?</li>
     <li>Why does the LSTM cell state pass gradients more easily than a plain hidden state?</li>
@@ -126,7 +128,7 @@ An RNN can read a sequence, but how do we turn an input sequence into an output 
 <details class="interview" markdown="1">
 <summary>Remember the state recurrence first, then see why gradients vanish</summary>
 
-**Quick memory**: an RNN compresses history into one hidden state, updated by the same rule at every step. An LSTM uses an additive cell-state path and sigmoid gates to control what is kept, written, and read.
+**In brief**: an RNN summarizes history in a hidden state, updated by the same rule at every step. An LSTM adds a cell state with additive updates and sigmoid gates that control what is kept, written, and read.
 
 **Interview answer**
 
@@ -135,7 +137,7 @@ An RNN can read a sequence, but how do we turn an input sequence into an output 
 <details markdown="1">
 <summary><b>Deep dive</b>: why are the gates themselves not the whole answer?</summary>
 
-Sigmoids saturate too. What really matters in an LSTM is
+Sigmoids can saturate too, so we also need to examine the cell-state update and its gradient path:
 
 $$
 c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t,

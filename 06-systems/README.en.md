@@ -115,7 +115,9 @@ repeat-contact rate all together. Fluent wording is only one part of the result.
 
 <span id="when-using-an-llm-judge"></span>
 
-What deterministic rules, references or executors, an LLM judge, human review and online metrics can each answer, and what none of them establishes alone, is laid out in one table in [the evaluation stack](../07-evaluation/evaluation-stack.en.md#check-methods). The rule of thumb: do not hand a condition that a rule can decide exactly to a model. When a model does score, write the criterion first, then choose between scoring one output and comparing two; pairwise comparisons swap the display order and allow a tie or “both bad”, see [LLM judge output formats](../07-evaluation/llm-as-a-judge/scoring.en.md); how to calibrate against human labels and check agreement by slice is covered in [LLM-as-a-judge](../07-evaluation/llm-as-a-judge/README.en.md).
+[The evaluation stack](../07-evaluation/evaluation-stack.en.md#check-methods) compares deterministic rules, references or executors, LLM judges, human review, and online metrics in one table. It explains what each method can establish and where it falls short. If a rule can check a condition exactly, use it rather than asking a model to guess.
+
+When model scoring is needed, define the criterion first, then choose between scoring one output and comparing two. For pairwise comparisons, swap the display order and allow a tie or “both bad”; see [LLM judge output formats](../07-evaluation/llm-as-a-judge/scoring.en.md). For calibration against human labels and agreement checks by slice, see [LLM-as-a-judge](../07-evaluation/llm-as-a-judge/README.en.md).
 
 ## Why look at the full chain
 
@@ -146,9 +148,7 @@ Evidence    What evidence will tell us the fix works?
 Tradeoff    What improves, and what might it hurt?
 ```
 
-This is not about making a simple problem complicated. It is about not fixing only the most visible symptom.
-
-The point is not to master every layer. It is to preserve the complete context while working deeply on one part.
+These questions help avoid fixing only the most visible symptom; they need not complicate a simple problem. You do not have to master every layer, but keep the full system in view when working deeply on one part.
 
 ## Two modules that help the system keep improving
 

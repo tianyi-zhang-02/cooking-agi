@@ -4,7 +4,7 @@
 
 > 阅读时间：约 9 分钟 · 最近审阅：2026-10
 
-手里有 3 张图：猫、自行车、一杯咖啡；还有 3 句对应描述。先别让模型写作文，只让它回答：**哪张图和哪句话是一对？** 这就是理解 CLIP 很好的起点。
+手里有 3 张图：猫、自行车、一杯咖啡；还有 3 句对应描述。先让模型完成一个配对任务：**哪张图和哪句话是一对？** 可以从这个问题开始理解 CLIP。
 
 需要先会一点[向量、余弦和 softmax](../00-foundations/core/embeddings-and-similarity.md)。本页讲 2021 年原始 CLIP 的核心目标，不把它当成所有多模态模型的统一配方。
 
@@ -71,7 +71,7 @@ python 00-foundations/code/multimodal_math.py --torch
 
 把类别写成候选描述，例如 “a photo of a cat”，用 text encoder 得到类别向量，再和图片比较。不为这个下游分类任务更新权重，就是这里的 zero-shot；不是说模型从未训练过、也不保证预训练没见过相关概念。这个用法来自 [CLIP 官方示例](https://github.com/openai/CLIP#zero-shot-prediction)。
 
-它能给类别或图文配对打分，**原始 CLIP 本身不会逐 token 生成回答**。想问“图里左边的人在做什么”，后面还要补一座桥：[从视觉编码器到会回答问题的 LLM](vision-to-language.md)。
+它能给类别或图文配对打分，**原始 CLIP 本身不会逐 token 生成回答**。如果要回答“图里左边的人在做什么”，还需要把视觉信息接入生成模型，见[从视觉编码器到会回答问题的 LLM](vision-to-language.md)。
 
 ## 0.88 的分数，究竟在说什么
 

@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-Start here for the limits of behavioral logs, then read [feedback to objectives](feedback-to-objectives.en.md): missingness versus negatives, multi-signal supervision, and how to test whether a signal helps.
+Start with a simple question: how much can a behavior log tell us about a user's preferences? Then read [feedback to objectives](feedback-to-objectives.en.md) to distinguish missing feedback from negative feedback, combine different signals, and test whether they help the model learn.
 
 For the training perspective, start with [Why post-training keeps coming back to data](data-as-supervision.en.md). One question with clear, conflicting, or missing evidence connects data selection to SFT, RL, environment checks, and evaluation.
 
@@ -42,7 +42,7 @@ flowchart TB
     pool -. "Jazz was not shown" .-> missing["No feedback on jazz<br/>Not evidence of dislike"]
 ```
 
-So data is not a clean label. It is the joint product of several mechanisms.
+The recorded behavior reflects several influences, including what the system chose to show. It cannot be read as a direct statement of the user's preferences.
 
 ## The five most common problems
 
@@ -68,7 +68,7 @@ A long dwell may mean the content was valuable, or that it was hard to understan
 
 ## What better data design looks like
 
-A good data system does not just store more fields. It spells out the semantics of each observation:
+Useful records let someone using the data later understand what each observation means. Besides storing more fields, make these details clear:
 
 - **What happened:** what did the user, the model, the tools, and the environment each do?
 - **Why it was visible:** which retrieval, ranking, or product policy produced the exposure?
@@ -79,9 +79,9 @@ A good data system does not just store more fields. It spells out the semantics 
 
 ## More data is not more information
 
-A million highly correlated clicks may be worth less than a hundred interactions that carry explicit context and a reason for the correction.
+If the goal is to understand why users are dissatisfied, a million highly correlated clicks may help less than a hundred interactions with clear context and explanations of what went wrong. This does not mean smaller datasets are always better: estimating the frequency of rare events still requires enough observations.
 
-What matters is whether the data adds new information about the goal, the user, or the environment, not whether it adds rows.
+Ask what the new records add for the task: coverage of new users or situations, explanations of failures, or mostly repetitions of what is already there? Track the row count, but do not use it as the sole measure of value.
 
 ## How it connects to other topics
 

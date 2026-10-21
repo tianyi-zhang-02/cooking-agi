@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-The loop in the previous note changes weights, so every round needs training. There is another route: leave the weights alone and change the program around the model. For example, let the coding agent edit its own prompts, tools and task-splitting, or evolve the function it is supposed to write, scoring every change with tests. **As of October 2026, most public, checkable "self-improvement" takes this route: how far it goes depends on how good the automated evaluator is, and the ceiling is the underlying model itself.**
+The loop in the previous note changes weights, so every round requires training. Another approach keeps the weights fixed and changes the program around the model. A coding agent might edit its own prompts, tools and task decomposition, or iteratively improve the function it is writing, with tests scoring each change.
+
+As of October 2026, most public, checkable "self-improvement" uses approaches of this kind. Progress depends on the quality of the automated evaluator and remains constrained by the capabilities of the underlying model.
 
 ## Why most demonstrations change code
 
@@ -66,7 +68,7 @@ return A
 
 Why call it self-referential: self-improvement is posed as a coding task, so a better coding agent is also a better self-modifier. Two things are not modified: the open-ended exploration process itself (parent selection, archive upkeep) and the FMs. Code edits are made by Claude 3.5 Sonnet (New); for evaluation, SWE-bench uses the same model and Polyglot uses o3-mini.
 
-Children worse than their parents are kept as stepping stones: the paper reports that on SWE-bench the agents at iterations 4 and 56 temporarily scored below their parents, yet continuing along that path later produced an agent that beat all its predecessors.
+Keeping children that score below their parents allows exploration to continue along paths with an initial drop in performance. On SWE-bench, the paper reports that agents at iterations 4 and 56 temporarily scored below their parents, yet further modifications along that path eventually produced an agent that beat all its predecessors.
 
 <!-- paper-figure:dgm-archive -->
 

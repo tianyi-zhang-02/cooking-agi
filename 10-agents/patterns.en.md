@@ -44,7 +44,7 @@ Continue with the booking policy. This is an action record for developers, not a
 
 ## What do function calling and MCP each do?
 
-A model's tool-call output only proposes a tool name and arguments, and producing arguments grants no permission to execute; the application's executor validates and makes the call, and does not treat tool-returned text as system instructions; MCP is the protocol layer that connects external tools, and it does not choose the plan, set permissions, or certify the answer. The three layers are laid out in one table, with one running example, in [tools, MCP, and skills](tools-and-skills.en.md#three-layers).
+A model's tool-call output proposes a tool name and arguments; it does not grant permission to execute. The application's executor validates and makes the call, and must prevent tool-returned text from being treated as system instructions. MCP connects external tools at the protocol layer. It does not choose the plan, grant permissions, or establish that an answer is correct. The [tools, MCP, and skills](tools-and-skills.en.md#three-layers) guide lays out these three layers in a table using one running example.
 
 Read-only search and booking cancellation also carry different risks. One retrieves information; the other changes external state. A cancellation tool should require confirmation and use an idempotency key so a retry after a timeout does not duplicate the operation. Remembering an action mentioned in history does not authorize executing it.
 
@@ -60,7 +60,7 @@ Change the question to “How have these policies changed, and which exceptions 
 | Is venue closure an exception? | An explicit clause in the current policy | Retain its source location, not just a summary |
 | Which version applies to this booking? | The booking date is missing | Ask the user instead of guessing |
 
-When questions can run in parallel, why reposts are not independent evidence, how to state what remains unresolved when the budget runs out, and the evidence queue and runnable citation checks are all in [the research-workflow guide](deep-research.en.md). Its local tests check the code's logic only; they are not results from a live multi-agent experiment.
+The [research-workflow guide](deep-research.en.md) explains when questions can run in parallel, why reposts are not independent evidence, and how to report unresolved questions when the budget runs out. It also provides a question queue, evidence records, and runnable citation checks. Those local tests check the code's logic only; they are not results from a live multi-agent experiment.
 
 ## How to choose
 

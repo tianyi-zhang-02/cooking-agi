@@ -44,7 +44,7 @@
 
 ## 一个小小的性能判断
 
-假设一个请求先等 800 ms 才收到首 token，之后每个 token 间隔 20 ms。这两段时间回答的问题不同：前者可能涉及排队、prefill 和首步生成，后者更接近持续 decode 的体验；小 batch 时它为什么主要受显存带宽限制，见 [decode 的 roofline 算例](../../12-infra/performance.md#decode-batching)。只报平均 tokens/s，会把两种等待混在一起。
+假设一个请求等了 800 ms 才收到首 token，之后每个 token 间隔 20 ms。这两个时间指标反映的是不同问题：前者可能涉及排队、prefill 和首步生成，后者更接近持续 decode 时的体验。小 batch 时，decode 为什么主要受显存带宽限制，见 [decode 的 roofline 算例](../../12-infra/performance.md#decode-batching)。只报平均 tokens/s，会掩盖这两种等待的差别。
 
 如果输入变长，先看 prefill 与缓存读取；如果并发增加后首 token 变慢，检查排队、调度与资源竞争。这个例子只是说明怎么拆测量，不表示某个组件已被诊断为瓶颈。
 

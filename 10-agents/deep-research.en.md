@@ -40,7 +40,7 @@ flowchart LR
 - The **controller** enforces budgets, detects repeats, and stops loops.
 - The **writer / verifier** connects claims to evidence and checks omissions and unsupported additions.
 
-One model plus ordinary code is a reasonable first version. Parallelize genuinely independent questions. Multiple agents add context, duplicated work, coordination, and cost; they are not a free upgrade to research quality.
+One model plus ordinary code is a reasonable first version. Parallelize genuinely independent questions. Multiple agents increase context usage, duplicated work, coordination overhead, and cost. Check whether those additional resources actually improve research quality.
 
 ## 3. A summary alone is not an evidence record
 
@@ -97,7 +97,7 @@ assert check_citation_spans(citations, sources) == []
 
 The first example reports the holiday conflict when the budget runs out: stopping does not become completion. The second verifies that quoted text occurs in a read source, **not semantic entailment**. “Closes at 18:00” does not establish that it opens on Sunday.
 
-Persist the question queue, content hashes, tool results, budgets, and versions. Resume unfinished items after a restart instead of dropping conflicts and searching again. Unique tool-call IDs prevent retries from being mistaken for independent evidence.
+Persist the question queue, content hashes, tool results, budgets, and versions. Resume unfinished items after a restart instead of dropping conflicts and searching again. Give each call attempt a unique ID and link its retries with a shared logical-operation ID. Call IDs support tracing, not evidence independence. Deduplicate evidence separately by underlying source, content version, and hash: repeated retrievals of the same source version reuse one evidence record, while a rewritten copy does not become independent confirmation merely because its hash differs. These are separate concerns: [matching requests to responses](https://www.jsonrpc.org/specification#request_object) and [tracking derivation and revision of sources](https://www.w3.org/TR/prov-primer/#derivation-and-revision).
 
 ## 5. When is another search worthwhile?
 
@@ -115,7 +115,7 @@ Evidence sufficiency can suggest stopping, but model confidence alone should not
 
 ## 6. Test the process, not just the demo
 
-Start with invented local documents: an old notice, a new one, a duplicate, and a conflicting notice. Inject timeouts, disappearing sources, incorrect citations, and instructions to ignore prior rules. Fixed fixtures isolate program errors; live-web tests cover environmental changes. Both matter.
+Start with invented local documents: an old notice, a new one, a duplicate, and a conflicting notice. Inject timeouts, disappearing sources, incorrect citations, and instructions to ignore prior rules. Fixed test fixtures help isolate program errors; live-web tests check how the system responds to environmental changes. Both matter.
 
 | Metric | What it checks | Misleading shortcut |
 | --- | --- | --- |
@@ -127,4 +127,4 @@ Start with invented local documents: an old notice, a new one, a duplicate, and 
 
 Following the approach in [agent evaluation guidance](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents), judge outcomes and important constraints rather than requiring one exact trace. Anchor evaluation in human review and calibrate judges; do not let the answering process award itself full credit unchecked.
 
-The code performs no live search, model calls, or measured quality improvements. It implements testable boundaries. After connecting models, compare one-shot RAG, a single agent, and multiple agents under explicit budgets.
+The code implements checks on research state and citation locations. It performs no live searches or model calls and provides no measurement of quality improvements. After connecting models, compare one-shot RAG, a single agent, and multiple agents using a fixed protocol, and report each budget.

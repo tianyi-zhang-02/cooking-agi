@@ -4,11 +4,13 @@
 
 > Reading time: ~10 min · Last reviewed: 2026-10
 
-Translating “明天见” into “See you tomorrow” does not require equal input and output lengths or a word-by-word match. Seq2Seq uses an encoder to read the input and a decoder to produce the output. When writing `tomorrow`, how can the decoder find the relevant time information? This gives us a reason to introduce attention. **Seq2Seq splits reading the input and writing the output between two modules; if the input passes through one fixed vector, the decoder cannot look up a single input position while generating, and attention lets it look back at every step.**
+Translating “明天见” into “See you tomorrow” does not require equal input and output lengths or a word-by-word match. Seq2Seq uses an encoder to represent the input and a decoder to generate the output.
+
+When generating `tomorrow`, how does the decoder find the source's time information? If it receives only one fixed vector, it cannot revisit an individual input position. We will examine that limitation, see how attention lets the decoder read the input again at each step, and compare the prefixes used during training and generation.
 
 ## Start with the overall structure {#start-with-the-overall-structure}
 
-The input and the output need not have the same length. Translation, summarization, and question answering are all “read one passage to the end, then write another.” The first thing Seq2Seq does is split these two jobs cleanly: the encoder reads, the decoder writes.
+Translation, summarization, and question answering can all be formulated as generating an output sequence from an input sequence, without requiring their lengths to match. The encoder builds representations of the input. The decoder uses those representations and the output generated so far to predict the next token.
 
 ## A fixed-length vector creates an information bottleneck {#a-fixed-length-vector-creates-an-information-bottleneck}
 
@@ -78,7 +80,7 @@ Beam search only changes how candidate sequences are kept at inference time; it 
 - the information path between two arbitrary positions can still be very long;
 - attention provides dynamic reading, but recurrent state still limits parallel computation across time.
 
-The Transformer's key move was not “inventing attention.” It was removing recurrence entirely and keeping only attention and position-wise computation.
+Attention was already used in Seq2Seq before the Transformer. The original Transformer replaced the RNN's sequential state updates with attention between positions and position-wise computation.
 
 ## Experiment: learn sequence reversal {#experiment-learn-sequence-reversal}
 
@@ -106,9 +108,9 @@ Continue to [Vanilla Transformer](vanilla-transformer.en.md) to see how self-att
 ## Quick learning: how the Seq2Seq bottleneck led to attention {#quick-learning-how-the-seq2seq-bottleneck-led-to-attention}
 
 <details class="interview" markdown="1">
-<summary>The encoder–decoder spine, teacher forcing, and exposure bias</summary>
+<summary>The encoder–decoder structure, teacher forcing, and exposure bias</summary>
 
-**Quick memory**: the encoder turns the source into states and the decoder generates the target autoregressively. Squeezing the whole sentence into a single vector creates a bottleneck; attention instead lets every step read all encoder states on demand.
+**In brief**: the encoder represents the input and the decoder generates the output autoregressively. Passing the whole input through one fixed vector creates an information bottleneck; attention lets the decoder read the individual encoder states at each step.
 
 **Interview answer**
 

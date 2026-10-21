@@ -39,7 +39,7 @@ An integer index removes an axis; a slice preserves it. The last two expressions
 
 ## Be explicit when creating tensors
 
-`torch.tensor([1,2])` normally infers `int64`; floating-point lists use the current default floating dtype. Specify the training contract: class IDs commonly use `long`, continuous features use floating point, and masks use `bool`. Floating-point model parameters do not imply floating-point class indices.
+`torch.tensor([1,2])` normally infers `int64`; floating-point lists use the current default floating dtype. Set training-data dtypes explicitly: class IDs commonly use `long`, continuous features use floating point, and masks use `bool`. Floating-point model parameters do not imply floating-point class indices.
 
 | Need | Common entry points | Important distinction |
 | --- | --- | --- |
@@ -132,7 +132,7 @@ assert len(torch.arange(4).chunk(3)) == 2
 assert len(torch.tensor_split(torch.arange(4), 3)) == 3
 ```
 
-`stack` is not analogous to appending `[3,4]` to `[1,2]`, which creates a ragged Python list. Split outputs form an immutable tuple, but their tensors can still modify shared storage. Check the [chunk contract](https://docs.pytorch.org/docs/2.14/generated/torch.chunk.html) before unpacking a fixed number of outputs.
+`stack` is not analogous to appending `[3,4]` to `[1,2]`, which creates a ragged Python list. Split outputs form an immutable tuple, but their tensors can still modify shared storage. Check [how many chunks can be returned](https://docs.pytorch.org/docs/2.14/generated/torch.chunk.html) before unpacking a fixed number of outputs.
 
 ## Crossing into NumPy or Python
 

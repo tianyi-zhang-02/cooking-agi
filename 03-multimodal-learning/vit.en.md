@@ -113,6 +113,6 @@ This is not a whole-network memory or runtime prediction. MLPs, projections, bat
 
 Original ViT transfer does not universally freeze the backbone: it replaces the head with a zero-initialized linear classifier and fine-tunes. The paper also reports few-shot evaluation on frozen representations. Check the protocol before comparing those results. [Original paper, §3.2 and §4](https://arxiv.org/abs/2010.11929)
 
-Freezing the backbone and training a small head is also common in robot perception; how much self-supervised DINO-style features and CLIP-style features differ on pixel-level tasks such as segmentation and depth is covered in [Frozen backbones and geometry foundation models](../13-embodied/perception/foundation-models.en.md).
+Freezing the backbone and training a small task head is also common in robot perception. For differences between self-supervised DINO-style features and CLIP-style features on pixel-level tasks such as segmentation and depth, see [Frozen backbones and geometry foundation models](../13-embodied/perception/foundation-models.en.md).
 
 ViT explains how images are encoded, not what that encoding must accomplish. [CLIP](clip.en.md) learns from image–text pairs; [vision to language](vision-to-language.en.md) connects visual features to generation. Similar structure does not make the objectives or learned capabilities equivalent.

@@ -134,7 +134,9 @@ $$
 | 量化代价多大 | 同一配置的 LoRA vs QLoRA | 质量、峰值显存、每秒有效 token |
 | 瓶颈是否在激活 | 长度或 microbatch，一次改一个 | OOM 边界、耗时、实际 token 数 |
 
-前两行已有公开对照可参考。[LoRA Without Regret（Schulman 等，Thinking Machines，2025-09-29）](https://thinkingmachines.ai/blog/lora/)报告：只加在 attention 上的 LoRA 明显不如只加在 MLP 上的，在 MLP 之外再给 attention 加 LoRA 也没有额外收益；LoRA 的最佳学习率稳定在同一任务全参数微调的约 10 倍；做策略梯度 RL 时，rank 低到 1 也能追平全参数微调。同一篇也提醒：数据量超过 LoRA 的容量（接近预训练那种规模）时它会落后，而且它比全参数微调更怕大 batch，加大 rank 也补不回来。这些是作者在自己设置下的结果，换了模型和数据，仍要按上表自己测。
+前两行已有公开对照可参考。[LoRA Without Regret（Schulman 等，Thinking Machines，2025-09-29）](https://thinkingmachines.ai/blog/lora/)报告：只加在 attention 上的 LoRA 明显不如只加在 MLP 上的，在 MLP 之外再给 attention 加 LoRA 也没有额外收益。文中还报告，LoRA 的最佳学习率稳定在同一任务全参数微调的约 10 倍；做策略梯度 RL 时，rank 低到 1 也能追平全参数微调。
+
+同一篇也提醒：数据量超过 LoRA 的容量（接近预训练那种规模）时它会落后，而且相比全参数微调，大 batch 对它的影响更不利，加大 rank 也无法弥补。这些是作者在自己设置下的结果，换了模型和数据，仍要按上表自己测。
 
 别把训练 loss 更低直接写成用户体验更好。客服例子至少检查格式是否合法、字段是否正确、信息不足时会不会编造，以及原来会做的任务有没有退化。
 

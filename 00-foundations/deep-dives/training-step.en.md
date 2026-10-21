@@ -4,7 +4,7 @@
 
 > Reading time: about 6 minutes · Last reviewed: 2026-10
 
-An architecture diagram does not explain every `labels`, `mask`, and `backward` in training code. Follow one batch: **which tokens provide context, which get scored, and which parameters change?**
+An architecture diagram may be clear while the roles of `labels`, `mask`, and `backward` in training code are still confusing. Follow one batch: **which tokens provide context, which get scored, and which parameters change?**
 
 Start with [Decoder-only](../core/decoder-only.en.md). The theory of training versus generation is covered in [language-model objectives](language-model-objective.en.md).
 

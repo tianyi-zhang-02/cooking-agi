@@ -69,7 +69,7 @@ def prime_flags(limit):
     return flags
 ```
 
-约定是返回 **0 到 `limit`，包含右端点**的标记；`flags[number] == 1` 表示质数。`bytearray` 每个位置占 1 字节，不是压到 1 bit 的 bitset，但比用 Python 整数对象表达状态更直接。
+约定是返回 **0 到 `limit`，包含右端点**的标记；`flags[number] == 1` 表示质数。`bytearray` 每个位置占 1 字节，不是压到 1 bit 的 bitset。相比普通列表，它省去了每个槽位的对象引用；列表里的 0、1 可以复用整数对象，并不是每个标记都新建一个整数。
 
 代码选择逐个赋值，方便对应筛选过程。大规模时可以考虑切片、只存奇数或位数组，不过要同时计算临时分配，不能只看最短的代码。筛法的经典实现也可以对照 [Princeton 的课程代码](https://introcs.cs.princeton.edu/java/14array/PrimeSieve.java.html)；本篇接口明确包含右端点，不能不看边界就替换进题目。
 

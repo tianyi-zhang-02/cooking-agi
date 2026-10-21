@@ -13,7 +13,7 @@
 
 ## One-sentence position
 
-The most useful lesson in DeepSeek is **co-design**. MLA compresses attention state, MoE expands FFN capacity, the training and communication system makes the sparse model practical, and R1 shifts post-training toward verifiable reasoning. Each layer manages a different cost; “it uses MoE” is not enough.
+DeepSeek is useful for studying **co-design**: how architecture, training methods, and systems work together. MLA reduces the KV cache, MoE expands FFN capacity, and training and communication optimizations help the architecture run efficiently. R1 then studies post-training for reasoning. Describing the family only as “using MoE” misses these other design choices.
 
 ## Separate the two lines first
 
@@ -119,7 +119,7 @@ assert math.isclose(sum(weight * [2, 0, 10][index] for index, weight in routed),
 
 This illustrates only the routed branch, without shared experts, node constraints, full scaling, or communication. A bias updated from prior load statistics is not new evidence of relevance for the current token. Measure tokens received per device too: balanced mean expert loads do not guarantee balanced inter-node traffic.
 
-For another set of numbers, where adding the bias changes which experts are selected, and why expert balance and device balance are separate tables, see [Load balancing](../moe/load-balancing.en.md#bias-example).
+For another numerical example in which bias changes the selected experts, and an explanation of why expert and device loads need separate measurements, see [Load balancing](../moe/load-balancing.en.md#bias-example).
 
 ### MTP adds a target, not permission to skip verification {#mtp-causal-chain}
 
@@ -162,7 +162,7 @@ R1-Zero uses rule-based accuracy and format rewards. Later R1 stages also involv
 
 For an original small example, suppose an addition problem has answer 12. A response ends with 12 but explains it as “5 + 8.” A final-number checker rewards it; a step check catches the inconsistency. Conversely, a brittle parser might reject a valid algorithm's answer expressed in different units. Test **verifier reliability, reward coverage, and whether training actually uses the intended signal** separately. For how a verifier's error rate caps the gains of best-of-N, see [Sampling, voting and verifiers](../../11-frontier/test-time-compute/parallel-and-verify.en.md).
 
-Local fixtures should include a correct response, a correct response in a different format, a correct result with faulty reasoning, and a fluent but wrong response. The training checker should not be the only independent evaluation.
+Local test cases should include a correct response, a correct response in a different format, a correct result with faulty reasoning, and a fluent but wrong response. Evaluation needs checks independent of the checker used during training.
 
 Rejection sampling creates another choice. Suppose four samples per question produce four correct responses for one question and only one for another. Keeping all five as independent SFT examples weights the first question four times as much; retaining one per question weights them equally. These are invented counts, not paper statistics. “Keep correct answers” still leaves sampling and weighting decisions: curation is part of the objective.
 
@@ -170,7 +170,7 @@ Rejection sampling creates another choice. Suppose four samples per question pro
 
 The [V4 walkthrough](deepseek-v4.en.md) examines CSA / HCA hybrid attention, mHC, and post-training. Sequence compression is not MLA's channel compression; constraints on mHC residual mappings are not Muon's update orthogonalization; a fixed local window does not make the whole history cache constant-size.
 
-Keep mechanisms separate from measurements. Compression is not a losslessness guarantee, orthogonalization does not guarantee convergence, and a FLOPs ratio at one context length is not a universal latency ratio. V4.1-Flash, released after V4, changes the architecture, and the old API names now route to the new weights; see the note at the top of the V4 walkthrough.
+Keep mechanisms separate from measurements. Compression is not a losslessness guarantee, orthogonalization does not guarantee convergence, and a FLOPs ratio at one context length is not a universal latency ratio. V4.1-Flash changes the architecture, and some older API names now route to newer weights. That does not establish the routing for every alias: as of October 21, 2026, the official model table and September announcement still disagree on the version behind `deepseek-v4-pro`. See the note at the top of the V4 walkthrough, the [model table](https://api-docs.deepseek.com/quick_start/pricing/), and the [September announcement](https://api-docs.deepseek.com/news/news260910).
 
 ## Trade-offs
 
@@ -183,7 +183,7 @@ Keep mechanisms separate from measurements. Compression is not a losslessness gu
 
 ## How I would use the family
 
-DeepSeek is good practice for not mixing levels. For every result I would ask: is this a cache or compute systems gain, an expert-capacity architecture gain, a pretraining-data gain, or a reasoning post-training gain? If the report does not isolate them, the uncertainty should remain explicit.
+When reading DeepSeek results, I would distinguish improvements from different sources: cache and compute optimizations, expert capacity, pretraining data, or reasoning post-training. If the ablations do not isolate their contributions, I would leave the attribution uncertain.
 
 ## Self-check
 

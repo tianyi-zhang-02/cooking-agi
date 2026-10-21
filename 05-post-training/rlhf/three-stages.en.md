@@ -4,7 +4,7 @@
 
 > Reading time: ~3 min · Last reviewed: 2026-10
 
-To teach a model to summarize a long email in three sentences, we could show it a good summary, ask it to compare two summaries, or let it write one and learn from feedback. These roughly correspond to the three stages of classic RLHF.
+To teach a model to summarize a long email in three sentences, we can first show it good summaries, then train a reward model on people's comparisons of two summaries, and finally let it write new summaries and learn from the reward model's feedback. These roughly correspond to the three stages of classic RLHF.
 
 Step through the figure or read on. This page describes a common PPO-style pipeline; other post-training methods need not retain every stage.
 

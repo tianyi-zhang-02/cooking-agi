@@ -75,7 +75,7 @@ assert math.isclose(loss_after.item(), 0.5787059562, abs_tol=1e-9)
 
 Chapter 1 explains storage; chapter 2 covers operations and shapes; chapter 3 unpacks the loss; chapter 4 traces gradients; chapter 5 adds loading, validation, and recovery. You do not need to know every function yet. First follow what each step produces, then study its implementation.
 
-This example uses mean CE without class weights and SGD without momentum or weight decay. Changing those conditions changes the update. See the [CE](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html) and [SGD](https://docs.pytorch.org/docs/2.14/generated/torch.optim.SGD.html) contracts.
+This example uses mean CE without class weights and SGD without momentum or weight decay. Changing those conditions changes the update. See the documentation for [CE](https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html) and [SGD](https://docs.pytorch.org/docs/2.14/generated/torch.optim.SGD.html).
 
 ## Already comfortable with training code?
 

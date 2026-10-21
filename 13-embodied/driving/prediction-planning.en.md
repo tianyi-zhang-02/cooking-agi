@@ -93,7 +93,7 @@ With $w_p=w_c=1$, A and B tie at $2w_s=3$, that is $w_s=1.5$. "What counts as go
 
 The table says three more things:
 
-1. **C is dominated by A.** Same progress, worse comfort and safety, so with any (non-negative) weights C is never chosen.
+1. **C is dominated by A.** Progress is the same and comfort and safety are worse, so non-negative weights guarantee $J_C\ge J_A$. C has strictly higher cost if either the comfort or safety weight is positive; if both are zero, C ties with A. To guarantee that C is not selected in a tie, prefer A in the tie-breaking rule or remove dominated candidates beforehand.
 2. **D is rejected, not penalised.** Leaving the road is not "minus 10 points" but not allowed; a finite penalty can always be outweighed by a large enough gain, see the section on constraints in [planning and LQR](../../05-post-training/deep-rl/planning-and-control.en.md).
 3. **A truncated horizon misleads.** At $t=4$ s, A is 14 m behind the lead car and still closing at 4 m/s; a 4 s cost cannot see how close A gets in seconds 5 and 6. Lengthen the horizon, or add a time-to-collision term, and A's cost rises. NAVSIM's score in note 3 includes exactly such a time-to-collision term.
 
@@ -101,7 +101,9 @@ The table says three more things:
 
 ## Why a rule-based planner is still a strong baseline
 
-[PDM](https://arxiv.org/abs/2306.07962) (Dauner et al., CoRL 2023) does all of the above thoroughly. PDM-Closed first searches the route graph for the lane centreline to follow, then uses IDM (a car-following model) to generate the longitudinal speed along it: five target speeds at 20%, 40%, 60%, 80% and 100% of the speed limit, each with three lateral offsets of −1 m, 0 and +1 m, giving 15 candidates of 4 s at 10 Hz. Other vehicles are extrapolated at constant velocity. Each candidate is simulated with nuPlan's own LQR controller and kinematic bicycle model, scored by rules close to nuPlan's evaluation (rule compliance, progress, comfort), and the best is taken; if the best is expected to collide within 2 s, the output becomes an emergency brake.
+[PDM](https://arxiv.org/abs/2306.07962) (Dauner et al., CoRL 2023) provides a concrete implementation. PDM-Closed first searches the route graph for the lane centreline to follow, then uses IDM (a car-following model) to generate the longitudinal speed along it: five target speeds at 20%, 40%, 60%, 80%, and 100% of the speed limit, each with three lateral offsets of −1 m, 0, and +1 m. This gives 15 candidates, each spanning 4 s at 10 Hz. Other vehicles are extrapolated at constant velocity.
+
+Each candidate is then simulated with nuPlan's own LQR controller and kinematic bicycle model. Rules close to nuPlan's evaluation score compliance, progress, and comfort, and the highest-scoring candidate is selected. If that candidate is expected to collide within 2 s, the planner instead commands emergency braking.
 
 <!-- paper-figure:pdm-arch -->
 
@@ -114,7 +116,7 @@ The paper's Val14 results (Table 2). CLS is the closed-loop score, with R meanin
 | PDM-Closed | 92 | 93 | 42 |
 | Log Replay (replaying the human trajectory) | 80 | 94 | 100 |
 
-The learned PDM-Open has the best open-loop score and the worst closed-loop score; the rule-based PDM-Closed is the reverse. Even replaying the human trajectory does not get a perfect closed-loop score; one of the paper's explanations is that nuPlan's LQR controller sometimes drifts from the given trajectory, which is why PDM-Closed scores candidates by what the controller will actually drive. The authors list this as the first finding in their introduction: "Open- and closed-loop evaluation are misaligned" ([§1](https://arxiv.org/html/2306.07962v2#S1.p2)). The stronger claim in the abstract is about something else: that precise short-term planning and long-horizon ego-forecasting are fundamentally at odds and should be handled separately. A preliminary version of PDM-Hybrid ranked first in the 2023 nuPlan challenge (out of 25 teams).
+Comparing only PDM-Open and PDM-Closed, the learned PDM-Open scores higher in open loop but lower on both closed-loop measures; the rule-based PDM-Closed shows the reverse pattern. These are not best-and-worst rankings across the whole table: Log Replay has a higher open-loop score than either. Even replaying the human trajectory does not get a perfect closed-loop score; one of the paper's explanations is that nuPlan's LQR controller sometimes drifts from the given trajectory, which is why PDM-Closed scores candidates by what the controller will actually drive. The authors list this as the first finding in their introduction: "Open- and closed-loop evaluation are misaligned" ([§1](https://arxiv.org/html/2306.07962v2#S1.p2)). The stronger claim in the abstract is about something else: that precise short-term planning and long-horizon ego-forecasting are fundamentally at odds and should be handled separately. A preliminary version of PDM-Hybrid ranked first in the 2023 nuPlan challenge (out of 25 teams).
 
 ## Where learning comes in
 

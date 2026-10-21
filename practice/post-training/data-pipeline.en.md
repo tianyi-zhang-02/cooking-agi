@@ -96,7 +96,7 @@ An early debugging check is to try overfitting a tiny fixed dataset. If even the
 
 For RL, add an environment check: start from a fixed state, replay known actions or tool calls, and verify reset behavior and reward rules. Distinguish task failure from tool errors and timeouts. For stochastic environments, check reproducible conditions or statistical ranges rather than requiring identical text every time.
 
-The site's [teaching tests](../../site/tests/test_training_contracts.py) cover padding, normalization, and simplified checkpoint recovery; the gradient check uses optional CPU PyTorch. These do not validate your model's tokenization, distributed GPU execution, or RL environment. Run the remaining checks with your actual versions. [Data and environment choices](../../01-data-and-feedback/data-as-supervision.en.md#environment) explains why these details affect the learning signal.
+The site's [teaching tests](../../site/tests/test_training_contracts.py) cover padding, normalization, and simplified checkpoint recovery; the gradient check uses optional CPU PyTorch. These do not validate your model's tokenization, distributed GPU execution, or RL environment. Run the remaining checks with your actual versions. The discussion of [data and environment choices](../../01-data-and-feedback/data-as-supervision.en.md#environment) explains why these details affect the learning signal.
 
 ## Run it, then break the inputs
 

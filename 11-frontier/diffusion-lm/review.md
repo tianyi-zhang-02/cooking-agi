@@ -67,7 +67,7 @@ DFlash 只用分块扩散写草稿：小模型读目标模型的特征，一次�
 ## 自检
 
 <div class="taste-check">
-  <strong>如果真的理解了，你应该能解释：</strong>
+  <strong>可以用下面的问题检查理解：</strong>
   <ol>
     <li>把 $1/t$ 去掉，两个 token 的目标变成什么？为什么它不再有似然解释？</li>
     <li>LLaDA 在 GSM8K 上的分数是每步落几个 token 测的？这对“又好又快”的说法意味着什么？</li>

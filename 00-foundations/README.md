@@ -59,7 +59,7 @@ flowchart LR
 
 ### 2. 横向读模型家族
 
-知道 Transformer 的零件以后，下一步不是继续背模型名，而是学会判断：**这个模型为什么要改这个部件，省下了什么、又增加了什么开销，实验是否支持这样的选择。**
+熟悉 Transformer 的各个部件以后，可以带着几个问题比较模型：这个模型为什么要改这个部件？省下了什么，又增加了什么开销？实验是否支持这样的选择？
 
 <div class="curriculum-grid">
   <a class="curriculum-card" href="model-families/llama.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>从常见的 dense decoder 看起，分清架构、数据、训练规模和 post-training 各自带来的影响。</p><b>精读 →</b></a>
@@ -109,7 +109,7 @@ python test_learning_path.py
 
 ### 我想看懂一篇新的模型报告
 
-先用[模型家族精读](model-families/)里的六个问题做骨架，再回到交互图比较 block。不要先抄参数；先判断变化发生在架构、训练、post-training、推理，还是评估。
+先按[模型家族精读](model-families/)里的六个问题梳理报告，再回到交互图比较 block。记录参数之前，先判断变化发生在架构、训练、post-training、推理，还是评估。
 
 ### 我想亲手写到它出 bug
 

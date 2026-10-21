@@ -4,7 +4,7 @@
 
 > Reading time: ~3 min · Last reviewed: 2026-10
 
-This page condenses the series into interview questions and a self-check; every number and conclusion in the answers can be traced to the first four notes.
+This page organizes the series' main points into interview questions and a self-check; every number and conclusion in the answers can be traced to the first four notes.
 
 ## Interview questions
 
@@ -30,9 +30,9 @@ INT8's grid is evenly spaced, so its absolute rounding-error bound is constant w
 </details>
 
 <details class="interview" markdown="1">
-<summary>Why is W4A16 more than three times faster at batch 1, and why does the advantage disappear at large batch? How do you estimate the crossover?</summary>
+<summary>Why does the roofline estimate predict a W4A16 speedup above threefold at batch 1, but no speedup at large batch? How do you estimate the crossover?</summary>
 
-Batch-1 decode does about 1 operation per byte read, so the time is roughly weight bytes divided by bandwidth. The teaching 8B model is 16 GB and 4.77 ms in BF16; W4A16 g128 (output layer kept in BF16) is 4.87 GB and 1.45 ms, about 3.29×, short of 4× because of the uncompressed output layer and the scales. W4A16 computes in BF16, so the compute time at batch $B$ is $B\times2N/989.4$ TFLOPS; setting it equal to 1.45 ms gives $B\approx90$, after which it is compute-bound like BF16, whereas the FP8 W8A8 roof is twice as high. Measurements fall off earlier: Marlin self-reports close to 4× up to batch 16–32; Kurtic et al. recommend W4A16 for synchronous low-latency serving and W8A8 for high-throughput continuous batching.
+Under the main text's hardware-peak assumptions and without KV cache, BF16 batch-1 decode does about 1 operation per byte read, so its time lower bound is roughly weight bytes divided by bandwidth. The teaching 8B model is 16 GB and 4.77 ms in BF16; W4A16 g128 (output layer kept in BF16) is 4.87 GB and 1.45 ms, a predicted 3.29× speedup, short of 4× because of the uncompressed output layer and scales. W4A16 computes in BF16, so its compute-time lower bound at batch $B$ is $B\times2N/(989.4\times10^{12})$ seconds. Equating this to 1.45 ms gives $B\approx90$. W4A16 becomes compute-bound first; BF16 does so at about 295. Only once both face the same compute ceiling does the model predict no speedup. FP8 W8A8 also crosses over at about 295: its quantized layers have roughly twice the peak compute, but retaining the BF16 output layer limits whole-model throughput to about 1.88×. Actual results also depend on dequantization, kernels, activations and KV traffic. Marlin self-reports close to 4× up to batch 16–32, declining thereafter; Kurtic et al. recommend W4A16 for synchronous low-latency serving and W8A8 for high-throughput continuous batching.
 
 </details>
 
@@ -58,16 +58,18 @@ KIVI observed that keys have a few fixed channels with very large magnitudes, va
 </details>
 
 <details class="interview" markdown="1">
-<summary>How do you accept a quantized model? Why is accuracy alone not enough?</summary>
+<summary>How do you decide whether a quantized model is ready to use? Why is accuracy alone not enough?</summary>
 
-When accuracy barely changes, many individual answers may still trade places: Dutta et al. measured GPTQ W4A16 on Llama2-70B-chat losing only 0.45 points on MMLU while 4.26% of answers flipped. Do three things: mean KL and top-1 agreement on fixed text (once a near-tied position flips, the rest of the text diverges); paired comparison on the same questions, where 1,000 items, 56 flips and a net change of −0.4 give a 95% interval of about $[-1.87,+1.07]$ points; and slices defined in advance: long context (4-bit methods lose up to 59 points), non-English (Japanese, 1.7% on automatic metrics against 16.0% by human judgment), math reasoning. Also record whether calibration data overlaps the evaluation, the format and scales of each part, and the engine and kernels, since without hardware support it falls back to weight-only.
+When accuracy barely changes, many individual answers can still flip between right and wrong. Dutta et al. measured GPTQ W4A16 on Llama2-70B-chat losing only 0.45 points on MMLU while 4.26% of answers flipped. Check three things: mean KL and top-1 agreement on fixed text, since a flip at a near-tied position makes the rest of the text diverge; paired results on the same questions, where the example with 1,000 items, 56 flips and a net change of −0.4 gives a 95% interval of about $[-1.87,+1.07]$ points; and slices defined in advance, including long context (4-bit methods lose up to 59 points), non-English (Japanese, 1.7% on automatic metrics against 16.0% by human judgment), and math reasoning.
+
+Also record whether calibration data overlaps the evaluation, the format and scales of each part, and the engine and kernels. Without support for the chosen format, the engine falls back to weight-only quantization.
 
 </details>
 
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>Given a 70B model and one 80 GB GPU, how much do BF16, FP8 and INT4 g128 weights take, how much is left for KV, and what is the batch-1 floor per token?</li>
     <li>Why can a weight's output-channel scale be applied after the GEMM, while scales grouped along the input dimension need dequantization inside the kernel or Blackwell's block-scaled MMA?</li>

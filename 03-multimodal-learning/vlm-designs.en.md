@@ -44,7 +44,7 @@ A simplified budget: each view is $336\times336$, with patch width 14, retaining
 
 Suppose the question and history occupy 120 positions. One view gives length 696; five give 3000. Dense attention score-element counts differ by $(3000/696)^2\approx18.58$. **That is not a measured 18.58-fold latency increase**: vision computation, matrix multiplication, caching, and kernels remain outside this calculation. How much slower an operation actually runs depends on whether it is limited by compute or by memory bandwidth; see [Performance: roofline and MFU](../12-infra/performance.en.md#roofline).
 
-Tiling is not free accuracy. With a limited budget, compare a thumbnail, a thumbnail plus selected tiles, and localization followed by cropping. The last saves input length but adds a call and can fail at localization.
+Evaluate any accuracy gain from tiling alongside its additional cost. With a limited budget, compare a thumbnail, a thumbnail plus selected tiles, and localization followed by cropping. The last saves input length but adds a call and can fail at localization.
 
 ## DeepSeek-VL: combining different visual features
 
@@ -52,7 +52,7 @@ Original DeepSeek-VL combines lower-resolution SigLIP semantics with higher-reso
 
 <!-- paper-figure:dsvl2-overview -->
 
-This changes more than a model name. Fixed length simplifies budgeting. Dynamic length allocates more space to difficult images, but complicates batching, admission control, and tail latency.
+The two designs also handle input budgets differently. Fixed length simplifies budgeting. Dynamic length allocates more space to difficult images, but complicates batching, admission control, and tail-latency management.
 
 | Approach | What it saves | What it costs |
 | --- | --- | --- |

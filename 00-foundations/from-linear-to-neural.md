@@ -53,7 +53,7 @@ $$z = \mathbf{w}^\top \mathbf{x} + b, \qquad \sigma(z) = \frac{1}{1 + e^{-z}}$$
 
 ### 那 sigmoid 到底解决什么 {#sigmoid_1}
 
-一个**优化**问题。假设不加 sigmoid，直接拿分数配 MSE 拟合 0/1 标签。有个点 $\mathbf{w}^\top\mathbf{x} = 100$，标签是 1，已经分对得不能再对——但残差是 99，梯度巨大，它会拼命把决策面往自己这边拉。**已经分对的点在主导训练。**
+它改善的是一个**优化**问题。假设不加 sigmoid，直接用原始分数配 MSE 拟合 0/1 标签。某个点的 $\mathbf{w}^\top\mathbf{x} = 100$，标签是 1，虽然分类正确，残差仍有 99，因此产生很大的梯度，推动决策面向这个点移动。结果是，**已经分对的点仍可能主导训练。**
 
 换成 sigmoid + 交叉熵：
 
@@ -75,8 +75,8 @@ $$\nabla_{\mathbf{w}} \mathcal{L} = (\sigma(z) - y)\,\mathbf{x}, \qquad \frac{\p
 
 这就是二分类里常用 sigmoid 配交叉熵的一个原因：
 
-- 分对的远点 $\sigma(100) \approx 1$，$s - y \approx 0$ —— **自动闭嘴**。
-- 分错的点 $\sigma(-10) \approx 0$ 而 $y=1$，$s - y \approx -1$ —— 梯度饱和不了，优化器专心处理它。
+- 分对的远点 $\sigma(100) \approx 1$，$s - y \approx 0$ —— **对梯度的贡献接近零**。
+- 分错的点 $\sigma(-10) \approx 0$ 而 $y=1$，$s - y \approx -1$ —— **对 logit 的梯度仍接近 $-1$**，不会因为额外乘上 sigmoid 导数而趋零。更上游的参数梯度仍取决于输入和各层的 Jacobian，不能据此保证它们都不衰减。
 
 如果 sigmoid 后面改接 MSE，梯度会多出一个 $\sigma'(z)$ 因子，在饱和区趋近 0，分错的点反而很难更新。对这里的线性 logistic regression，交叉熵关于参数是**凸的**，但不自动保证唯一或有限的最优解：特征共线可能带来多解；完全可分的数据上，无正则的参数还可能越长越大。换成多层网络后，也不能沿用这个凸性结论。
 
@@ -210,7 +210,7 @@ LM head                    → vocabulary Softmax：下一个 token 的分布
 Vanilla Transformer FFN    → ReLU；现代模型多用 GELU / SiLU / SwiGLU
 ```
 
-一句话记忆：**Sigmoid 像独立阀门，Softmax 像在候选项之间分票，ReLU 像截断负半轴，Tanh 像把带方向的状态压进 $(-1,1)$。**
+一句话记忆：**Sigmoid 独立压缩每个输入，Softmax 把一组分数归一化为概率，ReLU 将负值置零，Tanh 把有正负之分的状态压缩到 $(-1,1)$。**
 
 ## 神经网络真正多做的事：把 $\phi$ 学出来 {#phi}
 
@@ -268,9 +268,11 @@ def step(p, X, y, lr=0.05):
 
     for k, g in (("W1", gW1), ("b1", gb1), ("w2", gw2), ("b2", gb2)):
         p[k] = p[k] - lr * g
-    loss = -np.mean(y * np.log(yhat + 1e-9) + (1 - y) * np.log(1 - yhat + 1e-9))
+    loss = np.mean(np.maximum(z2, 0) - y * z2 + np.log1p(np.exp(-np.abs(z2))))
     return loss, ((z2 > 0) == y).mean()
 ```
+
+`loss` 直接从 logits 计算普通 BCE 的稳定形式 $\ell(z,y)=\max(z,0)-yz+\log(1+e^{-|z|})$，无需在概率中加 epsilon。它与上面的手算推导一致：$\partial\ell/\partial z=\sigma(z)-y$，对 batch 取平均后就是 `d2 = (yhat - y) / N`。PyTorch 中可用 [`BCEWithLogitsLoss`](https://docs.pytorch.org/docs/2.14/generated/torch.nn.BCEWithLogitsLoss.html)；这里返回的 loss 和准确率都对应本次参数更新前的前向结果。
 
 完整可运行版本在 [`code/why_nonlinear.py`](code/why_nonlinear.py)（PyTorch）和 [`code/make_figures.py`](code/make_figures.py)（生成本页所有图）。
 
@@ -340,7 +342,7 @@ $$
 | 线性逼近器（linear approximator） | $\hat f(x)=\mathbf{w}^\top\mathbf{x}+b$ | 对输入和参数都线性 |
 | 固定 basis 的线性逼近器 | $\hat f(x)=\sum_j w_j\phi_j(x)$ | 对 $w_j$ 线性；对原始输入可以非线性 |
 | 神经网络逼近器（neural function approximator） | $f_\theta(x)=W_L\phi(\cdots\phi(W_1x))$ | 最后一层常是 linear readout，但整个映射通常非线性 |
-| 语言模型 | $p_\theta(x_t\mid x_{<t})$ | 逼近的是 next-token conditional distribution，不是一个固定答案函数 |
+| 语言模型 | $p_\theta(x_t\mid x_{<t})$ | 逼近的是下一个 token 的条件分布（next-token conditional distribution），并非只输出一个固定答案的函数 |
 
 所以 polynomial regression 很有代表性：加入 $x^2$ 后，它对 $x$ 已经不是线性的，但仍然**对参数线性（linear in parameters）**。神经网络再向前一步，连 basis / feature map $\phi$ 也一起从数据中学习。
 
@@ -372,7 +374,7 @@ x_{<t}\longmapsto \mathbf{h}_t\longmapsto
 \operatorname{softmax}(W_{\text{head}}\mathbf{h}_t)
 $$
 
-这条完整映射包含 attention、Softmax、MLP activation 和多层组合，所以整体是一个高度非线性的 conditional-distribution approximator。真正决定它是否有用的，不只是“能不能逼近”，还包括 **inductive bias、data、objective、optimization 与 evaluation**。
+这条完整映射包含注意力、Softmax、MLP 激活函数和多层组合，整体上用一个高度非线性的函数来逼近条件分布。模型是否有用，还取决于**归纳偏置（inductive bias）、数据、目标函数、优化方法与评估方式**，不能只看表达能力是否足够。
 
 ## 能表示，不等于能学到，更不等于能泛化
 
@@ -444,11 +446,11 @@ for segments in (4, 10):
 <details class="interview" markdown="1">
 <summary>一句话主线与标准回答</summary>
 
-**快速记忆**：线性模型在给定特征空间里画超平面；神经网络用 nonlinear layers 学习新的坐标 $\phi_\theta(x)$，再由 linear head 读出结果。
+**快速记忆**：线性模型在给定特征空间里画超平面；神经网络用非线性层学习新的坐标 $\phi_\theta(x)$，再由线性输出头（linear head）读出结果。
 
 **面试回答**
 
-> 多层 linear layers 没有 activation 时仍可合并成一个矩阵。加入 ReLU 等非线性后，网络可以学习 piecewise nonlinear feature map，使原空间中的复杂边界在 hidden space 里变得 linearly separable。最后一层线性不代表整个模型线性。
+> 多个线性层没有激活函数时，仍可合并成一个矩阵。加入 ReLU 等非线性后，网络可以学习分段非线性的特征映射，使原空间中的复杂边界在隐藏空间（hidden space）里变得线性可分。最后一层线性不代表整个模型线性。
 
 被追问 universal approximation 时，回到[上面那一节](#function-approximator)：它是存在性结论，不保证找得到、学得好。
 

@@ -46,7 +46,7 @@ In the [original Qwen3-8B interface](https://huggingface.co/Qwen/Qwen3-8B#switch
 
 This does not retrain the weights per request or change the number of routed experts. Post-training teaches the protocol; templates and sampling guide its use at inference. `max_new_tokens` limits the entire continuation, not a separate reasoning allowance, and reaching that limit does not guarantee that a final answer has been produced. For separate thinking budgets and length control, see [Long chains: budgets and length control](../../11-frontier/test-time-compute/long-chains.en.md).
 
-Later models add two more controls (as of October 2026). The [Qwen3.8-27B model card](https://huggingface.co/Qwen/Qwen3.8-27B) tunes reasoning depth with `reasoning_effort`, which accepts `xhigh` (the default), `medium` or `low`; its example passes it directly as a request parameter. `preserve_thinking` decides whether a multi-turn conversation keeps the thinking blocks from earlier turns: Qwen3.8 keeps them by default, while [Qwen3.6](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) by default keeps only the latest turn's. The first changes how much reasoning this answer spends; the second changes how much old reasoning the next turn's input carries. Like `enable_thinking`, both change the request and template, not the weights.
+Later models add two more controls (as of October 2026). The [Qwen3.8-27B model card](https://huggingface.co/Qwen/Qwen3.8-27B) describes `reasoning_effort`, which controls reasoning depth and accepts `xhigh` (the default), `medium` or `low`; its example passes it directly as a request parameter. `preserve_thinking` decides whether a multi-turn conversation keeps the thinking blocks from earlier turns: Qwen3.8 keeps them by default, while [Qwen3.6](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) by default keeps only the latest turn's. The first controls the reasoning effort for the current answer; the second controls how much earlier reasoning is included in the next turn's input. Like `enable_thinking`, both change the request and template, not the weights.
 
 ## Separate three ways to spend less compute
 
@@ -67,9 +67,9 @@ Mixing the three makes “larger,” “sparser,” and “thinking longer” al
 
 ## Three ideas worth keeping
 
-1. **The family covers workloads, not just parameter points.** Small dense models target cheap deployment, large MoEs add capacity, and thinking mode reserves extra compute for hard problems.
+1. **Variants serve different workloads as well as different model sizes.** Small dense models target low-cost deployment, large MoEs add capacity, and thinking mode reserves extra compute for hard problems.
 2. **Original hybrid checkpoints support mode switching.** This is a checkpoint-specific interface, not a permanent promise for every family member. Report quality, length, and latency separately by mode.
-3. **Distillation connects the family internally.** Knowledge and reasoning traces from large models can train smaller ones, so sizes are no longer isolated training runs.
+3. **Larger models can help train smaller ones.** Through distillation, smaller models can learn from larger models' outputs and reasoning traces rather than learning these capabilities entirely on their own.
 
 ## Trade-offs
 
@@ -78,7 +78,7 @@ Mixing the three makes “larger,” “sparser,” and “thinking longer” al
 | Dense and MoE product line | One ecosystem across cost bands | More complex training, serving, and evaluation matrix |
 | Thinking mode | More test-time compute for hard problems | Different latency, token cost, and output stability |
 | Multilingual expansion | Wider language coverage and transfer | Harder data balance and long-tail evaluation |
-| In-family distillation | Small models inherit part of large-model capability | The ceiling and biases depend on the teacher and data |
+| In-family distillation | Small models inherit part of large-model capability | Supervision coverage and biases depend on the teacher and data; this is not a fixed ceiling on student performance |
 
 ## Not every size follows the same training route
 

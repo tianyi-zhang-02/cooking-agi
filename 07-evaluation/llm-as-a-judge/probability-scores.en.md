@@ -48,7 +48,7 @@ If 20 calls return four 3s, twelve 4s, and four 5s:
 $$\hat p(k)=\frac{n_k}{N},\qquad
 \bar{s}=\sum_k k\frac{n_k}{N}=\frac{1}{N}\sum_{i=1}^{N}s_i=4.$$
 
-This is the ordinary mean, rewritten using frequencies. It doesn't invent a separate weight for each of the 20 calls.
+This is the ordinary mean, rewritten using frequencies. Each sample still has equal weight; a rating label contributes more to the sum when it occurs more often.
 
 This is also part of G-Eval's implementation history. [Section 3.1](https://arxiv.org/html/2303.16634v3#S3.SS1) says its GPT-4 interface did not expose token probabilities at the time, so the authors estimated the rating distribution from 20 samples. That describes the paper's setup, not a restriction on every current interface. Twenty independent completions need not require twenty HTTP requests if the interface supports batch generation.
 
@@ -57,7 +57,7 @@ This is also part of G-Eval's implementation history. [Section 3.1](https://arxi
 - Identical temperature-zero outputs do not establish a useful sampling distribution. Temperature isn't a quality-calibration dial.
 - Two parsing failures mean 18 valid results from 20 attempts plus 2 errors. Don't report only the mean of the 18.
 
-More draws can reveal sampling variation. They won't repair a biased rubric, and 20 is not a universally appropriate sample size.
+More draws can reveal sampling variation, but they won't remove bias in the rubric. Choose the number of samples based on the variability of the scores, the precision you need, and the cost you can afford—not simply the paper's choice of 20.
 
 ## Keep more than a mean
 

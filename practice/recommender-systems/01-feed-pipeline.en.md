@@ -37,7 +37,7 @@ Trace the fictional candidate `post-17` through one request:
 | --- | --- | --- |
 | Retrieval | ID, source, source-specific score | Cannot distinguish a retrieval miss from later removal |
 | Feature hydration | Values, timestamps, missingness | Defaults and observations become indistinguishable |
-| Scoring | Model version and objective predictions | Cannot separate model changes from weight changes |
+| Scoring | Model version and predictions for each objective | Cannot separate model changes from changes to the weights used to combine predictions |
 | Selection and response | Removal reason, returned items and positions | Cannot locate the final removal stage |
 | Actual display | Client-impression event, request and item IDs | “Returned but unseen” gets mistaken for “not liked” |
 
@@ -45,7 +45,7 @@ This is a reading and debugging checklist, not a claim that the repository logs 
 
 ## Why separate the stages?
 
-Different costs suit different jobs: broad inexpensive retrieval, richer scoring over fewer candidates, then list constraints. A timed-out source can also fail independently.
+Separate stages let us use inexpensive retrieval over a broad pool, spend more computation on fewer candidates, and then apply list constraints. If one source times out, the request can also fall back to the remaining sources.
 
 The price is more interfaces. Fields can disappear, features can become stale, and configurations can disagree with models. Correctness includes preserving meaning across the whole path, not just getting one function right.
 

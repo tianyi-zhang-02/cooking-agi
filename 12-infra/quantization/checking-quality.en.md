@@ -4,13 +4,15 @@
 
 > Reading time: ~9 min · Last reviewed: 2026-10
 
-When [Dutta et al. (2024-07, NeurIPS 2024)](https://arxiv.org/abs/2407.09141) compressed Llama2-70B-chat to W4A16 with GPTQ, MMLU accuracy fell by only 0.45 points, yet 4.26% of the answers flipped between right and wrong. When [Marchisio et al. (2024-07)](https://arxiv.org/abs/2407.03211) compressed the 103B Command R+ to 4-bit weights with group scales, automatic evaluations in Japanese dropped by only 1.7% on average, while human evaluators on realistic prompts saw a 16.0% drop. **One average score misses the most common way quantization does damage. Accepting a quantized model takes three things together: compare the two models' next-token distributions on fixed text (KL divergence and top-1 agreement); compare them item by item on the same questions, counting flips and checking how wide the interval on the net change is; and look specifically at the slices that break first, namely long context, non-English, math reasoning and long outputs.**
+When [Dutta et al. (2024-07, NeurIPS 2024)](https://arxiv.org/abs/2407.09141) compressed Llama2-70B-chat to W4A16 with GPTQ, MMLU accuracy fell by only 0.45 points, yet 4.26% of the answers flipped between right and wrong. When [Marchisio et al. (2024-07)](https://arxiv.org/abs/2407.03211) compressed the 103B Command R+ to 4-bit weights with group scales, automatic evaluations in Japanese dropped by only 1.7% on average, while human evaluators on realistic prompts saw a 16.0% drop.
+
+An average score alone misses the most common quality losses from quantization. Evaluating a quantized model requires three complementary checks: compare next-token distributions on fixed text using KL divergence and top-1 agreement; compare answers to the same questions item by item, counting flips and examining the interval around the net change; and check the slices most prone to degradation, including long context, non-English, math reasoning and long outputs.
 
 The statistics of paired comparison (McNemar's test, the paired bootstrap) are worked out in [The score improved. What does that actually establish?](../../07-evaluation/metric-robustness.en.md#paired-binary); which fields of the evaluation setup to record is in [Before choosing a benchmark](../../07-evaluation/benchmark-protocols.en.md). This note covers only what to watch for when applying them to quantization.
 
 ## Several rulers, each measuring something different
 
-| Ruler | How it is computed | What it is good for | What it cannot see |
+| Metric | How it is computed | What it is good for | What it cannot see |
 | --- | --- | --- | --- |
 | Perplexity | the mean negative log-likelihood per token, exponentiated | cheap and sensitive to quantization | large errors at a few positions get averaged away; optimistic when calibration data overlaps the evaluation text |
 | KL divergence, top-1 agreement | compare the two models' distributions position by position on the same text | measures directly how far you are from the original model; needs no labels | does not say which kind of task is hurt, or in which direction |
@@ -40,7 +42,9 @@ $$
 - Position 1: $p=[0.60,\ 0.25,\ 0.10,\ 0.05]$, $q=[0.52,\ 0.30,\ 0.12,\ 0.06]$. KL is about 0.0129; the most likely token is unchanged.
 - Position 2: $p=[0.40,\ 0.38,\ 0.12,\ 0.10]$, $q=[0.37,\ 0.41,\ 0.12,\ 0.10]$. KL is about 0.0023, less than a fifth of position 1's, yet the top two swap places.
 
-Under greedy decoding, position 2 outputs a different token, every later step builds on a different prefix, and the text diverges from here. So report **mean KL** together with **top-1 agreement**, and look at the positions with the largest KL or with the top two close together. Dutta et al. report a Spearman correlation of 0.981 between KL and flip rate on MMLU; for Llama2-13B on WikiText-2, the KL is $7.9\times10^{-5}$ for GPTQ W8A16 and 0.02 for GPTQ W4A16. [Kurtic et al. (2024-11)](https://arxiv.org/abs/2411.02355) compared answers before and after quantization with greedy decoding on Arena-Hard prompts (FP8, INT8 and INT4 schemes); for the 8B model, ROUGE-L is only 0.46 while BERTScore is 0.92: **the wording changes a lot while the meaning mostly survives**, so comparing text word for word is meaningless; compare distributions and task scores.
+Under greedy decoding, position 2 outputs a different token, every later step builds on a different prefix, and the text diverges from here. So report **mean KL** together with **top-1 agreement**, and look at the positions with the largest KL or with the top two close together. Dutta et al. report a Spearman correlation of 0.981 between KL and flip rate on MMLU; for Llama2-13B on WikiText-2, the KL is $7.9\times10^{-5}$ for GPTQ W8A16 and 0.02 for GPTQ W4A16.
+
+[Kurtic et al. (2024-11)](https://arxiv.org/abs/2411.02355) compared answers before and after quantization with greedy decoding on Arena-Hard prompts (FP8, INT8 and INT4 schemes); for the 8B model, ROUGE-L is only 0.46 while BERTScore is 0.92. This shows that literal overlap and embedding similarity can give different assessments. [BERTScore](https://arxiv.org/abs/1904.09675) measures token similarity through contextual embeddings; a high score alone does not guarantee that key facts, negations or answer correctness are preserved. For open-ended answers that allow different wording, exact text agreement should not be the sole quality criterion: compare distributions and task scores as well. Exact matching remains useful when a task requires verbatim quotations, fixed fields or a specified output format; code tasks also need appropriate execution or structural checks.
 
 One more easily missed bias: measure perplexity on text outside the calibration data. [GPTQ](https://arxiv.org/abs/2210.17323) itself notes that its calibration data comes from the C4 training set, so the C4 perplexity it reports is not fully zero-shot. Use held-out text from your own domain, with no overlap with the calibration set.
 
@@ -105,7 +109,7 @@ Continuing with the 1,000 questions, suppose 100 of them are long-context items 
 | Long context | 100 | 45 (45%) | 39 (39%) | −6 points |
 | Total | 1,000 | 720 (72.0%) | 716 (71.6%) | −0.4 points |
 
-The total drops by only 0.4, while the long-context slice drops by 6 points. With 100 items the interval is wide too, but this is exactly the signal to add items and dig in. Define slices in advance; picking the worst of dozens of slices after the fact overstates the problem, see [Controlled comparisons and slices](../../07-evaluation/ablation-and-slices.en.md). In published studies, these break first:
+The total drops by only 0.4 points, while the long-context slice drops by 6. The interval is wide with only 100 items, but the result warrants adding questions and investigating further. Define slices in advance: picking the worst of dozens of slices after the fact overstates the problem, as explained in [Controlled comparisons and slices](../../07-evaluation/ablation-and-slices.en.md). In published studies, the following tasks show degradation first:
 
 - **Long context.** [Mekala et al. (2025-05, EMNLP 2025)](https://arxiv.org/abs/2505.20276) used 9.7K test examples from 5 datasets (long inputs meaning over 64K tokens, plus long-output tasks) to test FP8, GPTQ-int8, AWQ-int4, GPTQ-int4 and BNB-nf4 on Llama-3.1 8B and 70B and Qwen-2.5 7B, 32B and 72B: 8 bits lose only 0.2 (FP8) and 0.8 (GPTQ-int8) points on average; 4 bits lose 1.8 (AWQ) to 6.9 (BNB-nf4) points on average; non-English inputs fare worse; and it depends heavily on the model: with the same BNB-nf4 on the same OneRuler benchmark, Llama-3.1 70B loses 59 points while Qwen-2.5 72B barely moves (+0.6). Kurtic et al.'s RULER results are milder: 81.1 for 8B W4A16 against 82.8 for BF16.
 - **Multilingual.** Marchisio et al. (Findings of EMNLP 2024) found languages with non-Latin scripts hit hardest and hard tasks such as math degrading fastest; automatic metrics underestimate the degradation people perceive (the 1.7% against 16.0% above).
@@ -135,13 +139,13 @@ The total drops by only 0.4, while the long-context slice drops by 6 points. Wit
 | Errors start in the second half of long conversations | KV quantization error builds up with length, or some layers (such as sliding window) are more sensitive | turn KV quantization off as a control; use the option to skip sensitive layers |
 | Occasional NaNs or individual broken outputs | FP8 out of range (E4M3 becomes NaN in overflow mode); a static scale that is too small | measure the maximum of activations and KV; switch to saturating mode or dynamic scales |
 | Memory went down but speed did not change | the hardware lacks the matching Tensor Core and falls back to dequantizing, or the batch is already compute-bound | the kernel actually used, in the engine log; the GPU's compute capability; the batch table in [note 2](weight-only-and-ptq.en.md) |
-| Outputs before and after quantization differ word for word | a near-tied token flips and the rest of the text diverges | compare distributions and task scores, not the literal text |
+| Outputs before and after quantization differ word for word | a near-tied token flips and the rest of the text diverges | compare distributions and task scores for open-ended answers; retain exact or structural checks where the task requires precise outputs |
 
 This table is a starting point for debugging, not a diagnosis; each row has to be confirmed with a controlled comparison.
 
 ## What this note cannot answer for you
 
-- How much loss is acceptable is a product decision: which slices must hold and which can give a little should be written down in advance.
+- Acceptable quality loss depends on product requirements. Specify in advance which slices must retain their performance and where some decline is acceptable.
 - Statistical power: with the 1,000 questions above, the 95% interval is about 3 points wide; to resolve smaller changes you need more items or a finer paired design.
 - A conclusion on one model does not carry over to another: Mekala et al. found that with the same BNB-nf4 on the same OneRuler benchmark, Qwen-2.5 72B barely moved while Llama-3.1 70B lost 59 points.
 

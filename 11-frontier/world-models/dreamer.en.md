@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-Every time the robot arm pushes the cup, someone has to put the cup back; if it falls, it may break. Could we learn a model from logged interaction, let the policy practise thousands of times on trajectories the model "imagines", and only then go to the real robot? That is what the Dreamer line does. **It learns a compact latent dynamics model and trains an actor-critic only on imagined latent trajectories; it saves real interaction, at the price that the policy inherits, and can even exploit, the model's errors.**
+Every time the robot arm pushes the cup, someone has to put the cup back; if it falls, it may break. Could we learn a model from logged interaction, let the policy practise thousands of times on trajectories the model "imagines", and only then go to the real robot? That is what the Dreamer line does.
+
+It learns a compact latent dynamics model and trains an actor-critic only on imagined latent trajectories. This reduces real interaction, but the policy also inherits, and can even exploit, the model's errors.
 
 ## Dreamer spends its computation at training time
 
@@ -158,7 +160,7 @@ The paper states that training used 256 to 1024 TPU-v5p chips but gives no train
 | Does the model state mean anything? | It can be decoded back into images for inspection | No environment semantics required | Usually it is the physical state itself |
 | Representative result | DreamerV3: one hyperparameter set across 150+ tasks | MuZero Reanalyze: 731% median human-normalised score on 57 Atari games (200M frames) | That note's cart example: with a wrong model gain, replanning recovers part of the loss |
 
-In one line: Dreamer reconstructs its inputs, MuZero predicts only decision-relevant quantities, and JEPA in the [next note](jepa.en.md) predicts embeddings.
+These approaches emphasise different training targets: Dreamer reconstructs its inputs, MuZero predicts only decision-relevant quantities, and JEPA in the [next note](jepa.en.md) predicts embeddings.
 
 ## What to check when you read a Dreamer-style result
 

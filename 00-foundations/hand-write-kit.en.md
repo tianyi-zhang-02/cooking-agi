@@ -18,7 +18,7 @@ python3 00-foundations/code/interview_kit.py
 
 | What to write | The trap | The usual follow-up |
 | --- | --- | --- |
-| **softmax** | overflows without subtracting the max | "why is subtracting still correct?" — softmax is shift-invariant; numerator and denominator both pick up $e^c$ and it cancels, so subtracting the max is free |
+| **softmax** | overflows without subtracting the max | "why is subtracting still correct?" — softmax is invariant to a shared shift; the common factor $e^c$ cancels between numerator and denominator, so subtracting the max leaves the mathematical result unchanged |
 | **BCE from logits** | computing $p$ then its log underflows to $-\infty$ | "what's the gradient?" — $p-y$; the $\sigma'$ cancels |
 | **LayerNorm** | `eps` goes inside the sqrt; variance divides by $N$, not $N-1$; this implementation normalizes the last dimension | `normalized_shape=(T,d)` also normalizes across time, unlike the per-token configuration |
 | **attention + causal mask** | the $\sqrt{d_k}$; mask added **before** the softmax | "could you zero it after the softmax instead?" — no, it breaks normalization (two-score example in [multi-head attention](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong)) |

@@ -4,9 +4,9 @@
 
 > 阅读时间：约 8 分钟 · 最近审阅：2026-10
 
-每个 token 只算 8 个专家，为什么部署起来还是不省事？因为“算得少”只是一笔账。另外两笔是：token 要在卡之间搬来搬去，全部专家的权重都得放得下。
+每个 token 只算 8 个专家，为什么部署起来还是不省事？因为除了计算量，还要考虑另外两项开销：token 表示可能需要在卡之间传输，全部专家的权重也得有地方存放。
 
-**MoE 把每 token 的计算压下去，代价转成了通信和显存；划不划算，要看互联带宽、显存总量和 batch 大小。** 下面用 DeepSeek-V3 的尺寸各算一笔。
+MoE 减少每 token 的计算时，也引入了通信和权重存储的开销。这样的取舍是否划算，要看互联带宽、显存总量和 batch 大小。下面用 DeepSeek-V3 的尺寸分别估算。
 
 ## Expert parallelism 与两次 all-to-all
 
@@ -101,7 +101,9 @@ assert bf16_logits([2.0, 2.03]) == [2.0, 2.03125]
 assert bf16_logits([10.0, 10.03]) == [10.0, 10.0]
 ```
 
-两种常见做法管的正是这件事：[Switch Transformer](https://arxiv.org/abs/2101.03961) 只把 router 的输入和计算转成 FP32，其余部分照旧低精度；[ST-MoE](https://arxiv.org/abs/2202.08906) 的 router z-loss（见[负载均衡](load-balancing.md)）让 router logits 保持较小，舍入误差也就跟着变小。两者都不保证路由稳定，也不能代替负载均衡。这个算例只说明舍入能改变选择，不代表训练中这种翻转有多常见。
+两种常见做法用于改善 router 的数值稳定性：[Switch Transformer](https://arxiv.org/abs/2101.03961) 把 router 的输入和局部计算转成 FP32，再把输出转回低精度；[ST-MoE](https://arxiv.org/abs/2202.08906) 的 router z-loss（§3.3 式 5，另见[负载均衡](load-balancing.md)）惩罚的是 log-normalizer 的平方，即每个 token 的 $(\log\sum_j e^{z_j})^2$。论文报告它改善了训练稳定性，并从舍入误差解释其动机；但这个惩罚并不逐项约束 logit 的绝对值。例如 $z=[0,-a]$、$a\to\infty$ 时，z-loss 趋近 0，第二个 logit 的绝对值却不断增大，因而不能推出所有 logits 的舍入误差都会减小。
+
+两者都不保证路由稳定，也不能代替负载均衡。上面的 BF16 算例只说明舍入能改变选择，不代表训练中这种翻转有多常见。
 
 ## 小结
 

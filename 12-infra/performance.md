@@ -4,7 +4,9 @@
 
 > 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
-`nvidia-smi` 显示 GPU 利用率 100%，一个 7B 模型逐个生成 token，却只有每秒两百来个。是卡不够快，还是没用好？先看那个 100% 量的是什么：NVML 把它定义为采样周期里“至少有一个 kernel 在跑”的时间比例（[NVML 文档](https://docs.nvidia.com/deploy/nvml-api/api/structnvmlUtilization__t.html)），它并不说明算力用掉了多少。**更有用的问题是：这个操作每从显存搬 1 字节，要做几次运算？拿它和这张卡的“峰值算力 ÷ 显存带宽”比：低了就该减少搬运，高了才轮到算力。** 下面用同一张 H100 的公开规格，把大矩阵乘、逐元素加法和 7B 模型的 decode 放到同一张图上，再算 MFU、多卡通信，最后排出 profiling 的顺序。
+`nvidia-smi` 显示 GPU 利用率 100%，一个 7B 模型逐个生成 token，却只有每秒两百来个。是卡不够快，还是没用好？先看那个 100% 量的是什么：NVML 把它定义为采样周期里“至少有一个 kernel 在跑”的时间比例（[NVML 文档](https://docs.nvidia.com/deploy/nvml-api/api/structnvmlUtilization__t.html)），它并不说明算力用掉了多少。
+
+更有用的问题是：这个操作每从显存搬 1 字节，要做几次运算？拿它和这张卡的“峰值算力 ÷ 显存带宽”比，可以初步判断 roofline 上限受带宽还是算力限制，再决定优先减少搬运还是改善计算。下面用同一张 H100 的公开规格，把大矩阵乘、逐元素加法和 7B 模型的 decode 放到同一张图上，再算 MFU、多卡通信，最后排出 profiling 的顺序。
 
 本篇接着 [CUDA：线程、内存与 kernel](cuda.md)。除非注明是论文报告的结果，文中数字都是按公开规格算出的上限或教学假设，不是 benchmark。
 
@@ -45,7 +47,7 @@ $P_{\rm peak}$ 是峰值算力（FLOP/s），$B$ 是显存带宽（byte/s），$
 
 **逐元素加。** 每个元素读两个 BF16（4 字节）、写一个（2 字节），只做 1 次加法，$I=1/6$。它不走 Tensor Core；即使和非 Tensor Core 的 ridge point $133.8/3.352\approx40$ 比，也低了两个多数量级。它能达到的上限是 $3.352\times10^{12}\times1/6\approx0.56$ TFLOPS，约为 Tensor Core 峰值的 0.06%。所以要把 bias、激活这类逐元素运算融合进前一个 GEMM 的收尾：省掉一次显存往返，比把加法算快有用得多。[CUDA 篇的 vector add](cuda.md#vector-add)（FP32，读 8 字节、写 4 字节、1 次加法，$I=1/12$）也属于这一类。
 
-**Decode。** 生成一个 token 时，每个权重只参与一次乘加（2 FLOP），却要从显存读 2 字节，$I\approx1$。7B 模型的 BF16 权重约 $1.4\times10^{10}$ 字节，读一遍至少要 $1.4\times10^{10}/3.352\times10^{12}\approx4.18$ ms，所以单条请求最多约 239 tokens/s；把这些运算做完却只要 0.014 ms。NVIDIA 指南举过同类的例子：batch 1 的全连接层是矩阵乘向量（GEMV），算术强度小于 1，总是带宽受限。
+**Decode。** 生成一个 token 时，每个权重只参与一次乘加（2 FLOP），却要从显存读 2 字节，$I\approx1$。7B 模型的 BF16 权重约 $1.4\times10^{10}$ 字节，读一遍至少要 $[1.4\times10^{10}/(3.352\times10^{12})]\ \mathrm{s}\approx4.18\ \mathrm{ms}$，所以单条请求最多约 239 tokens/s；把这些运算做完却只要 0.014 ms。NVIDIA 指南举过同类的例子：batch 1 的全连接层是矩阵乘向量（GEMV），算术强度小于 1，按这个计算与搬运模型受带宽限制。
 
 <!-- widget:step-roofline -->
 
@@ -62,7 +64,7 @@ $P_{\rm peak}$ 是峰值算力（FLOP/s），$B$ 是显存带宽（byte/s），$
 | 295 | 4.18 ms | 4.17 ms | 4.18 ms | 70,600 |
 | 512 | 4.18 ms | 7.24 ms | 7.24 ms | 70,700 |
 
-$B$ 小于 295，也就是 $I$ 还在 ridge point 左边时，多加一条请求几乎不增加每步时间，吞吐随 $B$ 线性上涨；过了 $B\approx295$，吞吐不再涨，只是每一步更慢，每条请求等得更久。这就是 serving 引擎拼命组 batch 的原因。
+在这个只计权重、使用峰值的模型中，$B$ 小于 295，也就是 $I$ 还在 ridge point 左边时，多加一条请求几乎不增加每步时间下限，吞吐上限随 $B$ 线性上涨；过了 $B\approx295$，吞吐上限不再涨，每步时间下限却继续增加，每条请求要等得更久。这个权重复用收益解释了 serving 引擎为什么要组 batch；实际曲线还会受下文的 KV 等开销影响。
 
 ### 再把 KV cache 算进来
 
@@ -76,7 +78,7 @@ Attention 的运算也要算进来：每层每个 query head 要和 $T$ 个位�
 | 8 | 18.3 GB | 7.1 | 5.46 ms | 1,470 |
 | 64 | 48.4 GB | 21.4 | 14.4 ms | 4,440 |
 
-$B$ 再大，算术强度也只会逼近 $(1.4\times10^{10}+2.15\times10^{9})/5.37\times10^{8}\approx30$，离 295 很远；而 $B=128$ 时，权重加 KV 已约 77 GiB，几乎占满 80 GB 显存。所以在这个上下文长度下，先碰到的是 KV 的带宽和容量，而不是算力。GQA、MLA、KV 量化和分页管理都是在减这部分字节或浪费，见 [KV 显存预算](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和 [FlashAttention 与 PagedAttention](../00-foundations/deep-dives/attention-kernels.md)。
+$B$ 再大，算术强度也只会逼近 $(1.4\times10^{10}+2.15\times10^{9})/(5.37\times10^{8})\approx30$，离 295 很远；而 $B=128$ 时，权重加 KV 已约 77 GiB，几乎占满 80 GB 显存。所以在这个上下文长度下，先碰到的是 KV 的带宽和容量，而不是算力。GQA、MLA、KV 量化和分页管理都是在减这部分字节或浪费，见 [KV 显存预算](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和 [FlashAttention 与 PagedAttention](../00-foundations/deep-dives/attention-kernels.md)。
 
 反过来，prefill 一次处理一条请求的几千个 token。和上面的 batch 表一样只算权重字节时，线性层的算术强度约等于一次处理的 token 数；把激活的读写也算上会低一些（hidden size 4096、一次 4096 个 token 时约 1,365），仍远高于 295。同一个模型的两个阶段落在 roofline 两侧，这也是[一次 LLM 请求](../06-systems/llm-serving.md)里要把首 token 延迟和输出间隔分开看的一个原因。本节数字都按峰值算，没有扣除激活、kernel launch 和实际达不到的带宽。
 
@@ -113,7 +115,7 @@ $$
 t_{\rm all\text{-}reduce}\approx\frac{S}{B_{\rm bus}}\cdot\frac{2(n-1)}{n}.
 $$
 
-这个 $B_{\rm bus}$ 可以直接和链路带宽比，也不随 rank 数变化。拿 nccl-tests 在自己机器上测出的 busbw 代入，比用规格表上的数字可靠。
+这个 $B_{\rm bus}$ 用 $2(n-1)/n$ 校正了 all-reduce 的数据传输量，因此能在不同 rank 数下按同一口径与链路带宽比较。这不表示实测 busbw 不随 rank 数变化：拓扑、跨节点链路和争用仍会改变它。拿 nccl-tests 在目标机器和 rank 配置上测出的 busbw 代入，比用规格表上的数字可靠。
 
 接着上面的 7B 例子，用 DDP 同步 BF16 梯度：$S=7\times10^9\times2=14$ GB。每卡每步的计算量不变（8 条 × 4096 token），一步仍按 3.64 s 算。
 

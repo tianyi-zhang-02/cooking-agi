@@ -67,7 +67,7 @@ DFlash uses block diffusion only to draft: a small model reads the target model'
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>What does the two-token objective become without the $1/t$, and why does it lose its likelihood interpretation?</li>
     <li>At how many tokens per step was LLaDA's GSM8K score measured? What does that imply for claims of "both good and fast"?</li>

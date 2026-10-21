@@ -76,7 +76,7 @@ RRF discards raw score gaps, so it cannot distinguish a narrow first-place win f
 
 After fusion, we still need to determine whether A is outdated and B applies to the current environment. A cross-encoder jointly reads the query and candidate for finer comparisons. An LLM judge with clear criteria is another option, but cost, consistency, and resistance to instructions inside retrieved content need testing.
 
-One concrete scoring rule: [Qwen3-Reranker](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B) puts the query and the candidate into one prompt asking whether the candidate meets the requirement, takes the logits of the “yes” and “no” tokens at the last position, applies a softmax over just those two, and uses the probability of “yes” as the score. With logits 2 and 0 the score is $e^2/(e^2+1)\approx0.881$. This is hand arithmetic, not model output; it shows that the score comes from one joint reading, not from the dot product of two independent vectors.
+For a concrete scoring rule, consider [Qwen3-Reranker](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B). It puts the query and candidate into one prompt asking whether the candidate meets the requirement. At the last position, it takes the logits for “yes” and “no,” applies a softmax over those two tokens, and uses the probability of “yes” as the score. With logits 2 and 0, the score is $e^2/(e^2+1)\approx0.881$. This is hand arithmetic, not model output. It shows that the score comes from jointly reading the query and candidate, rather than from the dot product of two independent vectors.
 
 ```text
 Documents the user may access

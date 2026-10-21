@@ -18,7 +18,7 @@ It is the extra computation spent answering one question with the weights fixed:
 <details class="interview" markdown="1">
 <summary>When does majority voting actually lower accuracy? Give an example you can compute by hand.</summary>
 
-As N grows, voting converges to the model's most common answer on that problem. It helps if the right answer is the mode and hurts if it is not. Example: a single try is right with probability 0.4, and the wrong 0.6 is always the same answer B. With 3 votes the right answer needs at least 2, with probability $0.064+0.288=0.352$, below the 0.4 of a single sample, and it tends to 0 as N→∞. With the same $p=0.4$ but all wrong answers different, 3 votes give 0.496 and 5 votes about 0.715, tending to 1. So the average $p$ cannot predict the score after voting; you have to check, problem by problem, whether errors are spread out or concentrated. Voting also needs answers that can be compared.
+With independent samples from a fixed distribution and a unique mode, the probability of voting for that mode approaches 1 as N grows. This asymptotic result does not guarantee monotonic gains at finite N. Example: a single try is right with probability 0.4, and the wrong 0.6 is always the same answer B. With 3 votes the right answer needs at least 2, with probability $0.064+0.288=0.352$, below the 0.4 of a single sample, and it tends to 0 as N→∞. With the same $p=0.4$ but all wrong answers different, 3 votes give 0.496 and 5 votes about 0.715, tending to 1. So the average $p$ cannot predict the score after voting; you have to check, problem by problem, whether errors are spread out or concentrated. Voting also needs answers that can be compared.
 
 </details>
 
@@ -67,7 +67,7 @@ Yue et al. (NeurIPS 2025) found that RL models are better at small $k$, base mod
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>Given the answer distribution on one problem, where does voting push accuracy? Why is the dataset's average $p$ not enough?</li>
     <li>In the best-of-N accuracy formula, how do $r$ and $f$ each affect the ceiling? What happens when the verifier's errors are correlated with the generator's?</li>

@@ -21,7 +21,9 @@ $$
 P(C=1\mid x,i)=P(E=1\mid x,i)\,P(C=1\mid E=1,x,i).
 $$
 
-Observed clicks depend on both users and the system's exposure choices. Existing logs may not let us separate them. [Recommendations as Treatments](https://arxiv.org/abs/1602.05352) develops propensity-based approaches to selection bias in learning and evaluation; adding weights is not a general guarantee that bias disappears.
+This equation gives the probability that a candidate opportunity leads to a click, including the probability of being shown first. A logged click-through rate (CTR) usually divides clicks by impressions instead. Those are different denominators. The display policy also determines which items enter the impression log, so even a comparison of logged CTRs needs to account for differences in what was shown and under what conditions.
+
+Existing logs may not let us separate these effects. [Recommendations as Treatments](https://arxiv.org/abs/1602.05352) develops propensity-based approaches to selection bias in learning and evaluation. Adding weights does not guarantee that every source of bias disappears.
 
 ## Work through it: more clicks need not mean stronger preference
 
@@ -63,7 +65,7 @@ Why can this work? Under ignorable selection, conditional on recorded context an
 - **Clipping:** the code floors propensities at 0.25, reducing extreme weights but changing the estimate to 0.22. Stability trades against bias; report both concerns.
 - **Missing selection variables:** a plausible estimated propensity does not guarantee correction of unobserved bias.
 
-“Used IPW” does not mean “removed bias.” When its conditions are unavailable, explaining the data gap is often more useful than forcing an estimator onto it.
+Check these conditions before using IPW. If they do not hold, explain what data is missing and how it could bias the estimate, rather than treating a weighted result as necessarily unbiased.
 
 ### Unbiased does not mean accurate on every log {#weight-variance}
 
@@ -104,7 +106,7 @@ The last assertion caps the weight at 4 instead of 10. Variance falls to 1.44, b
 
 </details>
 
-## Make labels a checkable contract
+## Define what each label means {#make-labels-a-checkable-contract}
 
 Suppose the goal is learning which technical articles people want to finish. Specify at least:
 
@@ -173,7 +175,7 @@ Zero means exposed-but-unclicked, not disliked. Treating it as a negative requir
 
 ## Test whether the signal helps
 
-Hold the model, candidate set, and compute budget fixed when changing labels or sampling. Then hold data fixed when testing architecture. Otherwise attribution becomes difficult. Evaluate overall and predefined subgroup behavior, with a human or behavioral reference not scored by the training teacher.
+Hold the model, candidate set, and compute budget fixed when changing labels or sampling; hold the data fixed when comparing architectures. This helps identify where an improvement came from. Evaluate both the overall result and predefined user groups, using independent human labels or behavioral feedback as a reference. If the same teacher generates training labels and judges the result, a higher score may only show closer agreement with that teacher's preferences.
 
 If scores don't move, inspect coverage of the intended population and whether the metric can detect the improvement before buying a larger model. One failed experiment neither disproves the signal nor proves that scale will rescue it.
 

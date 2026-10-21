@@ -1,14 +1,16 @@
-# How planning and learning feed each other: distillation, terminal values, and search as policy improvement
+# Combining planning and learning: search, value estimates, and policy distillation
 
 [中文](planning-and-learning.md) · **English**
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-With a model in hand, computation can be spent at two moments: before deployment, turning rollouts in the model into training data; or at deployment, searching afresh at every step. The two are not exclusive. Systems like AlphaZero do both and let each improve the other. **Planning can produce better labels for learning, and learning can make planning cheaper; when you connect them, be clear about which side is correcting which side's errors.**
+With an environment model, we can generate trajectories to train a policy, or search for an action when it is time to make a decision. The first approach spends most of its computation during training; the second adds computation at each decision.
+
+They can also work together. AlphaZero trains its policy network on search results, then uses the network's predictions to guide later searches. Starting with a corridor example, we examine how search provides training targets, how value estimates shorten planning, and what can be lost when a planner is distilled into a policy.
 
 ## Spend computation before deployment, or at every step?
 
-Background planning uses the model to generate experience and then applies ordinary RL updates to learn a policy or Q; at deployment it only calls the learned policy. Decision-time planning searches from the current real state before every action. The first is cheap to deploy; the second can compute for the exact state in front of it, even one never seen in training.
+Background planning generates experience with a model and uses RL updates to learn a policy or Q-values. Deployment uses the learned policy directly, keeping decision costs low. Decision-time planning searches from the current state before acting, allowing it to reconsider the available actions—even in a state absent from training.
 
 Dyna, introduced by [Sutton (1990)](http://incompleteideas.net/papers/sutton-90.pdf), is the prototype of background planning: one learning process alternates between the real environment and a learned model, and Dyna-Q adds this step on top of Q-learning. [Sutton (1991)](http://incompleteideas.net/papers/sutton-91a.pdf) describes the structure as compiling planning into a reactive policy: the policy produces actions with almost no delay while planning keeps improving it in the background.
 
@@ -78,7 +80,7 @@ Note that AlphaZero's "model" is the exact rules of the game, not something lear
 
 ## Terminal values let a short-sighted MPC see beyond its horizon
 
-The MPC objective in the [Model-based note](model-based.en.md) ends with a term $\gamma^H\hat V(\hat s_{t+H})$. That term is what learning feeds into planning: the planner looks $H$ steps ahead and hands the rest of the future to a learned value.
+The MPC objective in the [Model-based RL note](model-based.en.md) ends with $\gamma^H\hat V(\hat s_{t+H})$. The planner explicitly computes the next $H$ steps; the learned value function estimates the return beyond that horizon.
 
 A corridor has positions 0, 1, and 2. Start at 0; reaching 2 earns 10 points and ends the episode; each move costs 1 point, staying put costs nothing, $\gamma=0.9$, and the model is exact. The true values are $V^*(1)=-1+10=9$ and $V^*(0)=-1+0.9\times9=7.1$. Compare the first action under several planning settings:
 
@@ -97,7 +99,7 @@ Without a terminal value, the $H=1$ planner only sees that moving costs 1 point 
 
 Another combination runs the planner in many states and trains a policy network to imitate its outputs. Deployment then needs one forward pass. [Guided Policy Search (Levine & Koltun, 2013)](https://proceedings.mlr.press/v28/levine13.html) uses trajectory optimization to guide policy search and avoid poor local optima; [Levine et al. (2016)](https://arxiv.org/abs/1504.00702) turn policy search into supervised learning, with a trajectory optimizer that sees the full state as teacher and a student that sees only raw images.
 
-Deployment-time search is saved, and 3 things are lost:
+Removing deployment-time search introduces three concerns:
 
 - **Replanning on the spot.** If an obstacle suddenly appears ahead, or the reward changes, the planner can recompute; the student only repeats what it learned.
 - **Recovery after drifting.** If the student makes a small error at each step, it reaches states the teacher never labeled, and errors compound. This is the problem [DAgger addresses in imitation learning](imitation-and-rewards.en.md). Levine et al. alternate training so that the teacher's supervision gradually lands on states the student itself visits, and at convergence the two behave the same.

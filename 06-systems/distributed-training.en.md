@@ -134,7 +134,7 @@ This excludes activations, communication buffers, and temporary gathers. Four GB
 
 After a Stage 2 update, each rank owns only the part of the parameters it updated. Each still needs a complete model for the next forward, so the updated shards must be gathered. Avoiding persistent full gradients does not remove synchronization.
 
-Here is a small communication ledger. Use four ranks, 8 MiB each for the full gradient and parameter tensors, and evenly partitioned ring collectives. Count **payload sent per rank**, without adding received bytes again. A reduce-scatter or all-gather sends $8\times3/4=6$ MiB per rank:
+To calculate communication volume, use four ranks, 8 MiB each for the full gradient and parameter tensors, and evenly partitioned ring collectives. Count **payload sent per rank**, without adding received bytes again. A reduce-scatter or all-gather sends $8\times3/4=6$ MiB per rank:
 
 | Simplified path for one update | Sent per rank |
 | --- | ---: |

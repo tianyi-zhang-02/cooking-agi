@@ -4,7 +4,9 @@
 
 > Reading time: ~14 min · Last reviewed: 2026-10
 
-LLaDA 8B Instruct's GSM8K score was measured with one token committed per forward pass: a 512-token answer took 512 steps ([LLaDA, Appendix B.6](https://arxiv.org/abs/2502.09992)). When a third party, with generation length 128 and block size 32, made the same model commit a fixed 4 tokens per step, GSM8K dropped from 73.6 to 61.7 ([Kim et al., 2025-10](https://arxiv.org/abs/2510.04146)). **How much faster a diffusion model can be depends on two numbers: how many tokens it can safely commit per step on average (call it $\tau$), and how many positions each step recomputes (call it $G$). At low concurrency, decode is held back by memory bandwidth while compute sits idle, so speed can rise by up to about $\tau$ times; once concurrency is high enough to use all the compute, each token costs about $G/\tau$ times more computation, and the advantage disappears or even reverses.**
+LLaDA 8B Instruct's GSM8K score was measured with one token committed per forward pass: a 512-token answer took 512 steps ([LLaDA, Appendix B.6](https://arxiv.org/abs/2502.09992)). When a third party, with generation length 128 and block size 32, made the same model commit a fixed 4 tokens per step, GSM8K dropped from 73.6 to 61.7 ([Kim et al., 2025-10](https://arxiv.org/abs/2510.04146)).
+
+Estimating diffusion speed requires two numbers: the average number of tokens committed per step at acceptable quality (call it $\tau$), and the number of positions each step recomputes (call it $G$). The simplified roofline model below predicts a speedup of up to about $\tau$ at low concurrency, when decode is memory-bandwidth-bound and compute has spare capacity. Once concurrency is high enough to saturate compute, each token requires about $G/\tau$ times the computation of AR decoding, so the predicted advantage disappears or reverses. These ratios depend on the model's assumptions; the actual crossover must be measured with attention, KV traffic and implementation overheads included.
 
 This note follows [the masked diffusion objective](masked-diffusion.en.md) and does its accounting with the notation and H100 numbers from [the roofline note](../../12-infra/performance.en.md#decode-batching).
 
@@ -71,13 +73,13 @@ Blocks also happen to improve quality: Kim et al. measured GSM8K at 63.2 without
 
 ## The accounting by hand (a teaching model): time on the same GPU
 
-**This section is a teaching model, not a measurement.** It uses only three numbers from [the roofline note](../../12-infra/performance.en.md#decode-batching): a 7B model's BF16 weights take about $1.4\times10^{10}$ bytes, the H100 SXM5 has 3.352 TB/s of bandwidth, and its BF16 dense peak is 989.4 TFLOPS. Reading the weights once takes at least $1.4\times10^{10}/3.352\times10^{12}=4.18$ ms; the compute for one position is about $2N=1.4\times10^{10}$ FLOPs, or 0.01415 ms at peak. Ignoring attention compute, KV reads and all overheads, the lower bound for one forward pass over $n$ positions is
+**This section is a teaching model, not a measurement.** It uses only three numbers from [the roofline note](../../12-infra/performance.en.md#decode-batching): a 7B model's BF16 weights take about $1.4\times10^{10}$ bytes, the H100 SXM5 has 3.352 TB/s of bandwidth, and its BF16 dense peak is 989.4 TFLOPS. The time bound for reading the weights once is $\frac{1.4\times10^{10}\ \text{bytes}}{3.352\times10^{12}\ \text{bytes/s}}\approx4.1766\times10^{-3}\ \text{s}\approx4.18\ \text{ms}$; the compute for one position is about $2N=1.4\times10^{10}$ FLOPs, or 0.01415 ms at peak. Ignoring attention compute, KV reads and all overheads, the lower bound for one forward pass over $n$ positions is
 
 $$
 T_{\text{step}}(n)=\max\big(4.18\ \text{ms},\;n\times0.01415\ \text{ms}\big)
 $$
 
-Below about 295 positions, reading the weights dominates and extra positions are nearly free; above 295, compute dominates. Below is a teaching estimate for one request with a 512-token prompt and 256 generated tokens:
+The equation displays rounded values; the tables and code below use the unrounded constants, giving a crossover at about 295.167 positions. Below it, reading the weights dominates and extra positions are nearly free; above it, compute dominates. First, consider a teaching estimate for one request with a 512-token prompt and 256 generated tokens:
 
 | Scheme | Positions per step | Lower bound per step | Steps | Total time | Relative to AR |
 | --- | --- | --- | --- | --- | --- |
@@ -87,7 +89,7 @@ Below about 295 positions, reading the weights dominates and extra positions are
 | Blocks $G=32$ + prefix cache, 1 per step | 32 | 4.18 ms | 256 | 1,076 ms | 1.0× |
 | Same, 4 per step | 32 | 4.18 ms | 64 | 275 ms | 3.9× |
 
-Without a cache, every step recomputes 768 positions, past the 295 mark, so a single step takes 2.6 times as long as an AR step; at one token per step, the total time is also 2.6 times AR's. With blocks and a cache, each step computes only 32 positions, still in the shadow of the weight read, so committing 4 per step is almost exactly 4 times faster. If each finished block gets one extra forward pass to write the cache (as DiffusionGemma does), 8 blocks add $8\times4.18=33$ ms, for 308 ms in total, about 3.5 times faster.
+In this estimate, every uncached step recomputes 768 positions, past the 295 mark, so its time bound is 2.6 times that of an AR step. At one token per step, the total time bound is also 2.6 times AR's. With blocks and a cache, each step computes only 32 positions, so weight reads still determine the time bound; committing 4 tokens per step gives an estimated speed close to 4 times AR's. If each finished block gets one extra forward pass to write the cache (as DiffusionGemma does), 8 blocks add $8\times4.18=33$ ms, giving a total time bound of 308 ms and an estimated speedup of about 3.5 times.
 
 Now many concurrent requests (still the teaching model, decode phase only, block diffusion with $G=32$, $\tau=4$):
 
@@ -98,7 +100,9 @@ Now many concurrent requests (still the teaching model, decode phase only, block
 | 64 | 64 | 15,323 tok/s | 2,048 | 8,834 tok/s |
 | 295 | 295 | 70,631 tok/s | 9,440 | 8,834 tok/s |
 
-Diffusion uses up the compute at about 9 concurrent requests ($9\times32=288$ positions) and caps at 8,834 tok/s from then on, exactly 1/8 of AR's cap of 70,671: each committed token costs $G/\tau=8$ positions of compute. AR catches up at about 37 concurrent requests and is faster beyond that. Both tables can be recomputed with a few lines:
+Using the unrounded constants, diffusion reaches its compute crossover at about $295.167/32\approx9.224$ concurrent requests. Nine requests require only $9\times32=288$ positions and remain slightly bandwidth-bound; ten reach the approximately 8,834 tok/s ceiling. AR's 70,631 tok/s at 295 requests is also just below its compute ceiling of about 70,671 tok/s, reached from 296 requests onward. The unrounded diffusion ceiling is exactly 1/8 of AR's: each committed token costs $G/\tau=8$ positions of compute.
+
+AR catches up with diffusion at a continuous crossover of about 36.90 concurrent requests, so it is faster from integer concurrency 37 onward. Both tables can be recomputed with a few lines:
 
 ```python
 W = 1.4e10 / 3.352e12 * 1e3      # reading the weights once: 4.18 ms

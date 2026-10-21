@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-Two driving models have exactly the same L2 error in open-loop evaluation; put them in closed-loop simulation and one is over the lane line in under two seconds while the other stays steadily in its lane. **Open-loop evaluation puts the car back at the logged position at every step, so the model's own small deviations never accumulate; in closed loop, the model's deviations change what it sees next. The stronger end-to-end models get, the more they must be judged with closed-loop or near-closed-loop metrics, and before they go on the road they also need a safety case.**
+Two driving models have exactly the same L2 error in open-loop evaluation. In closed-loop simulation, one crosses the lane line in under two seconds while the other stays in its lane. Why?
+
+Open-loop evaluation returns the car to the logged position at every step, so the model's small deviations do not accumulate. In closed loop, those deviations change what it sees next. As end-to-end models become more capable, closed-loop or near-closed-loop evaluation remains essential. Before road deployment, they also need a safety case.
 
 ## What "end-to-end" actually means
 
@@ -30,7 +32,7 @@ Below, only Tesla's own documents and talks, by date; all numbers are vendor-rep
 
 ## Beyond imitation: RL and self-play
 
-Most end-to-end models are first trained by imitation on human driving logs, and so cannot escape the compounding error from [imitation and rewards](../../05-post-training/deep-rl/imitation-and-rewards.en.md): the logs contain almost only "human in the centre of the lane" states and nothing on "how to come back after drifting". One older fix is [ChauffeurNet](https://arxiv.org/abs/1812.03079): synthesise perturbations into the training data so the model sees off-centre states.
+Most end-to-end models start with imitation learning on human driving logs and face the compounding-error problem described in [imitation and rewards](../../05-post-training/deep-rl/imitation-and-rewards.en.md). The logs contain almost exclusively states where the human stays in the lane centre, with no demonstrations of how to recover after drifting. An early approach, [ChauffeurNet](https://arxiv.org/abs/1812.03079), adds synthetic perturbations to the training data so the model encounters off-centre states.
 
 The other route is to let the model drive itself in a simulator and learn from outcomes:
 
@@ -41,7 +43,7 @@ RL gets around "the logs contain no off-centre states", but brings a new problem
 
 ## Work it once: the same open-loop score, opposite closed-loop outcomes
 
-Everything below is a teaching setup. A straight road, lane width 3.5 m, car width 1.8 m, so the wheels touch the lane line when the car's centre is $(3.5-1.8)/2=0.85$ m off-centre, and at 1.75 m the centre itself is past the line. Speed $v=10$ m/s. In the log, the human drives straight down the lane centre. Both policies have the same small bias $\varepsilon=0.02$ rad (about 1.15°):
+Everything below is a teaching setup. A straight road, lane width 3.5 m, car width 1.8 m. To isolate lateral drift, approximate the body as a fixed-width interval that remains parallel to the lane, ignoring vehicle length and the effect of heading on its footprint. The body boundary then touches the lane line when the centre is $(3.5-1.8)/2=0.85$ m off-centre. At 1.75 m the centre reaches the line; it crosses only beyond that offset. Body width is not track width, and tyre width is unspecified, so this does not establish when the wheels touch the line. Speed $v=10$ m/s. In the log, the human drives straight down the lane centre. Both policies have the same small bias $\varepsilon=0.02$ rad (about 1.15°):
 
 - **Policy A: extrapolate along the current ego heading, plus $\varepsilon$.** It looks only at the ego state, not at lane lines.
 - **Policy B: look at the lane lines and pull toward the centre.** Planned heading $=\varepsilon-g\,y$, where $y$ is the car centre's offset to the left (m) and $g=0.1$ rad/m.
@@ -62,13 +64,13 @@ $$
 | A lateral offset (m) | 0.1 | 0.3 | 0.6 | 1.0 | 1.5 | 2.1 |
 | B lateral offset (m) | 0.100 | 0.150 | 0.175 | 0.188 | 0.194 | 0.197 |
 
-A's heading grows by 0.02 per step and its offset grows as $0.05\,k(k+1)$: the wheels touch the line between 1.5 s and 2.0 s, and at 3 s the car's centre is already in the next lane. B follows $y_k=0.5\,y_{k-1}+0.1$ each step and converges to $\varepsilon/g=0.2$ m, staying in its lane throughout.
+A's heading grows by 0.02 per step and its offset grows as $0.05\,k(k+1)$: with the simplified footprint above, the body boundary touches the line between 1.5 s and 2.0 s, and at 3 s the car's centre is already in the next lane. B follows $y_k=0.5\,y_{k-1}+0.1$ each step and converges to $\varepsilon/g=0.2$ m, staying in its lane throughout under this approximation.
 
 | Metric | Policy A | Policy B |
 | --- | --- | --- |
 | Open-loop L2 (1 / 2 / 3 s) | 0.2 / 0.4 / 0.6 m | 0.2 / 0.4 / 0.6 m |
 | Closed-loop lateral offset after 3 s | 2.1 m | 0.197 m |
-| Wheels touch the lane line | Between 1.5 and 2.0 s | Never |
+| Body boundary touches the line (simplified footprint) | Between 1.5 and 2.0 s | Never |
 
 Open loop cannot tell them apart because the log contains no state with $y\neq0$; "what do you do after drifting" is never asked. Change one condition: a policy that ignores the road entirely and just extrapolates the current speed and heading has an open-loop L2 of 0 on this straight road, a perfect score. Policy A is exactly such an "ego-state extrapolator" with a small bias added.
 

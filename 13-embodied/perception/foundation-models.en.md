@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-You want to give a warehouse robot two skills: segment where on the floor it can drive, and estimate how far the obstacle ahead is. You have a few thousand labelled images, not enough to train a large backbone, so you plan to freeze a pretrained ViT and train only a small head on top. Should you pick a CLIP-style image–text model or a self-supervised model such as DINO? And can you read the numbers a depth model returns as metres? **In the frozen-backbone comparisons the authors report, DINO-family features are clearly better than CLIP-style features on pixel-level tasks; relative depth from a single image is missing one scale factor by construction, which has to come from a known distance somewhere else; and since 2025, geometry foundation models return cameras, depth and points in one forward pass, but many of the strongest checkpoints cannot be used commercially.**
+You want to give a warehouse robot two skills: segment the traversable floor and estimate the distance to an obstacle ahead. You have only a few thousand labelled images and cannot afford to train a large backbone, so you plan to freeze a pretrained ViT and train a small task head. Should you pick a CLIP-style image–text model or a self-supervised model such as DINO? Can you interpret a depth model's outputs directly in metres?
+
+In the frozen-backbone comparisons reported by the authors, DINO-family features clearly outperform CLIP-style features on pixel-level tasks. Depth raises a separate issue: the output convention matters. One known distance fixes a scale-only depth output, whereas affine-invariant output also has an unknown shift; inverse-depth output must be calibrated in inverse depth. Since 2025, geometry foundation models have also been able to return cameras, depth, and points in one forward pass, but many of the strongest checkpoints cannot be used commercially. The sections below examine these results, their assumptions, and their limits.
 
 It helps to have read [ViT](../../03-multimodal-learning/vit.en.md), [CLIP](../../03-multimodal-learning/clip.en.md) and this series' [camera geometry](camera-geometry.en.md) note first: this note assumes you know the intrinsics $K$, the extrinsics $[R\mid t]$ and pinhole projection.
 
@@ -20,14 +22,14 @@ Start with the numbers. In Table 3 of the DINOv3 paper (frozen backbone, linear 
 
 Why? Here is how the papers themselves explain it:
 
-| Explanation | Source | Discount to apply when reading |
+| Explanation | Source | Limitation to consider |
 | --- | --- | --- |
 | Image–text training keeps only what text can express: a caption only approximates the image, and pixel-level detail may never be learned under that supervision | [DINOv2 paper](https://arxiv.org/abs/2304.07193) (2023-04) §1 | This is a motivation, not a controlled experiment |
 | DINO-family objectives contain a patch-level term: besides the image-level DINO loss there is the iBOT loss, which masks some patches for the student while the teacher sees the whole image, and asks the student to predict the teacher's patch features at the masked positions | DINOv2 §4; DINOv3 §4.2 | CLIP-style models are adding local supervision too: [SigLIP 2](../../03-multimodal-learning/siglip.en.md#siglip2) adds self-distillation and masked prediction, yet still trails in DINOv3's Table 3 |
 | The information may be present but not in the last layer: the PE paper finds that the best features of its image–text contrastive model sit in intermediate layers and need language or spatial alignment to extract; PE Spatial, made by distilling SAM 2 into PE Core, rises from 38.9 to 49.3 on ADE20k | [PE paper](https://arxiv.org/abs/2504.13181) (2025-04); DINOv3 Table 3 | The 49.3 borrows SAM 2's segmentation supervision, so it is no longer a pure image–text model |
 | In a controlled comparison on the same data, visual self-supervision scales better than CLIP and has not saturated at 7B | [Web-SSL](https://arxiv.org/abs/2504.01017) (2025-04) | In the same DINOv3 table, Web-DINO 7B/14 scores only 42.7 on ADE20k; "self-supervised" alone does not guarantee good dense features, data curation and training recipe matter as much |
 
-Two more overall discounts. First, all these numbers come from Meta papers, and PE, the model being compared against, is also Meta's; the evaluation uses a linear head and a fixed resolution (segmentation at 1024 patch tokens), so the table cannot tell you how much of the gap survives full fine-tuning. Second, if you need text queries ("find every pallet"), visual features alone are not enough: either use a CLIP-style model, or do what DINOv3's dino.txt does and train a text encoder to align with the frozen vision backbone (LiT-style training, DINOv3 §5.3).
+Two broader limitations also matter. First, all these numbers come from Meta papers, and PE, the comparison model, is also Meta's. The evaluation uses a linear head and a fixed resolution (segmentation at 1024 patch tokens), so the table cannot tell you how much of the gap survives full fine-tuning. Second, if you need text queries ("find every pallet"), visual features alone are not enough: either use a CLIP-style model, or do what DINOv3's dino.txt does and train a text encoder to align with the frozen vision backbone (LiT-style training, DINOv3 §5.3).
 
 ## Train longer and local features get worse
 
@@ -49,7 +51,7 @@ $$
 
 The gradient pushes c away from b without asking any vector to return to its old coordinates.
 
-## Depth: relative depth is missing a scale
+## Depth: distinguish scale from shift {#depth-relative-depth-is-missing-a-scale}
 
 A pinhole camera maps a point $(X,Y,Z)$ in camera coordinates to pixel $(u,v)$:
 
@@ -59,9 +61,9 @@ $$
 
 $f$ is the focal length in pixels (here $f_x=f_y=f$) and $(c_x,c_y)$ is the principal point. Reuse the teaching camera from [camera geometry](camera-geometry.en.md): $f=1000$, $(c_x,c_y)=(960,540)$. The point $P=(1,\,0.5,\,5)$ m lands at $u=1000\times1/5+960=1160$ and $v=1000\times0.5/5+540=640$. Scale the whole scene about the camera centre by $k=2$: $P$ becomes $(2,1,10)$ and still lands on $(1160,640)$, because the $k$ in numerator and denominator cancels. **One image corresponds to every scene whose depths are multiplied by $k$.** No pixel in the image can tell them apart; a model can only guess metres from learned priors (how big cars usually are, how tall doors usually are).
 
-That is why many models output only relative depth. Take three pixels in one image: the road, the car ahead and a distant building, with true depths 4, 8 and 20 m. A model that is off only by scale outputs $(1,2,5)$, the true values divided by 4. Now the lidar says the car is at 8 m: $k=8/2=4$, and the three pixels become $(4,8,20)$. **A single known distance fixes the scale.** It does not fix shape: if the model had said 4 instead of 5 for the building, $k=4$ from the car gives 16 m, and the 4 m error remains.
+That is why many models output only relative depth, but “relative” does not always mean a single unknown scale. Start with the scale-only case, with no unknown shift. Take three pixels in one image: the road, the car ahead and a distant building, with true depths 4, 8 and 20 m. A model that is off only by scale outputs $(1,2,5)$, the true values divided by 4. Now the lidar says the car is at 8 m: $k=8/2=4$, and the three pixels become $(4,8,20)$. **In this scale-only setting, a single known distance fixes the scale.** It does not fix shape: if the model had said 4 instead of 5 for the building, $k=4$ from the car gives 16 m, and the 4 m error remains.
 
-More common is affine-invariant output, where both the scale $s$ and the shift $t$ are unknown: $d=s\hat d+t$. [Marigold](https://arxiv.org/abs/2312.02145) and the first [MoGe](https://arxiv.org/abs/2410.19115) are affine-invariant. Suppose the model outputs $\hat d=(0,1,4)$. Knowing only that the car is at 8 m, the equation $8=s+t$ has infinitely many solutions: $(s,t)=(4,4)$ gives $(4,8,20)$ and $(2,6)$ gives $(6,8,14)$, and both agree with that one observation. Only when you also know the road is at 4 m do you get $t=4$, $s=4$ and a building at 20 m. **Affine output needs two known distances.** The [Depth Anything 3 README](https://github.com/ByteDance-Seed/Depth-Anything-3) points out that Depth Anything 2 outputs disparity (inverse depth): then $s$ and $t$ act on $1/d$, there are still two unknowns, but you cannot convert linearly in depth.
+Other models produce affine-invariant output, where both the scale $s$ and the shift $t$ are unknown: $d=s\hat d+t$. [Marigold](https://arxiv.org/abs/2312.02145) and the first [MoGe](https://arxiv.org/abs/2410.19115) are affine-invariant. Suppose the model outputs $\hat d=(0,1,4)$. Knowing only that the car is at 8 m, the equation $8=s+t$ has infinitely many solutions: $(s,t)=(4,4)$ gives $(4,8,20)$ and $(2,6)$ gives $(6,8,14)$, and both agree with that one observation. Only when you also know the road is at 4 m do you get $t=4$, $s=4$ and a building at 20 m. **With noiseless data and a valid affine relation, two known distances paired with distinct predicted values determine scale and shift.** With noise, fit more correspondences; an output that gives only depth ordering without this affine relation cannot use the same conversion. The [Depth Anything 3 README](https://github.com/ByteDance-Seed/Depth-Anything-3) points out that Depth Anything 2 outputs disparity (inverse depth): then $s$ and $t$ act on $1/d$, there are still two unknowns, but you cannot convert linearly in depth.
 
 <!-- widget:step-depth-scale -->
 
@@ -83,7 +85,9 @@ $$
 
 Continuing the example: pixel $(1160,640)$ at depth 5 m gives $K^{-1}[1160,640,1]^\top=((1160-960)/1000,\,(640-540)/1000,\,1)=(0.2,\,0.1,\,1)$; times 5 that is $(1,\,0.5,\,5)$, which is $P$ again.
 
-In the other direction, the pointmap hides the camera. The point $(1,0.5,5)$ lands at $u=1160$; assuming the principal point is at the image centre, $f=(u-c_x)Z/X=200\times5/1=1000$. DUSt3R §3.3 estimates the focal length this way, with a robust fit over all pixels (assuming a centred principal point and square pixels). Two images are where it pays off: DUSt3R expresses both images' pointmaps in the first camera's coordinate frame, so where the same 3D point appears in both images is the correspondence; aligning the same image's points in the two frames (Procrustes in closed form, or the more robust PnP with RANSAC) gives the relative pose. Its output is only defined up to an unknown scale: the training loss first normalises prediction and ground truth by "the average distance of all points to the origin", which removes exactly the $k$ of the previous section.
+Conversely, a pointmap can be used to estimate camera parameters. The point $(1,0.5,5)$ lands at $u=1160$; assuming the principal point is at the image centre, $f=(u-c_x)Z/X=200\times5/1=1000$. DUSt3R §3.3 estimates the focal length this way, with a robust fit over all pixels (assuming a centred principal point and square pixels).
+
+With two images, it can also estimate the relationship between their views. DUSt3R expresses both pointmaps in the first camera's coordinate frame, so the image locations of the same 3D point give a correspondence. Aligning the same image's points in the two frames (Procrustes in closed form, or the more robust PnP with RANSAC) gives the relative pose. Its output is only defined up to an unknown scale: the training loss first normalises prediction and ground truth by "the average distance of all points to the origin", which removes exactly the $k$ of the previous section.
 
 <!-- paper-figure:dust3r-arch -->
 

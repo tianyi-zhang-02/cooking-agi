@@ -36,7 +36,7 @@ $$\mathcal L_{\text{aux}} = \alpha \cdot N \cdot \sum_{i=1}^{N} f_i P_i$$
 - $P_i$：这一批 token 分给 expert $i$ 的平均 router 概率，可导；
 - $\alpha = 10^{-2}$。
 
-两个乘在一起：梯度顺着 $P_i$ 传回 router，推多狠则由真实负载 $f_i$ 说了算。完全均匀时 $f_i = P_i = 1/N$，损失等于 $\alpha$；这是均匀状态的参考值，不是这个乘积式在所有路由分布下的严格下界。[GShard](https://arxiv.org/abs/2006.16668) 也用分配比例乘平均门值：把原本不可导的比例平方中的一个因子换成可导近似，而不是直接对离散计数求导。最早的 sparsely-gated MoE 则用了 importance 和 load 两个变异系数损失。
+两者相乘后，梯度通过 $P_i$ 传回 router，真实负载 $f_i$ 则决定每项的权重。完全均匀时 $f_i = P_i = 1/N$，损失等于 $\alpha$；这是均匀状态的参考值，不是这个乘积式在所有路由分布下的严格下界。[GShard](https://arxiv.org/abs/2006.16668) 也用分配比例乘平均门值：把原本不可导的比例平方中的一个因子换成可导近似，而不是直接对离散计数求导。最早的 sparsely-gated MoE 则用了 importance 和 load 两个变异系数损失。
 
 ## 整个 batch 均衡，为什么单条序列还可能不均衡？ {#sequence-balance}
 

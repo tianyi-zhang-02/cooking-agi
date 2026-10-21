@@ -4,7 +4,7 @@
 
 > Original teaching example · Reviewed: 2026-10. Documents, rankings, and budgets are synthetic, not service measurements.
 
-“Friday or Wednesday?” is first a data-consistency problem, not a difficult language question. Leave the LLM out for a moment and follow a paragraph into retrieval.
+In the previous example, the deadline moved from Friday to Wednesday, but the assistant might still search old documents. Leave the LLM out for now and follow a paragraph through indexing, retrieval, and selection for the model's context.
 
 ## Keep a path back to the source
 
@@ -50,7 +50,7 @@ Ranks start at 1 and `c > 0`. We use `c=10` below to make the arithmetic easy, n
 | B | 2 | Absent | `1/12 ≈ 0.0833` |
 | C | Absent | 1 | `1/11 ≈ 0.0909` |
 
-The order is A, C, B. A ranks near the top in both lists and wins the fusion. C appears only in the vector list, but ranks higher there than B does in the lexical list.
+The order is A, C, B. A ranks near the top in both lists, so it comes first after fusion. C appears only in the vector list, but ranks higher there than B does in the lexical list.
 
 Deduplicate IDs within each list before scoring. Appearing in both lists doesn't prove relevance either: RRF combines rankings; relevance still needs evaluation.
 
@@ -81,6 +81,6 @@ The [complete code](code/evidence_pipeline.py) returns `rules-v2` as current vis
 
 Remove `rules` from `current_revisions`: without a confirmed current revision, that document is excluded. Then paraphrase the query so it shares no words with the passage and inspect what keyword retrieval misses. Those cases can later test whether embeddings recover the missing evidence.
 
-The code has no ANN index, authorization service, LLM, or automatic synchronization. It checks filtering, fusion, and packing contracts. Service integration still needs timeouts, stale-index handling, edit/delete events, and authorization rechecks.
+The code has no ANN index, authorization service, LLM, or automatic synchronization. It checks the filtering, fusion, and evidence-budget rules described here. Service integration still needs timeouts, stale-index handling, edit/delete events, and authorization rechecks.
 
 [Next: A citation isn't proof](evidence-and-evaluation.en.md)

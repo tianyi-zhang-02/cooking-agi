@@ -67,7 +67,7 @@ flowchart TD
 
 ## 打开仓库先读哪儿
 
-先读 [Home Mixer 的流程说明](https://github.com/twitter/the-algorithm/blob/ee5e7fc18dc0e971a6c02826b196294048765817/home-mixer/README.md)，找到请求入口和候选 pipeline 的关系；再沿一个来源往下看。第一遍只回答：它拿什么输入，吐什么输出，失败时谁兜底？
+先读 [Home Mixer 的流程说明](https://github.com/twitter/the-algorithm/blob/ee5e7fc18dc0e971a6c02826b196294048765817/home-mixer/README.md)，找到请求入口和候选 pipeline 的关系，再沿一个来源往下看。第一遍先回答：它接收什么输入，返回什么输出，失败时由谁处理？
 
 <details><summary>没召回到一条好帖子，换更强的排序模型能救吗？</summary><p>在排序仍只处理同一个候选集合的前提下，不能。先检查召回覆盖，而不是把所有问题归给 ranker。</p></details>
 

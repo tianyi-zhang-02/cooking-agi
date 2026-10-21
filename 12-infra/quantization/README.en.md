@@ -4,11 +4,17 @@
 
 > Reading time: ~7 min · Last reviewed: 2026-10
 
-A 70B-parameter dense model has 140 GB of BF16 weights, which does not fit on one 80 GB GPU; even when it fits, generating one token at a time at batch 1 means reading every weight from memory at every step. Quantization stores these numbers in fewer bits. You can compress the weights, the activations or the KV cache, and each buys something different. **Find the bottleneck first: if the model does not fit, or decode is limited by memory reads, compress the weights; if prefill and large batches are limited by compute, compress the activations as well, so the lower-precision Tensor Cores can be used; if the KV cache dominates at long context, compress the KV cache. Whichever you compress, compare the two models item by item on the same set of questions, and look specifically at the kinds of task that break first; only then do you know what you lost.**
+A 70B-parameter dense model needs 140 GB just for its BF16 weights—too much for one 80 GB GPU. Even with enough memory, reading the weights at every decode step takes time, especially when generating one token at a time with batch size 1.
+
+Quantization stores values in fewer bits. Compressing weights reduces memory use and traffic; quantizing activations too may enable lower-precision Tensor Cores. At long context lengths, quantizing the KV cache can also save substantial memory. The appropriate choice depends on the bottleneck and hardware support.
+
+We can estimate the memory savings before running the model. Quality changes need testing. Later notes compare outputs before and after quantization on the same questions, checking both aggregate scores and the tasks that get worse.
 
 ## First, the ledger: a 70B model and one 80 GB GPU
 
-These are **teaching assumptions**: a 70B dense model with 80 layers, 8 KV heads and head dimension 128, so each token's BF16 KV takes $2\times80\times8\times128\times2=327{,}680$ bytes (320 KiB); a GPU with the 80 GB of memory and 3,352 GB/s bandwidth of an H100 SXM5 ([H100 architecture whitepaper V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf)); 4 GB reserved for the runtime; all weights stored in the same format, with no separate accounting for embeddings, the output layer or metadata beyond the scales.
+The **teaching example** assumes a 70B dense model with 80 layers, 8 KV heads and head dimension 128. Each token's BF16 KV therefore takes $2\times80\times8\times128\times2=327{,}680$ bytes (320 KiB). The GPU has the 80 GB of memory and 3,352 GB/s bandwidth of an H100 SXM5 ([H100 architecture whitepaper V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf)), with 4 GB reserved for the runtime.
+
+The calculation assumes all weights are stored in the same format, with no separate accounting for embeddings, the output layer or metadata beyond the scales.
 
 | Weight format | Per parameter | Weights | Left for KV | Tokens of KV that fit (BF16 / FP8 KV) | Batch-1 time per token, at least |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -16,7 +22,7 @@ These are **teaching assumptions**: a 70B dense model with 80 layers, 8 KV heads
 | FP8 | 8 bit | 70 GB | 6 GB | about 18,000 / 37,000 | 20.9 ms |
 | INT4, one group per 128 weights | 4.125 bit | 36.1 GB | 39.9 GB | about 122,000 / 244,000 | 10.8 ms |
 
-The 4.125 bits are a 4-bit integer plus one 16-bit scale shared by every 128 weights ($16/128=0.125$). The last column is weight bytes divided by bandwidth, assuming the bandwidth is used at 100%, which real kernels do not reach; with two GPUs, the BF16 floor is also 20.9 ms, see [NVIDIA generations](../nvidia-generations.en.md). This table only says whether the model fits and how fast it could possibly go. **It says nothing about quality**, which is the second half of this series.
+The 4.125 bits include a 4-bit integer and one 16-bit scale shared by every 128 weights ($16/128=0.125$). The last column divides weight bytes by bandwidth, assuming 100% bandwidth utilization, so it is a theoretical lower bound. BF16 split across two GPUs has the same 20.9 ms bound; see [NVIDIA generations](../nvidia-generations.en.md). These estimates help with capacity and speed, but do not tell us how quantization affects answers. The second half of the series covers that evaluation.
 
 ## Three things can be compressed, and each buys something different
 
@@ -70,7 +76,7 @@ Each cell corresponds to a dated public record; the third column says what kind 
 
 ## How to read this series
 
-These help first: [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md) (the FP16 versus BF16 trade-off), [GPU architecture](../gpu-architecture.en.md) (the data types each Tensor Core generation supports, and a hand-worked NVFP4 example), [Performance](../performance.en.md) (the roofline and the batch ledger for decode), [KV cache](../../00-foundations/deep-dives/kv-cache-and-inference.en.md) (the KV memory budget). Neighboring notes: [NVIDIA generations](../nvidia-generations.en.md) covers how many GPUs of each generation a 70B model needs; [vLLM and SGLang](../../06-systems/inference-frameworks.en.md) covers which layer of a generation engine quantization lives in; [LoRA and QLoRA](../../05-post-training/lora-and-qlora.en.md) covers NF4 and training on a 4-bit base; [The score improved. What does that actually establish?](../../07-evaluation/metric-robustness.en.md) covers the statistics of paired comparisons.
+Useful background includes [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md) (the FP16 versus BF16 trade-off), [GPU architecture](../gpu-architecture.en.md) (the data types each Tensor Core generation supports, and a hand-worked NVFP4 example), [Performance](../performance.en.md) (the roofline and how batching affects decode), and [KV cache](../../00-foundations/deep-dives/kv-cache-and-inference.en.md) (the KV memory budget). Related notes cover several practical questions: [NVIDIA generations](../nvidia-generations.en.md) explains how many GPUs of each generation a 70B model needs; [vLLM and SGLang](../../06-systems/inference-frameworks.en.md) explains where quantization fits in a generation engine; [LoRA and QLoRA](../../05-post-training/lora-and-qlora.en.md) covers NF4 and training on a 4-bit base; [The score improved. What does that actually establish?](../../07-evaluation/metric-robustness.en.md) covers the statistics of paired comparisons.
 
 1. [Formats and error](formats-and-error.en.md): scale and zero-point, per-tensor, per-channel and per-group, INT versus FP grids, block-scaled MXFP4 and NVFP4, why outliers do so much damage, and which hardware generation computes which format
 2. [Weight-only quantization and post-training quantization](weight-only-and-ptq.en.md): why W4A16 speeds up decode and at what batch it stops helping, GPTQ's error compensation, AWQ's channel scaling, SmoothQuant's W8A8

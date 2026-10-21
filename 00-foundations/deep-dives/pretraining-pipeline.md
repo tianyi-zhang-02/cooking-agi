@@ -4,7 +4,7 @@
 
 > 最近审阅：2026-10 · 前置：[语言模型目标](language-model-objective.md) · 接着读：[一次训练](training-step.md)
 
-知道 next-token prediction 的公式以后，很容易觉得预训练就是“把文本喂进去，循环跑 loss”。但两次训练即使用同一个模型、同一个目标，也可能学出很不一样的东西：文本选了什么、重复了多少遍、怎样拼成序列，都会改变模型实际看到的任务。
+知道 next-token prediction 的公式以后，很容易把预训练理解成反复输入文本、计算 loss、更新参数。但两次训练即使用同一个模型、同一个目标，也可能学出很不一样的东西：文本选了什么、重复了多少遍、怎样拼成序列，都会改变模型实际看到的任务。
 
 这篇跟着一份虚构的小语料走一次。数字只用于计算，不是推荐配方。
 
@@ -85,7 +85,7 @@ $$
 
 ## 学习率和预算为什么要一起看？
 
-warmup 让学习率逐步升高；后续可以按约定退火。它不是修复脏数据或错误 mask 的药。记录 schedule 按 optimizer steps 还是按 tokens 推进，改变 batch 或恢复训练时才不会悄悄换了节奏。
+warmup 让学习率逐步升高；后续可以按约定退火。这些设置不能修复数据或 mask 中的错误。记录 schedule 按 optimizer steps 还是按 tokens 推进，改变 batch 或恢复训练时，才能保持预定的学习率安排。
 
 粗略估算 dense Transformer 训练的主要矩阵计算，常写作 $C\approx6ND$：$N$ 是参数量，$D$ 是训练 tokens。长序列 attention、重算、通信和硬件利用率不包含在这个简式里，不能直接把 FLOPs 当耗时；从 FLOPs 换算成时间要先估硬件利用率，见 [MFU 与 HFU](../../12-infra/performance.md#mfu)。
 

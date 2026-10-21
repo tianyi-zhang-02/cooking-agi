@@ -20,7 +20,7 @@
 
 ## Bradley-Terry：把比较变成分数 {#bradley-terry}
 
-要把"两两比较"变成一个能给任意回答打分的函数，需要一个模型把**序**翻译成**标量**。Bradley-Terry 就是这个翻译器：
+要从两两比较中学习一个给回答打分的函数，需要把**标量分数**与**偏好顺序**联系起来。Bradley–Terry 用两个回答的分数差，表示其中一个更受偏好的概率：
 
 $$P(y_w \succ y_l \mid x) = \sigma\big(r(x, y_w) - r(x, y_l)\big)$$
 
@@ -108,7 +108,9 @@ misjudged_b = [1, 1, 0, 1]
 assert rubric_reward(misjudged_b) == rubric_reward(answer_a)
 ```
 
-这个例子说明 rubric 要查两样东西：权重由谁定，每一条由谁判。逐条判断比一个笼统的 1–10 分好抽查，可以单独统计 judge 在“是否给出能运行的修法”这一条上的错误率；rubric 本身若也由模型生成，也要抽查它漏了什么。rubric 没写到的要求，奖励照样看不见。无论标签来自人、AI 还是 rubric，上一节的过期问题都一样：策略变了，就拿当前策略的输出重新检查评判。judge 常见的偏差和检查方法见 [LLM-as-a-Judge](../07-evaluation/llm-as-a-judge/README.md)。
+这个例子说明 rubric 要查两样东西：权重由谁定，每一条由谁判。逐条判断比一个笼统的 1–10 分好抽查，可以单独统计 judge 在“是否给出能运行的修法”这一条上的错误率。rubric 本身若也由模型生成，也要抽查它漏了什么；没写到的要求，奖励仍然无法反映。
+
+无论标签来自人、AI 还是 rubric，上一节的过期问题都一样：策略变了，就拿当前策略的输出重新检查评判。judge 常见的偏差和检查方法见 [LLM-as-a-Judge](../07-evaluation/llm-as-a-judge/README.md)。
 
 ## 读偏好训练实验时先找什么 {#_7}
 

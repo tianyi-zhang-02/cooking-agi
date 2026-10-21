@@ -11,12 +11,12 @@
   <div><span>Common mistakes</span><strong>Confusing the two LSEs; treating normality as a necessary condition for BLUE</strong></div>
 </div>
 
-These questions do not require pushing every proof from its first line to its last. A reliable order for the answer is: **what are the inputs and outputs → why is it defined this way → what is the gradient → where does it break numerically → which conditions does the conclusion depend on**.
+You do not need to reproduce every line of every proof to answer these questions. A useful order is: **inputs and outputs → reason for the definition → gradient → numerical risks → assumptions behind the conclusion**.
 
 <details class="interview" markdown="1">
-<summary>Quick learning: the one spine the seven formulas actually follow</summary>
+<summary>Quick review: how the seven formulas connect</summary>
 
-**Quick memory**: Softmax/LSE/CE are probability normalization and likelihood; L1/L2 are geometric constraints and priors; bias–variance is the bookkeeping of generalization error; MLE/MAP trade data against the prior; BLUE is the minimum-variance result among linear unbiased estimators.
+**Quick memory**: Softmax/LSE/CE connect probability normalization and likelihood; L1/L2 can be understood through geometric constraints and priors; bias–variance decomposes generalization error; MLE/MAP describe the role of data and priors; BLUE gives the minimum-variance result among linear unbiased estimators.
 
 **Interview answer**
 
@@ -117,8 +117,10 @@ are more likely to touch it on a coordinate axis; the L2 boundary is smooth.
 
 ### 4. Bias–variance is the bookkeeping of generalization error
 
-If $y=f(x)+\epsilon$, $\mathbb E[\epsilon]=0$, and $\operatorname{Var}(\epsilon)=\sigma^2$,
-then for squared error:
+Fix a test input $x$ and let $y=f(x)+\epsilon$, with $\mathbb E[\epsilon\mid x]=0$
+and $\operatorname{Var}(\epsilon\mid x)=\sigma^2$. Assume that, conditional on $x$,
+the test noise is independent of the training data and training randomness, and that
+both the noise and prediction have finite second moments. Then under squared error
 
 $$
 \mathbb E[(y-\hat f(x))^2]
@@ -126,6 +128,12 @@ $$
 +\big(\mathbb E[\hat f(x)]-f(x)\big)^2
 +\mathbb E\big[(\hat f(x)-\mathbb E[\hat f(x)])^2\big].
 $$
+
+All expectations here are conditional on this fixed $x$: the left side averages over
+both training randomness and fresh test noise; expectations involving $\hat f(x)$ on
+the right average only over training randomness. Independence and conditional zero-mean
+noise give $\mathbb E[\epsilon(\hat f(x)-f(x))\mid x]=0$, so the cross term in the
+expansion vanishes.
 
 The three terms are irreducible noise, Bias$^2$, and Variance. Bias asks whether the model
 averaged over different training sets deviates systematically from the true function;

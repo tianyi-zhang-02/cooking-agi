@@ -4,7 +4,7 @@
 
 You change a prompt. The answers read better, and the average score goes up. Are users actually getting better answers?
 
-LLM-as-a-Judge means asking a model to evaluate another model's output against a set of criteria. It can help us read many answers. But **producing a score and knowing whether to trust it are different jobs**.
+LLM-as-a-Judge means asking a model to evaluate another model's output against a set of criteria. It can help review large numbers of answers, but it can also miss mistakes or reject acceptable responses. Before using its scores, we need to understand where it makes errors and how those errors affect the final decision.
 
 Start with one support answer, not a list of metrics. We'll follow it through evidence, criterion-level judgments, a decision, and a check on the judge. The example uses authored rules and judgments, not a live model.
 
@@ -18,7 +18,7 @@ There are three distinct jobs:
 
 - **The model being evaluated** writes the answer.
 - **The judge** applies a rubric and gives criterion-level judgments with evidence.
-- **The decision rule** accepts, blocks, or requests review. It shouldn't be invented on the spot by the model.
+- **The decision rule** accepts, blocks, or requests review. Define it in advance for the task rather than letting the model invent it for each answer.
 
 The same judgment may serve different purposes. Comparing two prompts offline and automatically sending an answer to a user have different error costs. One passing answer doesn't establish that a system is ready to ship.
 

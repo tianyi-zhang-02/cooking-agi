@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-Sweep the best learning rate on a narrow small model, copy it unchanged to a model 8 times wider, and a common outcome is unstable training or a clearly suboptimal result. There is more than one reason: under the standard parametrization the optimal learning rate moves with width; the useful batch size limit grows as the loss falls and as the data grows; and a cosine schedule's shape is tied to the total training length. **Scaling up means handling three things separately. For batch size, look at the critical batch size first: past it, each doubling of the batch saves fewer steps and costs more data. For learning rate, either start from a fitted empirical formula for your scale, or use a parametrization such as µP that makes it transferable across width. For the schedule, either match it to the training length, or use warmup-stable-decay to postpone deciding how long to train until the end.**
+Find the best learning rate on a small, narrow model and copy it unchanged to a model 8 times wider: training may become unstable or produce a clearly suboptimal result. Several factors matter. Under the standard parametrization, the optimal learning rate shifts with width. The useful batch-size limit grows as loss falls and the amount of data increases. A cosine schedule also depends on the total training length.
+
+Handle these three choices separately when scaling up. For batch size, start with the critical value: beyond it, each doubling saves fewer steps and requires more data. For learning rate, start from an empirical formula fitted for your scale, or use a parametrization such as µP that supports transfer across widths. Match the schedule to the training length, or use warmup-stable-decay (WSD) to leave the stopping point undecided until later in training.
 
 It helps to read [one training step](../deep-dives/training-step.en.md) and [from SGD to AdamW](../deep-dives/optimizers.en.md) first: we use optimizer steps, gradient accumulation and Adam's update rule. The teaching budget is the $C=10^{22}$ FLOPs from [note 1](compute-optimal.en.md).
 
@@ -97,11 +99,13 @@ Recipes used for large models mostly sit between the two:
 
 Under the standard parametrization (SP: the framework's default initialization and one learning rate for all layers), the optimal learning rate moves with width. [Tensor Programs V (Yang et al., 2022-03; TP5 below)](https://arxiv.org/abs/2203.03466) trained MLPs on CIFAR-10 with SGD and saw the optimal learning rate shift by roughly an order of magnitude as width went from 256 to 8192; using the narrowest model's optimum on the widest model performed very badly or diverged. Transformers behave the same way.
 
-Why does it move? Take one hidden layer $h=Wx$ with an $n\times n$ matrix $W$ and an input $x$ whose entries are $O(1)$. After bias correction, Adam's first update is approximately $\Delta W_{ij}=-\eta\,{\rm sign}(g_{ij})$. With batch size 1, $g_{ij}=\delta_ix_j$ ($\delta_i$ is the gradient of the loss with respect to $h_i$), so
+Why does it move? Take one hidden layer $h=Wx$ with an $n\times n$ matrix $W$ and an input $x$ whose entries are $O(1)$. In [Algorithm 1 of the Adam paper](https://arxiv.org/abs/1412.6980), starting from zero first and second moments and excluding weight decay, the first bias-corrected update is $\Delta W_{ij}=-\eta g_{ij}/(|g_{ij}|+\epsilon)$. When nonzero gradients are much larger than $\epsilon$, this is approximately $-\eta\,{\rm sign}(g_{ij})$. With batch size 1, $g_{ij}=\delta_ix_j$ ($\delta_i$ is the gradient of the loss with respect to $h_i$), so
 
 $$
-(\Delta W x)_i=-\eta\,{\rm sign}(\delta_i)\sum_{j=1}^{n}|x_j|\approx-\eta\,n\,\mathbb E|x|.
+(\Delta W x)_i\approx-\eta\,{\rm sign}(\delta_i)\sum_{j=1}^{n}|x_j|\approx-\eta\,{\rm sign}(\delta_i)\,n\,\mathbb E|x|.
 $$
+
+Keeping $\operatorname{sign}(\delta_i)$ distinguishes the update's direction from its magnitude. For $\delta_i\ne0$ under the approximation above, the magnitude is $|\Delta h_i|\approx\eta n\mathbb E|x|$. If $\delta_i=0$, this row receives no update. The hand calculation and code below use the idealized update that neglects $\epsilon$.
 
 The key is that the update is aligned with $x$: $n$ terms of the same sign add up, so the size grows linearly in $n$. If the update direction were unrelated to $x$, positive and negative terms would cancel and the size would grow only as $\sqrt n$. By hand with every $x_j=\pm1$: at $\eta=0.01$ and $n=512$, $|\Delta h_i|=5.12$; the same learning rate at $n=4096$ gives 40.96, so the activation changes 8 times more in one step. To keep it at 5.12, the hidden-layer learning rate must be multiplied by $512/4096$, giving $0.00125$. That is the intuition behind µP setting Adam's hidden-layer learning rate $\propto1/\text{fan\_in}$. Recomputing once with Gaussian inputs:
 

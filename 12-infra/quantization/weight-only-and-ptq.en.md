@@ -4,9 +4,13 @@
 
 > Reading time: ~11 min · Last reviewed: 2026-10
 
-An 8B model generating one token at a time at batch 1 on an H100 needs at least 4.77 ms per step just to read its BF16 weights; stored as INT4 in groups of 128 (W4A16), it needs only 1.45 ms. Yet for the same model at batch 256, the two floors are 4.77 against 4.14 ms. **What weight-only compression buys is fewer bytes read during decode: at small batch the speedup is almost proportional to the bytes saved, and it disappears once the batch is large enough to be compute-bound. The methods of post-training quantization (PTQ) all use a small calibration set to keep the error from affecting the layer's output: GPTQ pushes each column's error onto the columns not yet quantized, and AWQ first scales up the channels that matter, judged by activation size. To bring the activations down to 8 bits as well, you first need a transformation such as SmoothQuant that moves the activation outliers onto the weights.**
+The roofline estimate below uses an 8B teaching model and the H100 SXM5's peak compute and memory bandwidth, initially excluding KV-cache traffic and other overheads. Under those assumptions, reading the BF16 weights at batch 1 has a theoretical lower bound of 4.77 ms per step. INT4 storage in groups of 128 (W4A16) reduces that bound to 1.45 ms. At batch 256, the same estimate gives per-step lower bounds of 4.77 and 4.14 ms. These are predictions from the model, not measured latencies.
 
-Grids, scales and groups are in the previous note, [Formats and error](formats-and-error.en.md); the roofline and the batch ledger for decode are in [Performance](../performance.en.md#decode-batching).
+Weight-only compression reduces the bytes read during decode. In this simplified model, when weight reads dominate, reducing those bytes lowers the time bound proportionally. Once both schemes are limited by the same compute ceiling, the model no longer predicts a speedup from weight-only compression. Actual performance also depends on dequantization overhead, kernel implementation and efficiency, and activation and KV-cache traffic; these ratios do not directly predict measured speedups.
+
+Several post-training quantization (PTQ) methods use a small calibration set to limit the effect of error on each layer's output. GPTQ compensates for each column's error by adjusting columns not yet quantized, while AWQ scales up important channels based on activation magnitude. For INT8 activations, SmoothQuant offers one way to handle outliers: an equivalent transformation transfers the quantization difficulty to the weights. This is not a required step for every 8-bit scheme, and in particular should not be assumed necessary for FP8.
+
+The previous note, [Formats and error](formats-and-error.en.md), covers grids, scales and groups. [Performance](../performance.en.md#decode-batching) explains the roofline and how batching affects decode.
 
 ## Count bytes first: why batch 1 gets more than three times faster
 
@@ -24,7 +28,7 @@ A public measurement: [GPTQ (2022-10)](https://arxiv.org/abs/2210.17323) compres
 
 ### When the batch grows
 
-W4A16 still computes on BF16 Tensor Cores after dequantizing, so its compute ceiling is the same as BF16; W8A8 FP8 doubles the compute ceiling. Each step takes $\max(\text{bytes}/\text{bandwidth},\ \text{operations}/\text{peak})$, still without KV:
+W4A16 still computes on BF16 Tensor Cores after dequantizing, so in this model its compute ceiling is the same as BF16. In W8A8, the layers using FP8 have roughly twice the peak compute, but the output layer remains BF16, giving a whole-model compute-throughput ceiling about 1.88× as high. Each step takes $\max(\text{bytes}/\text{bandwidth},\ \text{operations}/\text{peak})$, still without KV:
 
 | Batch | BF16: per step · tokens/s | W4A16: per step · tokens/s | W8A8 FP8: per step · tokens/s |
 | ---: | ---: | ---: | ---: |
@@ -35,13 +39,17 @@ W4A16 still computes on BF16 Tensor Cores after dequantizing, so its compute cei
 | 256 | 4.77 ms · 53,632 | 4.14 ms · 61,838 | 2.54 ms · 100,954 |
 | 512 | 8.28 ms · 61,838 | 8.28 ms · 61,838 | 4.40 ms · 116,405 |
 
-Reading the W4A16 weights takes 1.45 ms, while the compute at batch $B$ takes $B\times1.6\times10^{10}/989.4\times10^{12}$; the two are equal at $B\approx90$, and beyond that point W4A16 is compute-bound just like BF16. BF16 and FP8 both cross over at $B\approx295$, but the FP8 compute ceiling is twice as high. These are upper bounds at peak; real kernels fall behind earlier: [Marlin (2024-08)](https://arxiv.org/abs/2408.11743) self-reports, in single-layer tests on large matrices on an A10, close to the ideal 4× up to batch 16–32, shrinking gradually after that to about 1.5× at batch 128. [Kurtic et al. (2024-11, ACL 2025)](https://arxiv.org/abs/2411.02355) reach the same direction on vLLM: in synchronous, latency-sensitive deployments W4A16 is the most cost-efficient, in asynchronous continuous batching W8A8 gives the highest throughput, and the crossover depends on model, hardware and task. This table leaves out the KV cache. Once each request's own KV is added, the bytes read per step grow with the batch, so decode becomes compute-bound later, but the weights are only part of what is read and the speedup is diluted: with 4K tokens of BF16 KV per request at batch 64, W4A16 is only about 1.28× faster (11.7 against 15.0 ms), see [Performance](../performance.en.md#decode-batching).
+The lower bound for reading the W4A16 weights is 1.45 ms; at batch $B$, the compute-time lower bound is $B\times1.6\times10^{10}/(989.4\times10^{12})$ seconds. They are equal at $B\approx90$. Beyond that point W4A16 becomes compute-bound in the model, while BF16 may still be bandwidth-bound: BF16 does not cross over until $B\approx295$. Only once both are compute-bound does the model predict the same time lower bound.
+
+The W8A8 FP8 compute-time lower bound must account separately for the quantized layers and the BF16 output layer: $B\times[1.5\times10^{10}/(1978.9\times10^{12})+1.0\times10^9/(989.4\times10^{12})]$ seconds. Equating this to the time to read 8.5 GB of weights also gives $B\approx295$. Its throughput ceiling is the table's 116,405 tokens/s, about 1.88× BF16's 61,838 tokens/s rather than exactly twice as high. These are theoretical time lower bounds and throughput upper bounds under peak assumptions, not measurements.
+
+Actual kernel speedups can start declining at smaller batches: [Marlin (2024-08)](https://arxiv.org/abs/2408.11743) self-reports, in single-layer tests on large matrices on an A10, close to the ideal 4× up to batch 16–32, shrinking gradually after that to about 1.5× at batch 128. [Kurtic et al. (2024-11, ACL 2025)](https://arxiv.org/abs/2411.02355) reach the same direction on vLLM: in synchronous, latency-sensitive deployments W4A16 is the most cost-efficient, in asynchronous continuous batching W8A8 gives the highest throughput, and the crossover depends on model, hardware and task. This table leaves out the KV cache. Once each request's own KV is added, the bytes read per step grow with the batch. Under the same roofline assumptions, decode becomes compute-bound later, but weights are only part of what is read, diluting the predicted speedup: with 4K tokens of BF16 KV per request at batch 64, the estimated W4A16 speedup is only about 1.28× (11.7 against 15.0 ms), see [Performance](../performance.en.md#decode-batching).
 
 ## The simplest approach: round to nearest (RTN)
 
 RTN (round-to-nearest) is what the previous note did: round each weight independently to the nearest grid point, without looking at any data. At 4 bits with g128 it often holds up: in Table 4 of [AWQ](https://arxiv.org/abs/2306.00978), the Llama-2 WikiText-2 perplexities are 5.47 for FP16, 5.73 for RTN, 5.69 for GPTQ and 5.60 for AWQ at 7B, and 3.32, 3.46, 3.42 and 3.41 at 70B, so the methods differ by a few tenths at most.
 
-With fewer bits and no groups, RTN collapses. GPTQ's Table 3 uses per-row scales: OPT-175B is 8.34 in FP16, 10.54 with 4-bit RTN (worse than the FP16 13B model) and 8.37 with GPTQ; at 3 bits RTN gives 7.3×10³ and GPTQ 8.68. RTN loses because each weight is rounded independently: when input channels are correlated, their errors add up in the output. To know which directions matter you have to look at the inputs this layer actually receives, which is what calibration data is for.
+With fewer bits and no groups, RTN's error rises sharply. GPTQ's Table 3 uses per-row scales: OPT-175B is 8.34 in FP16, 10.54 with 4-bit RTN (worse than the FP16 13B model) and 8.37 with GPTQ; at 3 bits RTN gives 7.3×10³ and GPTQ 8.68. The problem is that each weight is rounded independently: when input channels are correlated, their errors add up in the output. To know which directions matter, we need the inputs this layer actually receives, which is what calibration data provides.
 
 ## GPTQ: quantize a column, push its error onto the columns not yet quantized
 
@@ -117,7 +125,9 @@ AWQ does not pick $s$ by hand. It sets $s=s_X^{\alpha}$ and grid-searches 20 val
 | 0.75 | 4.76 | 0.1359 | 0.0079 |
 | 1 | 8 | 0.2286 | 0.0135 |
 
-At $\alpha=1$, $0.2\times8=1.6$ becomes the group maximum, $\Delta$ grows 1.78 times, and the other three channels get worse. That is why it searches, and rounding luck also makes the error jump up and down as $s$ changes. AWQ defaults to g128 and targets INT4 and INT3; it needs no backpropagation and no reconstruction. The paper reports that it depends less on calibration data (OPT-6.7B, INT3-g128): with 16 sequences it beats GPTQ with 192, and when calibration and evaluation data come from different domains (PubMed and Enron swapped), its perplexity rises by only 0.5–0.6 against 2.3–4.9 for GPTQ.
+At $\alpha=1$, $0.2\times8=1.6$ becomes the group maximum, $\Delta$ grows 1.78 times, and quantization error increases in the other three channels. This is why we need to search for a suitable $s$; changes in rounding also make the error fluctuate as $s$ changes.
+
+AWQ defaults to g128 and targets INT4 and INT3; it needs no backpropagation and no reconstruction. The paper reports that it depends less on calibration data (OPT-6.7B, INT3-g128): with 16 sequences it beats GPTQ with 192, and when calibration and evaluation data come from different domains (PubMed and Enron swapped), its perplexity rises by only 0.5–0.6 against 2.3–4.9 for GPTQ.
 
 ## Activations too: SmoothQuant's W8A8
 

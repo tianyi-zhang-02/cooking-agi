@@ -81,7 +81,7 @@ Then ask whether it actually helps in a downstream closed loop rather than just 
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Try explaining these in your own words:</strong>
   <ol>
     <li>why an interactive video model can only generate causally, and how many milliseconds each step gets at most at 24 fps with 4 sampling steps per frame;</li>
     <li>where the gradients of $L_{\rm dyn}$ and $L_{\rm rep}$ go in the RSSM, and what free bits do when the KL is below 1 nat;</li>

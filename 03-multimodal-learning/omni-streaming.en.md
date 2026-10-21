@@ -75,7 +75,7 @@ A reproducible test is a short video with a button changing color each second an
 
 Multiple codebooks represent a speech frame through several discrete codes, completed by the main network and subsequent prediction modules. A causal audio decoder uses available context instead of waiting for future chunks. Computation and buffering still take time. [Qwen3-Omni report](https://arxiv.org/abs/2509.17765)
 
-A hypothetical serial first-packet budget: 160 ms of input accumulation, 30 ms encoding, 90 ms initial generation, 20 ms waveform decoding, and 40 ms playback buffering total 340 ms. Pipelining can overlap some work, not erase every wait.
+For a teaching estimate of first-packet latency, assume serial execution with no overlap: 160 ms of input accumulation, 30 ms encoding, 90 ms initial generation, 20 ms waveform decoding, and 40 ms playback buffering total 340 ms. Pipelining can overlap some work, but it cannot eliminate every wait.
 
 | Metric | What it asks |
 | --- | --- |

@@ -4,11 +4,13 @@
 
 > Reading time: ~7 min · Last reviewed: 2026-10
 
-A user types a question into a chat box, waits a moment, and the answer appears a few words at a time. Where did those two or three seconds go, and what decided them? **In the hand-worked example below, more than 90% of the time goes to decode, generating tokens one at a time; and decode speed depends mainly on how many bytes per second the GPU can read from its memory (HBM), not on how many multiplications per second it can do.** This series starts from that number, follows it down layer by layer to the chip and the fab, and then comes back up to the product.
+A user sends a question, waits, and then sees the answer appear a few words at a time. Where does that time go? Why doesn't a GPU with twice the compute necessarily produce answers twice as fast?
+
+We start by estimating the time for one request. Under the example's assumptions, more than 90% goes to decode: generating tokens one at a time. Memory bandwidth is the main limit. From there, we examine how GPUs, servers, software, and scheduling affect a request, then trace those constraints back to chip fabrication and packaging.
 
 ## Nine layers, from wafer to product
 
-Read from the bottom up. "Number to check first" is the first question to ask when debugging; it does not mean the layer is limited by that number alone.
+The table runs from fabrication and packaging to the user-facing product. “Number to check first” gives a starting point for diagnosis, not the only possible bottleneck at that layer.
 
 | Layer | What it does | Number to check first | Where to read |
 | --- | --- | --- | --- |
@@ -52,7 +54,7 @@ Everything below is a **teaching assumption**, chosen so the orders of magnitude
 
 The GPU row is rounded; it is the same order as an H100 SXM5, which according to whitepaper V1.04 (whose cover says it includes the final clocks and TFLOPS) does 989.4 TFLOPS of dense BF16 (FP32 accumulate) with 3,352 GB/s of memory bandwidth. The product page's BF16 figure of 1,979 TFLOPS is marked "with sparsity", so it is the 2:4 sparse number; the 1,000 TFLOPS and 3,000 GB/s in the 2022 architecture blog were labelled preliminary at the time. How to align these figures is covered in [NVIDIA GPU generations](nvidia-generations.en.md).
 
-A decoder with $N$ parameters does roughly $2N$ floating-point operations per token in the forward pass ([Kaplan et al., 2020, §2.1](https://arxiv.org/abs/2001.08361)). There is also an attention term that grows with context, $2n_{\rm layer}n_{\rm ctx}d_{\rm model}$; with an average context of 1,000 it is about 1.6% of $2N$, so we drop it for now. Then:
+A decoder with $N$ parameters uses roughly $2N$ FLOP per token for the forward-pass parameter-matrix operations ([Kaplan et al., 2020, §2.1](https://arxiv.org/abs/2001.08361)). Attention adds $QK^\top$ and $AV$, each costing about $2n_{\rm layer}n_{\rm ctx}d_{\rm model}$ FLOP, for a total of $4n_{\rm layer}n_{\rm ctx}d_{\rm model}$. Here $n_{\rm ctx}$ is the average number of positions each query actually attends to. For a 2,000-token causal prefill, taking about 1,000 gives $4\times32\times1000\times4096\approx5.24\times10^8$ FLOP/token, about 3.3% of $2N$. Equivalently, using the full prompt length $P$ gives an average attention term of about $2n_{\rm layer}Pd_{\rm model}$; $P$ must not be halved again. We omit this term below for a rough estimate:
 
 $$
 t_{\rm prefill}\approx\frac{2NP}{\eta_F F},\qquad
@@ -85,7 +87,7 @@ If 32 similar requests decode together, the weights are read once per step and s
 | Output 30 tokens instead of 300 | Total about 0.38 s; prefill and queueing take a much larger share | Products with short answers are always compute-bound |
 | Weights at 1 byte per parameter (e.g. FP8) | Each decode step reads about 8.3 GB, about 4 ms | Quality is unchanged, or the kernels reach the same bandwidth utilization |
 | Batch from 1 to 32 | About 20x throughput, while each user gets slower | Bigger batches are always better; KV memory and bandwidth run out first |
-| Prompt from 2,000 to 20,000 tokens | Prefill about 640 ms by the $2N$ formula, KV about 2.6 GB | The $2N$ formula is still enough; the attention term now adds about 16% and cannot be dropped |
+| Prompt from 2,000 to 20,000 tokens | Prefill about 640 ms by the $2N$ formula, KV about 2.6 GB | At an average context of about 10,000, the two attention terms add about 33%; $2N$ now noticeably underestimates the work and this term cannot be dropped |
 
 ## Follow one decode step down, then back up
 
@@ -105,7 +107,9 @@ Chip             the HBM stacks and the GPU die sit on one interposer in the sam
 Fab              die area is capped by the exposure field; HBM and advanced-packaging capacity is limited
 ```
 
-Now back up. The H100 SXM5's 3,352 GB/s comes from 5 HBM3 stacks and a 5,120-bit memory interface (whitepaper V1.04, [Hopper architecture blog](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/)). On one such GPU, for a single request to an 8B model in BF16, every step takes at least $16\ {\rm GB}/3.352\ {\rm TB/s}\approx4.8$ ms; even at 100% bandwidth, one user cannot get more than about 210 tokens per second. To go faster you either read less (quantization, a smaller model), spread the weights over more GPUs, or use more and faster HBM stacks, and that last option leads back to packaging and capacity. Tokens per second is both the product experience and the cost: how many users share each step decides how much GPU time each token costs.
+Tracing those constraints back to performance, the H100 SXM5's 3,352 GB/s comes from 5 HBM3 stacks and a 5,120-bit memory interface (whitepaper V1.04, [Hopper architecture blog](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/)). On one such GPU, for a single request to an 8B model in BF16, every step takes at least $16\ {\rm GB}/3.352\ {\rm TB/s}\approx4.8$ ms. Even at 100% bandwidth utilization, one user cannot get more than about 210 tokens per second.
+
+To go faster, you can read less by quantizing or using a smaller model, spread the weights over more GPUs, or use more and faster HBM stacks. That last option depends on packaging and production capacity. Token throughput affects both waiting time and cost: the number of users sharing each step determines how much GPU time is charged to each token.
 
 ## How this series reads
 

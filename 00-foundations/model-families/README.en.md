@@ -11,13 +11,13 @@ These notes use the same questions across reports, checking explanations against
 <div class="lesson-recipe advanced">
   <div><span>Start with</span><strong>the objective and constraints, not parameter count</strong></div>
   <div><span>Then dissect</span><strong>architecture · data and training · post-training · inference · evaluation</strong></div>
-  <div><span>Finally compare</span><strong>where capability came from and where cost moved</strong></div>
+  <div><span>Finally compare</span><strong>why performance improved and how computational costs changed</strong></div>
   <div><span>Evidence bar</span><strong>papers, public configs, ablations, and reproducible experiments</strong></div>
 </div>
 
 ## See the map before entering a family
 
-Open the [interactive Transformer guide](../transformer-lab.en.md#tx-arch) and switch between families first. That diagram answers “what changed inside the block”; these deep dives continue with “why, how was it trained, and what does deployment pay?”
+Open the [interactive Transformer guide](../transformer-lab.en.md#tx-arch) and switch between families first. That diagram shows what changed inside the block. These deep dives explain why it changed, how the model was trained, and what resources deployment requires.
 
 ```mermaid
 flowchart LR
@@ -39,7 +39,7 @@ flowchart LR
 | Architecture | What changed in attention, the FFN, norms, position encoding, or modality interface? | Memorizing components without tracing tensors and data flow |
 | Training | How do data, objective, scale, and curriculum work together? | Mixing architecture gains with data gains |
 | Post-training | Which behaviors come from SFT, preference optimization, RL, or distillation? | Explaining chat-model behavior from the base architecture |
-| Systems | What is the bill for KV cache, active parameters, communication, and latency? | Looking at total parameters instead of per-token cost |
+| Systems | How do KV cache, active parameters, and communication affect resource use and latency? | Looking at total parameters instead of per-token cost |
 | Evidence | Which claims have ablations, outside evaluation, or reproducible results? | Replacing mechanism evidence with one leaderboard |
 
 <span id="four-entrances"></span>
@@ -50,7 +50,7 @@ flowchart LR
   <a class="curriculum-card" href="gpt.en.md"><span class="card-step">Ways of learning</span><h3>GPT</h3><p>Separate task fine-tuning, contextual demonstrations, and preference optimization, then calculate a gpt-oss attention sink.</p><b>Start →</b></a>
   <a class="curriculum-card" href="llama.en.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>Scope: Llama 1–3.1 text models. Trace the block, GQA cache, and post-training without applying one generation's configuration to the entire family.</p><b>Start →</b></a>
   <a class="curriculum-card" href="qwen.en.md"><span class="card-step">Family design</span><h3>Qwen</h3><p>Dense and MoE models, many sizes, and thinking and non-thinking modes make it useful for studying how a model family itself is designed.</p><b>Start →</b></a>
-  <a class="curriculum-card" href="deepseek.en.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>MLA, fine-grained MoE, the training system, and reasoning post-training are not four isolated tricks but one co-designed stack.</p><b>Start →</b></a>
+  <a class="curriculum-card" href="deepseek.en.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>Read MLA, fine-grained MoE, the training system, and reasoning post-training together to understand how these choices work with one another.</p><b>Start →</b></a>
   <a class="curriculum-card" href="gemma.en.md"><span class="card-step">Deployment & multimodality</span><h3>Gemma</h3><p>Calculate Gemma 3's windowed cache, then distinguish effective, active, and total parameters in 3n and 4. One diagram does not fit every variant.</p><b>Start →</b></a>
 </div>
 

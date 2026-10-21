@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-A video model renders a cup sliding off a table convincingly; a language model answers that "a 5 cm push will knock the cup off". Do they "have a world model"? The question has been argued for years, largely because people mean different things by "have". **Being able to read state out of the model, changing that state and seeing the output change, behaving consistently across rephrasings and new situations, and predicting outcome distributions that match the real world are evidence of different strength. So far, most positive evidence stops at "readable", while tests of behavioural consistency and distributional calibration often fail.**
+A video model renders a cup sliding off a table convincingly; a language model answers that "a 5 cm push will knock the cup off". Do they "have a world model"? The question has been argued for years, largely because people mean different things by "have".
+
+Reading state out of a model, changing that state and seeing the output change, observing consistent behaviour across rephrasings and new situations, and predicting outcome distributions that match the real world provide different strengths of evidence. So far, most positive evidence stops at "readable", while tests of behavioural consistency and distributional calibration often fail.
 
 ## First, what "having a world model" means
 
@@ -71,7 +73,7 @@ Readable (level 1) holds, used (level 2) does not, and behavioural consistency (
 
 ## Behavioural tests say "often inconsistent"
 
-[Vafa et al. 2024](https://arxiv.org/abs/2406.03689) (NeurIPS 2024) borrow the idea of the Myhill–Nerode theorem: in a deterministic finite automaton, two histories that reach the same state must allow exactly the same continuations; histories that reach different states must be distinguishable by some continuation. That gives two tests: does the model treat different histories of the same state the same way (compression), and can it tell different states apart (distinction)?
+[Vafa et al. 2024](https://arxiv.org/abs/2406.03689) (NeurIPS 2024) borrow the idea of the Myhill–Nerode theorem: in a deterministic finite automaton, two histories that reach the same state must allow exactly the same continuations. In a **minimal DFA**, histories reaching distinct states must be distinguishable by some continuation (§2.3 and Appendix C of the paper). A general DFA may contain redundant, behaviourally equivalent states, so different state labels alone do not justify requiring a distinction. This gives two tests: does the model treat different histories of the same state the same way (compression), and can it distinguish states from different continuation-equivalence classes (distinction)?
 
 They trained Transformers on Manhattan taxi routes: next-step validity is about 1.00, yet sequence-compression precision is only 0.10–0.50; a shortest-path model facing 10% random detours drops from 0.99 to 0.08 valid routes.
 

@@ -18,7 +18,7 @@ Pairwise comparisons are not automatically reliable. Both answers may be poor, g
 
 ## Bradley-Terry: turning comparisons into a score {#bradley-terry-turning-comparisons-into-a-score}
 
-To get from pairwise comparisons to a function that scores any response, you need a model that translates **order** into a **scalar**. Bradley-Terry is that translator:
+Learning a scoring function from pairwise comparisons requires a relationship between **scalar scores** and **preference order**. Bradley–Terry uses the difference between two scores to model the probability that one response is preferred:
 
 $$P(y_w \succ y_l \mid x) = \sigma\big(r(x, y_w) - r(x, y_l)\big)$$
 
@@ -106,7 +106,9 @@ misjudged_b = [1, 1, 0, 1]
 assert rubric_reward(misjudged_b) == rubric_reward(answer_a)
 ```
 
-So a rubric needs two checks: who sets the weights, and who judges each requirement. Requirement-by-requirement judgments are easier to audit than one overall 1–10 score; you can measure the judge's error rate on “gives a fix that runs” alone. If a model also wrote the rubric, check what it left out. A requirement the rubric does not state stays invisible to the reward. Whether labels come from people, an AI, or a rubric, the expiry problem from the previous section still applies: when the policy changes, recheck the judge on current-policy outputs. For common judge biases and how to test for them, see [LLM-as-a-Judge](../07-evaluation/llm-as-a-judge/README.en.md).
+So a rubric needs two checks: who sets the weights, and who judges each requirement. Requirement-by-requirement judgments are easier to audit than one overall 1–10 score; you can measure the judge's error rate on “gives a fix that runs” alone. If a model also wrote the rubric, check what it left out. The reward still cannot reflect requirements omitted from the rubric.
+
+Whether labels come from people, an AI, or a rubric, the expiry problem from the previous section still applies: when the policy changes, recheck the judge on current-policy outputs. For common judge biases and how to test for them, see [LLM-as-a-Judge](../07-evaluation/llm-as-a-judge/README.en.md).
 
 ## Down to a checklist {#down-to-a-checklist}
 

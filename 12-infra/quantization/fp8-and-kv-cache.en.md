@@ -4,7 +4,11 @@
 
 > Reading time: ~11 min · Last reviewed: 2026-10
 
-At 128K context, one sequence of this series' 8B teaching model has 16 GiB of BF16 KV, more than the BF16 weights themselves (16 GB, about 14.9 GiB); an 80 GB H100 holds only 3 such sequences. Store the KV in FP8 and it holds 6; with the same 3 sequences, the bytes read per step drop by 38%. **At long context the KV cache has more bytes than the weights, so compressing the KV decides more directly than compressing the weights how many requests you can serve at once and how many bytes each step reads. FP8 is today's most common 8-bit starting point, usable for weights, activations and KV, and whether it is stable depends mostly on how the scales are set. At 4 or 2 bits, KIVI uses per-channel keys and per-token values; that is one method's choice, not a requirement for all KV quantization. Test the chosen layout on the target model and long-context workload.**
+At 128K context, one sequence of this series' 8B teaching model has 16 GiB of BF16 KV, more than the BF16 weights themselves (16 GB, about 14.9 GiB). An 80 GB H100 holds only 3 such sequences; storing the KV in FP8 lets it hold 6. If we keep the same 3 sequences, the bytes read per step drop by 38%.
+
+At long context lengths, the KV cache has more bytes than the weights. Compressing KV therefore has a more direct effect on concurrent request capacity and the amount of data read at each step. FP8 is today's most common 8-bit starting point for weights, activations and KV. Its stability depends mainly on how the scales are set.
+
+At 4 or 2 bits, grouping also matters. KIVI uses per-channel keys and per-token values, but other KV quantization methods need not use the same layout. Test the chosen scheme on the target model and long-context workload.
 
 The E4M3 and E5M2 grids and block scaling are in [Formats and error](formats-and-error.en.md); the basic KV memory formula is in [KV cache](../../00-foundations/deep-dives/kv-cache-and-inference.en.md).
 
@@ -36,7 +40,9 @@ Inference only runs the forward pass; training must also keep gradients and weig
 | MXFP8 | [Mishra et al. (NVIDIA, 2025-05)](https://arxiv.org/abs/2506.08027) | one E8M0 scale per 32 values, exponent rounded up; E4M3 for weights, activations and activation gradients | attention matrix multiplications and softmax, embedding, output layer | up to 8B and 15T tokens (MXFP8 simulated on Hopper), validation perplexity within 0.5% of BF16 |
 | NVFP4 | [NVIDIA (2025-09)](https://arxiv.org/abs/2509.25149), TE 2.18 | one E4M3 scale per 16 values plus a tensor-level FP32 scale; weights in 16×16 2D blocks; stochastic rounding for gradients; random Hadamard transforms to tame outliers, applied only in the weight-gradient computation | about 16% of linear layers (the first 2 and last 8 blocks) stay in BF16; TE recommends MXFP8 for the last few layers but does not apply it automatically | 12B (hybrid Mamba-Transformer) on 10T tokens, loss and downstream accuracy comparable to an FP8 baseline |
 
-Two details deserve their own sentence. First, accumulation precision. DeepSeek-V3 found that FP8 GEMMs on the H800 keep only about 14 bits in accumulation, giving a maximum relative error of nearly 2% in a test with random matrices at $K=4096$; every 128 accumulated elements (equivalent to 4 WGMMA instructions), they move the partial sum to CUDA cores and accumulate it in FP32. Second, transposes. The TE documentation explains that Blackwell Tensor Cores need MXFP8 data contiguous along the reduction dimension, while the backward pass uses the transposed matrix, and transposing MXFP8 data amounts to requantizing it, so TE quantizes a regular and a transposed copy separately from the original high-precision tensor. NVFP4 weights use 16×16 2D blocks for a related reason: so a tensor and its transpose share the same scales.
+Two details need a closer look. First, **accumulation precision**: DeepSeek-V3 found that FP8 GEMMs on the H800 keep only about 14 bits in accumulation, giving a maximum relative error of nearly 2% in a test with random matrices at $K=4096$. Every 128 accumulated elements (equivalent to 4 WGMMA instructions), they move the partial sum to CUDA cores and accumulate it in FP32.
+
+Second, **transposes**: the TE documentation explains that Blackwell Tensor Cores need MXFP8 data contiguous along the reduction dimension, while the backward pass uses the transposed matrix. Transposing MXFP8 data amounts to requantizing it, so TE quantizes a regular and a transposed copy separately from the original high-precision tensor. NVFP4 weights use 16×16 2D blocks for a related reason: a tensor and its transpose can share the same scales.
 
 ## KV cache: the real bulk at long context
 
@@ -110,7 +116,7 @@ What a scale of 1.0 means can be worked out from E4M3 (this is this note's reaso
 | Sliding window | keeps only the most recent positions | decided by the architecture | information outside the window is not visible |
 | Paging, prefix sharing, offload | fragmentation and duplicate storage, or moving KV out of GPU memory | no | management and transfer overhead, see [vLLM and SGLang](../../06-systems/inference-frameworks.en.md) |
 
-These multiply: going from 32 KV heads to 8 and storing in FP8 leaves $\tfrac{8}{32}\times\tfrac12=\tfrac18$ of the MHA BF16 KV. The GQA arithmetic is in [KV cache](../../00-foundations/deep-dives/kv-cache-and-inference.en.md).
+The savings can combine multiplicatively: going from 32 KV heads to 8 and storing in FP8 leaves $\tfrac{8}{32}\times\tfrac12=\tfrac18$ of the MHA BF16 KV. The GQA calculation is in [KV cache](../../00-foundations/deep-dives/kv-cache-and-inference.en.md).
 
 ## Where these numbers stop
 

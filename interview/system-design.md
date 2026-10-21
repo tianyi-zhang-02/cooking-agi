@@ -10,13 +10,13 @@
 
 ## 没有固定公式
 
-我的体会是，系统设计没有一套背下来就能用的模板。真正被考察的是两件事：**你知不知道每个选择的 trade-off**，以及**你能不能把整个系统串起来**。
+我的体会是，系统设计没有一套背下来就能直接套用的模板。面试中主要要讲清两件事：**每个选择有哪些取舍（trade-off）**，以及**各个部分怎样组成完整的系统**。
 
 所以从最基本的出发就行：
 
 1. 要解决的是什么问题？成功长什么样？
 2. 手里有什么数据？没有什么数据？
-3. 约束是什么——规模、延迟、成本、freshness？
+3. 约束是什么——规模、延迟、成本、数据新鲜度（freshness）？
 4. 每一步选这个方案，放弃了什么？
 
 ## 一个例子：推荐系统
@@ -32,7 +32,7 @@
 
 通用系统设计：
 
-- [System Design Primer](https://github.com/donnemartin/system-design-primer)：免费，覆盖面广，适合搭骨架
+- [System Design Primer](https://github.com/donnemartin/system-design-primer)：免费，覆盖面广，适合建立对系统设计的整体认识
 - [ByteByteGo](https://bytebytego.com)：Alex Xu 的《System Design Interview》系列，图多、好读
 - [Designing Data-Intensive Applications](https://www.dataintensive.net)：想真正理解底层取舍，这本最值得花时间。截至 2026-10，最新的是 [2026 年 3 月出版的第 2 版](https://martin.kleppmann.com/2026/03/24/designing-data-intensive-applications-2e.html)（Martin Kleppmann、Chris Riccomini 合著，O'Reilly）；书的网站目前仍是第 1 版的介绍
 

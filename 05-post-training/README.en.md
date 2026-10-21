@@ -6,7 +6,7 @@
 
 ## Post-training changes how the model behaves
 
-Pretraining teaches a model what the world usually contains. Post-training teaches it how to behave and act when it faces a particular kind of task.
+Pretraining lets a model learn language, knowledge, and general capabilities from large amounts of data. Post-training further teaches it how to complete tasks: follow instructions, produce suitable responses, and adjust its behavior based on feedback.
 
 Want the RL foundations first? Start with the separate [Deep RL route](deep-rl/README.en.md): MDPs, Bellman, policy gradients, DQN, SAC, and model-based RL. Then return here for their language-model applications.
 
@@ -54,7 +54,7 @@ Use the contents to jump to a specific problem; there is no need to finish every
 - **Preference Learning**: learn preferences from comparisons between responses.
 - **RL**: adjust the policy according to task outcomes or reward signals.
 
-They are not interchangeable buttons; they solve different learning problems.
+These methods serve different purposes and are not interchangeable. The choice depends on the available data and what the model needs to learn.
 
 ## From Base Model to Aligned Model: get the map right first
 

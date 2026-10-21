@@ -122,7 +122,11 @@ $$
 
 也有实现用训练端重算的 old policy 作为 PPO anchor，再另外校正 rollout 与 old 的差异。**分母不是永远来自推理引擎，也不是永远能由训练端替换。** 要按目标和实现看这几个分布怎样对应。[verl 的 rollout correction 文档](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html)区分了这两类设计；此处核对的是 2026-09-23 更新的文档，不保证未来配置名称不变。
 
-这份文档背后有几篇一手资料，值得直接读。博客 [“Your Efficient RL Framework Secretly Brings You Off-Policy RL Training”](https://fengyao.notion.site/off-policy-rl) 指出，推理引擎（如 vLLM）和训练框架给同一个 token 算出的概率并不相同，因此，即使在线收集新样本，原本希望保持 on-policy 的训练也可能出现采样策略与训练策略不一致的偏差；它的修正是把训练端与推理端的概率比截断到一个区间内，再乘到梯度上，叫截断重要性采样（truncated importance sampling, TIS）。[“When Speed Kills Stability”（Liu 等，2025）](https://richardli.xyz/rl-collapse)把这种不一致和 RL 训练崩溃联系起来，并比较 token 级与序列级的修正。[Ring-1T 报告（Ling Team，2025）](https://arxiv.org/abs/2510.18855)里的 IcePop 则对差异过大的 token 做 mask 和裁剪。框架也在跟进：截至 2026-10，[TRL v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) 用 vLLM 生成时默认打开这类修正（`vllm_importance_sampling_correction=True`；配置签名里的默认模式是按整条序列 mask 的 `sequence_mask`，上限 `vllm_importance_sampling_clip_max=3.0`）。默认打开不等于问题已经解决：先查清差异从哪来，再决定截断还是丢弃。
+这份文档背后有几篇一手资料，值得直接读。博客 [“Your Efficient RL Framework Secretly Brings You Off-Policy RL Training”](https://fengyao.notion.site/off-policy-rl) 指出，推理引擎（如 vLLM）和训练框架给同一个 token 算出的概率并不相同。因此，即使在线收集新样本，原本希望保持 on-policy 的训练也可能出现采样策略与训练策略不一致的偏差。它的修正是把训练端与推理端的概率比截断到一个区间内，再乘到梯度上，叫截断重要性采样（truncated importance sampling, TIS）。
+
+[“When Speed Kills Stability”（Liu 等，2025）](https://richardli.xyz/rl-collapse)把这种不一致和 RL 训练崩溃联系起来，并比较 token 级与序列级的修正。[Ring-1T 报告（Ling Team，2025）](https://arxiv.org/abs/2510.18855)里的 IcePop 则对差异过大的 token 做 mask 和裁剪。
+
+框架也在跟进：截至 2026-10，[TRL v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) 用 vLLM 生成时默认打开这类修正（`vllm_importance_sampling_correction=True`；配置签名里的默认模式是按整条序列 mask 的 `sequence_mask`，上限 `vllm_importance_sampling_clip_max=3.0`）。默认打开不等于问题已经解决：先查清差异从哪来，再决定截断还是丢弃。
 
 统一采样语义后，再查 kernel、精度、模板、位置、mask 等差异。同一批 token、同一权重在两侧评分，按有效动作统计差值的分位数、极端值和长度切片，不要求所有硬件都 bitwise 一致。比率偏离大也不一定全因数据旧了：对齐错误和数值差异同样可能造成。
 

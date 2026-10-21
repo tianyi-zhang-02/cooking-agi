@@ -20,7 +20,7 @@ This doesn't mean deciding on a lifelong direction before sending an application
 
 I used to treat “I did it” and “I can explain it” as roughly the same thing. Follow-up questions made it clear that I needed another pass through the work.
 
-For a project, I'd take the résumé bullet and try talking through it for a few minutes without a script: what was wrong, which part was mine, why I chose that approach, and how far the work actually got.
+For a project, I'd take the résumé bullet and try talking through it for a few minutes without a script: what problem I was working on, which part was mine, why I chose that approach, and how far the work actually got.
 
 The places where I get stuck usually point to something worth reviewing. For example:
 
@@ -35,7 +35,7 @@ Numbers help when I have them. When I don't, I need to be specific about what I 
 
 Solving a problem once doesn't mean I can write it again. Studying a model doesn't mean I can explain it. Some preparation time has to involve writing code and speaking, rather than reading another answer.
 
-For algorithms, there's [LeetCode methods](../interview/leetcode.en.md). For ML and design, start with the [technical study index](../interview/README.en.md) or [system design](../interview/system-design.en.md). I won't duplicate the entire topic list here.
+For algorithms, start with [LeetCode methods](../interview/leetcode.en.md). For ML and design, use the [technical study index](../interview/README.en.md) or [system design](../interview/system-design.en.md). I won't duplicate the entire topic list here.
 
 I'd rather keep a regular, manageable slot for revisiting things I got stuck on than restart everything when an interview arrives. For research-oriented roles, papers and project discussions need time too; preparation can't become only coding practice.
 

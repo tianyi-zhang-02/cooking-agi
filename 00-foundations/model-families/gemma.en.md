@@ -15,7 +15,7 @@ A long document may fit the input limit while still making generation expensive.
 
 ## Which Gemma 3 variant are we reading? {#one-sentence-position}
 
-Most Gemma 3 layers read nearby tokens; a smaller number read the full history. That reduces long-context cache requirements, not the cost of long context to zero. Nor does every size support images.
+Most Gemma 3 layers read nearby tokens; a smaller number read the full history. This reduces cache requirements, though long contexts still incur storage and computation costs. Image support also varies by model size.
 
 The [official model list](https://ai.google.dev/gemma/docs/get_started) distinguishes text-only Gemma 3 270M/1B from image-and-text 4B/12B/27B. Their context limits are 32K and 128K respectively, shared by input and generated tokens. [Gemma 3 model card](https://ai.google.dev/gemma/docs/core/model_card_3)
 
@@ -49,7 +49,7 @@ This is reachability in the computation graph, **not a guarantee that informatio
 
 ### How much cache do six layers need?
 
-Invent a six-layer model: five local layers, one global layer, eight KV heads per layer, head width 128, and BF16 K/V. One request has 32768 positions; local layers retain only the latest 1024. Each cached position in a layer costs `2 × 8 × 128 × 2 = 4096` bytes.
+Consider a hypothetical six-layer model: five local layers, one global layer, eight KV heads per layer, head width 128, and BF16 K/V. One request has 32768 positions; local layers retain only the latest 1024. Each cached position in a layer costs `2 × 8 × 128 × 2 = 4096` bytes.
 
 <figure class="worked-update" id="gemma-cache-trace" lang="en">
   <figcaption>One six-layer example, changing only the retained history</figcaption>

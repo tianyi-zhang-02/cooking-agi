@@ -20,7 +20,7 @@ python3 00-foundations/code/interview_kit.py
 
 | 要写的 | 坑在哪 | 追问通常是 |
 | --- | --- | --- |
-| **softmax** | 不减 max 会溢出 | 「减了为什么还对？」——softmax 对输入平移不变，分子分母同乘 $e^c$ 约掉，所以减 max 是免费的 |
+| **softmax** | 不减 max 会溢出 | 「减了为什么还对？」——softmax 对输入的共同平移不变，分子分母中的共同因子 $e^c$ 会约掉，因此减 max 不改变数学结果 |
 | **BCE from logits** | 先算 $p$ 再取 log，$p$ 下溢到 0 就 $-\infty$ | 「梯度是多少」——$p-y$，$\sigma'$ 被约掉了 |
 | **LayerNorm** | `eps` 在根号里面；方差除以 $N$ 而不是 $N-1$；这份实现只沿最后一维 | 换成 `normalized_shape=(T,d)` 就会跨时间归一化，不再是逐 token 的配置 |
 | **attention + causal mask** | 除 $\sqrt{d_k}$；掩码加在 softmax **之前** | 「softmax 之后置零行不行」——不行，破坏归一化（两个分数的例子见[多头注意力](core/multi-head-attention.md#_5)） |
@@ -105,7 +105,7 @@ $$\frac{\partial \mathcal{L}}{\partial \theta} \approx \frac{\mathcal{L}(\theta 
 
 **快速记忆**
 
-每写一个公式，都顺着五问走：输入输出是什么、为什么这样定义、梯度是什么、数值上哪里会炸、结论在什么条件下成立。
+每写一个公式，都检查五件事：输入输出是什么、为什么这样定义、梯度是什么、哪些计算可能出现数值问题、结论在什么条件下成立。
 
 **面试回答**
 

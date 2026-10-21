@@ -4,7 +4,9 @@
 
 > Reading time: ~7 min · Last reviewed: 2026-10
 
-Take one model and one competition problem. Sampling once, sampling 64 times and voting, or letting the model think for tens of thousands of tokens first can differ by more than ten points of accuracy and by tens of times in cost. Since 2024, "reasoning models" have turned this into a training target and a product setting. **Extra inference compute pays off only under two conditions: the model has a fair chance of reaching the right answer, and something can pick the right sample out, or let the model correct itself within one chain. Without either one, thinking longer just costs more.**
+For the same question, a model can generate one answer, produce 64 candidates and vote, or use a longer reasoning process to check and revise its answer. Each option uses more computation, but accuracy does not necessarily improve.
+
+With multiple candidates, the model needs to produce a correct answer and the selection method needs to recognize it. With a longer reasoning chain, later steps may correct an error, repeat earlier work, or overturn a correct answer. Reasoning models since 2024 have made these capabilities a training target and exposed inference budgets as settings. We examine where the extra computation goes and when it helps.
 
 ## What test-time compute means
 
