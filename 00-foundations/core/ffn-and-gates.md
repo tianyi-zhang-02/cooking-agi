@@ -4,7 +4,7 @@
 
 > 最近审阅：2026-10 · 前置：[多头注意力](multi-head-attention.md)、[残差连接](residual-connections.md)
 
-画 Transformer 时，attention 往往占了最显眼的位置，FFN 却只是旁边一个小方框。但这个方框通常有不少参数和计算。它不是“再看一遍上下文”，而是对每个位置已经拿到的表示做非线性变换。
+画 Transformer 时，attention 往往占了最显眼的位置，FFN 却只是旁边一个小方框。但这个方框通常有不少参数和计算。它不会再去读一遍上下文，只对每个位置已经拿到的表示做非线性变换。
 
 下面只看一个 token，省略 batch、bias 和 norm，使用列向量约定。
 
@@ -20,6 +20,15 @@ $$
 其中 $x\in\mathbb R^d$，$W_{\mathrm{up}}\in\mathbb R^{h\times d}$，$W_{\mathrm{down}}\in\mathbb R^{d\times h}$。第一步构造更多中间特征，非线性改变特征组合，最后映射回 residual stream 的维度。
 
 如果去掉 $\phi$，两个矩阵可以合成一个矩阵，整体还是线性变换。增大中间宽度并不会凭空产生非线性能力。
+
+用一维输入、两个中间特征算一次。令 $W_{\mathrm{up}}=[1,\,-1]^\top$，$W_{\mathrm{down}}=[1,\ 1]$，$\phi=\operatorname{ReLU}$：
+
+| 输入 $x$ | $z=W_{\mathrm{up}}x$ | $\operatorname{ReLU}(z)$ | 输出 $y$ | 去掉 ReLU 的输出 |
+| ---: | --- | --- | ---: | ---: |
+| 2 | [2, −2] | [2, 0] | 2 | 0 |
+| −3 | [−3, 3] | [0, 3] | 3 | 0 |
+
+带 ReLU 时，这个 FFN 算的是 $\lvert x\rvert$：一个中间特征管正半轴，另一个管负半轴。去掉 ReLU，$W_{\mathrm{down}}W_{\mathrm{up}}=1-1=0$，任何输入都输出 0；换一组权重也只能合成一条过原点的直线 $y=ax$，折不出 $\lvert x\rvert$ 那样的拐角。
 
 不同 token 使用同一组 FFN 权重，但在普通 dense FFN 内彼此不直接交换信息。上下文已经通过之前的 attention 进入当前向量。“逐位置计算”不等于“没有上下文”。
 

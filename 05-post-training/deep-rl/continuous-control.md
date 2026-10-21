@@ -80,7 +80,7 @@ $$
 
 ## 不训练 actor，也能在连续动作上取 max 吗？
 
-DDPG 的 Actor 本质上是一个“近似求 argmax 的函数”：在每个状态替 Critic 找一个高分动作。Q-learning 的 target 里那个 $\max_{a'}Q(s',a')$，还有两种不单独训练网络的做法。
+DDPG 的 Actor 其实就是一个“近似求 argmax 的函数”：在每个状态替 Critic 找一个高分动作。Q-learning 的 target 里那个 $\max_{a'}Q(s',a')$，还有两种不单独训练网络的做法。
 
 **采样取最大。** 需要取 max 时，采 $N$ 个动作，用 Critic 逐个打分，取最高的，这叫 random shooting。CEM 在此基础上多迭代几轮：保留最好的几个，拟合新的高斯，再采样（单步手算见[规划与 LQR](planning-and-control.md)）。[QT-Opt（Kalashnikov 等，2018）](https://arxiv.org/abs/1806.10293)在视觉抓取中用 CEM 代替 Actor：每轮采 64 个、留 6 个，做两轮；同一个过程既算训练 target，也在真实机器人上选动作。作者认为这避开了 actor–critic 的不稳定，并说 CEM 在低维问题上对局部最优有一定的鲁棒性。代价也直接：取一次 max 要 $64\times2=128$ 次 Q 前向，batch 里每条样本的 target 都要取一次。采到的最好值不会超过这条 Q 曲线自己的最大值，样本少时 target 偏低；而相对真实价值，Q 本身的估值误差照样会被取 max 放大。
 

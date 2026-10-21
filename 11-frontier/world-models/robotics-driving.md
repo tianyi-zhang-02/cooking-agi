@@ -44,7 +44,7 @@ NVIDIA 的 Cosmos 是这条线上最完整的开放系列。下表只列我们�
 | 2026-03-16 / 05-31 | [Cosmos 3](https://arxiv.org/abs/2606.02800) | GTC 宣布，5 月 31 日发布；双塔 mixture-of-transformers：自回归 VLM 推理塔，加一个处理文本、图像、视频、音频和动作的 diffusion 生成塔 |
 | 2026-07-15 | Cosmos 3 Edge | 4B，基于 Nemotron |
 
-Cosmos 3 的规模，NVIDIA 自己的两处说法不一致：[开发者博客](https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3)写 Nano 16B、Super 64B，[Hugging Face 合集](https://huggingface.co/collections/nvidia/cosmos3)把 Super 列为 65B、Edge 4B。NVIDIA 2026-05-31 的[新闻稿](https://nvidianews.nvidia.com/news/nvidia-launches-cosmos-3-the-open-frontier-foundation-model-for-physical-ai)称它在 Physics-IQ、PAI-Bench 等多个榜单上位列开源模型第一，属公司自报；社区维护的 [Physics-IQ Verified 排行榜](https://github.com/google-deepmind/physics-IQ-benchmark)在 2026-10-15 读取时，Cosmos3-Super（multiframe）为 50.8 ± 2.2。
+Cosmos 3 的规模，NVIDIA 自己的两处说法不一致：[开发者博客](https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3)写 Nano 16B、Super 64B，[Hugging Face 合集](https://huggingface.co/collections/nvidia/cosmos3)把 Super 列为 65B、Edge 4B。NVIDIA 2026-05-31 的[新闻稿](https://nvidianews.nvidia.com/news/nvidia-launches-cosmos-3-the-open-frontier-foundation-model-for-physical-ai)称它在 Physics-IQ、PAI-Bench 等多个榜单上位列开源模型第一，属公司自报；第三方维护的 [Physics-IQ Verified 排行榜](https://github.com/google-deepmind/physics-IQ-benchmark)在 2026-10-15 读取时，Cosmos3-Super（multiframe）为 50.8 ± 2.2。
 
 另一个关于成本的数据点：Meta 在 [V-JEPA 2 论文](https://arxiv.org/abs/2506.09985)（2025-06）里把 Cosmos 放进同一个 CEM 规划器当世界模型，每个动作要 4 分钟，抓放成功率 0%；V-JEPA 2-AC 每个动作 16 秒。这是 Meta 的测量，只说明那次实验里的 Cosmos 不适合当这种规划器的内核，不代表它当数据引擎没有价值；细节见 [JEPA 一篇](jepa.md)。
 

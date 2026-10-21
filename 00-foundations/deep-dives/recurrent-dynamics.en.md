@@ -15,7 +15,7 @@ $$J_k=\frac{\partial h_k}{\partial h_{k-1}}=\operatorname{diag}\!\big(f'(a_k)\bi
 
 States are column vectors here. The earliest change passes through the rightmost $J_{t+1}$ first, then moves left. Matrices generally do not commute; reversing the order changes the calculation, even though a scalar example would hide the mistake.
 
-If every Jacobian operator norm is bounded by one common $c<1$, the product norm is bounded by $c^{T-t}$. A largest singular value above 1 at one step does not guarantee explosion: gradient directions and later matrices matter. Long dependencies therefore involve both capacity and a long optimization path. Weights are shared, but Jacobians change with the input and state; they are not one fixed matrix.
+If every Jacobian operator norm is bounded by one common $c<1$, the product norm is bounded by $c^{T-t}$, so it shrinks at least that fast. A largest singular value above 1 at one step does not guarantee explosion: gradient directions and later matrices matter. Long dependencies therefore involve both capacity and a long optimization path. Weights are shared, but Jacobians change with the input and state; they are not one fixed matrix.
 
 ## BPTT is the chain rule after unrolling in time {#dissection-1-bptt-is-the-chain-rule-after-unrolling-in-time}
 

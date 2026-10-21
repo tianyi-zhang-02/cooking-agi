@@ -41,7 +41,7 @@ On the software side, a kernel launch creates a grid made of thread blocks. **Al
 
 ## Warps and SIMT: 32 threads share one instruction
 
-An SM does not schedule threads one by one but in groups of 32, called warps. The [CUDA guide](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#warps-and-simt) calls this SIMT: the threads of a warp execute the same code, but each can take its own branch. When they disagree, the threads not on the current path are masked off and get their turn when the other path runs. This is warp divergence.
+An SM schedules threads in groups of 32, called warps. The [CUDA guide](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#warps-and-simt) calls this SIMT: the threads of a warp execute the same code, but each can take its own branch. When they disagree, the threads not on the current path are masked off and get their turn when the other path runs. This is warp divergence.
 
 Work out the cost once. A warp hits an `if`: when the condition is true it runs path A (10 instructions), otherwise path B (20 instructions). The instruction counts are a teaching assumption.
 

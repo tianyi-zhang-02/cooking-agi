@@ -62,7 +62,7 @@ An agent trades higher latency and cost for the ability to adapt to open-ended t
 
 ## ReAct: think a step, take a step
 
-ReAct (Yao et al., 2022) interleaves reasoning and acting: the model writes down its thinking for this step, calls a tool, and thinks about the next step once it sees the result. Most agent loops today are variations on this pattern.
+ReAct ([Yao et al., 2022](https://arxiv.org/abs/2210.03629)) interleaves reasoning and acting: the model writes down its thinking for this step, calls a tool, and thinks about the next step once it sees the result. Most agent loops today are variations on this pattern.
 
 ## How this series reads
 

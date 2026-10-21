@@ -8,7 +8,7 @@
 
 候选已经拿到了。现在有两个不同问题：**这一条值不值得看？和旁边几条放在一起，还值不值得看？** 前一个偏单条预测，后一个是列表决策。下面的小实验会让你亲手改后者，而不重新训练模型。
 
-Twitter Heavy Ranker 的 2023 年公开说明采用多个行为预测，再按配置合成分数。这里重要的不是记住某年的系数，而是区分**模型预测什么**和**产品希望鼓励什么**。[固定版本的 Heavy Ranker 说明](https://github.com/twitter/the-algorithm-ml/blob/b85210863f7a94efded0ef5c5ccf4ff42767876c/projects/home/recap/README.md)
+Twitter Heavy Ranker 的 2023 年公开说明采用多个行为预测，再按配置合成分数。某一年的系数不用记，要分清的是**模型预测什么**和**产品希望鼓励什么**。[固定版本的 Heavy Ranker 说明](https://github.com/twitter/the-algorithm-ml/blob/b85210863f7a94efded0ef5c5ccf4ff42767876c/projects/home/recap/README.md)
 
 教学上可以先写成：
 

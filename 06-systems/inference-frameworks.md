@@ -2,7 +2,7 @@
 
 **中文** · [English](inference-frameworks.en.md)
 
-> 核对：2026-10-12 · 对照 vLLM v0.31.0（2026-10-05）与 SGLang v0.5.21（2026-10-02）的文档；源码链接固定到 2026-10-10 的 main commit。下面的数字是教学算例，没有跑框架性能排名。
+> 核对：2026-10-12 · 对照 vLLM v0.31.0（2026-10-05）与 SGLang v0.5.21（2026-10-02）的文档；源码链接固定到 2026-10-10 的 main commit。2026-10-21 又读了 [vLLM v0.32.0](https://github.com/vllm-project/vllm/releases/tag/v0.32.0) 与 [SGLang v0.5.22](https://github.com/sgl-project/sglang/releases/tag/v0.5.22) 的发布说明，正文提到的默认行为只见到一处变化（ROCm 的 model runner），已在文中注明。下面的数字是教学算例，没有跑框架性能排名。
 
 一个模型用 `generate()` 能回答问题，为什么还需要 vLLM 或 SGLang？因为服务里不只有一个人在问：长短请求一起进来，有人中途关闭窗口，也有人反复问同一份文档。引擎要安排这些工作，而不是每来一条请求就从头独占 GPU。
 
@@ -53,7 +53,7 @@ TokenizerManager 管输入与请求结果，Scheduler 决定当前批次，执�
 <figcaption>未结束的请求继续下一轮。两列是职责对照，不是一一对应的进程图；特别是 SGLang 的 ModelRunner 属于 scheduler 的执行路径，不能凭一个框就给它增加独立进程。</figcaption>
 </figure>
 
-vLLM 的进程边界可查[官方架构](https://docs.vllm.ai/en/v0.31.0/design/arch_overview/)，执行入口可跟 [EngineCore](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/engine/core.py)。它把 `SchedulerOutput` 交给 executor；worker 里的 model runner 再结合本地请求状态准备 token、位置与 attention 元数据，不是由调度器提前拼好全部模型输入张量。该固定 commit 在兼容配置下优先用 [Model Runner V2](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu/model_runner.py)，不支持的功能、缺少 Triton、部分 ROCm 模型默认设置，或显式配置，都可能改走旧的 [GPUModelRunner](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu_model_runner.py)。SGLang 这条路径核对到固定 commit：从 [Scheduler.run_batch](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/scheduler.py#L4405)，到 [worker 的批次转换与 forward](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/tp_worker.py#L598)，再到 [ModelRunner](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/model_executor/model_runner.py)。这些是阅读坐标，不是要求背下类名。
+vLLM 的进程边界可查[官方架构](https://docs.vllm.ai/en/v0.31.0/design/arch_overview/)，执行入口可跟 [EngineCore](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/engine/core.py)。它把 `SchedulerOutput` 交给 executor；worker 里的 model runner 再结合本地请求状态准备 token、位置与 attention 元数据，不是由调度器提前拼好全部模型输入张量。该固定 commit 在兼容配置下优先用 [Model Runner V2](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu/model_runner.py)，不支持的功能、缺少 Triton、部分 ROCm 模型默认设置，或显式配置，都可能改走旧的 [GPUModelRunner](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/v1/worker/gpu_model_runner.py)；之后的 [v0.32.0](https://github.com/vllm-project/vllm/releases/tag/v0.32.0) 把 ROCm 也改成默认用 V2，去掉了按模型保留旧 runner 的例外。SGLang 这条路径核对到固定 commit：从 [Scheduler.run_batch](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/scheduler.py#L4405)，到 [worker 的批次转换与 forward](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/managers/tp_worker.py#L598)，再到 [ModelRunner](https://github.com/sgl-project/sglang/blob/436d73ddda02d17d6d56e770a5362ebd5dd95ac0/python/sglang/srt/model_executor/model_runner.py)。这些是阅读坐标，不是要求背下类名。
 
 假设 request R 有 6 个 prompt token，其中前 4 个对应可复用的完整缓存块。Scheduler 不能简单说“命中了就结束”：它还要确认复用有效、剩余 2 个 token 有位置可写、本轮有预算。算完后采样出第一个新 token X；**这不表示 X 的 KV 已经写好了**。下一轮把 X 作为输入，才会生成它自己的 KV，再预测下一个 token。全前缀命中时如何得到下一 token 的 logits，还要看具体实现是否需要计算末位置等路径，不能把缓存直接当答案。
 
@@ -134,7 +134,7 @@ SGLang 的上述执行选择可以在固定版本的 [ModelRunner](https://githu
 
 这里尚未计额外 residual 张量、元数据、协议和同步。长 prefill 可以分块传，代价是调度与流水线行为随之变化；不能拿 decode 的小包去解释所有场景。
 
-[vLLM 的扩展指南](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/)建议无 NVLink 的某些配置优先考虑 PP，以减少通信；这不构成“PP 在所有 PCIe 机器上最优”的证明。单请求仍要依次经过各 stage，层间负载不均会让卡空等。若模型单卡已放得下，独立副本、量化后单卡、TP 和 PP 都应在相同流量下比较。分离式 serving 若迁移 KV，则又是不同的通信路径。
+[vLLM 的扩展指南](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/)建议：GPU 之间没有 NVLink（例如 L40S）时，用 PP 代替 TP 以获得更高吞吐；这不构成“PP 在所有 PCIe 机器上最优”的证明。单请求仍要依次经过各 stage，层间负载不均会让卡空等。若模型单卡已放得下，独立副本、量化后单卡、TP 和 PP 都应在相同流量下比较。分离式 serving 若迁移 KV，则又是不同的通信路径。
 
 再算一个传输下限：假设边界有效带宽为 12 GiB/s，且忽略启动延迟。上表的 48 KiB 至少约需 3.8 微秒，192 MiB 约需 15.6 毫秒。前者很可能由启动和同步开销主导；后者已经不能忽略字节量。这个带宽是算例假设，不是 PCIe 或某款显卡的实测值。
 
@@ -165,7 +165,7 @@ PP 可以减少跨卡协作的频率，但也带来顺序依赖：只有一条�
 | 生命周期 | 引用计数、空闲队列按 LRU 驱逐、重新分配 | 锁定、引用、节点拆分；默认 LRU，也可选 LFU、SLRU、priority、T-LRU |
 | 不能直接推出什么 | 块组织不等于整个服务更快 | 树组织不等于任意 workload 都更快 |
 
-默认值不是通用承诺。实际选择可查 vLLM 的 [runner 与异步调度条件](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/config/vllm.py#L709)、[cache 配置](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/config/cache.py#L67)，以及 SGLang 的 [tree core 回退条件](https://github.com/sgl-project/sglang/blob/v0.5.21/python/sglang/srt/mem_cache/unified_cache/tree_core_registry.py#L44)。部署时再核对启动日志里的最终配置。
+默认值不是通用承诺。实际选择可查 vLLM 的 [runner 与异步调度条件](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/config/vllm.py#L709)、[cache 配置](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/config/cache.py#L72)，以及 SGLang 的 [tree core 回退条件](https://github.com/sgl-project/sglang/blob/v0.5.21/python/sglang/srt/mem_cache/unified_cache/tree_core_registry.py#L44)。部署时再核对启动日志里的最终配置。
 
 实现细节可对照已有的[缓存生命周期与页对齐算例](../00-foundations/deep-dives/attention-kernels.md#cache-lifecycle)，其中固定了 vLLM 与 SGLang 源码版本。[SGLang 原论文](https://arxiv.org/abs/2312.07104)解释了 RadixAttention 的背景；不要把论文发表时的功能边界当成今天的完整产品对比。
 

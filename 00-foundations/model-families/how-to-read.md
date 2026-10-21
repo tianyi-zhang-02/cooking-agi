@@ -43,6 +43,35 @@ flowchart TD
 - **Prefill**：处理已有 prompt。一次输入很多 token，重点看长度、batch、attention 实现和首 token 延迟。
 - **Decode**：继续生成。每轮新增 token，会读取缓存；长上下文、小 batch 等情况下，内存访问可能很重要。batch 变大以后为什么会转向算力受限，见[性能：decode 的 batch](../../12-infra/performance.md#decode-batching)。
 
+还用第三步里 4 个 KV 头的配置算一次。每个 token 的 K/V 在 24 层里共占 $2\times24\times4\times64\times2=24{,}576$ bytes，也就是 24 KiB。先 prefill 一个 4,096 token 的 prompt，再跑 256 个 decode 步，每步送入一个新 token：
+
+| 阶段 | 做了什么 | KV cache 的读写 |
+| --- | --- | --- |
+| Prefill | 一次前向处理全部 4,096 个位置 | 写入 96 MiB |
+| 第 1 个 decode 步 | 新 token 读此前的全部缓存，再追加自己的 K/V | 读 96 MiB，写 24 KiB |
+| 第 256 个 decode 步 | 缓存已经多了 255 个位置 | 读约 102 MiB，写 24 KiB |
+| 256 步合计 | — | 共读约 24.7 GiB |
+
+Prefill 只写了一次 96 MiB；256 个 decode 步读缓存的总量却约是它的 264 倍，而且每一步还要再读一遍模型权重。所以小 batch 解码时，瓶颈常常是“搬了多少字节”，而不是“做了多少次乘法”。
+
+```python
+def decode_kv_traffic(prompt_tokens, decode_steps, bytes_per_token):
+    if min(prompt_tokens, decode_steps, bytes_per_token) < 0:
+        raise ValueError("counts must be non-negative")
+    written = prompt_tokens * bytes_per_token
+    cached_positions = sum(prompt_tokens + step for step in range(decode_steps))
+    return written, cached_positions * bytes_per_token
+
+bytes_per_token = 2 * 24 * 4 * 64 * 2
+written, read = decode_kv_traffic(4096, 256, bytes_per_token)
+assert bytes_per_token == 24 * 2**10
+assert written == 96 * 2**20
+assert read == 1_081_216 * bytes_per_token
+assert round(read / written) == 264
+```
+
+这只是逻辑上的字节账：没算权重读取、激活，也没算 kernel 实际怎样访存，更不是测出来的带宽。8 个请求一起 decode 时，每一步的权重读取可以由 8 个请求共用；没有共享前缀的话，KV cache 仍是每个请求各读各的。batch 变大时这本账为什么会变，就在这里。
+
 不要把“减少理论 FLOPs”直接翻译成“延迟一定更低”。并行度、带宽和 kernel 实现都可能改变结果。至少记录 workload、输入输出长度、batch 和硬件，再比较测量值。
 
 ## 第五步：把结论拆成三栏

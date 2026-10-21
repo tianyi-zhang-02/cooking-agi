@@ -4,15 +4,13 @@
 
 [中文](README.md) · **English**
 
-Not sure where to begin? [Choose a route for your goal](choose-your-path.en.md).
+This section covers model structure, training methods, evaluation, and inference. Each topic starts from an example, then develops the derivation and the implementation.
 
-For interviews, go straight to [Interview prep](../interview/README.en.md) and pick the area you need. The full explanations stay here in Foundations whenever you want to go deeper.
+- **Just starting:** follow the starter route below and understand one computation first.
+- **Already have the basics:** look up what you need in the question index or the chapter list.
+- **Ready to build:** run the small experiments in the notes, then see complete systems in [Engineering practice](../practice/README.en.md).
 
-This section explains how models work, why training methods take the forms they do, and how to judge their results. Start with examples, then explore derivations and implementations as needed. You do not need every prerequisite or every new model; go straight to the subject you care about.
-
-- **New to the subject?** Follow the examples and computations first. Return to derivations on a second pass.
-- **Already have the basics?** Start with your question and fill in missing concepts as needed.
-- **Ready to build?** Check the implementation assumptions, run a small experiment, then see how the pieces fit in [Engineering practice](../practice/README.en.md).
+Not sure which part to pick? Start with the [reading routes](choose-your-path.en.md). If you are mainly reviewing for interviews, go straight to [Interview prep](../interview/README.en.md).
 
 <span id="how-the-sections-fit-together"></span>
 
@@ -27,7 +25,7 @@ Drafts pending review open with a notice and are marked “(draft)” in the sid
 
 ## Start with the foundations
 
-If vectors, losses, and gradients are still unfamiliar, begin with [linear models to neural networks](../00-foundations/from-linear-to-neural.en.md). Steps 1–3 below explain computation and learning; step 5 covers checking the result. Post-training and inference optimization can wait until you need them. Run the [small PyTorch experiments](../00-foundations/pytorch/README.en.md) alongside the concepts rather than saving all coding for the end.
+If vectors, losses, and gradients are still unfamiliar, begin with [linear models to neural networks](../00-foundations/from-linear-to-neural.en.md). Steps 1–3 below explain computation and learning; step 5 covers checking the result. Post-training and inference optimization can wait until you need them. Pair your reading with the [small PyTorch experiments](../00-foundations/pytorch/README.en.md).
 
 <nav class="study-route" aria-label="Suggested reading route">
 <a href="../00-foundations/core/tokenization.en.md"><small>01 / INPUT</small><strong>From text to vectors</strong><span>Tokens, vocabularies, and sequences</span></a>
@@ -42,7 +40,7 @@ If vectors, losses, and gradients are still unfamiliar, begin with [linear model
 
 ## Follow the question you have
 
-You do not need to finish an entire subject to resolve one doubt. Start with the first article in a route. If you can answer the question in the last column, that may be enough for now; the remaining links are ways to go further, not a checklist to finish.
+Find the question closest to yours in the left column and read the route in the middle column. The right column lists the details worth watching as you read.
 
 | What you want to understand | Reading route | What to inspect |
 | --- | --- | --- |
@@ -65,7 +63,7 @@ You do not need to finish an entire subject to resolve one doubt. Start with the
 <span id="subject-ml-exercises"></span>
 <span id="subject-system-design"></span>
 
-**Want to review or solve problems?** [Interview preparation](../interview/README.en.md) separates ML / LLM questions, ML coding, and Python with LeetCode. **Want to design and build a system?** [Engineering practice](../practice/README.en.md) connects design exercises with public projects and teaching implementations. Small experiments remain alongside the concepts here, without putting every exercise in this directory.
+Practice lives in [Interview preparation](../interview/README.en.md): ML / LLM questions, ML coding, Python, and LeetCode. System design and project walkthroughs live in [Engineering practice](../practice/README.en.md). This page keeps the explanations and their small experiments.
 
 <details markdown="1">
 <summary>What should I know before focusing on one subject?</summary>
@@ -79,7 +77,7 @@ You do not need to finish an entire subject to resolve one doubt. Start with the
 | Retrieval / RAG / agents | Embeddings, retrieval metrics, basic API calls | Every model family and training recipe |
 | Python / algorithms | Functions, loops, lists, dictionaries | Language models; this route stands on its own |
 
-These are not reader rankings. You can build RAG without first studying SAC, or study training before service scheduling. Follow the links when a concrete question calls for the background.
+These are the prerequisites for reading. For example, you can build RAG before studying SAC, and study training before service scheduling.
 
 </details>
 
@@ -90,16 +88,14 @@ These are not reader rankings. You can build RAG without first studying SAC, or 
 
 ## All chapters
 
-The four areas match the sidebar: **understand models → train and evaluate → inference and applications → frontier watch**. These describe subjects, not difficulty levels. Each article has one main home; links connect related subjects without duplicating content.
-
-Open an overview or expand a chapter for all its articles. Model families follow component fundamentals. Questions and coding exercises live in Interview preparation; design exercises and project walkthroughs live in Engineering practice. Switch whenever you want to try an idea, without finishing the whole section first.
+The chapters fall into four areas that match the sidebar: **understanding models, training and evaluation, inference and applications, and frontier watch**. Click a title for its overview, or expand a chapter to find its articles. Related subjects link to each other inside the notes.
 
 <!-- widget:study-atlas -->
 
 ## Reading and updates
 
-For the history behind these methods, use the separate [Tech history](technology-timeline.en.md) area. Foundations stays focused on how things work rather than mixing historical routes into its directory.
+For how these techniques developed, see the [Tech history](technology-timeline.en.md).
 
 Use **EN / 中文** at the top right to switch the current article. Chinese pages retain useful English terminology; English pages contain the full examples, derivations, and code.
 
-Search at the top or press `/` for a concept. “My reading” keeps your saved notes and recently read articles in this browser only. The [coverage and remaining-work list](coverage.en.md) tracks gaps. Reference material helps identify missing topics, but the reading order here follows the concepts.
+Search at the top or press `/` to look up a concept. “My reading” keeps your saved and recently read articles in this browser. Progress is tracked in the [coverage and remaining-work list](coverage.en.md).

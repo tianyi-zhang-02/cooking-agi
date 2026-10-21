@@ -41,7 +41,7 @@
 
 ## Warp 与 SIMT：32 个线程共用一条指令
 
-SM 不是一个一个线程地调度，而是 32 个一组，叫 warp。[CUDA 指南](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#warps-and-simt)把这种方式叫 SIMT：一个 warp 的线程执行同一段代码，但每个线程可以走不同分支。分支不一致时，不走当前路径的线程被 mask 掉，等另一条路径执行时再轮到它们，这叫 warp divergence。
+SM 按 32 个线程一组来调度，这一组叫 warp。[CUDA 指南](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html#warps-and-simt)把这种方式叫 SIMT：一个 warp 的线程执行同一段代码，但每个线程可以走不同分支。分支不一致时，不走当前路径的线程被 mask 掉，等另一条路径执行时再轮到它们，这叫 warp divergence。
 
 手算一次代价。一个 warp 遇到 `if`：条件为真走路径 A（10 条指令），否则走路径 B（20 条指令）。指令数是教学假设。
 

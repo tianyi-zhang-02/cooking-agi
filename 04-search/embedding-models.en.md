@@ -2,7 +2,7 @@
 
 [中文](embedding-models.md) · **English**
 
-> Reading time: about 15 minutes · Prerequisites: vectors and dot products; attention masks in the second half · Reviewed: 2026-10-10
+> Reading time: about 15 minutes · Prerequisites: vectors and dot products; attention masks in the second half · Last reviewed: 2026-10
 
 A user searches for “I forgot my password. How do I recover it?” Two passages say:
 

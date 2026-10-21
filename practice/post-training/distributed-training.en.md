@@ -31,11 +31,11 @@ Parameter count alone cannot explain why a small model uses many GPUs. Long cont
 
 | Strategy | Partitioned work or state | When to consider it | Main cost |
 | --- | --- | --- | --- |
-| DDP | Data; each GPU retains a complete training replica | The model fits and more data throughput is useful | Replicated state and gradient synchronization |
+| Data parallel (DDP) | Data; each GPU retains a complete training replica | The model fits and more data throughput is useful | Replicated state and gradient synchronization |
 | FSDP2 | Parameters, gradients, optimizer state | State capacity is limiting and layerwise gathering is feasible | Parameter all-gathers and gradient reduce-scatters; peak memory is not simply total state divided by GPU count |
 | ZeRO 1 / 2 / 3 | Progressively optimizer, gradient, and parameter state | Increasing memory savings within a compatible training stack | Deeper sharding generally adds state exchange; offload adds transfer costs |
-| TP | Tensor computation within a layer | Large layers and sufficient interconnect bandwidth | Frequent intra-layer communication |
-| PP | Layers assigned to pipeline stages | Layer partitioning with suitable microbatch scheduling | Pipeline bubbles, stage imbalance, activation transfers |
+| Tensor parallel (TP) | Tensor computation within a layer | Large layers and sufficient interconnect bandwidth | Frequent intra-layer communication |
+| Pipeline parallel (PP) | Layers assigned to pipeline stages | Layer partitioning with suitable microbatch scheduling | Pipeline bubbles, stage imbalance, activation transfers |
 
 See [PyTorch FSDP2](https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html) and [DeepSpeed ZeRO](https://www.deepspeed.ai/tutorials/zero/) for sharding behavior. Old FSDP1 configurations are not drop-in FSDP2 APIs. Strategies can be combined, but establish why one dimension is needed before adding another.
 

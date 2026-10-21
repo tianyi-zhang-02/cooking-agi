@@ -2,7 +2,7 @@
 
 [中文](attention-kernels.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisites: [multi-head attention](../core/multi-head-attention.en.md), [KV cache](kv-cache-and-inference.en.md)
+> Last reviewed: 2026-10 · Prerequisites: [multi-head attention](../core/multi-head-attention.en.md), [KV cache](kv-cache-and-inference.en.md)
 
 The names are similar, but the problems differ. **FlashAttention addresses data movement during attention computation. PagedAttention addresses KV storage for concurrent requests.** One mainly changes computation and IO; the other mainly changes cache organization.
 
@@ -144,13 +144,15 @@ Avoiding the full matrix does not guarantee a fully utilized GPU. Work partition
 | FA1 | Tiling and online softmax reduce intermediate HBM traffic | Some keys are ignored |
 | FA2 | Less non-matmul work and better thread-block / warp partitioning | The attention objective is approximated |
 | FA3 | Hopper-oriented overlap of asynchronous movement, matrix multiplication, and softmax; an additional FP8 path | Every GPU benefits equally, or FP8 is mandatory |
-| FA4 | Blackwell-oriented (B200 / GB200): fully asynchronous matmul pipelines and larger tiles; software-emulated exp and rescaling only when needed; tensor memory and 2-CTA matmul in backward to cut shared-memory traffic | Hopper users should switch too, or the authors' speedups hold for your shapes |
+| FA4 | The paper targets Blackwell (B200 / GB200): fully asynchronous matmul pipelines and larger tiles; software-emulated exp and rescaling only when needed; tensor memory and 2-CTA matmul in backward to cut shared-memory traffic | The paper's B200 speedups carry over to Hopper or to your shapes |
 
 One [FA2](https://arxiv.org/abs/2307.08691) change assigns different query rows to different warps, reducing exchanges of partial results. This inter-warp communication involves **on-chip shared memory**, not HBM; for where each memory space lives and who can see it, see [CUDA memory spaces](../../12-infra/cuda.en.md#memory-spaces).
 
 [FA3](https://arxiv.org/abs/2407.08608) exploits Hopper's asynchronous execution (asynchronous data movement such as TMA; see [NVIDIA generations](../../12-infra/nvidia-generations.en.md)) and discusses both FP16 and FP8. FP8 adds quantization error to measure: “exact attention” does not promise error-free arithmetic.
 
 [FA4](https://arxiv.org/abs/2603.05451) (March 2026) targets Blackwell. That generation doubles Tensor Core throughput, but shared-memory bandwidth and the exponential units did not keep pace, so the bottleneck moves back to work outside the matmuls; FA4 mainly reduces exp, rescaling, and shared-memory traffic. The authors report up to 1.3× over cuDNN 9.13 and 2.7× over Triton in BF16 on B200. These are the authors' own kernel numbers, not end-to-end results. The kernels are written entirely in CuTe-DSL, embedded in Python.
+
+The released code covers more than the paper: as of 2026-10, the [official README](https://github.com/Dao-AILab/flash-attention/blob/e7a6402a9ff099de5eb628ce207a88a3f0aa5378/README.md#flashattention-4-cutedsl) says FA4 is optimized for Hopper and Blackwell GPUs (e.g. H100, B200) and installs separately with `pip install flash-attn-4`. The speedups above come from B200; on Hopper, benchmark FA3 against FA4 on your own shapes.
 
 Before adopting any version, check hardware, shape, and dtype support, then benchmark the end-to-end gain.
 

@@ -51,7 +51,7 @@
 | 2024-02 | [KIVI](https://arxiv.org/abs/2402.02750)（ICML 2024） | key 按通道、value 按 token 量化，KV cache 压到 2 bit |
 | 2024-03 | [QuaRot](https://arxiv.org/abs/2404.00456) | 先旋转再量化，权重、激活、KV cache 都用 4 bit |
 | 2024-07 | [Accuracy is Not All You Need](https://arxiv.org/abs/2407.09141)（NeurIPS 2024） | 准确率几乎不变，逐题看却有不少题对错翻转 |
-| 2024-08 | [Marlin](https://arxiv.org/abs/2408.11743) | 4 bit 权重乘 FP16 激活的 kernel，batch 16–32 以内接近理想的 4 倍 |
+| 2024-08 | [Marlin](https://arxiv.org/abs/2408.11743) | 4 bit 权重乘 FP16 激活的 kernel，A10 上的大矩阵在 batch 16–32 以内接近理想的 4 倍 |
 | 2024-11 | [“Give Me BF16 or Give Me Death”?](https://arxiv.org/abs/2411.02355)（ACL 2025） | Llama-3.1 上 50 多万次评测：FP8 近似无损，INT8 掉 1–3%，W4A16 与 8 bit 相当 |
 | 2024-12 | [DeepSeek-V3](https://arxiv.org/abs/2412.19437) | 671B 参数的 MoE 用细粒度 FP8 训练 |
 | 2025-05 | [MXFP8 训练配方](https://arxiv.org/abs/2506.08027)（NVIDIA） | 最大 8B 模型、15T token，在 Hopper 上模拟 MXFP8 计算，自报验证困惑度与 BF16 相差不到 0.5% |
@@ -66,7 +66,7 @@
 | 比较确定 | 还在变 | 接下来看什么信号 |
 | --- | --- | --- |
 | 8 bit 权重在大模型上基本无损：Kurtic 等（2024-11）在 Llama-3.1 8B 到 405B 上测 FP8 W8A8 近似无损；Dutta 等在 MMLU 上测 GPTQ W8A16，只有 0.26%–1.40% 的题翻转 | 4 bit 及以下怎么做：GPTQ、AWQ 之外，有旋转（QuaRot），也有 NVFP4、MXFP4 这类硬件块格式 | 在长上下文、多语言和推理任务上逐题对照的 4 bit 结果 |
-| 小 batch 时 W4A16 主要换来 decode 速度，batch 一大优势就消失：Marlin（2024-08）、Kurtic 等的部署建议 | W4A4 的推理质量：NVIDIA 自报 DeepSeek-R1-0528 从 FP8 转 NVFP4 后，所列 7 项评测掉 1% 以内 | 第三方按切片报告的 W4A4 评测 |
+| 小 batch 时 W4A16 主要换来 decode 速度，batch 一大优势就消失：Marlin（2024-08）、Kurtic 等的部署建议 | W4A4 的推理质量：NVIDIA 自报 DeepSeek-R1-0528 从 FP8 转 NVFP4 后，所列 7 项评测最多掉 1 个百分点（[NVFP4 博客](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)） | 第三方按切片报告的 W4A4 评测 |
 | 平均准确率看不出逐题变化（Dutta 等，2024-07）；长上下文、非英语和数学这类难任务最先坏（Mekala 等 2025-05，Marchisio 等 2024-07） | 低精度训练：FP8 已用到 671B（DeepSeek-V3），MXFP8 到 8B / 15T（模拟量化），NVFP4 到 12B / 10T | 更大规模、公开完整配方的 FP4 训练 |
 | 硬件决定能不能真的加速：FP8 Tensor Core 需要 compute capability 8.9 以上，9.0（Hopper）没有 INT4 Tensor Core（[CUDA 编程指南](https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html)） | 新硬件的取舍：截至 2026 年 10 月的 [HGX 页面](https://www.nvidia.com/en-us/data-center/hgx/)（8 卡，稀疏口径，dense 减半），HGX B300 的 INT8 只有 3 POPS、FP8 是 72 PFLOPS，HGX B200 两者都是 72；AMD 的 [MI350 系列](https://rocm.docs.amd.com/en/latest/reference/gpu-arch/mi350.html)加入 MX 格式 | 下一代数据表里 INT8、FP8、FP4 各自的吞吐 |
 

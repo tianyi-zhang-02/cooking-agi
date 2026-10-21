@@ -37,6 +37,16 @@ To decide whether an additional review is worthwhile, a useful accounting rule i
 
 For a teaching example, assign an error a cost of 100. If the automated error rate is 5%, review leaves a 1% error rate, and reviewing costs 1, the net benefit is `0.05 × 100 − 0.01 × 100 − 1 = 3`. Humans make mistakes too, so residual risk after review is not zero. Estimate those probabilities from observed data rather than substituting a model's self-reported confidence.
 
+Change one condition at a time and the answer can flip:
+
+| Case | Error cost | Automated error rate | Error rate after review | Review cost | Net benefit |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| The example above | 100 | 5% | 1% | 1 | 3 |
+| Reviewers mostly approve what they see | 100 | 5% | 4% | 1 | 0 |
+| A draft the user can easily fix | 10 | 5% | 1% | 1 | −0.6 |
+
+In the second row the review happens but hardly reduces errors, so its cost buys nothing. People shown a model's conclusion tend to go along with it (automation bias; see [LLM decision support](decision-support.en.md)), so estimate the after-review error rate from reviewers' actual correction records instead of assuming they catch every mistake. In the third row the error is cheap: review costs more than the loss it can prevent, so it is better to finish automatically and let the user edit.
+
 This is not a formula for bypassing authorization. An action that requires user approval still requires it, even when its estimated cost is low. Irreversibility affects the loss and response options; it does not need an arbitrary extra multiplier. Include waiting time in the cost as well.
 
 Common triggers include:
@@ -92,6 +102,10 @@ after valid approval, and still follow the tool's idempotency contract on retrie
 ### After-the-fact spot checks {#after-the-fact-spot-checks}
 
 Sample from completed trajectories to find systematic failures, judge bias, and new types of problems.
+
+How many is enough? Suppose one failure type appears in 1% of completed trajectories. Sampling $n$ uniformly, the chance of seeing at least one is $1-0.99^n$: about 63% for 100 samples and about 95% for 300. If it appears in only 0.1%, 300 samples still give only about a 26% chance of seeing it once.
+
+So oversample rare but high-risk slices (for example, trajectories that issue refunds or send bulk messages), and weight each slice back by its sampling rate when estimating overall rates. Otherwise, as with the error-selected traces in [Agent observability](agent-observability.en.md), the recorded rates drift away from real traffic.
 
 ### Periodically redesigning the rules {#periodically-redesigning-the-rules}
 

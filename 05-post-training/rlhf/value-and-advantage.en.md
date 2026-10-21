@@ -2,7 +2,7 @@
 
 [中文](value-and-advantage.md) · **English**
 
-> Reading time: ~2 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~4 min · Level: core · Last reviewed: 2026-10
 
 ## Reward, return, and credit assignment
 
@@ -27,6 +27,18 @@ Their difference is the **advantage**:
 $$A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).$$
 
 It asks not whether the total score is high, but how much better this action was than the normal expectation at that state. The same return of $0.6$ is disappointing if the Critic predicted $0.8$ and encouraging if it predicted $0.2$. Subtracting this baseline leaves the expected policy gradient unchanged and, when the baseline is accurate, usually reduces its variance substantially.
+
+## Work through a three-token answer {#worked-returns}
+
+Put these definitions on one concrete answer. It has 3 tokens and $\gamma=1$. The Reward Model gives 1 only at the end, and each token also carries a KL shaping term of −0.1. The Critic values the 3 prefixes at `[0.5, 0.6, 0.8]`, and nothing follows once the answer ends. All numbers are teaching assumptions.
+
+| Position $t$ | $r_t$ | $G_t$ (sum from here on) | $V(s_t)$ | $G_t-V(s_t)$ |
+| --- | --- | --- | --- | --- |
+| 0 | −0.1 | 0.7 | 0.5 | +0.2 |
+| 1 | −0.1 | 0.8 | 0.6 | +0.2 |
+| 2 | −0.1 + 1 = 0.9 | 0.9 | 0.8 | +0.1 |
+
+$G_t$ is easiest to compute from the back: $G_2=0.9$, $G_1=-0.1+0.9=0.8$, $G_0=-0.1+0.8=0.7$. All three advantages are positive: at every prefix this answer did a little better than the Critic expected. The Critic already expected a lot at the last step (0.8), so only 0.1 is left over there. If the Critic's estimates are off, this column is off too; TD and GAE below deal with that trade-off.
 
 ## Bellman equations update value, not reward
 
@@ -55,6 +67,8 @@ y_t=r_t+\gamma V_\psi(s_{t+1}),
 $$
 
 $\delta_t$ is the **temporal-difference error**: the difference between the new target—one-step reward plus future value—and the old estimate. Monte Carlo uses the complete $G_t$, giving low bias but high variance. TD bootstraps from a value estimate, reducing variance while introducing approximation bias. PPO commonly uses GAE to interpolate between these behaviors.
+
+Continue with the answer above: $\delta_0=-0.1+0.6-0.5=0$, $\delta_1=-0.1+0.8-0.6=0.1$, and $\delta_2=0.9+0-0.8=0.1$. They sum to 0.2, exactly $G_0-V(s_0)$: with $\gamma=1$ the intermediate values cancel term by term. Using $\delta_t$ alone as the advantage is the $\lambda=0$ end of GAE; adding up all the later $\delta$ terms is the $\lambda=1$ end, which is the Monte Carlo advantage in the table.
 
 The central policy-gradient expression is therefore
 

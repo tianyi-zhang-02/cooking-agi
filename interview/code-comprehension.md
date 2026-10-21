@@ -102,7 +102,7 @@ def buggy_token_mean(batches):
     return sum(means) / len(means)
 ```
 
-它得到 `(2+8)/2 = 5`。不是浮点误差，而是每个 batch 权重相同，短 batch 中的 token 被看得更重。若指标本来就定义为 batch 均值，这不算 bug；本练习错在违背了前面的指标约定。
+它得到 `(2+8)/2 = 5`。这和浮点误差无关：每个 batch 权重相同，短 batch 中的 token 被看得更重。若指标本来就定义为 batch 均值，这不算 bug；本练习错在违背了前面的指标约定。
 
 <details markdown="1">
 <summary>看修复与应该补的测试</summary>

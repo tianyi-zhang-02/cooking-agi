@@ -256,7 +256,8 @@ These are irreducible noise, squared bias, and variance. Bias measures systemati
 error averaged over possible training sets; variance measures sensitivity to which
 training set was sampled. More flexible models tend to reduce bias and increase
 variance, while regularization often trades some bias for lower variance. The exact
-additive identity above is a squared-loss result.
+additive identity above is a squared-loss result. Classification admits a similar
+trade-off discussion, but the same identity cannot be carried over without qualification.
 
 </div>
 </section>
@@ -312,7 +313,7 @@ $$p(w)\propto e^{-\lambda\|w\|_1}$$
 
 produces L1. Regularization can therefore be read as a negative log-prior in MAP. Both
 MLE and MAP depend on the likelihood assumptions, while MAP also depends on the prior.
-With enough data the prior often has less relative influence, but it does not repair
+With enough data and suitable conditions the prior often has less relative influence, but that does not repair
 misspecification or non-identifiability automatically.
 
 </div>

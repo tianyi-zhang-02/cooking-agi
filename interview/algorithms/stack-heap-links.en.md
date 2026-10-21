@@ -106,6 +106,17 @@ def has_cycle(head):
 
 Compare node identity with `is`, not equal values. Without a cycle fast reaches the end. Inside a cycle, the relative gap changes by one modulo cycle length each iteration, so they meet. O(n) time, O(1) space. This detects a cycle; it doesn't locate its entry.
 
+Trace `1 → 2 → 3 → 4 → 5`, where 5 links back to 3. The cycle is 3, 4, 5, of length 3. The values are distinct, so we use them only to name positions:
+
+| End of round | slow | fast | What happened |
+| --- | --- | --- | --- |
+| Start | 1 | 1 | Both at the head |
+| 1 | 2 | 3 | fast enters the cycle first |
+| 2 | 3 | 5 | slow enters too; along the cycle, fast is 1 step behind slow |
+| 3 | 4 | 4 | fast closes that step: `slow is fast`, return True |
+
+Each round slow moves 1 step and fast moves 2, so fast gains 1 step inside the cycle. The gap shrinks one position at a time and cannot jump past slow. For the acyclic `1 → 2 → 3`, after round 1 fast is at 3 and `fast.next` is None, so the loop ends and returns False.
+
 ## 6. Practice and self-checks
 
 - [Valid Parentheses](https://leetcode.com/problems/valid-parentheses/): last in, first out.

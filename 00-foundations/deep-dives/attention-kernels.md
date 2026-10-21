@@ -144,13 +144,15 @@ assert math.isclose(streaming_attention(scores, [10, 20, 0], 2), 25 / 3)
 | FA1 | 分块与 online softmax，减少 HBM 中间量读写 | 少看一部分 keys |
 | FA2 | 减少非矩阵乘操作，改进线程块与 warp 之间的工作划分 | 换一个近似 attention 目标 |
 | FA3 | 面向 Hopper，把异步搬运、矩阵乘与 softmax 更好地重叠；另有 FP8 路径 | 所有硬件都会同样受益，或只能算 FP8 |
-| FA4 | 面向 Blackwell（B200 / GB200）：全异步矩阵乘流水线和更大的块；软件模拟 exp，只在必要时 rescale；反向用 tensor memory 和 2-CTA 矩阵乘减少 shared memory 读写 | Hopper 上也该换 FA4，或作者报告的加速比在你的形状上同样成立 |
+| FA4 | 论文面向 Blackwell（B200 / GB200）：全异步矩阵乘流水线和更大的块；软件模拟 exp，只在必要时 rescale；反向用 tensor memory 和 2-CTA 矩阵乘减少 shared memory 读写 | 论文在 B200 上报告的加速比，换到 Hopper 或你的形状上同样成立 |
 
 [FA2](https://arxiv.org/abs/2307.08691)中一个具体改动是让不同 warps 负责不同 Query 行，减少交换部分结果的工作。这里的 warp 间通信主要涉及**片上 shared memory**，不要和 GPU 显存 HBM 混在一起；几种内存谁能看见、放在哪里，见 [CUDA 的内存空间](../../12-infra/cuda.md#memory-spaces)。
 
 [FA3](https://arxiv.org/abs/2407.08608)进一步利用 Hopper 的异步执行能力（TMA 等异步搬运，见 [NVIDIA 各代 GPU](../../12-infra/nvidia-generations.md)）。它同时讨论 FP16 和 FP8；采用 FP8 时，量化误差要单独测，不能拿“exact attention”当作没有数值误差的保证。
 
 [FA4](https://arxiv.org/abs/2603.05451)（2026-03）针对 Blackwell。这一代的 Tensor Core 吞吐翻倍，shared memory 带宽和算指数的单元却没跟着涨，瓶颈又回到了矩阵乘以外的部分，所以它主要减少 exp、rescale 和 shared memory 流量。作者报告：B200 上 BF16 最高比 cuDNN 9.13 快 1.3 倍、比 Triton 快 2.7 倍。这是作者自报的 kernel 数字，不是端到端结果。实现全部用嵌在 Python 里的 CuTe-DSL 写成。
+
+发布的代码比论文覆盖得更宽：截至 2026-10，[官方 README](https://github.com/Dao-AILab/flash-attention/blob/e7a6402a9ff099de5eb628ce207a88a3f0aa5378/README.md#flashattention-4-cutedsl) 写明 FA4 针对 Hopper 和 Blackwell（如 H100、B200）优化，用 `pip install flash-attn-4` 单独安装。上面的加速数字来自 B200；在 Hopper 上选 FA3 还是 FA4，要用自己的形状实测。
 
 判断要不要用某个版本，先看当前硬件、形状和 dtype 支不支持，再测端到端收益。
 

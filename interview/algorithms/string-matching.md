@@ -2,7 +2,7 @@
 
 **中文** · [English](string-matching.en.md) · [方法地图](../leetcode.md)
 
-> 最近审阅：2026-10-09 · 先读：[双指针与窗口](pointers-and-search.md)
+> 最近审阅：2026-10 · 先读：[双指针与窗口](pointers-and-search.md)
 
 在 `ababab` 里找 `abab`，答案是下标 0 和 2。第一次匹配结束后，如果直接跳过 4 个字符，就漏掉了重叠的第二次。
 

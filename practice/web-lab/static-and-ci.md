@@ -60,7 +60,7 @@ python site/leakcheck.py
 
 先在自己的 fork 中确认 Actions 已启用；如果要公开预览，在仓库 **Settings → Pages → Build and deployment** 选择 GitHub Actions，并检查 `github-pages` 环境的分支与批准规则。不确定会公开哪些文件，就先只跑 CI，别开发布。[官方配置说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 
-试一次故意失败：在自己的练习分支，把 `test_web_lab.py` 里创建记录预期的 `201` 改成 `200`，开 PR，看 Actions 中哪个步骤失败。再改回正确值。这样看到的不是抽象“红灯”，而是**API 约定被一条测试检查到了**。不要把错误提交合进主分支。
+试一次故意失败：在自己的练习分支，把 `test_web_lab.py` 里创建记录预期的 `201` 改成 `200`，开 PR，看 Actions 中哪个步骤失败。再改回正确值。这样你会看到，那盏红灯具体意味着**API 约定被一条测试检查到了**。不要把错误提交合进主分支。
 
 `needs: build` 只保证工作流内的先后关系。要禁止失败的 PR 合并，还要由维护者配置 branch protection / ruleset 的 required checks；单写 YAML 并不会自动设置仓库合并规则。
 

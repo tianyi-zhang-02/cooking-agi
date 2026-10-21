@@ -76,7 +76,7 @@ assert linear_flow_example(2, 10, 0.25, 6, 0.1) == (4.0, 8, 4, 4.6)
 | Qwen-Image-2.1，2026-09 开放权重 | 换了生成主干：视觉生成部分是 7B 参数、32 层 single-stream DiT（初版是 20B 的 MMDiT）；能按提示直接输出带透明通道的 RGBA 图 | 发布说明和模型卡不等于已验证本地部署和训练配方 |
 | Qwen-Image-3.0，截至 2026-10 仅托管 API | 阿里云 Model Studio 列出 `qwen-image-3.0-pro` 和更快的 `qwen-image-3.0`，生成和编辑共用一个模型 ID，编辑时接收 1–3 张输入图；我们在 Qwen 的 Hugging Face 和 arXiv 上都没找到 3.0 的权重或技术报告 | 架构没有公开，不能按 2.x 推测它的主干和 VAE |
 
-来源：[2.0 报告](https://arxiv.org/abs/2605.10730)、[2.0-RL 报告](https://arxiv.org/abs/2606.27608)、[2.1 官方发布](https://qwen.ai/blog?id=qwen-image-2.1)、[2.1 模型卡](https://huggingface.co/Qwen/Qwen-Image-2.1)、[Model Studio 的图像模型列表](https://www.alibabacloud.com/help/en/model-studio/image-model)（3.0，2026-10-16 核对）。这里区分报告内容与发布公告，没有复现它们的性能结果。
+来源：[2.0 报告](https://arxiv.org/abs/2605.10730)、[2.0-RL 报告](https://arxiv.org/abs/2606.27608)、[2.1 官方发布](https://qwen.ai/blog?id=qwen-image-2.1)、[2.1 模型卡](https://huggingface.co/Qwen/Qwen-Image-2.1)、[Model Studio 的图像模型列表](https://www.alibabacloud.com/help/en/model-studio/image-model)（3.0，2026-10-21 核对）。这里区分报告内容与发布公告，没有复现它们的性能结果。
 
 空间压缩值得自己算：1024 × 1024 图片，边长除以 8 后是 128 × 128 个位置；除以 16 后是 64 × 64，位置数变为四分之一。**这不是显存变为四分之一的承诺**，因为通道数、patchification、模型宽度和重建质量也可能改变。
 

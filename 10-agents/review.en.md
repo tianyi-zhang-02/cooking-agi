@@ -80,7 +80,7 @@ A cascade lets the small model answer first and decides whether to escalate afte
 - [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents): the workflow and agent distinction, and common structures
 - [ReAct](https://arxiv.org/abs/2210.03629): interleaving reasoning and acting
 - [SWE-bench](https://arxiv.org/abs/2310.06770): evaluating coding agents on real issues; the Verified subset is close to saturated, and since February 2026 OpenAI recommends [SWE-bench Pro](https://arxiv.org/abs/2509.16941) instead
-- [τ-bench](https://arxiv.org/abs/2406.12045): tools and dialogue under policy constraints, and pass^k; its successor [τ²-bench](https://arxiv.org/abs/2506.07982) adds dual control, where the user also acts, and as of October 2026 the repository has released τ³-bench
+- [τ-bench](https://arxiv.org/abs/2406.12045): tools and dialogue under policy constraints, and pass^k; its successor [τ²-bench](https://arxiv.org/abs/2506.07982) adds dual control, where the user also acts; the [repository](https://github.com/sierra-research/tau2-bench/releases) later released τ³-bench, and its latest release in October 2026 is τ-bench 2.0
 - [WebArena](https://arxiv.org/abs/2307.13854)
 - [OSWorld](https://arxiv.org/abs/2404.07972)
 - [Not what you've signed up for](https://arxiv.org/abs/2302.12173): indirect prompt injection

@@ -12,6 +12,16 @@ Within a forward pass, looping increases serial network depth, not necessarily c
 
 <!-- widget:tx-loop-reach -->
 
+You can count it without the sliders. Keep the figure's toy rule (one layer follows one hop) and suppose the question needs six hops:
+
+| Model | Layers of weights stored | Layer evaluations | Hop reached |
+| --- | ---: | ---: | --- |
+| Fixed 4 layers, untied | 4 | 4 | hop 4, two short |
+| 1-layer block looped 6 times | 1 | 6 | hop 6, answer reached |
+| 6 layers, untied | 6 | 6 | hop 6, answer reached |
+
+The last two rows run the same number of layer evaluations, but the third stores six times the weights of the second; the first stores more weights than the second yet runs out of depth. This is the case $k=1$, $L=6$ in the parameter accounting of the next section. Conversely, if the link needed for hop 3 is missing from the input, the second row stops at hop 2 even after 60 loops: looping adds steps, not missing information.
+
 ## What theory and experiments say
 
 - [Giannou et al. (2023)](https://arxiv.org/abs/2301.13196) construct networks that execute programs. Representability does not establish that next-token training will discover those programs.

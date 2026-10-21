@@ -85,7 +85,7 @@ These are different research questions, not a complete account of industry pract
 
 ## Kimi K3: order information comes from elsewhere {#kimi-k3}
 
-Kimi K3 v1 interleaves KDA and Gated MLA at 3:1, ending with an extra MLA layer. KDA supplies ordered state updates; MLA omits explicit Q/K positional encoding. Global access remains causal. [Report §2.1](https://arxiv.org/html/2607.24653v1#S2.SS1)
+According to the Kimi K3 technical report (arXiv v1), K3 interleaves KDA and Gated MLA at 3:1, ending with an extra MLA layer. KDA supplies ordered state updates; MLA omits explicit Q/K positional encoding. Global access remains causal. [Report §2.1](https://arxiv.org/html/2607.24653v1#S2.SS1)
 
 This is not deleting the rotation function from an existing RoPE model. Inspect the complete token-mixing path. KDA's matrix state is richer than our scalar example: start with error-based writes in [Gated DeltaNet](gated-deltanet.en.md), then channel-wise forgetting in [Kimi Linear](https://arxiv.org/abs/2510.26692).
 

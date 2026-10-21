@@ -2,7 +2,7 @@
 
 [中文](primes-and-sieves.md) · **English**
 
-> Reading time: about 10 minutes · Prerequisites: divisibility, loops, arrays · Reviewed: 2026-10-09
+> Reading time: about 10 minutes · Prerequisites: divisibility, loops, arrays · Last reviewed: 2026-10
 
 Testing whether 97 is prime and listing every prime below a million call for different starting points. For one number, look for a divisor. For a range, eliminate many composites at once.
 
@@ -121,7 +121,7 @@ $$
 \max\left(p^2,\left\lceil\frac{L}{p}\right\rceil p\right).
 $$
 
-For $0\le L\le R$, integer code is `max(prime * prime, ((left + prime - 1) // prime) * prime)`. In `[20, 30]`, prime 3 starts at 21 and prime 5 starts at 25. The $p^2$ condition also prevents deleting the prime itself when it lies inside the interval. Explicitly clear 0 and 1 if present. Keeping a base sieve and segment flags uses $O(\sqrt R+R-L+1)$ space, not just the interval width.
+For $0\le L\le R$, integer code is `max(prime * prime, ((left + prime - 1) // prime) * prime)`. In `[20, 30]`, prime 3 starts at 21 and prime 5 starts at 25. If the interval contains $p$ itself (3 when querying `[2, 10]`, for example), the $p^2$ term prevents deleting that prime. Explicitly clear 0 and 1 if present. Keeping a base sieve and segment flags uses $O(\sqrt R+R-L+1)$ space, not just the interval width.
 
 Python integers do not overflow like fixed-width integers, but their arithmetic is not free. For a $B$-bit input, trial division on the order of $\sqrt n$ has an exponentially growing worst-case count in $B$, and each large-integer operation costs something too. Do not use this code for cryptographic-size primality testing. Choose scale-appropriate algorithms and verified implementations. This note does not implement Miller–Rabin or present a probabilistic test as an unconditional proof.
 

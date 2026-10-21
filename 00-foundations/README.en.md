@@ -4,7 +4,7 @@
 
 > Reading time: ~7 min · Type: learning map · Last reviewed: 2026-10
 
-I have never much liked tutorials that open with the big Transformer block diagram: every box looks familiar, yet when you actually have to walk from a piece of text to the next token, it is easy to get lost somewhere in the middle.
+When I first learned the Transformer, I looked at plenty of architecture diagrams. I knew the name of every module, yet when I had to explain how a sentence turns into the next token, I still got stuck.
 
 So this part follows the order you'd learn it in: first how text becomes numbers, then how RNNs and LSTMs handle a sequence and how Seq2Seq connects input to output, then attention and the Transformer, and finally today's decoder-only models. Examples first, then equations, then code you write yourself.
 
@@ -14,10 +14,10 @@ To see how the whole collection fits together, start with the [study and review 
 
 <div class="learning-path">
   <a href="core/tokenization.en.md"><span>01</span><strong>Tokenization</strong><small>How a string becomes discrete IDs the model can process</small></a>
-  <a href="core/recurrent-models.en.md"><span>02</span><strong>RNN → LSTM</strong><small>Use a hidden state to compress the past into one recurrent computation</small></a>
+  <a href="core/recurrent-models.en.md"><span>02</span><strong>RNN → LSTM</strong><small>Use a hidden state to keep what has been read so far</small></a>
   <a href="core/seq2seq.en.md"><span>03</span><strong>Seq2Seq</strong><small>The encoder understands the input; the decoder generates the output step by step</small></a>
   <a href="core/vanilla-transformer.en.md"><span>04</span><strong>Vanilla Transformer</strong><small>Replace recurrence with self-attention and cross-attention</small></a>
-  <a href="core/decoder-only.en.md"><span>05</span><strong>Decoder-only LM</strong><small>Unify every task as next-token prediction</small></a>
+  <a href="core/decoder-only.en.md"><span>05</span><strong>Decoder-only LM</strong><small>Organize input and output around next-token prediction</small></a>
 </div>
 
 ```mermaid
@@ -37,7 +37,7 @@ flowchart LR
   <a class="curriculum-card" href="core/recurrent-models.en.md"><span class="card-step">02 · State</span><h3>RNN and LSTM</h3><p>If you can only read left to right, what state should hold the past? And why does a plain RNN forget so easily?</p><b>Read →</b></a>
   <a class="curriculum-card" href="core/seq2seq.en.md"><span class="card-step">03 · Mapping</span><h3>Seq2Seq</h3><p>How one input sequence becomes an output of a different length, and why attention became a necessary mechanism.</p><b>Read →</b></a>
   <a class="curriculum-card" href="core/vanilla-transformer.en.md"><span class="card-step">04 · Attention</span><h3>Vanilla Transformer</h3><p>Use the 2017 original to see where the inputs of its three attention sites come from and what each one does, then understand the modern variants.</p><b>Read →</b></a>
-  <a class="curriculum-card" href="core/decoder-only.en.md"><span class="card-step">05 · Generation</span><h3>Decoder-only</h3><p>Once the prompt and the answer sit in one sequence, why a single next-token loss is enough.</p><b>Read →</b></a>
+  <a class="curriculum-card" href="core/decoder-only.en.md"><span class="card-step">05 · Generation</span><h3>Decoder-only</h3><p>Once the prompt and the answer sit in one sequence, how the model learns to generate with a next-token loss.</p><b>Read →</b></a>
 </div>
 
 After reading these, try drawing the computation from text to logits without notes, explaining the input and output of each step. Wherever you get stuck is where to go back.
@@ -59,12 +59,12 @@ Once the main line is clear, you can continue in two directions. One goes inward
 
 ### 2. Read model families sideways
 
-Once you know the Transformer's parts, the next step is not to memorise more model names. It is to ask: **why did this family change this component, where did the cost move, and which training and evaluation choices made the capability real?**
+Once you know the Transformer's parts, the next step is not to memorise more model names. It is to ask: **why did this model change this component, what did it save, what extra cost did it add, and do the experiments support that choice?**
 
 <div class="curriculum-grid">
-  <a class="curriculum-card" href="model-families/llama.en.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>Use the modern dense decoder as a baseline: restrained architecture, with much of the story in data, scale, and the full post-training pipeline.</p><b>Deep dive →</b></a>
+  <a class="curriculum-card" href="model-families/llama.en.md"><span class="card-step">Dense baseline</span><h3>Llama</h3><p>Start from a common dense decoder and separate what architecture, data, training scale, and post-training each contribute.</p><b>Deep dive →</b></a>
   <a class="curriculum-card" href="model-families/qwen.en.md"><span class="card-step">One family, many modes</span><h3>Qwen</h3><p>See how one family spans dense and MoE models, many sizes, and thinking and non-thinking inference modes.</p><b>Deep dive →</b></a>
-  <a class="curriculum-card" href="model-families/deepseek.en.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>Read MLA, MoE, the training system, and reasoning post-training as one cost–capability chain.</p><b>Deep dive →</b></a>
+  <a class="curriculum-card" href="model-families/deepseek.en.md"><span class="card-step">Co-design</span><h3>DeepSeek</h3><p>See what MLA, MoE, and reasoning training each solve, then how they fit together and how much compute they need.</p><b>Deep dive →</b></a>
   <a class="curriculum-card" href="model-families/gemma.en.md"><span class="card-step">Compact & multimodal</span><h3>Gemma</h3><p>Start from smaller models and deployment constraints, then connect local/global attention, distillation, and vision.</p><b>Deep dive →</b></a>
 </div>
 

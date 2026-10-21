@@ -8,7 +8,7 @@ This page tracks what has been written and what still needs checking. It helps u
 
 The listed Appendix 1 articles have now been read; the generated summary below records their status. The next task is to check whether our explanations are accurate and our examples useful, not to increase a reading count. Reading the prose does not verify every source figure, external link, or implementation.
 
-For studying rather than auditing, start with the [reading routes](README.en.md). This page is a gap list, not a question bank you must finish in order.
+For studying rather than auditing, start with the [reading routes](README.en.md).
 
 Published notes are still being revised, and new material is checked locally before release. Unfinished explanations and reviews stay on this list. A passing build or numerical test does not mean every article has been reviewed.
 

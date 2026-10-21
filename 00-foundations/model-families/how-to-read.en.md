@@ -43,6 +43,35 @@ The skill to practise here is to find which cost a change reduces, then ask what
 - **Prefill:** process the existing prompt. Many tokens enter together; inspect sequence length, batch, attention implementation, and time to first token.
 - **Decode:** generate further tokens while reading cached state. Memory access can matter especially with long contexts and small batches. For why a larger batch shifts decoding toward compute-bound, see [Performance: decode batching](../../12-infra/performance.en.md#decode-batching).
 
+Reuse the four-KV-head configuration from step 3. Each token's K/V across 24 layers takes $2\times24\times4\times64\times2=24{,}576$ bytes, or 24 KiB. Prefill a 4,096-token prompt, then run 256 decode steps that each feed in one new token:
+
+| Stage | What happens | KV-cache traffic |
+| --- | --- | --- |
+| Prefill | One forward pass over all 4,096 positions | Writes 96 MiB |
+| Decode step 1 | The new token reads every cached position, then appends its own K/V | Reads 96 MiB, writes 24 KiB |
+| Decode step 256 | The cache has grown by 255 positions | Reads about 102 MiB, writes 24 KiB |
+| All 256 steps | — | Read about 24.7 GiB in total |
+
+Prefill wrote 96 MiB once; the 256 decode steps read about 264 times that amount from the cache, and every step also reads the model weights again. With small batches, decoding is often limited by how many bytes move rather than by how many multiplications happen.
+
+```python
+def decode_kv_traffic(prompt_tokens, decode_steps, bytes_per_token):
+    if min(prompt_tokens, decode_steps, bytes_per_token) < 0:
+        raise ValueError("counts must be non-negative")
+    written = prompt_tokens * bytes_per_token
+    cached_positions = sum(prompt_tokens + step for step in range(decode_steps))
+    return written, cached_positions * bytes_per_token
+
+bytes_per_token = 2 * 24 * 4 * 64 * 2
+written, read = decode_kv_traffic(4096, 256, bytes_per_token)
+assert bytes_per_token == 24 * 2**10
+assert written == 96 * 2**20
+assert read == 1_081_216 * bytes_per_token
+assert round(read / written) == 264
+```
+
+This is a logical byte count: it leaves out weight reads, activations and how kernels actually access memory, and it is not a measured bandwidth. When 8 requests decode together, they can share each step's weight reads; without shared prefixes, each request still reads its own KV cache. That is where the accounting changes as the batch grows.
+
 Fewer theoretical FLOPs do not guarantee lower latency. Parallelism, bandwidth, and kernels affect the result. Record workload, input/output lengths, batch, and hardware before comparing measurements.
 
 ## Step 5: separate observation from explanation

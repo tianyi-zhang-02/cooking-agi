@@ -56,7 +56,7 @@ $d$ 是这里旋转的维度，$b$ 是基数。假设 $d=4,b=10000$，两对的�
 
 例如 `q=[1,2,3,4]` 在位置 1，`k=[4,3,2,1]` 在位置 0，频率为 `[1,0.01]`。不重排就直接换配对，点积会从约 11.1452 变成 6.8878。两者各自仍满足相对位置恒等式，所以“同样距离得到同样点积”的测试发现不了这类权重错配。
 
-这里尤其不能只说“Llama 用哪一种”：固定版本的 [Meta Llama 3 实现](https://github.com/meta-llama/llama3/blob/a0940f9cf7065d45bb6675660f80d305c041a754/llama/model.py#L59)用相邻配对，而 [Transformers v4.44.2 转换脚本](https://github.com/huggingface/transformers/blob/v4.44.2/src/transformers/models/llama/convert_llama_weights_to_hf.py#L138)会重排 Q/K 权重，以匹配其 split-half 布局。本站的 [`apply_rope`](../code/model.py) 使用后者；它不是不经转换就能加载原始权重的承诺。
+这里尤其不能只说“Llama 用哪一种”：固定版本的 [Meta Llama 3 实现](https://github.com/meta-llama/llama3/blob/a0940f9cf7065d45bb6675660f80d305c041a754/llama/model.py#L65-L75)用相邻配对，而 [Transformers v4.44.2 转换脚本](https://github.com/huggingface/transformers/blob/v4.44.2/src/transformers/models/llama/convert_llama_weights_to_hf.py#L148-L150)会重排 Q/K 权重，以匹配其 split-half 布局。本站的 [`apply_rope`](../code/model.py) 使用后者；它不是不经转换就能加载原始权重的承诺。
 
 ```python
 import math

@@ -50,7 +50,7 @@ Each note compares alternatives and works through computation, latency, or candi
 | Material | How it is used | What it does not establish |
 | --- | --- | --- |
 | [Twitter 2023 · ee5e7fc](https://github.com/twitter/the-algorithm/blob/ee5e7fc18dc0e971a6c02826b196294048765817/README.md) | Public-component reading in 01–03 | Today’s complete X production architecture |
-| [X public snapshot · 77d431a](https://github.com/xai-org/x-algorithm/blob/77d431aabf409ca1c1eed9bec7e2183f7c914e23/README.md) | Version comparison in 04, checked 2026-09-30 | Real training data, all experiment settings, or production gains |
+| [X public snapshot · 77d431a](https://github.com/xai-org/x-algorithm/blob/77d431aabf409ca1c1eed9bec7e2183f7c914e23/README.md) | Version comparison in 04, checked 2026-10-21 | Real training data, all experiment settings, or production gains |
 | Official papers and engineering material | Compare the assumptions behind designs | One company’s approach as the only answer |
 | Our diagrams, code, and interactions | Examine a mechanism using invented data | Any company’s business results or internal implementation |
 

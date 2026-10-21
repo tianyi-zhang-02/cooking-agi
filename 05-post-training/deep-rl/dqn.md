@@ -120,4 +120,4 @@ Replay 存历史 transition，不是永久固定的 target。抽出 $(s,a,r,s')$
 
 先测终止 target 是否等于 reward；再确认 target 无梯度；再核对 replay 里的 action 与 state 是否对齐；最后看 target 同步和环境步数的单位。Loss 降低但 return 不涨，优先排查这些语义，不要先堆更大网络。
 
-参考：[Double DQN（arXiv v3，2015）](https://arxiv.org/abs/1509.06461v3)。下一篇：[连续动作没法枚举最大值，怎么办？](continuous-control.md)
+参考：[DQN：经验回放与目标网络（Mnih 等，2015）](https://www.nature.com/articles/nature14236) · [Double DQN（arXiv v3，2015）](https://arxiv.org/abs/1509.06461v3)。下一篇：[连续动作没法枚举最大值，怎么办？](continuous-control.md)

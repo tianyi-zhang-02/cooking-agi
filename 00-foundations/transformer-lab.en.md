@@ -10,7 +10,7 @@
   <div><span>What we are dissecting</span><strong>One morphing block diagram, and the six optimizations that reshaped it</strong></div>
   <div><span>Prerequisites</span><strong>the attention formula · residuals · causal LM</strong></div>
   <div><span>Main mechanism</span><strong>KV cache · GQA / MLA · sliding window · RoPE · MoE · FlashAttention</strong></div>
-  <div><span>Evidence to demand</span><strong>what each one saves (memory, memory traffic, or compute) and what it costs</strong></div>
+  <div><span>What you must be able to prove</span><strong>what each one saves (memory, memory traffic, or compute) and what it costs</strong></div>
 </div>
 
 One color key runs through the page: **blue** is queries and attention, **orange** is keys, the FFN and experts, **green** is values and embeddings.
@@ -54,7 +54,7 @@ $$
 numbers, assuming equal K/V dimensions and the same configuration in every layer. Multiply by layers, tokens, and bytes per number for storage in bytes. With KV head count and dimensions fixed, query head count adds no extra factor:
 
 - **MQA** (2019): all query heads share one K/V head. At fixed dimensions, this is the smallest cache within these head-sharing schemes; any quality loss depends on training and the task.
-- **GQA** (2023): each group of query heads shares a K/V head, trading storage against representation capacity. The Llama 3, Mistral, Qwen3, and Gemma 3 versions below use it.
+- **GQA** (2023): each group of query heads shares a K/V head, trading storage against representation capacity. The Llama 3, Mistral 7B, Mixtral, Gemma 3, Qwen3, and gpt-oss versions below use it.
 - **MLA** (DeepSeek-V2, 2024): cache a compressed KV latent plus a separate RoPE key. Storage per layer and token is $d_c+d_r$, not universally $4.5\,d_{\text{head}}$. DeepSeek-V3 uses $512+64=576$ elements. Weight absorption can also avoid explicitly reconstructing all K/V during decoding; see the [MLA derivation](deep-dives/latent-and-sparse-attention.en.md).
 
 <!-- widget:tx-kv-heads -->

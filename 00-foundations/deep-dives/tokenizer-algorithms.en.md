@@ -50,7 +50,7 @@ pieces = tokenizer.tokenize("rair")
 ids = tokenizer.encode("rair")
 assert tokenizer.token_to_id["<unk>"] not in ids
 assert tokenizer.decode_tokens(pieces) == "rair"
-print(pieces, ids)
+print(pieces, ids)  # ['▁rai', 'r'] [9, 6]
 ```
 
 Run from `00-foundations/code/`. This implementation adds a word-start marker `▁`, so its exact merge order need not match the table. It also collapses repeated whitespace: it is not a production, byte-reversible tokenizer. See [Sennrich et al.](https://arxiv.org/abs/1508.07909) for the original subword BPE method.
@@ -84,7 +84,7 @@ player  → play + ##er
 
 Here `##` marks a continuation, not literal hash characters in the input. A BERT-style implementation may replace an entire word with `[UNK]` when it cannot fully segment it; check the implementation.
 
-Keep WordPiece **training** separate from **encoding**. Tutorials often use `freq(a,b)/(freq(a)freq(b))` to explain merge candidates, but it is not a universal specification for every WordPiece trainer. The [Hugging Face teaching implementation](https://huggingface.co/learn/llm-course/chapter6/6) explicitly calls its training procedure a reconstruction from published material, since the original implementation was not fully released. Longest matching at encoding time, versus BPE's ranked merges, is the more useful distinction to remember.
+Keep WordPiece **training** separate from **encoding**. Tutorials often use `freq(a,b)/(freq(a)freq(b))` to explain merge candidates, but it is not a universal specification for every WordPiece trainer. The [Hugging Face teaching implementation](https://huggingface.co/learn/llm-course/chapter6/6) explicitly calls its training procedure a reconstruction from published material, since Google never open-sourced the original training implementation. Longest matching at encoding time, versus BPE's ranked merges, is the more useful distinction to remember.
 
 ## Unigram scores complete segmentations
 

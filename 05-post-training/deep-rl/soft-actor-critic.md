@@ -30,7 +30,7 @@ $$
 =\alpha\log Z-\alpha D_{\rm KL}(p\|p^*).
 $$
 
-KL 不小于零，因此最优是 $p=p^*$。这不是凭空把 softmax 塞进来，而是熵正则化问题自己的解。对应的 soft value 是 $\alpha\log\sum_a\exp(Q_a/\alpha)$。
+KL 不小于零，因此最优是 $p=p^*$。softmax 并非凭空塞进来的，它就是熵正则化问题自己的解。对应的 soft value 是 $\alpha\log\sum_a\exp(Q_a/\alpha)$。
 
 Q 为 $[0,1]$、$\alpha=0.5$ 时，高价值动作概率约 0.8808，期望 Q 约 0.8808，熵约 0.3653，合起来的 soft value 约 1.0635。它超过最大 Q 的 1，是因为目标额外包含熵收益，不是发现了一个奖励大于 1 的动作。
 

@@ -6,7 +6,7 @@
 
 ## 先把单卡上的一小步弄清楚
 
-如果你还没写过完整训练循环，可以先跑 [PyTorch 导读里的两个样本](../../00-foundations/pytorch/README.md)，看清前向、反向和更新的区别，再回到语言模型的 token 目标。基础不必一口气补完；遇到梯度尺度或泛化问题，再读[初始化](../../00-foundations/deep-dives/activation-and-initialization.md)、[优化器](../../00-foundations/deep-dives/optimizers.md)和[训练诊断](../../00-foundations/deep-dives/generalization.md)。
+如果你还没写过完整训练循环，可以先跑 [PyTorch 导读里的两个样本](../../00-foundations/pytorch/README.md)，看清前向、反向和更新的区别，再回到语言模型的 token 目标。遇到梯度尺度或泛化问题，再读[初始化](../../00-foundations/deep-dives/activation-and-initialization.md)、[优化器](../../00-foundations/deep-dives/optimizers.md)和[训练诊断](../../00-foundations/deep-dives/generalization.md)。
 
 设想两段长度不同的文本：一段有 2 个有效目标，loss 总和是 4；另一段有 6 个有效目标，loss 总和是 6。
 

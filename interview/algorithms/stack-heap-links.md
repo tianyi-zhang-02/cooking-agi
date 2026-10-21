@@ -106,6 +106,17 @@ def has_cycle(head):
 
 判断的是节点身份 `is`，不是节点的值相等。无环时 fast 会到末尾；有环时，两者在环内的相对距离每轮减少 1（模环长），最终相遇。时间 O(n)，空间 O(1)。这里仅检测是否有环，不是寻找环入口。
 
+拿 `1 → 2 → 3 → 4 → 5`、5 再指回 3 的链表手走一遍。环是 3、4、5，长 3。节点值各不相同，下面只是借值来标位置：
+
+| 第几轮结束 | slow | fast | 发生了什么 |
+| --- | --- | --- | --- |
+| 开始 | 1 | 1 | 都在头节点 |
+| 1 | 2 | 3 | fast 先进环 |
+| 2 | 3 | 5 | slow 也进环；沿环看，fast 再走 1 步就到 slow 的位置 |
+| 3 | 4 | 4 | fast 追上这 1 步，`slow is fast`，返回 True |
+
+每轮 slow 走 1 步、fast 走 2 步，fast 在环里追近 1 步，差距只会一格一格缩小，不会跳过 slow。换成无环的 `1 → 2 → 3`：第 1 轮后 fast 在 3，`fast.next` 是 None，循环结束，返回 False。
+
 ## 6. 例题与自测
 
 - [Valid Parentheses](https://leetcode.com/problems/valid-parentheses/)：stack 的后进先出。

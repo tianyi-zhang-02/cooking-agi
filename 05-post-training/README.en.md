@@ -35,8 +35,8 @@ Two frontier drafts extend this line: [training multi-step agents with RL](../11
 
 **III. Actually running it**
 
-8. [Post-training infrastructure: sampling, numerics, context](post-training-infrastructure.en.md) — none of the three changes the objective; all of them decide what you can do to it. **The least discussed layer, and often where results actually stall**
-9. [How far one base model can go](same-base-different-posttraining.en.md) — a rare natural experiment: base pinned, only post-training changed, showing what the three things in note 8 are worth
+8. [Post-training infrastructure: sampling, numerics, context](post-training-infrastructure.en.md) — rollout records, log-prob alignment, and context handling decide what the code actually optimizes; some changes that look like mere speedups already alter the training distribution or even the objective
+9. [How far one base model can go](same-base-different-posttraining.en.md) — the vendor says both versions share one base: a limited comparison like this narrows attribution, but final scores alone cannot assign the gain to any one change
 
 **IV. What it costs**
 

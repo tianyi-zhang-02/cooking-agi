@@ -74,7 +74,7 @@ assert rounded_result == 0.8984375
 
 ## Autocast 不是把模型全部转成 FP16
 
-`model.half()` 改的是模型浮点参数与 buffer 的存储 dtype；`autocast` 则按算子选择计算精度。一次 forward 中，矩阵乘法与某些归约可能采用不同精度。Backward 也不是统一切回 FP32，而是跟随相应前向操作选用的类型。
+`model.half()` 改的是模型浮点参数与 buffer 的存储 dtype；`autocast` 则按算子选择计算精度。一次 forward 中，矩阵乘法与某些归约可能采用不同精度。Backward 也不会统一切回 FP32，每个操作沿用对应前向操作选用的类型。
 
 所以排查问题时，要分别看参数、激活、梯度与累加的 dtype。`state_dict()` 保存的是模型状态，不会因为开过 AMP 就自动把权重转换成 FP32。[PyTorch 2.8 AMP 示例](https://docs.pytorch.org/docs/2.8/notes/amp_examples.html)把 autocast 与 gradient scaling 分开使用：前者选精度，后者处理梯度的数值范围。
 

@@ -36,7 +36,7 @@ With a nonconvex neural function class, projection may also be nonunique and opt
 
 ## A two-state counterexample
 
-Consider a value-iteration counterexample that follows Tsitsiklis and Van Roy's classic construction (with $\varepsilon=0$; Sutton & Barto §11.2 also covers it): both states transition deterministically to state 2, all rewards are zero, and $\gamma=0.9$. There is one action per state, so Q and V are equivalent and the true values are both zero.
+Consider a value-iteration counterexample that follows Tsitsiklis and Van Roy's classic construction (with $\varepsilon=0$; Example 11.1 in §11.2 of [Sutton & Barto, 2nd edition](http://incompleteideas.net/book/the-book-2nd.html) also covers it): both states transition deterministically to state 2, all rewards are zero, and $\gamma=0.9$. There is one action per state, so Q and V are equivalent and the true values are both zero.
 
 Restrict the representation to $V_\theta=[\theta,2\theta]$ and give the states equal fixed regression weight. Bellman labels are $[1.8\theta_k,1.8\theta_k]$. Exact least squares gives:
 

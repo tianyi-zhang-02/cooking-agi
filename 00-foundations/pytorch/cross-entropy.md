@@ -78,7 +78,7 @@ torch.testing.assert_close(
 
 ## 硬标签和软标签，差在哪里？ {#soft-targets}
 
-硬标签（hard target）只指定一个类别，相当于 one-hot 分布 `[0, 0, 1]`。软标签（soft target）可以是 `[0.1, 0.2, 0.7]`：目标不是把全部概率压到第 3 类，而是接近这一整个分布。
+硬标签（hard target）只指定一个类别，相当于 one-hot 分布 `[0, 0, 1]`。软标签（soft target）可以是 `[0.1, 0.2, 0.7]`：目标是接近这一整个分布，不必把全部概率压到第 3 类。
 
 $$
 \ell=-\sum_c q_c\log p_c.

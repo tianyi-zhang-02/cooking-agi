@@ -20,29 +20,18 @@ This is a hypothetical example, not a measured result. The two may score similar
 
 ## The dimensions a user experiences
 
-### Useful: did it actually complete the task
+Staying with the workout plan, turn each dimension into a question you can check:
 
-Not just fluent language, but whether the result can be executed and whether it reduces the user's work.
+| Dimension | What to ask | How to check it in the workout plan |
+| --- | --- | --- |
+| Useful | Did it actually complete the task? | The plan states what to do each day, for how long, with which equipment, and the user can follow it; "work your core more" reads fluently but cannot be used |
+| Relevant | Does it understand what the user wants this time? | If the user only wants to rebuild fitness this week, last year's long-term "build muscle" goal should not take over; long-term preference must not override the current task |
+| Broad | Does it keep recommending the same kind of thing? | Saying once that you like running does not mean every plan should be only running; the closer recommendations track known preferences, the fewer new options may appear |
+| Controllable | Can the user correct and intervene? | The user can view, edit, or delete the "injured knee" memory and see that this plan used it; actions such as booking a paid class for the user need confirmation first |
+| Calibrated | Does it say so when information is missing? | If it does not know whether the user owns dumbbells, it asks instead of assuming; when evidence is insufficient, asking or admitting uncertainty is usually better than generating confidently |
+| Consistent | Can a new conversation pick up where the last one left off? | A correction from last week, "no training on Wednesdays", is still remembered in a new conversation this week; once the user withdraws it or it expires, it is no longer used |
 
-### Relevant: does it understand the current intent
-
-The same user may have completely different goals at different times. Long-term preference must not override the current task.
-
-### Broad: does it trap the user in a narrow region
-
-Heavy personalization may raise short-term relevance while reducing new content and new choices.
-
-### Controllable: can the user correct and intervene
-
-The user should be able to view, edit, or delete memory, confirm high-risk actions, and see which information and permissions the system used.
-
-### Calibrated: does the model know what it does not know
-
-When evidence is insufficient, asking a follow-up question or admitting uncertainty is usually better than generating confidently.
-
-### Consistent: does it stay coherent across sessions
-
-Information should remain usable across sessions only while its retention is authorized, it remains valid, and it is relevant to the task. Consistency does not mean never forgetting, or turning one incidental behavior into a permanent preference.
+Consistency does not mean never forgetting, or turning one incidental behavior into a permanent preference. Information should carry across sessions only while its retention is authorized, it remains valid, and it is relevant to the task.
 
 ## Why single-turn evaluation is not enough
 
@@ -74,6 +63,19 @@ A more complete evaluation can combine:
 - satisfaction and degree of reliance after many sessions.
 
 These are not simply metrics to maximize or minimize. Fewer corrections may mean the user gave up; more frequent use may mean repeated task failure. Read them alongside task outcomes, dropout, and whether users still trust incorrect answers. Aggregate repeated sessions by user, report memory-dependent, history-free, and correction/deletion cases separately, and track latency and cost so frequent users or easy tasks do not hide regressions.
+
+### Worked example: fewer corrections, worse experience (teaching example)
+
+The numbers are made up to show the arithmetic. Twenty users are randomly split into two groups of 10: group A gets a version without memory, group B a version with memory. In week 4, each user still using the assistant attempts one task, and users who have stopped count as not completing it:
+
+| Version | Users assigned | Still using in week 4 | Corrections per session among those left | Task completion among those left | Completion by original assignment |
+| --- | --- | --- | --- | --- | --- |
+| A (no memory) | 10 | 4 | 0.5 | 90% | $4\times0.9/10=36\%$ |
+| B (memory) | 10 | 9 | 0.8 | 80% | $9\times0.8/10=72\%$ |
+
+Looking only at the users who stayed, A has fewer corrections and a higher completion rate, so it looks better. Count the 6 users who left, and B completes tasks for twice the share of users that A does. A's "fewer corrections" most likely means the users who had to correct it most have already gone.
+
+So report three numbers together: how many users dropped out of each group; the result by original assignment (ITT, intention-to-treat), which keeps dropouts in the denominator; and the result for remaining users only. Report only the last one, and the satisfied users who stayed will hide the regression.
 
 ## How it connects to other topics
 

@@ -6,7 +6,7 @@
 
 同样是让模型给一段文字分类，有人把样例放进 prompt，有人拿样例去微调，还有人收集回答之间的偏好。这几件事都可能让回答变好，但改动的不是同一个地方。
 
-读 GPT 这条路线，最值得带走的不是一串型号，而是分清：**知识和行为是在训练时写进参数，还是在推理时由上下文临时指定？** 本篇按这个问题组织；gpt-oss 另作一个公开架构的例子，不把它当成闭源 GPT 的结构说明书。
+读 GPT 这条路线，型号记不全没关系，最值得带走的是分清：**知识和行为是在训练时写进参数，还是在推理时由上下文临时指定？** 本篇按这个问题组织；gpt-oss 另作一个公开架构的例子，不把它当成闭源 GPT 的结构说明书。
 
 ## 先把四种“学习”放在一起
 
@@ -187,7 +187,7 @@ assert compare_runs(baseline, candidate) == (1, 0, 6)
 
 GPT-4 和 GPT-5 都没有公开完整的模型架构和训练细节。GPT-4 的技术报告明确省略了参数量、训练算力和数据集构建等信息；GPT-5 的 system card 介绍了系统组成、能力评估与安全测试，但没有给出完整的架构和训练配置。[GPT-4 技术报告](https://arxiv.org/abs/2303.08774)、[GPT-5 system card](https://openai.com/index/gpt-5-system-card/)
 
-之后的型号也一样。截至 2026-10，[GPT-6 Astra system card](https://deploymentsafety.openai.com/gpt-6-astra)（2026-09-03）只说用多样的数据训练、用 RL 训练模型先推理再回答，没有给出架构、参数量或训练算力；[GPT-6.1 Sol 的补充说明](https://deploymentsafety.openai.com/gpt-6-1-sol)（2026-09-29）说它沿用 Astra 的数据和训练方式。GPT-5.5 以来各型号的发布日期和评估读数，见[怎么量 AI 加速 AI](../../11-frontier/self-improvement/measuring.md)。
+之后的型号也一样。截至 2026-10，[GPT-6 Astra system card](https://deploymentsafety.openai.com/gpt-6-astra)（2026-09-03）只说用多样的数据训练、用 RL 训练模型先推理再回答，没有给出架构、参数量或训练算力；[GPT-6.1 Sol 的补充说明](https://deploymentsafety.openai.com/gpt-6-1-sol)（2026-09-29）说它沿用 Astra 的数据和训练方式；2026-10-07 的 [GPT-6 Sol / Luna 更新说明](https://deploymentsafety.openai.com/gpt-6-october)也只给出同样的概述。GPT-5.5 以来各型号的发布日期和评估读数，见[怎么量 AI 加速 AI](../../11-frontier/self-improvement/measuring.md)。
 
 所以，这些模型主要看公开的评估结果、测试条件和使用限制，暂时无法像开源模型那样逐层拆解。前面介绍的 gpt-oss 也不是它们的架构说明。
 

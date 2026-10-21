@@ -32,7 +32,7 @@ $$
 
 $d$ 表示任务真正终止。未终止时，target 是 $1+0.9\times4=4.6$，新估值是 $2+0.5(4.6-2)=3.3$。如果这一步已经终止，target 就只是 1，新估值变成 1.5。**同样的奖励，是否还有未来，会改变这次更新。**
 
-这里的 4 不是已经拿到的奖励，而是模型自己的估计，这就是 bootstrapping。target 用下一步的最大 Q，不要求收集数据时真的选了那个动作；这也是 Q-learning 属于 off-policy 方法的原因。能用旧转移，不代表旧数据可以无限重复、还一定稳定。
+这里的 4 还没真正拿到，只是模型自己的估计；用估计补上未来，就是 bootstrapping。target 用下一步的最大 Q，不要求收集数据时真的选了那个动作；这也是 Q-learning 属于 off-policy 方法的原因。能用旧转移，不代表旧数据可以无限重复、还一定稳定。
 
 [Watkins 与 Dayan（1992）](https://www.gatsby.ucl.ac.uk/~dayan/papers/cjch.pdf)给出的收敛保证有条件：有限表格、充分访问各状态动作、合适的递减学习率等。换成神经网络、有限数据和不断变化的采样分布，不能直接沿用这个保证。DQN 的 replay 和 target network 是应对部分训练问题的设计，不是把困难全部消掉。继续看 [Fitted Q](fitted-q.md) 和 [DQN](dqn.md)。
 

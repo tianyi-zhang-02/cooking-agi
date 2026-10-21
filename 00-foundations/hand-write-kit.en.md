@@ -2,9 +2,9 @@
 
 [中文](hand-write-kit.md) · **English**
 
-> Reading time: ~8 min · Type: quick reference and small experiments · Last reviewed: 2026-10-10
+> Reading time: ~8 min · Type: quick reference and small experiments · Last reviewed: 2026-10
 
-## What the seven formulas are checking {#what-the-seven-formulas-are-checking}
+## What the seven implementations practice {#what-the-seven-formulas-are-checking}
 
 These seven small implementations connect formulas to code: checking input shapes, spotting overflow, and understanding what a mask blocks. Start with something runnable, then check its boundaries with small examples rather than memorizing the formula alone.
 

@@ -2,7 +2,7 @@
 
 [中文](optimizers.md) · **English**
 
-> Reading time: about 15 minutes · Level: foundations to advanced · Reviewed: 2026-10
+> Reading time: about 15 minutes · Level: foundations to advanced · Last reviewed: 2026-10
 
 **A gradient supplies a local direction; an optimizer decides how to use it.** It may remember recent directions, adapt the step to each coordinate's history, or both. Separating those choices makes the names easier to understand.
 
@@ -36,7 +36,7 @@ If two coordinates have gradients 1 and 100, a common learning rate gives the se
 
 | Method | State | Main tradeoff |
 | --- | --- | --- |
-| AdaGrad | $s_t=s_{t-1}+g_t^2$ | Accumulator never decreases; frequently updated coordinates may take increasingly small steps |
+| AdaGrad | $s_t=s_{t-1}+g_t^2$ | Accumulator never decreases; coordinates with frequent or persistently large gradients may take increasingly small steps |
 | RMSProp | $s_t=\rho s_{t-1}+(1-\rho)g_t^2$ | Tracks recent scale; not a full Hessian |
 | AdaDelta | Moving averages of squared gradients and squared updates | Uses update-scale / gradient-scale ratios, not just an EMA replacement for AdaGrad |
 | Adam | First moment $m_t$ and second moment $v_t$ | Smooths direction and rescales; includes bias correction and state memory |

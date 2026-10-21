@@ -98,6 +98,6 @@ python -m unittest discover -s site/tests -p 'test_deeper_algorithm_patterns.py'
 | 栈、队列、树到底是怎样一步步变化的 | [Hello 算法](https://www.hello-algo.com/)：先看对应章节的图，再回来看代码 |
 | 会写模板，但不知道为什么这样写 | [灵茶山艾府的基础算法课](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/README.md)：跟着双指针、二分、DP 等专题推一遍；题单里也有进阶题，不用全做 |
 | 几道题很像，却不知道怎么放在一起理解 | [labuladong 的算法讲解](https://labuladong.online/zh/algo/intro/core-intro/)：可以对照同一种方法在不同题目里怎么改；部分内容和工具有付费入口 |
-| DP 写出来了，但结果不对，不知道从哪查 | [代码随想录的 DP 基础](https://github.com/youngyangyang04/leetcode-master/blob/master/problems/动态规划理论基础.md)：逐项核对状态、初值、递推和遍历顺序，再手算一个小例子 |
+| DP 写出来了，但结果不对，不知道从哪查 | [代码随想录的 DP 基础](https://github.com/youngyangyang04/leetcode-master/blob/master/problems/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.md)：逐项核对状态、初值、递推和遍历顺序，再手算一个小例子 |
 
 本站的例子和代码会自己推一遍、跑测试，也会保留参考链接。不同资料用的变量名、区间和状态定义可能不同，借鉴思路时别把几套写法直接拼在一起。如果哪篇还是没讲清楚，欢迎指出具体卡在哪一步。

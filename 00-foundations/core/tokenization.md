@@ -49,7 +49,7 @@ l o w e r </w>
 下一轮:      (lo, w) →  low
 ```
 
-这里假设两个词各出现一次；首轮 `(l, o)` 和 `(o, w)` 都出现两次，示例在并列时先选 `(l, o)`。训练阶段学到一份**有顺序的 merge rules**；编码阶段按同样顺序应用。它不是在查英语词根，而是在压缩当前语料里反复出现的字符串模式。[BPE 原论文 §3.2](https://aclanthology.org/P16-1162/)
+这里假设两个词各出现一次；首轮 `(l, o)` 和 `(o, w)` 都出现两次，示例在并列时先选 `(l, o)`。训练阶段学到一份**有顺序的 merge rules**；编码阶段按同样顺序应用。它没有在查英语词根，只是在压缩当前语料里反复出现的字符串模式。[BPE 原论文 §3.2](https://aclanthology.org/P16-1162/)
 
 想自己算两轮合并，或分清 BPE、WordPiece、Unigram 和 byte fallback，可以接着读[分词算法详解](../deep-dives/tokenizer-algorithms.md)。这页先把输入流程走完。
 

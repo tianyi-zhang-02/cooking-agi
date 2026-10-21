@@ -2,7 +2,7 @@
 
 [中文](language-model-objective.md) · **English**
 
-> Reading time: ~7 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~9 min · Level: advanced · Last reviewed: 2026-10
 
 One answer has 20 valid tokens and another has 200. Averaging over all tokens gives the second answer ten times as many loss terms. Averaging within each answer first gives the answers equal weight. **Before changing any architecture, the reduction already changes whose examples dominate learning.** [The numbers are worked out below](#dissection-one-cross-entropy-does-not-decide-what-matters-for-you).
 
@@ -42,7 +42,16 @@ Perplexity is the exponential of the average token negative log-likelihood:
 
 $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
-Different tokenizers have different token units, so perplexity cannot be compared directly across them.
+Plug in two numbers. With a mean NLL of 2 nats per token, PPL is $e^2\approx7.39$, roughly like choosing among 7.39 equally likely tokens at every step. If the model gives every one of the $V$ vocabulary tokens probability $1/V$, each step's NLL is $\ln V$ and PPL is exactly $V$.
+
+Different tokenizers have different token units, so perplexity cannot be compared directly across them. Take a teaching example (not a measurement): the same 100-byte text, and two models that both assign it a total NLL of 100 nats, differing only in how their tokenizers split it:
+
+| Tokenizer splits it into | NLL per token | PPL | Bits per byte (bpb) |
+| --- | ---: | ---: | ---: |
+| 25 tokens | 4 nats | $e^4\approx54.6$ | $100/(100\ln2)\approx1.44$ |
+| 50 tokens | 2 nats | $e^2\approx7.39$ | $100/(100\ln2)\approx1.44$ |
+
+Both models give the text the same probability, yet their PPL differs by more than 7 times: finer splits make each token easier to guess. Converting the total NLL to bits and dividing by the byte count fixes the unit to the same bytes; the [GPT-2 report §3.1](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) likewise reports results per fixed unit such as a character, byte, or word. Bpb has limits too: under [UTF-8's encoding rules](https://www.rfc-editor.org/rfc/rfc3629#section-3), an ASCII character takes 1 byte and most CJK characters take 3. The same content written in another language has a different byte count, so cross-language bpb comparisons still need care.
 
 ## Training uses the true prefix; generation depends on the model's own output {#dissection-two-training-uses-the-true-prefix-generation-depends-on-the-models-own-output}
 

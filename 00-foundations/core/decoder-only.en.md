@@ -241,6 +241,16 @@ flowchart LR
     D -->|append K/V| K
 ```
 
+Counting once shows where the two phases differ. The prompt has 5 tokens, and we generate 3 new ones:
+
+| Step | Positions sent through the model | K/V entries each new position reads | Result |
+| --- | --- | ---: | --- |
+| Prefill | Positions 1–5, computed in parallel | Those to its left plus itself, at most 5 | New token 1; K/V for 5 positions cached |
+| Decode 1 | Position 6, the token just generated | 6 | New token 2 |
+| Decode 2 | Position 7 | 7 | New token 3 |
+
+With the cache, the model processes only $5+1+1=7$ positions in total. Without it, recomputing the whole prefix at every step processes $5+6+7=18$, and the gap widens as sequences grow. Each decode step computes a single position, yet it still reads every weight and the growing KV cache from GPU memory, so a single request's decode is often limited by memory bandwidth while compute sits idle.
+
 ## Why batched generation often uses left padding {#left-padding}
 
 Prompts of different lengths need padding to fit a rectangular tensor. Suppose one has 3 tokens and another has 5. Here `·` means padding, and the letters stand for tokens:

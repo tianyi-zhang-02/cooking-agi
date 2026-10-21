@@ -54,7 +54,7 @@ $$
 个数值，假设 K/V 维度相同、每层配置一致。再乘层数、token 数和每个数的字节数，才是存储字节数。固定 KV head 数和维度后，query head 数不会额外进入这个公式：
 
 - **MQA**（2019）：所有 query head 共享一个 K/V head。相同维度下，它在这类 head 共享方案中缓存最小；质量是否下降要看训练和任务。
-- **GQA**（2023）：一组 query head 共享一个 K/V head，在存储和表达能力之间折中。下表中的 Llama 3、Mistral、Qwen3 和 Gemma 3 都采用了它。
+- **GQA**（2023）：一组 query head 共享一个 K/V head，在存储和表达能力之间折中。下表中的 Llama 3、Mistral 7B、Mixtral、Gemma 3、Qwen3 和 gpt-oss 都采用了它。
 - **MLA**（DeepSeek-V2，2024）：缓存压缩后的 KV latent，再单独存 RoPE key。每层每 token 是 $d_c+d_r$ 个数值，不是通用的 $4.5\,d_{\text{head}}$。DeepSeek-V3 的配置是 $512+64=576$；矩阵吸收（weight absorption）还能避免在解码时显式还原全部 K/V，细节见 [MLA 推导](deep-dives/latent-and-sparse-attention.md)。
 
 <!-- widget:tx-kv-heads -->

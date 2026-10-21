@@ -2,7 +2,7 @@
 
 **中文** · [English](language-model-objective.en.md)
 
-> 阅读时间：约 7 分钟 · 难度：进阶 · 最近审阅：2026-10
+> 阅读时间：约 9 分钟 · 难度：进阶 · 最近审阅：2026-10
 
 一条答案有 20 个有效 token，另一条有 200 个。如果 loss 按所有 token 平均，后者就贡献十倍的位置数；如果先分别求平均再按样本平均，两条答案权重一样。**还没有换模型，“平均”怎么做，就已经改变了模型主要向谁学习。**[下面算一遍](#cross-entropy)。
 
@@ -44,7 +44,16 @@ Perplexity 是平均 token negative log-likelihood 的指数：
 
 $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
-不同 tokenizer 的 token 单位不同，perplexity 不能直接横向比较。
+先代两个数。每个 token 的平均 NLL 是 2 nats 时，PPL 是 $e^2\approx7.39$，大致像每一步都在 7.39 个同样可能的 token 里挑。模型若对词表里 $V$ 个 token 一律给 $1/V$，每步 NLL 都是 $\ln V$，PPL 正好等于 $V$。
+
+不同 tokenizer 的 token 单位不同，perplexity 不能直接横向比较。看一个教学用的例子（不是实测）：同一段 100 bytes 的文本，两个模型给整段的总 NLL 都是 100 nats，只是 tokenizer 切法不同：
+
+| tokenizer 切成 | 每 token NLL | PPL | bits per byte（bpb） |
+| --- | ---: | ---: | ---: |
+| 25 个 token | 4 nats | $e^4\approx54.6$ | $100/(100\ln2)\approx1.44$ |
+| 50 个 token | 2 nats | $e^2\approx7.39$ | $100/(100\ln2)\approx1.44$ |
+
+两个模型给整段文本的概率一样，PPL 却差了 7 倍多：切得越碎，每个 token 越好猜。把总 NLL 换成 bits，再除以 byte 数，单位就固定在同一段 bytes 上；[GPT-2 报告 §3.1](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) 也按字符、byte 或词这类固定单位报告结果。bpb 也有边界：按 [UTF-8 的编码规则](https://www.rfc-editor.org/rfc/rfc3629#section-3)，ASCII 字符占 1 byte，大多数中日韩汉字占 3 bytes。同样的内容换一种语言写，byte 数就变了，跨语言比较 bpb 仍要小心。
 
 ## 训练用真实前缀，生成靠自己的输出 {#_3}
 

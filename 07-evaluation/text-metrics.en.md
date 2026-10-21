@@ -2,7 +2,7 @@
 
 [中文](text-metrics.md) · **English**
 
-> Last reviewed: 2026-10-10 · Prerequisite: [The evaluation stack](evaluation-stack.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [The evaluation stack](evaluation-stack.en.md)
 
 The reference says “the valve is open”; the model says “the valve is not open.” Almost every word matches, but the meaning is reversed. Text metrics remain useful when we know what they count: overlapping words, order, edits, or the probability assigned to a fixed text.
 

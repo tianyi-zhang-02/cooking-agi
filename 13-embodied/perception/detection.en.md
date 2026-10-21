@@ -93,13 +93,13 @@ $c_i$ is the ground-truth class, $\hat p_{\sigma(i)}(c_i)$ is the probability th
 
 The paper's ablation shows the same thing: NMS helps the output of the first decoder layer, but at the last layers it slightly lowers AP because it removes true positives. DETR's weakness is slow convergence; [Deformable DETR](https://arxiv.org/abs/2010.04159) reports 10× fewer training epochs, and [RT-DETR](https://arxiv.org/abs/2304.08069), [D-FINE](https://arxiv.org/abs/2410.13842), [DEIM](https://arxiv.org/abs/2412.04234) and [RF-DETR](https://arxiv.org/abs/2511.09554) then brought this line to real time.
 
-The YOLO line also dropped NMS in 2026. The [YOLO26 paper (2026-06-02)](https://arxiv.org/abs/2606.03748) uses two heads: a one-to-many head gives dense supervision during training, and a one-to-one head produces the output at inference with no NMS; during training the loss weight shifts progressively towards the one-to-one head. The dual-assignment idea comes from YOLOv10.
+The YOLO line also gained an NMS-free inference path in 2026. The [YOLO26 paper (2026-06-02)](https://arxiv.org/abs/2606.03748) uses two heads: a one-to-many head gives dense supervision, and a one-to-one head produces the output directly with no NMS; during training the loss weight shifts progressively towards the one-to-one head. The dual-assignment idea comes from YOLOv10. The paper treats the one-to-one head as the default, but the [Ultralytics docs](https://docs.ultralytics.com/models/yolo26/), read in October 2026, say prediction and validation default to the one-to-many head followed by NMS (slightly more accurate), and NMS-free inference needs `nms=False`. Before deploying, check which head you are actually running.
 
 ## Closed-set real-time, open-vocabulary, promptable: which to pick
 
 | Kind | Input | Output | Examples (author-reported) | Good for |
 | --- | --- | --- | --- | --- |
-| Closed-set real-time | Image; classes fixed at training time | Boxes (optionally masks) for fixed classes | YOLO26: 40.9–57.5 COCO mAP at 1.7–11.8 ms on T4 TensorRT; RF-DETR: Nano 48.0 AP, 2XL the first real-time detector above 60 AP | Fixed classes, labelled data, tight latency budget |
+| Closed-set real-time | Image; classes fixed at training time | Boxes (optionally masks) for fixed classes | YOLO26: 40.9–57.5 COCO mAP at 1.7–11.8 ms on T4 TensorRT (n to x, speed measured with the NMS-free head); RF-DETR: Nano 48.0 AP, 2XL the first real-time detector above 60 AP | Fixed classes, labelled data, tight latency budget |
 | Open-vocabulary detection | Image + class names as text | Boxes | [Grounding DINO](https://arxiv.org/abs/2303.05499): 52.5 AP zero-shot on COCO; YOLOE-26x: 40.6 AP on LVIS minival with text prompts | Surveying new classes before you have labels |
 | Promptable concept segmentation | Image or video + noun phrase or exemplar box | Masks and IDs for every matching instance | [SAM 3](https://arxiv.org/abs/2511.16719): 56.4 box AP on COCO, 53.6 box AP on LVIS ([README](https://github.com/facebookresearch/sam3)); about 30 ms for an image with 100+ objects on an H200 | Auto-labelling, long-tail concepts, finding "every X" in video |
 
@@ -107,7 +107,7 @@ Earlier open-vocabulary work includes [GLIP](https://arxiv.org/abs/2112.03857), 
 
 <!-- paper-figure:sam3-arch -->
 
-Read numbers together with their conditions. The same SAM 3 scores 56.4 box AP on COCO (Table 1 of the paper lists it as a zero-shot result); on the 100 multi-domain datasets of [RF100-VL](https://arxiv.org/abs/2505.20612) its zero-shot average is only 15.2 AP, with 2.6 on the medical group; fine-tuning on about 10 labelled instances per class (10-shot) gives 36.5 on average, and full fine-tuning 61.6 (paper v2, Tables 36 and 37, author-reported). Appendix B of the paper says so itself: zero-shot, it struggles with fine-grained out-of-domain concepts (such as aircraft types and medical terms), especially in niche domains like thermal imagery; prompts must be simple noun phrases, and long referring expressions need a multimodal LLM alongside.
+Read numbers together with their conditions. The same SAM 3 scores 56.4 box AP on COCO (Table 1 of the paper lists it as a zero-shot result); on the 100 multi-domain datasets of [RF100-VL](https://arxiv.org/abs/2505.20612) its zero-shot average is only 15.2 AP, with 2.6 on the medical group; fine-tuning on about 10 labelled instances per class (10-shot) gives 36.5 on average, and full fine-tuning 61.6 (paper v2, Tables 35 and 36, author-reported). Appendix B of the paper says so itself: zero-shot, it struggles with fine-grained out-of-domain concepts (such as aircraft types and medical terms), especially in niche domains like thermal imagery; prompts must be simple noun phrases, and long referring expressions need a multimodal LLM alongside.
 
 How to choose. The following are design trade-offs, not the conclusion of any paper:
 

@@ -16,7 +16,7 @@ From the repository root, keep the database outside the repository:
 python3 practice/web-lab/code/server.py --db /tmp/agi-reading-list.sqlite3
 ```
 
-Open `http://127.0.0.1:8787/?lang=en`; the top-right button switches to Chinese. Don't open the HTML file directly or copy it into this site's `_site/` and expect an API to appear. On Windows, use a writable temporary directory for `--db`.
+Open `http://127.0.0.1:8787/?lang=en`; the top-right button switches to Chinese. Type `127.0.0.1` exactly: the server accepts only that Host, so `localhost:8787` returns 403 (`host_not_allowed`). Don't open the HTML file directly or copy it into this site's `_site/` and expect an API to appear. On Windows, use a writable temporary directory for `--db`.
 
 Add “BERT,” mark it Reading, and refresh. Stop Python with Ctrl+C, then restart using **the same database path**. The record should remain. `/tmp` is a practice location that the system may clean up, not a backup; use a persistent directory outside the repo if you want to keep your work.
 

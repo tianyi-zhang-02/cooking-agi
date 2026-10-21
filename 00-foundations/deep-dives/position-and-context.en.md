@@ -2,7 +2,7 @@
 
 [中文](position-and-context.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisite: [multi-head attention](../core/multi-head-attention.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [multi-head attention](../core/multi-head-attention.en.md)
 
 Changing a context-length setting from 8K to 128K without crashing establishes that the program can accommodate those positions. **Whether the model learned such distances or retrieves evidence from the middle requires separate tests.**
 
@@ -56,7 +56,7 @@ Reordering an interleaved vector `[x0,x1,x2,x3]` to `[x0,x2,x1,x3]` lets a split
 
 Take `q=[1,2,3,4]` at position 1 and `k=[4,3,2,1]` at position 0, with frequencies `[1,0.01]`. Switching layouts without reordering changes the dot product from about 11.1452 to 6.8878. Both layouts still satisfy the relative-position identity, so a test that only checks equal relative distances will miss this checkpoint mismatch.
 
-“The Llama convention” is not specific enough: the pinned [Meta Llama 3 implementation](https://github.com/meta-llama/llama3/blob/a0940f9cf7065d45bb6675660f80d305c041a754/llama/model.py#L59) pairs adjacent channels. The [Transformers v4.44.2 converter](https://github.com/huggingface/transformers/blob/v4.44.2/src/transformers/models/llama/convert_llama_weights_to_hf.py#L138) permutes Q/K weights for its split-half layout. This site's [`apply_rope`](../code/model.py) uses the latter; that does not make raw checkpoints interchangeable without conversion.
+“The Llama convention” is not specific enough: the pinned [Meta Llama 3 implementation](https://github.com/meta-llama/llama3/blob/a0940f9cf7065d45bb6675660f80d305c041a754/llama/model.py#L65-L75) pairs adjacent channels. The [Transformers v4.44.2 converter](https://github.com/huggingface/transformers/blob/v4.44.2/src/transformers/models/llama/convert_llama_weights_to_hf.py#L148-L150) permutes Q/K weights for its split-half layout. This site's [`apply_rope`](../code/model.py) uses the latter; that does not make raw checkpoints interchangeable without conversion.
 
 ```python
 import math
@@ -220,4 +220,4 @@ Report correctness, citation support, TTFT, peak memory, and short-input regress
 
 Then distinguish increased input capacity, usable retrieval distance, and genuine long-document task ability.
 
-What if a model does not use explicit positional encoding? Continue with [NoPE and sequence order](nope-and-order.en.md): a small recurrent example, a causal-mask example, and the different roles of KDA and MLA in Kimi K3.
+What if a model does not use explicit positional encoding? Continue with [NoPE and sequence order](nope-and-order.en.md). It starts with a reordering example, then covers the causal mask, recurrent state, and Kimi K3's hybrid design.

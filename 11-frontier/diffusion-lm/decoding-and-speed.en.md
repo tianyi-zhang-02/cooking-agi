@@ -107,8 +107,8 @@ W = 1.4e10 / 3.352e12 * 1e3      # reading the weights once: 4.18 ms
 C = 1.4e10 / 989.4e12 * 1e3      # compute per position: 0.01415 ms
 step = lambda n: max(W, n * C)   # lower bound for one forward pass over n positions
 prefill = step(512)              # 7.24 ms
-print(prefill + 256 * step(1), 256 * step(768), 64 * step(768))           # 1076 2782 696
-print(prefill + 64 * step(32), prefill + 72 * step(32))                   # 275 308 (the latter with 8 cache writes)
+print(round(prefill + 256 * step(1)), round(256 * step(768)), round(64 * step(768)))  # 1076 2782 696
+print(round(prefill + 64 * step(32)), round(prefill + 72 * step(32)))     # 275 308 (the latter with 8 cache writes)
 for b in (1, 8, 64, 295):
     print(b, round(b / step(b) * 1e3), round(4 * b / step(32 * b) * 1e3))  # AR and diffusion tok/s at concurrency b
 ```

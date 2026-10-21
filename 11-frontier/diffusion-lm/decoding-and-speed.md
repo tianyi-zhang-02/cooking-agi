@@ -107,8 +107,8 @@ W = 1.4e10 / 3.352e12 * 1e3      # 读一遍权重：4.18 ms
 C = 1.4e10 / 989.4e12 * 1e3      # 每个位置的计算：0.01415 ms
 step = lambda n: max(W, n * C)   # 一次前向处理 n 个位置的下限
 prefill = step(512)              # 7.24 ms
-print(prefill + 256 * step(1), 256 * step(768), 64 * step(768))           # 1076 2782 696
-print(prefill + 64 * step(32), prefill + 72 * step(32))                   # 275 308（后者含 8 次写缓存）
+print(round(prefill + 256 * step(1)), round(256 * step(768)), round(64 * step(768)))  # 1076 2782 696
+print(round(prefill + 64 * step(32)), round(prefill + 72 * step(32)))     # 275 308（后者含 8 次写缓存）
 for b in (1, 8, 64, 295):
     print(b, round(b / step(b) * 1e3), round(4 * b / step(32 * b) * 1e3))  # 并发 b 时 AR、扩散的 tok/s
 ```

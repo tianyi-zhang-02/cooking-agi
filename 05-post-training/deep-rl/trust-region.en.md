@@ -67,7 +67,7 @@ Action 1 earns 1 and action 0 earns 0, with $p=\pi(1)=\sigma(\theta)$. Start at 
 | Return gradient $g$ | 0.25 | $J=p$ and $dp/d\theta=p(1-p)$ |
 | Fisher $F$ | 0.25 | The Bernoulli score is $a-p$, with second moment $p(1-p)$ |
 | KL budget $\delta$ | 0.01 | Chosen for this example |
-| Proposed step $\Delta$ | 0.28284 | $\sqrt{2\delta/F}$ |
+| Proposed step $\Delta$ | 0.28284 | In one dimension the general form is $\sqrt{2\delta F/g^2}\cdot g/F$; here $g=F$, so it reduces to $\sqrt{2\delta/F}$ |
 | Updated $p$ | 0.57024 | $\sigma(0.28284)$ |
 
 The exact Bernoulli KL is approximately 0.009967. It is close to 0.01 here, but a local quadratic approximation does not guarantee every step satisfies the exact KL budget.

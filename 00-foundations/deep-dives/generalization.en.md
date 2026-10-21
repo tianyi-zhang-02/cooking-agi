@@ -2,7 +2,7 @@
 
 [中文](generalization.md) · **English**
 
-> Reading time: about 12 minutes · Level: foundations to advanced · Reviewed: 2026-10
+> Reading time: about 12 minutes · Level: foundations to advanced · Last reviewed: 2026-10
 
 Training accuracy keeps improving while validation barely moves. Should you add data, change the model, or increase regularization? A curve describes the symptom; it does not identify the cause.
 
@@ -34,13 +34,13 @@ A useful debugging order:
 3. **Plot training and learning curves.** The former varies update count; the latter varies training-set size. They answer different questions.
 4. **Change one major factor at a time.** Compare more updates, more capacity, more data, or different regularization with the evaluation set held fixed.
 
-Memorizing a tiny batch checks the training path, not generalization. More rows need not mean more independent information: ten thousand duplicates may teach less than one thousand representative examples.
+Memorizing a tiny batch checks the training path, not generalization. More rows need not mean more information: ten thousand duplicated records need not carry more than one thousand independent, representative ones.
 
 ## Validation Selects; Test Data Checks the Final Choice
 
 Early stopping selects a checkpoint using validation performance. Cross-validation estimates performance across splits and supports hyperparameter selection. Rotating which fold is held out does not automatically improve a single model.
 
-If every disappointing test result causes another design change, the test set has become part of selection (for the same problem on public benchmarks, see [contamination and saturation in test-time compute](../../11-frontier/test-time-compute/measuring.en.md)). Reserve independent final evaluation, with group or time splits when samples are dependent.
+If every disappointing test result causes another design change, the test set has become part of selection (for the same problem on public benchmarks, see [contamination and saturation in test-time compute](../../11-frontier/test-time-compute/measuring.en.md)). Reserve independent final evaluation, and when samples are dependent use group or time splits rather than mechanically shuffling them into K random folds.
 
 Preprocessing is also learned. With training values `[0, 2]`, the mean is 1. Include a future observation of `100`, and it becomes 34. No label was accessed, but future distribution information entered training. Fit preprocessing only on training data, then apply that transform to validation and test. Each cross-validation fold needs its own fitted preprocessing. See the [scikit-learn leakage guidance](https://scikit-learn.org/stable/common_pitfalls.html#data-leakage).
 

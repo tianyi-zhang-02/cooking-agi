@@ -2,7 +2,7 @@
 
 [中文](multi-token-prediction.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisite: [language-model objectives](language-model-objective.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [language-model objectives](language-model-objective.en.md)
 
 Ordinary language modeling predicts the next token at each position. Multi-token prediction adds further-ahead targets during training, encouraging representations useful beyond the immediate next step.
 
@@ -79,7 +79,7 @@ The shared trunk receives gradients from several tasks. They can improve represe
 
 ## Training with MTP does not require using it at inference
 
-One deployment drops auxiliary modules and generates from the base model token by token. Training may improve quality, but there is no automatic multi-token generation speedup.
+One deployment drops auxiliary modules and generates from the base model token by token. Any quality change from training remains, but there is no automatic multi-token generation speedup.
 
 Another uses auxiliary modules for speculative decoding: propose tokens, then verify them with the target model. Frequent rejection can make drafting and verification more expensive than ordinary decoding.
 

@@ -1,4 +1,4 @@
-# Autonomous driving: end-to-end models and why open-loop scores mislead
+# Autonomous driving: end-to-end models and closed-loop evaluation
 
 [中文](end-to-end.md) · **English**
 
@@ -93,7 +93,7 @@ nuScenes open-loop planning evaluation compares the model's predicted ego trajec
 | NAVSIM v2 | Stage two starts from perturbed start states | No | EPDMS | Start states are precomputed; images come from reconstruction rendering |
 | nuPlan | Yes | Yes in CLS-R | CLS-R / CLS-NR / OLS | Inputs are given object states; perception is not tested |
 | CARLA / Bench2Drive | Yes, drives the whole route itself | Yes, scripted | Driving score DS, success rate | Images and traffic come from a game engine |
-| Learned world models | Yes | Depends on the model | Each company's own | No published fidelity metrics as of 2026-10 |
+| Learned world models | Yes | Depends on the model | Each company's own | No checkable fidelity numbers published as of 2026-10 |
 
 The last row means generative simulators such as the Waymo World Model (2026-02), Wayve GAIA-4 (2026-08) and Tesla's neural world simulator (from auto-captions of its talks); why pure reconstruction breaks down once the car leaves the log is covered in [3D reconstruction and neural rendering](../perception/reconstruction.en.md), and how world models serve as evaluators in [world models: robots and driving](../../11-frontier/world-models/robotics-driving.en.md).
 

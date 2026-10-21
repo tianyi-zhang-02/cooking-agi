@@ -158,7 +158,7 @@ scores = np.where(mask, -np.inf, scores)             # 加 -inf，不是置零
 
 **为什么必须在 softmax 之前**（追问重点）：加 $-\infty$ 后 $e^{-\infty}=0$，**softmax 在剩余位置上重新归一化**，数学上等价于「那些位置不存在」。
 
-在 softmax **之后**置零则**破坏归一化**——每行不再和为 1，而且破得不均匀：位置 1 只能看自己，被删掉的质量最多，输出被缩得最狠。等于给每个位置乘了一个意义不明的衰减系数。用两个分数算一遍，见[多头注意力](core/multi-head-attention.md#_5)。
+在 softmax **之后**置零则**破坏归一化**——每行不再和为 1，而且破得不均匀：位置 1 只能看自己，这一行被删掉的位置最多，通常损失的概率质量也最多，输出被缩得最狠。等于给每个位置乘了一个意义不明的衰减系数。用两个分数算一遍，见[多头注意力](core/multi-head-attention.md#_5)。
 
 **工程细节**：全被屏蔽的行没有合法的概率分布。直接对全 `-inf` 行做 softmax 会产生 NaN；换成有限负数可能得到均匀分布，也不是正确答案，而且 `-1e9` 超出了 fp16 的有限范围。应明确处理无有效 key 的 query，检查所用 attention API 的全掩码行为，并让 padding 不参与后续 loss。softmax 后屏蔽再正确归一化在数学上可以等价，但只置零不行。
 
@@ -190,7 +190,7 @@ $$f(T_x(I)) = T_x\big(f(I)\big)$$
 
 **一句话收**：平移等变是卷积自带的，旋转等变或不变要付钱，付法是数据或者算子。
 
-**能让对话变有意思的一条**：连平移不变性都没有大家以为的那么好——带 stride 的下采样会引入混叠，输入平移一个像素预测就可能翻。解法是抗混叠的模糊下采样。
+**能让对话变有意思的一条**：连平移不变性都没有大家以为的那么好——带 stride 的下采样会引入混叠，输入平移一个像素预测就可能翻。一种缓解办法是下采样前先做低通模糊（抗混叠），它能让输出对小平移更稳定，但不保证完全平移不变（[Zhang，ICML 2019](https://arxiv.org/abs/1904.11486)）。
 
 </details>
 
@@ -286,7 +286,7 @@ heap-style 的 `left=2i+1, right=2i+2`？对稀疏树，二者不等价。面试
 | 残差 | 给梯度一条恒等通路（思路类似 LSTM 的 cell state，但结构不同） |
 | $\sqrt{d_k}$ 缩放 | 点积是 $d_k$ 项之和，方差随 $d_k$ 增长；不缩放则 softmax 容易接近 one-hot，经它传回分数的梯度会变得很小 |
 | 多头 | **一个 softmax 只能表达一种注意力模式**；多头在不同子空间并行关注不同关系 |
-| FFN（约 4× 放大） | **大部分参数在这里**，有一种常见解读把它看作 key-value 记忆 |
+| FFN（约 4× 放大） | **大部分参数在这里**，有一种常见解读把它看作 key-value 记忆（[Geva 等，EMNLP 2021](https://arxiv.org/abs/2012.14913)） |
 | causal mask | 见上，训练/推理一致性 |
 
 **然后主动说这一段**，它区分「读过 2017 那篇」和「知道现在的模型长什么样」：
@@ -295,8 +295,8 @@ heap-style 的 `left=2i+1, right=2i+2`？对稀疏树，二者不等价。面试
 | --- | --- | --- |
 | Post-LN | Pre-LN + RMSNorm | Pre-LN 降低对 warmup 的依赖、更容易堆深；RMSNorm 省去中心化，计算更省 |
 | 正弦 / 学习式绝对位置 | RoPE | 位置只以相对距离 $n-m$ 进入 $q\cdot k$，分数仍取决于内容；超出训练长度仍要靠 RoPE scaling 等扩展 |
-| ReLU FFN | SwiGLU | 同等算力下更好 |
-| MHA | GQA / MQA，或 [MLA](deep-dives/latent-and-sparse-attention.md)（只缓存低维 latent） | **KV cache 是推理显存瓶颈** |
+| ReLU FFN | SwiGLU | 参数量和计算量相同时，困惑度更低（[Shazeer 2020](https://arxiv.org/abs/2002.05202)，T5 设置） |
+| MHA | GQA / MQA，或 [MLA](deep-dives/latent-and-sparse-attention.md)（缓存低维 latent，外加一个较小的共享 RoPE key，见 [DeepSeek-V2](https://arxiv.org/abs/2405.04434) §2.1） | **KV cache 是推理显存瓶颈** |
 | 每层都是 softmax attention | 部分层换成线性注意力 / 循环状态，例如 [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B) 每 4 层里 3 层是 [Gated DeltaNet](deep-dives/gated-deltanet.md)（截至 2026-10） | 状态大小固定，这些层 decode 时不再读完整 KV |
 
 ## 继续阅读 {#_7}

@@ -29,7 +29,7 @@
 <details class="qa" markdown="1">
 <summary>cache 的大小怎么算？</summary>
 
-$2 \times n_{\text{layers}} \times n_{\text{kv heads}} \times d_{\text{head}} \times \text{tokens} \times \text{bytes}$。注意里面没有 query head 的数量。Llama-2-7B 形状（32 层、32 个 KV head、$d_{\text{head}}=128$、fp16）是每个 token 0.5 MB，32K 上下文就是 16 GB。
+$2 \times n_{\text{layers}} \times n_{\text{kv heads}} \times d_{\text{head}} \times \text{tokens} \times \text{bytes}$。注意里面没有 query head 的数量。Llama-2-7B 形状（32 层、32 个 KV head、$d_{\text{head}}=128$、fp16）是每个 token 0.5 MiB（$2\times32\times32\times128\times2$ 字节），32K（32,768）个 token 就是 16 GiB。
 
 </details>
 

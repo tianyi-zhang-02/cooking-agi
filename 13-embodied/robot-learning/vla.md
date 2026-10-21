@@ -159,7 +159,7 @@ Tesla Optimus 只看 Tesla 自己的季度致股东信（SEC 存档的 Exhibit 9
 
 其他公司（公司自报，除非另注）：
 
-- **Figure**：BMW 2026-02-27 的[新闻稿](https://www.press.bmwgroup.com/global/article/detail/T0455864EN/bmw-group-to-deploy-humanoid-robots-in-production-in-germany-for-the-first-time?language=en)确认，一台 Figure 02 在斯帕坦堡工厂参与生产了 3 万多辆 X3；Figure 在 2026-04-29 称已交付 350 台以上 Figure 03，没有点名客户，也没给现场部署台数。
+- **Figure**：BMW 2026-02-27 的[新闻稿](https://www.press.bmwgroup.com/global/article/detail/T0455864EN/bmw-group-to-deploy-humanoid-robots-in-production-in-germany-for-the-first-time?language=en)确认，Figure 02 在斯帕坦堡工厂参与生产了 3 万多辆 X3（新闻稿没说用了几台）；Figure 在 2026-04-29 称已交付 350 台以上 Figure 03（[Figure 博客](https://www.figure.ai/news/ramping-figure-03-production)），说这些机器人分给内部研发、数据采集和商业用例开发，没有点名客户，也没给现场部署台数。
 - **Agility**：Digit 在 GXO 的仓库搬运了 10 万个以上周转箱（[2025-11-20](https://www.agilityrobotics.com/content/digit-moves-over-100k-totes)）。
 - **Boston Dynamics**：2026-01-05 发布量产版电动 Atlas，称 2026 年的部署已全部排满，交给 Hyundai 和 Google DeepMind（[博客](https://bostondynamics.com/blog/boston-dynamics-unveils-new-atlas-robot-to-revolutionize-industry/)）；之后没找到确认已交付的一手资料。
 - **1X**：2026-04-30 的[工厂公告](https://www.1x.tech/discover/neo-factory)说 NEO 尚未开始向客户交付，首批先给内部做家庭测试，承诺 2026 年内开始交付；之后没找到确认交付的官方消息。

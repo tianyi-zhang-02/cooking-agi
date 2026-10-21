@@ -66,6 +66,6 @@ The accompanying [pure-Python lab](../code/multimodal_math.py) computes dot prod
 python 00-foundations/code/multimodal_math.py
 ```
 
-Predict, then edit the numbers near the end of the script to check: if $a$ changes from `[2, 2]` to `[20, 20]`, what happens to the dot product and cosine? If you add 100 to every entry of `SCORES[0]`, what happens to the printed probabilities?
+Predict, then edit the numbers in the script to check: if $a$ changes from `[2, 2]` to `[20, 20]`, what happens to the dot product and cosine? If you add 100 to every entry of `SCORES[0]`, what happens to the printed probabilities?
 
 Continue with [CLIP](../../03-multimodal-learning/clip.en.md): two encoders learn to match images and text in a shared space, rather than starting with one mixed input sequence.

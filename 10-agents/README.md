@@ -55,7 +55,7 @@ Anthropic 在 [Building effective agents](https://www.anthropic.com/engineering/
 
 ## ReAct：想一步，做一步
 
-ReAct（Yao 等，2022）让推理和行动交替进行：模型先写下这一步在想什么，再调一个工具，看到结果接着想下一步。今天大多数 agent 的循环，都是它的变体。
+ReAct（[Yao 等，2022](https://arxiv.org/abs/2210.03629)）让推理和行动交替进行：模型先写下这一步在想什么，再调一个工具，看到结果接着想下一步。今天大多数 agent 的循环，都是它的变体。
 
 ## 这一组怎么读
 

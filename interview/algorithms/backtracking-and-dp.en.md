@@ -184,6 +184,6 @@ No. In `[4, 5, 4]`, choosing 5 loses to taking both ends for 8. DP compares mutu
 ## 7. Further explanations
 
 - [Hello Algo: introduction to dynamic programming](https://www.hello-algo.com/chapter_dynamic_programming/intro_to_dynamic_programming/) (Chinese, with an English edition available): the climbing-stairs example connects search, memoization, tabulation, and space optimization.
-- [代码随想录: dynamic-programming foundations](https://github.com/youngyangyang04/leetcode-master/blob/master/problems/动态规划理论基础.md) (Chinese): useful checks for state meaning, recurrence, initialization, and iteration order, including a hand-computed table.
+- [leetcode-master: dynamic-programming foundations](https://github.com/youngyangyang04/leetcode-master/blob/master/problems/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.md) (Chinese): useful checks for state meaning, recurrence, initialization, and iteration order, including a hand-computed table.
 
 Some explanations define prefix states; this note uses suffix states. Either can work. Before changing loop direction, check what every variable means rather than mixing conventions.

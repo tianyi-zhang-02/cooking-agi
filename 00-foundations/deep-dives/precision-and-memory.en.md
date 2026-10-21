@@ -2,11 +2,11 @@
 
 [中文](precision-and-memory.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisites: [one training step](training-step.en.md), [LoRA / QLoRA](../../05-post-training/lora-and-qlora.en.md)
+> Last reviewed: 2026-10 · Prerequisites: [one training step](training-step.en.md), [LoRA / QLoRA](../../05-post-training/lora-and-qlora.en.md)
 
 A few gigabytes of weights do not imply a few gigabytes of training memory. Backpropagation needs intermediate results, optimizers keep state, and kernels need workspace.
 
-Separate **reliable arithmetic** from **fitting the live tensors**. BF16, gradient accumulation, and recomputation address different parts of those problems.
+Separate **reliable arithmetic** from **fitting the live tensors**. BF16, gradient accumulation, and recomputation address different parts of those problems; no single switch fixes all of them.
 
 ## FP16 and BF16 trade range against resolution
 
@@ -111,7 +111,7 @@ This checks the PyTorch 2.8.0 CPU interface, not GPU speed. All code on this pag
 
 Very small FP16 gradients can round to zero. Multiplying loss by $s$ produces $s\nabla\mathcal L$; dividing gradients by $s$ before the update preserves the ideal-arithmetic gradient while potentially avoiding intermediate underflow.
 
-This is not a universal fix. Scaling the loss does not repair an Inf already produced in the forward pass. BF16 usually does not need scaling in the same way, but still has rounding and stability limits.
+This is not a universal fix. Scaling the loss does not repair an Inf already produced in the forward pass. BF16 usually does not need scaling in the same way, but it can still overflow, lose updates to rounding, or train unstably.
 
 With a dynamic scaler, the order is:
 
@@ -356,7 +356,7 @@ Boundary inputs, outputs, and temporary recomputation storage are excluded: **0 
 
 ## When is a memory optimization worth using?
 
-Fix model, sequence distribution, valid tokens, and optimizer. Record peak memory, valid tokens per second, numerical differences, and resume behavior.
+Fix model, sequence distribution, valid tokens, and optimizer. Record peak memory, valid tokens per second, numerical differences, and resume behavior. These methods are not alternatives to one another:
 
 | Method | Main saving | Main cost |
 | --- | --- | --- |

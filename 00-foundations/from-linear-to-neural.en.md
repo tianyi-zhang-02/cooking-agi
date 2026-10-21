@@ -8,7 +8,7 @@ Place four points at the corners of a square and give opposite corners the same 
 
 Start with a common classification network: **hidden layers learn features, and a linear classification head reads them out**. With a sigmoid for binary classification, this resembles logistic regression on learned features. It is a useful view for this chapter, not a required output structure for every neural network.
 
-This page goes from least squares to backpropagation. Every step comes with its formula and a framework-free Python implementation.
+This page goes from least squares to backpropagation. Each main step comes with its formula; logistic regression and the two-layer network each get a NumPy-only Python implementation.
 
 ## Linear regression: the decision boundary can only be a hyperplane {#linear-regression-the-decision-boundary-can-only-be-a-hyperplane}
 
@@ -18,7 +18,7 @@ With squared loss $\mathcal{L} = \frac{1}{2}\sum_k (y_k - \hat y_k)^2$, absorb t
 
 $$\nabla_{\mathbf{w}}\mathcal{L} = X^\top(X\mathbf{w} - \mathbf{y}) = 0 \;\Longrightarrow\; \hat{\mathbf{w}} = (X^\top X)^{-1} X^\top \mathbf{y}$$
 
-With linearly dependent features, $X^\top X$ can be singular; a pseudoinverse gives the minimum-norm solution. In code, use a QR / SVD least-squares solver rather than explicitly computing the inverse.
+With linearly dependent features, $X^\top X$ is singular; a pseudoinverse gives the minimum-norm solution. In code, use a QR / SVD least-squares solver rather than explicitly computing the inverse.
 
 Used as a classifier, its decision surface is
 
@@ -82,7 +82,7 @@ If the sigmoid is followed by MSE instead, the gradient carries an extra $\sigma
 
 ![the sigmoid and its derivative](assets/sigmoid.en.svg)
 
-$\sigma'$ is largest at $z=0$ ($0.25$) and goes to $0$ at both ends — this is the origin of **vanishing gradients**, and one of the main reasons hidden layers later moved to ReLU.
+$\sigma'$ is largest at $z=0$ ($0.25$) and goes to $0$ at both ends — this is a major source of **vanishing gradients**, and one of the main reasons hidden layers later moved to ReLU.
 
 ### Python: write it from scratch {#python-write-it-from-scratch}
 
@@ -234,6 +234,18 @@ $$\boldsymbol{\delta}_1 = \underbrace{(\delta_2\, \mathbf{w}_2)}_{\text{error se
 
 $\odot$ is the elementwise product. For ReLU, $\phi'(z) = \mathbb{1}[z > 0]$ — the gradient either passes through unchanged or is cut off completely. That is all there is to it.
 
+**One step by hand.** Take a small network that already separates XOR: 2 hidden units, $W_1$ with rows $(1,1)$ and $(-1,-1)$, $\mathbf b_1=\mathbf 0$, $\mathbf w_2=(1,1)$, $b_2=-1$. Then $z_2=|x_1+x_2|-1$. In [`why_nonlinear.py`](code/why_nonlinear.py) the four blob centres sit at $(\pm1.5,\pm1.5)$ and the same-sign diagonal is the positive class: $(1.5,1.5)$ and $(-1.5,-1.5)$ get $z_2=2$, while $(1.5,-1.5)$ and $(-1.5,1.5)$ get $-1$, so all four centres are classified correctly. Take the centre of the top-right blob, $\mathbf x=(1.5,1.5)$ with $y=1$, and walk it through:
+
+| Step | Computation | Result |
+| --- | --- | --- |
+| Forward: hidden layer | $\mathbf z_1=W_1\mathbf x+\mathbf b_1$, $\mathbf h=\operatorname{ReLU}(\mathbf z_1)$ | $\mathbf z_1=(3,-3)$, $\mathbf h=(3,0)$ |
+| Forward: output | $z_2=\mathbf w_2^\top\mathbf h+b_2$, $\hat y=\sigma(z_2)$ | $z_2=2$, $\hat y=0.881$, loss $-\ln 0.881=0.127$ |
+| Backward: output layer | $\delta_2=\hat y-y$, $\partial\mathcal L/\partial\mathbf w_2=\delta_2\mathbf h$ | $\delta_2=-0.119$, $\partial\mathcal L/\partial\mathbf w_2=(-0.358,0)$, $\partial\mathcal L/\partial b_2=-0.119$ |
+| Backward: through the ReLU gate | $\boldsymbol\delta_1=(\delta_2\mathbf w_2)\odot\mathbb 1[\mathbf z_1>0]$ | $(-0.119,-0.119)\odot(1,0)=(-0.119,0)$ |
+| Backward: first layer | $\partial\mathcal L/\partial W_1=\boldsymbol\delta_1\mathbf x^\top$ | row 1 $(-0.179,-0.179)$, row 2 $(0,0)$; $\partial\mathcal L/\partial\mathbf b_1=(-0.119,0)$ |
+
+Unit 2 has $z=-3$, so its gate is closed: its incoming weights (row 2 of $W_1$ and the second entry of $\mathbf b_1$) get zero gradient, and its outgoing weight $w_{2,2}$ also gets zero because $h_2=0$. This point cannot change unit 2 at all; only unit 1 learns from it. That is the "cut off completely" case from the line above. Feed this one point to the `step` function below (N = 1) and it computes the same gradients as the table.
+
 ```python
 def init(n_in, n_hidden, seed=0):
     rng = np.random.default_rng(seed)
@@ -298,7 +310,7 @@ Push a square grid on the input space through the hidden layer and see what it g
 | Logistic regression | none | $\sigma(\mathbf{w}^\top\mathbf{x})$ | hyperplane |
 | polynomial / kernel | you choose it | linear classifier | a curved surface in input space |
 | MLP | learned | linear classifier | same as above, but $\phi$ is learned |
-| CNN | learned, constrained to be translation-equivariant | linear classifier | same as above |
+| CNN | learned; convolutions share weights, which makes them translation-equivariant | linear classifier | same as above |
 | Transformer | learned, $N$ layers of attention + FFN | linear classifier | same as above |
 
 ## The Transformer's last layer is a linear classifier too {#connecting-to-the-transformer}

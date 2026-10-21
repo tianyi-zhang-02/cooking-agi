@@ -207,7 +207,7 @@ Neither of the two implementations in [`code/`](code/) calls `nn.MultiheadAttent
 [`test_model.py`](code/test_model.py) verifies, one by one, the four places a from-scratch implementation most easily gets wrong:
 
 ```
-  causality:     change token 9 -> logits at the first 8 positions differ by 0.0 (exactly 0)
+  causality:     change the token at index 9 -> logits at the 9 earlier positions differ by 0.0 (exactly 0)
   kv cache:      incremental decode vs one-shot forward, max error 3.6e-07
   rope relative: score(5,2) = score(20,17) = +5.6092, score(20,10) = +0.4579
   init loss:     4.19  vs  ln(V) = 4.16
@@ -215,7 +215,7 @@ Neither of the two implementations in [`code/`](code/) calls `nn.MultiheadAttent
 
 ![what prefill and a single decode step each compute](assets/kv-cache.en.svg)
 
-With a cache, query positions start at `cache.pos + i`, while keys start at zero and end at `cache.pos + T - 1`. An existing prefix therefore gives a non-square mask $(T,S)$; RoPE is sliced from `cache.pos` too. In this implementation `cache.pos` advances once per model forward, after the entire layer loop. Equivalence checks require unchanged parameters, prefix, positions, and visibility, with dropout disabled; changed weights or truncated caches are not directly comparable to full forward passes.
+With a cache, the mask is the easiest thing to get wrong: query positions are `cache.pos + i`, while keys start at zero and end at `cache.pos + T - 1`. An existing prefix therefore gives a non-square mask $(T,S)$; RoPE is sliced from `cache.pos` too. In this implementation `cache.pos` advances once per model forward, after the entire layer loop. Equivalence checks require unchanged parameters, prefix, positions, and visibility, with dropout disabled; changed weights or truncated caches are not directly comparable to full forward passes.
 
 Sources: [original Transformer](https://arxiv.org/abs/1706.03762), [RoFormer](https://arxiv.org/abs/2104.09864), [RMSNorm](https://arxiv.org/abs/1910.07467), [GLU variants](https://arxiv.org/abs/2002.05202).
 
@@ -233,7 +233,7 @@ Sources: [original Transformer](https://arxiv.org/abs/1706.03762), [RoFormer](ht
 
 ## Where to read next {#where-to-read-next}
 
-- [From linear models to neural networks](from-linear-to-neural.en.md) — why the last layer is always a linear classifier
+- [From linear models to neural networks](from-linear-to-neural.en.md) — why the last layer of a classification network is so often just a linear classifier
 - [Post-training](../05-post-training/README.en.md) — how these parameters keep being changed afterwards
 - [Systems overview](../06-systems/README.en.md) — where this sits in the whole system
 

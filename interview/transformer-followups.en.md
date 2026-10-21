@@ -29,7 +29,7 @@ Per-step attention drops from $O(t^2)$ to $O(t)$. The price is memory that grows
 <details class="qa" markdown="1">
 <summary>How do you compute the size of the cache?</summary>
 
-$2 \times n_{\text{layers}} \times n_{\text{kv heads}} \times d_{\text{head}} \times \text{tokens} \times \text{bytes}$. Note that the number of query heads does not appear. A Llama-2-7B shape (32 layers, 32 KV heads, $d_{\text{head}}=128$, fp16) is 0.5 MB per token, so 16 GB at 32K context.
+$2 \times n_{\text{layers}} \times n_{\text{kv heads}} \times d_{\text{head}} \times \text{tokens} \times \text{bytes}$. Note that the number of query heads does not appear. A Llama-2-7B shape (32 layers, 32 KV heads, $d_{\text{head}}=128$, fp16) is 0.5 MiB per token ($2\times32\times32\times128\times2$ bytes), so 16 GiB at 32K (32,768) tokens.
 
 </details>
 

@@ -2,7 +2,7 @@
 
 **中文** · [English](embedding-models.en.md)
 
-> 阅读时间：约 15 分钟 · 前置知识：向量、点积；后半篇用到 attention mask · 最近审阅：2026-10-10
+> 阅读时间：约 15 分钟 · 前置知识：向量、点积；后半篇用到 attention mask · 最近审阅：2026-10
 
 用户搜“忘了密码怎么找回”，库里有两段文字：
 
@@ -89,7 +89,7 @@ Qwen3 Embedding 的 2025 年报告，则利用 LLM 同时做表示骨干和合�
 
 ## 4. 输入、pooling 和索引得一起对上 {#input-contract}
 
-最容易忽略的不是模型大小，而是“你实际上喂了什么”。Qwen 的 query 模板包含 `Instruct:` 和 `Query:`；官方示例让 document 保持原文。BGE-M3 不沿用这套模板。把两者的 prompt、pooling 和 padding 拼着用，shape 可能全对，分数却已经不是原来的含义。
+比模型大小更容易被忽略的，是“你实际上喂了什么”。Qwen 的 query 模板包含 `Instruct:` 和 `Query:`；官方示例让 document 保持原文。BGE-M3 不沿用这套模板。把两者的 prompt、pooling 和 padding 拼着用，shape 可能全对，分数却已经不是原来的含义。
 
 ### Padding：末尾不一定是最后一个字
 

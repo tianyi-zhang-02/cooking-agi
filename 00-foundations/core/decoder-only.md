@@ -161,7 +161,7 @@ $$
 attention → output projection → residual addition → RMSNorm → SwiGLU → 第二次
 residual addition。堆完所有 block 后通常还有一次 final norm，再投影到词表 logits。
 
-这不是所有模型的硬性标准，而是一组常见设计。与 2017 原版相比，主体从
+这是一组常见设计，不是所有模型都必须照做的标准。与 2017 原版相比，主体从
 encoder–decoder 变为 decoder-only，post-norm 常被 pre-norm 替代，LayerNorm 常被
 RMSNorm 替代，正弦位置编码常被 RoPE 替代，FFN 常使用 SwiGLU，注意力头也可能从
 MHA 变为 GQA 或 MQA。
@@ -464,6 +464,16 @@ flowchart LR
     K -->|读取历史| D
     D -->|追加 K/V| K
 ```
+
+数一次就能看出两者差在哪。Prompt 有 5 个 token，要生成 3 个新 token：
+
+| 步骤 | 这次送进模型的位置 | 每个新位置读多少个 K/V | 得到什么 |
+| --- | --- | ---: | --- |
+| Prefill | 位置 1–5，一次并行算完 | 读左边和自己，最多 5 个 | 第 1 个新 token；缓存 5 个位置的 K/V |
+| Decode 1 | 位置 6，即刚生成的 token | 6 | 第 2 个新 token |
+| Decode 2 | 位置 7 | 7 | 第 3 个新 token |
+
+有缓存时，模型一共只处理 $5+1+1=7$ 个位置；不缓存、每步重算整段前缀，就要处理 $5+6+7=18$ 个位置，序列越长差得越多。Decode 每步只算一个位置，却要把全部权重和越来越长的 KV cache 从显存里读一遍，所以单条请求的 decode 常卡在显存带宽上，算力反而闲着。
 
 ## 批量生成时，为什么常用左填充？ {#left-padding}
 
