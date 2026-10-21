@@ -2,7 +2,7 @@
 
 **中文** · [English](value-and-advantage.en.md)
 
-> 阅读时间：约 4 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 4 分钟 · 最近审阅：2026-10
 
 ## Reward、Return 和奖励归因
 

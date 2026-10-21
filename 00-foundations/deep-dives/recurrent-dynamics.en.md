@@ -2,7 +2,7 @@
 
 [中文](recurrent-dynamics.md) · **English**
 
-> Reading time: ~12 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 First replace each matrix with a scalar. Multiplying a gradient by 0.9 for 50 steps leaves about 0.005 of its original size; multiplying by 1.1 gives about 117 times the original. An RNN uses matrix products, but this calculation shows why modest local changes can become a serious optimization problem across a long sequence.
 

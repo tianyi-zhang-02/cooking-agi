@@ -2,7 +2,7 @@
 
 **中文** · [English](transformer.en.md)
 
-> 阅读时间：约 12 分钟 · 难度：入门到进阶 · 最近审阅：2026-10
+> 阅读时间：约 12 分钟 · 最近审阅：2026-10
 
 <div class="lesson-recipe advanced">
   <div><span>这次要拆什么</span><strong>把 Transformer 从框图拆回矩阵运算和可以检查的性质</strong></div>

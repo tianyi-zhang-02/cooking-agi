@@ -2,7 +2,7 @@
 
 [中文](load-balancing.md) · **English**
 
-> Reading time: ~12 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 Top-k controls how many experts each token uses, not how many tokens each expert receives. Eight tokens can all choose the same two experts and leave the rest idle. Load balancing addresses that second problem.
 

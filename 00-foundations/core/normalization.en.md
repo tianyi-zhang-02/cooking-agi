@@ -2,7 +2,7 @@
 
 [中文](normalization.md) · **English**
 
-> Reading time: ~17 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~17 min · Last reviewed: 2026-10
 
 Take `[1, 3]`, temporarily ignoring epsilon and learned parameters. LayerNorm subtracts the mean, 2, and divides by the standard deviation, 1, giving `[-1, 1]`. RMSNorm instead divides by the root mean square, √5, without centering. Both change scale, but they are different operations. Next we place them inside a batch of sequences and identify the reduction axes.
 

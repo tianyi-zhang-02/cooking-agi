@@ -2,7 +2,7 @@
 
 [中文](seq2seq.md) · **English**
 
-> Reading time: ~10 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 Translating “明天见” into “See you tomorrow” does not require equal input and output lengths or a word-by-word match. Seq2Seq uses an encoder to read the input and a decoder to produce the output. When writing `tomorrow`, how can the decoder find the relevant time information? This gives us a reason to introduce attention. **Seq2Seq splits reading the input and writing the output between two modules; if the input passes through one fixed vector, the decoder cannot look up a single input position while generating, and attention lets it look back at every step.**
 

@@ -2,7 +2,7 @@
 
 **中文** · [English](evaluation-and-review.en.md)
 
-> 阅读时间：约 6 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 6 分钟 · 最近审阅：2026-10
 
 ## 奖励涨了，先排除哪些解释？ {#independent-evaluation}
 

@@ -2,7 +2,7 @@
 
 [中文](on-off-policy.md) · **English**
 
-> Reading time: ~14 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~14 min · Last reviewed: 2026-10
 
 Generating long answers is expensive. Throwing them away immediately feels wasteful, but reusing them indefinitely creates another problem: **the model that generated them is no longer the model being updated.**
 

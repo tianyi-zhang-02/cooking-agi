@@ -2,7 +2,7 @@
 
 [中文](vision-to-language.md) · **English**
 
-> Reading time: about 8 minutes · Level: intermediate · Last reviewed: 2026-10
+> Reading time: about 8 minutes · Last reviewed: 2026-10
 
 CLIP can score an image against a caption, but it does not continue with a written answer. A visual language model needs usable visual inputs and a training objective that teaches it to answer.
 

@@ -2,7 +2,7 @@
 
 [中文](clip.md) · **English**
 
-> Reading time: about 9 minutes · Level: introductory to intermediate · Last reviewed: 2026-10
+> Reading time: about 9 minutes · Last reviewed: 2026-10
 
 Take three images—a cat, a bicycle, and a coffee—and their three captions. Instead of asking for an essay, ask: **which image belongs with which caption?** This is a useful starting point for CLIP.
 

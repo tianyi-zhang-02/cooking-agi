@@ -2,7 +2,7 @@
 
 [中文](decoder-only.md) · **English**
 
-> Reading time: ~15 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~15 min · Last reviewed: 2026-10
 
 When generating “It is raining,” the model needs the prefix before choosing what follows it. During training, the complete sentence is available, so predictions at several positions can be computed together. During generation, future tokens do not exist yet. This distinction explains the decoder-only structure, causal mask, and KV cache.
 

@@ -2,7 +2,7 @@
 
 [中文](adaptive-depth.md) · **English**
 
-> Reading time: ~5 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~5 min · Last reviewed: 2026-10
 
 ## Which positions benefit from more computation? {#a-fixed-number-of-loops-wastes-most-of-them}
 

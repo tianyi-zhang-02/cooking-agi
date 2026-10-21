@@ -2,7 +2,7 @@
 
 [中文](patterns.md) · **English**
 
-> Reading time: ~6 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~6 min · Last reviewed: 2026-10
 
 ## The smallest unit: an augmented model
 

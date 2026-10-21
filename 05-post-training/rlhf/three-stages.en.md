@@ -2,7 +2,7 @@
 
 [中文](three-stages.md) · **English**
 
-> Reading time: ~3 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~3 min · Last reviewed: 2026-10
 
 To teach a model to summarize a long email in three sentences, we could show it a good summary, ask it to compare two summaries, or let it write one and learn from feedback. These roughly correspond to the three stages of classic RLHF.
 

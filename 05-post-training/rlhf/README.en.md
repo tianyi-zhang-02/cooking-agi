@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~2 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~2 min · Last reviewed: 2026-10
 
 Ask, “I'm learning Python for the first time. What could I try today?” One answer gives half a page of language history; another walks you through a few lines of code you can run immediately. Both might be factually correct, but the second is more useful for this request.
 

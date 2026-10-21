@@ -2,7 +2,7 @@
 
 [中文](recurrent-models.md) · **English**
 
-> Reading time: ~10 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 In “It is raining; remember your umbrella,” the final word depends on earlier information. An RNN updates a hidden state as it reads each position. An LSTM adds controls for keeping, writing, and reading its state. First we follow the information forward, then examine why learning long dependencies is difficult. **An RNN squeezes all history into one fixed-size state and updates it step by step; LSTM gates make that state easier to keep, but the computation is still serial and the capacity still fixed.**
 

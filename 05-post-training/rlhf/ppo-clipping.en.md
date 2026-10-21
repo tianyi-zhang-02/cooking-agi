@@ -2,7 +2,7 @@
 
 [中文](ppo-clipping.md) · **English**
 
-> Reading time: ~9 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~9 min · Last reviewed: 2026-10
 
 The model generates an answer, receives good feedback, and becomes more likely to produce that answer. So far, so reasonable.
 

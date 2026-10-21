@@ -2,7 +2,7 @@
 
 [中文](after-rlhf.md) · **English**
 
-> Reading time: ~12 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 Suppose your model can already answer questions and you want to improve its answers. You might have a dataset of responses with labels saying which ones are better. Or you might generate new responses during training and score them as you go.
 

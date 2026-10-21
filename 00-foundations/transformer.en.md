@@ -2,7 +2,7 @@
 
 [中文](transformer.md) · **English**
 
-> Reading time: ~12 min · Level: intro → advanced · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 <div class="lesson-recipe advanced">
   <div><span>What we are dissecting</span><strong>the Transformer, from block diagram back down to matrix operations and properties you can check</strong></div>

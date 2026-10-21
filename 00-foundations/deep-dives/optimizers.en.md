@@ -2,7 +2,7 @@
 
 [中文](optimizers.md) · **English**
 
-> Reading time: about 15 minutes · Level: foundations to advanced · Last reviewed: 2026-10
+> Reading time: about 15 minutes · Last reviewed: 2026-10
 
 **A gradient supplies a local direction; an optimizer decides how to use it.** It may remember recent directions, adapt the step to each coordinate's history, or both. Separating those choices makes the names easier to understand.
 

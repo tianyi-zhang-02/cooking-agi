@@ -2,7 +2,7 @@
 
 **中文** · [English](latent-moe.en.md)
 
-> 阅读时间：约 14 分钟 · 难度：进阶 · 最近审阅：2026-10 · 前置：[Router](router.md)、[细粒度与共享专家](fine-grained-and-shared.md)
+> 阅读时间：约 14 分钟 · 最近审阅：2026-10 · 前置：[Router](router.md)、[细粒度与共享专家](fine-grained-and-shared.md)
 
 一个 token 要交给 8 个专家处理，就得把它的表示送到这些专家那里。即使每个专家只算一点，搬数据和读权重也可能很贵。既然专家不一定需要主干的全部维度，能不能先把表示缩窄，再交给它们？
 

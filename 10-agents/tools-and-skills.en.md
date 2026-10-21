@@ -2,7 +2,7 @@
 
 [中文](tools-and-skills.md) · **English**
 
-> Reading time: ~12 min · Level: foundations to engineering · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 Ask an assistant to review a learning note, and it may need to read files, check sources, and suggest changes. Giving it those tools does not settle the task. It might reach a conclusion before finishing the note, or publish something you only wanted to review.
 

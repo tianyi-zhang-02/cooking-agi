@@ -2,7 +2,7 @@
 
 [中文](transformer-lab.md) · **English**
 
-> Reading time: ~15 min, longer if you play · Level: intro → advanced · Last reviewed: 2026-10
+> Reading time: ~15 min, longer if you play · Last reviewed: 2026-10
 >
 > This is the hands-on companion to [The Transformer architecture](transformer.en.md). The formulas and derivations live there; this page does one thing: let you drag and click every mechanism and watch its numbers change. Everything in the figures is computed live in your browser. Model-family configurations change quickly, so treat the papers and released configs at the end as the source of truth.
 

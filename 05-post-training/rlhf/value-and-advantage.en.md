@@ -2,7 +2,7 @@
 
 [中文](value-and-advantage.md) · **English**
 
-> Reading time: ~4 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~4 min · Last reviewed: 2026-10
 
 ## Reward, return, and credit assignment
 

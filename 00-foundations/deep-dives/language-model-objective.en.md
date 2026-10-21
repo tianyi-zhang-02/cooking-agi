@@ -2,7 +2,7 @@
 
 [中文](language-model-objective.md) · **English**
 
-> Reading time: ~9 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~9 min · Last reviewed: 2026-10
 
 One answer has 20 valid tokens and another has 200. Averaging over all tokens gives the second answer ten times as many loss terms. Averaging within each answer first gives the answers equal weight. **Before changing any architecture, the reduction already changes whose examples dominate learning.** [The numbers are worked out below](#dissection-one-cross-entropy-does-not-decide-what-matters-for-you).
 
