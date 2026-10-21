@@ -1464,8 +1464,8 @@
     const fa = y => y.toFixed(1), fb = y => y.toFixed(3), l2 = openL2.map(x => x.toFixed(1)).join(' / ');
     const base = {A, B, wheels, edge, openL2, l2, touch, limit, eps, g, v, dt, fa, fb};
     const list = [{...base, k: 0, stage: 0,
-      zh: `教学设定：车道 ${lane} m，车宽 ${car} m，车身中心偏 ${wheels.toFixed(2)} m 车轮压线。开环每帧都把车放回日志状态 y = 0，两个策略给出同一条计划 0.2t：1 / 2 / 3 s 的 L2 都是 ${l2} m。`,
-      en: `Teaching setup: a ${lane} m lane and a ${car} m car, so the wheels touch the line when the centre is ${wheels.toFixed(2)} m off. Open loop puts the car back on the logged state y = 0 every frame, and both policies give the same plan 0.2t: L2 of ${l2} m at 1 / 2 / 3 s.`}];
+      zh: `教学设定：车道 ${lane} m，车宽 ${car} m。把车身简化为与车道平行的固定宽度区间，中心偏 ${wheels.toFixed(2)} m 时车身边界触线；不据此判断车轮位置。开环每帧都把车放回日志状态 y = 0，两个策略给出同一条计划 0.2t：1 / 2 / 3 s 的 L2 都是 ${l2} m。`,
+      en: `Teaching setup: a ${lane} m lane and a ${car} m car. Approximate the body as a fixed-width interval parallel to the lane: its edge touches the line at a ${wheels.toFixed(2)} m centre offset. This does not locate the tyres. Open loop resets the car to the logged state y = 0 every frame. Both policies give the same plan 0.2t: L2 of ${l2} m at 1 / 2 / 3 s.`}];
     for (let k = 1; k <= steps; k++) {
       const a = A[k], b = B[k], when = a.t.toFixed(1);
       let zh, en;
@@ -1476,8 +1476,8 @@
         zh = `t = ${when} s：A 在当前航向上再多偏 ${eps}，航向 ${a.heading.toFixed(2)}，偏移 ${fa(a.y)} m；B 看车道线往回拉，航向 ${eps} − ${g} × ${fa(B[1].y)} = ${b.heading.toFixed(2)}，偏移 ${fb(b.y)} m。`;
         en = `t = ${when} s: A adds another ${eps} to its current heading, ${a.heading.toFixed(2)}, and is ${fa(a.y)} m off; B pulls back toward the centre, heading ${eps} − ${g} × ${fa(B[1].y)} = ${b.heading.toFixed(2)}, and is ${fb(b.y)} m off.`;
       } else if (k === touch) {
-        zh = `t = ${when} s：A 偏移 ${fa(a.y)} m，已过 ${wheels.toFixed(2)} m，车轮在 ${A[k - 1].t.toFixed(1)} s 到 ${when} s 之间压线。B 偏移 ${fb(b.y)} m。`;
-        en = `t = ${when} s: A is ${fa(a.y)} m off, past ${wheels.toFixed(2)} m, so its wheels touched the line between ${A[k - 1].t.toFixed(1)} s and ${when} s. B is ${fb(b.y)} m off.`;
+        zh = `t = ${when} s：A 偏移 ${fa(a.y)} m，已过 ${wheels.toFixed(2)} m。按这个简化轮廓，车身边界在 ${A[k - 1].t.toFixed(1)} s 到 ${when} s 之间触线。B 偏移 ${fb(b.y)} m。`;
+        en = `t = ${when} s: A is ${fa(a.y)} m off, past ${wheels.toFixed(2)} m. With this simplified footprint, the body edge touched the line between ${A[k - 1].t.toFixed(1)} s and ${when} s. B is ${fb(b.y)} m off.`;
       } else if (k === steps) {
         zh = `t = ${when} s：A 偏移 ${fa(a.y)} m，车身中心越过 ${edge} m，进了邻车道；B 偏移 ${fb(b.y)} m，趋向 ε/g = ${limit.toFixed(1)} m。`;
         en = `t = ${when} s: A is ${fa(a.y)} m off, its centre past ${edge} m and in the next lane; B is ${fb(b.y)} m off, heading for ε/g = ${limit.toFixed(1)} m.`;
@@ -4021,7 +4021,7 @@
       V.text(svg, X(0), Y(2.8) - 8, head, 'algo-head');
       [[0, t('日志 0', 'log 0')], [base.wheels, base.wheels.toFixed(2)], [base.edge, `${base.edge} m`]].forEach(([y, label]) => V.text(svg, X(0) - 6, Y(y) + 4, label, 'algo-idx', 'end'));
       V.text(svg, X(0.9), Y(base.edge) - 5, t('车道线', 'lane line'), 'algo-idx', 'middle');
-      V.text(svg, X(0) + 6, Y(base.wheels) - 5, t('车轮压线', 'wheels on line'), 'algo-idx');
+      V.text(svg, X(0) + 6, Y(base.wheels) - 5, t('车身触线', 'body touches line'), 'algo-idx');
       V.text(svg, X(0) + 6, Y(2.4) + 4, t('邻车道', 'next lane'), 'algo-idx');
       times.forEach(time => V.text(svg, X(time), Y(-0.6) + 14, time === horizon ? `${time.toFixed(1)} s` : time.toFixed(1), 'algo-idx', 'middle'));
     });
