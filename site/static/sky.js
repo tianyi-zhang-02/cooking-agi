@@ -142,19 +142,26 @@
     return c;
   }
 
-  function halo(st) {
-    var key = st.col + (st.s > 2.9 * DPR ? '+' : '');
-    if (halos[key]) return halos[key];
+  function halo(st) {                       // the soft bloom, 3.2x the star
+    if (halos[st.col]) return halos[st.col];
     var n = 64, c = document.createElement('canvas'); c.width = c.height = n;
     var g = c.getContext('2d'), m = n / 2;
     var grd = g.createRadialGradient(m, m, 0, m, m, m);
     grd.addColorStop(0, 'rgba(' + st.col + ',0.42)'); grd.addColorStop(0.35, 'rgba(' + st.col + ',0.10)'); grd.addColorStop(1, 'rgba(' + st.col + ',0)');
     g.fillStyle = grd; g.fillRect(0, 0, n, n);
-    if (key.slice(-1) === '+') {                                  // a faint spike on the very brightest
-      var h = g.createLinearGradient(0, m, n, m), v = g.createLinearGradient(m, 0, m, n);
-      [h, v].forEach(function (s) { s.addColorStop(0, 'rgba(' + st.col + ',0)'); s.addColorStop(0.5, 'rgba(' + st.col + ',0.55)'); s.addColorStop(1, 'rgba(' + st.col + ',0)'); });
-      g.fillStyle = h; g.fillRect(0, m - 0.5, n, 1); g.fillStyle = v; g.fillRect(m - 0.5, 0, 1, n);
-    }
+    return (halos[st.col] = c);
+  }
+
+  // A faint cross on the very brightest, 7x the star each way and about one device pixel thick,
+  // in its own sprite so the bloom's smaller square does not cut it short.
+  function spike(st) {
+    var key = st.col + '+';
+    if (halos[key]) return halos[key];
+    var n = 128, c = document.createElement('canvas'); c.width = c.height = n;
+    var g = c.getContext('2d'), m = n / 2, t = Math.max(1, Math.round(DPR * n / (14 * st.s)));
+    var h = g.createLinearGradient(0, m, n, m), v = g.createLinearGradient(m, 0, m, n);
+    [h, v].forEach(function (s) { s.addColorStop(0, 'rgba(' + st.col + ',0)'); s.addColorStop(0.5, 'rgba(' + st.col + ',0.55)'); s.addColorStop(1, 'rgba(' + st.col + ',0)'); });
+    g.fillStyle = h; g.fillRect(0, m - t / 2, n, t); g.fillStyle = v; g.fillRect(m - t / 2, 0, t, n);
     return (halos[key] = c);
   }
 
@@ -192,6 +199,7 @@
       if (st.s > 2.0 * DPR) {                                      // bloom on the bright ones, from a cached sprite
         var hr = st.s * 3.2;
         ctx.globalAlpha = al; ctx.drawImage(halo(st), st.x - hr, st.y - hr, hr * 2, hr * 2);
+        if (st.s > 2.9 * DPR) { var sp = st.s * 7; ctx.drawImage(spike(st), st.x - sp, st.y - sp, sp * 2, sp * 2); }
       }
       ctx.globalAlpha = al; ctx.fillStyle = 'rgb(' + st.col + ')';
       ctx.beginPath(); ctx.arc(st.x, st.y, st.s / 2, 0, 6.2832); ctx.fill();
