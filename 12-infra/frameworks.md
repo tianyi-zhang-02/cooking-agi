@@ -4,7 +4,9 @@
 
 > 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
-写下 `y = torch.relu(x @ w + b)`，Python 立刻返回，GPU 却可能还在算；套上 `torch.compile`，同一行又快了一截。中间到底经过了哪几层？**在 eager 模式下，这一行会变成 3 个独立的 ATen 算子、至少 3 个 kernel 和两次本可以省掉的显存往返；编译器省下的主要是每个算子的 CPU 调度开销和中间结果的读写，乘法一次也没少。**
+写下 `y = torch.relu(x @ w + b)`，Python 返回时，GPU 却可能还在算；套上 `torch.compile`，同一行有时会快一截。中间到底经过了哪几层？
+
+在下文的 eager 示例中，这一行会变成 3 个独立的 ATen 算子、至少 3 个 kernel 和两次本可以省掉的显存往返。编译器主要减少每个算子的 CPU 调度开销和中间结果的读写，矩阵乘法本身的运算量并没有减少。
 
 kernel、stream 和 SM 是什么，见 [CUDA](cuda.md) 和 [GPU 架构](gpu-architecture.md)；怎样用 profiler 量出瓶颈，见[性能](performance.md)。训练与推理框架怎么选，已经在[训练框架](../06-systems/training-frameworks.md)和 [vLLM 与 SGLang](../06-systems/inference-frameworks.md) 讲过，这里只把它们放回同一张图。源码链接固定在 PyTorch v2.14.1（2026-09-30 发布），文档对照 2.14 版，2026-10-15 核对。
 
@@ -92,7 +94,7 @@ $$
 
 再看 GEMM 本身：至少读 $x$、$w$，写一份输出，共 96 MiB，按 2 TB/s 约 50 µs；运算量是 $2MNK\approx1.37\times10^{11}$ FLOP，按 **500 TFLOP/s 的教学算力**约 275 µs。在这个形状下，GEMM 受算力限制；eager 的逐元素部分约相当于 GEMM 时间的 24%，融合一次后约 12%。2 TB/s 和 500 TFLOP/s 只是方便手算的整数，不是某张卡的规格；真实数字要看具体 SKU、精度和实际达到的效率，见 [NVIDIA 各代 GPU](nvidia-generations.md) 和[性能](performance.md#roofline)里的 roofline。
 
-**换一个条件：** 把 $M$ 从 4096 改成 8，像 decode 时一次只有 8 个 token。一个中间结果只剩 64 KiB，eager 逐元素部分共 256 KiB，按 2 TB/s 约 0.13 µs。GEMM 仍要读完整个 $w$（32 MiB，约 17 µs），运算只要约 0.5 µs，变成读权重受限。假设每个算子在 CPU 侧要花 5 µs 准备和提交（**教学假设**，实际值随 CPU、PyTorch 版本和算子变化，要用 profiler 测），两个逐元素算子就花 10 µs CPU 时间，去提交 0.13 µs 的 GPU 工作。整层算下来，CPU 提交三个算子要 15 µs，GPU 执行约 17.1 µs，只领先 2 µs 左右；真实的层里还有 norm、残差相加这类小算子，每个又是 5 µs 的 CPU 时间，GPU 上却远不到 1 µs，CPU 很快落在后面，GPU 开始等 CPU。这时融合省下的主要是提交次数，不是字节；CUDA Graphs 则把一整段提交合并成一次。
+**换一个条件：** 把 $M$ 从 4096 改成 8，像 decode 时一次只有 8 个 token。一个中间结果只剩 64 KiB，eager 逐元素部分共 256 KiB，按 2 TB/s 约 0.13 µs。GEMM 仍要读完整个 $w$（32 MiB，约 17 µs），运算只要约 0.5 µs，变成读权重受限。假设每个算子在 CPU 侧要花 5 µs 准备和提交（**教学假设**，实际值随 CPU、PyTorch 版本和算子变化，要用 profiler 测），两个逐元素算子就花 10 µs CPU 时间，去提交 0.13 µs 的 GPU 工作。整层算下来，CPU 提交三个算子要 15 µs，GPU 执行约 17.1 µs；在理想重叠的流水线中，CPU 的提交耗时只比 GPU 的执行耗时少约 2 µs。真实的层里还有 norm、残差相加这类小算子，每个又是 5 µs 的 CPU 时间，GPU 上却远不到 1 µs，这点余量很快用完，GPU 就可能开始等 CPU。这时融合省下的主要是提交次数，不是字节；CUDA Graphs 则把一整段提交合并成一次。
 
 | 先试什么 | 应该观察什么 | 不能据此推出什么 |
 | --- | --- | --- |
@@ -109,7 +111,7 @@ $$
 - **AOTAutograd 提前抓反向。** 它把反向传播也提前捕获下来，前向和反向就都能交给后端优化。
 - **TorchInductor 生成代码。** 它是默认后端；[Dynamo 概览](https://docs.pytorch.org/docs/2.14/user_guide/torch_compiler/torch.compiler_dynamo_overview.html)说它为 GPU 生成 Triton、为 CPU 生成 C++/OpenMP，调优指南说它会自动融合 kernel。
 
-[`torch.compile` 的 mode](https://docs.pytorch.org/docs/2.14/generated/torch.compile.html) 也对应前面两处漏洞：`reduce-overhead` 用 CUDA Graphs 降低 Python 开销，适合小 batch，但可能多占显存；`max-autotune` 会尝试 Triton 或模板实现的矩阵乘，并在 GPU 上默认启用 CUDA Graphs。
+[`torch.compile` 的 mode](https://docs.pytorch.org/docs/2.14/generated/torch.compile.html) 也针对前面两类开销提供了不同选择：`reduce-overhead` 用 CUDA Graphs 降低 Python 开销，适合小 batch，但可能多占显存；`max-autotune` 会尝试 Triton 或模板实现的矩阵乘，并在 GPU 上默认启用 CUDA Graphs。
 
 ```python
 compiled = torch.compile(lambda x, w, b: torch.relu(x @ w + b))

@@ -8,7 +8,7 @@
 
 ## 所有东西都排进同一条序列 {#_1}
 
-把 instruction、context 和 answer 全都排进同一条 token 序列，用 causal mask 挡住未来，然后每个位置只做一件事：猜下一个 token。这就是 decoder-only 最迷人的地方——结构反而比 encoder–decoder 更统一。
+把指令、上下文和回答放进同一条 token 序列，每个位置都预测下一个 token。Causal mask 保证预测时只能看到当前位置及之前的内容。这样，模型不需要分别编码输入、解码输出，而是用同一套结构处理整段序列。
 
 ## 一条序列自己就能当训练数据 {#_2}
 
@@ -67,8 +67,8 @@ end-of-message / EOS、命中其他 stop condition，或达到长度上限。
 <assistant> → 我 → 很好 → 。 → <end>
 ```
 
-角色结构没有改变 decoder 的公式。它只是让“现在该由谁继续说”也成为 token context
-的一部分；模型仍然执行 causal next-token prediction。
+角色结构没有改变 decoder 的公式。角色标记让“现在该由谁继续说”也成为 token 上下文
+的一部分；模型仍然根据因果约束预测下一个 token（causal next-token prediction）。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -254,9 +254,9 @@ $$
 
 <div class="concept-title-en" role="heading" aria-level="3">2. The other eight parts, and what each one changes</div>
 
-The changes listed in the previous card sit in different parts of the block. Each row records only what the part changes and the point most often stated wrong; the derivations live in the linked notes.
+The changes listed in the previous card affect different parts of the block. Each row identifies the change and a common misconception; the linked notes provide the derivations.
 
-| Part | What it changes | The point most often stated wrong | Where it is explained |
+| Part | What it changes | Common misconception to avoid | Where it is explained |
 | --- | --- | --- | --- |
 | RoPE | Rotates Q/K by position in every layer; V is not rotated | Position enters the dot product only as $n-m$, while the score still depends on content; far beyond the training length you still need RoPE scaling | [The Transformer architecture](../transformer.md#rope), [RoPE and long context](../deep-dives/position-and-context.md) |
 | Pre-norm + RMSNorm | Moves the norm into the branch; divides by the root mean square without centering or bias | The trunk keeps an identity path and the stack still ends with a final norm; using RMSNorm does not by itself make a model better | [Normalization](normalization.md#_3) |
@@ -473,7 +473,9 @@ flowchart LR
 | Decode 1 | 位置 6，即刚生成的 token | 6 | 第 2 个新 token |
 | Decode 2 | 位置 7 | 7 | 第 3 个新 token |
 
-有缓存时，模型一共只处理 $5+1+1=7$ 个位置；不缓存、每步重算整段前缀，就要处理 $5+6+7=18$ 个位置，序列越长差得越多。Decode 每步只算一个位置，却要把全部权重和越来越长的 KV cache 从显存里读一遍，所以单条请求的 decode 常卡在显存带宽上，算力反而闲着。
+有缓存时，模型一共只处理 $5+1+1=7$ 个位置；不缓存、每步重算整段前缀，就要处理 $5+6+7=18$ 个位置，序列越长差得越多。对常规 dense、全注意力模型的单条请求，decode 每步只算一个新位置；当权重与 KV cache 无法常驻片上高速缓存时，主要投影和 FFN 权重仍需从显存读取，注意力还要读取可见历史的 K/V。这使小 batch 的 decode 常受显存带宽限制，计算单元难以充分利用；[MQA 原论文 §2.4.1](https://arxiv.org/abs/1911.02150) 分别分析了投影权重和 KV 的访存开销。
+
+这个解释不等于所有架构都在每步读取“全部权重和完整历史 KV”：MoE 的单个 token 只使用被选中的专家，固定状态层维护的也不是随历史逐 token 增长的 KV cache。混合模型应按层类型分析；batch 大小、缓存命中与具体 kernel 也会改变瓶颈，最终仍要用 profiler 判断。
 
 <!-- widget:step-prefill-decode -->
 
@@ -540,7 +542,7 @@ assert torch.equal(last_valid_logits(scores, left_mask), scores[:, -1, :])
 
 注意，`mask.sum(-1) - 1` 只适合有效 token 从第 0 格开始、连续排放的情况。左填充短句有 3 个有效 token，但最后一个在下标 4，不在下标 2。这里直接找最后一个非零位置，不依赖填充方向。
 
-这个 helper 只修正一次读出。要让右填充下的完整生成也正确，还要一起处理后续 token 的位置、mask 扩展和 KV cache；已经只返回最后一步 logits 的接口，也不能套用这个函数。
+这个辅助函数只修正一次读出的位置。要让右填充下的完整生成也正确，还要一起处理后续 token 的位置、mask 扩展和 KV cache；如果接口已经只返回最后一步的 logits，也不能再套用这个函数。
 
 </details>
 

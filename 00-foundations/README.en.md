@@ -6,7 +6,7 @@
 
 When I first learned the Transformer, I looked at plenty of architecture diagrams. I knew the name of every module, yet when I had to explain how a sentence turns into the next token, I still got stuck.
 
-So this part follows the order you'd learn it in: first how text becomes numbers, then how RNNs and LSTMs handle a sequence and how Seq2Seq connects input to output, then attention and the Transformer, and finally today's decoder-only models. Examples first, then equations, then code you write yourself.
+This section builds up those connections step by step: how text becomes numbers, how RNNs and LSTMs handle sequences, and how Seq2Seq connects input to output. From there, it introduces attention and the Transformer before moving on to today's decoder-only models. Each topic starts with examples, then develops the equations and code you can write yourself.
 
 To see how the whole collection fits together, start with the [study and review guide](study-guide.en.md). This page covers language-model foundations; you don't need to finish the other areas first.
 
@@ -46,7 +46,7 @@ After reading these, try drawing the computation from text to logits without not
 
 If similarity or a training step still feels fuzzy, read [embeddings and similarity](core/embeddings-and-similarity.en.md) and [one training step](deep-dives/training-step.en.md) first. To see how images join the same computation, continue with [CLIP → visual language models](../03-multimodal-learning/README.en.md).
 
-Once the main line is clear, you can continue in two directions. One goes inward into equations, gradients, and execution paths. The other goes sideways across model families to compare different solutions to the same problem. They meet again at systems cost and evaluation.
+Once the main sequence is clear, you can study the equations, gradients, and code in more detail, or compare how different model families solve the same problem. In either case, consider both the results and the systems cost.
 
 ### 1. Dig into mechanisms
 
@@ -78,7 +78,7 @@ Start with the [model-family map](model-families/README.en.md) for the reading m
 | [Whiteboard hand-writing kit](hand-write-kit.en.md) | stable implementations, gradients, and numerical checks |
 | [Interview basics](interview-basics.en.md) | attention, normalization, training vs. inference, Egg Drop, and tree DP |
 
-These chapters stay because, when a model misbehaves, these details are usually exactly what you need to locate: where the gradient broke, whom the mask wrongly hid, and why training and generation fail to line up.
+These chapters are useful when a model misbehaves: they help you trace an interrupted gradient, find positions hidden by an incorrect mask, and explain a mismatch between training and generation.
 
 ## Build it yourself: make the understanding run
 
@@ -109,7 +109,7 @@ After each main-line note, read the matching deep-dive page and do three things:
 
 ### I want to understand a new model report
 
-Use the six questions in the [model family deep dives](model-families/README.en.md) as your skeleton, then return to the interactive diagram to compare blocks. Do not copy the parameter table first; decide whether the real change is in architecture, training, post-training, inference, or evaluation.
+Use the six questions in the [model family deep dives](model-families/README.en.md) to structure your reading, then return to the interactive diagram to compare blocks. Before copying the parameter table, identify whether the change concerns architecture, training, post-training, inference, or evaluation.
 
 ### I want to write it by hand until it breaks
 

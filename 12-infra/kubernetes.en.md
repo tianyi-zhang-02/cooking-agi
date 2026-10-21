@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-The cluster has 24 GPUs and the dashboard shows 16 of them idle, yet a training job that needs 16 GPUs stays Pending; worse, half of its Pods start, the other half do not, and the half that started holds its GPUs while waiting. **By default Kubernetes finds a node for one Pod at a time, while distributed training needs "either the whole group of Pods is placed, or none of them holds anything"; and GPUs can only be handed out whole, ideally with topology in mind. The total number of idle GPUs tells you little about whether a large job can run.**
+The cluster has 24 GPUs and the dashboard shows 16 of them idle, yet a training job that needs 16 GPUs stays Pending. Worse, half of its Pods start, the other half do not, and the half that started holds its GPUs while waiting.
+
+By default Kubernetes finds a node for one Pod at a time, while distributed training usually needs gang scheduling: either the whole group of Pods is placed, or none holds resources. In the exclusive, whole-GPU example below, each Pod must also fit on one node, and GPU topology matters. The total number of idle GPUs alone cannot tell you whether a large job can run.
 
 For how the program inside a Pod hands work to the GPU, see [The framework layer](frameworks.en.md); for why every rank of a training job must be present, see [Multi-GPU training](../06-systems/distributed-training.en.md). This note follows the official kubernetes.io and NVIDIA documentation, checked on 2026-10-15; the latest Kubernetes release at that time was 1.37.1 (released 2026-09-15, see the [releases page](https://kubernetes.io/releases/)).
 
@@ -74,7 +76,9 @@ With the v1.37 defaults, the scheduler places one Pod at a time; the NodeResourc
 
 <!-- widget:step-gang-scheduling -->
 
-The first row is the worst: T16's first Pod takes C, its second Pod finds no node with 8 free GPUs, and the processes that did start sit waiting for the other half of the ranks; A and B have 4 free GPUs each, 8 in total, but cannot form one 8-GPU Pod, so T8 waits too. Only 8 of the 24 GPUs are doing work. If a second identical T16 arrives, the two jobs may each take one node and each wait for its other half, and neither can ever start: a deadlock.
+The first row is the worst: T16's first Pod takes C, its second Pod finds no node with 8 free GPUs, and the processes that did start sit waiting for the other half of the ranks; A and B have 4 free GPUs each, 8 in total, but cannot form one 8-GPU Pod, so T8 waits too. Only 8 of the 24 GPUs are doing work. A second identical T16 arriving now would also queue; it cannot immediately take another whole node. The table itself demonstrates fragmentation and idle waiting caused by partial allocation.
+
+Two T16 jobs waiting on each other require an additional resource condition. For example, suppose only two whole nodes are available to them while another job occupies the third long-term. Pod-by-Pod allocation can give each T16 one node, leaving each waiting for its other half. Without resource release, timeout-based reclamation or preemption, neither can start: a deadlock. If the third node later becomes free, the wait may end, so the original table alone does not establish permanent deadlock.
 
 Second row: gang scheduling sees that T16's two Pods cannot both be placed, so it binds neither, C goes to T8, and 16 GPUs are doing work. The cost is that T16 waits for two whole nodes to become free at the same time, which without priorities or reservations may take indefinitely long. The third row [switches the scheduler to the MostAllocated bin-packing strategy](https://kubernetes.io/docs/concepts/scheduling-eviction/resource-bin-packing/) with a weight on GPUs: the two small jobs squeeze onto one node, leaving two whole nodes for T16, and all 24 GPUs are doing work; now T8 waits for A to free up. Which order is better depends on priorities and quotas; bin-packing is not better in every case.
 

@@ -37,7 +37,7 @@ Not by single-run success alone: check whether the same task succeeds in every o
 <details class="interview" markdown="1">
 <summary>When do you use a frontier API, and when do you self-host an open model?</summary>
 
-Capability first: if an open model misses the bar on your own evaluation set, use a frontier model. If data has strict boundaries, first check whether an API's region, retention, contracts, and private connections satisfy them; self-host if they cannot. With high, steady traffic, spare compute, or deep customization needs, self-hosting may be cheaper and more controllable once idle capacity, operations, and maintenance are counted; there is no universal volume threshold. At low or uncertain volume, start on an API and measure quality and cost. In practice they are often mixed: routing, cascades, distillation, fallback.
+Compare specific models, tools, and deployment configurations on your own end-to-end evaluation set. If one open model misses the bar, evaluate stronger candidates, including frontier APIs; neither openness nor hosting method guarantees sufficient capability, and open-weight models can also run behind hosted APIs. If data has strict boundaries, first check whether an API's region, retention, contracts, and private connections satisfy them; consider self-hosting if they cannot. With high, steady traffic, spare compute, or deep customization needs, self-hosting may be cheaper and more controllable once idle capacity, operations, and maintenance are counted; there is no universal volume threshold. At low or uncertain volume, start on an API that meets the data requirements and measure quality and cost. In practice they are often mixed: routing, cascades, distillation, fallback. See [model selection and routing](model-choice.en.md) for the comparison process.
 
 </details>
 
@@ -58,7 +58,7 @@ A model optimizes the reward you actually give it, not the goal you had in mind,
 <details class="interview" markdown="1">
 <summary>Cascades and routers both split requests between a small model and a frontier one. What is the difference?</summary>
 
-A cascade lets the small model answer first and decides whether to escalate after seeing the answer, so it judges better — but escalated requests are paid for twice, and wait for two models in series. A router decides before any answer exists: each request pays for one model call plus the router and waits less, but it can misroute; catching that takes an output check or a fallback, whose cost and delay count too. Either one only pays off when difficulty is judged accurately.
+A cascade lets the small model answer first and decides whether to escalate after seeing the answer. The answer provides an additional signal, but better decisions depend on how well the checker works on the actual tasks. Escalated requests pay for the first answer, the check, and the second answer, and wait for them in sequence. A router decides before any answer exists. Without retries or fallback, it generates one candidate answer, plus the routing overhead. This can avoid the wait for trying a small model before escalating, but end-to-end latency still depends on the router, the selected model, queues, and recovery. Output checks or fallback can catch misrouting; their costs and delays count too. Compare quality, full cost, and latency on the same tasks rather than inferring a winner from the decision point alone. See [FrugalGPT](https://arxiv.org/abs/2305.05176) and [RouteLLM](https://arxiv.org/abs/2406.18665) for the mechanisms.
 
 </details>
 

@@ -4,15 +4,17 @@
 
 > Reading time: ~3 min · Last reviewed: 2026-10
 
-"World model" can mean a reinforcement-learning component that predicts the next step in a latent space, or a generated video you can walk into with your keyboard. "Self-improvement" can mean a model filtering its own answers and training on them, or a lab saying that AI now writes most of its code. **The same word often covers several different things; work out which one is meant before weighing the evidence.** This block collects directions of that kind, ones that are still moving.
+In RL, a “world model” might predict the next state. In a video system, the same term might describe a scene you can explore with a keyboard. “Self-improvement” is just as broad: training on model-generated data is different from using AI to help researchers write code.
+
+This section explains these developing areas: how the methods work, what papers and public systems have demonstrated, and which questions remain open.
 
 ## Why a separate block
 
-Things change fast here: within six months there may be new systems and new claims, so every note carries a "Last reviewed" date and is rechecked every six months. Most other blocks on this site teach methods that have settled. This one is more about reading the news well: what was measured, under which conditions, and what is only a statement or a prediction.
+The foundations chapters mostly cover established methods. Here we focus on newer approaches and unresolved questions. For each result, we ask what was measured and under which conditions, separating the measurements from the authors' interpretations and predictions. Each note has a “Last reviewed” date, with reviews planned every six months.
 
-A direction gets notes here only if it already changes how real systems are designed and there is public evidence you can check. A word that is merely popular does not get its own note.
+A topic belongs here if it is already changing how real systems are designed and has public evidence readers can check. Popularity alone does not warrant a separate note.
 
-Each series keeps three kinds of content apart: conclusions that have largely settled, parts that are still changing fast, and the signals worth watching next. Every fast-moving fact carries its date and says who measured it and under which conditions; numbers that companies report about themselves are marked as self-reported. When a piece of news goes stale, you still know which line to check a newer result against.
+Each series distinguishes findings supported by existing evidence, approaches that still need testing, and useful follow-up experiments. New systems and performance figures come with dates, sources, and experimental conditions. Company-reported numbers are labeled as such so you can check the original account.
 
 | A claim you read | Ask first |
 | --- | --- |
@@ -22,12 +24,12 @@ Each series keeps three kinds of content apart: conclusions that have largely se
 
 ## Six series
 
-1. [World models: what the term means now](world-models/README.en.md). From Dreamer training a policy inside imagination, to JEPA predicting representations, to video you can act in and models that evaluate robot policies, ending with whether they actually understand physics.
+1. [World models: what the term means now](world-models/README.en.md). Start with Dreamer training policies in imagined trajectories and JEPA predicting representations, then explore interactive video and models used to evaluate robot policies. The series closes by asking whether these models actually understand physics.
 2. [Recursive self-improvement: first ask what changes](self-improvement/README.en.md). Separate changing weights, changing code, speeding up research, and self-generated data; see why the verifier sets the ceiling, and how "AI speeding up AI" is measured today.
-3. [Reasoning models and test-time compute: when thinking longer helps](test-time-compute/README.en.md) (draft, pending review). Sampling and voting, verifiers, how long chains of thought are trained, and how to compare at equal compute.
-4. [Training agents with RL: from single answers to multi-step tasks](agentic-rl/README.en.md) (draft, pending review). Where environments and rewards come from, how they get gamed, and which tokens receive gradient in a multi-step episode.
-5. [Mechanistic interpretability: opening the model to see how it computes](interpretability/README.en.md) (draft, pending review). Probes, superposition, sparse autoencoders and circuits: what each can and cannot show.
-6. [Diffusion language models: denoising a whole block instead of left to right](diffusion-lm/README.en.md) (draft, pending review). What masked diffusion trains, how it relates to BERT's MLM, and why parallel decoding is not automatically faster.
+3. [Reasoning models and test-time compute: when thinking longer helps](test-time-compute/README.en.md). Sampling and voting, verifiers, how long chains of thought are trained, and how to compare at equal compute.
+4. [Training agents with RL: from single answers to multi-step tasks](agentic-rl/README.en.md). Where environments and rewards come from, how they get gamed, and which tokens receive gradient in a multi-step episode.
+5. [Mechanistic interpretability: opening the model to see how it computes](interpretability/README.en.md). Probes, superposition, sparse autoencoders and circuits: what each can and cannot show.
+6. [Diffusion language models: denoising a whole block instead of left to right](diffusion-lm/README.en.md). What masked diffusion trains, how it relates to BERT's MLM, and why parallel decoding is not automatically faster.
 
 ## Worth reading first
 

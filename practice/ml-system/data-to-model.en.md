@@ -44,7 +44,7 @@ assert feature_as_of(records, "user-a", 600)["value"] == 2
 assert feature_as_of(records, "user-a", 603)["value"] == 3
 ```
 
-Assume upstream deduplication and one feature. Equal-time revisions, TTLs, and missing-value handling require additional rules. [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) illustrate historical feature retrieval, but availability time must be recorded and handled by your pipeline; a feature-store setting cannot reconstruct missing history.
+This example assumes upstream deduplication and handles a single feature. Equal-time revisions, TTLs, and missing-value handling require additional rules. [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) illustrate historical feature retrieval, but availability time must be recorded and handled by your pipeline; a feature-store setting cannot reconstruct missing history.
 
 ## 3 · Examples: logs are not labels {#labels}
 

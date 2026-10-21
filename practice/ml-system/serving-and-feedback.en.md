@@ -83,7 +83,7 @@ A distribution change may reflect new users. A metric drop may be broken instrum
 
 ## 7 · Feedback: retain what was actually shown {#feedback}
 
-A click should connect to the request, displayed list and positions, actual model / index revisions, exposure time, and experiment assignment. “User clicked document X” alone cannot reconstruct their alternatives or attribute a version change.
+A click should connect to the request, displayed list and positions, actual model / index revisions, exposure time, and experiment assignment. “User clicked document X” alone cannot reconstruct what else the user could choose or establish whether a change in behavior came from the new version.
 
 Where appropriate, sample actual serving features or revisions sufficient to reconstruct them, then compare training and serving. [Google's Rules of ML](https://developers.google.com/machine-learning/guides/rules-of-ml) discusses training-serving skew and feedback loops. Collection must still be minimized and respect authorization and retention limits.
 

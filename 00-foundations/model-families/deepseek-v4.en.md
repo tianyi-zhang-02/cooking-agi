@@ -39,7 +39,7 @@ Core attention uses shared-KV MQA, so V3's MLA cache formula cannot simply be re
 
 ## 2. Storage and reads are different budgets
 
-Consider a reduced accounting example: 1,024 processed positions, compression ratios 4 and 128, 32 selected entries, and a 128-position local window. Here `history` includes the current query position: this is the ledger after processing that position, not the preceding prefix length.
+Consider a smaller example: 1,024 processed positions, compression ratios 4 and 128, 32 selected entries, and a 128-position local window. Here `history` includes the current query position, so we count storage and reads after processing that position, rather than using the preceding prefix length.
 
 | Quantity | Lighter compression + selection | Heavier compression + full read |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ assert attention_ledger(1024, 4, 128, 32, 128)["heavy_main_reads"] == 136
 assert attention_ledger(9, 4, 128, 32, 128)["light_tail"] == 1
 ```
 
-The ledger counts completed blocks. `light_tail` / `heavy_tail` count only the unfinished current block, not all compressor state; CSA also retains the previous block for overlap. Its indexer still scores visible compressed candidates: top-k bounds subsequent core-attention reads, not total work. Compressed storage grows with history, and HCA core-attention reads grow too.
+The example counts completed blocks. `light_tail` / `heavy_tail` count only the tokens in the unfinished current block, not all compressor state; CSA also retains the previous block for overlap. Its indexer still scores visible compressed candidates: top-k bounds subsequent core-attention reads, not total work. Compressed storage grows with history, and HCA core-attention reads grow too.
 
 Byte accounting must also distinguish the report from the demonstration code. Report §2.3.4 describes BF16 RoPE dimensions and FP8 remaining KV dimensions; the inspected `inference/model.py` stores demonstration caches in BF16 while simulating quantization. Entry counts alone do not establish actual memory use. [Report](https://arxiv.org/html/2606.19348v1#S2.SS3.SSS4) · [Inference source](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/inference/model.py)
 
@@ -84,7 +84,7 @@ Byte accounting must also distinguish the report from the demonstration code. Re
 
 **Irreversible information loss.** Suppose a simplified compressor stores only a mean. Both `[1, 9]` and `[5, 5]` become 5, so their maxima can no longer be distinguished. V4 is not mean pooling; this counterexample simply explains why compression must be evaluated on tasks rather than judged by its ratio.
 
-Test single evidence, multiple evidence, exact numbers, similar distractors, and unanswerable cases. See [benchmarks and long-context tests](../../07-evaluation/benchmark-protocols.en.md).
+Test cases requiring one piece of evidence or several, exact numerical details, similar distractors, and questions with no answer in the input. See [benchmarks and long-context tests](../../07-evaluation/benchmark-protocols.en.md).
 
 ## 4. mHC constrains residual mixing; Muon changes updates
 

@@ -97,7 +97,7 @@ $$
 \theta\leftarrow\theta+\eta\,[r+\gamma V_\theta(s')-V_\theta(s)]x(s).
 $$
 
-The target in brackets is treated as fixed; gradients do not flow through $V_\theta(s')$. Differentiating the full squared residual introduces a next-state-feature term and produces a different update. Two implementations mentioning MSE need not optimize the same thing.
+The target $r+\gamma V_\theta(s')$ is treated as fixed. Gradients flow through the current-state estimate, not through $V_\theta(s')$. Differentiating the full squared residual introduces a next-state-feature term and produces a different update. Two implementations mentioning MSE need not optimize the same thing.
 
 MC targets do not depend on current parameters and resemble ordinary supervised regression. TD targets move with the estimate. That helps propagate local information sooner, while making approximation stability more delicate. [Fitted Q](fitted-q.en.md) provides a concrete counterexample.
 
@@ -112,7 +112,9 @@ A constant step size may help track change, but it does not inherit an exact-con
 <details markdown="1">
 <summary>Does replacing done with terminated fix every boundary bug?</summary>
 
-Not necessarily. A vector environment may already have reset, and which step the reset happens on depends on the mode. As of October 2026, Gymnasium 1.x vector environments default to next-step autoreset: a finished sub-environment is reset only on the following `step`, which returns the new episode's first observation; that pair is not a real transition, so drop or mask it before it enters the buffer. Only same-step mode resets on the ending step itself and puts the last observation separately in `info["final_obs"]`. [Farama: vector autoreset modes (2025)](https://farama.org/Vector-Autoreset-Mode) GAE also needs separate masks for bootstrapping and recurrence across episode boundaries. The Actor–Critic chapter separates them. Inspect the environment API before choosing how to store arrays.
+Not necessarily. A vector environment may already have reset, and the reset timing depends on the mode. As of October 2026, Gymnasium 1.x vector environments default to next-step autoreset: a finished sub-environment resets on the following `step`, which returns the new episode's first observation. This reset is not a real transition, so drop or mask it before it enters the buffer. Only same-step mode resets on the ending step itself and puts the last observation separately in `info["final_obs"]`. See [Farama's explanation of vector autoreset modes (2025)](https://farama.org/Vector-Autoreset-Mode).
+
+GAE also needs separate masks for bootstrapping and recurrence across episode boundaries. The [Actor–Critic chapter](actor-critic-gae.en.md) explains them separately. Inspect the environment API before choosing how to store arrays.
 
 </details>
 

@@ -109,7 +109,7 @@ assert [row["mac_per_token"] for row in (base, small, more)] == [196608, 114688,
 assert [row["slot_bytes"] for row in (base, small, more)] == [32768, 16384, 32768]
 ```
 
-`slot_bytes` 按每个 token–expert 槽位分别发送输入、返回输出来记账。32 个 token、每元素 2 bytes 时，三个方案的往返合计分别为 32、16、32 KiB。这不是网卡上的实测流量：同卡专家、本地计算、同目的地合并、padding、元数据和通信拓扑都会改变网络账本。`latent == width` 在这个教学函数中表示普通 MoE，省去两次投影。
+`slot_bytes` 按每个 token–expert 槽位分别计算发送输入、返回输出的字节数。32 个 token、每元素 2 bytes 时，三个方案的往返合计分别为 32、16、32 KiB。这不是网卡上的实测流量：同卡专家、本地计算、同目的地合并、padding、元数据和通信拓扑都会影响实际网络流量。`latent == width` 在这个教学函数中表示普通 MoE，省去两次投影。
 
 </details>
 

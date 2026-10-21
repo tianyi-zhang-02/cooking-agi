@@ -148,7 +148,9 @@ For our overfitting example, score the same prompt and response with the current
 <details markdown="1">
 <summary>How does this comparison lead to the DPO loss?</summary>
 
-The argument has three steps. KL-constrained reward maximization has a closed-form optimal policy. Rearranged, it expresses the reward as “$\beta$ times the policy's log-ratio to the Reference, plus a term that depends only on the prompt.” Substituted into a Bradley–Terry preference model, that term cancels when two responses to the same prompt are subtracted, leaving the difference between the two responses' relative changes above. For the full derivation and the conditions it needs, see the [DPO section of PPO, GRPO, and DPO](../after-ppo.en.md#dpo-derivation).
+The argument has three steps. First, under the support and integrability conditions, write the closed-form optimal policy for a KL-regularized reward objective with fixed $\beta>0$. This is a penalty, not a guarantee that every update respects a prescribed KL radius. Rearrange it to express the reward as $\beta$ times the policy's log-ratio to the Reference, plus a term that depends only on the prompt. Finally, substitute this expression into a Bradley–Terry preference model. When two responses to the same prompt are compared, the prompt-only term cancels, leaving the difference between their relative changes.
+
+For the full derivation and the conditions it needs, see the [DPO section of PPO, GRPO, and DPO](../after-ppo.en.md#dpo-derivation).
 
 </details>
 

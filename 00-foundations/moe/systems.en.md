@@ -4,9 +4,9 @@
 
 > Reading time: ~8 min · Last reviewed: 2026-10
 
-If each token runs only 8 experts, why is MoE still hard to deploy? Because computing less is only one item on the bill. The other two are moving tokens between GPUs and storing every expert's weights.
+If each token runs only 8 experts, why is MoE still hard to deploy? Compute is only part of the cost. Token representations may need to move between GPUs, and every expert's weights still need storage.
 
-**MoE lowers compute per token and turns the cost into communication and memory; whether it pays off depends on interconnect bandwidth, total memory and batch size.** Below we work out each item at DeepSeek-V3's sizes.
+MoE reduces per-token computation while adding communication and weight-storage costs. Whether that tradeoff pays off depends on interconnect bandwidth, total memory, and batch size. The examples below estimate these costs using DeepSeek-V3's dimensions.
 
 ## Expert parallelism and two all-to-alls
 
@@ -101,7 +101,9 @@ assert bf16_logits([2.0, 2.03]) == [2.0, 2.03125]
 assert bf16_logits([10.0, 10.03]) == [10.0, 10.0]
 ```
 
-Two common fixes target exactly this: [Switch Transformer](https://arxiv.org/abs/2101.03961) casts only the router's input and computation to FP32 and keeps the rest in low precision; [ST-MoE](https://arxiv.org/abs/2202.08906)'s router z-loss (see [load balancing](load-balancing.en.md)) keeps router logits small, which keeps rounding errors small too. Neither guarantees stable routing or replaces load balancing. This example shows that rounding can change a choice; it says nothing about how often that happens in training.
+Two common approaches improve the router's numerical stability: [Switch Transformer](https://arxiv.org/abs/2101.03961) casts the router's input and local computation to FP32, then casts its output back to low precision; [ST-MoE](https://arxiv.org/abs/2202.08906)'s router z-loss (§3.3, Eq. 5; see also [load balancing](load-balancing.en.md)) penalizes the squared log-normalizer, $(\log\sum_j e^{z_j})^2$ for each token. The paper reports improved training stability and motivates the method through rounding error, but this penalty does not bound each logit's absolute value. For example, with $z=[0,-a]$ as $a\to\infty$, z-loss approaches 0 while the second logit's magnitude grows without bound. It therefore does not imply that every logit's rounding error decreases.
+
+Neither approach guarantees stable routing or replaces load balancing. The BF16 example above shows that rounding can change a choice; it says nothing about how often that happens in training.
 
 ## In short
 

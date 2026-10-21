@@ -148,7 +148,9 @@ Reference 也不是训练数据或标准答案。给定同一段 prompt 和回�
 <details markdown="1">
 <summary>这个比较为什么能写成 DPO loss？</summary>
 
-思路分三步：带 KL 约束的奖励最大化有一个闭式的最优策略；把它反过来写，奖励就变成“$\beta$ 乘以策略相对 Reference 的 log-ratio，再加上一个只和 prompt 有关的项”；代入 Bradley–Terry 偏好模型后，同一 prompt 的两个回答相减，这一项正好抵消，剩下的就是上面两份回答的相对变化之差。完整推导和它依赖的条件，见 [PPO、GRPO 与 DPO 的 DPO 一节](../after-ppo.md#dpo-derivation)。
+思路分三步。先在支持集和可积条件下，写出固定 $\beta>0$ 的 KL 正则化奖励目标的闭式最优策略；这里是惩罚项，不是每次更新都满足某个 KL 半径的保证。再反过来用策略表示奖励：$\beta$ 乘以策略相对 Reference 的 log-ratio，加上一个只和 prompt 有关的项。最后代入 Bradley–Terry 偏好模型；同一 prompt 的两个回答相减时，这个只和 prompt 有关的项正好抵消，剩下的就是两份回答的相对变化之差。
+
+完整推导和它依赖的条件，见 [PPO、GRPO 与 DPO 的 DPO 一节](../after-ppo.md#dpo-derivation)。
 
 </details>
 

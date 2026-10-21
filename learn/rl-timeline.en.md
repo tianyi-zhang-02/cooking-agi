@@ -94,13 +94,13 @@ Verifiable mathematics and coding feedback is useful, but it does not establish 
 
 ### 2025 · DAPO, AReaL, GSPO: sampling, pipelines, and updates {#engineering}
 
-These are not three renamings of one algorithm. [DAPO](https://arxiv.org/html/2503.14476v2) addresses sampling and optimization details; [AReaL](https://arxiv.org/html/2505.24298v2) studies asynchronous generation and training; [GSPO](https://arxiv.org/html/2507.18071v1) changes sequence-level policy updates. Sharing a year does not mean solving the same problem.
+These methods target different parts of training: [DAPO](https://arxiv.org/html/2503.14476v2) addresses sampling and optimization details; [AReaL](https://arxiv.org/html/2505.24298v2) studies asynchronous generation and training; [GSPO](https://arxiv.org/html/2507.18071v1) changes sequence-level policy updates. They appeared in the same year but address different problems.
 
 Ask what gets saved—generation, computation, or waiting—and which objective or data distribution changes. Each reported benefit has its own experimental conditions. [Cost and stability breakdown](../05-post-training/deep-rl/why-rl-is-hard.en.md)
 
 ### 2026 · Current checkpoint: engineering limits have not disappeared {#current-checkpoint}
 
-This is the site’s review checkpoint as of 2026-10-11, not a new algorithm called “2026 RL.” [Current verl documentation](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html) still describes correcting for the gap between training and inference distributions; [AReaL’s asynchronous guide](https://areal-ai.io/docs/en/algorithms/async.html) still describes how to bound policy staleness.
+This entry records the site’s review as of 2026-10-11 rather than the release of a new algorithm. [Current verl documentation](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html) still describes correcting for the gap between training and inference distributions; [AReaL’s asynchronous guide](https://areal-ai.io/docs/en/algorithms/async.html) still describes how to bound policy staleness.
 
 A usable framework does not imply a reliable recipe for every task. Future updates should identify what new work changes, not attach a new year to an old method. [How to investigate a run](../05-post-training/deep-rl/why-rl-is-hard.en.md#diagnosis)
 
@@ -132,7 +132,7 @@ Suppose a model can already write a sorting function. To make it more reliable, 
 
 This branch connects 2017 [human preference learning](#human-preferences), 2022 [InstructGPT](#instructgpt), 2023 [DPO](#dpo), and later reasoning work with verifiable feedback. DPO is a related preference-optimization branch, not a mandatory next generation of RL. Verifiable rewards do not require GRPO either.
 
-Tokens are discrete actions, but that does not make them cheap. Eight long answers to one prompt require eight autoregressive generations. When the score arrives only at the end, credit assignment remains difficult. Tests check some behaviors; passing finite tests is not proof of correctness for every input. Tool use adds execution costs and safety constraints; for how multi-step tasks are trained, see [agent RL](../11-frontier/agentic-rl/README.en.md).
+Tokens are discrete actions, but generating long sequences is still costly. Eight long answers to one prompt require eight autoregressive generations. When the score arrives only at the end, credit assignment remains difficult. Tests check some behaviors; passing finite tests is not proof of correctness for every input. Tool use adds execution costs and safety constraints; for how multi-step tasks are trained, see [agent RL](../11-frontier/agentic-rl/README.en.md).
 
 Continue with [Q-learning, PPO, and DPO](../05-post-training/deep-rl/methods-map.en.md) → [LLM / agent RL](../05-post-training/deep-rl/llm-bridge.en.md) → [rollout cost and stability](../05-post-training/deep-rl/why-rl-is-hard.en.md).
 

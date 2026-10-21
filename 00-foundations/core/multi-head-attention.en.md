@@ -8,7 +8,7 @@ Start with one weighted sum. Two positions supply values `[2, 0]` and `[0, 4]`. 
 
 ## The core computation: match and aggregate information {#the-core-computation-match-and-aggregate-information}
 
-Each position carries its own **question** (query) and asks every position's **index** (key). The better they match, the more it takes from that position's **content** (value). What comes back is a weighted average.
+Each position compares its **query vector** with the **key vectors** at all visible positions. A higher matching score gives that position's **value vector** more weight in the output. The result is a weighted average of the values.
 
 Each head uses its own projections to compute a weighted result, and the results are concatenated. Some heads may learn patterns such as proximity or coreference, but those roles are neither assigned in advance nor guaranteed to be individually interpretable.
 
@@ -293,9 +293,16 @@ $$
 $$
 
 Standard MHA therefore has about $4d_{\text{model}}^2$ parameters across Q, K, V,
-and the output projection, independent of the head count itself. Code also usually
-performs one large projection and then reshapes to `(B, H, T, d_head)` rather than
-running eight small models in sequence — identical math, a single GEMM.
+and the output projection, independent of head count. For each of Q, K, and V, one
+large matrix multiplication can produce all heads, followed by a reshape and transpose
+to `(B, H, T, d_head)`, rather than eight small projections in sequence. This page's
+code computes Q, K, and V separately: three projections at this stage, not one GEMM
+for the entire MHA operation.
+
+In self-attention, all three share the input $X$, so their weights can also be concatenated
+to fuse QKV projection into one GEMM: $X[W_Q\;W_K\;W_V]=[XW_Q\;XW_K\;XW_V]$.
+The result is then split into Q, K, and V. The output projection $W_O$ remains a separate
+operation; QKV fusion is an implementation choice, not a consequence of splitting heads.
 
 ### 3. Expressivity is not a generalization guarantee {#3-expressivity-is-not-a-generalization-guarantee}
 
@@ -309,12 +316,14 @@ one another, parameters may be used inefficiently, and the model may even overfi
 In practice some heads can often be pruned with almost no loss in quality.
 Therefore:
 
-**Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.**
+**Multi-head attention provides several attention relations at similar cost while keeping the total width unchanged.**
 
-“Different representation subspaces” should not be over-interpreted either. Each
-head does have independent parameters and can therefore learn a different matching
-function; but for an ambiguous word like “apple,” “one head must handle the company sense and another must handle the
-fruit sense” is neither designed in advance nor guaranteed to be interpretable. A claim that a head performs a function needs a causal test, such as patching specific heads on the IOI task; see [circuits](../../11-frontier/interpretability/circuits.en.md).
+“Different representation subspaces” also needs care. Independent parameters let heads
+learn different matching functions. They do not guarantee that, for an ambiguous word
+such as “apple,” one head handles the company and another handles the fruit. Those roles
+are neither assigned in advance nor necessarily interpretable. A claim that a head performs
+a particular function needs a causal test, such as patching specific heads on the IOI task;
+see [circuits](../../11-frontier/interpretability/circuits.en.md).
 
 ## The six places a from-scratch implementation goes wrong {#the-six-places-a-from-scratch-implementation-goes-wrong}
 
@@ -329,7 +338,7 @@ Check these six details before trying to diagnose a mistake from the final loss:
 | 5 | the divisor | $\sqrt{d_\text{head}}$, not $\sqrt{d_\text{model}}$ |
 | 6 | merging heads | `transpose(1,2).contiguous().view(...)`, or `reshape`, which copies if needed; transposed strides may be incompatible with `view` |
 
-**Why #1 must be that way.** The projection's output is `(B, T, d_model)`, where the `d_model` dimension holds the $h$ heads laid **end to end**. So split the last dimension into `(H, dh)` first, then move `H` forward. A direct `view(B,H,T,dh)` slices across the time dimension instead, so every "head" is a pile of fragments from unrelated positions — right shape, wrong numbers, and no error raised.
+**Why #1 must be that way.** The projection's output is `(B, T, d_model)`, where the `d_model` dimension holds the $h$ heads laid **end to end**. Split the last dimension into `(H, dh)` first, then move `H` forward. A direct `view(B,H,T,dh)` mixes the time and head dimensions: the output has the expected shape, but values are assigned to the wrong positions and heads, with no error raised.
 
 **Check the mask with two scores.** Softmax of `[0, 0]` is `[0.5, 0.5]`. Allowing only the first position gives `[1, 0]` when masked before softmax. Zeroing the second weight afterwards gives `[0.5, 0]`, shrinking the output. Dividing by the remaining weight sum recovers `[1, 0]` mathematically, but that sum can underflow in finite precision. Masking before softmax avoids this issue. The teaching code rejects entirely masked rows instead of silently producing NaNs.
 

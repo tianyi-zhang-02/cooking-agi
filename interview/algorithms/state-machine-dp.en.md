@@ -61,7 +61,7 @@ Prices: `[1,2,3,0,2]`.
 
 <!-- widget:algo-cooldown -->
 
-The answer is `max(sold,resting)=3`. One path buys at 1, sells at 2, rests at 3, buys at 0, and sells at 2. The positive holding state on day 4 is net profit after purchasing a current position, not a final result with no position.
+The answer is `max(sold,resting)=3`. One path buys at 1, sells at 2, rests on the day priced at 3, buys at 0, and sells at 2. The positive holding state on day 4 is profit net of the current purchase cost. One unit is still held, so this is not the required final profit with nothing left to sell.
 
 ```python
 def cooldown_profit(prices):

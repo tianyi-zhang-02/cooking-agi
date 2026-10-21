@@ -4,7 +4,9 @@
 
 > Reading time: ~7 min · Last reviewed: 2026-10
 
-In 2026 "world model" shows up in reinforcement-learning papers, in LeCun's new company, in Google's playable video worlds and in NVIDIA's robotics launches. The shared core: learn a model that predicts how an environment's state or observations evolve, usually given an action, so that an agent, a planner, a test harness or a person can use the prediction instead of the real world. **But what they predict, in what space, and for what purpose differ a lot; settle those questions before comparing any numbers.**
+“World model” appears in reinforcement learning, interactive video, and robotics, but it does not always mean the same kind of model. One predicts the state after an action; another generates the next frames; another predicts only the features needed for a task.
+
+These methods often aim to reduce the need for real-world trials. An agent can practice inside a model, a planner can compare actions, and a test system can generate scenarios. We organize the series by what each model predicts and how that prediction is used, then examine its capabilities and limits.
 
 ## Why the term is so confusing
 

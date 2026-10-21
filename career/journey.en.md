@@ -48,7 +48,7 @@ Looking back, the count showed how much I had done, not whether I could find an 
 
 ## Why I narrowed it to MLE / Research Engineer
 
-After trying several directions, I was clearer that I liked work close to both research and product: investigating a problem and seeing something built from it get used. I started focusing on MLE / Research Engineer.
+After trying several directions, I had a better sense of what I liked: investigating a problem, building something from that research, and seeing people use it. I started focusing on MLE / Research Engineer roles.
 
 That doesn't mean the other directions were worse or that exploring them was wasted effort. Trying them helped me understand what I wanted to spend time learning, and how much preparation I could realistically handle at once.
 

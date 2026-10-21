@@ -80,7 +80,7 @@ Suppose the stages take 60, 20, 30, and 10 seconds: 120 seconds total. With suff
 <figcaption>FSDP handles responsibilities such as sharding training state, not defining rewards. An inference engine does not choose an advantage estimator. A framework connects components; task semantics still need checking.</figcaption>
 </figure>
 
-Which layer FSDP, NCCL, and the other training-side pieces handle is mapped in [the framework layer's multi-GPU map](../../12-infra/frameworks.en.md#nccl-map).
+[The framework layer's multi-GPU map](../../12-infra/frameworks.en.md#nccl-map) explains the roles of FSDP, NCCL, and other training-side components.
 
 Synchronization makes it easier to track which policy generated and trained on each batch, but it waits for slow requests. Asynchrony reduces waiting while allowing samples to lag behind the current policy. [AReaL (2025), §4–5](https://arxiv.org/html/2505.24298v2) decouples generation and training while controlling staleness and changing the update objective—not merely adding workers. Its [current documentation](https://areal-ai.io/docs/en/algorithms/async.html) likewise treats staleness and throughput as a tradeoff.
 

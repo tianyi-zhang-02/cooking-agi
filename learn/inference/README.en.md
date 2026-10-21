@@ -44,7 +44,7 @@ Once decode and caching are clear, [DFlash and MTP](../../00-foundations/deep-di
 
 ## A small performance diagnosis
 
-Suppose a request waits 800 ms for its first token, then receives a token every 20 ms. These intervals answer different questions. The first can include queuing, prefill, and the first generation step; the second is closer to ongoing decode, and the [decode roofline example](../../12-infra/performance.en.md#decode-batching) shows why, at small batch sizes, it is mostly limited by memory bandwidth. Reporting only average tokens/s hides the distinction.
+Suppose a request waits 800 ms for its first token, then receives a token every 20 ms. These intervals measure different parts of the experience. The first can include queuing, prefill, and the first generation step; the second reflects ongoing decode. The [decode roofline example](../../12-infra/performance.en.md#decode-batching) explains why decode at small batch sizes is mostly limited by memory bandwidth. Reporting only average tokens/s hides the distinction.
 
 If inputs grow longer, inspect prefill and cache reads. If concurrency delays the first token, inspect queuing, scheduling, and resource contention. This example illustrates measurement decomposition, not proof of a particular bottleneck.
 

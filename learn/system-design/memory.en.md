@@ -47,4 +47,4 @@ Long-term memory needs more than single-answer accuracy: evaluate consistency ac
 
 <details><summary>Should a new statement automatically overwrite conflicting memory?</summary><p>Check identity, fact type, and validity time first. It may be a temporary exception. Confirm when needed and preserve version relationships rather than silently overwriting.</p></details>
 
-Foundations: [memory lifecycle](../../02-memory/memory-lifecycle.en.md). Compare this with RAG: both retrieve evidence, but this design also owns how evidence is written and changed.
+Foundations: [memory lifecycle](../../02-memory/memory-lifecycle.en.md). Compare this with RAG: both retrieve evidence, but this design must also manage how evidence is written and updated.

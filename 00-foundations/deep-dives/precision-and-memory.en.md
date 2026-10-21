@@ -216,7 +216,7 @@ The 804 B consists of two 400 B moments and a 4 B step tensor in this implementa
 
 The useful lesson is that **measurement immediately after loading misses state that does not yet exist**. Inspect at least one complete GPU update and representative long sequences. `element_size()` helps check dtypes, but naively summing views, tied weights, or flat-buffer slices can double-count storage.
 
-Changing the optimizer changes the ledger too. For the same 100 FP32 parameters after the first update:
+Changing the optimizer also changes the state-storage requirement. For the same 100 FP32 parameters after the first update:
 
 | Optimizer configuration | Additional optimizer tensor storage |
 | --- | ---: |
@@ -224,7 +224,7 @@ Changing the optimizer changes the ledger too. For the same 100 FP32 parameters 
 | SGD, `momentum=0.9` | 400 B for one momentum buffer |
 | AdamW, default non-AMSGrad | 804 B for two moments and the step |
 
-These are CPU state counts, excluding weights and gradients, not GPU peaks. **SGD need not use momentum, and Adam's moments do not produce the gradient.** Backward computes the gradient; the optimizer uses it to update the moments and then the parameters. Compare the update order in [SGD](https://docs.pytorch.org/docs/2.8/generated/torch.optim.SGD.html) and [Adam](https://docs.pytorch.org/docs/2.8/generated/torch.optim.Adam.html). Different dtypes, AMSGrad, or a sharded optimizer require a new ledger, not a fixed training-to-inference memory multiplier.
+These are CPU state counts, excluding weights and gradients, not GPU peaks. **SGD need not use momentum, and Adam's moments do not produce the gradient.** Backward computes the gradient; the optimizer uses it to update the moments and then the parameters. Compare the update order in [SGD](https://docs.pytorch.org/docs/2.8/generated/torch.optim.SGD.html) and [Adam](https://docs.pytorch.org/docs/2.8/generated/torch.optim.Adam.html). Recalculate storage when changing dtypes, enabling AMSGrad, or using a sharded optimizer; there is no fixed training-to-inference memory multiplier.
 
 ### Do eight GPUs divide the estimate by eight? {#sharded-state}
 
@@ -356,7 +356,7 @@ Boundary inputs, outputs, and temporary recomputation storage are excluded: **0 
 
 ## When is a memory optimization worth using?
 
-Fix model, sequence distribution, valid tokens, and optimizer. Record peak memory, valid tokens per second, numerical differences, and resume behavior. These methods are not alternatives to one another:
+Fix model, sequence distribution, valid tokens, and optimizer. Record peak memory, valid tokens per second, numerical differences, and resume behavior. These methods address different costs and can be combined:
 
 | Method | Main saving | Main cost |
 | --- | --- | --- |

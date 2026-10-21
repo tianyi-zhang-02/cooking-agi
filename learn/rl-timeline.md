@@ -94,13 +94,13 @@ R1-Zero 展示了在其基座与任务设置下、不先做 SFT 的 RL 训练；
 
 ### 2025 · DAPO、AReaL、GSPO：分别改采样、流水线和更新 {#engineering}
 
-这些不是一个算法的三次改名：[DAPO](https://arxiv.org/html/2503.14476v2)处理采样和优化细节；[AReaL](https://arxiv.org/html/2505.24298v2)研究异步生成与训练；[GSPO](https://arxiv.org/html/2507.18071v1)调整序列级策略更新。年份相同，不等于在解决同一个问题。
+这三项工作针对不同环节：[DAPO](https://arxiv.org/html/2503.14476v2)处理采样和优化细节；[AReaL](https://arxiv.org/html/2505.24298v2)研究异步生成与训练；[GSPO](https://arxiv.org/html/2507.18071v1)调整序列级策略更新。它们发表于同一年，但研究的问题不同。
 
 比较时先问：省了生成、计算还是等待？改变了哪个训练目标或数据分布？各篇的收益有各自的实验条件。[成本与稳定性拆解](../05-post-training/deep-rl/why-rl-is-hard.md)
 
 ### 2026 · 当前核对点：别把工程限制当作已经解决 {#current-checkpoint}
 
-这是本站截至 2026-10-11 的复核节点，不是一篇叫“2026 RL”的新算法。按 [verl 的当前文档](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html)，训练与推理之间的分布差异仍要单独处理；按 [AReaL 的异步说明](https://areal-ai.io/docs/en/algorithms/async.html)，策略陈旧度仍要加以控制。
+这里记录的是本站截至 2026-10-11 的复核结果，而不是某个新算法的发布时间。按 [verl 的当前文档](https://verl.readthedocs.io/en/latest/algo/rollout_corr.html)，训练与推理之间的分布差异仍要单独处理；按 [AReaL 的异步说明](https://areal-ai.io/docs/en/algorithms/async.html)，策略陈旧度仍要加以控制。
 
 这提醒我们：有了可用框架，不等于每个任务都有可靠配方。后续更新会注明新工作实际改了什么，不只给旧方法换一个新年份。[实验怎么排查](../05-post-training/deep-rl/why-rl-is-hard.md#diagnosis)
 
@@ -132,7 +132,7 @@ R1-Zero 展示了在其基座与任务设置下、不先做 SFT 的 RL 训练；
 
 这条线连接了 2017 年的[人类偏好学习](#human-preferences)、2022 年的 [InstructGPT](#instructgpt)、2023 年的 [DPO](#dpo)，以及后来面向推理的可验证反馈。DPO 是相关的偏好优化分支，不是“RL 必须经过的下一代”。同样，可验证奖励也不等于只能用 GRPO。
 
-LLM 的动作可以是离散 token，成本却一点都不“小”：同一问题采样八条长回答，每条都需要自回归生成；最后才得到一个分数时，如何把信号分给前面的选择仍然困难。代码测试能检查一部分行为，但通过有限测试不等于对所有输入都正确。工具调用还会引入执行成本与安全边界，多步任务怎样训练见[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)。
+LLM 的动作可以是离散 token，但生成长序列仍有很高的成本：同一问题采样八条长回答，每条都需要自回归生成。如果最后才得到一个分数，如何把信号分配给前面的选择仍然困难。代码测试能检查一部分行为，但通过有限测试不等于对所有输入都正确。工具调用还会引入执行成本与安全边界，多步任务怎样训练见[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)。
 
 继续读：[Q-learning、PPO 与 DPO](../05-post-training/deep-rl/methods-map.md) → [LLM / Agent 的 RL](../05-post-training/deep-rl/llm-bridge.md) → [rollout 成本与稳定性](../05-post-training/deep-rl/why-rl-is-hard.md)。
 

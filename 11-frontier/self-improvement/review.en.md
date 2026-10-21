@@ -23,7 +23,7 @@ STaR treats it as an approximation to policy gradient on a 0/1 reward: wrong sam
 <details class="interview" markdown="1">
 <summary>Why does training on your own data saturate within a few rounds?</summary>
 
-Song et al. define the generation-verification gap: how much the true score rises when samples are reweighted by the verifier. If the update learns the reweighted distribution to within $\varepsilon$, one round's gain is about the gap plus or minus $\varepsilon$. They measured the gap falling to near zero within two or three rounds, non-positive gaps for small models under most verification methods, and falling pass@k at large $k$. ReST-EM sees diminishing returns after a couple of iterations; Self-Rewarding ran only 3 iterations and its authors expect saturation. Without new information from outside, the loop has nothing to learn.
+Song et al. define the generation-verification gap: how much the true score rises when samples are reweighted by the verifier. If the update learns the reweighted distribution to within $\varepsilon$, one round's gain is about the gap plus or minus $\varepsilon$. They measured the gap falling to near zero within two or three rounds, non-positive gaps for small models under most verification methods, and falling pass@k at large $k$. ReST-EM sees diminishing returns after a couple of iterations; Self-Rewarding ran only 3 iterations and its authors expect saturation. These results limit sustained gains under the corresponding verification signals and updates; they do not establish that learning without new external information is impossible.
 
 </details>
 
@@ -37,7 +37,7 @@ This is a teaching assumption. Accepted samples make up $0.40+0.60\times0.10=0.4
 <details class="interview" markdown="1">
 <summary>Why does Absolute Zero's learnability reward give 0 both to tasks that are always solved and to tasks that are never solved?</summary>
 
-Neither gives the solver a learning signal. The proposer's reward is 0 when the average success $\bar r$ is 0, and $1-\bar r$ otherwise. $\bar r=0.5$ earns 0.5, $\bar r=1$ earns 0, and $\bar r=0.25$ earns 0.75, so the highest reward goes to tasks solved only occasionally; with $G$ attempts the maximum is $1-1/G$. "Zero" means no human-curated tasks or answers; a pretrained model and a Python executor are still required.
+Neither provides a success-versus-failure contrast under this within-group binary-reward comparison; other training objectives may still use these samples. The proposer's reward is 0 when the average success $\bar r$ is 0, and $1-\bar r$ otherwise. $\bar r=0.5$ earns 0.5, $\bar r=1$ earns 0, and $\bar r=0.25$ earns 0.75, so the highest reward goes to tasks solved only occasionally; with $G$ attempts the maximum is $1-1/G$. "Zero" means no human-curated tasks or answers; a pretrained model and a Python executor are still required.
 
 </details>
 
@@ -65,7 +65,7 @@ First classify it: a task-level measurement, a lab determination against a thres
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>Given a "self-improving" system, how do you state the object it changes, who proposes changes, and what signal accepts them, and decide which of types (a)–(d) it is?</li>
     <li>Why is STaR's filter equivalent to a 0/1 reward? When "correct" is replaced by "passes the tests", what is the loop actually optimising?</li>

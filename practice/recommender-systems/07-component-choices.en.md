@@ -17,7 +17,7 @@ Start with two fictional settings:
 | Both recommend content | First experiment | Why, and when to change |
 | --- | --- | --- |
 | Small, slowly changing catalog; requirements still being tested | Simple features and an exact-search baseline | Make quality and failures understandable first; add approximation when measured search cost justifies it |
-| Constant new content, little ID history, limited memory | Content representations, event updates, and a compressed-index experiment against exact search | Seek new-item coverage while paying encoding, refresh, and approximation costs; measure whether it pays off |
+| Constant new content, insufficient interaction history for item IDs, limited memory | Content representations, event updates, and a compressed-index experiment against exact search | Seek new-item coverage while paying encoding, refresh, and approximation costs; measure whether it pays off |
 
 These are starting points, not prescriptions. A small catalog can have high traffic; limited memory does not automatically imply PQ. Write down your constraints rather than letting a comparison table make the decision.
 
@@ -26,7 +26,7 @@ These are starting points, not prescriptions. A small catalog can have high traf
 | ID embeddings + small MLP | Stable repeated interactions and a cheap starting point | Weak support for unseen IDs; inspect cold-start and low-frequency slices |
 | Text encoder + structured features | Informative descriptions that might transfer to new items | Cleaning, truncation, encoding, refresh cost; test added semantics with fixed labels and pool |
 | Behavior-sequence encoder | Order or recent changes may matter | History reads and computation; compare shuffled order, shorter histories, and simple pooling |
-| Image / multimodal encoder | Text genuinely omits visual evidence | Processing, missing modalities, cache invalidation; ablate images to test incremental value |
+| Image / multimodal encoder | Text genuinely omits visual evidence | Processing, missing modalities, cache invalidation; ablate images to test task gains rather than judge only by feature visualizations |
 
 These can be combined; they aren't a model leaderboard. ID and content features can share a tower, while sequence modeling can live only on the user side. **Name the missing information before choosing the component.**
 

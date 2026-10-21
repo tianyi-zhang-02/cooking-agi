@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-If the robot arm pushes 5 cm, will the cup fall? Ask a pixel-level video model and it must also draw the shadow's texture, the reflections on the table, even where the shards land. Most of that detail cannot be predicted, and none of it decides whether the cup falls. A JEPA (joint-embedding predictive architecture) works differently: it first encodes the future into a vector and asks only that the vector be predicted. **It skips unpredictable detail, at the price of having to stop the encoder from squashing everything into the same vector; and without a decoder you cannot see the frames it "imagines".**
+If the robot arm pushes 5 cm, will the cup fall? Ask a pixel-level video model and it must also draw the shadow's texture, the reflections on the table, even where the shards land. Most of that detail cannot be predicted, and none of it decides whether the cup falls. A JEPA (joint-embedding predictive architecture) works differently: it first encodes the future into a vector and asks only that the vector be predicted.
+
+This can leave out unpredictable detail, but the encoder must be prevented from mapping everything to the same vector. Without a decoder, you also cannot see the frames it predicts.
 
 ## Where pixel prediction spends its effort
 
@@ -41,7 +43,7 @@ $$
 \min_{\theta,\phi,\Delta_y}\ \big\|P_\phi(\Delta_y,E_\theta(x))-\operatorname{sg}(E_{\bar\theta}(y))\big\|_1
 $$
 
-The roles line up across the three:
+The components in these three formulations correspond as follows:
 
 | Role | LeCun 2022 | I-JEPA | V-JEPA 2 | In a video of the cup push |
 | --- | --- | --- | --- | --- |
@@ -63,7 +65,11 @@ The losses are equal, yet the second says nothing about whether the cup falls. I
 
 ### Fix one: require different inputs to differ
 
-LeCun 2022 takes VICReg as an example (§4.5.1): a variance term keeps each embedding dimension's standard deviation within a batch above a threshold, and a covariance term decorrelates dimensions. With a threshold of 1 (a teaching number): the collapsed encoder's $\{0.7,0.7\}$ has standard deviation 0 and penalty $\max(0,1-0)=1$; the good encoder's $\{0,2\}$ has standard deviation 1 and penalty 0. Adding the prediction loss, collapse scores 1 and the good encoder 0, so collapse is no longer optimal.
+LeCun 2022 takes VICReg as an example (§4.5.1): a variance term penalises each embedding dimension's within-batch standard deviation when it falls below a threshold, and a covariance term encourages decorrelation between dimensions.
+
+For this hand calculation, use the batch standard deviation with divisor $n$, omit the stabilising term $\epsilon$, and give the one-dimensional variance penalty unit weight. Set the threshold to 1: the collapsed encoder's $\{0.7,0.7\}$ has standard deviation 0 and penalty $\max(0,1-0)=1$; the good encoder's $\{0,2\}$ has standard deviation 1 and penalty 0. Adding the prediction loss, collapse scores 1 and the good encoder 0, so collapse is no longer optimal in this example.
+
+The [VICReg paper](https://arxiv.org/html/2105.04906v3) also uses a threshold of 1. Its [official implementation](https://github.com/facebookresearch/vicreg/blob/main/main_vicreg.py) uses sample variance with divisor $n-1$ and adds $\epsilon=10^{-4}$ before taking the square root. The scores 1 and 0 above belong to the simplified example, not the full training loss with both branches and all term weights.
 
 ### Fix two: an EMA target encoder plus stop-gradient
 
@@ -77,7 +83,7 @@ I-JEPA calls the EMA target encoder essential (§3), and V-JEPA 2 also says stop
 
 | Approach | Source | How it prevents collapse | What needs tuning |
 | --- | --- | --- | --- |
-| Variance and covariance terms | LeCun 2022 (VICReg) | Per-dimension standard deviation above a threshold; dimensions decorrelated | Threshold and term weights |
+| Variance and covariance terms | LeCun 2022 (VICReg) | Penalise per-dimension standard deviation below a threshold; encourage decorrelation | Threshold and term weights |
 | EMA target plus stop-gradient | I-JEPA, V-JEPA 2 | Target encoder follows slowly and receives no gradient | Momentum schedule |
 | SIGReg | LeJEPA | Random 1-D projections must look like $N(0,1)$ | One trade-off hyperparameter |
 | Prediction plus Gaussian regulariser | [LeWorldModel](https://arxiv.org/abs/2603.19312) | Two loss terms, trained end to end from pixels | Loss hyperparameters cut from 6 to 1 (versus the only earlier end-to-end alternative) |
@@ -110,7 +116,9 @@ $$
 E(\hat a_{1:T};z_k,s_k,z_g)=\big\|P(\hat a_{1:T};s_k,z_k)-z_g\big\|_1
 $$
 
-The paper minimises this energy with [CEM](../../05-post-training/deep-rl/planning-and-control.en.md): sample action sequences from zero-mean, unit-variance Gaussians, refit the mean and variance to the lowest-energy batch, repeat a few times and return the mean; execute only the first action and re-plan after seeing the new frame, which is MPC. Every sampled action is confined to an L1 ball of radius 0.075, so the end effector moves at most about 13 cm; the paper's reason is that large actions are out of the models' training distribution (§4.1).
+The paper minimises this energy with [CEM](../../05-post-training/deep-rl/planning-and-control.en.md): sample action sequences from zero-mean, unit-variance Gaussians, refit the mean and variance to the lowest-energy batch, repeat a few times and return the mean; execute only the first action and re-plan after seeing the new frame, which is MPC.
+
+Section 4.1 describes the action region as an “L1 ball of radius 0.075” and reports a maximum end-effector displacement of about 13 cm per action, because large actions are out of the models' training distribution. That norm terminology differs from the current public implementation: the [MPC code](https://github.com/facebookresearch/vjepa2/blob/main/notebooks/utils/mpc_utils.py) clips translation coordinates individually, and the [official example](https://github.com/facebookresearch/vjepa2/blob/main/notebooks/energy_landscape_example.ipynb) limits each to $\pm0.075$. In metre-valued coordinates, this is an L∞ constraint, with a Euclidean displacement bound of $\sqrt{3}\times0.075\ \text{m}\approx13\ \text{cm}$, not the displacement bound of a three-dimensional L1 ball.
 
 <!-- paper-figure:vjepa2-ac-planning -->
 

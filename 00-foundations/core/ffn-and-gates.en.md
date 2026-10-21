@@ -48,7 +48,7 @@ $$
 
 Two projections create a gate branch and a content branch, which interact elementwise. The gate is not a probability or necessarily between zero and one: SiLU can be negative or exceed one. It is not discrete expert selection.
 
-[GLU Variants](https://arxiv.org/abs/2002.05202) compares gated FFN forms, including SwiGLU. Results depend on training and budget; replacing an activation's name does not reproduce the paper's findings.
+[GLU Variants](https://arxiv.org/abs/2002.05202) compares several gated FFNs, including SwiGLU, under specific training settings and budgets. When trying one in your own model, check that those settings and compute budgets are comparable. Changing the activation alone is not enough to expect the same improvement.
 
 ## Work through two intermediate features
 
@@ -84,7 +84,7 @@ $$
 =\delta\odot u\odot\operatorname{SiLU}'(g).
 $$
 
-Since $\operatorname{SiLU}'(0)=1/2$, setting $u=3,\delta=1$ gives gate gradient 1.5. The content gradient is zero at this point, but the gate can still learn. A permanent on/off-switch metaphor misses that behavior.
+Since $\operatorname{SiLU}'(0)=1/2$, setting $u=3,\delta=1$ gives gate gradient 1.5. The content gradient is zero at this point, but the gate branch can still update. A zero in this forward pass does not mean the feature will remain switched off.
 
 <!-- widget:step-swiglu -->
 

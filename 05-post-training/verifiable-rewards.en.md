@@ -84,7 +84,9 @@ This concerns the outcome-reward policy-gradient term. KL, entropy, or other aux
 
 Task difficulty and sampling budget matter. Measure all-correct and all-incorrect groups before deciding whether you need different tasks, a stronger starting policy, or more attempts.
 
-How common homogeneous groups are can be estimated with [the mixed-group probability on the DAPO page](dapo.en.md#dynamic-sampling): for one fixed task with independent success probability p per attempt and G answers per group, its complement, $p^G+(1-p)^G$, is the probability that a group is all equal. With G=4, only 12.5% of groups are homogeneous at p=0.5, rising to 65.62% at p=0.1 or 0.9: both very hard and very easy tasks can provide little within-group discrimination. This assumes independent, identically distributed draws. When difficulty varies or samples are correlated, measure groups per task rather than plugging the dataset-wide mean p into the formula.
+We can estimate the frequency of homogeneous groups using [the mixed-group probability on the DAPO page](dapo.en.md#dynamic-sampling). For one fixed task with independent success probability p per attempt and G answers per group, the probability of equal rewards is $p^G+(1-p)^G$, the complement of the mixed-group probability. With G=4, only 12.5% of groups are homogeneous at p=0.5, rising to 65.62% at p=0.1 or 0.9: both very hard and very easy tasks can provide little within-group discrimination.
+
+This assumes independent, identically distributed draws. When difficulty varies or samples are correlated, measure groups per task rather than plugging the dataset-wide mean p into the formula.
 
 Filtering homogeneous groups, as DAPO does, increases the share of discriminative groups used for updates. It costs additional sampling and changes which prompts enter the update. It cannot create a successful solution to a hard task from nothing. As with [filtered SFT](rejection-sampling.en.md#prompt-selection), track prompt coverage as well as retention.
 

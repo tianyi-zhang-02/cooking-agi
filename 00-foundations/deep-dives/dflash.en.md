@@ -4,7 +4,7 @@
 
 > Checked: 2026-10-21 · Prerequisite: [generation and KV cache](kv-cache-and-inference.en.md) · Start with the flow and example; read sampling, caches, and the experiment table when implementing.
 
-Generating several tokens can all sound like “parallel prediction.” First ask: **who proposes, who decides, and what happens to the work behind a wrong guess?** MTP concerns training objectives and prediction modules; DFlash uses a small drafter to accelerate a target model. The names describe different levels of a system.
+Methods that generate several tokens at once can all sound like “parallel prediction.” First ask: **which model proposes candidates, which verifies them, and what happens to the computation spent on rejected candidates?** MTP concerns training objectives and prediction modules; DFlash uses a small drafter to accelerate a target model. The names describe different parts of the system.
 
 ## Separate 3 decisions
 
@@ -25,7 +25,7 @@ The [original DFlash paper](https://arxiv.org/abs/2602.06036) freezes the autore
 <ol>
 <li><small>01 / PREPARE CONTEXT</small><strong>Features + a known anchor</strong><span>The target supplies confirmed-prefix features and selects the next token as the anchor.</span></li>
 <li><small>02 / DRAFT IN PARALLEL</small><strong>Propose 3 tokens at once</strong><span>The draft reads the anchor and 3 masks, then proposes 3 tokens in one forward pass. The anchor is already known.</span></li>
-<li><small>03 / VERIFY WITH THE TARGET</small><strong>Keep a continuous prefix</strong><span>Causal scoring checks the proposals. Stop at the first rejection and emit a correction; full acceptance yields a bonus token.</span></li>
+<li><small>03 / VERIFY WITH THE TARGET</small><strong>Keep a contiguous prefix</strong><span>Causal scoring checks the proposals. Stop at the first rejection and emit a correction; full acceptance yields a bonus token.</span></li>
 <li><small>04 / ALIGN CACHES</small><strong>Retain only valid state</strong><span>Trim the rejected position and suffix. The target-supplied token becomes the next anchor; its KV may not exist yet.</span></li>
 </ol>
 </figure>
@@ -71,7 +71,7 @@ Let `A B X D` denote 4 draft tokens without assuming a tokenizer. Start with gre
 | 3 | X | C | First mismatch; emit C |
 | 4 | D | D | Cannot accept; computed under a prefix containing X |
 
-The cycle can emit `A B C`, not declare `A B C D` correct. Replacing X with C may change the next conditional distribution. What survives is a **continuous accepted prefix**, not every matching position scattered across the block.
+The cycle can emit `A B C`, not declare `A B C D` correct. Replacing X with C may change the next conditional distribution. What survives is a **contiguous accepted prefix**, not every matching position scattered across the block.
 
 The following implements only greedy verification control flow. `target_choices[position]` must correspond to that draft prefix; the final element is the bonus token when all proposals match. Real inference also needs logits, masks, and caches. This is not a complete DFlash implementation.
 

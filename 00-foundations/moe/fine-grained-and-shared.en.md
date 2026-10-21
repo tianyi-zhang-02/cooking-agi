@@ -8,11 +8,11 @@
 
 [DeepSeekMoE (2024)](https://arxiv.org/abs/2401.06066) narrows each expert's intermediate width to $1/m$ of the original: $N$ experts become $mN$, and each token activates $mK$ instead of $K$. This preserves the main expert matrix-multiplication budget, not necessarily whole-model runtime.
 
-The paper's example: choosing 2 of 16 experts gives only 120 combinations; cut into 64 and choose 8, and the count is
+In the paper's example, choosing 2 of 16 experts gives 120 combinations. With 64 narrower experts and 8 selected per token, the count becomes
 
 $$\binom{64}{8} = 4{,}426{,}165{,}368$$
 
-More combinations create room for specialization; useful specialization must still be learned. This is not a lossless way to slice an already-trained wide expert into narrower ones.
+More combinations offer more ways for experts to specialize, but useful specialization must still be learned. This changes the expert configuration; it does not let us split an already-trained wide expert into narrower ones without affecting its behavior.
 
 ## Work through a matched budget
 

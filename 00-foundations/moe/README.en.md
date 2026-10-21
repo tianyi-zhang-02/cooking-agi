@@ -41,7 +41,7 @@ The four 2026 rows were read in October 2026. Sources: [V4-Pro config](https://h
 
 ## Sparsity saves compute, not memory
 
-Running fewer experts does not mean storing only those experts. All weights still live on GPUs, CPUs, or other storage. Full GPU residency follows total parameters; offloading lowers GPU occupancy at the cost of transfers and waiting. A fair dense comparison also fixes precision, target quality, and batch size rather than treating sparsity as a memory guarantee.
+Running fewer experts does not mean storing only those experts. All weights still live on GPUs, CPUs, or other storage. Keeping them all on GPUs requires memory for the total parameter count; offloading reduces GPU memory use at the cost of transfers and waiting. A fair dense comparison also fixes precision, target quality, and batch size rather than treating sparsity as a memory guarantee.
 
 Parameter sources are linked in the [review page's model reports](review.en.md); deployment tradeoffs are covered in [system costs](systems.en.md).
 

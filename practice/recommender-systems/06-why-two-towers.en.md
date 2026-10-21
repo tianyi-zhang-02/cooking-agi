@@ -98,7 +98,14 @@ With one comparison item, equal scores assign probability 1/2 to the positive, g
 
 Other batch members' positives are convenient comparison items, but some may also interest this user: false negatives. Duplicate items, multiple positives, and the sampling distribution change the objective. In-batch negatives are drawn roughly in proportion to how often an item appears as a positive, so popular items are over-penalized.
 
-A common fix subtracts the log of each candidate's sampling probability from its logit (logQ correction). If a popular item is sampled with probability 0.5 and a niche item with 0.05, their logits gain $-\ln0.5\approx0.69$ and $-\ln0.05\approx3.00$ respectively: the popular item appears often, so each appearance counts for relatively less. [Yi et al., RecSys 2019](https://research.google/pubs/sampling-bias-corrected-neural-modeling-for-large-corpus-item-recommendations/) estimate these sampling frequencies from streaming data for YouTube's two-tower retrieval. Multiple positives require adjusting the single-positive formula above.
+A common fix is logQ correction. In §3, [Yi et al., RecSys 2019](https://research.google/pubs/sampling-bias-corrected-neural-modeling-for-large-corpus-item-recommendations/) subtract log batch-inclusion probability from every positive and in-batch comparison logit before softmax. In this page's notation, let $z_j=s(u,j)/\tau$:
+
+$$z_j^{\mathrm{corr}}=z_j-\log p_j,\qquad
+\exp(z_j^{\mathrm{corr}})=\frac{\exp(z_j)}{p_j}.$$
+
+Here $p_j$ is a sampling probability, not a click probability. The correction changes relative probabilities inside softmax; it does not directly multiply an example's loss by a frequency weight. Equation (4)'s reward multiplier outside the negative log-likelihood is separate. [Original paper, §§3–4](https://storage.googleapis.com/gweb-research2023-media/pubtools/5716.pdf#page=3)
+
+If a popular item is sampled with probability 0.5 and a niche item with 0.05, their logits gain $-\ln0.5\approx0.69$ and $-\ln0.05\approx3.00$ respectively. With equal original logits, the less frequently sampled item has the larger corrected exponential term. This compensates for unequal sampling frequencies; it does not establish greater relevance. The paper estimates these probabilities from streaming data for YouTube's two-tower retrieval. Multiple positives require adjusting the single-positive formula above.
 
 A stronger tower may not fix missing label distinctions, coverage, or unsuitable negatives. Also distinguish contrastive retrieval training from generative next-token SFT: they don't have the same loss.
 
@@ -121,7 +128,7 @@ Multiple interests don't automatically justify many queries per request. Keeping
 | Query both, then merge | Two queries, deduplication, fixed total budget | Distinct neighborhoods at extra query and merge cost |
 | Select a view or allocate quotas from current evidence | Routing followed by bounded queries | Budget control, but routing mistakes remove candidates |
 
-Multi-tower training and multi-query serving are different choices. Two trained views may still produce one serving vector; simple separate-query experiments can test complementarity before complex training. Establishing that increment first is often more informative than building a full router immediately.
+Multi-tower training and multi-query serving are different choices. Two trained views may still produce one serving vector; simple separate-query experiments can test complementarity before complex training. Measuring what the additional source contributes is often more informative than building a full router immediately.
 
 With a budget of 100, one query returning 100 versus two queries returning 100 each is not a matched baseline. Fix merged capacity and record ANN query counts and overfetch. Even with 100 final candidates, two queries may cost more. Caching user vectors saves encoding, not index searches or freshness maintenance.
 

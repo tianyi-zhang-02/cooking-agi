@@ -86,7 +86,7 @@ In an agent, search can become an action. The model has to decide whether to:
 - ask the user to clarify;
 - or admit that it cannot complete the task reliably right now.
 
-This turns search from “returning documents” into “managing the process of acquiring information.”
+Returning documents is only one step. The agent must use the results to decide whether to search again, reformulate the query, or ask the user for clarification.
 
 ## How to evaluate
 

@@ -191,12 +191,20 @@ $$
 Knowledge Distillation（知识蒸馏）通常有一个能力更强或成本更高的 Teacher，以及要部署的
 Student。它不是一种固定的参数更新方式，而是一类监督来源。
 
-常见的有三种。<span id="response-distillation"></span>**Response distillation**：Teacher 先生成答案，Student 把它当示范做 SFT；实现简单，但只保留一条
-采样结果，看不到 Teacher 对其他 token 的相对偏好。<span id="logit-distribution-distillation"></span>**Logit / distribution distillation**：Student 拟合 Teacher 的
+常见的有三种：
+
+<span id="response-distillation"></span>**Response distillation**：Teacher 先生成答案，Student 把它当示范做 SFT；实现简单，但只保留一条
+采样结果，看不到 Teacher 对其他 token 的相对偏好。
+
+<span id="logit-distribution-distillation"></span>**Logit / distribution distillation**：Student 拟合 Teacher 的
 token 分布，经典做法是用温度 $T$ 软化两边分布后算 KL，再乘 $T^2$；只存 Teacher top-$k$ logits 时，要明确处理
-剩余概率质量、tokenizer 映射以及 mask 和归一化。<span id="on-policy-distillation"></span>**On-policy distillation**：Student 先从当前策略采样，Teacher
+剩余概率质量、tokenizer 映射以及 mask 和归一化。
+
+<span id="on-policy-distillation"></span>**On-policy distillation**：Student 先从当前策略采样，Teacher
 再给这些前缀上的 token 分布打分；监督更贴近 Student 真正会访问的状态，代价是持续 rollout、Teacher 推理和
-权重版本管理。三种做法的算例、温度和 top-k 的细节见[蒸馏](distillation.md)。
+权重版本管理。
+
+三种做法的算例、温度和 top-k 的细节见[蒸馏](distillation.md)。
 
 Distillation 可以和任何 parameterization 组合：Student 可以 full fine-tune，也可以只训
 LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。

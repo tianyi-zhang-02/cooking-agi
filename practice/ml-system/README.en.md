@@ -42,7 +42,7 @@ A simple “data → training → inference” diagram hides index refreshes, cl
 | Learning objective | Examples and labels → loss | Positives, negatives, masks, sample / token weights |
 | Training execution | Snapshot and configuration → checkpoint | Retry, recovery, update provenance |
 | Offline acceptance | Candidate version → slice metrics and failures | More than aggregate scores; no repeated test-set tuning |
-| Artifact release | Weights, processor, index → release bundle | Atomic compatibility and rollback |
+| Artifact release | Weights, processor, index → release bundle | Which artifacts must switch together, and how to roll back |
 | Serving | Request → candidates, scores, answer | Authorization, deadlines, limits, caches, cancellation, fallback |
 | Monitoring and feedback | Results and exposures → diagnosis and future data | What was actually shown, with privacy boundaries |
 

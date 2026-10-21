@@ -44,7 +44,7 @@ h'=h+\operatorname{Attention}(\operatorname{RMSNorm}(h)),
 h_{\text{next}}=h'+\operatorname{FFN}(\operatorname{RMSNorm}(h')).
 $$
 
-Attention 这个缩写包含投影、Q/K 的 RoPE、mask、softmax 和输出投影。残差相加要求两条路径最后回到相同的 hidden width；FFN 中间可以更宽，但不能把那个中间张量直接加回去。
+这里的 Attention 包含输入投影、Q/K 的 RoPE、mask、softmax 和输出投影。残差相加要求两条路径最后回到相同的 hidden width；FFN 中间可以更宽，但不能把那个中间张量直接加回去。
 
 三个组件可以分开理解：
 

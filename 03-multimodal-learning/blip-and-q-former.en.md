@@ -18,7 +18,7 @@ BLIP's MED (multimodal mixture of encoder-decoder) architecture can run as a uni
 | ITM, image–text matching | Interact across modalities and classify the pair | Distinguish riding from pushing | Judging a pair is not generating an answer |
 | LM, language modeling | Predict text from the image and preceding tokens | Generate a description of the rider | Fluent text can omit or invent details |
 
-Original BLIP shares most text-encoder/decoder parameters but separates their self-attention layers. CapFilt addresses data: a captioner adds descriptions, a filter rejects mismatched original and generated descriptions, and the curated data trains a new model. [BLIP, §3](https://arxiv.org/abs/2201.12086)
+Original BLIP shares most text-encoder/decoder parameters but separates their self-attention layers: bidirectional understanding and causal generation require different information flow. CapFilt addresses data: a captioner adds descriptions, a filter rejects mismatched original and generated descriptions, and the curated data is used to train a new model. [BLIP, §3](https://arxiv.org/abs/2201.12086)
 
 <!-- paper-figure:blip-capfilt -->
 
@@ -58,7 +58,9 @@ audit = filter_report([0.9, 0.8, 0.6, 0.4], [True, False, True, True], 0.5)
 assert audit == {"kept": 3, "precision": 2 / 3, "retention": 0.75, "recall": 2 / 3}
 ```
 
-Choose thresholds on a development set, then report on a separate audit set. Track original and synthetic captions separately, group duplicate images before splitting, and inspect shared captioner/filter errors. This is a filtering ledger, not a BLIP trainer; cleaner pairs do not establish downstream gains.
+Choose the threshold on a development set, then report results on a separate audit set that was not used for tuning. Track original and synthetic captions separately, group duplicate images before splitting, and check whether the captioner and filter make the same mistakes.
+
+The code only calculates filtering metrics; it does not train BLIP. Whether more accurate image–text pairs improve downstream performance needs a separate experiment.
 
 ## BLIP-2: what is missing between two good models?
 
@@ -188,10 +190,13 @@ $$\frac{\partial L}{\partial\theta}
 
 $\phi$ does not update, but $\partial f_\phi/\partial z$ is still needed. Wrapping the entire LLM forward pass in `no_grad` disconnects the connector's learning signal. Freezing saves parameter gradients and optimizer states, not the forward pass, every activation, or all backward computation.
 
-Reduce this to a scalar: $z=\theta x$, $f(z)=az$, and $L=(az-y)^2$. With fixed $a=2,x=3,y=1$ and $\theta=0.5$, $\partial L/\partial\theta=2(3-1)\times2\times3=24$. The downstream coefficient is untrained, yet gradients must pass through it. Few trainable parameters need not mean little training memory.
+Reduce this to a scalar: $z=\theta x$, $f(z)=az$, and $L=(az-y)^2$. With fixed $a=2,x=3,y=1$ and $\theta=0.5$, $\partial L/\partial\theta=2(3-1)\times2\times3=24$. The downstream coefficient stays fixed, yet gradients must pass through it. Few trainable parameters need not mean little training memory.
 
 ## Check whether the information actually gets used
 
-What removing or shuffling the image, or changing only a critical digit or action, can and cannot show is listed once in [the multimodal overview's comparison table](README.en.md#modality-checks). For the connector, add two more: ask different questions about one image to see whether the extracted features serve different tasks (an attention map by itself is not causal proof), and test small text, counting and spatial relations separately to see which kind of information the compression loses most, rather than relying on one average.
+The [multimodal overview's comparison table](README.en.md#modality-checks) explains the uses and limits of removing or shuffling images and changing only a critical digit or action. For the connector, add two checks:
+
+- Ask different questions about one image to see whether the extracted features serve different tasks. An attention map alone does not establish causality.
+- Test small text, counting, and spatial relations separately to see which information compression loses most, rather than relying on one average.
 
 These are proposed checks, not a shared benchmark from all three papers. BLIP's objectives and data, BLIP-2's connector bottleneck, and InstructBLIP's instruction conditioning offer different intervention points. Locate the failure before deciding to change data, increase visual input, or redesign the connector.

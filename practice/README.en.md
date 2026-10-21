@@ -10,7 +10,7 @@ These pages start from concrete projects: how data, models, services, and evalua
 - **Understanding ML systems:** read the recommendation, RAG, or post-training project and follow the data through each module. The recommender series draws on public code; the other two start from small teaching implementations.
 - **Preparing for a system-design interview:** go straight to [design practice](#system-design). Propose a design yourself, then compare it with the projects' implementations.
 
-The [project route](../learn/choose-your-path.en.md#projects) suggests more orderings. Engineering practice covers design, implementation, and debugging; read the explanations first and build when you have time.
+The [project route](../learn/choose-your-path.en.md#projects) suggests other reading sequences. Engineering practice covers design, implementation, and debugging; read the explanations first and build when you have time.
 
 <span id="beyond-the-architecture-diagram"></span>
 
@@ -43,7 +43,7 @@ Begin with [00 · Architecture](recommender-systems/00-architecture.en.md) to se
 
 Once the flow makes sense, ask why it uses [two towers](recommender-systems/06-why-two-towers.en.md), how to [choose components](recommender-systems/07-component-choices.en.md), and how to [handle serving failures](recommender-systems/08-serving-lifecycle.en.md). Then read [newer public architectures](recommender-systems/04-modern-recsys.en.md) and identify which stage a new model changes.
 
-The examples go beyond boxes: allocating slots between sources, handling missing labels, and explaining why an aggregate can rise while every group stays unchanged.
+The worked examples show how to allocate slots between retrieval sources, handle missing labels, and explain why an aggregate score can rise while every group's performance stays unchanged.
 
 ## RAG: from finding documents to answering correctly
 
@@ -73,7 +73,7 @@ python3 practice/post-training/code/experiment_checks.py
 python3 practice/post-training/code/training_contracts.py
 ```
 
-These programs verify small examples and contracts; they are not full-model training or deployment reports. For underlying ideas, return to [Foundations](../learn/README.en.md). For individual functions, ML questions, or algorithms, use [Interview preparation](../interview/README.en.md).
+These programs check the rules and calculations in the small examples; they are not reports of full-model training or deployment. For underlying ideas, return to [Foundations](../learn/README.en.md). For individual functions, ML questions, or algorithms, use [Interview preparation](../interview/README.en.md).
 
 ## Join us!
 

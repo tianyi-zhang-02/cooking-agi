@@ -4,7 +4,9 @@
 
 > Reading time: ~10 min · Last reviewed: 2026-10
 
-An 8-GPU server also contains two CPUs. What are they doing, and why do you so often end up checking the CPU when GPU utilization will not go up? **A CPU core is designed to finish one instruction stream as fast as possible: pipelining, out-of-order execution, branch prediction and the cache hierarchy all exist to hide waiting. In an AI server the CPU reads data, preprocesses it, tokenizes, launches work on the GPU and moves data; when it falls behind, the GPU sits idle.**
+An 8-GPU server also contains two CPUs. What are they doing, and why do you so often end up checking the CPU when GPU utilization stays low?
+
+A CPU core is designed to finish one instruction stream as quickly as possible. Pipelining, out-of-order execution, branch prediction and the cache hierarchy all reduce the effect of waiting. In an AI server, the CPU reads and preprocesses data, tokenizes text, launches GPU work and moves data. If those tasks fall behind, the GPU has to wait.
 
 ## How fast one core wants to run one instruction stream
 
@@ -18,13 +20,13 @@ $$
 
 $f_{\rm branch}$ is the fraction of instructions that are branches, $m$ is the misprediction rate, and $p$ is the number of cycles thrown away per misprediction. **Teaching numbers**: $\text{CPI}_{\rm base}=0.5$ (2 instructions completed per cycle on average), 20% of instructions are branches, $p=15$ cycles.
 
-| Prediction accuracy | Extra CPI | Total CPI | Slower than ideal |
+| Prediction accuracy | Extra CPI | Total CPI | CPI increase over ideal |
 | ---: | ---: | ---: | ---: |
 | 100% | 0 | 0.5 | 0% |
 | 95% | $0.2\times0.05\times15=0.15$ | 0.65 | 30% |
 | 90% | $0.2\times0.10\times15=0.30$ | 0.8 | 60% |
 
-Five percentage points of accuracy cost 30% of the speed. This is also why code over unpredictable data (for example parsing logic that branches on content) runs slower on a CPU than you might expect.
+Clock frequency and instruction count are fixed here, so the CPI increase is also the increase in elapsed time. Going from 100% to 95% prediction accuracy increases time by $0.65/0.5-1=30\%$, corresponding to a throughput decrease of $1-0.5/0.65\approx23.1\%$, not a 30% loss of speed. Going from 95% to 90% increases time by $0.8/0.65-1\approx23.1\%$ and reduces throughput by $1-0.65/0.8=18.75\%$; time is now 60% above the original ideal. This also explains why code over unpredictable data, such as parsing logic that branches on content, can run slower on a CPU than you might expect.
 
 ## Caches: most of the time goes to waiting for memory
 
@@ -49,7 +51,7 @@ $$
 | L2 catches only half | $4+0.05\times114=9.7$ | More accesses fall all the way to DRAM |
 | Every access goes to DRAM | 300 | 45x slower; caches keep the average close to L1 |
 
-The lesson: small changes in hit rate get amplified by DRAM latencies of hundreds of cycles. What matters most when writing code is whether data stays in cache and gets reused.
+Because DRAM access takes hundreds of cycles, small changes in cache hit rate can substantially affect average access time. When writing code, consider whether data can stay in cache for reuse by later computations.
 
 ## Same matrix, row by row or column by column
 
@@ -138,6 +140,8 @@ For moving data, remember how large the bandwidth gap is. The H100 SXM5's HBM ru
 
 ## Why a GPU instead
 
-A CPU spends many of its transistors on making one thread wait less: large caches, out-of-order windows, branch predictors. A GPU goes the other way. In the words of the CUDA C++ Programming Guide: a CPU excels at running one thread as fast as possible and runs a few tens in parallel; a GPU excels at running thousands in parallel, devotes more transistors to data processing rather than caching and flow control, and hides memory latency with computation instead of relying on large caches and complex flow control ([CUDA C++ Programming Guide 12.8.1, §1.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-c-programming-guide/index.html)). Add high-bandwidth memory such as HBM. In orders of magnitude: one Grace CPU reaches at most 512 GB/s while one H100 SXM5 has 3,352 GB/s; and the AMX paper peak of the two CPUs in the machine above is under 3% of its 8 GPUs.
+A CPU uses many of its transistors for large caches, out-of-order windows and branch predictors, reducing the time one thread spends waiting. A GPU emphasizes different goals. The CUDA C++ Programming Guide describes the distinction this way: a CPU excels at running one thread quickly while running a few tens in parallel; a GPU excels at running thousands in parallel and devotes more transistors to data processing. It hides memory latency with computation, reducing its reliance on large caches and complex flow control ([CUDA C++ Programming Guide 12.8.1, §1.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-c-programming-guide/index.html)).
+
+GPUs also have high-bandwidth memory such as HBM. To compare the scales, one Grace CPU reaches at most 512 GB/s while one H100 SXM5 has 3,352 GB/s. The theoretical AMX peak of the two CPUs in the machine above is under 3% of that of its 8 GPUs.
 
 So the division of labor is: the CPU handles control flow, irregular small tasks and data preparation, and the GPU handles large, regular, parallel matrix math. The next note explains how the GPU does that: [GPU architecture](gpu-architecture.en.md). For how the chips in this machine are made, see [How chips are made](chips-and-fabs.en.md); the map of the whole chain is in the [series guide](README.en.md).

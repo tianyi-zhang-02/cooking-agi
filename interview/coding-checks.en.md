@@ -25,7 +25,7 @@ For queries `[Q,D]` and points `[N,D]`, direct broadcasting produces differences
 | Broadcast everything | $O(QND)$ | Differences $O(QND)$, plus distances and sorting indices |
 | Process C queries at a time | $O(QND)$ | $O(CND+CN)$; C controls the peak, not the intended neighbors |
 
-For reproducible ties, the reference fully stable-sorts each row. That adds $O(QN\log N)$ time; final neighbor indices take $O(Qk)$ space. Distance work is not the entire kNN cost. A partial-selection alternative needs an explicit rule for sorting the chosen k and breaking ties at the cutoff.
+To handle distance ties reproducibly, the reference performs a stable sort of each entire row. That adds $O(QN\log N)$ time; final neighbor indices take $O(Qk)$ space. Computing distances is only part of the kNN cost. A partial-selection alternative needs an explicit rule for sorting the chosen k neighbors and breaking ties at the cutoff.
 
 A scale check: 1,000 queries, 10,000 points, and 128 features produce 1.28 billion difference elements. The float64 differences alone occupy about **10.24 GB**, before output and temporary arrays. Blocks of 10 queries reduce one difference tensor to about 102.4 MB. These are element counts, not measured process peaks.
 

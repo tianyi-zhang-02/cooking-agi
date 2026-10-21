@@ -18,7 +18,7 @@ $$
 
 This is the practical replay-state update. Writing it as a gradient does not eliminate questions about off-policy state distributions. During the Actor step, Critic parameters are fixed, but **the derivative of Q with respect to the action must remain connected**.
 
-For $Q(s,a)=-(a-0.7)^2$ and current action 0.2, the slope is $-2(0.2-0.7)=1$, pushing toward 0.7. If that peak is a Critic approximation error, the Actor will just as confidently climb a fictitious hill.
+For $Q(s,a)=-(a-0.7)^2$ and current action 0.2, the slope is $-2(0.2-0.7)=1$, pushing toward 0.7. If that high value is a Critic approximation error, the Actor still moves toward it, exploiting the error.
 
 ## One DDPG update
 
@@ -82,7 +82,11 @@ Smoothing evaluates a neighborhood, not just a point. For a peak $Q(a)=-k(a-a^*)
 
 DDPG's Actor is essentially an "approximate argmax function": in each state it finds a high-scoring action on the Critic's behalf. For the $\max_{a'}Q(s',a')$ in a Q-learning target, there are two other options that train no separate network.
 
-**Maximize by sampling.** Whenever you need the max, sample $N$ actions, score each with the Critic, and keep the best; this is random shooting. CEM iterates a few more rounds: keep the best few, fit a new Gaussian, and sample again (a one-step hand calculation is in [planning and LQR](planning-and-control.en.md)). [QT-Opt (Kalashnikov et al., 2018)](https://arxiv.org/abs/1806.10293) replaces the Actor with CEM for vision-based grasping: 64 samples per round, keep 6, two rounds; the same procedure computes training targets and chooses actions on real robots. The authors argue that this avoids actor–critic instability and say CEM is moderately robust to local optima in low-dimensional problems. The cost is just as direct: one max takes $64\times2=128$ Q forward passes, and every sample in a batch needs one for its target. The best sampled value never exceeds the Q curve's own maximum, so targets run low with few samples; and relative to the true value, errors in Q itself are still amplified by the max.
+**Maximize by sampling.** Whenever you need the max, sample $N$ actions, score each with the Critic, and keep the best; this is random shooting. CEM iterates a few more rounds: keep the best few, fit a new Gaussian, and sample again (a one-step hand calculation is in [planning and LQR](planning-and-control.en.md)).
+
+[QT-Opt (Kalashnikov et al., 2018)](https://arxiv.org/abs/1806.10293) replaces the Actor with CEM for vision-based grasping: 64 samples per round, keep 6, two rounds. The same procedure computes training targets and chooses actions on real robots. The authors argue that this avoids actor–critic instability and say CEM is moderately robust to local optima in low-dimensional problems.
+
+Counting candidates, one max requires Q values for $64\times2=128$ actions, and every sample in a batch needs such a search for its target. Candidates within a round can be evaluated in a batch; the next round depends on the previous round's elites. Thus 128 candidate evaluations do not mean 128 serial network calls, and latency also depends on batching and hardware. The best sampled value never exceeds the Q curve's own maximum, so targets run low with few samples. Relative to the true value, errors in Q itself are still amplified by the max.
 
 **Make Q easy to maximize.** [NAF (Gu et al., 2016)](https://arxiv.org/abs/1603.00748) writes Q as a state value minus a term quadratic in the action:
 
@@ -95,14 +99,14 @@ $L(s)$ is a lower-triangular matrix output by the network, with exponentiated di
 Work it once by hand. Take a one-dimensional action $a\in[-1,1]$ and a made-up Q curve $Q(a)=\max\big(1-8(a-0.5)^2,\;0.8-2(a+0.5)^2\big)$ with two peaks: a narrow, high one on the right reaching the true maximum 1 at $a=0.5$, and a broad, low one on the left reaching 0.8 at $a=-0.5$.
 
 - **8 random samples**: suppose one uniform draw happens to give −0.85, −0.6, −0.35, −0.1, 0.15, 0.3, 0.75, 0.95, with Q values 0.555, 0.78, 0.755, 0.48, 0.02, 0.68, 0.5, −0.62. The best is $a=-0.6$, on the low left peak; 0.3, the sample closest to the true peak, scores only 0.68 because the right peak is so narrow.
-- **CEM**: use these 8 samples as round 1 and keep the best 2 (−0.6, −0.35); the new Gaussian has mean −0.475 and standard deviation 0.125. To beat 0.8, a sample must land at $a>0.34$, more than 6.5 standard deviations from the new mean, which in practice never happens. Later rounds converge reliably to the top of the left peak: CEM lets the first round decide which hill to climb, and afterwards only climbs that hill more precisely.
+- **CEM**: use these 8 samples as round 1 and keep the best 2 (−0.6, −0.35); the new Gaussian has mean −0.475 and standard deviation 0.125. Beating 0.8 requires $1-8(a-0.5)^2>0.8$, or $a\in(0.5-\sqrt{0.2/8},\,0.5+\sqrt{0.2/8})$, with endpoints approximately 0.3419 and 0.6581; $a>0.34$ is only a rough necessary condition. The interval's lower end is more than 6.5 standard deviations above the new mean, so a small next batch from this Gaussian is extremely unlikely to hit it, but the probability is not zero. If later samples remain near the left peak, search may keep contracting toward −0.5; the first round does not guarantee that convergence. A variance floor, restarts, or a mixture with uniform samples changes subsequent search.
 - **NAF-style quadratic Q**: suppose a function quadratic in the action is fit to this curve with equal weight over $[-1,1]$ (a teaching assumption; real training uses Bellman regression, and the data distribution decides which peak it leans toward). The fitted peak sits at $a\approx-0.23$, where the true Q is only about 0.65, lower than either peak.
 - **Actor gradient ascent**: DDPG climbs along $\partial Q/\partial a$. Starting from $a=0$, the left piece is higher with slope $-2$, and the actor climbs to −0.5; starting from $a=0.2$, the right piece is higher with slope 4.8, and it climbs to 0.5.
 
 | Method | Computation per max | Action found | True Q there |
 | --- | --- | --- | --- |
-| 8 random samples | 8 Q forward passes | −0.6 | 0.78 |
-| CEM, 8 per round, keep 2 | 8 Q forward passes per round | About −0.5 | About 0.8 |
+| 8 random samples | 8 candidate Q evaluations, batchable | −0.6 | 0.78 |
+| CEM, 8 per round, keep 2 | 8 candidate Q evaluations per round, batchable | About −0.5 (if search stays near the left peak) | About 0.8 |
 | NAF-style quadratic Q | 1 forward pass, read off $\mu(s)$ | About −0.23 | About 0.65 |
 | Learned Actor | 1 forward pass, plus Actor training | Depends on the start: −0.5 or 0.5 | 0.8 or 1 |
 | True maximum | — | 0.5 | 1 |

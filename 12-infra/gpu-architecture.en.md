@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-When an H100 SXM runs a large matrix multiply, its dense BF16 Tensor Core peak is 989.4 TFLOPS; yet when the same card generates tokens one at a time for a large model, it spends most of its time waiting for data. Both are true at once. **A GPU is built for total throughput, not for making one thread fast: it keeps many warps resident and switches to another whenever one is waiting on memory, and whether the Tensor Cores stay busy comes down to how fast data can be moved into the SMs.**
+An H100 SXM has a dense BF16 Tensor Core peak of 989.4 TFLOPS for large matrix multiplies. Yet when the same card generates tokens one at a time for a large model, it spends most of its time waiting for data. Why can generation remain slow despite so much peak compute?
+
+A GPU's design emphasizes total throughput. It keeps many warps resident and schedules a ready warp while another waits on memory. Tensor Cores also need a steady supply of data, so the rate at which data reaches the SMs can limit their utilization.
 
 Hardware numbers are mostly for the H100 SXM5; final specifications come from the [H100 architecture whitepaper V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf) (which states that it includes final clocks and TFLOPS), and the rest from NVIDIA product pages, architecture blogs and CUDA documentation; cycle counts and matrix entries in the worked examples are teaching assumptions and are marked as such. How to write kernels is in [CUDA](cuda.en.md), the roofline is in [Performance](performance.en.md), and the cross-generation comparison is in [NVIDIA GPU generations](nvidia-generations.en.md).
 
@@ -51,7 +53,9 @@ Work out the cost once. A warp hits an `if`: when the condition is true it runs 
 
 **A branch is not expensive in itself; splitting within one warp is.** Different warps taking different branches pay no such cost.
 
-Two common misreadings. First, SIMT does not mean "the 32 threads are always in lockstep". Since compute capability 7.0 (Volta) there is independent thread scheduling: each thread has its own program counter, and threads in a warp can diverge and reconverge at finer granularity; old code that relies on implicit synchronization must use `__syncwarp()` ([advanced kernel programming](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#independent-thread-scheduling)). Second, the difference between SIMT and SIMD is the interface: SIMD exposes the vector width to software, while SIMT lets you write code for a single thread and the hardware groups threads into warps.
+Two distinctions matter here. SIMT does not mean that the 32 threads are always in lockstep. Since compute capability 7.0 (Volta), GPUs have supported independent thread scheduling: each thread has its own program counter, and threads in a warp can diverge and reconverge at finer granularity. Old code that relies on implicit synchronization must use `__syncwarp()` ([advanced kernel programming](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#independent-thread-scheduling)).
+
+The difference between SIMT and SIMD lies in the programming interface. SIMD exposes the vector width to software, while SIMT lets you write code for a single thread and leaves the hardware to group threads into warps.
 
 ## Latency hiding: keep many warps resident
 
@@ -83,7 +87,7 @@ This ignores register allocation granularity and shared memory limits; the full 
 | Raise registers per thread from 64 to 128 | Resident warps halve; $U$ here drops from about 73% to about 36% | Kernels that use many registers are always slow |
 | Switch to asynchronous copies (hardware async copy from Ampere, TMA on Hopper) | Data movement overlaps compute, and fewer warps can stay busy | Async copies get you past the bandwidth limit |
 
-The last row deserves a word. High-performance matrix multiply kernels often use many registers per thread and run at modest occupancy, hiding the wait with instruction-level parallelism and asynchronous data movement; the CUDA guide also describes async copies as a way to overlap movement and compute beyond what warp switching does ([asynchronous execution](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#asynchronous-execution-features)). **Latency can be hidden; the bandwidth ceiling cannot.** That is the next section.
+The last row helps explain why a kernel can be fast at modest occupancy. High-performance matrix multiply kernels often use many registers per thread, hiding waits through instruction-level parallelism and asynchronous data movement. The CUDA guide likewise describes async copies as a way to overlap movement and compute beyond what warp switching provides ([asynchronous execution](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#asynchronous-execution-features)). These methods can hide latency, but they cannot exceed the bandwidth limit, which the next section examines.
 
 ## The memory hierarchy: closer is smaller and faster
 

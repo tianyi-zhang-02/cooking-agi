@@ -149,7 +149,7 @@ Before training starts, measure all of the above on this stage's starting model 
 
 A regression needs a meaningful control: often the checkpoint immediately before this training stage, or a controlled ablation. Keeping that checkpoint and its evaluation configuration is easier than trying to reconstruct the comparison after outputs start feeling repetitive.
 
-This is the same point as [freezing the evaluation protocol](../07-evaluation/): **a stable measurement baseline must exist before improvement means anything.**
+This is also why we [freeze the evaluation protocol](../07-evaluation/): a stable, reproducible measurement baseline helps distinguish changes in the model from changes in evaluation conditions.
 
 ## Down to a checklist {#down-to-a-checklist}
 

@@ -98,7 +98,7 @@ Real judgments are often incomplete: unjudged documents may be relevant. Scores 
 
 ## 4. Correct retrieval does not guarantee correct generation
 
-“Supported by the supplied material” and “correct” are different questions. A faithful account of an obsolete notice can be outdated. A lucky correct answer with an unrelated citation does not establish that retrieval helped. [Ragas](https://arxiv.org/abs/2309.15217) separates retrieval and generation evaluation dimensions: a useful starting point, not permission to skip human checks.
+“Supported by the supplied material” and “correct” are different questions. A faithful account of an obsolete notice can be outdated. A lucky correct answer with an unrelated citation does not establish that retrieval helped. [Ragas](https://arxiv.org/abs/2309.15217) separates retrieval and generation evaluation dimensions. That distinction can guide an evaluation, but human checks are still needed.
 
 Try three small experiments on the booking question:
 

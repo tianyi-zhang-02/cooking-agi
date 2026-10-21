@@ -16,7 +16,7 @@ These are **original teaching exercises**, not company interview questions or pr
 
 ## How to practice
 
-Spend five minutes writing goals, non-goals, and constraints. Draw the data flow and give each arrow an input and output. Then challenge the design with a timeout, stale information, a distribution shift, or a revoked permission.
+Spend five minutes writing goals, non-goals, and constraints. Draw the data flow and label what passes between steps. Then check how the design handles a timeout, stale information, a distribution shift, or a revoked permission.
 
 More components don't necessarily mean a better design. Removing one while preserving the important properties often shows deeper understanding.
 

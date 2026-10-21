@@ -115,7 +115,7 @@ assert math.isclose(effective_size, 18.0)
 print(round(logged_mean, 2), round(estimate, 2), round(effective_size, 2))
 ```
 
-虽然有 50 条记录，权重的有效样本量指标（ESS）只有 18：少数 B 扛了很大一部分权重。这是**权重集中程度的诊断**，不是严格保证「相当于 18 个独立样本」，更不是置信区间。
+虽然有 50 条记录，权重的有效样本量指标（ESS）只有 18：很大一部分权重集中在少数 B 样本上。这是**权重集中程度的诊断**，不是严格保证「相当于 18 个独立样本」，更不是置信区间。
 
 <details markdown="1">
 <summary>只采到一个动作，importance sampling 就不成立了吗？</summary>

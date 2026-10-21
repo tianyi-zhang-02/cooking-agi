@@ -45,7 +45,9 @@ Many important failures only appear in the interaction trajectory:
 
 So we need session-level evaluation of task completion across turns, and longitudinal evaluation of whether problems are resolved across repeated use—not only single prompt–response pairs.
 
-Start with a timeline rather than simply asking, “Do you remember me?” Store “I usually prefer quiet accommodation”, add “for this trip only, stay near the station”, let the trip end, then delete the accommodation preference, and check which record the system uses at each step. The [memory lifecycle](../02-memory/memory-lifecycle.en.md#timeline-test) already turns this timeline, the rule of replaying only what was known at the time, and the with- and without-memory comparison into checkable steps. In an experience evaluation, also hold the model, tools, and budget fixed, and ask again in a new session to confirm that neither the deleted records nor anything derived from them is still used.
+Start with a timeline: store “I usually prefer quiet accommodation”, add “for this trip only, stay near the station”, let the trip end, then delete the accommodation preference. Checking which record the system uses at each step is more informative than simply asking, “Do you remember me?”
+
+The [memory lifecycle](../02-memory/memory-lifecycle.en.md#timeline-test) provides steps for this test, including replaying only information available at the time and comparing versions with and without memory. For experience evaluation, also hold the model, tools, and budget fixed. Ask again in a new session to confirm that neither the deleted records nor anything derived from them is still used.
 
 These are proposed tests, not demonstrated improvements. Synthetic replay can expose mechanism failures, but cannot establish satisfaction weeks into real use. A real-use comparison can randomly assign users to groups, keep assignments stable for the observation period, and report dropouts and missing feedback, rather than only satisfied users who remain. [LongMemEval (arXiv v2, Section 3)](https://arxiv.org/html/2410.10813v2#S3) offers tests of updates, temporal reasoning, and abstention; its QA scores do not replace this longitudinal experience evaluation.
 
@@ -66,14 +68,16 @@ These are not simply metrics to maximize or minimize. Fewer corrections may mean
 
 ### Worked example: fewer corrections, worse experience (teaching example)
 
-The numbers are made up to show the arithmetic. Twenty users are randomly split into two groups of 10: group A gets a version without memory, group B a version with memory. In week 4, each user still using the assistant attempts one task, and users who have stopped count as not completing it:
+This is an expected-value calculation with assumed numbers, not a user experiment. Twenty users are randomly split into two groups of 10: group A gets a version without memory, group B a version with memory. Assume that 4 and 9 users respectively remain in week 4. Each attempts one task, with assumed success probabilities of 90% and 80%. The outcome here is completion through the assistant, so users who have stopped using it count as not completing through it:
 
-| Version | Users assigned | Still using in week 4 | Corrections per session among those left | Task completion among those left | Completion by original assignment |
+| Version | Users assigned | Still using in week 4 | Corrections per session among those left | Assumed success probability among those left | Expected completion by original assignment |
 | --- | --- | --- | --- | --- | --- |
 | A (no memory) | 10 | 4 | 0.5 | 90% | $4\times0.9/10=36\%$ |
 | B (memory) | 10 | 9 | 0.8 | 80% | $9\times0.8/10=72\%$ |
 
-Looking only at the users who stayed, A has fewer corrections and a higher completion rate, so it looks better. Count the 6 users who left, and B completes tasks for twice the share of users that A does. A's "fewer corrections" most likely means the users who had to correct it most have already gone.
+Looking only at the users who stayed, A has fewer corrections and a higher success probability, so it looks better. Include everyone originally assigned in the denominator, and B's expected completion rate is twice A's. The 36% and 72% are expectations calculated from assumed probabilities, not observed proportions from 4 and 9 people each attempting one task.
+
+A may have fewer corrections because the users who needed to correct it most have left, but this table cannot establish why they left. Stopping use is also different from a missing outcome: this example counts the former as no completion through the assistant, not every unobserved result as a failure.
 
 So report three numbers together: how many users dropped out of each group; the result by original assignment (ITT, intention-to-treat), which keeps dropouts in the denominator; and the result for remaining users only. Report only the last one, and the satisfied users who stayed will hide the regression.
 

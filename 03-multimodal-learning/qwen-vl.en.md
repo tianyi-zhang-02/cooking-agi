@@ -4,9 +4,9 @@
 
 > Last reviewed: 2026-10 · Prerequisites: [ViT](vit.en.md), [RoPE](../00-foundations/deep-dives/position-and-context.en.md)
 
-An icon and a dense train timetable need different information budgets. Yet unrestricted growth in visual tokens lets a single tall image slow down the model. **One useful thread through Qwen-VL is how it preserves detail while controlling these costs.**
+Recognizing an icon and reading a dense train timetable require different amounts of visual detail. Resizing every image to the same dimensions can make small text unreadable; raising the resolution adds visual tokens and computation. Successive Qwen-VL models address this trade-off in different ways.
 
-This is an architecture walkthrough, not a leaderboard. Always record the model variant, processor, and inference budget together.
+We start with the architectural changes, then calculate token counts for a few image sizes. To reproduce an experiment, record the model version and size, processor settings, and inference budget.
 
 ## What changed between versions?
 

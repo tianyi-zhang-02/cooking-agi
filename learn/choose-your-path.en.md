@@ -27,7 +27,7 @@ A little Python is enough to begin. If vectors and gradients are unfamiliar, sta
 
 ## Interviews: find the part that needs practice {#interviews}
 
-In [Interview prep](../interview/README.en.md), pick the area you need. With a background, go straight to the [quick review](../interview/speedrun.en.md); to build up systematically, use the [study plan](../interview/study-plan.en.md). The hours in the routes are a guide; split them to fit your schedule.
+In [Interview prep](../interview/README.en.md), pick the area you need. If you already know the basics, go straight to the [quick review](../interview/speedrun.en.md); to study systematically, use the [study plan](../interview/study-plan.en.md). The hours in the routes are a guide; split them to fit your schedule.
 
 Start with the job description and any interview information you've received. Two MLE roles may emphasize quite different things. For what to practice first by role, and what to leave when time is short, see the [role-based guide](../interview/ai-roles-prep.en.md#routes). Without a particular interview coming up, try one concept question and one small implementation to see where you get stuck.
 
@@ -41,7 +41,7 @@ Start with the job description and any interview information you've received. Tw
 
 This route suits readers who know how a Transformer works and want to read papers or model reports. The focus is what the authors changed and what their experiments support; Research Scientist and Research Engineer requirements still depend on the team.
 
-1. [Architecture components](../00-foundations/deep-dives/README.en.md): identify the component a paper changes, then fill in unfamiliar mechanisms.
+1. [Architecture components](../00-foundations/deep-dives/README.en.md): identify the component a paper changes, then study any unfamiliar mechanisms.
 2. [Model families](../00-foundations/model-families/README.en.md): compare designs using the same questions rather than collecting version names.
 3. [Evaluation basics](../07-evaluation/README.en.md): examine baselines, data, metrics, and ablations to decide what the results support.
 
@@ -94,4 +94,6 @@ Start by listing what you need to fill in before your next interview, then plan 
 
 Everything lives in [Foundations](README.en.md), [Interview prep](../interview/README.en.md), [Engineering practice](../practice/README.en.md), [Tech history](technology-timeline.en.md), and [Career](../career/README.en.md). The routes are only different reading orders that point to the same articles.
 
-Use **中文 / EN** at the top to switch the same note. Save a note with **Save this page** under its title, then find it, along with recently opened pages, under **My reading**. Records stay in this browser; export a backup under Settings before moving devices. The collection is still growing; [coverage and backlog](coverage.en.md) shows what is written and what still needs checking.
+Use **中文 / EN** at the top to switch languages within the same note. Select **Save this page** under its title to save it, then find it alongside recently opened pages under **My reading**. Records stay in this browser; export a backup under Settings before moving to another device.
+
+The collection is still growing; [coverage and backlog](coverage.en.md) shows what is written and what still needs checking.

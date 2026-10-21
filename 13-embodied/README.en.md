@@ -4,7 +4,9 @@
 
 > Reading time: ~2 min · Last reviewed: 2026-10
 
-A camera captures a frame; a car has to decide where to drive, a robot arm where to reach. In between are several steps: recover the things in 3D from the pixels, keep track of them, predict what they will do next, and choose an action. **This block follows that chain in three short series: perception and geometry, autonomous driving, and robot learning.**
+Once a camera captures a scene, how does a car decide where to drive, or a robot arm where to reach? A typical system identifies objects, estimates their positions, and uses motion predictions and task requirements to choose an action. Some systems separate these steps into modules; others learn them within one model.
+
+The section has three series: perception and geometry, autonomous driving, and robot learning. Start with coordinate transformations, or go directly to the application that interests you.
 
 ## Three series
 

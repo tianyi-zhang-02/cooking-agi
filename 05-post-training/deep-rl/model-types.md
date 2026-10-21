@@ -38,7 +38,9 @@ $$
 
 ## 预测潜在状态：压缩以后在小空间里滚动
 
-折中做法是先用编码器把 24 个像素压成一个小向量 $z$，再学 $z'=g(z,a)$ 和奖励预测；需要时再解码回图像。[PlaNet（Hafner 等，2018）](https://arxiv.org/abs/1811.04551)从图像学潜在动力学，并在潜在空间里做规划；[World Models（Ha & Schmidhuber，2018）](https://arxiv.org/abs/1803.10122)展示了智能体可以完全在模型生成的“梦”里训练，再转回真实环境。后来的 [Dreamer（Hafner 等，2019）](https://arxiv.org/abs/1912.01603)只在潜在空间里想象轨迹，把学到的价值的梯度沿想象轨迹反传来学行为，详见世界模型系列的 [Dreamer 一篇](../../11-frontier/world-models/dreamer.md)。
+折中做法是先用编码器把 24 个像素压成一个小向量 $z$，再学 $z'=g(z,a)$ 和奖励预测；需要时再解码回图像。
+
+[PlaNet（Hafner 等，2018）](https://arxiv.org/abs/1811.04551)从图像学潜在动力学，并在潜在空间里做规划。[World Models（Ha & Schmidhuber，2018）](https://arxiv.org/abs/1803.10122)展示了智能体可以完全在模型生成的“梦”里训练，再转回真实环境。后来的 [Dreamer（Hafner 等，2019）](https://arxiv.org/abs/1912.01603)只在潜在空间里想象轨迹，把学到的价值的梯度沿想象轨迹反传来学习行为。具体过程见世界模型系列的 [Dreamer 一篇](../../11-frontier/world-models/dreamer.md)。
 
 <!-- paper-figure:worldmodels-agent -->
 
@@ -72,11 +74,13 @@ $$
 
 模型也不必是一个神经网络。
 
-**回放或情景记忆。** 把见过的 $(s,a,r,s')$ 全部存下来，查询时直接查表。推箱子里手在箱子左边、箱子在终点左边的状态只有 15 个，乘 2 个动作是 30 种组合；几百条随机交互就能全部覆盖，这时查表模型在这个确定性环境里就是精确的。没见过的组合，它什么也答不出。[van Hasselt 等（2019）](https://arxiv.org/abs/1906.05243)认为经验回放和基于模型的方法有共同特点，并据此推测：如果模型只用来从见过的状态生成 transition，基于回放的算法应当不差；他们在 Atari 上报告，基于回放的算法在数据效率上超过了先前使用参数化模型的结果。
+**回放或情景记忆。** 把见过的 $(s,a,r,s')$ 全部存下来，查询时直接查表。推箱子里手在箱子左边、箱子在终点左边的状态只有 15 个，乘 2 个动作是 30 种组合。全部组合都被观察到后，查表模型在这个确定性环境里就是精确的；但“只有 30 种”不能保证几百条随机交互就能覆盖。初态、重置方式和探索策略都影响可达性：例如每次从箱子在 3 开始，箱子又只能右移，就永远看不到箱子在 1 或 2 的状态。没见过的组合，它什么也答不出。[van Hasselt 等（2019）](https://arxiv.org/abs/1906.05243)认为经验回放和基于模型的方法有共同特点，并据此推测：如果模型只用来从见过的状态生成 transition，基于回放的算法应当不差；他们在 Atari 上报告，基于回放的算法在数据效率上超过了先前使用参数化模型的结果。
 
 **转移图。** 把见过的状态当节点、见过的转移当边，规划就成了最短路问题：从 $(1,3)$ 出发，到“箱子在 6”最少要走 4 条边。[Search on the Replay Buffer（Eysenbach 等，2019）](https://arxiv.org/abs/1906.05253)用回放里的观测当节点，用目标条件价值函数估计边的距离，再用图搜索找出一串子目标。错误的捷径边会被最短路算法优先使用。
 
-**高斯过程。** 数据很少时，它同时给出预测均值和方差，离数据越远方差越大。[PILCO（Deisenroth & Rasmussen，2011）](https://icml.cc/2011/papers/323_icmlpaper.pdf)用高斯过程预测状态变化量，把模型不确定性带进长时程预测，并解析计算策略梯度；论文报告在一台真实的 cart-pole 上，总共约 17.5 秒交互就学会了起摆和平衡。代价是精确推断的计算量随数据点数立方增长（[Rasmussen & Williams，第 2 章](https://gaussianprocess.org/gpml/chapters/RW2.pdf)）；常用的平滑核也会把推箱子的接触跳变抹成一段斜坡。
+**高斯过程。** 数据很少时，它同时给出预测均值和方差，但“离数据越远，方差就越大”不是一般的单调规律。固定核及其超参数时，潜在函数的后验方差是 $k(x_*,x_*)-k_*^\top(K+\sigma_n^2I)^{-1}k_*$，取决于核、训练输入的整体位置和观测噪声；其中 $K$ 是训练输入的核矩阵，$k_*$ 是测试点与训练点的核值向量。对平方指数核等距离衰减核，远离所有训练点使 $k_*$ 趋近 0，方差回到先验水平（[Rasmussen & Williams，第 2 章，式 2.26](https://gaussianprocess.org/gpml/chapters/RW2.pdf)）。
+
+[PILCO（Deisenroth & Rasmussen，2011）](https://icml.cc/2011/papers/323_icmlpaper.pdf)用高斯过程预测状态变化量，把模型不确定性带进长时程预测，并解析计算策略梯度；论文报告在一台真实的 cart-pole 上，总共约 17.5 秒交互就学会了起摆和平衡。代价是精确推断的计算量随数据点数立方增长（[Rasmussen & Williams，第 2 章](https://gaussianprocess.org/gpml/chapters/RW2.pdf)）；常用的平滑核也会把推箱子的接触跳变抹成一段斜坡。
 
 **符号规则。** 像 [STRIPS（Fikes & Nilsson，1971）](https://ai.stanford.edu/~nilsson/OnlinePubs-Nils/PublishedPapers/strips.pdf)那样写算子：“向右推”的前提是手在 $x$、箱子在 $x+1$、$x+2$ 为空，效果是手到 $x+1$、箱子到 $x+2$。规则写对了，对任意位置、任意个箱子都精确，几乎不需要数据。难处是：符号得有人给，或者另外学出来；箱子打滑这类噪声、摩擦这类连续量也很难写进去。
 
@@ -107,4 +111,4 @@ $$
 
 截至 2026 年 10 月，用大规模视频或交互数据训练的学习型世界模型，能在多大程度上替代手工建模或按任务训练的模型，仍是快速变化的方向；哪种潜在表示最适合控制也还没有定论。这部分放在本站的[世界模型系列](../../11-frontier/world-models/README.md)里跟踪，这里只讲已经比较稳定的取舍。
 
-接着读：[规划和学习怎样互相喂](planning-and-learning.md)。回到 [Model-based 总览](model-based.md)，或看[规划与 LQR](planning-and-control.md)。
+接着读：[规划与学习怎样配合](planning-and-learning.md)。回到 [Model-based 总览](model-based.md)，或看[规划与 LQR](planning-and-control.md)。

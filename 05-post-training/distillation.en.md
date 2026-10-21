@@ -270,6 +270,8 @@ Hold one prefix fixed and allow just two next actions, A and B. The teacher is $
 
 Used as a **detached** learning signal, a positive difference encourages the sampled action and a negative one discourages it. This is not an accuracy score. A mistaken teacher can still point the update in the wrong direction.
 
+A single difference is not the full negative KL either. For a fixed prefix and teacher, with positive teacher probabilities on the student's support, taking expectation under the student gives $\mathbb E_{a\sim q}[\log p(a)-\log q(a)]=-D_{KL}(q\|p)\leq0$. Here the mean is $0.5\times0.4700+0.5\times(-0.9163)\approx-0.2231$, even though the term for sampled action A is positive. Sampling from another behavior distribution without correction does not preserve this identity.
+
 Write $q=q_\theta$ and abbreviate the log-ratio as $f(a)=\log[q(a)/p(a)]$. With a fixed teacher and positive probabilities:
 
 $$
@@ -329,7 +331,9 @@ The derivation deliberately fixed the prefix. In a full generation, earlier acti
 - **Full-sequence reverse KL:** on a common token and termination space, the sequence log-ratio sums per-step log-ratios. Its exact policy gradient also accounts for future effects of actions, expressible through return-to-go.
 - **Immediate log-prob differences as advantages with PPO clipping:** this is a local surrogate. It may be useful, but resemblance to the one-prefix equation does not make its gradient identical to the full-sequence objective.
 
-The third option has a public example, with a different loss. [Thinking Machines' on-policy distillation (Lu et al., 2025-10-27)](https://thinkingmachines.ai/blog/on-policy-distillation/) sets each sampled token's advantage to the negative reverse KL, that is, the teacher's log-prob minus the student's on that token. The discount is 0, so only the next token counts, and the loss is an importance-sampling policy gradient without PPO clipping; the teacher only has to return log-probs for the sampled tokens. The authors say a nonzero discount did not help in practice, so they chose 0 for simplicity. The post cites Table 21 of the Qwen3 technical report: on Qwen3-8B, on-policy distillation reached a higher AIME'24 score than RL (74.4 versus 67.6) with about one tenth of the GPU-hours (1,800 versus 17,920). These are the Qwen team's self-reported numbers.
+The third option has a public example, with a different loss. [Thinking Machines' on-policy distillation (Lu et al., 2025-10-27)](https://thinkingmachines.ai/blog/on-policy-distillation/) sets each sampled token's advantage to the teacher's log-prob minus the student's sampling-time log-prob, detached during the update. This is a sampled term for negative reverse KL, not KL summed over the vocabulary; its expectation has the fixed-prefix meaning above. The discount is 0, so only the next token counts. The loss is an importance-sampling policy gradient without PPO clipping, and the teacher only has to return log-probs for the sampled tokens. The authors say a nonzero discount did not help in practice, so they chose 0 for simplicity.
+
+The post cites Table 21 of the Qwen3 technical report: on Qwen3-8B, on-policy distillation reached a higher AIME'24 score than RL (74.4 versus 67.6) with about one tenth of the GPU-hours (1,800 versus 17,920). These are the Qwen team's self-reported numbers.
 
 An implementation must also track behavior / current student versions and avoid treating prompt, tool-result, or padding tokens as sampled actions. Sampled-token log-probs and full-vocabulary logits are different information. Continue to [rollout records](post-training-infrastructure.en.md#rollout-record) for the data entering training.
 

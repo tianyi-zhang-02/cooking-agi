@@ -49,7 +49,9 @@ $$
 
 This surrogate is **maximized**; implementations usually negate it to obtain a loss. Raising this sample’s probability further gives no additional benefit on the clipped branch, but other samples can still change shared parameters. Clipping is not a hard bound on the actual ratio or a guarantee on KL. See [PPO (2017), §3](https://arxiv.org/pdf/1707.06347); [PPO clipping](../rlhf/ppo-clipping.en.md) covers the negative-advantage case.
 
-One key change in GRPO is the advantage estimate: sample several responses to the same prompt and use group-standardized rewards in place of a value model's estimate, at the cost of sampling each prompt several times; an all-equal group must also avoid $0/0$ (add a small denominator constant or skip the group). How $[0,0,1,1]$ becomes $[-1,-1,1,1]$, and why an all-equal group has no relative signal yet need not stop all updates, is worked through in the [LLM bridge](llm-bridge.en.md#group-signal); group size, sparse rewards, and long-task costs are in [the same note](llm-bridge.en.md#sparse-groups). [DeepSeekMath (2024), §4.1](https://arxiv.org/html/2402.03300v3) introduced this approach.
+One key change in GRPO is the advantage estimate: sample several responses to the same prompt and use group-standardized rewards in place of a value model's estimate. This requires multiple samples per prompt. An all-equal group also needs a small denominator constant, or must be skipped, to avoid $0/0$.
+
+How does $[0,0,1,1]$ become $[-1,-1,1,1]$? Why does an all-equal group provide no relative signal without necessarily stopping all updates? The [LLM bridge](llm-bridge.en.md#group-signal) works through these questions; [the same note](llm-bridge.en.md#sparse-groups) discusses group size, sparse rewards, and long-task costs. [DeepSeekMath (2024), §4.1](https://arxiv.org/html/2402.03300v3) introduced this approach.
 
 ## DPO: learn preferences without an online rollout loop {#dpo-pair}
 

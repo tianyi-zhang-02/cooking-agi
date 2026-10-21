@@ -76,7 +76,7 @@ Read the [vLLM / SGLang stack](../06-systems/inference-frameworks.en.md#engine-m
 | GPU utilization is low: what next? | Separate CPU input, queues, execution, HBM bandwidth, communication, and output buffering; [trace first](../12-infra/performance.en.md#profiling), change one variable |
 | When would you separate prefill and decode? | Weigh observed interference against KV transfer, both queues, and failure recovery |
 
-For inference roles, prepare at least one layer down to the details: scheduling policy, KV-cache management, or performance evidence you can show. Do not drop traditional system design either; confirm the actual interview format.
+For inference roles, be ready to discuss at least one layer in detail: scheduling policy, KV-cache management, or a performance improvement supported by measurements. Prepare traditional system design too, and confirm the actual interview format.
 
 ## Projects, research discussions, and behavioral preparation {#projects}
 

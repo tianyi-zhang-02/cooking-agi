@@ -4,7 +4,7 @@
 
 > Last reviewed: 2026-10 · Prerequisites: [ViT](vit.en.md), [KV cache](../00-foundations/deep-dives/kv-cache-and-inference.en.md)
 
-A document occupies 2000 text tokens but only 200 visual tokens after image encoding: a tenfold saving? **Only in input length: whether the characters and table structure survived, and how long image encoding took, belong in the same account.**
+Suppose a document occupies 2000 text tokens but only 200 visual tokens after image encoding. Input length has fallen to one tenth of the original. To judge whether the conversion is worthwhile, also check character accuracy, preservation of table structure, and image-encoding time.
 
 ## Separate three tasks
 
@@ -75,6 +75,6 @@ Keep source images and text when changing budgets. Do not let the same OCR model
 
 For clean structured text, native-text retrieval or chunking may be simpler. Scans, complex layouts, and joint image reasoning can justify the visual route. Compression should still preserve a path back to original evidence.
 
-Lowering the resolution of old material is a resource-allocation research idea, not an automatic ability to identify unimportant memories. Dates, names, and decimal points might disappear first. Blur is not validated intelligent forgetting.
+Lowering the resolution of old material could be studied as a resource-allocation strategy, but it does not establish that the system can identify unimportant memories. Dates, names, and decimal points might disappear first. Blurring an image alone is not evidence that the system has learned to forget selectively.
 
 Continue: [Understanding versus generating images](image-generation.en.md) · [Evaluation and slices](../07-evaluation/ablation-and-slices.en.md)

@@ -142,7 +142,7 @@ Ask where computation happens when reading an architecture, and how much computa
 
 The official description includes SFT and high-compute RL targeting reasoning, tool use, and aligned behavior, with low / medium / high reasoning effort. It does not supply the complete data and recipe needed to rerun training. Do not fill the gap by assigning an undocumented GRPO configuration. [Release notes: Post-training](https://openai.com/index/introducing-gpt-oss/)
 
-Architecture determines each computation, the training objective determines updates, and effort changes computation during an answer (for comparing models at matched compute, see [Test-time compute: comparing and reading numbers](../../11-frontier/test-time-compute/measuring.en.md)). Switching a fixed model from low to high is not another training run. Changing its tools also changes more than the model's parameters.
+Architecture determines each computation, the training objective determines updates, and effort changes computation during an answer (for comparing models at matched compute, see [Test-time compute: comparing and reading numbers](../../11-frontier/test-time-compute/measuring.en.md)). Compare these three factors separately. Switching a fixed model from low to high is not another training run. A different tool environment can also change results without changing model parameters.
 
 Start a small evaluation with the same questions in four conditions. This is a proposed experiment, not measured results:
 

@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-"34 million features extracted from Claude 3 Sonnet", "16 million latents trained on GPT-4": what do these numbers mean? And why did Google DeepMind's interpretability team announce in March 2025 that it was deprioritising fundamental SAE research? **A sparse autoencoder (SAE) writes an activation as a weighted sum of a few dictionary directions. Without any labels it finds a large number of directions that read sensibly and can be used to steer the model, which makes it good for exploration and debugging. But good reconstruction and fluent-sounding labels do not guarantee that what it finds are features the model really uses, and on downstream tasks with strong baselines it often does worse than linear probes, difference-in-means and prompting.**
+"34 million features extracted from Claude 3 Sonnet", "16 million latents trained on GPT-4": what do these numbers mean? And why did Google DeepMind's interpretability team announce in March 2025 that it was deprioritising fundamental SAE research?
+
+A sparse autoencoder (SAE) writes an activation as a weighted sum of a few dictionary directions. Without labels, it finds many directions that admit readable semantic descriptions and can steer the model, making it useful for exploration and debugging. But accurate reconstruction and fluent labels do not guarantee that these are features the model actually uses. On downstream tasks with strong baselines, SAEs often perform worse than linear probes, difference-in-means and prompting.
 
 ## The objective: reconstruction plus sparsity
 
@@ -49,10 +51,10 @@ Adding L1 changes that. For an exact reconstruction, using only $d_3$ costs $\sq
 At both values of $\lambda$, using only $d_3$ wins (the KKT conditions confirm it is the global optimum). Three things can be read off the table:
 
 - **L1 prefers few directions that point "straight at" the data.** If the data were really two independent features that often co-occur, an SAE might learn one merged direction instead of the two atomic features.
-- **Shrinkage.** Without the penalty, the coefficient on $d_3$ should be $\sqrt2\approx1.414$. At $\lambda=0.1$ it loses 0.05; at $\lambda=1.0$ only 0.914 is left, with an error of 0.25, so only 87.5% of $\|x\|^2=2$ is reconstructed. For $\lambda\ge2\sqrt2\approx2.83$ the optimum is all zeros and nothing fires.
+- **Shrinkage.** Without the penalty, the coefficient on $d_3$ should be $\sqrt2\approx1.414$. At $\lambda=0.1$ it loses 0.05; at $\lambda=1.0$ only 0.914 is left. The squared reconstruction error is 0.25, or 12.5% of $\|x\|^2=2$, giving $1-\|x-\hat x\|^2/\|x\|^2=87.5\%$. This is the complement of relative squared error, not a claim that the reconstructed vector retains 87.5% of the energy. For $\lambda\ge2\sqrt2\approx2.83$ the optimum is all zeros and nothing fires.
 - **TopK makes a different trade.** With $k=1$ it picks the single direction that best explains $x$, which is $d_3$, with a coefficient equal to the projection $\sqrt2$: exact reconstruction and no shrinkage. The price is that how many latents fire per token is fixed in advance.
 
-A real SAE does not solve this optimisation separately for every input; a single-layer encoder computes the coefficients directly, so under the same objective it can only match the optimum or do worse.
+A real SAE does not optimise the coefficients separately for each input. It computes them directly with a single-layer encoder, whose result can match the optimum under the same objective but may be worse.
 
 <!-- paper-figure:jumprelu-toy -->
 
@@ -90,7 +92,7 @@ That is why Anthropic's 2024 work did not stop at activation examples but also c
 | [Gemma Scope](https://arxiv.org/abs/2408.05147) (Google DeepMind, August 2024) | All layers and sublayers of Gemma 2 2B and 9B, selected layers of 27B | 400+ SAEs, over 30 million features in total | 4 to 16 billion tokens each | Compute of over 20% of GPT-3's training compute; about 20 PiB of activations stored |
 | [Gemma Scope 2](https://deepmind.google/blog/gemma-scope-2-helping-the-ai-safety-community-deepen-understanding-of-complex-language-model-behavior/) (Google DeepMind, 2025-12-19) | Gemma 3 from 270M to 27B, every layer | SAEs, transcoders, skip transcoders, cross-layer transcoders | Not given in the blog post | Self-reported: about 110 PB of data stored, over 1 trillion total parameters trained |
 
-How to read these numbers: "variance explained" and "loss after substituting it into the model" are different things. OpenAI points out that measuring loss recovered against a baseline of zeroing the activations lets even poor SAEs score highly (their 16M SAE scores 98.2% that way), so they use "equivalent pretraining compute" instead; 10% means that with the SAE substituted in, the model falls back to the level of a much smaller model. Anthropic itself writes that it is probably orders of magnitude short of "finding all the features", and that finding them all might take more compute than training the model.
+How to read these numbers: "variance explained" and "loss after substituting it into the model" are different things. OpenAI points out that measuring loss recovered against a baseline of zeroing the activations lets even poor SAEs score highly (their 16M SAE scores 98.2% that way), so they use "equivalent pretraining compute" instead. The 10% compares language-modelling loss after SAE substitution with the corresponding pretraining-compute level; it is not a parameter-count ratio and does not by itself determine an equivalent model's size. Anthropic itself writes that it is probably orders of magnitude short of "finding all the features", and that finding them all might take more compute than training the model.
 
 ## The 2025–2026 critiques: on downstream tasks
 

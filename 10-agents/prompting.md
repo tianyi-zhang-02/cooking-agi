@@ -65,7 +65,9 @@ ICL（in-context learning）在这里指根据上下文中的任务和示范改�
 
 最先值得看的是**哪类错误变少**，不是答案长了多少。多次采样估计生成波动；固定模型、版本、解码、预算和测试项。调过 prompt 的题属于开发材料，不应继续算未见测试。
 
-要求输出 JSON 时，如果所用 API 或推理引擎支持按 JSON Schema 约束解码（structured outputs），就用它保证格式，而不是只靠 prompt 里的一句要求（引擎端的格式问题怎么排查，见 [vLLM 与 SGLang 的排查表](../06-systems/inference-frameworks.md#bottlenecks)）。约束解码只管格式。程序可以查 schema、日期是否来自原文；语义概括是否合适，仍要人审或校准过的 judge。不要把“能成功解析”当作唯一的通过条件。完整协议见 [评估基础](../07-evaluation/benchmark-protocols.md)。
+要求输出 JSON 时，如果所用 API 或推理引擎支持按 JSON Schema 约束解码（structured outputs），就用它保证格式，不要只靠 prompt 里的一句要求。引擎端的格式问题如何排查，见 [vLLM 与 SGLang 的排查表](../06-systems/inference-frameworks.md#bottlenecks)。
+
+约束解码只管格式。程序可以检查输出是否符合 schema、日期是否来自原文；语义概括是否合适，仍要由人或校准过的 judge 审核。不要把“能成功解析”当作唯一的通过条件。完整协议见 [评估基础](../07-evaluation/benchmark-protocols.md)。
 
 ## 5. 输入变长以后，要管理什么？
 

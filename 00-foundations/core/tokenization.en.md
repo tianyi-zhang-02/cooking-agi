@@ -4,11 +4,11 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-The same sentence can become different ID sequences under different tokenizers. If a toy tokenizer splits `playing` into `play` and `ing`, the model receives two IDs, not one English word. That choice affects sequence length, compute, and how unfamiliar words are represented. We will follow the text through tokenization and the embedding lookup. **The model only ever sees token IDs; change the split, and the sequence length, the compute, and the units the model sees all change with it.**
+Different tokenizers can turn the same sentence into sequences of different lengths. A tokenizer that splits `playing` into `play` and `ing` uses two IDs rather than one for the whole word. This is an illustrative split, but the consequences are practical: tokenization affects sequence length, computation, and how unfamiliar words are represented. We will follow a text input through tokenization, embedding lookup, and chat formatting.
 
 ## The model receives token IDs {#the-model-receives-token-ids}
 
-We say all the time that a model “reads” a sentence, but it has never actually seen text. A tokenizer first splits the string into tokens from a finite vocabulary and then maps them to integer IDs; from start to finish, those numbers are all the model really receives.
+The neural network cannot process a text string directly. A tokenizer splits the string into vocabulary tokens and maps them to integer IDs. The model then looks up vectors in an embedding table and performs subsequent computations on those vectors. IDs select the embeddings; they are not the representation used throughout the network.
 
 ## Step 1: how text is split into tokens {#step-1-how-text-is-split-into-tokens}
 
@@ -84,7 +84,7 @@ An application may represent a conversation as
 ]
 ```
 
-The Transformer does not receive that dictionary directly. A chat template first
+The Transformer does not process this message list directly. A chat template first
 serializes the messages into the format seen during training. A ChatML-style rendering
 might be
 
@@ -173,14 +173,14 @@ This teaching implementation collapses whitespace, maps unseen characters to `<u
 
 ## Where to read next {#where-to-read-next}
 
-Text has finally become vectors, but the positions still know nothing about each other. The next page is [RNN and LSTM](recurrent-models.en.md): if you can only read from left to right, where exactly should the past be stored?
+After the lookup, each position has a vector, but it has not yet incorporated information from other positions. Continue with [RNN and LSTM](recurrent-models.en.md) to see how a model can carry earlier information forward while reading a sequence from left to right.
 
 ## Quick learning: what a tokenizer does at the model boundary {#quick-learning-what-a-tokenizer-does-at-the-model-boundary}
 
 <details class="interview" markdown="1">
 <summary>The standard text-to-IDs answer and one key misconception</summary>
 
-**Quick memory**: a tokenizer segments text into vocabulary pieces and maps them to integers; a chat template first serializes the role structure, and special tokens are just special IDs in the vocabulary that carry boundary semantics.
+**In brief**: a chat template arranges messages and roles in the expected format. The tokenizer then splits the text into vocabulary tokens and maps them to integer IDs. Special tokens mark roles, message boundaries, and other designated positions.
 
 **Interview answer**
 

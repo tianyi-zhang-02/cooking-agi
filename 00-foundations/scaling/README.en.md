@@ -4,7 +4,11 @@
 
 > Reading time: ~5 min · Last reviewed: 2026-10
 
-Before a pretraining run starts, several things must be decided: how big the model is, how many tokens it trains on, what learning rate and batch size to use, and how the learning rate changes over time. Once they are set, days to months of compute get spent and are hard to change midway. Scaling laws let you estimate these numbers first from a set of cheap small runs. **The conclusion of this series: at a fixed training budget, parameters and data grow in roughly equal proportion (Chinchilla's roughly 20 tokens per parameter); models that will be deployed are usually trained far longer because of inference cost; learning rate and batch size also follow regularities with scale, and a parametrization such as µP can transfer a learning rate tuned on a small model to a large one. All of these are empirical curves fitted on particular data and recipes; the further from the fitted range, the more they should be read as ranges.**
+Before pretraining, you need to choose the model size, amount of data, learning rate, batch size, and learning-rate schedule. A large run can take days or months, so discovering a poor configuration late is expensive. Scaling laws use smaller experiments to help estimate how to spend the larger compute budget.
+
+The series follows three decisions: how Chinchilla allocates parameters and data under a training budget, how deployment costs change that choice, and how learning rate, batch size, and maximal update parametrization (µP) fit in. We work through where rules such as “about 20 tokens per parameter” come from, and why deployed models are often trained for longer.
+
+These relationships are fitted to particular datasets and training setups. They can narrow the search, but they still need validation. Extrapolating further adds uncertainty.
 
 ## The numbers to fix before launch
 

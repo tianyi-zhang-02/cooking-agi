@@ -4,7 +4,9 @@
 
 > Reading time: ~11 min · Last reviewed: 2026-10
 
-A linear probe reads "is this sentence true or false?" from one layer's activations with 95% accuracy. Can you say the model "represents truth" at that layer? A second phenomenon: the same neuron fires on academic citations and on Korean text. Both rest on the same set of ideas. **"A concept corresponds to a direction in activation space" is a useful working assumption that does not always hold; probe accuracy only shows that information can be read out, and it takes control tasks and interventions before you can talk about the model using it; when there are more features than dimensions and the features are sparse, a network superposes them on the same neurons, so looking at neurons one by one is not enough and you have to look for directions instead.**
+A linear probe predicts whether a sentence is true or false from one layer's activations with 95% accuracy. Can you say the model "represents truth" at that layer? Consider another observation: the same neuron fires on academic citations and on Korean text. Understanding both examples requires distinguishing features, directions and neurons.
+
+The idea that a concept corresponds to a direction in activation space is a useful working assumption, but it does not always hold. Probe accuracy only shows that information can be read out; control tasks and interventions are needed to investigate whether the model uses it. When sparse features outnumber the available dimensions, a network superposes them on the same neurons. Looking at neurons individually is then insufficient: we also need to find the directions that represent features.
 
 ## Is a feature a direction? The linear representation hypothesis
 
@@ -46,7 +48,7 @@ Here are three rows from Table 1 of the paper, for the first layer of ELMo, part
 | One-hidden-layer MLP, default hyperparameters | 97.3 | 92.8 | 97.3 − 92.8 = 4.5 |
 | One-hidden-layer MLP, regularisation tuned with control tasks | 97.2 | 80.6 | 97.2 − 80.6 = 16.6 |
 
-The MLP probe is only 0.1 points better than the linear one, yet it also reaches 92.8 on random labels, so most of its accuracy comes from its own memorisation. The authors also found that dropout does not improve MLP selectivity while other regularisation does, and that probes on the first layer are slightly more accurate than on the second, while the second layer is far more selective. "Which layer represents part of speech better" depends on which of the two you measure.
+The MLP probe is only 0.1 points better than the linear one, yet it also reaches 92.8 on random labels. This demonstrates substantial memorisation capacity, so high real-task accuracy alone does not establish representation quality. Selectivity subtracts accuracies on two tasks; it does not partition individual correct predictions on the real task into those due to the representation and those due to memorisation. It therefore cannot establish that most real-task accuracy comes from memorisation. The authors also found that dropout does not improve MLP selectivity while other regularisation does, and that probes on the first layer are slightly more accurate than on the second, while the second layer is far more selective. "Which layer represents part of speech better" depends on which of the two you measure.
 
 | What to try first | What to observe | What you cannot conclude from it |
 | --- | --- | --- |

@@ -114,6 +114,8 @@ assert prefill_chunks(10, 2, 12) == [10]
 
 ## 源码从哪里读？ {#source-route}
 
-本篇核对 vLLM `10cc2f6`，链接固定到完整 commit，不把会变化的 main 当永久说明。先读 [API 的 completion 入口](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/entrypoints/openai/completion/serving.py)，再跟 `AsyncLLM.generate` → `EngineCore.step` → `Scheduler.schedule` → worker 执行 / 采样 → output processor。Chat 和推测解码会有分支；异步调度在这一 commit 的兼容配置下默认开启（`AsyncScheduler` 继承 `Scheduler`），CPU 排下一轮时 GPU 还在跑上一轮，trace 里两步可以重叠。某些 pooling 模型、executor 或推测解码配置会关闭它，不能只看默认开关。不要求所有请求严格走同一条函数栈。
+本篇核对 vLLM `10cc2f6`，链接固定到完整 commit，避免 main 更新后与说明不符。先读 [API 的 completion 入口](https://github.com/vllm-project/vllm/blob/10cc2f6ae2c9ba7cc5841ece95e27d0562aef1bf/vllm/entrypoints/openai/completion/serving.py)，再跟 `AsyncLLM.generate` → `EngineCore.step` → `Scheduler.schedule` → worker 执行 / 采样 → output processor。Chat 和推测解码会有分支，并非所有请求都经过完全相同的函数调用链。
+
+异步调度在这一 commit 的兼容配置下默认开启（`AsyncScheduler` 继承 `Scheduler`）。CPU 排下一轮时，GPU 还在跑上一轮，因此 trace 里的两步可以重叠。某些 pooling 模型、executor 或推测解码配置会关闭异步调度，阅读源码时还要检查这些条件，不能只看默认开关。
 
 本站只运行预算算例和文档检查，没有启动这一版本的完整 serving 服务，也没有测出某个框架更快。要复现性能，还需要固定模型、硬件、引擎配置和请求回放。

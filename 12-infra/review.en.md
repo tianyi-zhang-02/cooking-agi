@@ -4,7 +4,7 @@
 
 > Reading time: ~8 min · Last reviewed: 2026-10
 
-Interview questions on AI infrastructure tend to land on one chain: how chips are made, how a GPU runs kernels, how a framework launches them, and how a cluster hands out GPUs. **To answer them, first fix the basis (precision, dense or sparse, which SKU), then work out which layer holds the bottleneck and which number limits it.** Every number below comes from the notes in this series, where the derivations and sources are.
+AI infrastructure interviews often cover several connected stages: chip manufacturing, GPU kernel execution, framework kernel launches, and cluster-level GPU allocation. Start by stating the basis for comparison, including precision, dense or sparse computation, and the specific SKU. Then identify the layer containing the bottleneck and use the relevant figures to estimate its limits. Every number below comes from the notes in this series, which provide the derivations and sources.
 
 ## Interview questions
 
@@ -74,7 +74,7 @@ What it saves is not multiplications. With 4096×4096, BF16 and a teaching bandw
 <details class="interview" markdown="1">
 <summary>Why does distributed training on Kubernetes need gang scheduling?</summary>
 
-The default kube-scheduler places one Pod at a time, but distributed training needs every rank present before it can start; and a GPU is an extended resource that comes only in whole numbers and cannot be overcommitted. Work it by hand: 3 nodes with 8 GPUs each; in order, two 4-GPU jobs arrive, then a 16-GPU training job T16 (2 Pods of 8 GPUs each), then an 8-GPU job T8. Default scoring looks only at CPU and memory, so the two 4-GPU jobs may land on different nodes; one T16 Pod takes the third node and the other does not fit, so the half that started holds 8 GPUs while waiting; the two remaining halves of 4 free GPUs cannot form T8 either. Only 8 of 24 GPUs are working; if another T16 arrives, the two jobs may each hold a node and wait on each other, a deadlock.
+The default kube-scheduler places one Pod at a time, but distributed training needs every rank present before it can start; and a GPU is an extended resource that comes only in whole numbers and cannot be overcommitted. Work it by hand: 3 nodes with 8 GPUs each; in order, two 4-GPU jobs arrive, then a 16-GPU training job T16 (2 Pods of 8 GPUs each), then an 8-GPU job T8. Default scoring looks only at CPU and memory, so the two 4-GPU jobs may land on different nodes; one T16 Pod takes the third node and the other does not fit, so the half that started holds 8 GPUs while waiting; the two remaining halves of 4 free GPUs cannot form T8 either. Only 8 of 24 GPUs are working, and another T16 would also queue. Two jobs waiting on each other require an extra condition: with only two whole nodes available for training and the third occupied long-term, each T16 may hold one node and wait for its other half. Deadlock then requires that no resource release, timeout-based reclamation or preemption resolves the wait; the original table's fragmentation does not establish this by itself.
 
 Gang scheduling binds nothing if the whole group does not fit, leaving the third node for T8, so 16 GPUs work; adding GPU bin packing (MostAllocated with GPU weighted) packs the two small jobs onto one node, and all 24 work, with T8 now queued. There are several implementations: core Kubernetes gang scheduling is beta and off by default in v1.37; Kueue uses `waitForPodsReady` to evict and requeue on timeout; Volcano uses the PodGroup's `minMember`. Note that "gang scheduling" in the Slurm docs means time-slicing, not all-or-nothing. See [Kubernetes](kubernetes.en.md).
 
@@ -83,7 +83,7 @@ Gang scheduling binds nothing if the whole group does not fit, leaving the third
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>why, at the same $D_0=0.1$ per cm², a monolithic 800 mm² die gives about 29 good dies per wafer while two 400 mm² halves give 48 pairs, and which costs that arithmetic leaves out;</li>
     <li>why tiling cuts a matrix multiply's global reads from $2n^3$ to $2n^3/T$, yet the Best Practices Guide's V100 example only raises effective bandwidth from 119.9 GB/s to 195.5 GB/s;</li>

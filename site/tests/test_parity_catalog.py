@@ -61,7 +61,11 @@ class ParityCatalogTests(unittest.TestCase):
         english = (ROOT / 'templates/paper-note.en.md').read_text()
         self.assertEqual(paritycheck.shape(chinese), paritycheck.shape(english))
         self.assertIn('## Place in the wider system', english)
-        self.assertIn('## Connection to my research map', english)
+        self.assertIn('## Connections to other research', english)
+        rendered, unused_toc = build.render_markdown(english)
+        self.assertIn('<h2 id="connection-to-my-research-map">Connections to other research</h2>', rendered)
+        rendered, unused_toc = build.render_markdown(chinese)
+        self.assertIn('<h2 id="claim_1">什么结果会推翻这个结论？</h2>', rendered)
 
 
 if __name__ == '__main__':

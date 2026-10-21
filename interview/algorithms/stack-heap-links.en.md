@@ -4,7 +4,7 @@
 
 > Reading time: ~8 min · Last reviewed: 2026-10
 
-A stack remembers the most recently unfinished task. A heap keeps the current highest-priority item at hand. A linked list lets you reconnect neighboring nodes. The common mistake is using one as though it were another.
+A stack keeps the most recently added unfinished item on top. A heap makes the current highest-priority item easy to retrieve. A linked list lets you reconnect neighboring nodes. The common mistake is using one as though it were another.
 
 ## 1. Stack: close the most recently opened item
 
@@ -36,7 +36,7 @@ def next_warmer(temperatures):
     return waits
 ```
 
-`[30, 40, 35, 50] → [1, 2, 1, 0]`. Reading 50 resolves 35, then 40. The wait from 40 is 2.
+`[30, 40, 35, 50] → [1, 2, 1, 0]`. Reading 50 resolves the wait for 35, then for 40. The 35 after 40 was not warmer, so the day with temperature 40 has to wait 2 days, until 50.
 
 O(n) time, O(n) auxiliary space, O(n) output. Each index is pushed and popped at most once despite the inner loop. `<` means strictly warmer; `<=` would accept equal temperatures. This avoids rescanning suffixes but needs the appropriate order relationship: not every “next” problem qualifies.
 
@@ -85,7 +85,7 @@ def reverse_list(head):
     return previous
 ```
 
-For `1 → 2 → 3`, save the old next link before rewiring, or lose the remaining list. At each loop entry, previous heads the reversed prefix and current heads the unprocessed suffix. O(n) time, O(1) auxiliary space; **mutates the list** and assumes no cycle. Recursive reversal instead uses O(n) call-stack space.
+When reversing `1 → 2 → 3`, save the old next link before changing it; otherwise you lose access to the remaining list. At the start of each iteration, previous points to the head of the reversed prefix, and current points to the head of the unprocessed suffix. This takes O(n) time and O(1) auxiliary space, **mutates the list**, and assumes no cycle. Recursive reversal instead uses O(n) call-stack space.
 
 <!-- widget:algo-reverse-list -->
 

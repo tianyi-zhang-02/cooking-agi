@@ -40,7 +40,7 @@ By hand: put 3 features 120° apart in 2 dimensions, so each pair interferes at 
 
 $f=\mathrm{ReLU}(W_{\rm enc}x+b)$, $\hat x=W_{\rm dec}f+b'$, and the loss is reconstruction error plus $\lambda\sum_i f_i\|W_{\rm dec}^{(i)}\|$; multiplying by the decoder column norm stops the model from dodging the penalty by shrinking $f_i$ and enlarging the decoder vector. L1 causes shrinkage: non-zero activations are systematically underestimated. TopK (OpenAI) keeps only the $k$ largest per token, setting sparsity directly and leaving only the reconstruction term; JumpReLU (Google DeepMind) learns a threshold per latent and penalises L0 directly, trained with straight-through estimators.
 
-By hand: $x=(1,1)$, with dictionary directions $(1,0)$, $(0,1)$ and $(0.707,0.707)$. L1 prefers using only the diagonal direction (a cost of $\sqrt2$ against 2); at $\lambda=1$ the coefficient is 0.914 and only 87.5% is reconstructed; for $\lambda\ge2\sqrt2$ nothing fires. TopK with $k=1$ gives a coefficient of $\sqrt2$ with no shrinkage. See [Sparse autoencoders](sparse-autoencoders.en.md).
+By hand: $x=(1,1)$, with dictionary directions $(1,0)$, $(0,1)$ and $(0.707,0.707)$. L1 prefers using only the diagonal direction (a cost of $\sqrt2$ against 2). At $\lambda=1$ the coefficient is 0.914 and the relative squared reconstruction error is $0.25/2=12.5\%$, whose complement is 87.5%, not the reconstructed vector's retained-energy fraction. For $\lambda\ge2\sqrt2$ nothing fires. TopK with $k=1$ gives a coefficient of $\sqrt2$ with no shrinkage. See [Sparse autoencoders](sparse-autoencoders.en.md).
 
 </details>
 
@@ -83,7 +83,7 @@ What to ask: was the problem implanted, or did it occur naturally? Who reported 
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>Three features 120° apart in 2 dimensions, zero bias, with a ReLU: what is the reconstruction when features 1 and 2 are both active? At $p=0.1$, what are the expected losses of superposition and of "dropping one feature"?</li>
     <li>A linear probe at 97.2 against 71.2 on the control task, an MLP probe at 97.3 against 92.8: what is each selectivity? Why do near-identical accuracies lead to different conclusions?</li>

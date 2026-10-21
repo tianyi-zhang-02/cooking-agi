@@ -4,7 +4,7 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-Ask an assistant to review a learning note, and it may need to read files, check sources, and suggest changes. Giving it those tools does not settle the task. It might reach a conclusion before finishing the note, or publish something you only wanted to review.
+Ask an assistant to review a learning note, and it may need to read files, check sources, and suggest changes. Access to those tools does not ensure a good review. It might reach a conclusion before finishing the note, or publish something you only wanted to review.
 
 Two separate questions matter: **what can it call, and how should it use those capabilities?** Function calling and MCP mostly address access; a skill can package a repeatable procedure. The application still executes actions, enforces permissions, and checks results.
 
@@ -46,7 +46,7 @@ MCP covers how an assistant reaches tools and data. Handing a task to an agent b
 
 A skill can use MCP tools or local file tools. An MCP server can serve multiple assistants without supplying any skills. Use these components to reduce repeated integration work, not to collect every name in an architecture diagram.
 
-**A 2026 update: skills can also be distributed over MCP.** The published Skills extension uses Resources to read instructions and supporting files. SDK and host support still needs checking individually. Reading `SKILL.md` does not activate it: the host must verify the content and apply required approval. Digests establish consistency, not trustworthiness. [Skills over MCP](https://modelcontextprotocol.io/extensions/skills/overview) (checked October 10, 2026)
+**A 2026 update: skills can also be distributed over MCP.** The published Skills extension uses Resources to read instructions and supporting files. SDK and host support still needs checking individually. Reading `SKILL.md` does not activate it: the host must verify the content and apply required approval. A file's digest must be compared with a securely retained expected value, such as the value in the manifest retained at approval, to check consistency with that baseline. A match does not establish that the content is trustworthy or safe. [Skills over MCP](https://modelcontextprotocol.io/extensions/skills/overview) (checked October 10, 2026)
 
 ## 3. MCP provides more than tools {#mcp-primitives}
 
@@ -89,7 +89,7 @@ The sentence “do not publish” is not sufficient protection. Give this exampl
 
 Skills use progressive disclosure: names and descriptions first, full instructions when selected, and supporting files as needed. This avoids loading every procedure up front. The catalog still occupies context, so unused skills are not necessarily free of token cost. [Skills integration guide](https://agentskills.io/client-implementation/adding-skills-support)
 
-Consider these **invented token counts**. Real lengths must be measured with the chosen model's tokenizer; this example only explains the accounting.
+Consider these **invented token counts**. Real lengths must be measured with the chosen model's tokenizer; this example only shows how to calculate the length of the loaded content.
 
 | Loaded content | Count and size | Tokens |
 | --- | --- | --- |

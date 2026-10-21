@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | 学科知识与选择题能力 | [MMLU](https://github.com/hendrycks/test)；前沿模型已超过 90%（例如 2025-01 [DeepSeek-R1 报告](https://arxiv.org/abs/2501.12948)的表 4：OpenAI-o1-1217 为 91.8%，DeepSeek-R1 为 90.8%），拉不开差距时改看 [MMLU-Pro](https://arxiv.org/abs/2406.01574)、[GPQA](https://arxiv.org/abs/2311.12022) 或 [HLE](https://arxiv.org/abs/2501.14249) | 开放式回答、引用、真实任务与数据污染检查 |
 | 中文学科知识 | [C-Eval](https://github.com/hkust-nlp/ceval) | 中文交流、行业语言、混合语言和领域任务 |
-| 代码能否通过测试 | [LiveCodeBench](https://livecodebench.github.io/)；按发布版本取题，截至 2026-10 [最新的 `release_v6`](https://github.com/LiveCodeBench/LiveCodeBench) 收的是 2023-05 到 2025-04 的 1,055 道题；题目早于模型的训练截止日期，就不能再算没见过的新题 | 依赖环境、安全与维护性 |
+| 代码能否通过测试 | [LiveCodeBench](https://livecodebench.github.io/)；按发布版本取题，截至 2026-10 [最新的 `release_v6`](https://github.com/LiveCodeBench/LiveCodeBench) 收的是 2023-05 到 2025-04 的 1,055 道题；题目早于模型的训练截止日期，就不能仅凭时间保证模型没见过，但也不能据此认定它进入了训练集 | 依赖环境、安全与维护性 |
 | 仓库级代码修改 | [SWE-bench Pro](https://arxiv.org/abs/2509.16941)；OpenAI 2026-02 起[不再报告 SWE-bench Verified](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/)，理由是接近做满、测试有错和题目泄漏 | 评分测试本身是否可靠、运行环境、代码审查 |
 | 长上下文中的查找、关联、汇总 | [RULER](https://arxiv.org/abs/2404.06654) | 自然文档的歧义与真实工作流程 |
 | 更复杂的真实长文任务 | [LongBench v2](https://arxiv.org/abs/2412.15204) | 你的文件分布、成本与用户要求 |
@@ -93,7 +93,9 @@ RULER 扩展了单 needle 的测试范围，LongBench v2 则提供更接近真�
 
 保存每题成对结果，用[配对比较](metric-robustness.md#paired-comparison)估计不确定性；同一原始文档派生的题应按文档等合理单位分组，而不是假装每题独立。多次采样测生成波动，多次独立训练才测训练波动。
 
-算一次就知道 4 题有多不够。若把新旧结果当成两组无关样本，2 个百分点差值的 95% 区间半宽约为 $1.96\sqrt{0.8\times0.2/200+0.82\times0.18/200}\approx7.7$ 个百分点，比差值本身大得多。配对后只看不一致的题：假设新模型改对 10 题、改错 6 题，净增正好 4 题，精确 McNemar 检验的 p 值约为 0.45，这批题还说明不了两者正确率不同。
+可以用下面两种计算检查不确定性。若把新旧结果当成两组无关样本，2 个百分点差值的 95% 区间半宽约为 $1.96\sqrt{0.8\times0.2/200+0.82\times0.18/200}\approx7.7$ 个百分点，比差值本身大得多。
+
+配对后，可以只看结果不一致的题。假设新模型改对 10 题、改错 6 题，净增正好 4 题。精确 McNemar 检验的 p 值约为 0.45，这批题还不足以说明两者正确率不同。
 
 提前约定主要指标、不能退化的切片与可接受成本。测试后才挑一个涨得最大的子集，很容易讲出一个并不稳定的故事。区间包含零不是等价证明，统计显著也不自动意味着值得上线。
 

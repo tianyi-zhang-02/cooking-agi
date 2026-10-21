@@ -65,6 +65,8 @@ assert math.isclose(depth_mix([1000, 1000 + math.log(3)], [2, 10]), 8)
 
 已经有生产模型在用。截至 2026-10，[Kimi K3 报告 §2.2](https://arxiv.org/html/2607.24653v1#S2.SS2)（2026-07）采用 Block AttnRes：主干 93 层按 12 层一组，分成 8 个 block，最后一块不满；把 embedding 也算上，是 9 个深度来源。该节只引用前作“$N\approx8$ 就能拿回大部分收益”的结论，没有单独报告 AttnRes 在 K3 里的消融。K3 的 3:1 KDA / Gated MLA 排布和 NoPE 见[位置与顺序](nope-and-order.md#kimi-k3)。
 
+这里沿用 K3 报告的主干层计数；上面的成本表则按 attention 与 MLP 分开的子层计数。两处的“层”不是同一单位，不能把 93 直接代入上表的子层数量。
+
 <span id="batched-merge"></span>
 
 ## 分组后，为什么不能平均几个局部输出？

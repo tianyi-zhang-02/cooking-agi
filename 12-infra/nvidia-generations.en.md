@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-When you read "the new generation is N times faster", ask three things first: which precision? Dense or sparse? Which SKU, and is it per GPU or per system? **Once those are aligned, what has grown steadily across generations is low-precision Tensor throughput, HBM capacity and the size of the NVLink domain; memory bandwidth has grown too, but more slowly than compute. The number of operations you must do per byte read to saturate compute went from about 140 on the V100 to about 1,900 on the GB300 with NVFP4, so for read-heavy, compute-light work such as large-model decode, generational speedups mostly follow bandwidth.**
+When you read "the new generation is N times faster", ask three things first: which precision? Dense or sparse? Which SKU, and is it per GPU or per system?
+
+Once those are aligned, the broad trend is growth in low-precision Tensor throughput, HBM capacity and the size of the NVLink domain. Memory bandwidth has grown too, but more slowly than compute. The number of operations needed per byte read to saturate compute went from about 140 on the V100 to about 1,900 on the GB300 with NVFP4. For read-heavy, compute-light work such as large-model decode, bandwidth often explains generational speedups better than peak compute does.
 
 SMs, warps and Tensor Cores are explained in [GPU architecture](gpu-architecture.en.md). Every hardware number here comes from NVIDIA whitepapers, datasheets, product pages and technical blogs, checked on 2026-10-15; shipped and merely announced products are marked separately.
 
@@ -149,9 +151,9 @@ $P=70\times10^9$ is the parameter count, $b$ the bytes per parameter, $M$ the me
 The last two rows come from the [RTX PRO 6000](https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/) and [DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/) product pages. Reading row by row:
 
 - **On H100, FP8 on one card has the same floor as BF16 on two**, 20.9 ms each: halving the bytes is like doubling the bandwidth, and it uses one card fewer.
-- **Two A100s (34.3 ms) are slower than five V100s (31.1 ms).** In this model the floor depends only on the group's total bandwidth: 5 × 0.9 = 4.5 TB/s, more than 2 × 2.039 ≈ 4.1 TB/s. More cards also have a cost, namely the communication we ignored.
-- **One H200 holds the BF16 weights but is slower than two H100s** (29.2 versus 20.9 ms); it saves cards, not time.
-- **B300 and B200 are equally fast at batch 1**, because their bandwidth is the same; the extra memory goes to KV cache and larger batches.
+- **Two A100s (34.3 ms) have a higher time floor than five V100s (31.1 ms).** In this model the floor depends only on the group's total bandwidth: 5 × 0.9 = 4.5 TB/s, more than 2 × 2.039 ≈ 4.1 TB/s. More cards also have a cost, namely the communication we ignored, so this does not establish their measured speed ordering.
+- **One H200 holds the BF16 weights but has a higher time floor than two H100s** (29.2 versus 20.9 ms); under these assumptions it saves cards without lowering the time floor.
+- **B300 and B200 have the same batch-1 time floor**, because this weights-only read model uses their identical bandwidth; that does not guarantee identical measured speeds. The extra memory goes to KV cache and larger batches.
 - **A workstation part that fits the model is not necessarily fast.** One RTX PRO 6000 holds a 70B model in FP8, but with about half an H100 SXM5's bandwidth its floor is 39.1 ms; DGX Spark fits it too, but each token takes at least 256 ms, about 4 tokens per second.
 
 Workstation spec pages hold two more traps. "AI TOPS" often states neither precision nor sparsity (the RTX PRO 6000's 4,000 AI TOPS carries a footnote saying FP4 with sparsity), so it cannot be compared with the dense figures above; and although they are called Blackwell, the RTX PRO 6000 is compute capability 12.0 and DGX Spark 12.1 ([CUDA GPUs list](https://developer.nvidia.com/cuda-gpus)), with at most 100 KB of shared memory per SM against 228 KB on the data-centre 10.0, and code compiled for an architecture-specific target such as sm_100a does not run on 12.x.

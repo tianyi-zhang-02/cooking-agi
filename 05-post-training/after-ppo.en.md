@@ -49,7 +49,9 @@ The Critic estimates state value, providing a variance-reducing baseline and par
 | **RLOO** | leave-one-out: one sample's baseline is the mean reward of the others | multiple samples; a common form uses a whole-response advantage rather than learned prefix values |
 | **REINFORCE++** | construct advantages from KL-shaped returns, then normalize across the batch | no trained value model; inspect returns, KL, and the normalization scope |
 
-These methods avoid an independently trained value model, not estimation error. Compare saved training state against extra sampling, signal variance, and task structure. The REINFORCE++ row refers to [v1 §3](https://arxiv.org/html/2501.03262v1#S3). Batch normalization of advantages is not another learned baseline, nor a guarantee of unbiased gradients or stable training. As of October 2026, the latest arXiv version is [v9 (2025-11-10)](https://arxiv.org/abs/2501.03262v9), retitled “…with Global Advantage Normalization”. It adds a “REINFORCE++ w/ baseline” variant: sample several responses per prompt, subtract the group's mean reward, then normalize across the whole batch, with KL moved into a separate loss term (v9 §3.2).
+These methods avoid an independently trained value model, but estimation error remains. Compare saved training state against extra sampling, signal variance, and task structure. The REINFORCE++ row refers to [v1 §3](https://arxiv.org/html/2501.03262v1#S3). Batch normalization of advantages is not another learned baseline, nor a guarantee of unbiased gradients or stable training.
+
+As of October 2026, the latest arXiv version is [v9 (2025-11-10)](https://arxiv.org/abs/2501.03262v9), retitled “…with Global Advantage Normalization”. It adds a “REINFORCE++ w/ baseline” variant: sample several responses per prompt, subtract the group's mean reward, then normalize across the whole batch, with KL moved into a separate loss term (v9 §3.2).
 
 RLOO's baseline, with $k$ samples per prompt:
 
@@ -199,7 +201,15 @@ P(y_w\succ y_l\mid x)=\sigma(\Delta r).
 \end{gathered}
 $$
 
-Now take KL-constrained reward maximization. For a KL-regularized reward objective with $\beta>0$, optimizing over all policy distributions satisfying the support conditions, with a finite partition function $Z(x)$, the optimal policy is:
+Now take a KL-regularized reward objective with a fixed penalty coefficient $\beta>0$:
+
+$$
+\max_\pi\ \mathbb E_{x\sim\mathcal D}
+\left[\mathbb E_{y\sim\pi(\cdot\mid x)}r(x,y)
+-\beta D_{\mathrm{KL}}\!\left(\pi(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x)\right)\right].
+$$
+
+KL is a penalty in this objective, not a hard constraint with a prescribed radius. Optimizing over all policy distributions within the Reference's support, with $0<Z(x)<\infty$ and well-defined relevant expectations, the optimal policy is:
 
 $$
 \begin{gathered}
@@ -208,7 +218,11 @@ $$
 \end{gathered}
 $$
 
-Rearrange this as $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$. Substitute into Bradley–Terry: for two responses to the same prompt, $\beta\log Z(x)$ cancels in the reward difference, leaving $\Delta r$ as $\beta$ times the difference of the two policy/reference log-ratios. Replace $\pi^*$ with the policy being trained, $\pi_\theta$, and average the negative log-likelihood over the preference dataset: that is the $\mathcal L_{\mathrm{DPO}}$ above. Reward has not vanished; it has been **absorbed into the policy objective**.
+For a hard constraint $\mathbb E_x D_{\mathrm{KL}}(\pi\|\pi_{\mathrm{ref}})\leq\delta$, $\beta$ must instead be treated as a Lagrange multiplier matched to that constraint. An arbitrary fixed $\beta$ does not guarantee a prescribed $\delta$, let alone keep every neural-network update within that radius. The closed-form derivation in [Eq. 3 and Appendix A.1](https://arxiv.org/html/2305.18290v2#A1.SS1) actually uses the penalized objective above.
+
+Rearrange the optimal policy as $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$. Substitute into Bradley–Terry: for two responses to the same prompt, $\beta\log Z(x)$ cancels in the reward difference, leaving $\Delta r$ as $\beta$ times the difference of the two policy/reference log-ratios.
+
+Next, replace $\pi^*$ with the policy being trained, $\pi_\theta$, and average the negative log-likelihood over the preference dataset: that is the $\mathcal L_{\mathrm{DPO}}$ above. Reward has not vanished; it has been **absorbed into the policy objective**.
 
 This derivation comes from [DPO §4](https://arxiv.org/html/2305.18290v2#S4). It depends on the reward objective, preference model, and support assumptions. It does not establish that all human preferences follow this model, or guarantee that a finite neural network trained on finite data reaches the global optimum.
 
@@ -222,7 +236,7 @@ $$
 
 only says “A is worth imitating.” DPO observes A and B together and learns “A is preferred to B.” Chosen need not be the one uniquely perfect answer, and an ordinary binary preference usually supplies only the order $A>B$, not how much better A is.
 
-$\beta$ participates both in the theoretical Reference constraint and in the preference-logit scale. Mechanically memorizing “larger means more conservative” is unsafe: derivation conventions, loss implementation, and data scale all affect observed training behavior. In an interview, write the exact formula or library convention first, then reason about increasing or decreasing it.
+$\beta$ participates both in the KL-regularization relation to the Reference and in the preference-logit scale. Mechanically memorizing “larger means more conservative” is unsafe: derivation conventions, loss implementation, and data scale all affect observed training behavior. In an interview, write the exact formula or library convention first, then reason about increasing or decreasing it.
 
 Standard offline DPO uses **fixed preference pairs**. The policy changes, but the dataset does not automatically follow, potentially missing new failures. Measure whether distribution mismatch grows; it need not increase monotonically. Online DPO and iterative data refresh collect more feedback, so “DPO is always offline” is not a boundary for the entire family.
 
@@ -344,7 +358,7 @@ It still needs the current or recent policy to generate multiple responses to on
 <details class="interview" markdown="1">
 <summary>Why does DPO need no explicit Reward Model?</summary>
 
-The KL-constrained optimal policy can be inverted to give the reward: $r=\beta\log(\pi^*/\pi_{\mathrm{ref}})$ plus a term that depends only on the prompt. Subtracting two responses to the same prompt cancels that term, so the reward difference becomes the difference of chosen/rejected policy-to-reference log-ratios. Reward did not vanish; it is implicit in the DPO loss. See the [derivation above](#dpo-derivation).
+Under the support and integrability conditions above, the optimal policy for a KL-regularized objective with fixed $\beta>0$ can be inverted to give the reward: $r=\beta\log(\pi^*/\pi_{\mathrm{ref}})$ plus a term that depends only on the prompt. Subtracting two responses to the same prompt cancels that term, so the reward difference becomes the difference of chosen/rejected policy-to-reference log-ratios. Reward did not vanish; it is implicit in the DPO loss. See the [derivation above](#dpo-derivation).
 
 </details>
 

@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-`nvidia-smi` shows 100% GPU utilization, yet a 7B model generating one token at a time produces only a couple of hundred tokens per second. Is the card too slow, or is it being used badly? First look at what that 100% measures: NVML defines it as the fraction of the sample period during which at least one kernel was running ([NVML documentation](https://docs.nvidia.com/deploy/nvml-api/api/structnvmlUtilization__t.html)). It says nothing about how much compute is being used. **The more useful question is: for every byte this operation moves from memory, how many operations does it perform? Compare that with the card's "peak compute ÷ memory bandwidth": below it, you need to move fewer bytes; only above it does compute become the limit.** Using the published specifications of one H100, this note puts a large matrix multiply, an elementwise add, and 7B-model decode on the same chart, then works out MFU and multi-GPU communication, and ends with an order for profiling.
+`nvidia-smi` shows 100% GPU utilization, yet a 7B model generating one token at a time produces only a couple of hundred tokens per second. Is the card too slow, or is it being used badly? First look at what that 100% measures: NVML defines it as the fraction of the sample period during which at least one kernel was running ([NVML documentation](https://docs.nvidia.com/deploy/nvml-api/api/structnvmlUtilization__t.html)). It says nothing about how much compute is being used.
+
+A more useful question is: for every byte this operation moves from memory, how many operations does it perform? Comparing that with the card's "peak compute ÷ memory bandwidth" gives an initial indication of whether bandwidth or compute sets the roofline bound, and whether to focus on data movement or computation. Using the published specifications of one H100, this note puts a large matrix multiply, an elementwise add, and 7B-model decode on the same chart, then works out MFU and multi-GPU communication, and ends with an order for profiling.
 
 This note follows [CUDA: threads, memory, and kernels](cuda.en.md). Unless a number is marked as reported by a paper, it is an upper bound computed from published specifications or a teaching assumption, not a benchmark.
 
@@ -45,7 +47,7 @@ Bytes are counted for the ideal case where every input is read once and every ou
 
 **Elementwise add.** Each element reads two BF16 values (4 bytes), writes one (2 bytes), and does a single addition, so $I=1/6$. It does not use Tensor Cores; even against the non-Tensor Core ridge point of $133.8/3.352\approx40$, it is more than two orders of magnitude lower. Its ceiling is $3.352\times10^{12}\times1/6\approx0.56$ TFLOPS, about 0.06% of the Tensor Core peak. That is why elementwise operations such as bias and activation are fused into the epilogue of the preceding GEMM: saving one round trip to memory matters far more than making the addition faster. The [vector add in the CUDA note](cuda.en.md#vector-add) (FP32, 8 bytes read, 4 bytes written, one addition, $I=1/12$) belongs to the same class.
 
-**Decode.** When generating one token, each weight takes part in a single multiply-add (2 FLOP) but costs 2 bytes to read from memory, so $I\approx1$. A 7B model's BF16 weights are about $1.4\times10^{10}$ bytes; reading them once takes at least $1.4\times10^{10}/3.352\times10^{12}\approx4.18$ ms, so a single request tops out at about 239 tokens/s, while the arithmetic itself needs only 0.014 ms. NVIDIA's guide gives an example of the same kind: a fully connected layer at batch size 1 is a matrix-vector product (GEMV) with arithmetic intensity below 1, and is always memory-bound.
+**Decode.** When generating one token, each weight takes part in a single multiply-add (2 FLOP) but costs 2 bytes to read from memory, so $I\approx1$. A 7B model's BF16 weights are about $1.4\times10^{10}$ bytes; reading them once takes at least $[1.4\times10^{10}/(3.352\times10^{12})]\ \mathrm{s}\approx4.18\ \mathrm{ms}$, so a single request tops out at about 239 tokens/s, while the arithmetic itself needs only 0.014 ms. NVIDIA's guide gives an example of the same kind: a fully connected layer at batch size 1 is a matrix-vector product (GEMV) with arithmetic intensity below 1, making it memory-bound in this compute-and-transfer model.
 
 <!-- widget:step-roofline -->
 
@@ -62,7 +64,7 @@ In one decode step the weights are read once no matter how many requests are in 
 | 295 | 4.18 ms | 4.17 ms | 4.18 ms | 70,600 |
 | 512 | 4.18 ms | 7.24 ms | 7.24 ms | 70,700 |
 
-While $B$ is below 295, that is, while $I$ is still left of the ridge point, adding a request barely changes the step time, so throughput grows linearly with $B$. Past $B\approx295$, throughput stops growing; each step just gets slower and every request waits longer. This is why serving engines work so hard to form batches.
+In this peak-based, weights-only model, while $B$ is below 295 and $I$ remains left of the ridge point, adding a request barely changes the step-time lower bound, so the throughput ceiling grows linearly with $B$. Past $B\approx295$, the throughput ceiling stops growing, but the step-time lower bound keeps increasing and every request waits longer. This weight-reuse benefit explains why serving engines form batches; the actual curve also depends on costs such as the KV traffic below.
 
 ### Adding the KV cache
 
@@ -76,7 +78,7 @@ Attention work has to be counted too: in each layer, each query head does a leng
 | 8 | 18.3 GB | 7.1 | 5.46 ms | 1,470 |
 | 64 | 48.4 GB | 21.4 | 14.4 ms | 4,440 |
 
-However large $B$ gets, the arithmetic intensity only approaches $(1.4\times10^{10}+2.15\times10^{9})/5.37\times10^{8}\approx30$, far from 295; and at $B=128$ the weights plus KV already take about 77 GiB, nearly all of the 80 GB of memory. At this context length, KV bandwidth and capacity run out before compute does. GQA, MLA, KV quantization and paged management all reduce these bytes or the waste around them; see [the KV memory budget](../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget) and [FlashAttention and PagedAttention](../00-foundations/deep-dives/attention-kernels.en.md).
+However large $B$ gets, the arithmetic intensity only approaches $(1.4\times10^{10}+2.15\times10^{9})/(5.37\times10^{8})\approx30$, far from 295; and at $B=128$ the weights plus KV already take about 77 GiB, nearly all of the 80 GB of memory. At this context length, KV bandwidth and capacity run out before compute does. GQA, MLA, KV quantization and paged management all reduce these bytes or the waste around them; see [the KV memory budget](../00-foundations/deep-dives/kv-cache-and-inference.en.md#inference-budget) and [FlashAttention and PagedAttention](../00-foundations/deep-dives/attention-kernels.en.md).
 
 Prefill is the opposite: it processes thousands of tokens of one request at once. Counting weight bytes only, as in the batch table above, the arithmetic intensity of a linear layer is roughly the number of tokens processed together; counting activation reads and writes as well brings it down (about 1,365 for hidden size 4096 and 4,096 tokens at once), still far above 295. The two phases of the same model sit on opposite sides of the roofline, which is one reason [how an LLM request is served](../06-systems/llm-serving.en.md) treats time to first token and the gap between output tokens separately. All numbers in this section use peak values and do not subtract activations, kernel launches, or bandwidth that is not achieved in practice.
 
@@ -113,7 +115,7 @@ $$
 t_{\rm all\text{-}reduce}\approx\frac{S}{B_{\rm bus}}\cdot\frac{2(n-1)}{n}.
 $$
 
-This $B_{\rm bus}$ can be compared directly with link bandwidth and does not change with the number of ranks. Plugging in the busbw that nccl-tests measures on your own machines is more reliable than using numbers from a specification sheet.
+The $2(n-1)/n$ factor in $B_{\rm bus}$ accounts for all-reduce's data transfers, making the bandwidth comparable to link bandwidth on a consistent basis across rank counts. It does not make measured busbw invariant to rank count: topology, inter-node links and contention can still change it. Use nccl-tests to measure busbw on the target machines and rank configuration rather than relying on a specification-sheet number.
 
 Continuing the 7B example, synchronize BF16 gradients with DDP: $S=7\times10^9\times2=14$ GB. The work per GPU per step stays the same (8 sequences × 4096 tokens), so a step still takes 3.64 s.
 

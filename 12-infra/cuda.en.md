@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-When you write `c = a + b` in PyTorch, what actually happens on the GPU? The CPU hands the GPU a function called a kernel, and the GPU starts thousands of threads at once, each computing one or two elements. The addition itself is cheap. **Whether a kernel is fast mostly depends on whether each warp uses the bytes it fetches, and on whether the same data is read from device memory again and again.** This note works through both questions with a vector add and a 4×4 matrix multiply, then connects them to cuBLAS, CUTLASS, and Triton.
+When you write `c = a + b` in PyTorch, what actually happens on the GPU? The CPU hands the GPU a function called a kernel. One launch can schedule thousands of threads, each computing one or two elements. The addition itself is cheap, but how the data moves can have a large effect on performance.
+
+For this kind of kernel, start with two questions: does each warp use the bytes it fetches, and is the same data read from device memory again and again? This note works through both with a vector add and a 4×4 matrix multiply, then connects them to cuBLAS, CUTLASS, and Triton.
 
 The rules below were checked against NVIDIA's [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html) v13.4.2 (updated 2026-09-10; formerly the CUDA C++ Programming Guide, "the Guide" below) and the [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html) 13.4 ("BPG" below). For why GPUs are built this way, see [GPU architecture](gpu-architecture.en.md); for how to tell whether a kernel is limited by compute or by bandwidth, see the next note, [Performance](performance.en.md).
 
@@ -104,7 +106,7 @@ int main() {
 
 The error handling follows Guide [§2.1.7](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/intro-to-cuda-cpp.html#error-checking-in-cuda): a kernel launch returns no error code, and execution errors surface only at the next synchronization or API call. Production code should check the return value of every CUDA API call; to keep this short, only the kernel is checked.
 
-For every element this kernel reads 8 bytes, writes 4 bytes, and does one addition. Its speed is set almost entirely by memory bandwidth; [the performance note](performance.en.md#three-ops) turns that sentence into numbers.
+For every element this kernel reads 8 bytes, writes 4 bytes, and does one addition, so its arithmetic intensity is low. For sufficiently large arrays whose traffic primarily reaches device memory, bandwidth is usually the main limit. The small array in this example may also be affected by launch overhead, available parallelism and caches; arithmetic intensity alone does not determine measured time. [The performance note](performance.en.md#three-ops) calculates the bandwidth-based lower bound for a large array.
 
 ## Memory: where it lives and who can see it {#memory-spaces}
 

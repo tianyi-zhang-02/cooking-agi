@@ -6,7 +6,7 @@
 
 ## The key difference: can the result be checked automatically?
 
-Writing code and booking a flight are both called agents, yet they are entirely different jobs. The biggest difference is **whether you can tell automatically, once it is done, whether it was right**: where results can be verified, an agent can try several times in a sandbox, and a person still reviews the diff once the tests pass; where they cannot, every step leans more on a person.
+Agents can write code or book flights, but these tasks differ in an important way: **can the result be checked automatically?** Where it can, an agent can make several attempts in a sandbox, with a person still reviewing the diff after the tests pass. Where it cannot, each step needs more human oversight.
 
 | Setting | Environment and tools | Automatically verifiable? | Most common failure | Guardrails |
 | --- | --- | --- | --- | --- |
@@ -43,7 +43,9 @@ Code that runs and tests that pass make the ideal agent environment: every step 
 
 ## Customer support: reliability beats one-off success
 
-An agent that answers a customer's question correctly this time and wrongly next time is not acceptable in support. τ-bench simulates users and a tool environment with policy constraints, and measures reliability with pass^k: the probability that k independent runs of the same task all succeed, averaged over tasks. That is closer to the real requirement than a single success: a task solved 90% of the time per run is solved in all 8 runs only $0.9^8\approx0.43$ of the time (see [the table above](#retry-math)). Its successor [τ²-bench](https://arxiv.org/abs/2506.07982) adds a telecom support domain where the user must also operate the device (dual control), so the agent has to guide the user through the fix. As of 2026-10-21 the [repository](https://github.com/sierra-research/tau2-bench)'s [latest release](https://github.com/sierra-research/tau2-bench/releases) is τ-bench 2.0 from October 2026, which adds versions of the same customer-service tasks in six languages. Before it, τ³-bench (v1.0) added full-duplex voice evaluation and the banking_knowledge domain; the July 2026 v1.0.1 fixed grading in that domain, and the repository says results in that domain from before 1.0.1 are not comparable with later ones.
+An agent that answers a customer's question correctly this time and wrongly next time is not acceptable in support. τ-bench simulates users and a tool environment with policy constraints. It measures reliability with pass^k: the probability that k independent runs of the same task all succeed, averaged over tasks. This is closer to the practical requirement than a single success: a task solved 90% of the time per run is solved in all 8 runs only $0.9^8\approx0.43$ of the time (see [the table above](#retry-math)).
+
+Its successor [τ²-bench](https://arxiv.org/abs/2506.07982) adds a telecom support domain where the user must also operate the device (dual control), so the agent has to guide the user through the fix. As of 2026-10-21, the [repository](https://github.com/sierra-research/tau2-bench)'s [latest release](https://github.com/sierra-research/tau2-bench/releases) is τ-bench 2.0 from October 2026, adding versions of the same customer-service tasks in six languages. Before it, τ³-bench (v1.0) added full-duplex voice evaluation and the banking_knowledge domain. The July 2026 v1.0.1 fixed grading in that domain; the repository says its results from before and after that fix cannot be compared directly.
 
 ## Agents that read outside content: beware of injection
 

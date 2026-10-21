@@ -34,7 +34,7 @@ $$
 
 空候选另行定义为 0。长度惩罚（brevity penalty）是为了避免模型只说最容易匹配的几个词。
 
-参考为 `the bus leaves at ten`，候选为 `the bus leaves`。候选的 unigram 和 bigram 都完全匹配，但只交出了 3/5 的长度。教学版 BLEU-2 为 $e^{1-5/3}\approx0.5134$，不是 1。
+参考为 `the bus leaves at ten`，候选为 `the bus leaves`。候选的 unigram 和 bigram 都完全匹配，但候选只有 3 个词，参考有 5 个词。按这里的教学版公式，BLEU-2 为 $e^{1-5/3}\approx0.5134$，不是 1。
 
 换成 `the bus leaves at nine`：长度相同，unigram 匹配 4/5，bigram 匹配 3/4，BLEU-2 为 $\sqrt{0.8\times0.75}\approx0.7746$。时间错了，分数却更高。若任务就是查发车时间，字段正确率才是直接指标。
 

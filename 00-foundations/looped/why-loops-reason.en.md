@@ -6,7 +6,7 @@
 
 ## Some problems need serial steps
 
-"In which city is the university of A's manager?" One approach looks up the manager, then the university, then its city. Intermediate results can help, but this is not a computational lower bound: parallel algorithms, different representations, or existing knowledge may reduce serial work. Multi-digit addition is similar: the usual digit-by-digit carry is one algorithm, not the only way to add.
+"In which city is the university that A's manager graduated from?" One approach looks up the manager, then the university, then its city. Intermediate results can help, but this is not a computational lower bound: parallel algorithms, different representations, or existing knowledge may reduce serial work. Multi-digit addition is similar: the usual digit-by-digit carry is one algorithm, not the only way to add.
 
 Within a forward pass, looping increases serial network depth, not necessarily correct reasoning steps. The illustration deliberately allows only one link per pass to show the budget change. Real attention can aggregate several positions at once; it is not constrained by this toy one-layer/one-hop rule.
 

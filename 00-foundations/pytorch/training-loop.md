@@ -16,7 +16,7 @@
 | `nn.Module` | 注册参数、子模块、buffer，定义前向计算 | 以为所有模块都有权重和 bias |
 | `nn.functional` | 提供无状态的计算接口，包括 loss、线性运算、激活等 | 以为它只有激活函数 |
 | `Dataset` | 定义如何取一个样本 | 以为它就是一个 batch |
-| `DataLoader` | 取样、组 batch，按配置组织加载 | 以为任何输入都会自动变成模型能吃的张量 |
+| `DataLoader` | 取样、组 batch，按配置组织加载 | 以为任何输入都会自动变成符合模型要求的张量 |
 | `Optimizer` | 根据梯度及内部状态更新参数 | 以为 `backward` 已经做了这一步 |
 
 这里用 `TensorDataset`，第一个张量放特征，第二个放标签；同一位置的两者是一对。`shuffle=True` 打乱的是样本索引，不会把特征和标签分别乱排。默认 collate 会尝试把同一字段组成 batch；长度不同的文本还需要 padding、mask 或自定义 `collate_fn`。

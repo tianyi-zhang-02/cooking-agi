@@ -4,7 +4,9 @@
 
 > 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
-一张 H100 SXM 做大矩阵乘法时，dense BF16 的 Tensor Core 峰值是 989.4 TFLOPS；可同一张卡给大模型一个一个生成 token 时，大部分时间在等数据。这两件事并不矛盾。**GPU 追求的是总吞吐，不是单个线程跑得快：它同时挂着很多 warp，谁在等显存就换谁；而 Tensor Core 能不能吃饱，最后取决于数据能多快搬进 SM。**
+一张 H100 SXM 做大矩阵乘法时，dense BF16 的 Tensor Core 峰值是 989.4 TFLOPS；可同一张卡给大模型逐个生成 token 时，大部分时间却在等数据。为什么峰值算力这么高，生成速度仍会受限？
+
+GPU 的设计侧重总吞吐：它让很多 warp 同时驻留，一个 warp 等待显存时，就调度另一个就绪的 warp。Tensor Core 要持续计算，也需要及时得到数据，因此数据搬进 SM 的速度会限制它的利用率。
 
 硬件数字以 H100 SXM5 为主，最终规格取自 [H100 架构白皮书 V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf)（它注明收录了最终的频率和 TFLOPS），其余来自 NVIDIA 的产品页、架构博客和 CUDA 文档；手算例子里的周期数和矩阵元素是教学假设，会单独标出。怎么写 kernel 见 [CUDA](cuda.md)，roofline 见[性能](performance.md)，各代参数对比见 [NVIDIA 各代 GPU](nvidia-generations.md)。
 
@@ -51,7 +53,9 @@ SM 按 32 个线程一组来调度，这一组叫 warp。[CUDA 指南](https://d
 
 **分支本身不贵，同一个 warp 里分道扬镳才贵**；不同 warp 走不同分支没有这个代价。
 
-两点容易误会。第一，SIMT 不等于“32 个线程永远步调一致”。从 compute capability 7.0（Volta）起有 independent thread scheduling，每个线程有自己的程序计数器，warp 内可以更细地分叉、汇合；依赖隐式同步的老代码要用 `__syncwarp()` 显式同步（[高级 kernel 编程](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#independent-thread-scheduling)）。第二，SIMT 和 SIMD 的差别在接口：SIMD 把向量宽度暴露给软件，SIMT 让你按单个线程写代码，由硬件把线程编成 warp。
+这里有两点需要区分。SIMT 并不意味着“32 个线程永远步调一致”。从 compute capability 7.0（Volta）起，GPU 支持 independent thread scheduling，每个线程有自己的程序计数器，warp 内可以更细地分叉、汇合；依赖隐式同步的老代码要用 `__syncwarp()` 显式同步（[高级 kernel 编程](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#independent-thread-scheduling)）。
+
+SIMT 和 SIMD 的差别则在编程接口：SIMD 把向量宽度暴露给软件，SIMT 允许按单个线程写代码，再由硬件把线程编成 warp。
 
 ## 延迟隐藏：靠同时挂着很多 warp
 
@@ -83,7 +87,7 @@ $$
 | 每线程寄存器从 64 加到 128 | 驻留 warp 减半，本例 $U$ 从约 73% 掉到约 36% | 寄存器用得多的 kernel 一定慢 |
 | 改用异步拷贝（Ampere 起的硬件异步拷贝、Hopper 的 TMA） | 搬运和计算重叠，较少的 warp 也能保持忙碌 | 异步拷贝能突破带宽上限 |
 
-最后一行要单独说。高性能矩阵乘 kernel 常常每个线程用很多寄存器、occupancy 不高，靠指令级并行和异步搬运把等待藏起来；CUDA 指南也把异步拷贝描述为在 warp 切换之外，进一步让搬运和计算重叠（[异步执行](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#asynchronous-execution-features)）。**延迟可以藏，带宽上限藏不掉**，这是下一节的话题。
+最后一行说明了为什么 occupancy 不高也可能很快。高性能矩阵乘 kernel 常常每个线程用很多寄存器，通过指令级并行和异步搬运减少等待。CUDA 指南也将异步拷贝描述为在 warp 切换之外，进一步让搬运和计算重叠的方法（[异步执行](https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html#asynchronous-execution-features)）。这些方法能隐藏延迟，却不能突破带宽上限；下一节继续讨论这个限制。
 
 ## 内存层级：越近越小，越远越慢
 

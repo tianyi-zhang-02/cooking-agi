@@ -4,7 +4,9 @@
 
 > Reading time: ~14 min · Last reviewed: 2026-10
 
-A new prompt scores 92 on the offline eval set. Two weeks after launch, complaints that answers "miss the question" go up. The offline set did not change; the traffic did: new topics, new languages, longer conversations, and perhaps a provider that swapped the model behind the same alias. Production has no reference answers, and nobody can read a hundred thousand requests a day. **Online evaluation has to answer a question you can compute: if you judge only a small fraction of requests, how large a regression can you detect, how quickly, and with what confidence? The answer is usually worse than intuition suggests, especially for small slices.**
+A new prompt scores 92 on the offline eval set. Two weeks after launch, complaints that answers miss the question go up. The offline set did not change; the traffic did: new topics, new languages, longer conversations, and perhaps a provider that swapped the model behind the same alias. Production has no reference answers, and nobody can read a hundred thousand requests a day.
+
+We need to estimate how large a regression a small sample of judged requests can reveal, how quickly, and with what confidence. Sampling may be less sensitive than intuition suggests, especially for small slices. We will start with the fields and sampling process, then calculate those limits with a worked example.
 
 ## How offline eval sets differ from production traffic
 
@@ -50,7 +52,11 @@ So the table below has two kinds of information: the names in v1.41.0, the last 
 | Evaluation result | Event `gen_ai.evaluation.result`: `gen_ai.evaluation.name`, `gen_ai.evaluation.score.value`, `gen_ai.evaluation.score.label`, `gen_ai.evaluation.explanation` | Parent it to the evaluated span; when the span is unavailable, correlate via `gen_ai.response.id` |
 | Cost, user feedback | No standard attribute | Compute cost downstream from token counts and a dated price table; record feedback as a custom event linked by trace id or response id |
 
-Three practical points. First, record which version of the conventions you emit, and keep a mapping layer between dashboard queries and raw fields; names may change when you upgrade instrumentation (v1.41.0 says instrumentations that already emitted v1.36.0 or earlier keep the old names by default and switch to the latest experimental version only when `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental` is set). Second, capture model name, parameters and prompt version when the request is sent; reconstructing them from configuration afterwards tends to go wrong. Third, a judge call is itself a GenAI call: record its model, parameters and rubric version too, which the section on drift relies on.
+Check three things when using these fields:
+
+1. Record which version of the conventions your instrumentation emits, and keep a mapping layer between dashboard queries and raw fields. Names may change during an upgrade. Under v1.41.0, instrumentation already emitting v1.36.0 or earlier keeps the old names by default; setting `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental` switches it to the latest experimental version.
+2. Capture the model name, parameters, and prompt version when the request is sent. Reconstructing them from configuration afterwards can produce a mismatch.
+3. A judge call is itself a GenAI call. Record its model, parameters, and rubric version too; those records will be needed to check for judge drift.
 
 ## How online evaluation runs: from sampling to a regression set
 
@@ -85,7 +91,9 @@ Hand what rules cannot express to a judge: are the answer's claims supported by 
 
 There are usually four entry points: the judge is unsure or the score sits near the threshold; a high-risk category (money, health, sending something externally); the user gave a thumbs-down or asked for a human; and **a random audit that does not depend on the judge's verdict**.
 
-The first three select samples that "look problematic", so they only tell you how many flagged samples are truly bad. To estimate how many bad answers the judge let through, you must randomly pick some of the samples the judge passed and have a person read them. Without a random audit, the judge's miss rate stays unknown. For when human involvement is worth it, see [Human-in-the-loop](../06-systems/human-in-the-loop.en.md).
+The first three select samples that "look problematic", so they only tell you how many flagged samples are truly bad. Randomly auditing samples the judge passed estimates the fraction of those passes that are actually bad. Its denominator is all passes, not all bad responses, so it is not the false-negative rate.
+
+To estimate the full confusion matrix, sample randomly from all traffic. You can also sample passes and failures separately, but if their sampling rates differ, weight each audited response by the inverse of its inclusion probability rather than pooling the samples directly. For when human involvement is worth it, see [Human-in-the-loop](../06-systems/human-in-the-loop.en.md).
 
 ### Turn failures into regression items
 
@@ -172,7 +180,9 @@ These numbers cover sampling error only. Not yet included:
 - Requests from the same user or conversation are correlated, so the effective sample is smaller than the count; estimate with clustering by user or conversation, see [metric robustness](metric-robustness.en.md).
 - Watch 20 slices and 5 metrics at once and a few will look "significant" every day even when nothing changed.
 
-An alternative does not rely on fixed $s,t$: in each reporting period, have people label a small part of the random sample, and subtract the judge's average error on that small labeled part from the judge's average on the large sample. This is the mean estimator of [prediction-powered inference](https://arxiv.org/abs/2301.09633) (Angelopoulos et al., 2023); the paper's setting has the human-labeled samples and the judged traffic drawn independently from the same distribution (a random audit satisfies this), and under that assumption the intervals are valid without assuming anything about how accurate the judge is. The closer the judge is to humans, the narrower the interval. The cost is fresh human labels every period.
+An alternative does not rely on fixed $s,t$: score a large sample with the judge, and independently draw a smaller sample for both human and judge scoring. Subtract the judge's average error on the smaller sample from its average on the larger one. This is the mean-estimation idea in [prediction-powered inference](https://arxiv.org/abs/2301.09633) (Angelopoulos et al., 2023).
+
+The basic setup uses independent, identically distributed samples and a judge not fitted or tuned on them. Coverage does not require a particular judge accuracy, but still needs the statistical assumptions; the usual normal-approximation guarantee is asymptotic. Narrower intervals depend on residual variance and sample sizes. If labeled examples are a subset of the larger sample, use a variance estimate that accounts for the overlap. Ongoing monitoring also needs fresh labels as traffic changes.
 
 <!-- paper-figure:ppi-intervals -->
 
@@ -198,7 +208,7 @@ Continue with the numbers from the worked example. A month later, the judge's pr
 
 What you can do:
 
-- Pin the judge's model version (record `gen_ai.response.model` of the judge call), the rubric version and the parsing rules. If any of them changes, treat it as a new ruler: rebuild the baseline instead of splicing the before and after curves into one.
+- Pin the judge's model version (record `gen_ai.response.model` of the judge call), the rubric version and the parsing rules. If any of them changes, rebuild the evaluation baseline rather than treating the before and after scores as one continuous series.
 - Keep an anchor set: a fixed batch of human-labeled samples, re-judged on a schedule and whenever anything about the judge changes. Report $s$ and $t$ separately, not just agreement.
 - Put enough failing samples in the anchor set. Random traffic is only 10% failures, so 200 anchors give about 20 for estimating $t$, with a standard error near 0.08, which cannot tell 0.85 from 0.75. Deliberately include more failing samples, and fill in per slice.
 - A fixed anchor set goes stale. Keep adding new items from recent random audits; this is the fresh audit in [judge calibration](llm-as-a-judge/calibration.en.md). For the perturbations that can push a judge off course, see [bias checks](llm-as-a-judge/bias-and-workflow.en.md).
@@ -223,7 +233,7 @@ When choosing tools, first separate the categories: instrumentation and collecti
 | Deterministic checks (schema, citation IDs) | This response clearly broke a specific rule | That responses passing the checks are correct |
 | A single judge score | Whether, under this rubric, this response probably has a problem | That this response is definitely right or wrong |
 | Corrected, sampled judge pass rate | Overall quality changes larger than the MDE | Regressions in small slices; whether the judge itself changed |
-| Random human audit | The judge's miss and false-alarm rates; an unbiased quality estimate | Anything cheap, fast, or covering every slice |
+| Random human audit | Quality and judge error rates, estimated using the sampling design and any required weights | Anything cheap, fast, or covering every slice |
 | Triggered human review | How many flagged samples are truly bad | The overall failure rate, or what the judge missed |
 | Thumbs-down, regenerate | That some users are unhappy, and the trend | Whether the silent majority is satisfied |
 | One complete trace of a failure | Which steps this failure went through, and a hypothesis for why | How common this kind of failure is |

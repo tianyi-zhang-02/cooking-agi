@@ -10,7 +10,7 @@
 
 ## 核心计算：匹配并聚合信息 {#_2}
 
-每个位置拿着自己的**问题**（query）去问所有位置的**索引**（key）。对得越上，就从那个位置的**内容**（value）里取越多。取回来的是一个加权平均。
+每个位置用自己的**查询向量（query）**与各位置的**键向量（key）**计算匹配程度。匹配分数越高，对应的**值向量（value）**在输出中所占的权重就越大。最后得到的是这些 value 的加权平均。
 
 多头会使用不同的投影，各算一份加权结果，再拼起来。有些头可能学到位置邻近或指代关系，但这些分工不是预先指定的，也不保证每个头都对应一个人能命名的功能。
 
@@ -342,8 +342,13 @@ $$
 $$
 
 因此标准 MHA 的 Q/K/V 和输出投影总参数量约为 $4d_{\text{model}}^2$，与头数本身
-无关。代码也通常只做一次大投影，再 reshape 成 `(B, H, T, d_head)`；不是顺序执行
-8 次小模型。
+无关。对 Q、K、V 中的每一种投影，可以用一次大矩阵乘法同时得到所有头，再 reshape
+并 transpose 成 `(B, H, T, d_head)`，无需顺序执行 8 次小投影。本页代码分别计算
+Q、K、V，因此这一阶段是三次投影，并不是拆头后整个 MHA 只剩一次 GEMM。
+
+自注意力中三者使用同一输入 $X$，还可以拼接权重，把 QKV 投影融合成一次 GEMM：
+$X[W_Q\;W_K\;W_V]=[XW_Q\;XW_K\;XW_V]$，再拆出 Q、K、V。输出投影 $W_O$
+仍是单独的运算；是否融合 QKV 是实现选择，不是多头拆分本身保证的性质。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -373,9 +378,16 @@ $$
 $$
 
 Standard MHA therefore has about $4d_{\text{model}}^2$ parameters across Q, K, V,
-and the output projection, independent of head count. Implementations perform one
-large projection and reshape to `(B, H, T, d_head)` rather than running eight small
-models sequentially.
+and the output projection, independent of head count. For each of Q, K, and V, one
+large matrix multiplication can produce all heads, followed by a reshape and transpose
+to `(B, H, T, d_head)`, rather than eight small projections in sequence. This page's
+code computes Q, K, and V separately: three projections at this stage, not one GEMM
+for the entire MHA operation.
+
+In self-attention, all three share the input $X$, so their weights can also be concatenated
+to fuse QKV projection into one GEMM: $X[W_Q\;W_K\;W_V]=[XW_Q\;XW_K\;XW_V]$.
+The result is then split into Q, K, and V. The output projection $W_O$ remains a separate
+operation; QKV fusion is an implementation choice, not a consequence of splitting heads.
 
 </div>
 </section>
@@ -386,8 +398,8 @@ models sequentially.
 ### 3. 表达能力不等于泛化保证 {#3}
 
 多头首先增加的是表达能力：它允许多种 token 关系、匹配函数和上下文摘要并存。
-更好的表示有时会改善未见数据上的表现，但“用了多头”并不自动推出 generalization
-更好。
+更好的表示有时会改善模型在未见数据上的表现，但使用多头并不自动保证更好的泛化能力
+（generalization）。
 
 头数过多时可能出现每头维度太小、多个头功能重复、参数利用率低，甚至过拟合。
 实践中经常可以剪掉部分头而几乎不损失性能。所以：
@@ -412,11 +424,14 @@ Too many heads can make each head too narrow, create redundant attention pattern
 waste capacity, or contribute to overfitting. In practice, some heads can often be
 pruned with little quality loss. Therefore:
 
-**Multi-head attention obtains multiple relations at similar cost; it does not enlarge width for its own sake.**
+**Multi-head attention provides several attention relations at similar cost while keeping the total width unchanged.**
 
-“Different representation subspaces” should not be over-interpreted either. Separate
-parameters let heads learn different matching functions, but no head is guaranteed
-to have one clean, human-assigned semantic job. A claim that a head performs a function needs a causal test, such as patching specific heads on the IOI task; see [circuits](../../11-frontier/interpretability/circuits.md).
+“Different representation subspaces” also needs care. Independent parameters let heads
+learn different matching functions. They do not guarantee that, for an ambiguous word
+such as “apple,” one head handles the company and another handles the fruit. Those roles
+are neither assigned in advance nor necessarily interpretable. A claim that a head performs
+a particular function needs a causal test, such as patching specific heads on the IOI task;
+see [circuits](../../11-frontier/interpretability/circuits.md).
 
 </div>
 </section>
@@ -434,7 +449,7 @@ to have one clean, human-assigned semantic job. A claim that a head performs a f
 | 5 | 除的维度 | $\sqrt{d_\text{head}}$，不是 $\sqrt{d_\text{model}}$ |
 | 6 | 合头 | `transpose(1,2).contiguous().view(...)`；也可用 `reshape`，它必要时会复制。不能假设转置后的 strides 仍适合 `view` |
 
-**第 1 条为什么必须这样。** 投影输出是 `(B, T, d_model)`，其中 `d_model` 这一维是 $h$ 个头**首尾相接**排列的。所以要先把最后一维拆成 `(H, dh)`，再把 `H` 挪到前面。直接 `view(B,H,T,dh)` 会横跨时间维乱切，得到的每个「头」是一堆不相干位置的碎片——形状对，数值全错，而且不报错。
+**第 1 条为什么必须这样。** 投影输出是 `(B, T, d_model)`，其中 `d_model` 这一维是 $h$ 个头**首尾相接**排列的。所以要先把最后一维拆成 `(H, dh)`，再把 `H` 挪到前面。直接 `view(B,H,T,dh)` 会把时间维与头维的数据混在一起：输出形状虽然符合预期，各位置和各头对应的数值却错位了，而且不会报错。
 
 **用两个分数检查 mask。** `[0, 0]` 的 softmax 是 `[0.5, 0.5]`。只允许第一个位置时，先屏蔽得到 `[1, 0]`；softmax 后只置零得到 `[0.5, 0]`，输出就缩小了。如果再除以剩余权重之和，数学上也能得到 `[1, 0]`，但有限精度下可能遇到剩余权重下溢，所以通常在 softmax 前屏蔽。下面的教学代码会拒绝整行被屏蔽的输入，而不是悄悄产生 NaN。
 

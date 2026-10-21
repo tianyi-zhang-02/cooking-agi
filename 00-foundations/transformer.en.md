@@ -22,7 +22,7 @@ The Transformer is one concrete way to build the "learned coordinate transform $
 - **Residual connection**: keeps the original state and adds each sublayer's change on top of it.
 - **Stacking N layers**: repeats cross-position communication and per-position transformation, building up layer by layer a representation usable for prediction.
 
-This page connects the parts; each part's derivation has its own note: scaling, masks and Q/K/V in [multi-head attention](core/multi-head-attention.en.md), where the norm goes in [normalization](core/normalization.en.md), and SwiGLU in [FFN and gates](core/ffn-and-gates.en.md). What this page owns is the three uses of Q/K/V, the RoPE code, one Noam-schedule pitfall, and how to prove with tests that a from-scratch implementation is right.
+This page connects the components. Detailed derivations appear in separate notes: scaling, masks, and Q/K/V in [multi-head attention](core/multi-head-attention.en.md), norm placement in [normalization](core/normalization.en.md), and SwiGLU in [FFN and gates](core/ffn-and-gates.en.md). Here we focus on the three uses of Q/K/V, RoPE code, a common Noam-schedule mistake, and tests for a from-scratch implementation.
 
 ## Scaled dot-product attention {#scaled-dot-product-attention}
 
@@ -240,7 +240,7 @@ Sources: [original Transformer](https://arxiv.org/abs/1706.03762), [RoFormer](ht
 ## Quick learning: what does a Transformer actually do? {#quick-learning-what-does-a-transformer-actually-do}
 
 <details class="interview" markdown="1">
-<summary>Learn the spine first, then open the standard answer and the deep dive</summary>
+<summary>Start with the main ideas, then expand the interview answer and derivation</summary>
 
 **Quick memory**
 

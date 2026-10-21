@@ -17,7 +17,7 @@ Hold questions, evidence, and generation budgets fixed. Try clearer instructions
 | Evidence is outdated | Fix retrieval snapshots and revision selection | SFT cannot automatically discover yesterday's policy update |
 | Citation fields are missing | Prompting, structured output, parsing checks | New weights may be unnecessary |
 | Fields exist but cite the wrong passage | Grounded demonstrations, missing/conflicting-evidence examples | Behavior learning may help, provided labels are reliable |
-| Two answers differ only in preferred detail | Define preferences and check reviewer agreement | More examples cannot reconcile contradictory standards by itself |
+| Two answers differ only in preferred detail | Define preferences and check reviewer agreement | More data alone cannot reconcile contradictory standards |
 
 For this experiment, assume prompting has not reliably fixed missing or incorrect citations. Keep unanswerable questions in evaluation: otherwise the model might merely learn to invent a citation-shaped string every time.
 
@@ -69,7 +69,7 @@ This is an **experiment manifest, not a runnable TRL configuration**. Replace pl
 }
 ```
 
-Why disable packing initially? Not because it is undesirable, but because individual boundaries and labels should be easy to inspect first. Why start with LoRA? We are testing the demonstrations while limiting training-state cost, not declaring full fine-tuning pointless.
+We initially disable packing to make each example's boundaries and labels easier to inspect; its benefits can be compared later. Starting with LoRA lets us test the demonstrations while limiting training-state cost. Whether full fine-tuning is worth the additional cost remains a question for later experiments.
 
 This manifest cannot choose a learning rate, rank, or maximum length for us. Inspect sequence lengths and valid target counts, run stability checks, then compare configurations within a declared development-set tuning budget. Do not repeatedly tune against the test set.
 

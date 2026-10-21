@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-You have 5 checkpoints of a cup-pushing policy and want to know which is best. Fifty real trials each makes 250 trials, and someone has to reset the cup and make sure it does not crash off the table. Could a world model "act it out" first? **In robotics and autonomous driving, world models do three different jobs: generate training data, score policies, and act as the policy. Each job needs different validation; as an evaluator, a high correlation with real success rates still does not guarantee you pick the best policy.**
+You have 5 checkpoints of a cup-pushing policy and want to know which is best. Fifty real trials each makes 250 trials, and someone has to reset the cup and make sure it does not crash off the table. Could a world model simulate the trials first?
+
+In robotics and autonomous driving, world models have three different uses: generating training data, scoring policies, and acting as the policy. Each use needs different validation. For an evaluator, a high correlation with real success rates still does not guarantee that it picks the best policy.
 
 ## One model, three jobs
 

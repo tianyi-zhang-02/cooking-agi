@@ -64,7 +64,7 @@ $$\hat m_t=\frac{m_t}{1-\beta_1^t},\quad
 
 For $g_1=2,\beta_1=0.9,\beta_2=0.999$, raw states are $m_1=0.2,v_1=0.004$, corrected to 2 and 4. Ignoring epsilon, the update magnitude is about $\eta$. Later steps need not have that length: changing directions, state history, and epsilon matter.
 
-Adam stands for **adaptive moment estimation**, not AdaDelta plus Momentum. A second moment is not a second derivative; Adam is not Newton's method. The [Adam paper](https://arxiv.org/abs/1412.6980) defines the algorithm and corrections. NAdam incorporates a Nesterov idea, but no optimizer is a universal final form.
+Adam stands for **adaptive moment estimation**, not AdaDelta plus Momentum. A second moment is not a second derivative; Adam is not Newton's method. The [Adam paper](https://arxiv.org/abs/1412.6980) defines the algorithm and corrections. NAdam incorporates Nesterov's approach, but no optimizer is best for every task.
 
 ## AdamW: Why Separate Weight Decay?
 
@@ -120,6 +120,6 @@ This scalar teaching implementation excludes sparse gradients, AMSGrad, mixed pr
 | Resume | Are moments, step, scheduler, and random states restored alongside weights? |
 | Freezing | Does the optimizer contain the intended parameters? Is stale state still occupying memory? |
 
-AdamW is a useful baseline, not a parameter-free answer. Give competing optimizers reasonable learning-rate search budgets, then compare validation behavior, time to target, and state memory. One shared learning rate often tests which method suits that rate rather than which method suits the task.
+AdamW is a useful baseline, but it still needs tuning. Give competing optimizers reasonable learning-rate search budgets, then compare validation behavior, time to target, and state memory. One shared learning rate often tests which method suits that rate rather than which method suits the task.
 
 Return to [one training step](training-step.en.md): `backward()` computes and accumulates gradients; `step()` uses optimizer state to update weights. They are different operations.

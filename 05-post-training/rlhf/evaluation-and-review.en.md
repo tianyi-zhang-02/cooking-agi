@@ -71,9 +71,9 @@ GRPO constructs relative signals from answers to the same prompt instead of trai
 <details class="interview" markdown="1">
 <summary>What is the key difference between DPO and PPO?</summary>
 
-DPO uses a derivation: KL-constrained reward maximization has a closed-form optimum, so the reward can be rewritten in terms of the policy and the preference loss differentiated directly. Standard offline DPO therefore trains no separate reward model and runs no online RL loop; the reward difference is implicit in the loss.
+DPO uses a derivation: a KL-regularized reward objective with fixed $\beta>0$ has a closed-form optimum under the policy-support and integrability conditions. This is not a per-update guarantee of a fixed KL radius. The reward can then be rewritten in terms of the policy and the preference loss differentiated directly. Standard offline DPO therefore trains no separate reward model and runs no online RL loop; the reward difference is implicit in the loss. See the [DPO derivation](../after-ppo.en.md#dpo-derivation) for the full objective and conditions.
 
-Standard DPO's cost is **offline** preference data. The policy changes while the data does not, so it cannot actively explore its current failures. PPO and other online RL methods resample from the current policy and are more natural for exploration, environment interaction, or verifiable multi-step outcomes, but rollout is expensive and training less stable.
+One limitation of standard offline DPO is its fixed preference dataset. The policy changes while the data does not, so training cannot actively explore the current policy's new failures. PPO and other online RL methods resample from the current policy and are more natural for exploration, environment interaction, or verifiable multi-step outcomes, but rollout is expensive and training less stable.
 
 DPO therefore cannot replace PPO everywhere, but PPO is not universally better either. Use DPO when high-quality static preferences cover the task; use online methods when the current policy must keep producing new evidence. Online DPO variants reinforce that the real distinction is the data-and-feedback loop, not only the loss name.
 
@@ -100,7 +100,7 @@ RLVR fits tasks or subgoals with automatically checkable outcomes. Open-ended di
 ## Self-check
 
 <div class="taste-check">
-  <strong>You understand this if you can explain:</strong>
+  <strong>Try explaining these in your own words:</strong>
   <ol>
     <li>What each role does in typical PPO-style RLHF, and why four roles do not imply four resident weight copies.</li>
     <li>What the reference KL and the old-policy ratio each compare the current policy against.</li>
@@ -118,7 +118,7 @@ RLVR fits tasks or subgoals with automatically checkable outcomes. Open-ended di
 
 ## Further reading (Chinese)
 
-This chapter covers only the RLHF trunk. The algorithm family has its own notes on this site: start with [PPO, GRPO, and DPO](../after-ppo.en.md),
+This chapter covers the main RLHF workflow. Separate notes examine the individual algorithms: start with [PPO, GRPO, and DPO](../after-ppo.en.md),
 then read [DAPO](../dapo.en.md), [Clipping and gradients](../clipping-variants.en.md), [GSPO and ASPO](../policy-ratios.en.md),
 and [asynchronous training](../async-policy-learning.en.md) as needed.
 

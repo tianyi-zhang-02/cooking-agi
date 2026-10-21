@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-The planner wants to ask "is there anything in the cell 8 m ahead and 2 m to the left?", but 6–8 cameras deliver pixels in their own views, and in a single image nobody knows how far each pixel is from the car. **Putting every camera's features into one top-down grid (bird's-eye view, BEV) gives planning one shared metric frame; the hard part is always depth: lift-splat spreads each pixel's features along its line of sight according to a depth distribution, BEV queries go the other way and let each cell fetch features from the images, and occupancy grids refine the output to "is this piece of space taken", without first deciding what it is.**
+The planner needs to know whether anything occupies the cell 8 m ahead and 2 m to the left. But 6–8 cameras provide pixels in separate views, and a single image does not establish the distance to the object at each pixel.
+
+Putting every camera's features into one top-down grid—a bird's-eye view, or BEV—gives planning a shared metric frame. Depth is the difficult part. Lift-splat distributes each pixel's features along its line of sight according to a depth distribution; BEV queries instead start from each grid cell and fetch features from the images. Occupancy grids further describe whether each part of space is occupied, without first requiring an object category.
 
 ## Why a top-down map
 
@@ -80,7 +82,7 @@ Tesla presented the same family of ideas at AI Day on 2021-08-19: an output-spac
 
 Most cells in a 200×200 grid are empty road. Another line of work builds no dense BEV and uses only a set of object queries. The abstract of [PETR](https://arxiv.org/abs/2203.05625) (ECCV 2022) says it encodes the positions of 3D coordinates into image features, and object queries attend directly to these "3D-position-aware" features to detect objects; it reports 50.4 NDS and 44.1 mAP on nuScenes. Per its abstract, [StreamPETR](https://arxiv.org/abs/2303.11926) carries object queries forward frame by frame for temporal fusion; [Sparse4D](https://arxiv.org/abs/2211.10581) samples sparsely in space and time. [SparseDrive](https://github.com/swc-17/SparseDrive) connects this line to planning: fully sparse perception plus a parallel motion planner (per its README).
 
-The gain is that compute grows with the number of queries, not the grid area; the cost is that you do not get a dense drivable-area map for free. Things that are not "objects", such as the shape of the road or a pile of gravel, need a separate map head or occupancy head.
+The gain is that compute grows with the number of queries rather than the grid area; the trade-off is that this output does not itself include a dense drivable-area map. Representing road shape, piles of gravel, and other information that is difficult to describe as individual objects requires a separate map head or occupancy head.
 
 ## Cameras plus lidar: BEVFusion
 

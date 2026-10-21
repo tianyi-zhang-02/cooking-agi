@@ -125,17 +125,17 @@ Continue: [Evaluation](../07-evaluation/README.en.md) · [LLM-as-a-Judge](../07-
 
 ### Systems: follow a request instead of listing frameworks {#systems}
 
-A request typically passes through validation, queuing, scheduling, model execution, and output handling. Establish latency targets and concurrency before choosing a bottleneck: computation, memory bandwidth, memory capacity, or communication? A [roofline](../12-infra/performance.en.md#roofline) estimate tells you whether compute or bandwidth runs out first.
+A request typically passes through validation, queuing, scheduling, model execution, and output handling. Establish latency targets and concurrency, then identify the bottleneck: computation, memory bandwidth, memory capacity, or communication? A [roofline](../12-infra/performance.en.md#roofline) estimate helps you assess whether compute or bandwidth is the limiting factor.
 
 At two bytes per parameter, 7B parameters need roughly **14 GB for weights alone**, in decimal units. That is not the whole service footprint: add KV cache, temporary tensors, and runtime overhead. Training also needs gradients and optimizer state. Quantization does not shrink every allocation by the same factor.
 
-DDP replicates models and splits samples; FSDP shards training state, trading communication for memory; TP splits computation within layers; PP splits layers. vLLM / SGLang address inference execution and serving, rather than being alternative training replacements for FSDP.
+DDP replicates models and splits samples; FSDP shards training state, trading communication for memory; TP splits computation within layers; PP splits layers. vLLM / SGLang handle inference execution and serving; they do not replace FSDP for training.
 
 Continue: [A complete ML system](../practice/ml-system/README.en.md) · [vLLM / SGLang](../06-systems/inference-frameworks.en.md#engine-map) · [Training frameworks](../06-systems/training-frameworks.en.md).
 
 ## Replace irrelevant work with role-specific practice {#roles}
 
-What to keep first and what to leave for later when time is short, by role, is in one table in the [role-based guide](ai-roles-prep.en.md#routes): one row each for general SWE, model-focused MLE / RE, RS, and inference / ML systems. Those are time-allocation suggestions, not a company's question bank. For vision, speech, robotics, or other domains, substitute their core problems for the LLM material; a few memorized terms do not replace domain knowledge.
+The table in the [role-based guide](ai-roles-prep.en.md#routes) suggests what to prioritize and what to leave for later, with one row each for general SWE, model-focused MLE / RE, RS, and inference / ML systems. These are time-allocation suggestions, not a company's question bank. For vision, speech, robotics, or other domains, substitute their core problems for the LLM material; a few memorized terms do not replace domain knowledge.
 
 ## Finish with a small note of your own {#finish}
 

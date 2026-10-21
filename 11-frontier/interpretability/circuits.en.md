@@ -4,7 +4,11 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-"GPT-2 small uses 26 attention heads to find the indirect object"; "Claude 3.5 Haiku first thinks of Texas internally, then says Austin". What exactly do circuit claims like these say, and what is the evidence? **A circuit claim is a causal hypothesis that can be tested by intervention: on some class of inputs, which components, through which paths, carry how much of a behaviour. Activation patching and path patching test it, and attribution graphs automate the step of proposing the hypothesis; but an attribution graph explains a replacement model, and Anthropic itself says it gives a satisfying explanation on only about a quarter of the prompts it tried. For safety evaluation there is so far a set of lab-reported case studies and successes on deliberately implanted problems, but no independently validated general-purpose detector.**
+"GPT-2 small uses 26 attention heads to find the indirect object"; "Claude 3.5 Haiku first thinks of Texas internally, then says Austin". What exactly do circuit claims like these mean, and what evidence supports them?
+
+A circuit claim is a causal hypothesis that can be tested by intervention: on a given class of inputs, which components and paths account for how much of a behaviour? Activation patching and path patching test these hypotheses, while attribution graphs automate the step of proposing them. An attribution graph, however, explains a replacement model. Anthropic reports satisfying explanations on only about a quarter of the prompts it tried.
+
+Safety applications include lab-reported case studies and successes on deliberately implanted problems. There is not yet an independently validated general-purpose detector.
 
 ## From correlation to causation: activation patching
 
@@ -71,7 +75,7 @@ Finding circuits was later automated: on GPT-2 small's "greater-than" task, ACDC
 
 ## Attribution graphs: automating the hypothesis step
 
-IOI took a great deal of manual work, for a single task. Anthropic's March 2025 [Circuit Tracing](https://transformer-circuits.pub/2025/attribution-graphs/methods.html) aims to have the computation on each prompt drawn automatically.
+The IOI circuit analysis required substantial manual work and covered only one task. Anthropic's March 2025 [Circuit Tracing](https://transformer-circuits.pub/2025/attribution-graphs/methods.html) aims to map the model's computation on each prompt automatically.
 
 It works in four steps. First, train a cross-layer transcoder (CLT): features at layer $\ell$ read from that layer's residual stream and can write to the MLP outputs of layer $\ell$ and every later layer; the CLTs trained on Claude 3.5 Haiku have between 300 thousand and 30 million features in total. Replacing every MLP with it gives a replacement model; their largest CLT, on an 18-layer small model, gives the same next token as the original model on only 50% of a diverse set of prompts. Second, for a single prompt, freeze the original model's attention patterns and normalisation denominators, and add an "error node" at each position and layer to make up for what the CLT fails to reconstruct, so that the activations and outputs of this local replacement model match the original model exactly. Third, compute edges on this now-linearised graph:
 

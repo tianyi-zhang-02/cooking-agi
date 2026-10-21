@@ -65,7 +65,7 @@ Visit the left subtree, then the root, then the right subtree. All left keys are
 inorder: 1 → 3 → 6 → 8 → 10
 ```
 
-The third-smallest key is 6. No complete output array is necessary: each visited node consumes one remaining place.
+The third-smallest key is 6. No complete output array is necessary: count nodes as you visit them in inorder, and stop at the requested rank.
 
 ```python
 def kth_smallest(root, rank):

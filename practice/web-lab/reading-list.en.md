@@ -72,7 +72,7 @@ Client-side `required` and `maxlength` help with form entry. A curl request bypa
 
 `fetch()` doesn't reject simply because the server returned HTTP 400 or 500, so the code checks `response.ok`. If the connection fails, parsing fails, or eight seconds elapse, the page doesn't claim that nothing was saved. The transaction may have committed before the response was lost: refresh to check before retrying. [Fetch error handling](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
 
-Controls are disabled during a request to prevent repeated clicks on this page. That isn't deduplication across tabs or devices. A stronger version can attach a request ID to creation, enforce a database uniqueness constraint, and return the same record on a retry with that ID. An in-memory reminder alone doesn't provide durable deduplication.
+Controls are disabled during a request to prevent repeated clicks on this page. That isn't deduplication across tabs or devices. A stronger version can attach a request ID to creation, enforce a database uniqueness constraint, and return the same record on a retry with that ID. Tracking request IDs only in memory cannot guarantee deduplication after the process restarts.
 
 ## Put tests in CI, not just in your clicking routine {#tests}
 

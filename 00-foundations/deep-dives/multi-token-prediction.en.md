@@ -8,7 +8,7 @@ Ordinary language modeling predicts the next token at each position. Multi-token
 
 **It does not eliminate autoregression or guarantee a twofold generation speedup by adding a head.** Separate the training objective from the inference algorithm.
 
-To compare MTP with DFlash, establish target alignment here, then read [DFlash drafting, verification, and costs](dflash.en.md). That chapter distinguishes the original method, DFlash 2, and recent suffix-refinement work without conflating training objectives and inference algorithms.
+To compare MTP with DFlash, work through target alignment and acceptance rules here, then read [DFlash drafting, verification, and costs](dflash.en.md). That chapter distinguishes the original method, DFlash 2, and recent suffix-refinement work without conflating training objectives and inference algorithms.
 
 ## How do targets shift on one sequence?
 
@@ -21,7 +21,7 @@ Let A, B, C, and D denote four tokens:
 | $h_C$ | D | None |
 | $h_D$ | None | None |
 
-The second task has fewer valid positions. Do not invent targets past document boundaries, padding, or sequence ends. An extra loss introduces extra shifting, masking, and normalization contracts.
+The second task has fewer valid positions. Do not invent targets past document boundaries, padding, or sequence ends. Each extra loss needs its own target shift, mask, and normalization rule.
 
 This constructs labels for **independent future-prediction heads**, with document IDs describing contiguous segments:
 

@@ -39,7 +39,7 @@ Nesterov 的直观写法是先在预测位置 $\theta_{t-1}-\eta\mu v_{t-1}$ 求
 | AdaGrad | $s_t=s_{t-1}+g_t^2$ | 累积量只增不减；梯度频繁或一直较大的坐标，步长可能越来越小 |
 | RMSProp | $s_t=\rho s_{t-1}+(1-\rho)g_t^2$ | 更关注近期尺度；不是完整 Hessian |
 | AdaDelta | 梯度平方与更新量平方的滑动平均 | 用更新尺度 / 梯度尺度形成比值，不只是把 AdaGrad 换成 EMA |
-| Adam | 一阶矩 $m_t$ 与二阶矩 $v_t$ | 同时平滑方向、调整尺度；还有偏差修正与参数开销 |
+| Adam | 一阶矩 $m_t$ 与二阶矩 $v_t$ | 同时平滑方向、调整尺度；还需偏差修正，并占用状态存储空间 |
 
 AdaGrad 常见分母是 $\sqrt{s_t}+\epsilon$。平方累积较少的坐标可能得到更大有效步长，但“出现次数少”不完全等于“平方和小”。[AdaGrad 原论文](https://www.jmlr.org/papers/v12/duchi11a.html)讨论的是利用数据几何结构自适应调整。
 
@@ -64,7 +64,7 @@ $$\hat m_t=\frac{m_t}{1-\beta_1^t},\quad
 
 若首步 $g_1=2,\beta_1=0.9,\beta_2=0.999$，原始状态为 $m_1=0.2,v_1=0.004$，修正后为 2 和 4。忽略 epsilon，更新幅度约为 $\eta$。这不是以后每步都固定长度：梯度方向变化、历史状态和 epsilon 都会影响结果。
 
-Adam 来自 **adaptive moment estimation**，不是 AdaDelta 与 Momentum 名字拼接；二阶矩也不是二阶导数，Adam 不是 Newton 法。[Adam 原论文](https://arxiv.org/abs/1412.6980)给出算法与修正。NAdam 再把 Nesterov 思路结合进来，但不存在对所有任务都最好的“终极形态”。
+Adam 来自 **adaptive moment estimation**，不是 AdaDelta 与 Momentum 名字拼接；二阶矩也不是二阶导数，Adam 不是 Newton 法。[Adam 原论文](https://arxiv.org/abs/1412.6980)给出算法与修正。NAdam 进一步结合了 Nesterov 的思路，但没有哪种优化器在所有任务上都最好。
 
 ## AdamW：weight decay 为什么要拿出来单独做
 

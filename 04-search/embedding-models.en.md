@@ -85,7 +85,7 @@ The password example involves several possible signals: the passage's overall me
 
 Sharing an encoder pass does not eliminate output storage, transfer, or search costs. Calling the dense interface does not automatically build the other indexes or provide three-way fusion.
 
-The first-pass takeaway is simple: **both offer single-vector retrieval; M3 also exposes other matching paths, while this Qwen model supports task instructions and configurable dimensions. Choose for your queries, documents, and resources—not the newer name.** The remaining sections turn those differences into implementation checks.
+Both models support single-vector retrieval. M3 also offers other matching paths, while this Qwen model supports task instructions and configurable dimensions. Choose based on your queries, documents, and available resources, not just which model is newer. The next sections explain how to keep inputs and indexes compatible.
 
 ## 4. Keep inputs, pooling, and indexes compatible {#input-contract}
 
@@ -185,7 +185,9 @@ Mixed spaces: [0.0, 1.0]; rebuilt: [1.0, 0.0]
 Mean MaxSim: 0.9
 ```
 
-This code demonstrates contracts. Actual BGE-M3 token projections, excluded special tokens, and masks still require the matching implementation. `mean_maxsim` takes $O(QDd)$ time for $Q$ query tokens, $D$ document tokens, and dimension $d$. It computes row maxima without retaining a full $Q\times D$ score matrix, but the input representations still occupy memory.
+These helpers check pooling, vector dimensions, and MaxSim arithmetic; they are not a complete BGE-M3 implementation. For BGE-M3 itself, use the token projections, special-token exclusions, and attention masks that match the model version.
+
+`mean_maxsim` takes $O(QDd)$ time for $Q$ query tokens, $D$ document tokens, and dimension $d$. It computes one row maximum at a time without retaining the full $Q\times D$ score matrix. The input vectors still occupy memory.
 
 ## 7. Choose with an experiment you can explain
 

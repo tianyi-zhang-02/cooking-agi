@@ -10,14 +10,14 @@ For a concrete case where regression loss improves while values drift, start wit
 
 ## Turn a transition into a loss
 
-A replay buffer stores $(s,a,r,s',d)$. The online network $Q_\theta$ predicts the current action's value; a slower target network $Q_{\bar\theta}$ constructs its label:
+A replay buffer stores $(s,a,r,s',d)$. The online network $Q_\theta$ predicts the current action's value; a more slowly updated target network $Q_{\bar\theta}$ constructs its label:
 
 $$
 y=r+\gamma(1-d)\max_{a'}Q_{\bar\theta}(s',a'),\qquad
 L(\theta)=\mathbb E[(Q_\theta(s,a)-\mathrm{stopgrad}(y))^2].
 $$
 
-Here $d$ means true termination, not every reset. Replay reduces strong sequential correlations and reuses interaction. A target network slows target drift. These mitigate problems; they do not guarantee convergence with neural approximation.
+Here $d$ means true termination, not every reset. Replay reduces strong sequential correlations and reuses past transitions. A target network slows target drift. These mitigate problems; they do not guarantee convergence with neural approximation.
 
 This is a semi-gradient update: differentiate the current Q, not the target. It is not a full gradient through every occurrence in a Bellman residual.
 

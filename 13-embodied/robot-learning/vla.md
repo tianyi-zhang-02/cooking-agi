@@ -4,7 +4,9 @@
 
 > 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
-手上有一个能看图回答问题的视觉语言模型（VLM），想让它直接开机械臂：输入两路相机画面和一句“把杯子放进水槽”，输出 50 Hz 的关节指令。最直接的办法是把动作也写成文字 token，可一算延迟就会发现跟不上。**截至 2026 年 10 月，常见做法是让 VLM 负责看懂画面和指令，旁边接一个连续的 flow-matching“动作专家”，一次生成一整块动作；人形机器人再把慢的推理和快的控制拆成两三层。仿真里训出的策略要上真机，靠的是随机化和在线适应；评测则在从接近满分的仿真榜单转向真机对比。**
+手上有一个能看图回答问题的视觉语言模型（VLM），想让它直接控制机械臂：输入两路相机画面和一句“把杯子放进水槽”，输出 50 Hz 的关节指令。最直接的办法是把动作也写成文字 token，但按下文的延迟估算，这种逐个生成 token 的方式跟不上控制频率。
+
+截至 2026 年 10 月，常见做法是让 VLM 理解画面和指令，再接一个用流匹配（flow matching）生成连续动作的“动作专家”，一次输出一整块动作。人形机器人还会把较慢的推理和较快的控制拆成两三层。仿真中训练的策略则通过随机化和在线适应迁移到真机；相应的评测也在从接近满分的仿真榜单转向真机对比。
 
 先读：[从示范中学动作](imitation.md)（多峰动作、动作块），[LLaVA 与 DeepSeek-VL](../../03-multimodal-learning/vlm-designs.md)（图片怎样接进语言模型）。
 
@@ -16,9 +18,13 @@ VLA（vision-language-action）这个词出自 [RT-2](https://arxiv.org/abs/2307
 
 <!-- paper-figure:openvla-arch -->
 
-**2. 先压缩，再变 token。** [FAST](https://arxiv.org/abs/2501.09747v1)（Physical Intelligence、UC Berkeley、Stanford，2025-01）的观察是：高频控制下相邻两步几乎一样，逐步逐维的 token 大多“抄上一个就对”，next-token 的学习信号很弱。原文是“this marginal information approaches zero as the control frequency of the training signal increases …”，即训练信号的控制频率越高，每个新 token 带来的边际信息越趋近于零（[§IV](https://arxiv.org/html/2501.09747v1#S4)）。它对每一维做离散余弦变换（DCT），量化后用 BPE 压缩。作者报告的每 1 秒动作块 token 数：7 维、20 Hz 的收拾餐桌从 140 降到 28；14 维、50 Hz 的叠 T 恤从 700 降到 53（表 I）。π0-FAST 能追平扩散版 π0，训练时间最多少 5 倍（作者）。
+**2. 先压缩，再变 token。** [FAST](https://arxiv.org/abs/2501.09747v1)（Physical Intelligence、UC Berkeley、Stanford，2025-01）的观察是：高频控制下相邻两步几乎一样，逐步逐维的 token 大多“抄上一个就对”，next-token 的学习信号很弱。原文是“this marginal information approaches zero as the control frequency of the training signal increases …”，即训练信号的控制频率越高，每个新 token 带来的边际信息越趋近于零（[§IV](https://arxiv.org/html/2501.09747v1#S4)）。它对每一维做离散余弦变换（DCT），量化后用 BPE 压缩。作者报告的每 1 秒动作块 token 数：7 维、20 Hz 的收拾餐桌从 140 降到 28；14 维、50 Hz 的叠 T 恤从 700 降到 53（表 I）。作者报告，π0-FAST 能追平扩散版 π0，训练速度最高可达后者的 5 倍。
 
-**3. 连续的动作专家。** [π0](https://arxiv.org/abs/2410.24164v1)（2024-10）= PaliGemma 3B + 约 3 亿参数的 flow-matching 动作专家；动作块长 50，最高 50 Hz；推理时积分 10 步，图像、文字和机器人状态组成的前缀只算一次、KV 缓存起来，每步只重算动作那一段（§IV）。[π0.5](https://arxiv.org/abs/2504.16054v1)（2025-04）先用文字预测下一个子任务，再由 3 亿参数的专家出 50 步的动作块；[π0.7](https://arxiv.org/abs/2604.15483v1)（2026-04）换成 Gemma 3 4B 加 8.6 亿参数的专家，提示里加入质量、速度等元数据和子目标图片。NVIDIA 的 [GR00T N1](https://arxiv.org/abs/2503.14734v1)（2025-03）是 VLM（System 2）加 diffusion transformer 动作模块（System 1）端到端联合训练；Hugging Face 的 [SmolVLA](https://arxiv.org/abs/2506.01844v1)（2025-06）总共约 4.5 亿参数，其中约 1 亿是 flow-matching 专家。直接给 VLM 接一个随机初始化的连续专家也有代价：PI 的 [knowledge insulation](https://arxiv.org/abs/2505.23705v1)（2025-05）报告这会明显拖慢训练、损害知识迁移；正文（§1、§5.2）的解释是专家的梯度回传会破坏 VLM 主干，做法是把主干和这部分梯度隔开。
+**3. 连续的动作专家。** [π0](https://arxiv.org/abs/2410.24164v1)（2024-10）由 PaliGemma 3B 和约 3 亿参数的 flow-matching 动作专家组成，动作块长 50，最高 50 Hz。推理时积分 10 步：图像、文字和机器人状态组成的前缀只计算一次，并缓存其 key 和 value；此后每步只重新计算动作部分（§IV）。[π0.5](https://arxiv.org/abs/2504.16054v1)（2025-04）先用文字预测下一个子任务，再由 3 亿参数的专家输出 50 步的动作块；[π0.7](https://arxiv.org/abs/2604.15483v1)（2026-04）换成 Gemma 3 4B 加 8.6 亿参数的专家，提示里加入质量、速度等元数据和子目标图片。
+
+NVIDIA 的 [GR00T N1](https://arxiv.org/abs/2503.14734v1)（2025-03）将 VLM（System 2）和 diffusion transformer 动作模块（System 1）端到端联合训练。Hugging Face 的 [SmolVLA](https://arxiv.org/abs/2506.01844v1)（2025-06）总共约 4.5 亿参数，其中约 1 亿属于 flow-matching 专家。
+
+不过，直接给 VLM 接上随机初始化的连续动作专家，会影响训练。PI 的 [knowledge insulation](https://arxiv.org/abs/2505.23705v1)（2025-05）报告，这会明显拖慢训练、损害知识迁移。论文正文（§1、§5.2）将原因归于专家回传的梯度破坏了 VLM 主干，因此采用梯度隔离，让这部分梯度不再更新主干。
 
 <!-- paper-figure:pi0-overview -->
 
@@ -68,7 +74,7 @@ $N_{\rm tok}$ 是要串行生成的 token 数，$K$ 是 flow 的积分步数。�
 
 ## 快慢分层：为什么人形机器人拆成两三层
 
-站稳和抓握要毫秒级的反馈，“把杯子放进水槽”这句话的含义却几秒才变一次。一个几十亿参数的模型跑不到 200 Hz，于是拆层：慢层理解场景和指令，快层把它变成关节指令。
+站稳和抓握要毫秒级的反馈，“把杯子放进水槽”这句话的含义却几秒才变一次。200 Hz 意味着每 5 ms 就要更新一次控制；几十亿参数的模型能否独自承担这个闭环，要看机载硬件、图像和状态输入、精度及推理实现，不能只凭参数量判断。以下表 Helix 公开的双嵌入式 GPU 配置为例，7B 视觉语言慢层以 7–9 Hz 更新，快层以 200 Hz 运行。这样的分层让慢层负责理解场景和指令，快层结合最新观测，把它变成关节指令。
 
 | 系统（时间） | 慢层 | 快层 | 备注 |
 | --- | --- | --- | --- |
@@ -82,7 +88,7 @@ $N_{\rm tok}$ 是要串行生成的 token 数，$K$ 是 flow 的积分步数。�
 
 ## 在 VLA 上接 RL：学示范里没有的东西
 
-示范只能教到示范者的水平，速度也被示范者限住；摔了、卡住之后怎么接着干，示范里也很少有。2025–26 年，Physical Intelligence 开始在 VLA 上用机器人自己的经验做 RL（以下均为公司自报）：
+纯行为克隆的目标是拟合示范动作，本身没有直接奖励“比示范做得更快、更可靠”；学到的动作节奏和状态覆盖也受示范数据影响。但这不是说示范者的水平或速度构成不可突破的数学上限：拟合误差和实际任务回报是不同指标，不能把训练目标当成这样的性能定理。摔了、卡住之后怎么接着干，示范里也很少有。2025–26 年，Physical Intelligence 开始在 VLA 上用机器人自己的经验做 RL（以下均为公司自报）：
 
 - **[π\*0.6 / Recap](https://www.pi.website/blog/pistar06)（2025-11-17）。** 先训一个价值函数，用它估计每段经验的 advantage（这一步比平均好多少，见 [Actor–Critic 与 GAE](../../05-post-training/deep-rl/actor-critic-gae.md)），再让 π0.6 以这个信号为条件学习，预训练阶段属于离线 RL（见 [Offline RL 与 OPE](../../05-post-training/deep-rl/offline-and-ope.md)）；数据包括示范、机器人自己的经验和遥操作员的纠正。PI 报告在部分最难的任务上吞吐量翻倍以上、失败率降到一半或更低，并演示从早上 5:30 到晚上 11:30 连续做咖啡。
 - **[RL tokens](https://www.pi.website/research/rlt)（2026-03-19）。** 先训练 VLA 输出一个“RL token”，之后冻结 VLA，在这个 token 上训一个小的 actor-critic 做在线 RL，由它修改 VLA 给出的动作。PI 报告最精细的阶段最多快 3 倍，最少只用 15 分钟真机数据；测了 4 个精细任务（拧 M3 螺丝、扎扎带、插网线、插电源线），RL 只针对其中的关键阶段。

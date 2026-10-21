@@ -270,6 +270,8 @@ On-policy distillation（同策略蒸馏）让学生先生成，再把**学生�
 
 把这样的差值作为**冻结的**学习信号，正值鼓励采到的动作，负值压低它。这不是“答案正确率”：老师错了，这个信号也可能指错方向。
 
+单个差值也不是完整的负 KL。固定前缀、固定老师，并要求学生支持集上的老师概率为正时，按学生分布取期望才有 $\mathbb E_{a\sim q}[\log p(a)-\log q(a)]=-D_{KL}(q\|p)\leq0$。本例平均为 $0.5\times0.4700+0.5\times(-0.9163)\approx-0.2231$，但采到 A 的那一项仍为正；若按另一份行为分布采样而不作校正，这个期望等式也不能直接照用。
+
 想理解公式，记 $q=q_\theta$，用 $f(a)=\log[q(a)/p(a)]$ 简写 log-ratio。在老师固定且两项概率都为正时：
 
 $$
@@ -329,7 +331,9 @@ assert abs(score_gradient[0] + math.log(2) / 2) < 1e-12
 - **优化完整序列的 reverse KL**：在共同 token / 结束空间上，序列 log-ratio 是逐步 log-ratio 的和；精确的策略梯度还要考虑动作对未来的影响，可写成 return-to-go 的形式。
 - **把当前位置 log-prob 差直接当 advantage，再用 PPO clipping**：这是局部 surrogate。它可能实用，但不能只凭长得像第二行公式，就说与完整序列目标的梯度严格相同。
 
-第三种思路有一个公开实例，只是损失不同：[Thinking Machines 的 on-policy distillation（Lu 等，2025-10-27）](https://thinkingmachines.ai/blog/on-policy-distillation/)把每个采样 token 的 advantage 设为负的 reverse KL，也就是老师与学生在这个 token 上的 log-prob 之差；折扣设为 0，只管下一个 token；损失用 importance-sampling 策略梯度，不用 PPO clipping；老师只需返回采样 token 的 log-prob。作者说非零折扣在实践中没有更好，所以为了简单取 0。文中引用 Qwen3 技术报告的表 21：在 Qwen3-8B 上，on-policy distillation 用约 1/10 的 GPU-hours（1,800 对 17,920）拿到了比 RL 更高的 AIME'24 分数（74.4 对 67.6）；这是 Qwen 团队自报的结果。
+第三种思路有一个公开实例，只是损失不同：[Thinking Machines 的 on-policy distillation（Lu 等，2025-10-27）](https://thinkingmachines.ai/blog/on-policy-distillation/)把每个采样 token 的 advantage 设为老师 log-prob 减去采样时学生 log-prob，并在更新时冻结这个信号。它是负 reverse KL 的采样项，不是对完整词表求和后的 KL 数值；期望的含义就是上面的固定前缀等式。折扣设为 0，只考虑下一个 token；损失用 importance-sampling 策略梯度，不用 PPO clipping。老师只需返回采样 token 的 log-prob。作者说非零折扣在实践中没有更好，所以为了简单取 0。
+
+文中引用 Qwen3 技术报告的表 21：在 Qwen3-8B 上，on-policy distillation 用约 1/10 的 GPU-hours（1,800 对 17,920）拿到了比 RL 更高的 AIME'24 分数（74.4 对 67.6）；这是 Qwen 团队自报的结果。
 
 实际实现还要记录 behavior / current student 版本，确认 prompt、工具返回和 padding 不被误当成采样动作。只拿到 sampled-token log-prob 与拿到全词表 logits，也不是同一份信息。数据怎样进入训练，接着看 [rollout 与训练记录](post-training-infrastructure.md#rollout-record)。
 

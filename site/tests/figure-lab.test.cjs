@@ -395,7 +395,7 @@ test('trajectory cost: gaps 14 / 22 / 12, J = 2, 3, 4.17 picks A, (1, 1, 2) give
   assert.deepEqual([end.tie, end.dominated, end.below, end.above], [1.5, true, 'A', 'B']);
 });
 
-test('open vs closed loop: L2 0.2 / 0.4 / 0.6 for both; A 0.1 … 2.1 m, B 0.100 … 0.197 m, wheels on the line by 2.0 s', () => {
+test('open vs closed loop: L2 0.2 / 0.4 / 0.6 for both; A 0.1 … 2.1 m, B 0.100 … 0.197 m, simplified body edge reaches the line by 2.0 s', () => {
   const frames = F.openClosedLoop(), end = last(frames);
   assert.deepEqual(round(end.openL2, 2), [0.2, 0.4, 0.6]);
   assert.deepEqual(end.A.slice(1).map(p => end.fa(p.y)), ['0.1', '0.3', '0.6', '1.0', '1.5', '2.1']);
@@ -403,6 +403,14 @@ test('open vs closed loop: L2 0.2 / 0.4 / 0.6 for both; A 0.1 … 2.1 m, B 0.100
   assert.equal(end.A[end.touch].t, 2);
   assert.equal(end.wheels, 0.85);
   assert.equal(Number(end.limit.toFixed(3)), 0.2);
+  assert.match(frames[0].zh, /与车道平行/);
+  assert.match(frames[0].en, /parallel to the lane/);
+  assert.match(frames[end.touch].zh, /车身边界/);
+  assert.match(frames[end.touch].en, /body edge/);
+  for (const frame of frames) {
+    assert.doesNotMatch(frame.zh, /车轮压线/);
+    assert.doesNotMatch(frame.en, /wheels (?:touch|touched)/);
+  }
 });
 
 test('flow Euler steps: n = 1, 2, 5, 10 end at 0, 0.46, 1.00, 1.00 from 0.5 and 0, 0.02, 0.57, 1.00 from 0.02', () => {

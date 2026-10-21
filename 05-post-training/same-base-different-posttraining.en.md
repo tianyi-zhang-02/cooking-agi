@@ -58,7 +58,7 @@ This is a teaching model with an independence assumption, **not a fit to GLM tra
 
 ## What they actually changed is the interesting part {#what-they-actually-changed-is-the-interesting-part}
 
-The release distinguishes inherited slime / SAO with compaction from scaling environments, tasks, and training compute, alongside further algorithmic and system work. [Source](https://z.ai/blog/glm-5.3).
+The release describes several categories of changes: continued use of slime / SAO and context compaction, expanded environments, tasks, and training compute, and further algorithmic and system changes. [Source](https://z.ai/blog/glm-5.3).
 
 Analyze three questions rather than labeling every component "new in this version":
 
@@ -97,7 +97,7 @@ First establish the mean's definition and measurement sample, then inspect quant
 
 ## What this comparison can tell us {#what-this-experiment-shows}
 
-**One: fixing the starting point narrows the question, not every variable.** It directs attention toward post-training and evaluation settings, but separating contributions still requires controlled comparisons.
+**One: fixing the starting point removes one difference but leaves other variables uncontrolled.** It directs attention toward post-training and evaluation settings, but separating contributions still requires controlled comparisons.
 
 **Two: eliciting existing capability is an explanation, not an established mechanism.** Improvement may involve new learning, more reliable existing behavior, or both. Shared initial weights neither distinguish these explanations nor measure an immutable capability ceiling.
 

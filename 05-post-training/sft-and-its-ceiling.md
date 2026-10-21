@@ -268,7 +268,9 @@ Attention mask 是另一件事：它控制可见位置，例如不看未来 toke
 | assistant 最终回复 | 监督内容与结束标记 | 训练所有轮，还是只训练最后一轮？ |
 | padding | 不参与 loss | 若 PAD 与 EOS 共用 ID，要按位置区分 |
 
-[TRL v1.16.0 的说明](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer#train-on-assistant-messages-only)（2026-10 核对）分别提供 assistant-only 与 completion-only 配置，不能只凭选项名字判断是否等价。assistant-only 要求聊天模板里有 `{% generation %}` 与 `{% endgeneration %}` 标记；文档说对 Qwen3 等已知模型族，打开 `assistant_only_loss=True` 时 TRL 会自动补上，其他模型要自己确认模板。检查真实模板返回的 mask，再解码几条最终 labels，看看训练到底会奖励什么。
+[TRL v1.16.0 的说明](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer#train-on-assistant-messages-only)（2026-10 核对）分别提供 assistant-only 与 completion-only 配置，不能只凭选项名字判断是否等价。
+
+assistant-only 要求聊天模板里有 `{% generation %}` 与 `{% endgeneration %}` 标记。文档说，对 Qwen3 等已知模型族，打开 `assistant_only_loss=True` 时 TRL 会自动补上；其他模型要自己确认模板。检查真实模板返回的 mask，再解码几条最终 labels，看看哪些文本实际参与监督。
 
 长对话被截断时尤其要看：是不是只剩问题、没剩回答？结束标记是否被截掉？全部 labels 都是 `-100` 的样本没有有效监督，应在数据检查阶段处理。Packing 还需要独立的样本边界与 attention 检查，loss mask 本身不能隔开两条对话。
 

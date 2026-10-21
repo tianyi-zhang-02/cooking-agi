@@ -49,7 +49,9 @@ $$
 
 这是要**最大化**的 surrogate objective；写成 loss 时通常取负。这个样本继续提高概率，在裁剪分支上不会继续获益，但其他样本仍可改变共享参数。裁剪不是把真实概率比硬锁在范围内，也不是保证 KL 不会变大。出处是 [PPO（2017），§3](https://arxiv.org/pdf/1707.06347)；负 advantage 的另一半情况在 [PPO clipping](../rlhf/ppo-clipping.md)。
 
-GRPO 的一个关键变化是 advantage 的估计方式：同一问题采多个回答，用组内标准化后的奖励代替 value model 的估值，代价是每题要采样多次；整组同分时还要避免 $0/0$（分母加小量或跳过该组）。奖励 $[0,0,1,1]$ 怎样变成 $[-1,-1,1,1]$、同分组为什么没有相对信号却不等于完全不更新，见 [LLM bridge 的算例](llm-bridge.md#group-signal)；组大小、稀疏奖励和长任务的代价见[同一篇](llm-bridge.md#sparse-groups)。[DeepSeekMath（2024），§4.1](https://arxiv.org/html/2402.03300v3)介绍了这条路线。
+GRPO 的一个关键变化是 advantage 的估计方式：对同一问题采样多个回答，用组内标准化后的奖励代替 value model 的估值。这样就需要为每题采样多次；整组同分时，还要在分母加一个小量或跳过该组，避免 $0/0$。
+
+奖励 $[0,0,1,1]$ 怎样变成 $[-1,-1,1,1]$？同分组为什么没有相对信号，却不等于完全不更新？[LLM bridge 的算例](llm-bridge.md#group-signal)会逐步解释，[同一篇](llm-bridge.md#sparse-groups)也讨论了组大小、稀疏奖励和长任务的代价。这条路线见 [DeepSeekMath（2024），§4.1](https://arxiv.org/html/2402.03300v3)。
 
 ## DPO：不跑在线 rollout，也能学偏好 {#dpo-pair}
 

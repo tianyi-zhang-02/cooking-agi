@@ -61,7 +61,11 @@ When a model offers a thinking mode, ask whether the caller selects it or the mo
 
 A detail worth checking: stage 2 removes batch balancing but retains the mode-and-correctness-dependent base reward, rather than switching to binary accuracy reward. The main experiments concern mathematics. We have not reproduced them or established benefits for arbitrary agents.
 
-**When the first two layers merge.** As of October 2026, some hosted APIs fold "the caller specifies" and "the model chooses" into one interface. In Anthropic's Claude API, for example, the caller sets an `effort` level (from `low` to `max`) and the model decides per request whether to think and how much. The documentation says the caller no longer sets a thinking token budget: `max_tokens` is the only hard cap, and `effort` is soft guidance that does not guarantee a token count. [Claude docs: Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost) "Give date extraction a short budget" then becomes "give these requests a lower effort", and the model may still think longer on an occasional hard case. Check the thinking tokens actually reported per request type rather than trusting the configuration.
+**When the first two layers merge.** As of October 2026, some hosted APIs combine "the caller specifies" and "the model chooses" in one interface. Consider adaptive thinking in the Claude Messages API: on Claude Opus 4.6 and Sonnet 4.6, the caller explicitly sets `thinking: {"type": "adaptive"}` and steers with `output_config.effort`. The model decides per request whether to think and how much. Available effort levels, from `low` to `max`, depend on the model. In this mode, there is no separate `budget_tokens` setting. `max_tokens` caps total output for one request, including thinking and the answer, not the entire multi-call agent loop. Effort is soft guidance, not a guaranteed token count. [Claude docs: Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost) · [Per-model modes and configuration](https://platform.claude.com/docs/en/build-with-claude/thinking-troubleshooting) · [Effort levels](https://platform.claude.com/docs/en/build-with-claude/effort#effort-levels)
+
+Legacy manual extended thinking instead uses `thinking: {"type": "enabled", "budget_tokens": N}`, for example on Claude Opus 4.5. Opus 4.6 and Sonnet 4.6 still accept this configuration, but it is deprecated there. Specify both the model and the thinking mode rather than applying the adaptive-mode budget description to every Claude request. [Manual extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
+
+In adaptive mode, "give date extraction a short budget" becomes "give these requests a lower effort". The model may still think longer on an occasional hard case. Check the thinking tokens actually reported for each request type rather than relying on the configuration alone.
 
 **External routing.** The application estimates which model suits a request; neither candidate needs a thinking switch. [Adaptive depth](../00-foundations/looped/adaptive-depth.en.md) instead concerns internal layers or iterations. Hidden-state computation is not the same as generating more text.
 
@@ -78,7 +82,7 @@ A detail worth checking: stage 2 removes batch balancing but retains the mode-an
 
 A wrong routing decision can be caught by output checks or fallback. Include those costs and delays in evaluation. Distillation can complement the serving strategies; it is not a fourth per-request allocation rule.
 
-## 5. Four requests: spending on the wrong one buys nothing {#routing-example}
+## 5. Four requests: how routing changes the result {#routing-example}
 
 Everything below is **constructed**, not a model benchmark. Each A call costs 1 unit, each B call costs 5, and routing adds 0.1 per request. B intentionally fails the fourth task to illustrate complementary strengths.
 

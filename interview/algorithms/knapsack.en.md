@@ -6,7 +6,7 @@
 
 Capacity is 5. Three items have weight–value pairs `(2,5), (3,7), (4,8)`. With each item available once, the first two give value 12. Taking the largest value first selects the weight-4 item and gets only 8.
 
-The missing ingredient isn't a clever sorting key. A choice changes the remaining capacity. DP records that condition instead of repeatedly exploring the same continuation.
+This example shows why sorting by value alone cannot decide which items to take. Each choice changes the remaining capacity. DP records that condition so the same remaining problem does not have to be solved repeatedly.
 
 ## Define two dimensions before compressing to one row
 
@@ -88,6 +88,6 @@ For coin combinations, iterate denominations outside and increasing amounts insi
 
 ## Recovering a solution requires more history
 
-A one-row DP retains the optimal value. To recover items, keep the two-dimensional table and backtrack: taking an item reduces capacity; skipping it only moves to the previous row. Overwriting a one-row DP while recording a casual predecessor pointer doesn't guarantee that historical choices remain valid.
+A one-row DP retains the optimal value. To recover items, keep the two-dimensional table and backtrack: taking an item reduces capacity; skipping it only moves to the previous row. If you record predecessor pointers while overwriting a one-row DP, check that they still refer to the states used at the time. Adding those pointers alone does not guarantee that the earlier choices remain valid.
 
 Test no items, capacity 0, all items too heavy, and the single-item `(2,5)` / capacity-4 counterexample. Code: [deeper_patterns.py](../code/deeper_patterns.py); exhaustive checks: [test_deeper_algorithm_patterns.py](../../site/tests/test_deeper_algorithm_patterns.py). The important question is which layer every read refers to, not which loop you memorized.

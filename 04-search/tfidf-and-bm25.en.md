@@ -95,7 +95,7 @@ Isolate frequency by fixing $L_d/\overline L=1$:
 | 4 | 4 | 1.6923 |
 | 8 | 8 | 1.9130 |
 
-With length fixed, this factor approaches $k_1+1=2.2$. Since 8.0, Lucene drops the $(k_1+1)$ factor from the numerator (LUCENE-8563): it is the same constant for every document and does not change the ranking. Lucene's scores are therefore $1/2.2$ of the ones here, with the same order ([BM25Similarity source in 10.3.1](https://github.com/apache/lucene/blob/releases/lucene/10.3.1/lucene/core/src/java/org/apache/lucene/search/similarities/BM25Similarity.java)). This is a controlled comparison, not a claim that appending words leaves length unchanged. Actually adding repetitions changes both frequency and length.
+With length fixed, this factor approaches $k_1+1=2.2$. Since 8.0, Lucene drops the $(k_1+1)$ factor from the numerator (LUCENE-8563): it is the same constant for every document and does not change the ranking. If term frequencies, IDFs, length normalization and all other scoring terms match, removing this factor scales the scores by $1/2.2$ without changing their order ([BM25Similarity source in 10.3.1](https://github.com/apache/lucene/blob/releases/lucene/10.3.1/lucene/core/src/java/org/apache/lucene/search/similarities/BM25Similarity.java)). Comparing actual Lucene output also requires checking the analyzer, statistics and length encoding; the constant alone does not guarantee a match. This is a controlled comparison, not a claim that appending words leaves length unchanged. Actually adding repetitions changes both frequency and length.
 
 Back to our documents: the new IDFs are $0.3567$ for `cache` and $0.6931$ for `error`. A's length adjustment is $1-0.75+0.75\times3/2.75\approx1.0682$. First compute its frequency factor $g(\texttt{cache},A)$, then multiply by IDF:
 
@@ -165,7 +165,7 @@ TF-IDF: [1.2685, 0.9808, 0.2877, 0.0]
 BM25: [1.1465, 1.1817, 0.3008, 0.0]
 ```
 
-Inputs are **sequences of already-tokenized strings**. The implementation does not tokenize or lowercase. The example's `.split()` only reproduces this English word list; it is not a Chinese search analyzer. Query terms are deduplicated. Empty documents score zero but count toward document count and average length. An empty collection returns an empty list; an all-empty collection does not divide by zero. Production engines may treat missing and empty fields differently, so check their statistics contract.
+Inputs are **sequences of already-tokenized strings**. The implementation does not tokenize or lowercase. The example's `.split()` only reproduces this English word list; it is not a Chinese search analyzer. Query terms are deduplicated. Empty documents score zero but count toward document count and average length. An empty collection returns an empty list; an all-empty collection does not divide by zero. Production engines may treat missing and empty fields differently, so check how they compute these statistics.
 
 Building statistics visits $N$ documents containing $T$ tokens in expected $O(N+T)$ time. If a query has $M$ tokens before deduplication and $Q$ distinct terms afterward, its expected time is $O(M+N(1+Q))$, including query deduplication and producing one score per document even when the query is empty. This assumes expected constant-time hash operations. If $U$ is the total number of distinct document–term pairs, statistics storage is $O(N+U)$; the $N$ term includes empty documents. This is a transparent reference implementation, **not a large-scale search engine**.
 

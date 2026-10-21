@@ -61,7 +61,7 @@ Frozen cases / evidence
 → criterion metrics + slices + human audit
 ~~~
 
-Keep the adapter at the call step rather than mixing SDK calls, rubrics, and aggregation into one prompt. Use bounded retries for timeouts or rate limits and retain attempt counts and final failures. Begin with a small redacted batch and a budget limit.
+Keep the API adapter at the call step, separate from request construction and result aggregation. The rubric belongs in the scoring request; retries and statistics belong in code, not in the prompt. Use bounded retries for timeouts or rate limits and retain attempt counts and final failures. Begin with a small redacted batch and a budget limit.
 
 Join parallel results by case_id, not completion order. Cache keys need candidate, evidence, rubric, model, and sampling configuration, or a changed rubric can silently reuse old scores.
 

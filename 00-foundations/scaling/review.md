@@ -53,14 +53,14 @@ Muennighoff 等把重复折算成有效数据：$D'=U_D+U_DR_D^*(1-e^{-R_D/R_D^*
 <details class="interview" markdown="1">
 <summary>什么是临界 batch size？batch 和学习率一起变时该怎么换算？</summary>
 
-McCandlish 等：$S=S_{\min}(1+B_{\rm crit}/B)$，$E=E_{\min}(1+B/B_{\rm crit})$，$B_{\rm crit}=E_{\min}/S_{\min}$，约等于梯度噪声尺度。教学数字 $B_{\rm crit}=2$M：batch 从 4M 加到 16M 只省 25% 的步数，却多看 3 倍数据。它随 loss 下降变大（Kaplan：loss 降约 13% 翻一倍），近期工作发现主要随数据量增长（Zhang 等：固定数据只放大模型，指数只有 0.087）。换算：SGD 用线性规则；Adam 用平方根规则（学习率乘 $\sqrt\kappa$，$1-\beta$ 乘 $\kappa$），只适用于噪声主导的小 batch 区间。也可以用 DeepSeek LLM 的拟合当起点：$10^{22}$ FLOPs 时约 $5.5\times10^{-4}$、4.6M token。
+McCandlish 等：$S=S_{\min}(1+B_{\rm crit}/B)$，$E=E_{\min}(1+B/B_{\rm crit})$，$B_{\rm crit}=E_{\min}/S_{\min}$，约等于梯度噪声尺度。教学数字 $B_{\rm crit}=2$M：batch 从 4M 加到 16M 只省 25% 的步数，数据量却变成原来的 3 倍。它随 loss 下降变大（Kaplan：loss 降约 13% 翻一倍），近期工作发现主要随数据量增长（Zhang 等：固定数据只放大模型，指数只有 0.087）。换算：SGD 用线性规则；Adam 用平方根规则（学习率乘 $\sqrt\kappa$，$1-\beta$ 乘 $\kappa$），只适用于噪声主导的小 batch 区间。也可以用 DeepSeek LLM 的拟合当起点：$10^{22}$ FLOPs 时约 $5.5\times10^{-4}$、4.6M token。
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>最大更新参数化（µP）解决什么问题？为什么隐藏层学习率要随宽度缩小？哪些东西不能迁移？</summary>
 
-标准参数化（SP）下最优学习率随宽度移动（TP5 的 MLP 上宽度 256 到 8192 移动约一个数量级）。Adam 第一步更新约为 $-\eta\,{\rm sign}(g)$，和输入 $x$ 对齐，于是 $(\Delta Wx)_i\approx\eta\,n\,\mathbb E|x|$：$x=\pm1$、$\eta=0.01$ 时宽 512 变化 5.12，宽 4096 变化 40.96。µP 让隐藏层和输出层的 Adam 学习率 $\propto1/\text{fan\_in}$，输出层初始化方差 $1/\text{fan\_in}^2$，attention 用 $1/d$，于是宽 4096 的隐藏层学习率取 0.00125。不能迁移的：dropout、weight decay 等正则化；深度、batch、训练长度只有经验验证，Transformer 的多层块在深度上有根本限制（TP6）。Everett 等发现设对逐层学习率的 SP 也能迁移。
+标准参数化（SP）下最优学习率随宽度移动（TP5 的 MLP 上宽度 256 到 8192 移动约一个数量级）。在[超参数一节](hyperparameters.md)的 batch=1、零初始化矩估计、不计 weight decay 且非零梯度远大于 $\epsilon$ 的条件下，Adam 第一步更新约为 $-\eta\,{\rm sign}(g)$，和输入 $x$ 对齐。对非零 $\delta_i$，变化幅度为 $|(\Delta Wx)_i|\approx\eta\,n\,\mathbb E|x|$：$x=\pm1$、$\eta=0.01$ 时宽 512 变化 5.12，宽 4096 变化 40.96。这里说的是幅度，方向还取决于 $\operatorname{sign}(\delta_i)$。µP 让隐藏层和输出层的 Adam 学习率 $\propto1/\text{fan\_in}$，输出层初始化方差 $1/\text{fan\_in}^2$，attention 用 $1/d$，于是宽 4096 的隐藏层学习率取 0.00125。不能迁移的：dropout、weight decay 等正则化；深度、batch、训练长度只有经验验证，Transformer 的多层块在深度上有根本限制（TP6）。Everett 等发现设对逐层学习率的 SP 也能迁移。
 
 </details>
 

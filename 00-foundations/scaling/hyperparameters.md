@@ -4,7 +4,9 @@
 
 > 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
-在一个窄的小模型上扫出最好的学习率（LR），原样搬到宽 8 倍的大模型上，常见的结果是训练不稳定，或者明显不是最优。原因不止一个：标准参数化（SP）下，最优学习率会随宽度移动；有用的 batch size 上限会随 loss 下降和数据量增长而变大；cosine schedule 的形状还绑定了训练总长度。**放大时要分开处理三件事。batch size 先看临界 batch size，超过它以后，每多一倍 batch 省下的步数越来越少、多看的数据越来越多。学习率要么用按规模拟合的经验公式当起点，要么用最大更新参数化（µP）一类方法让它在宽度之间可迁移。schedule 要么对准训练长度，要么用 warmup-stable-decay（WSD）把“训多久”推迟到最后再定。**
+在一个窄的小模型上搜索到最好的学习率（LR），原样搬到宽 8 倍的大模型上，常见的结果是训练不稳定，或者明显不是最优。原因不止一个：标准参数化（SP）下，最优学习率会随宽度移动；有用的 batch size 上限会随 loss 下降和数据量增长而变大；cosine schedule 的形状还依赖训练总长度。
+
+放大时要分开处理这三件事。先看临界 batch size：超过它以后，batch 每翻一倍，省下的步数越来越少，处理的数据却越来越多。选择学习率时，可以用按规模拟合的经验公式作为起点，也可以用最大更新参数化（µP）一类方法，让学习率在不同宽度之间迁移。至于 schedule，可以让它对准训练长度，也可以用 warmup-stable-decay（WSD），推迟到训练后期再决定何时结束。
 
 先读[一次训练](../deep-dives/training-step.md)和[从 SGD 到 AdamW](../deep-dives/optimizers.md)会更顺：要用到 optimizer step、梯度累积和 Adam 的更新式。教学预算沿用[第 1 篇](compute-optimal.md)的 $C=10^{22}$ FLOPs。
 
@@ -28,7 +30,7 @@ $S_{\min}$ 是 batch 无限大时最少要走的步数，$E_{\min}$ 是 batch �
 | 4M | 15,000 | 600 亿 | 1.5 倍 | 3.0 倍 |
 | 16M | 11,250 | 1800 亿 | 1.1 倍 | 9.0 倍 |
 
-在 $B_{\rm crit}$ 以下，batch 翻倍，步数接近减半，数据量增加不多，相当于用更多卡换时间；在它以上，batch 从 4M 加到 16M 只省 25% 的步数，却要多看 3 倍的数据。正好在 $B_{\rm crit}$ 时，步数和数据量都是各自最小值的 2 倍。
+在 $B_{\rm crit}$ 以下，batch 翻倍，步数接近减半，数据量增加不多，相当于用更多卡缩短训练时间；在它以上，batch 从 4M 加到 16M 只省 25% 的步数，处理的数据量却变成原来的 3 倍。正好在 $B_{\rm crit}$ 时，步数和数据量都是各自最小值的 2 倍。
 
 $B_{\rm crit}$ 不是常数。Kaplan 等拟合出 $B_{\rm crit}(L)\approx2\times10^{8}/L^{1/0.21}$ token（$L$ 是 WebText2 上的 loss），loss 每降约 13%，临界 batch 翻一倍；loss 从 3 降到 2，它从约 110 万涨到约 740 万 token。所以很多大训练前期用较小的 batch，后面逐步加大：Llama 3 405B 从 4M token 起，训到 252M token 时翻到 8M，2.87T token 时再翻到 16M；DeepSeek-V3 在前 469B token 里把 batch size 从 3072 逐步加到 15360（报告没写单位；按它 4K 的预训练序列长度看应是序列数，约 1260 万到 6290 万 token）。
 
@@ -97,11 +99,13 @@ WSD 的好处是“训多久”可以最后再定。教学例子：要比较 250
 
 标准参数化（SP）指框架默认的初始化、所有层共用一个学习率。在它之下，最优学习率会随宽度移动。[Tensor Programs V（Yang 等，2022-03，下称 TP5）](https://arxiv.org/abs/2203.03466)用 SGD 在 CIFAR-10 上训 MLP，看到宽度从 256 增到 8192，最优学习率移动了大约一个数量级，用最窄模型的最优学习率去训最宽的模型，效果很差甚至发散；Transformer 上也是如此。
 
-为什么会移？看一个隐藏层 $h=Wx$，$W$ 是 $n\times n$ 矩阵，输入 $x$ 的每个分量是 $O(1)$。Adam 第一步经过偏差修正后，更新近似是 $\Delta W_{ij}=-\eta\,{\rm sign}(g_{ij})$。batch 为 1 时 $g_{ij}=\delta_ix_j$（$\delta_i$ 是 loss 对 $h_i$ 的梯度），于是
+为什么会移？看一个隐藏层 $h=Wx$，$W$ 是 $n\times n$ 矩阵，输入 $x$ 的每个分量是 $O(1)$。按 [Adam 原论文的算法 1](https://arxiv.org/abs/1412.6980)，从零初始化的一、二阶矩出发，不计 weight decay，第一步经偏差修正后的更新是 $\Delta W_{ij}=-\eta g_{ij}/(|g_{ij}|+\epsilon)$。在非零梯度的大小远大于 $\epsilon$ 时，可近似为 $-\eta\,{\rm sign}(g_{ij})$。batch 为 1 时 $g_{ij}=\delta_ix_j$（$\delta_i$ 是 loss 对 $h_i$ 的梯度），于是
 
 $$
-(\Delta W x)_i=-\eta\,{\rm sign}(\delta_i)\sum_{j=1}^{n}|x_j|\approx-\eta\,n\,\mathbb E|x|.
+(\Delta W x)_i\approx-\eta\,{\rm sign}(\delta_i)\sum_{j=1}^{n}|x_j|\approx-\eta\,{\rm sign}(\delta_i)\,n\,\mathbb E|x|.
 $$
+
+这里保留 $\operatorname{sign}(\delta_i)$ 来区分更新方向；当 $\delta_i\ne0$ 且上述近似成立时，变化幅度是 $|\Delta h_i|\approx\eta n\mathbb E|x|$。若 $\delta_i=0$，这一行的更新为零。下面的手算和代码都采用忽略 $\epsilon$ 的理想化更新。
 
 关键在于更新和 $x$ 是对齐的：$n$ 项同号相加，大小随 $n$ 线性增长。如果更新方向和 $x$ 无关，正负会互相抵消，大小只按 $\sqrt n$ 增长。$x_j$ 都取 ±1 时手算：$\eta=0.01$、$n=512$ 时 $|\Delta h_i|=5.12$；同样的学习率放到 $n=4096$，变成 40.96，激活一步之内的变化大了 8 倍。要让它保持 5.12，隐藏层学习率得乘 $512/4096$，即 $0.00125$。这就是 µP 对 Adam 规定隐藏层学习率 $\propto1/\text{fan\_in}$ 的直觉。用高斯输入复算一次：
 

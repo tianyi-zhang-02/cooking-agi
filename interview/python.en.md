@@ -48,7 +48,7 @@ Try different keys below and watch the result change. Look at the people with eq
 
 <!-- widget:tx-py-sort -->
 
-`sorted(x)` returns a new list and leaves the original alone; `x.sort()` sorts in place and returns `None`. So `x = x.sort()` turns x into None, a very common bug.
+`sorted(x)` returns a new list and leaves the original alone; `x.sort()` sorts in place and returns `None`. With `x = x.sort()`, the list gets sorted, but x is then rebound to None—a common bug.
 
 One more trap: a lambda created in a loop remembers the variable, not its value at the time. See question 2 at the end.
 

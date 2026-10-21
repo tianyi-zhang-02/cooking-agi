@@ -37,7 +37,7 @@ A reasonable opening: “Should the same text be recomputed after the model vers
 
 ## Exercise one: a new model, the same old result {#cache}
 
-Define the contract: a single-threaded, in-process cache; string version and text inputs; an encoder returning a flat numeric list. Reuse is valid for the same `(model_version, text)`. The version must identify immutable model, tokenizer, and preprocessing settings, not a moving alias. Mutating a returned list must not change the cache. This teaching interface permits an empty list; a real embedding service may not.
+First, state the requirements. This is a single-threaded, in-process cache that takes a version and text, both strings. The encoder returns a flat numeric list, and results may be reused for the same `(model_version, text)`. The version must identify immutable model, tokenizer, and preprocessing settings, not an alias that can point to new weights. Mutating a returned list must not change the cache. This teaching interface permits an empty list; a real embedding service may not.
 
 This implementation is **deliberately broken**. Predict the final two results before fixing it.
 
@@ -82,7 +82,7 @@ class EmbeddingCache:
         return self.values[key].copy()
 ```
 
-Include the version, test membership explicitly, and copy both when storing and returning the list. A shallow copy suffices for the assumed immutable numeric elements. Nested mutable objects need a different contract.
+Include the version, test membership explicitly, and copy both when storing and returning the list. A shallow copy suffices because we assume the numeric elements are immutable. With nested mutable objects, you would need to reconsider what the interface allows callers to change.
 
 Test repeat hits, changed versions, empty lists, and mutations by both the caller and encoder after storage. Tests with different text every time will not catch the missing version.
 
@@ -102,7 +102,7 @@ def buggy_token_mean(batches):
     return sum(means) / len(means)
 ```
 
-This returns `(2+8)/2 = 5`. It is not rounding error: equal batch weights give tokens in the shorter batch more influence. If the desired metric were a mean of batch means, this would not be a bug. Here it violates the stated contract.
+This returns `(2+8)/2 = 5`. It is not rounding error: equal batch weights give tokens in the shorter batch more influence. If the desired metric were a mean of batch means, this would not be a bug. Here it conflicts with the metric defined above.
 
 <details markdown="1">
 <summary>The fix and tests to add</summary>

@@ -91,10 +91,12 @@ MPC 是“观察后重新规划”的执行方式，不是这张表里的第五�
 
 ## 模型也可以用来训练，而不是在线搜索
 
-MPC 把计算花在每次决策的搜索上；模型也可以在部署前用来造训练数据：Dyna / MBPO 从真实数据附近做短 rollout 训练 policy 或 Q，[Dreamer](../../11-frontier/world-models/dreamer.md) 一类方法在潜在状态里想象轨迹再训练 Actor / Critic，规划器蒸馏让一个快 policy 模仿规划结果；部署时都省掉了在线搜索，主要只剩 policy 推理（潜在状态方法还要先编码观测）。几种组合各付什么成本、在哪里失败，见[规划和学习怎样互相喂](planning-and-learning.md)；这里只提醒两点：latent state 若丢掉控制需要的信息，重建图像好看也不能补救；训练在模型里完成，也不等于部署安全已经得到验证。
+MPC 把计算花在每次决策的搜索上；模型也可以在部署前用来生成训练数据。Dyna / MBPO 从真实数据附近做短 rollout，训练 policy 或 Q；[Dreamer](../../11-frontier/world-models/dreamer.md) 一类方法在潜在状态里想象轨迹，再训练 Actor / Critic；规划器蒸馏则让一个推理较快的策略模仿规划结果。
+
+这些做法在部署时都省掉了在线搜索，主要只剩策略推理，潜在状态方法还要先编码观测。几种组合各付什么成本、在哪里失败，见[规划与学习怎样配合](planning-and-learning.md)。这里还要注意两点：潜在状态若丢掉控制需要的信息，重建图像好看也不能补救；在模型里完成训练，也不等于已经验证了部署安全。
 
 ## 怎么选一个起点
 
 有已知线性近似、低维连续状态，先试能解释的控制基线；黑盒模型但评估便宜，可以试采样规划；决策延迟很严，就考虑把计算搬到训练时。每次报告都同时列：真实交互数、模型训练量、每次动作的搜索预算。
 
-参考：[MIT LQR 推导](https://underactuated.mit.edu/lqr.html) · [MBPO](https://arxiv.org/abs/1906.08253)。接着读[规划和学习怎样互相喂](planning-and-learning.md)。
+参考：[MIT LQR 推导](https://underactuated.mit.edu/lqr.html) · [MBPO](https://arxiv.org/abs/1906.08253)。接着读[规划与学习怎样配合](planning-and-learning.md)。

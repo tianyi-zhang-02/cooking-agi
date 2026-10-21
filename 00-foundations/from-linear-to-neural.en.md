@@ -53,7 +53,7 @@ $$z = \mathbf{w}^\top \mathbf{x} + b, \qquad \sigma(z) = \frac{1}{1 + e^{-z}}$$
 
 ### So what does the sigmoid actually fix? {#so-what-does-the-sigmoid-actually-fix}
 
-An **optimization** problem. Suppose we skip the sigmoid and fit 0/1 labels with MSE on the raw score. A point with $\mathbf{w}^\top\mathbf{x} = 100$ and label 1 is already classified as correctly as it can be — yet its residual is 99 and its gradient is huge, so it drags the decision surface toward itself as hard as it can. **Points that are already correct dominate training.**
+An **optimization** problem. Suppose we skip the sigmoid and fit 0/1 labels with MSE on the raw score. A point with $\mathbf{w}^\top\mathbf{x} = 100$ and label 1 is classified correctly, yet its residual is 99. The resulting large gradient moves the decision surface toward that point. **Already-correct points can still dominate training.**
 
 Switch to sigmoid + cross-entropy:
 
@@ -75,8 +75,8 @@ $$\nabla_{\mathbf{w}} \mathcal{L} = (\sigma(z) - y)\,\mathbf{x}, \qquad \frac{\p
 
 This is one reason sigmoid and cross-entropy are a common binary-classification pair:
 
-- A far-away, correctly classified point has $\sigma(100) \approx 1$, so $s - y \approx 0$ — it **falls silent on its own**.
-- A misclassified point has $\sigma(-10) \approx 0$ while $y=1$, so $s - y \approx -1$ — the gradient cannot saturate, and the optimizer concentrates on it.
+- A far-away, correctly classified point has $\sigma(100) \approx 1$, so $s - y \approx 0$ — its **gradient contribution is close to zero**.
+- A misclassified point has $\sigma(-10) \approx 0$ while $y=1$, so $s - y \approx -1$ — **the gradient with respect to the logit remains close to $-1$**, rather than vanishing through an extra sigmoid derivative. Gradients of earlier parameters still depend on the input and each layer's Jacobian; this does not guarantee that all upstream gradients stay large.
 
 If the sigmoid is followed by MSE instead, the gradient carries an extra $\sigma'(z)$ factor that approaches 0 in saturated regions, making misclassified points harder to update. For the linear logistic regression used here, cross-entropy is **convex** in the parameters. That does not automatically guarantee a unique or finite optimum: collinear features can produce multiple solutions, and unregularized parameters can grow without bound on completely separable data. The convexity claim does not extend to a multilayer network.
 
@@ -210,7 +210,7 @@ LM head                    → vocabulary Softmax: distribution over the next to
 Vanilla Transformer FFN    → ReLU; modern models mostly use GELU / SiLU / SwiGLU
 ```
 
-One-line memory aid: **Sigmoid is like an independent valve, Softmax is like splitting votes among candidates, ReLU is like cutting off the negative half-axis, and Tanh is like squashing a signed state into $(-1,1)$.**
+One-line memory aid: **Sigmoid compresses each input independently, Softmax normalizes a set of scores into probabilities, ReLU sets negative values to zero, and Tanh compresses signed states into $(-1,1)$.**
 
 ## What a neural network really adds: learning $\phi$ {#what-a-neural-network-really-adds-learning-phi}
 
@@ -268,9 +268,11 @@ def step(p, X, y, lr=0.05):
 
     for k, g in (("W1", gW1), ("b1", gb1), ("w2", gw2), ("b2", gb2)):
         p[k] = p[k] - lr * g
-    loss = -np.mean(y * np.log(yhat + 1e-9) + (1 - y) * np.log(1 - yhat + 1e-9))
+    loss = np.mean(np.maximum(z2, 0) - y * z2 + np.log1p(np.exp(-np.abs(z2))))
     return loss, ((z2 > 0) == y).mean()
 ```
+
+`loss` evaluates ordinary BCE directly from logits using the stable form $\ell(z,y)=\max(z,0)-yz+\log(1+e^{-|z|})$, without adding epsilon to probabilities. It matches the hand derivation above: $\partial\ell/\partial z=\sigma(z)-y$, which gives `d2 = (yhat - y) / N` after averaging over the batch. In PyTorch, use the standard [BCEWithLogitsLoss](https://docs.pytorch.org/docs/2.14/generated/torch.nn.BCEWithLogitsLoss.html). Both the returned loss and accuracy refer to the forward pass before this parameter update.
 
 The full runnable versions are in [`code/why_nonlinear.py`](code/why_nonlinear.py) (PyTorch) and [`code/make_figures.py`](code/make_figures.py) (generates every figure on this page).
 
@@ -288,13 +290,13 @@ Three models, same data and same training configuration:
 
 ![three decision boundaries](assets/decision-boundaries.en.svg)
 
-**B and C are the same architecture with the same 33 parameters, one ReLU apart.** B's two weight matrices multiply out to $(1,8)\times(8,2) = (1,2)$, just a single row, identical in form to A — so it is exactly as weak as the 3-parameter logistic regression.
+**B and C have the same architecture and the same 33 parameters, except for one ReLU.** B's two weight matrices multiply out to $(1,8)\times(8,2) = (1,2)$, just a single row, identical in form to A. Its decision boundary therefore has the same representational limit as the 3-parameter logistic regression.
 
 50% is not undertraining. On symmetric XOR, the cross-entropy optimum is all-zero weights: every point is predicted at 0.5, the loss stays at $\ln 2 \approx 0.693$, and thresholding at 0.5 gives 50% accuracy. Even if you aimed for accuracy directly, the best a straight line can do is cut off one cluster on its own: 75%, with a whole cluster still wrong.
 
 ### What the hidden layer does geometrically {#what-the-hidden-layer-does-geometrically}
 
-Push a square grid on the input space through the hidden layer and see what it gets kneaded into:
+Pass a square grid in the input space through the hidden layer to see how its coordinates change:
 
 ![input space warped into hidden space](assets/hidden-space.en.svg)
 
@@ -442,7 +444,7 @@ These are comparisons to try, not fixed rules by data type. Use the same splits,
 ## Quick learning: from linear readout to learned feature map {#quick-learning-from-linear-readout-to-learned-feature-map}
 
 <details class="interview" markdown="1">
-<summary>The one-line spine and the standard answer</summary>
+<summary>The main idea and a standard interview answer</summary>
 
 **Quick memory**: a linear model draws a hyperplane in a given feature space. A neural network uses nonlinear layers to learn new coordinates $\phi_\theta(x)$, and a linear head reads the result out.
 

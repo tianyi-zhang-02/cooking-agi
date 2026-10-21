@@ -172,7 +172,9 @@ An attention mask has a different job: controlling visibility, such as hiding fu
 | Assistant answer | Supervise content and ending marker | Every assistant turn, or only the last? |
 | Padding | Exclude from loss | Distinguish by position if PAD and EOS share an ID |
 
-The [TRL v1.16.0 guide](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer#train-on-assistant-messages-only) (checked 2026-10) exposes assistant-only and completion-only options separately. Their names alone do not establish equivalent behavior. Assistant-only loss needs `{% generation %}` and `{% endgeneration %}` markers in the chat template; the docs say TRL patches them in automatically for known model families such as Qwen3 when `assistant_only_loss=True`, and other models need their template checked by hand. Inspect masks returned by the actual template and decode final labels for a few examples to see what training will reward.
+The [TRL v1.16.0 guide](https://huggingface.co/docs/trl/v1.16.0/en/sft_trainer#train-on-assistant-messages-only) (checked 2026-10) exposes assistant-only and completion-only options separately. Their names alone do not establish equivalent behavior.
+
+Assistant-only loss needs `{% generation %}` and `{% endgeneration %}` markers in the chat template. The docs say TRL patches them in automatically for known model families such as Qwen3 when `assistant_only_loss=True`; for other models, check the template yourself. Inspect masks returned by the actual template and decode final labels for a few examples to see which text actually supplies supervision.
 
 Check truncation too: does the example retain an answer, or only its prompt? Was the ending marker cut off? All-`-100` labels provide no supervision and need handling during data checks. Packing additionally needs sample-boundary and attention checks; a loss mask alone does not isolate conversations.
 

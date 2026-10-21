@@ -78,7 +78,9 @@ The old aggregate is `(20×0.8 + 80×0.2)/100 = 0.32`; the new one is `0.68`. Th
 
 Fixed weights aren't the only legitimate aggregate. Traffic weighting describes the current population; equal group weights expose smaller cohorts; paired users reduce changes in sample composition. State the question your summary answers and retain group counts and scores.
 
-When comparing representations, fix queries, the item tower/index, candidate budgets, and labels, then inspect per-query differences. Repeated training estimates training variation; appropriate paired resampling estimates evaluation-sample uncertainty. Neither substitutes for the other. Related requests from one user may require user-level grouping rather than treating every request as independent.
+When comparing representations, first identify which side changes. For user-side representations or query-combination methods alone, hold request inputs, the item tower and its index, candidate budgets, and labeling protocol fixed, then inspect per-query differences. Both user-side alternatives must be compatible with that fixed item space. When comparing two jointly trained dual-encoder models, use each model's item tower to encode the same catalog snapshot and rebuild its matching index, then evaluate it with its own user tower. Hold request inputs, eligible content, candidate budgets, and labeling protocol fixed—not the old index paired with a new user tower. The [TFRS index-building example](https://www.tensorflow.org/recommenders/examples/basic_retrieval) illustrates building an index from the trained item tower and serving it with the matching query tower.
+
+Repeated training estimates training variation; appropriate paired resampling estimates evaluation-sample uncertainty. Neither substitutes for the other. Related requests from one user may require user-level grouping rather than treating every request as independent.
 
 Balancing counts does not repair missing labels or exposure bias. Higher Recall in one group may reflect a smaller, easier set of known positives rather than a better experience. Inspect coverage and topical diversity alongside relevance.
 

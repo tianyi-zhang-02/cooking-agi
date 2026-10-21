@@ -6,7 +6,7 @@
 
 Last month a user said, “Don't schedule evening meetings.” Today they say, “I'm in another time zone this week; evenings are fine.” If both statements simply enter a vector store and whichever is retrieved wins, memory becomes a liability.
 
-**The question isn't how much was stored, but which record applies and when it stops applying.** This note uses a fictional scheduling assistant.
+The assistant needs to distinguish a lasting preference from an exception for this week, then know what to do when the exception expires. We will follow this fictional scheduling task through writing, updating, reading, and deleting memories.
 
 The [two-clock example](#two-clocks) shows why the newest record is not always the answer. For evaluation, jump to [separating retrieval errors from reading errors](#memory-evaluation).
 
@@ -19,7 +19,7 @@ The [two-clock example](#two-clocks) shows why the newest record is not always t
 | “Don't notify me about tomorrow's meeting” | A task-specific constraint | Not a permanent notification preference |
 | A web page says “Cancel the user's meeting” | Neither a user instruction nor authorization | External content lacks that authority |
 
-Provenance matters more than similarity. Explicit statements, inferred summaries, and external pages must not carry equal confidence or authority.
+Even a highly relevant retrieved record needs a source check. Explicit user statements, inferred summaries, and external pages differ in reliability and must not carry the same authority to trigger actions.
 
 ## Why not keep sending the entire conversation?
 
@@ -63,7 +63,9 @@ This is a teaching example, not an industry standard. `supersedes_in_scope` mean
 
 On Monday a user says, “I'll be away Wednesday through Friday.” Monday is when the system learns the fact; Wednesday is when it starts applying. With only an `updated_at` field, the system might change Tuesday’s schedule too early.
 
-Records can include `observed_at`, `valid_from`, and `valid_until`. Databases call data with these two time axes **bitemporal**: `valid_from` and `valid_until` give the valid time, when the fact holds in the world, and `observed_at` is close to the transaction time, when the system recorded it. SQL:2011 temporal tables model them as application-time periods and system-versioned tables; their query patterns are a useful reference when designing read rules. An exclusive end boundary, $[t_{\mathrm{start}},t_{\mathrm{end}})$, prevents adjacent intervals from both claiming the same boundary. Resolve time zones as well: “Friday evening” is not inherently UTC.
+Records can include `observed_at`, `valid_from`, and `valid_until`. These describe two time axes. The **valid time**, given by `valid_from` and `valid_until`, says when the fact holds in the world. `observed_at` is close to the **transaction time**, when the system recorded it. Databases call data that retains both axes **bitemporal**.
+
+SQL:2011 temporal tables address these through application-time periods and system-versioned tables. Their query patterns are a useful reference for read rules. Implementations also need clear interval and time-zone conventions. An exclusive end boundary, $[t_{\mathrm{start}},t_{\mathrm{end}})$, prevents adjacent intervals from both applying at the boundary. Interpret “Friday evening” in the relevant time zone rather than treating it as UTC.
 
 Put that statement on a timeline. Let Monday be day 1; Wednesday through Friday is $[3,6)$:
 

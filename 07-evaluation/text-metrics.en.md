@@ -34,7 +34,7 @@ $$
 
 An empty candidate is handled separately as zero. The brevity penalty discourages returning only an easy-to-match fragment.
 
-Take reference `the bus leaves at ten` and candidate `the bus leaves`. Every candidate unigram and bigram matches, but the candidate contains only 3 words against 5. Teaching BLEU-2 is $e^{1-5/3}\approx0.5134$, not 1.
+Take reference `the bus leaves at ten` and candidate `the bus leaves`. Every candidate unigram and bigram matches, but the candidate contains only 3 words while the reference has 5. Under this teaching formula, BLEU-2 is $e^{1-5/3}\approx0.5134$, not 1.
 
 Now use `the bus leaves at nine`. Lengths match, unigram precision is 4/5, and bigram precision is 3/4. BLEU-2 is $\sqrt{0.8\times0.75}\approx0.7746$. The time is wrong yet the score is higher. If departure time is the task, exact field accuracy is the direct measure.
 
@@ -77,7 +77,7 @@ assert math.isclose(bleu_example("the bus leaves at nine".split(), reference), m
 assert bleu_example(["red", "red", "red"], ["red", "blue"], 1) == 1 / 3
 ```
 
-This implements a single-reference, single-sentence, equally weighted, unsmoothed teaching variant. Any missing order returns zero. Production evaluation must specify order, smoothing, multiple references, and short-sentence handling. Corpus BLEU aggregates counts before scoring; it is not the arithmetic mean of sentence BLEU. [SacreBLEU](https://github.com/mjpost/sacrebleu) records a signature covering tokenization, casing, smoothing, and related settings.
+This implements a single-reference, single-sentence, equally weighted, unsmoothed teaching variant. It returns zero if any n-gram order has no matches. Production evaluation must specify order, smoothing, multiple references, and short-sentence handling. Corpus BLEU aggregates counts before scoring; it is not the arithmetic mean of sentence BLEU. [SacreBLEU](https://github.com/mjpost/sacrebleu) records a signature covering tokenization, casing, smoothing, and related settings.
 
 ## ROUGE: word coverage is not meaning coverage
 

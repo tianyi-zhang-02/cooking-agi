@@ -24,7 +24,7 @@ Transformer 就是[上一页](from-linear-to-neural.md)那个「学出来的坐�
 - **残差连接**：保留原状态，并把每个子层的改动叠加上去。
 - **堆叠 N 层**：反复进行跨位置通信与逐位置变换，逐层形成可用于预测的表示。
 
-这一页把这些零件串起来，每个零件的推导各有一篇主讲：缩放、mask 和 Q/K/V 在[多头注意力](core/multi-head-attention.md)，norm 放在哪里在[归一化](core/normalization.md)，SwiGLU 在 [FFN 与门控](core/ffn-and-gates.md)。这里自己负责的是 Q/K/V 的三种用法、RoPE 的代码、Noam 调度的一个坑，以及怎样用测试证明从零实现没写错。
+这一页把这些部件串起来；详细推导分别放在对应章节：缩放、mask 和 Q/K/V 见[多头注意力](core/multi-head-attention.md)，norm 的位置见[归一化](core/normalization.md)，SwiGLU 见 [FFN 与门控](core/ffn-and-gates.md)。本页重点讲 Q/K/V 的三种用法、RoPE 的代码、Noam 调度中的一个常见错误，以及怎样用测试检查从零实现。
 
 ## 核心公式：缩放点积注意力 {#_2}
 

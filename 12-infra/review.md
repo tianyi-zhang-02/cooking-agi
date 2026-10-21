@@ -4,7 +4,7 @@
 
 > 阅读时间：约 8 分钟 · 最近审阅：2026-10
 
-面试问 AI 基础设施，题目常常落在同一条链上：芯片怎么造、GPU 怎么跑 kernel、框架怎么发射 kernel、集群怎么分卡。**答这类题，先说清口径（精度、dense 还是 sparse、哪个 SKU），再算出瓶颈落在哪一层、受哪个数限制。** 下面的数字都来自本系列正文，推导和出处在对应的笔记里。
+AI 基础设施的面试题常涉及几个相互关联的环节：芯片怎么制造、GPU 怎么运行 kernel、框架怎么发射 kernel、集群怎么分配 GPU。回答时，先说清比较口径，包括精度、dense 还是 sparse，以及具体 SKU；再判断瓶颈在哪一层，用相应的数字估算限制。下面的数字都来自本系列正文，推导和出处在对应的笔记里。
 
 ## 面试常见问题
 
@@ -74,7 +74,7 @@ Eager 模式下，`y = torch.relu(x @ w + b)` 是 3 个 ATen 算子、至少 3 �
 <details class="interview" markdown="1">
 <summary>为什么分布式训练在 Kubernetes 上需要成组调度（gang scheduling）？</summary>
 
-默认的 kube-scheduler 一次只给一个 Pod 找节点，分布式训练却要所有 rank 到齐才能开始；GPU 又是只能取整数、不能超卖的 extended resource。手算一次：3 台节点各 8 卡；依次来了两个 4 卡任务、一个 16 卡训练 T16（2 个 Pod，各 8 卡）和一个 8 卡任务 T8。默认打分只看 CPU 和内存，两个 4 卡任务可能各占一台；T16 的一个 Pod 拿下第三台，另一个放不下，起来的一半占着 8 张卡空等；剩下两台各空 4 张，也拼不出 T8。24 张卡只有 8 张在干活；再来一个 T16，两个任务可能各占一台、互相等，就是死锁。
+默认的 kube-scheduler 一次只给一个 Pod 找节点，分布式训练却要所有 rank 到齐才能开始；GPU 又是只能取整数、不能超卖的 extended resource。手算一次：3 台节点各 8 卡；依次来了两个 4 卡任务、一个 16 卡训练 T16（2 个 Pod，各 8 卡）和一个 8 卡任务 T8。默认打分只看 CPU 和内存，两个 4 卡任务可能各占一台；T16 的一个 Pod 拿下第三台，另一个放不下，起来的一半占着 8 张卡空等；剩下两台各空 4 张，也拼不出 T8。24 张卡只有 8 张在干活，再来一个 T16 也只能排队。双任务互等需要额外条件：若只有两台整机可供训练、第三台长期被其他任务占用，两个 T16 可能各占一台、各等另一半；没有资源释放、超时回收或抢占时才会死锁。原表展示的碎片化不能单独证明这一点。
 
 成组调度放不下就一个都不绑定，第三台留给 T8，16 张卡在干活；再按 GPU 装箱（MostAllocated 并给 GPU 加权），两个小任务挤进一台，24 张都在干活，轮到 T8 排队。实现方式不止一种：Kubernetes 核心的 gang scheduling 在 v1.37 是 beta、默认关闭；Kueue 用 `waitForPodsReady` 超时驱逐、重新排队；Volcano 用 PodGroup 的 `minMember`。另外，Slurm 文档里的 “gang scheduling” 指分时轮流，和这里的全有或全无不是一回事。见 [Kubernetes](kubernetes.md)。
 
@@ -83,7 +83,7 @@ Eager 模式下，`y = torch.relu(x @ w + b)` 是 3 个 ATen 算子、至少 3 �
 ## 自检
 
 <div class="taste-check">
-  <strong>如果真的理解了，你应该能解释：</strong>
+  <strong>可以用下面的问题检查理解：</strong>
   <ol>
     <li>同样设 $D_0=0.1$ 个/cm²，800 mm² 的整块 die 每片晶圆约 29 块好 die，拆成两块 400 mm² 却能配出 48 对；这笔账漏掉了哪些成本？</li>
     <li>分块把矩阵乘的 global 读取从 $2n^3$ 降到 $2n^3/T$，为什么 Best Practices Guide 在 V100 上只把有效带宽从 119.9 GB/s 提到 195.5 GB/s？</li>

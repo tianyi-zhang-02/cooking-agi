@@ -85,7 +85,7 @@ If all similarities are temporarily zero and only a common bias is learned, one 
 
 ## Easier chunking does not make negatives free {#distributed}
 
-Without a global softmax denominator, pair terms can be accumulated in chunks. Suppose four GPUs each hold 32 pairs. Local comparisons provide 31 negatives per image. A target pool of 128 pairs also requires information about 96 remote texts. Embedding exchange, computation placement, and gradient flow still need an implementation.
+Without a global softmax denominator, pair terms can be accumulated in chunks. In this teaching example, divide 128 pairs evenly among four data-parallel processes (ranks), giving each rank 32 pairs. Local comparisons provide 31 negatives per image. A target pool of all 128 pairs also requires information about 96 texts on other ranks. Embedding exchange, computation placement, and gradient flow still need an implementation.
 
 Four accumulated local batches do not automatically create cross-batch pairs. Dropping negatives or changing their ratio changes the objective, not just its memory use. A larger pool can also contain more false negatives.
 

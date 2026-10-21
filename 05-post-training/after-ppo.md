@@ -51,7 +51,9 @@ Critic 估计状态价值，既可以提供降低方差的 baseline，也参与 
 | **RLOO** | 留一法：某个样本的基线 = 其余样本奖励的均值 | 同样要多采样；常见形式用整条回答的优势，不另学各前缀的 value |
 | **REINFORCE++** | 用包含 KL 惩罚的 return 构造优势，再做 batch 归一化 | 不训练 value；需检查 return、KL 和归一化范围 |
 
-这些方法不再依赖独立训练的 value model，但并没有消除估计误差。省下的训练状态，要和额外采样、信号方差及任务结构一起比较。表中 REINFORCE++ 对应[首版论文 §3](https://arxiv.org/html/2501.03262v1#S3)；batch 归一化不是另一个训练出来的 baseline，也不保证梯度无偏或训练稳定。截至 2026-10，arXiv 上的最新版是 [v9（2025-11-10）](https://arxiv.org/abs/2501.03262v9)，标题改为 “…with Global Advantage Normalization”，并增加了一个 “REINFORCE++ w/ baseline” 变体：同一 prompt 采多份回答，先减组内平均奖励，再在整个 batch 上归一化，KL 改成单独的损失项（v9 §3.2）。
+这些方法不再依赖独立训练的 value model，但并没有消除估计误差。省下的训练状态，要和额外采样、信号方差及任务结构一起比较。表中 REINFORCE++ 对应[首版论文 §3](https://arxiv.org/html/2501.03262v1#S3)；batch 归一化不是另一个训练出来的 baseline，也不保证梯度无偏或训练稳定。
+
+截至 2026-10，arXiv 上的最新版是 [v9（2025-11-10）](https://arxiv.org/abs/2501.03262v9)，标题改为 “…with Global Advantage Normalization”。这一版增加了 “REINFORCE++ w/ baseline” 变体：同一 prompt 采多份回答，先减组内平均奖励，再在整个 batch 上归一化，KL 改成单独的损失项（v9 §3.2）。
 
 RLOO 的基线写出来是这样，$k$ 是同一提示下的采样数：
 
@@ -201,7 +203,15 @@ P(y_w\succ y_l\mid x)=\sigma(\Delta r).
 \end{gathered}
 $$
 
-再看带 KL 约束的奖励最大化。在 $\beta>0$ 的 KL 正则化奖励目标下，若把优化范围看成所有满足支持条件的策略分布，并假定配分函数 $Z(x)$ 有限，最优策略满足：
+再看固定惩罚系数 $\beta>0$ 的 KL 正则化奖励目标：
+
+$$
+\max_\pi\ \mathbb E_{x\sim\mathcal D}
+\left[\mathbb E_{y\sim\pi(\cdot\mid x)}r(x,y)
+-\beta D_{\mathrm{KL}}\!\left(\pi(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x)\right)\right].
+$$
+
+这里的 KL 是目标中的惩罚项，不是预先指定半径的硬约束。若把优化范围看成 Reference 支持集内的所有策略分布，并假定 $0<Z(x)<\infty$、相关期望有定义，最优策略满足：
 
 $$
 \begin{gathered}
@@ -210,7 +220,11 @@ $$
 \end{gathered}
 $$
 
-把它反过来写，得到 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。代回 Bradley–Terry：比较同一 prompt 的两个回答时，$\beta\log Z(x)$ 在 reward difference 中抵消，$\Delta r$ 就只剩 $\beta$ 乘以两份回答的 policy/reference log-ratio 之差。用正在训练的 $\pi_\theta$ 代替 $\pi^*$，再对偏好数据集取负对数似然的平均，就得到上面的 $\mathcal L_{\mathrm{DPO}}$。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。
+若改成 $\mathbb E_x D_{\mathrm{KL}}(\pi\|\pi_{\mathrm{ref}})\leq\delta$ 的硬约束问题，$\beta$ 要作为与该约束匹配的拉格朗日乘子处理；任意固定的 $\beta$ 不保证满足预先给定的 $\delta$，更不保证每一步神经网络更新都在这个半径内。[原论文式 3、附录 A.1](https://arxiv.org/html/2305.18290v2#A1.SS1)的闭式推导实际使用的是上面的惩罚目标。
+
+把最优策略反过来写，得到 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。代回 Bradley–Terry：比较同一 prompt 的两个回答时，$\beta\log Z(x)$ 在 reward difference 中抵消，$\Delta r$ 就只剩 $\beta$ 乘以两份回答的 policy/reference log-ratio 之差。
+
+接着用正在训练的 $\pi_\theta$ 代替 $\pi^*$，再对偏好数据集取负对数似然的平均，就得到上面的 $\mathcal L_{\mathrm{DPO}}$。因此奖励概念没有消失，而是被**隐式吸收进 policy objective**。
 
 这段推导来自 [DPO 原论文 §4](https://arxiv.org/html/2305.18290v2#S4)。它依赖奖励目标、偏好模型和支持条件；并不是证明了“所有人的真实偏好都长这样”，也不保证有限神经网络和有限数据能找到全局最优。
 
@@ -224,7 +238,7 @@ $$
 
 只告诉模型“A 值得模仿”；DPO 同时看到 A 和 B，学习的是“A 相对 B 更受偏好”。chosen 不必是唯一完美答案，原始二元偏好也通常只提供 $A>B$ 的顺序，而不直接告诉模型好多少。
 
-$\beta$ 同时参与 Reference 约束的理论关系和 preference logit 的尺度。把它机械记成“越大越保守”容易出错：不同推导约定、loss 实现和数据尺度会影响观察到的训练行为，面试中最好先写清公式和代码库定义，再讨论调大调小。
+$\beta$ 同时参与相对 Reference 的 KL 正则化关系和 preference logit 的尺度。把它机械记成“越大越保守”容易出错：不同推导约定、loss 实现和数据尺度会影响观察到的训练行为，面试中最好先写清公式和代码库定义，再讨论调大调小。
 
 标准离线 DPO 使用**固定的偏好对**。策略会变，数据不会自动跟着变，因此可能漏掉当前 policy 的新失败；分布错配是否变大，要实际测，不是必然单调增加。Online DPO 和迭代式数据刷新会重新收集反馈，所以“DPO 只能离线”不是整个算法家族的边界。
 
@@ -346,7 +360,7 @@ Learned Reward Model 要监控 reward hacking、长度偏好、风格捷径以�
 <details class="interview" markdown="1">
 <summary>DPO 为什么不需要显式 Reward Model？</summary>
 
-KL 约束下的最优策略可以反解出奖励：$r=\beta\log(\pi^*/\pi_{\mathrm{ref}})$ 加一个只依赖 prompt 的项。同一 prompt 的两个回答相减时这一项抵消，reward difference 就写成 chosen/rejected 的 policy/reference log-ratio 之差。Reward 没消失，而是隐含在 DPO loss 中。推导见[上文](#dpo-derivation)。
+固定 $\beta>0$ 的 KL 正则化目标，在上述支持集与可积条件下，其最优策略可以反解出奖励：$r=\beta\log(\pi^*/\pi_{\mathrm{ref}})$ 加一个只依赖 prompt 的项。同一 prompt 的两个回答相减时这一项抵消，reward difference 就写成 chosen/rejected 的 policy/reference log-ratio 之差。Reward 没消失，而是隐含在 DPO loss 中。推导见[上文](#dpo-derivation)。
 
 </details>
 

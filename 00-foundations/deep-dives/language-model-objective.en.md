@@ -4,7 +4,7 @@
 
 > Reading time: ~9 min · Last reviewed: 2026-10
 
-One answer has 20 valid tokens and another has 200. Averaging over all tokens gives the second answer ten times as many loss terms. Averaging within each answer first gives the answers equal weight. **Before changing any architecture, the reduction already changes whose examples dominate learning.** [The numbers are worked out below](#dissection-one-cross-entropy-does-not-decide-what-matters-for-you).
+One answer has 20 valid tokens and another has 200. Averaging over all tokens gives the second answer ten times as many loss terms. Averaging within each answer and then across answers gives them equal weight. Even with the same model, the averaging method changes each sample's weight in training. [The numbers are worked out below](#dissection-one-cross-entropy-does-not-decide-what-matters-for-you).
 
 ## Why do training and generation run at different rhythms? {#the-core-question-why-training-and-generation-run-at-different-rhythms}
 
@@ -12,7 +12,7 @@ Training and generation use the same parameterized distribution:
 
 $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$
 
-The only difference is whether the future is known. In training the whole ground-truth sequence is already laid out on the table; in generation the next token does not exist yet, so the model can only write one, look at it, and then keep writing. The [roofline](../../12-infra/performance.en.md#roofline) explains the split in the table's “main bottleneck” row.
+First consider whether the target sequence is known. During training, the complete ground-truth sequence is available, so positions can be processed in parallel under a causal mask. During generation, the next token has not yet been chosen; the model must generate it before using it as context for subsequent predictions. The [roofline](../../12-infra/performance.en.md#roofline) explains the split in the table's “main bottleneck” row.
 
 | | training / prefill | autoregressive decode |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ The loss at a single position:
 
 $$\ell_t=-\log p_\theta(y_t\mid x_{\le t})$$
 
-Here $y_t=x_{t+1}$ is the true token after position $t$. The gradient with respect to the logits is $p-e_{y_t}$, where $e_{y_t}$ is the one-hot vector for $y_t$; the formula is clean. But once all positions are summed, frequent tokens and long samples naturally hold more “votes”. So data mixing, sample weighting, and loss masking are not leftovers in the corner of a training script — they are what defines whom the model should actually care about.
+Here $y_t=x_{t+1}$ is the true token after position $t$. The gradient with respect to the logits is $p-e_{y_t}$, where $e_{y_t}$ is the one-hot vector for $y_t$. When losses are summed over all positions, frequent tokens and long samples contribute more terms. Data mixing, sample weighting, and loss masking therefore shape the training objective; they are not merely implementation details.
 
 Return to the two answers from the opening. Suppose the short answer (20 tokens) has a mean per-token loss of 1.0 and the long answer (200 tokens) has 2.0:
 
@@ -57,12 +57,14 @@ Both models give the text the same probability, yet their PPL differs by more th
 
 In training the model always predicts on top of the true prefix (teacher forcing); in generation it must continue from its own output. This mismatch is commonly called exposure bias; see [Seq2Seq](../core/seq2seq.en.md) for a worked example. A low-probability error at one step can carry the subsequent context into a region that the training data rarely covers.
 
-It is very easy here to say, by reflex, “then use RL”. Before that, check where the problem actually comes from:
+Before considering RL to improve generation, check where the problem comes from:
 
 1. the training data does not cover the target behavior;
 2. the loss mask or the template is wrong;
-3. the sampling strategy is unsuitable (to tell 1 from 3, score a reference answer: a low log-likelihood suggests training never covered it; a reasonable likelihood with bad samples points to temperature, top-p, and similar settings);
+3. the sampling strategy is unsuitable;
 4. a long-horizon objective cannot be expressed by per-token likelihood.
+
+One diagnostic is to score a reference answer. Low log-likelihood means that this model is unlikely to generate that answer under the given input; it does not establish a gap in the training data. Check the template, training objective, and model capability as well. If the reference has reasonable likelihood but sampled responses are often poor, inspect temperature, top-p, and related settings more closely. This comparison helps guide the investigation, but a single score cannot identify the cause.
 
 The fourth category points most directly to a sequence-level preference or an RL objective; if the problem is exactly that the model's own outputs carry the context away from the training distribution, training on the model's own prefixes (on-policy data, RL, and similar) is also worth considering.
 

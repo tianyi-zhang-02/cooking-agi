@@ -79,7 +79,7 @@ Now consider attention sinks. Softmax weights must sum to one, so a head with no
 | No gate, rely on the sink | `[3, 0, 0]` | $[0.909, 0.045, 0.045]$ | 0.27 | None | 0.27 |
 | Gate, attention stays spread out | `[0, 0, 0]` | $[1/3, 1/3, 1/3]$ | 2 | 0.1 | 0.2 |
 
-Both heads pass on little. Without a gate, the head can only do that by scoring the sink high, so the sink takes $e^3/(e^3+2)\approx0.909$ of the weight. With a gate, the attention pattern does not have to bend for this; the gate scales the output down to a tenth.
+Both approaches produce a small output. In this example, the ungated head reduces its output by scoring the sink highly, giving it $e^3/(e^3+2)\approx0.909$ of the weight. The gated head can keep uniform attention weights and use the gate to scale the output down to a tenth.
 
 The [paper](https://arxiv.org/abs/2505.06708) compares 30 gating variants on 15B-total (2.54B active) MoE models and 1.7B dense models, trained on 400B to 3.5T tokens. The best was an elementwise, head-specific sigmoid gate that multiplies the SDPA output ([§3.2](https://arxiv.org/html/2505.06708v1#S3.SS2)). It reports that in the baseline, 46.7% of attention goes to the first token on average across layers, and 4.8% with this gate; the authors attribute the drop to query-dependent sparse gating ([§4.3](https://arxiv.org/html/2505.06708v1#S4.SS3)). Those results are evidence for its training settings, not a guarantee that attaching a gate to any checkpoint removes attention sinks. Nor can a single attention heatmap show whether a sink is present.
 

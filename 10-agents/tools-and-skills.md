@@ -46,7 +46,7 @@ MCP 管的是助手怎样连到工具和数据。要把任务交给另一个团�
 
 一个 Skill 可以调用 MCP 工具，也可以只使用本地文件工具；一个 MCP server 可以被多个助手使用，完全不需要附带 Skill。选择它们的理由应该是减少重复工作，而不是把几个热门名字都装进系统。
 
-**2026 年的更新：Skill 也可以通过 MCP 分发。** 官方 Skills 扩展用 Resources 读取说明及附件，这更说明二者可以组合。扩展已发布，但各 SDK / host 的支持仍需逐一确认。读取一份 `SKILL.md` 不等于激活它：应用还要校验内容，并完成所需授权；文件哈希（digest）只能证明内容没被改动，不能证明内容可信。[Skills over MCP](https://modelcontextprotocol.io/extensions/skills/overview)（核对：2026-10-10）
+**2026 年的更新：Skill 也可以通过 MCP 分发。** 官方 Skills 扩展用 Resources 读取说明及附件，这更说明二者可以组合。扩展已发布，但各 SDK / host 的支持仍需逐一确认。读取一份 `SKILL.md` 不等于激活它：应用还要校验内容，并完成所需授权。文件哈希（digest）要与可信保存的预期值比较，例如批准时保留的 manifest 中的值，才能检查内容是否与该基准一致；匹配也不代表内容可信或安全。[Skills over MCP](https://modelcontextprotocol.io/extensions/skills/overview)（核对：2026-10-10）
 
 ## 3. MCP 不只有 tools {#mcp-primitives}
 
@@ -89,7 +89,7 @@ Return a review draft. Do not edit the note or publish the draft.
 
 Skill 通常分层加载：先让模型看到名称和简介，选中后再读完整步骤，有需要才打开参考文件。这样不用一开始就把所有说明读一遍。名称和简介仍占上下文，所以“没用到的 Skill 完全不耗 token”并不准确。[Skills 接入指南](https://agentskills.io/client-implementation/adding-skills-support)
 
-用一组**假设的 token 数**算一下。实际长度要用所选模型的 tokenizer 测，这里只演示账怎么算。
+用一组**假设的 token 数**算一下。实际长度要用所选模型的 tokenizer 测，这里只演示如何计算加载内容的长度。
 
 | 这次载入什么 | 数量与长度 | token 数 |
 | --- | --- | --- |
@@ -103,7 +103,7 @@ Skill 通常分层加载：先让模型看到名称和简介，选中后再读�
 <!-- widget:step-skill-loading -->
 
 <details markdown="1">
-<summary>用几行 Python 核对这笔账</summary>
+<summary>用几行 Python 核对 token 总数</summary>
 
 ```python
 def context_budget(catalog_tokens, instruction_tokens, reference_tokens):

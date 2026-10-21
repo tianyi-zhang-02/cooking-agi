@@ -11,4 +11,4 @@ These are notes from reading papers. Alongside methods and results, I keep track
 
 With those questions in mind, I look at the formulas, implementation, and assumptions.
 
-The first one is not finished yet. To write one, copy [`../templates/paper-note.en.md`](../templates/paper-note.en.md) and add a line here when it is done.
+The first note is still in progress. If you would like to contribute, copy the [paper-note template](../templates/paper-note.en.md) and add a link here when your note is ready.

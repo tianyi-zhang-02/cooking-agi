@@ -73,7 +73,9 @@ Prefer small synthetic examples. Real measurements require public sources and ex
 
 Write Chinese as a clear spoken explanation, not a word-for-word translation. Keep familiar names such as Transformer, SFT, and LLM. Use the glossary for English equivalents at first mention: at most two automatic annotations per paragraph, without duplicating existing parenthetical explanations. Keep headings, controls, and diagrams uncluttered. Prefer concrete inputs, outputs, and actions to abstract jargon or unnecessary language switching.
 
-Chinese should sound like an explanation to a person. “Fix the candidate pool before comparing” is more useful than abstract process language. Keep standard English terms where helpful, without translating sentences word for word.
+An introduction does not need every conclusion at once, and a whole abstract rarely needs bold type. Establish the question, then explain it in manageable steps. Keep useful examples and necessary assumptions when shortening prose. Avoid repeated verdicts such as “the real key,” but do not mechanically remove contrasts that clarify a technical distinction. Forced slang is no substitute for a clear explanation.
+
+Read the English independently. Do not carry over Chinese word order, metaphors, or long chains of clauses. Use “memory estimate” when estimating memory, rather than calling every calculation a “ledger”; describe specific input requirements rather than calling them all “contracts.” Sentence boundaries can differ between languages; examples, assumptions, and conclusions should agree.
 
 ## Bilingual reading contract
 

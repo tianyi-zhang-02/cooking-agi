@@ -9,7 +9,7 @@
 [Huginn (Geiping et al., 2025)](https://arxiv.org/abs/2502.05171) is a 3.5B model in three parts:
 
 - **prelude** (2 layers): turns the input into an embedding $e$;
-- **recurrent block** (4 layers): runs over and over; every loop an adapter concatenates the current state $s$ with $e$ and projects it back to the original width, so the input is re-injected each loop; the starting state $s_0$ is random;
+- **recurrent block** (4 layers): runs repeatedly. At each loop, an adapter concatenates the current state $s$ with $e$ and projects the result back to the original width, giving the model access to the input representation again. The starting state $s_0$ is random;
 - **coda** (2 layers): turns the final state back into a distribution over the next token.
 
 Training samples recurrent depth with a configured expectation around 32 and backpropagates through at most the last eight loops. Earlier states still affect the forward computation, but the full gradient chain is not retained; this is not an unbiased gradient of full unrolling. The paper reports test-time compute benefits after about 800B training tokens. A “50B-equivalent” compute budget is not 50B parameters of capacity or monotonic improvement on every question.
@@ -24,7 +24,7 @@ Training samples recurrent depth with a configured expectation around 32 and bac
 | Loops in the final configuration | 4 | 4 |
 | Training tokens | 7.7T | 7.7T |
 
-The 7.7T-token training lineage includes the shared phase before the sizes branch; it is not 7.7T independent tokens at 2.6B from initialization. Table 1 and §4.3 specify eight loops for the shared first 3T tokens, then four for stability as the 2.6B branch is created. Four is the final configuration, not the entire training history. Depth extrapolation is not guaranteed to help. See [adaptive depth](adaptive-depth.en.md) for the distinction between an exit gate and actually skipping computation.
+The 7.7T total includes the shared training phase before the two model sizes diverge; the 2.6B model was not trained independently on 7.7T tokens from initialization. Table 1 and §4.3 specify eight loops for the shared first 3T tokens, then four for stability as the 2.6B branch is created. Four is the final configuration, not the entire training history. Depth extrapolation is not guaranteed to help. See [adaptive depth](adaptive-depth.en.md) for the distinction between an exit gate and actually skipping computation.
 
 ## Relaxed Recursive Transformers: converting an existing model
 

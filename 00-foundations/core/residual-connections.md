@@ -81,7 +81,7 @@ Dropout 放到 $x$ 上时，直接通路的 Jacobian 从 $I$ 变成随机对角�
 
 ## 和归一化怎么配合 {#_6}
 
-残差、dropout 和归一化解决的是不同问题，但三者的**相对位置**很要命：
+残差、dropout 和归一化解决的是不同问题，但三者的**相对位置**会改变梯度路径：
 
 $$\underbrace{\text{Norm}(x + \text{Dropout}(f(x)))}_{\text{post-norm，2017 原版}} \qquad\text{vs}\qquad \underbrace{x + \text{Dropout}(f(\text{Norm}(x)))}_{\text{pre-norm，分支内归一化}}$$
 
@@ -178,7 +178,7 @@ Post-norm 逐层归一化残差输出，训练条件和表示行为不同。质�
 
 **面试回答**
 
-> Residual connection 的 Jacobian 是 $I+J_f$，保留了直接传播的项。$f(x)\approx0$ 时 block 接近恒等映射；这是容易表示的解，不保证训练一定找到，也不保证加深后指标一定更好。
+> 残差连接（residual connection）的 Jacobian 是 $I+J_f$，保留了直接传播的项。$f(x)\approx0$ 时，整个块接近恒等映射；这是容易表示的解，不保证训练一定找到，也不保证加深后指标一定更好。
 
 <details markdown="1">
 <summary><b>深挖</b>：有 residual 就绝不会梯度消失吗？</summary>

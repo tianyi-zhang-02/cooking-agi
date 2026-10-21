@@ -4,7 +4,9 @@
 
 > Reading time: ~10 min · Last reviewed: 2026-10
 
-Llama 3's 8B model saw more than 15T tokens, about 1,900 tokens per parameter, close to a hundred times Chinchilla's 20. That is not a mistake: Chinchilla answers "how to get the lowest loss for a fixed training budget", while a model that will be deployed also has inference on its bill, and a limit on how much non-repeated data you actually have. **Once inference tokens count toward total FLOPs, the optimum moves toward a smaller model trained on more data, and the more inference you expect, the further it moves. When data runs short, repeating the same data about 4 times is nearly as good as new data, and the value falls quickly after a dozen or so passes. These conclusions also come from fits; at a thousand or more tokens per parameter, the curves overestimate the benefit of more data.**
+Llama 3's 8B model saw more than 15T tokens, about 1,900 tokens per parameter, close to a hundred times Chinchilla's 20. The two ratios address different questions. Chinchilla asks how to achieve the lowest loss for a fixed training budget; deployment also requires accounting for inference costs and the amount of unique data available.
+
+In the cost model below, including inference tokens in total FLOPs shifts the optimum toward a smaller model trained on more data. The larger the expected inference volume, the further it shifts. Data-constrained experiments also find that repeating the same data about 4 times is nearly as good as using new data, with returns falling quickly after a dozen or so passes. These conclusions come from fitted relationships too; at a thousand or more tokens per parameter, the curves overestimate the benefit of more data.
 
 ## Put inference on the same bill
 
@@ -38,7 +40,7 @@ There is another way to spend more compute at inference: let the model think lon
 
 ## Does loss keep falling far past 20?
 
-It does, but more slowly than the formula says. Sardana et al. trained 47 models and pushed a 150M-parameter model all the way to 10,000 tokens per parameter without the loss stopping; larger models were tested up to 1,000 tokens per parameter (the 2.5B model up to 500) and also did not flatten. But a curve fitted only on typical ratios (under 100 tokens per parameter) overestimates the gain from extra data at extreme ratios; refitting with the extreme-ratio points included makes the fitted curves noticeably flatter. They also found that none of the parametric curves fit the long runs of the 150M model well.
+It does, but more slowly than the formula predicts. Sardana et al. trained 47 models. For a 150M-parameter model, loss continued to fall even at 10,000 tokens per parameter. Larger models were tested up to 1,000 tokens per parameter (the 2.5B model up to 500), without reaching a plateau either. But a curve fitted only on typical ratios (under 100 tokens per parameter) overestimates the gain from extra data at extreme ratios. Including the extreme-ratio points in the fit produces noticeably flatter curves. They also found that none of the parametric curves fit the long runs of the 150M model well.
 
 [Gadre et al. (2024-03)](https://arxiv.org/abs/2403.08540) tested directly whether over-training can be extrapolated. They trained 104 models from 0.011B to 6.9B on three data distributions and, fitting with about 300 times less compute, predicted the validation loss of a 1.4B model trained on 900B tokens (32 times more data than compute-optimal) and a 6.9B model trained on 138B tokens (compute-optimal); they then fitted a power law from perplexity to average downstream error and predicted downstream error with about 20 times less compute.
 

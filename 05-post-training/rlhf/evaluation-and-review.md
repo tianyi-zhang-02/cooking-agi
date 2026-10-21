@@ -73,9 +73,9 @@ GRPO 从同一 prompt 的一组回答中构造相对信号，不训练独立 Cri
 <details class="interview" markdown="1">
 <summary>DPO 和 PPO 最关键的区别在哪？</summary>
 
-DPO 用了一个推导：带 KL 约束的奖励最大化有闭式最优解，把奖励反解成策略的表达式之后，偏好损失可以直接对策略求梯度。于是标准离线 DPO 不必单独训练奖励模型，也没有在线 RL 循环；奖励差隐含在 loss 里。
+DPO 用了一个推导：固定 $\beta>0$ 的 KL 正则化奖励目标，在策略支持集与可积条件下有闭式最优解；它不是固定 KL 半径的逐步更新保证。把奖励反解成策略的表达式之后，偏好损失可以直接对策略求梯度。于是标准离线 DPO 不必单独训练奖励模型，也没有在线 RL 循环；奖励差隐含在 loss 里。完整目标和条件见 [DPO 推导](../after-ppo.md#dpo-derivation)。
 
-标准 DPO 的代价是使用**离线**偏好对。训练中策略在变，数据却不跟着变；它无法主动探索当前 policy 的新失败。PPO 或其他 online RL 可以从当前策略采样，更适合需要探索、环境交互或可验证多步结果的任务，但 rollout 更贵，训练也更不稳定。
+标准离线 DPO 的一个限制是偏好数据固定。训练中策略在变，数据却不跟着变，因此无法主动探索当前策略新出现的失败。PPO 或其他 online RL 可以从当前策略采样，更适合需要探索、环境交互或可验证多步结果的任务，但 rollout 更贵，训练也更不稳定。
 
 所以 DPO 不能完全替代 PPO，但 PPO 也不是所有场景都更好。高质量静态偏好数据可以先用 DPO；需要当前策略不断产生新数据时使用 online RL。Online DPO 等变体进一步说明，关键区别是数据与反馈闭环，而不只是 loss 的名字。
 
@@ -102,7 +102,7 @@ RLVR 适合能自动检查结果的任务或子目标；开放式对话也可能
 ## 自检
 
 <div class="taste-check">
-  <strong>如果真的理解了，你应该能解释：</strong>
+  <strong>试着用自己的话解释：</strong>
   <ol>
     <li>典型 PPO-style RLHF 的四个角色分别做什么？为什么不等于四份常驻权重？</li>
     <li>Reference KL 和 old-policy ratio 的参照对象分别是谁？</li>
@@ -120,7 +120,7 @@ RLVR 适合能自动检查结果的任务或子目标；开放式对话也可能
 
 ## 中文导读
 
-本章只讲 RLHF 这条主干。算法谱系本站另有几篇：先读 [PPO、GRPO 与 DPO](../after-ppo.md)，
+本章介绍 RLHF 的主要流程。不同算法另有几篇专门讨论：先读 [PPO、GRPO 与 DPO](../after-ppo.md)，
 再按需看 [DAPO](../dapo.md)、[Clipping 与梯度](../clipping-variants.md)、[GSPO 与 ASPO](../policy-ratios.md)
 和[异步训练](../async-policy-learning.md)。
 

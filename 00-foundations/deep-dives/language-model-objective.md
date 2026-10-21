@@ -4,7 +4,7 @@
 
 > 阅读时间：约 9 分钟 · 最近审阅：2026-10
 
-一条答案有 20 个有效 token，另一条有 200 个。如果 loss 按所有 token 平均，后者就贡献十倍的位置数；如果先分别求平均再按样本平均，两条答案权重一样。**还没有换模型，“平均”怎么做，就已经改变了模型主要向谁学习。**[下面算一遍](#cross-entropy)。
+一条答案有 20 个有效 token，另一条有 200 个。如果 loss 按所有 token 平均，后者就贡献十倍的位置数；如果先分别求平均再按样本平均，两条答案权重一样。即使模型不变，平均方式也会改变不同样本在训练中的权重。[下面算一遍](#cross-entropy)。
 
 <span id="_1"></span>
 
@@ -14,7 +14,7 @@
 
 $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$
 
-区别只在“未来知不知道”。训练时整条真实序列已经摊在桌上；生成时下一个 token 还没出现，模型只能写一个、看一个，再继续写。下表“主要瓶颈”一行为什么这样分，可以用 [roofline](../../12-infra/performance.md#roofline) 算出来。
+这里先看目标序列是否已知。训练时，整条真实序列已经可用，各位置可以在 causal mask 的约束下并行计算；生成时，下一个 token 还没确定，模型需要先生成它，再把它作为后续预测的上下文。下表“主要瓶颈”一行为什么这样分，可以用 [roofline](../../12-infra/performance.md#roofline) 算出来。
 
 | | 训练 / prefill | autoregressive decode |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ $$p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t})$$
 
 $$\ell_t=-\log p_\theta(y_t\mid x_{\le t})$$
 
-这里 $y_t=x_{t+1}$ 是位置 $t$ 之后的真实 token。对 logits 的梯度是 $p-e_{y_t}$（$e_{y_t}$ 是 $y_t$ 的 one-hot 向量），公式很干净。但把所有位置加起来以后，频繁 token 和长样本天然拥有更多“投票权”。所以数据混合、sample weighting 与 loss masking 不是训练脚本边角料——它们就在定义模型到底该重视谁。
+这里 $y_t=x_{t+1}$ 是位置 $t$ 之后的真实 token。对 logits 的梯度是 $p-e_{y_t}$，其中 $e_{y_t}$ 是 $y_t$ 的 one-hot 向量。把所有位置的 loss 相加时，频繁 token 和长样本会贡献更多项。因此，数据混合、样本加权（sample weighting）与 loss masking 都会影响训练目标，不能只把它们当作脚本里的实现细节。
 
 回到开头的两条答案。设短答案（20 个 token）每个 token 的平均 loss 是 1.0，长答案（200 个 token）是 2.0：
 
@@ -59,12 +59,14 @@ $$\text{PPL}=\exp\!\left(\frac{1}{N}\sum_t \ell_t\right)$$
 
 训练时模型总在真实前缀上预测（teacher forcing）；生成时它必须在自己的输出上继续。这种错位常被称为 exposure bias，例子见 [Seq2Seq](../core/seq2seq.md)。某一步的小概率错误可能把后续上下文带到训练数据很少覆盖的区域。
 
-这里很容易条件反射地说“那就上 RL”。先别急，检查问题到底来自：
+考虑用 RL 改善生成之前，先检查问题来自哪里：
 
 1. 训练数据没覆盖目标行为；
 2. loss mask 或模板错误；
-3. sampling 策略不合适（区分 1 和 3：让模型给参考答案打分；参考答案的 log-likelihood 很低，多半是训练没覆盖；概率不低、采样结果却差，再查 temperature、top-p 等设置）；
+3. sampling 策略不合适；
 4. 长程目标无法由逐 token likelihood 表达。
+
+可以先让模型给参考答案打分。如果 log-likelihood 很低，说明在当前输入和模型下，这个答案不太可能被生成，但还不能确定是训练数据没覆盖；模板、训练目标和模型能力等也要检查。如果参考答案的概率并不低，实际采样却经常出问题，再重点检查 temperature、top-p 等设置。这个对照是排查线索，不能单凭一个分数定位原因。
 
 第 4 类最直接指向 sequence-level preference 或 RL objective；如果问题正是模型自己的输出把上下文带离训练分布，在模型自己生成的前缀上训练（on-policy 数据、RL 等）也值得考虑。
 

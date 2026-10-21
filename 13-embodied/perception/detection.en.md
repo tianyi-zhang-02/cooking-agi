@@ -4,7 +4,11 @@
 
 > Reading time: ~11 min · Last reviewed: 2026-10
 
-You need a detector for a robot or a car. Papers show a row of COCO AP numbers, and the names run from YOLO26 and RF-DETR to SAM 3. How is that number computed? Which kind of model should you pick? Can you ship the weights commercially? **A detection score comes from matching predicted boxes one-to-one to ground truth and averaging precision over several IoU thresholds. The real choice in 2026 is between fast closed-set real-time models that you fine-tune on your own labels, and slower open-vocabulary or promptable models (such as SAM 3) that need no retraining; the licence often decides for you before the AP does.**
+When choosing a detector for a robot or a car, you will find papers comparing COCO AP numbers for models such as YOLO26, RF-DETR, and SAM 3. How is that number computed? Which kind of model should you pick? Can you use the weights commercially?
+
+COCO AP summarises the whole precision–recall curve, not precision at a single score threshold. For each class and IoU threshold, match predictions to ground truth, accumulate precision and recall in confidence order, and average interpolated precision over 101 recall points. Then average across IoU thresholds and valid classes. The worked example below walks through these steps.
+
+Model selection also involves comparing closed-set real-time models with open-vocabulary and promptable models, such as SAM 3. Closed-set models usually need labels and fine-tuning for new classes or domains. Open-vocabulary or promptable models let you test prompts without retraining for each new query, but may still need domain adaptation. Speed depends on the model, inputs, hardware and deployment configuration, not just the model category. Check the licence first rather than choosing by AP alone.
 
 ## What a detector outputs, and how IoU is computed
 
@@ -33,7 +37,7 @@ Teaching data: one image, one class, 3 ground-truth boxes, and 5 predictions fro
 | P4 | (60, 0, 70, 10) | 0.60 | none | 0 |
 | P5 | (41, 1, 51, 10) | 0.40 | G3 | 0.743 |
 
-The matching rule in COCO's official evaluation code ([cocoeval.py in pycocotools](https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py)): sort predictions by score, highest first; each prediction takes the not-yet-taken ground-truth box with the largest IoU at or above the threshold $t$; if there is none, it is a false positive (FP). Ground-truth boxes left untaken are misses and lower recall.
+For this example, which has no crowd or ignore annotations, COCO's official evaluation code ([cocoeval.py in pycocotools](https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py)) uses the following matching rule: sort predictions by score, highest first; each prediction takes the not-yet-taken ground-truth box with the largest IoU at or above the threshold $t$; if there is none, it is a false positive (FP). Ground-truth boxes left untaken are misses and lower recall.
 
 Take $t=0.5$. P1 takes G1. P2 also overlaps G1, but G1 is taken, so P2 is a duplicate and counts as FP. P3 takes G2. P4 is background, FP. P5 takes G3.
 
@@ -45,13 +49,13 @@ Take $t=0.5$. P1 takes G1. P2 also overlaps G1, but G1 is taken, so P2 is a dupl
 | P4 | FP | 2 | 2 | 0.50 | 0.67 |
 | P5 | TP | 3 | 2 | 0.60 | 1.00 |
 
-AP is the area under the precision–recall curve. First flatten the curve: replace each point's precision with the largest precision seen at any higher recall. Precision is then 1.0 for recall up to 1/3, 0.667 up to 2/3, and 0.6 up to 1:
+Start by interpreting AP as the area under an interpolated precision–recall curve. At each recall level, take the highest precision achieved at that recall or higher, forming an envelope that never increases with recall. Precision is then 1.0 for recall up to 1/3, 0.667 up to 2/3, and 0.6 up to 1:
 
 $$
 \mathrm{AP}_{50}=\tfrac13\times1.0+\tfrac13\times0.667+\tfrac13\times0.6=0.756.
 $$
 
-cocoeval.py does not compute the area directly; it reads the flattened precision at 101 recall points, 0, 0.01, …, 1, and averages them. In this example that also gives 0.756.
+cocoeval.py does not compute the area directly; it reads the interpolated precision at 101 recall points, 0, 0.01, …, 1, and averages them. In this example that also rounds to 0.756.
 
 COCO's headline AP then averages over 10 IoU thresholds, 0.50, 0.55, …, 0.95, and over classes when there are several (often called mAP):
 
@@ -76,7 +80,7 @@ The mean of the 10 values is 0.358 (0.359 with the 101-point version). P3 is a h
 
 Classic detectors produce several boxes for one object. Non-maximum suppression (NMS) post-processes the output: sort by score, keep the top box, delete other boxes whose IoU with it exceeds a threshold (say 0.5), and repeat. P1 and P2 have IoU 0.681, so P2 is deleted and AP50 rises from 0.756 to 0.917.
 
-That is also where NMS fails: if P2 were actually boxing a second person standing behind G1 at IoU 0.68, NMS would delete a true positive. The threshold is hand-tuned and hard to get right in both directions in crowded scenes.
+That is also where NMS fails: if P2 were actually a box around a second person standing behind G1 at IoU 0.68, NMS would delete a true positive. In crowded scenes, a hand-tuned threshold can make it difficult to remove duplicates without also removing valid detections.
 
 [DETR (2020)](https://arxiv.org/abs/2005.12872) treats detection as set prediction, which, its abstract says, streamlines the pipeline, "effectively removing the need for many hand-designed components like a non-maximum suppression procedure …". The decoder always outputs $N$ slots (the paper uses $N=100$). During training the Hungarian algorithm finds a one-to-one matching between predictions and ground truth, padded with "no object" $\varnothing$ up to $N$:
 
@@ -105,7 +109,9 @@ Earlier open-vocabulary work includes [GLIP](https://arxiv.org/abs/2112.03857), 
 
 <!-- paper-figure:sam3-arch -->
 
-Read numbers together with their conditions. The same SAM 3 scores 56.4 box AP on COCO (Table 1 of the paper lists it as a zero-shot result); on the 100 multi-domain datasets of [RF100-VL](https://arxiv.org/abs/2505.20612) its zero-shot average is only 15.2 AP, with 2.6 on the medical group; fine-tuning on about 10 labelled instances per class (10-shot) gives 36.5 on average, and full fine-tuning 61.6 (paper v2, Tables 35 and 36, author-reported). Appendix B of the paper says so itself: zero-shot, it struggles with fine-grained out-of-domain concepts (such as aircraft types and medical terms), especially in niche domains like thermal imagery; prompts must be simple noun phrases, and long referring expressions need a multimodal LLM alongside.
+Read numbers together with their conditions. The same SAM 3 scores 56.4 box AP on COCO (Table 1 of the paper lists it as a zero-shot result). Across the 100 multi-domain datasets of [RF100-VL](https://arxiv.org/abs/2505.20612), its zero-shot average is only 15.2 AP, with 2.6 on the medical group. Fine-tuning on about 10 labelled instances per class (10-shot) gives 36.5 AP on average; full fine-tuning gives 61.6 (paper v2, Tables 35 and 36, author-reported).
+
+Appendix B explains the limitations: in zero-shot use, the model struggles with fine-grained out-of-domain concepts such as aircraft types and medical terms, especially in niche domains like thermal imagery. Prompts must be simple noun phrases; longer referring expressions require an accompanying multimodal LLM.
 
 How to choose. The following are design trade-offs, not the conclusion of any paper:
 

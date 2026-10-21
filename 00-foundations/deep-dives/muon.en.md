@@ -22,7 +22,7 @@ The idealized Muon operation differs. Write the singular value decomposition as 
 | Frobenius normalization | $\operatorname{diag}(6,2)/\sqrt{40}$ | 3:1 |
 | Idealized orthogonalization | $\operatorname{diag}(1,1)$ | 1:1 |
 
-This explains the operation, not a guarantee of better learning. A small singular value might describe a useful direction or mostly noise. Equalizing magnitudes does not make the gradient more accurate for free.
+This explains the operation but does not establish that it improves training. A small singular value might describe a useful direction or mostly noise. Equalizing magnitudes does not by itself make the gradient more accurate.
 
 For $\operatorname{diag}(2,0)$, our reference instead gives $\operatorname{diag}(1,0)$, not the identity: the zero direction stays zero. Multiplying all the returned $U,V$ vectors can include arbitrary completions associated with zero singular values. The code below uses a threshold to decide which singular values to retain.
 
@@ -139,7 +139,7 @@ In the [v2.9.0 implementation](https://github.com/pytorch/pytorch/blob/v2.9.0/to
 
 **Second, parameter groups.** The classical hybrid uses Muon for hidden matrices and AdamW for embeddings, output layers, biases, and normalization parameters. Embeddings are themselves matrices, so `ndim == 2` is not a sufficient selector. Deduplicate tied embedding/output weights by object identity to avoid two updates to the same parameter. The [original repository's usage guide](https://github.com/KellerJordan/Muon) distinguishes these groups.
 
-**Finally, distribution.** Orthogonalizing matrix shards separately generally differs from orthogonalizing the full matrix before slicing. If the framework flattens or shards parameters, establish how logical matrices are reconstructed and what communication is needed; do not copy an elementwise AdamW sharding scheme unchanged.
+**Finally, distributed execution.** Orthogonalizing matrix shards separately generally differs from orthogonalizing the full matrix before slicing. If the framework flattens or shards parameters, establish how logical matrices are reconstructed and what communication is needed; do not copy an elementwise AdamW sharding scheme unchanged.
 
 <details id="distributed-step" markdown="1">
 <summary>Why can't two devices each process one row?</summary>

@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-A research task runs slowly and tool results keep filling the context, so it is natural to ask: why not let a lead agent split the task and send several subagents to search in parallel? You can, but the split buys something specific: **wall-clock time from parallelism and contexts kept apart from each other. You pay with more tokens, more hand-offs, and the information lost in those hand-offs. The more independent and read-only the subquestions are, the more a split pays; when steps depend on each other or the parts must share the same unstated decisions, a single agent is usually more reliable. Compare the two designs at the same token and tool budget.**
+A research task runs slowly and tool results keep filling the context. Could a lead agent split the task and send several subagents to search in parallel? This can reduce wall-clock time and keep each subtask's context separate. It also requires more tokens and hand-offs, with a risk of losing information at each hand-off.
+
+Splitting is more useful when subquestions are independent and mostly involve reading. When steps depend on each other or must share unstated decisions, a single agent is usually more reliable. Compare the two designs at the same token and tool budget.
 
 ## What multi-agent actually changes
 
@@ -21,7 +23,7 @@ What does not change matters as well. Subagents usually run on the same model an
 
 ## The cost is not only tokens
 
-The token and latency bill is worked out in the example below (every context carries its own fixed prompt, and planning and synthesis can only run serially). Here are four costs that are harder to see:
+The example below calculates token usage and latency: every context carries its own fixed prompt, and planning and synthesis can only run serially. First, consider four costs that are harder to quantify:
 
 - **Hand-off loss.** A subagent compresses more than ten thousand tokens of raw results into a 1k summary, and the fact the coordinator needs may be in the part that was cut.
 - **Conflicting implicit decisions.** Every action carries unstated choices, such as how to define "holiday" or which version of a notice to use. When several subagents choose independently, the combined result can contradict itself.
@@ -34,7 +36,9 @@ The token and latency bill is worked out in the example below (every context car
 
 Anthropic's [engineering post](https://www.anthropic.com/engineering/multi-agent-research-system) describes its multi-agent research system: a lead agent makes a plan, sends several subagents to search in parallel, then synthesises. The most quoted sentence, in the [section on the benefits of a multi-agent system](https://www.anthropic.com/engineering/multi-agent-research-system#benefits-of-a-multi-agent-system), says that a multi-agent system with Claude Opus 4 as lead and Claude Sonnet 4 subagents "outperformed single-agent Claude Opus 4 by 90.2% on our internal research eval". The example given is finding all board members of the companies in the S&P 500 Information Technology sector, which the single agent failed to do with slow, sequential searches.
 
-What the sentence does **not** say matters as much: it gives no absolute scores for either side, does not say whether 90.2% is a relative gain or percentage points, does not say whether the two sides had the same token budget or number of tool calls, and the eval set is not public. By the post's own account, the two sides probably did not spend the same tokens: on BrowseComp, three factors explained 95% of the performance variance, and token usage alone explained 80% (the other two were the number of tool calls and the model choice); agents typically use about 4× more tokens than chat, and multi-agent systems about 15×. The authors conclude that multi-agent systems work mainly because they can spend enough tokens, so they only suit tasks valuable enough to pay for those tokens. The post also says plainly that domains requiring all agents to share the same context, or with many dependencies between agents, are not a good fit today, and that most coding tasks have fewer truly parallel parts than research.
+The **unspecified conditions** matter too: the sentence gives no absolute scores for either side, does not say whether 90.2% is a relative gain or percentage points, and does not say whether the two sides had the same token budget or number of tool calls. The evaluation set is not public either.
+
+By the post's own account, the two sides probably did not spend the same tokens: on BrowseComp, three factors explained 95% of the performance variance, and token usage alone explained 80% (the other two were the number of tool calls and the model choice); agents typically use about 4× more tokens than chat, and multi-agent systems about 15×. The authors conclude that multi-agent systems work mainly because they can spend enough tokens, so the task's value must justify that cost. The post also says that domains requiring all agents to share the same context, or with many dependencies between agents, are not a good fit today. Most coding tasks have fewer truly parallel parts than research.
 
 ### Cognition: don't split yet (2025-06-12)
 
@@ -69,7 +73,7 @@ Task: find this year's holiday opening rules for three libraries, A, B and C (re
 - Each subquestion needs 4 tool calls; each call (one model step plus the tool's return) takes 10 seconds and returns 4k tokens.
 - Each context carries a fixed 3k prompt (system prompt, tool descriptions, task); the final answer is 2k, and writing it is one more 10-second step.
 - In the multi-agent version, the coordinator plans for 10 seconds and writes a 0.5k brief per subagent; each subagent returns a 1k summary; the coordinator then spends 10 seconds synthesising.
-- Tokens count each piece of content once per context it enters, which amounts to assuming re-reads are cached. A real bill also depends on whether every step re-reads the whole context: the longer a single agent's context, the more each re-read costs.
+- Tokens count each piece of content once per context it enters. This compares the content held across contexts without accumulating history sent again on later calls. It is not an API billing model: a real bill distinguishes input, output, cache writes, and cache reads on every call. Cache hits need not be free, nor do they mean later generation stops attending to the history. [Prompt caching prices](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pricing)
 
 | Item | Single agent | Coordinator + 3 subagents |
 | --- | --- | --- |
@@ -80,7 +84,9 @@ Task: find this year's holiday opening rules for three libraries, A, B and C (re
 
 Time drops to 60 seconds, but not to a third: planning and synthesis cannot run in parallel. Tokens rise by about 34%, from the repeated fixed prompts, the briefs and the summaries.
 
-Now the chance of a correct answer. Suppose the final answer needs one key fact from each subquestion. Let $s_1$ be the probability that the single agent, in a long context mixing 12 results, finds and keeps each fact; let $s_2$ be the same probability for a subagent whose short context holds only its own 4 results; let $d$ be the probability that a summary drops the fact. All three facts must be right:
+Now the chance of a correct answer. Suppose the final answer needs one key fact from each subquestion. Let $s_1$ be the probability that the single agent correctly finds and keeps each fact in a long context mixing 12 results. Let $s_2$ be the probability that a subagent correctly finds and retains the fact until summarization, in a short context holding only its own 4 results. Let $d$ be the probability that the summary drops the fact, conditional on the subagent having found and retained it beforehand. Then $s_2(1-d)$ is the probability that one fact survives summarization.
+
+This model considers only failed lookup and omission during summarization. To multiply across all three required facts, also assume that their successful retention events are mutually independent within each design, and that synthesis introduces no further errors. Separately searchable subquestions do not establish this independence: a shared model or source can still produce correlated errors. [Conditional probability and the multiplication rule](https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/mit18_05_s22_class03-prep.pdf)
 
 $$
 P_{\rm single}=s_1^{\,3},\qquad P_{\rm multi}=\big(s_2\,(1-d)\big)^{3}.
@@ -88,7 +94,7 @@ $$
 
 Take $s_1=0.90$ and $s_2=0.95$. The single agent gets $0.9^3=0.729$. With $d=0.02$, the multi-agent version gets $(0.95\times0.98)^3\approx0.807$ and the split wins; with $d=0.10$, it gets $0.855^3\approx0.625$ and the split loses. They break even when $s_2(1-d)=s_1$, that is $d^*=1-0.90/0.95\approx5.3\%$.
 
-The formula shows that **any accuracy gain from splitting comes entirely from $s_2>s_1$, that is, from short contexts missing less than a long one.** If the single agent already uses its context well ($s_1=s_2$), any $d>0$ makes the multi-agent version worse. This points the same way as Tran and Kiela's argument.
+In this simplified model, **any accuracy gain from splitting comes entirely from $s_2>s_1$: shorter contexts are less likely to lose key facts.** If the single agent already uses its context well ($s_1=s_2$), any $d>0$ makes the multi-agent version worse. This is consistent with the direction of Tran and Kiela's argument.
 
 Now change one condition: the subquestions become sequential. First check whether library A switched to the city's new notice, then use that notice to check library B, then library C. The parallel width drops to 1, and the multi-agent time becomes $10+40+10+40+10+40+10=160$ seconds, slower than the single agent's 130; tokens stay around 71k; and A's finding is retold twice, through "summary → coordinator → next brief". The split keeps only one benefit, context isolation, and costs an extra 30 seconds and about 18k tokens.
 
@@ -133,9 +139,11 @@ lead.plan            → brief_A, brief_B, brief_C
 lead.synthesize      ← summary_A..C
 ```
 
-"In the sources, not in the summary" is hand-off loss: change the summary format or pass file references instead (Anthropic has subagents store their outputs in external systems and return lightweight references). "Not in the sources at all" is a search problem, and more agents will not fix it. The MAST categories make a usable labelling vocabulary.
+"In the sources, not in the summary" is hand-off loss: change the summary format or pass file references instead (Anthropic has subagents store their outputs in external systems and return lightweight references). "Not in the retrieved material" calls for checking search coverage and tool retrieval first. A different query or additional source may uncover the missing fact; having more agents reread the same material cannot itself fill an evidence gap. The MAST categories make a usable labelling vocabulary.
 
-**Debug by following the trace, not by asking the model.** Parent and child spans should connect the coordinator and every subagent; see [Agent observability](../06-systems/agent-observability.en.md) for the fields. Pinpointing which agent failed at which step is hard in itself: Zhang et al.'s [Who&When](https://arxiv.org/abs/2505.00212) (ICML 2025) tests automated attribution on failure logs from 127 multi-agent systems, and the best method identifies the responsible agent only 53.5% of the time and the failing step only 14.2% of the time. Treat an LLM's attribution as a lead; confirm the cause with a controlled replay, for example by swapping one subagent's summary for a correct version and checking whether the final answer becomes correct.
+**Debug by following the trace, not by asking the model.** Parent and child spans should connect the coordinator and every subagent; see [Agent observability](../06-systems/agent-observability.en.md) for the fields. Pinpointing which agent failed at which step is hard in itself: Zhang et al.'s [Who&When](https://arxiv.org/abs/2505.00212) (ICML 2025) collects failure logs from 127 multi-agent systems, yielding 184 failure-annotation tasks. The 127 counts systems, including task-specific, automatically generated agent configurations, not 127 independently developed frameworks; 184 is the number of annotation tasks. See [§3 of the paper](https://arxiv.org/html/2505.00212v1#S3).
+
+The [paper's abstract](https://proceedings.mlr.press/v267/zhang25cq.html) reports best attribution accuracies of 53.5% for the responsible agent and 14.2% for the failing step. Treat an LLM's attribution as a lead; confirm the cause with a controlled replay, for example by swapping one subagent's summary for a correct version and checking whether the final answer becomes correct.
 
 ## What you can and cannot conclude
 

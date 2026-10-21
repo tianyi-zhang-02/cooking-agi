@@ -19,7 +19,7 @@ Recent additions (October 2026):
 - [Frontier watch](../11-frontier/README.en.md), a new fourth area. The [world models](../11-frontier/world-models/README.en.md) and [recursive self-improvement](../11-frontier/self-improvement/README.en.md) series, along with [test-time compute](../11-frontier/test-time-compute/README.en.md), [agent RL](../11-frontier/agentic-rl/README.en.md), and [interpretability](../11-frontier/interpretability/README.en.md), have all been reviewed.
 - [AI infrastructure](../12-infra/README.en.md) (from chips, GPUs, and CUDA up to frameworks and clusters) and [Perception, robots, and driving](../13-embodied/README.en.md): two new blocks.
 - Three more series, added 2026-10-16: [scaling laws and hyperparameters](../00-foundations/scaling/README.en.md), on choosing model size, data and learning rate before a run; [diffusion language models](../11-frontier/diffusion-lm/README.en.md) in Frontier watch; and [quantization](../12-infra/quantization/README.en.md) in AI infrastructure.
-- Three new deep RL notes: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [how planning and learning feed each other](../05-post-training/deep-rl/planning-and-learning.en.md), and [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md).
+- Three new deep RL notes: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [combining planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md), and [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md).
 
 These additions were checked against primary sources on 2026-10-21, and their draft labels have been removed.
 

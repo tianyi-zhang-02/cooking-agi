@@ -192,7 +192,7 @@ The [code](code/experiment_checks.py) prints the six-case overall and slice resu
 | Stage | First check | Only then move to |
 | --- | --- | --- |
 | One example / batch | Tokens, masks, loss, finite gradients | Tiny-dataset training |
-| Tiny dataset | Learn a few clear examples without breaking unsupported-answer behavior | More data and longer runs |
+| Tiny dataset | Learn a few clear examples without degrading behavior on missing-evidence questions | More data and longer runs |
 | Save and restore | Next-update comparison between continuous and resumed runs, optimizer/scheduler and required random state | Long runs and interruption recovery |
 | Full offline evaluation | Fixed protocol, slice regressions, resource cost | Controlled release with explicit rollback |
 

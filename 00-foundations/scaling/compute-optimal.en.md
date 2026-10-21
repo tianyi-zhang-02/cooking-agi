@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-Suppose you can run 64 H100s for four or five days, which works out to roughly $10^{22}$ floating-point operations. That budget could train a 3B-parameter model on a lot of data, or a 30B-parameter model on very little. Which gives the lower loss? **At a fixed training budget, parameters and data should grow in roughly equal proportion. By the Chinchilla fit, that is about 20 tokens per parameter, so $10^{22}$ FLOPs maps to about 9B parameters and 180B tokens. The ratio is fitted on small runs and then extrapolated; it holds only when the data and optimization recipe are similar and the data is seen about once. The further you extrapolate, the more you should treat it as a range rather than a point.**
+Suppose you can run 64 H100s for four or five days, which works out to roughly $10^{22}$ floating-point operations. That budget could train a 3B-parameter model on a lot of data, or a 30B-parameter model on very little. Which gives the lower loss?
+
+The Chinchilla fit offers a starting point: as the training budget grows, scale parameters and data in roughly equal proportion, with about 20 tokens per parameter. At that ratio, $10^{22}$ FLOPs corresponds to about 9B parameters and 180B tokens. The ratio is fitted on small runs and then extrapolated; it holds only when the data and optimization recipe are similar and the data is seen about once. The further you extrapolate, the more you should treat the result as a range rather than a precise point.
 
 ## First turn the budget into FLOPs
 
@@ -46,7 +48,7 @@ $E$ is the loss even an ideal model cannot remove, the second term comes from li
 
 ## Fit a line by hand from a few small runs
 
-In practice people usually use Chinchilla's second approach, called IsoFLOP: pick a few small budgets (Chinchilla used 9, from $6\times10^{18}$ to $3\times10^{21}$ FLOPs), train 5 to 10 model sizes at each budget (the token count is set by $C/6N$, and the learning-rate decay length matches each run's length), plot loss against $\log N$, fit a parabola and take its minimum as $N_{\rm opt}$ for that budget. Then fit a straight line through those minima on log–log axes.
+In practice, a common choice is Chinchilla's second approach, called IsoFLOP. Pick a few small budgets; Chinchilla used 9, from $6\times10^{18}$ to $3\times10^{21}$ FLOPs. Train 5 to 10 model sizes at each budget, setting the token count to $C/6N$ and matching the learning-rate decay to each run's length. Plot loss against $\log N$, fit a parabola, and use its minimum as $N_{\rm opt}$ for that budget. Finally, fit a straight line through those minima on log–log axes.
 
 The four minima below are made-up teaching numbers, not measurements from any paper:
 

@@ -10,7 +10,7 @@ Take `[1, 3]`, temporarily ignoring epsilon and learned parameters. LayerNorm su
 
 **BatchNorm takes its statistics across a batch of examples. LayerNorm takes them across one example's own features.**
 
-Start with the axes, then check running statistics and train / eval modes. Together they determine behavior with variable lengths, batch size 1, and autoregressive decoding. The axis alone is not the entire implementation contract.
+Start with the axes, then check running statistics and train / eval modes. Together they determine behavior with variable lengths, batch size 1, and autoregressive decoding. The axis alone does not tell you how the implementation behaves.
 
 ![which axis each norm averages over](../assets/norm-axes.en.svg)
 
@@ -126,11 +126,11 @@ $$
 \sum_{\ell=0}^{L-1}\operatorname{Var}\big(f_\ell(x_\ell)\big).
 $$
 
-This explains why residual-stream scale may grow with depth. Real networks contain correlations and adaptive weights, so it is not a theorem that variance must grow linearly. The more precise statement is: **depth creates scale drift, while normalization gives each branch a controlled input scale.**
+This explains why residual-stream scale may grow with depth. Real networks contain correlations and adaptive weights, so it is not a theorem that variance must grow linearly. The more precise statement is: **depth can introduce scale drift, while normalization controls the input scale of each branch.**
 
-From an optimization view, a Hessian with widely separated eigenvalues makes one learning rate unstable in high-curvature directions and slow in low-curvature ones. Normalization does not guarantee a well-conditioned global Hessian, but it reduces scale disparities between layers and usually makes gradients smoother under parameter perturbations and the effective conditioning better.
+From an optimization perspective, a learning rate can be unstable in high-curvature directions yet too small in low-curvature ones when the Hessian has widely separated eigenvalues. Normalization does not guarantee a well-conditioned global Hessian. It does reduce scale disparities between layers and often makes gradients vary more smoothly with parameter perturbations, improving effective conditioning.
 
-Also note that Pre-LN does not keep the residual stream $x_\ell$ itself at unit variance; it only feeds $\operatorname{Norm}(x_\ell)$ into Attn / FFN. That is why a final LN is still needed at the end to bring back the scale handed to the output head.
+Also note that Pre-LN does not keep the residual stream $x_\ell$ itself at unit variance; it only feeds $\operatorname{Norm}(x_\ell)$ into Attn / FFN. Common recipes add a final LN to control the scale passed to the output head, as in the Pre-LN architecture in [Table 1 of Xiong et al.](https://proceedings.mlr.press/v119/xiong20b/xiong20b.pdf). This is an architectural choice, not a mathematical consequence of placing Norm before each branch. When reproducing an existing model, retain the final norm required by its configuration.
 
 </details>
 
@@ -184,7 +184,7 @@ x = LN(x + FFN(x))              x = x + FFN(LN(x))
 
 **Interview answer**
 
-> Post-LN places LayerNorm after residual addition, so the main-path gradient crosses an LN in every block. Pre-LN moves the LN into the branch and leaves a direct identity path in the residual stream. Every block Jacobian therefore contains an explicit identity term, making deep gradient propagation more stable. The trade-off is that the residual stream is not normalized after every addition, so standard Pre-LN uses a final LN after all blocks.
+> Post-LN places LayerNorm after residual addition, so the main-path gradient crosses an LN in every block. Pre-LN moves the LN into the branch and leaves a direct identity path in the residual stream. Every block Jacobian therefore contains an explicit identity term, making deep gradient propagation more stable. The trade-off is that the residual stream is not normalized after every addition; the standard Pre-LN recipe shown here uses a final LN after all blocks.
 
 <details markdown="1">
 <summary><b>Deep dive</b>: the identity path in the Jacobian</summary>
@@ -203,7 +203,7 @@ $$
 J_{\operatorname{LN}}\big(I+J_{f_\ell}\big).
 $$
 
-Across many layers, the gradient repeatedly multiplies by $J_{\operatorname{LN}}$. This does not imply that every layer necessarily shrinks the gradient, but it interrupts a pure identity highway and makes training more sensitive to initialization, residual scaling, and learning-rate warmup.
+Across many layers, the gradient repeatedly multiplies by $J_{\operatorname{LN}}$. This does not imply that every layer necessarily shrinks the gradient, but the main path is no longer a pure identity, making training more sensitive to initialization, residual scaling, and learning-rate warmup.
 
 Pre-LN is
 

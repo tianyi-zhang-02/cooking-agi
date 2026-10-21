@@ -4,7 +4,9 @@
 
 > Reading time: ~12 min · Last reviewed: 2026-10
 
-When OpenAI released o4-mini on 2025-04-16, it wrote that the model scored 99.5% pass@1 and 100% with an 8-sample vote on AIME 2025; the same paragraph says this was with access to a Python interpreter and should not be compared with results without tools. Behind one number, the compute, the metric and the problems can all differ. **When you read a reasoning model's score, ask four things first: how much compute went into each problem (tokens, samples, tools), whether the metric is pass@1, pass@k or maj@k, whether the model could have seen the problems, and whether there are enough problems to tell the difference.**
+When OpenAI released o4-mini on 2025-04-16, it reported 99.5% pass@1 and 100% with an 8-sample vote on AIME 2025. The same paragraph explains that these results used a Python interpreter and should not be compared with results without tools. Scores that look comparable may differ in compute, metric or problem set.
+
+Before comparing reasoning models, establish four things: the compute spent per problem (tokens, samples and tools), whether the metric is pass@1, pass@k or maj@k, whether the model could have seen the problems, and whether the test set is large enough to distinguish the scores.
 
 ## One score, several definitions
 

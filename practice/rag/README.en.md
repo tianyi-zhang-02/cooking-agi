@@ -4,7 +4,7 @@
 
 > Original teaching project · Fictional documents · Reviewed: 2026-10. Run retrieval and evidence handling without a model API. This is not a production deployment.
 
-Connect a vector database, put its results into an LLM prompt, and you have a RAG demo. Using it exposes different problems: a policy changes but answers still cite the old version; a citation looks convincing but doesn't support the claim; or the retrieved document belongs to someone else.
+Connect a vector database, put its results into an LLM prompt, and you have a RAG demo. Using it exposes different problems: a policy changes but answers still cite the old version; a citation looks convincing but doesn't support the claim; or the user is not authorized to view a retrieved document.
 
 This series uses a small knowledge base to explain document updates, retrieval, and answer checks. RAG—retrieval-augmented generation—retrieves external material for the model to use in its answer. Finding a passage doesn't establish that it is usable: versions, permissions, and content still matter. [Original paper](https://arxiv.org/abs/2005.11401)
 

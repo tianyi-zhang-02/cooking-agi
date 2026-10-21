@@ -14,15 +14,15 @@
   <tr>
     <td align="center" width="33%">
       <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/zh-figure-light.webp"><img src=".github/media/tour/zh-figure-dark.webp" width="280" alt="roofline 动画逐步展示三个操作"></picture>
-      <br><b>一步一步</b><br>每张动画都用笔记自己的算例，停在它算出的结果上。
+      <br><b>分步图解</b><br>跟着文中的例子看计算过程，可以随时暂停、回看。
     </td>
     <td align="center" width="33%">
       <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/zh-paper-light.webp"><img src=".github/media/tour/zh-paper-dark.webp" width="280" alt="笔记里嵌入的 BEVFormer 结构图"></picture>
-      <br><b>论文原图</b><br>原图就放在讲它的地方，注明出处和许可。
+      <br><b>论文原图</b><br>把架构图放在相关讲解旁，附上出处和许可。
     </td>
     <td align="center" width="33%">
       <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/zh-frontier-light.webp"><img src=".github/media/tour/zh-frontier-dark.webp" width="280" alt="比较确定、还在变化、接下来看什么的对照表"></picture>
-      <br><b>前沿观察</b><br>哪些已经定了、哪些还在变、接下来看什么，都有日期和出处。
+      <br><b>前沿观察</b><br>新方法做到了什么、还有哪些问题，结合有日期和出处的资料来看。
     </td>
   </tr>
 </table>
@@ -69,7 +69,7 @@
 
 ### 在 AI 助手里练面试（Interview coach skill）
 
-把这些笔记装进 Claude Code、Codex 这类支持 skill 的 AI 助手，它就成了面试官：一次问一道题，对照笔记打分和追问，记下答得不好的地方，下次从那里开始。笔记和题目来自网站的只读数据接口，随网站更新；你的回答和分数只存在自己电脑上。
+把这个 skill 装进 Claude Code、Codex 这类 AI 助手，就可以对照笔记练习：一次问一道题，答完后给反馈、继续追问，并记下下次需要复习的地方。笔记和题目来自网站的只读数据接口，随网站更新；练习记录保存在自己电脑上，脚本不会把它们上传到本站。你在 AI 助手里输入的回答，仍按该助手及模型服务的设置处理，不代表整个对话只在本地运行。
 
 ```bash
 npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-agi-interview
@@ -106,7 +106,9 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 ### 现在在做
 
-**把笔记写好，而不是写多。** 全部笔记的中英文已经各读过一遍；10 月又对照一手资料把事实重新核了一遍：改错、更新过时的数字，把重复的解释合到一处；10 月 21 日又逐篇复核一遍，补上算例，最新的几组也摘掉了草稿标记。读到哪里觉得别扭、看不懂或者不对，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇文章末尾也有反馈按钮。
+最近主要在回头修改已有笔记：核对一手资料、更新过时的数字，把重复解释合并，也补上缺少的算例。中英文都已做过一轮通读，10 月 21 日的更新又做了逐篇复核，并移除了几组已审阅内容的草稿标记。
+
+审过的文章也可能有遗漏。哪里读着别扭、没讲明白，或者你发现了错误，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇末尾都有反馈入口。
 
 **接下来：** 让人更快找到答案：先把搜索和页面速度做好，再做 MCP 服务，让 Claude、ChatGPT、Cursor 直接查笔记、出题，和[面试练习 skill](#interview-coach) 读同一份数据。Jetson、物理仿真，以及视觉、驾驶、机器人这几组的审稿，想请做过的朋友一起来。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
 
@@ -157,7 +159,9 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 <!-- /repository-only -->
 
-所有提交过或署名合作的人、负责批准各领域改动的审稿人，以及读者自愿分享的下一站。卡片每次部署和每小时都会根据 git 记录、GitHub 和 `site/collaboration.toml` 重新生成。提交数不是排名：提问、审阅和纠错同样算数。想为审阅、纠错补一个署名，或分享你的下一站（只显示你愿意公开的部分），可以开一个 issue：[补充署名](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。
+这里列出参与提交和共同署名的贡献者、各板块审稿人，以及读者自愿分享的下一站。卡片在部署时及每小时根据 git 记录、GitHub 和 `site/collaboration.toml` 更新。提交数量不能代表贡献的全部，提问、审阅和纠错同样重要。
+
+如果想为审阅或纠错补充署名，或分享自己的下一站，可以提 issue：[补充署名](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)。只填你愿意公开的内容就好。
 
 ## 加入我们！
 

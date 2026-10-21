@@ -4,7 +4,9 @@
 
 > 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
-在 PyTorch 里写一句 `c = a + b`，GPU 上到底发生了什么？CPU 把一个叫 kernel 的函数交给 GPU，GPU 一次启动成千上万个线程，每个线程只算一两个元素。加法本身很便宜；**一个 kernel 快不快，多半看每个 warp 搬来的字节有没有用上，以及同一份数据有没有被反复从显存读出来。** 这一篇用一个 vector add 和一个 4×4 的矩阵乘法把这两件事算清楚，再接到 cuBLAS、CUTLASS 和 Triton。
+在 PyTorch 里写一句 `c = a + b`，GPU 上到底发生了什么？CPU 把一个叫 kernel 的函数交给 GPU，一次启动可以安排成千上万个线程，每个线程只算一两个元素。加法本身很便宜，数据怎样搬运却会显著影响性能。
+
+对这类 kernel，值得先问：每个 warp 搬来的字节有没有用上？同一份数据有没有被反复从显存读出来？这一篇用一个 vector add 和一个 4×4 的矩阵乘法把这两件事算清楚，再接到 cuBLAS、CUTLASS 和 Triton。
 
 文中的规则核对自 NVIDIA [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html) v13.4.2（2026-09-10 更新，旧名 CUDA C++ Programming Guide，下称 Guide）和 [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html) 13.4（下称 BPG）。GPU 为什么做成这样，见 [GPU 架构](gpu-architecture.md)；怎样判断一个 kernel 被算力还是带宽卡住，见下一篇[性能](performance.md)。
 
@@ -104,7 +106,7 @@ int main() {
 
 错误检查的写法来自 Guide [§2.1.7](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/intro-to-cuda-cpp.html#error-checking-in-cuda)：kernel launch 本身不返回错误码，执行期错误要等下一次同步或 API 调用才报出来。正式代码应检查每个 CUDA API 的返回值，这里为了短，只检查了 kernel。
 
-这个 kernel 每个元素读 8 字节、写 4 字节，只做 1 次加法。它的速度几乎完全由显存带宽决定，[性能篇](performance.md#three-ops)会把这句话换成数字。
+这个 kernel 每个元素读 8 字节、写 4 字节，只做 1 次加法，算术强度很低。数组足够大、主要流量确实经过显存时，带宽通常是主要限制；示例里的小数组还可能受 launch 开销、并行度和 cache 影响，不能仅凭算术强度判断实测耗时。[性能篇](performance.md#three-ops)会用大数组把带宽下限算成数字。
 
 ## 内存：先分清放在哪里、谁能看见 {#memory-spaces}
 
@@ -263,4 +265,4 @@ cudaDeviceSynchronize();
 
 Sectors/request 的理想值引自 [Nsight Compute Profiling Guide](https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html)。本页没有在 GPU 上跑这些实验；第二列是根据上面引用的文档推出的预期，要在自己的硬件上验证。
 
-接着读[性能：roofline、算术强度与 MFU](performance.md)，把这里的“搬了多少字节”换算成时间上限。
+接着读[性能：roofline、算术强度与 MFU](performance.md)，把这里的“搬了多少字节”换算成耗时的理论下限。

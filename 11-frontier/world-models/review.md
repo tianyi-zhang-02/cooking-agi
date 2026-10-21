@@ -81,7 +81,7 @@ Richens 等的定理说，能完成多步目标的智能体，其策略里一定
 ## 自检
 
 <div class="taste-check">
-  <strong>如果真的理解了，你应该能解释：</strong>
+  <strong>试着用自己的话解释：</strong>
   <ol>
     <li>为什么交互式视频模型只能因果生成？24 fps、每帧 4 个采样步时，每步最多有多少毫秒？</li>
     <li>RSSM 的 $L_{\rm dyn}$ 和 $L_{\rm rep}$ 各把梯度送给谁？KL 低于 1 nat 时，free bits 起什么作用？</li>

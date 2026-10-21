@@ -123,7 +123,9 @@ If the current state is overestimated by 2 and the successor of a particular act
 
 The errors do not play the same role in the **expected policy gradient**. Fixed $-e(s)$ is an action-independent baseline, whose expected gradient contribution cancels under the current policy. Successor error can depend on the action and generally does not cancel. Advantage-estimation error is not itself gradient bias. This follows the previous chapter's baseline argument; nonlinear operations such as PPO clipping need separate analysis.
 
-Increasing $\lambda$ reduces dependence on intermediate short-horizon estimates but adds noise from longer observed returns. Truncated segments still retain final bootstrap error. Even on complete on-policy terminated trajectories, $\lambda=1$ gives $\mathbb E[\hat A_t\mid s,a]=A^\pi(s,a)-e(s)$, not necessarily an unbiased advantage estimate. If the Critic was fixed before sampling, however, $-e(s)$ cancels in the expected policy gradient. An unbiased policy-gradient estimate need not use unbiased advantage estimates. Discounted objectives still require the previous chapter's $\gamma^t$ weighting convention.
+Increasing $\lambda$ reduces dependence on intermediate short-horizon estimates but adds noise from longer observed returns. Truncated segments still retain final bootstrap error.
+
+Even on complete on-policy terminated trajectories, $\lambda=1$ gives $\mathbb E[\hat A_t\mid s,a]=A^\pi(s,a)-e(s)$, not necessarily an unbiased advantage estimate. If the Critic was fixed before sampling, however, $-e(s)$ cancels in the expected policy gradient. A baseline can therefore leave the policy-gradient estimate unbiased even when it biases the advantage estimate. Discounted objectives still require the previous chapter's $\gamma^t$ weighting convention.
 
 ## Padding and averaging change the objective too
 

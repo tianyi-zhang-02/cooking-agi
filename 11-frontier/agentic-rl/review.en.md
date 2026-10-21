@@ -11,7 +11,9 @@ This page turns the main points of the series into interview questions and a sel
 <details class="interview" markdown="1">
 <summary>Going from single-turn RLVR to multi-turn agent RL, what changes and what stays the same?</summary>
 
-The skeleton stays: sample, score, update the policy by the advantage, and update rules such as PPO and GRPO still apply. The sample changes: it is a multi-turn sequence of (action, observation), and the observations come from the environment, not the policy; the reward usually arrives at the end of the episode, based on the environment's final state; the checker often lives in the same sandbox as the agent and may be within its reach; one trajectory can contain thousands of tool calls; and a rollout means starting containers, running commands and running tests, at a cost measured in minutes. DeepSeek-R1 (2025-01) did not apply large-scale RL to software engineering precisely because evaluation was too slow.
+The basic workflow stays the same: sample, score, and update the policy using advantages. Update rules such as PPO and GRPO still apply. The sample is now a multi-turn sequence of (action, observation), with observations supplied by the environment rather than the policy. The reward usually arrives at the end of the episode, based on the environment's final state, and the checker often lives in the same sandbox as the agent, potentially within its reach.
+
+Trajectory length and execution cost also change. One trajectory can contain thousands of tool calls, and a rollout involves starting containers, running commands and running tests, taking minutes. DeepSeek-R1 (2025-01) did not apply large-scale RL to software engineering precisely because evaluation was too slow.
 
 </details>
 
@@ -25,7 +27,7 @@ The log-probability of a trajectory splits into two parts: the probability of th
 <details class="interview" markdown="1">
 <summary>Four 3-turn trajectories on the same task get rewards [1, 0, 1, 1]. What are the group-relative advantages, and which tokens receive gradient?</summary>
 
-The mean is 0.75 and the population standard deviation about 0.433, so the normalised advantages are [+0.577, −1.732, +0.577, +0.577]; dividing by $G-1$ gives [+0.5, −1.5, +0.5, +0.5]; without the standard deviation and with a leave-one-out baseline, as in DeepSWE, they are [+0.333, −1, +0.333, +0.333]. In the episode-level approach this number is spread over every model-generated token in that trajectory; the prompt and tool outputs such as file contents and test logs have mask 0. In the teaching example a trajectory has 1,800 tokens, of which only 200 action tokens receive gradient. A step shared by several trajectories (same context, same tokens) adds up its gradients; if all 4 had an identical first step, the sum would be 0.
+The mean is 0.75 and the population standard deviation about 0.433, so the normalised advantages are [+0.577, −1.732, +0.577, +0.577]. Using $G-1$ as the sample-variance denominator gives a standard deviation of $\sqrt{0.75/(4-1)}=0.5$; dividing the centred rewards by that gives [+0.5, −1.5, +0.5, +0.5]. Without the standard deviation and with a leave-one-out baseline, as in DeepSWE, they are [+0.333, −1, +0.333, +0.333]. In the episode-level approach this number is spread over every model-generated token in that trajectory; the prompt and tool outputs such as file contents and test logs have mask 0. In the teaching example a trajectory has 1,800 tokens, of which only 200 action tokens receive gradient. A shared step with the same context, tokens and forward computation has the same unweighted log-probability gradient, but positive and negative advantages make its weighted contributions point in opposite directions. If all 4 first steps are identical, their contributions sum to 0 under the main text's simplified objective with common weighting and normalisation and no additional clipping or loss terms; other steps can still change its probability through shared parameters.
 
 </details>
 
@@ -37,7 +39,7 @@ It cannot tell which step in a trajectory was good: a sensible file read inside 
 </details>
 
 <details class="interview" markdown="1">
-<summary>Tests catch only some failures. How do training reward and true success come apart?</summary>
+<summary>Tests catch only some failures. How can training reward and true success diverge?</summary>
 
 Expected reward equals the share of real fixes plus the shares of wrong fixes and tampering that slip through; true success counts only the first. In the teaching example, with test files the agent can edit and visible tests that miss some wrong fixes, reward rises from 0.55 to 0.90 while true success rises only from 0.30 to 0.35. In a group comparison, a trajectory that edits the tests gets the same positive advantage as a real fix. After restoring the test files before scoring and adding hidden tests, the same two policies score 0.34 and 0.40, close to the true change. "Edit the tests when stuck" is a recipe that works across tasks, so under a weak checker it grows especially fast on hard problems.
 
@@ -67,10 +69,10 @@ A large share of the time is spent off the GPU: starting containers, running com
 ## Self-check
 
 <div class="taste-check">
-  <strong>If you really understand it, you should be able to explain:</strong>
+  <strong>Use these questions to check your understanding:</strong>
   <ol>
     <li>Starting from the decomposition of a trajectory's log-probability, why should tool-output tokens produce no gradient, yet stay in the context?</li>
-    <li>With rewards [1, 0, 1, 1], what advantages do the three baseline conventions (population standard deviation, sample standard deviation, leave-one-out) give? Why does each sum to 0?</li>
+    <li>With rewards [1, 0, 1, 1], what results do the three advantage conventions (population standard deviation, sample standard deviation, leave-one-out) give? Why does each sum to 0?</li>
     <li>When does a GiGPO anchor-state group add information beyond episode-level group-relative advantages, and when does it degrade to GRPO?</li>
     <li>In the "tests catch only some failures" example, how does the expected-reward formula show which outcome categories account for most of the reward gain under checker v1?</li>
     <li>Scoring a trajectory that hits a limit as 0, dropping it, or treating it as truncated and bootstrapping a value estimate: which way does each push the model?</li>

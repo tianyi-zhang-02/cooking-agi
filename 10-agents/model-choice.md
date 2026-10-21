@@ -61,7 +61,11 @@ $$P_{\mathrm{success}}=0.95^{20}\approx0.358.$$
 
 一个容易读错的细节：该论文第 2 阶段去掉的是 batch-level 平衡，保留了按模式与正确性区分的基础奖励，不是简单的“答对 1 分、答错 0 分”。主要实验是数学题；我们没有复现它，也不能据此推断任意 agent 都会受益。
 
-**前两层合到一起。** 截至 2026-10，有的托管 API 已经把“调用前指定”和“生成中选择”合成一套接口。以 Anthropic 的 Claude API 为例：调用方用 `effort`（从 `low` 到 `max`）设一个倾向，模型对每个请求自己决定要不要想、想多少；文档明确说调用方不再设 thinking token 预算，硬上限只有 `max_tokens`，`effort` 是软引导，不保证 token 数。[Claude 文档：Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost) 这样一来，“日期提取用较短预算”就变成“给这类请求设较低的 effort”，个别难题模型仍可能多想。要按请求类型核对响应里实际的 thinking token 数，不能只看配置。
+**前两层合到一起。** 截至 2026-10，有的托管 API 已经把“调用前指定”和“生成中选择”合成一套接口。以 Claude Messages API 的自适应思考为例：在 Claude Opus 4.6 和 Sonnet 4.6 上，调用方显式设置 `thinking: {"type": "adaptive"}`，再用 `output_config.effort` 给出倾向，模型对每个请求自行决定要不要思考、思考多久。`effort` 从 `low` 到 `max` 的可用档位依具体型号而定。在这种模式下，不设置独立的 `budget_tokens`；`max_tokens` 限制单次请求的总输出，包括思考和回答，但不限制整个多次调用的 agent 循环。`effort` 是软引导，不保证 token 数。[Claude 文档：Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost) · [各型号的模式与配置](https://platform.claude.com/docs/en/build-with-claude/thinking-troubleshooting) · [Effort 档位](https://platform.claude.com/docs/en/build-with-claude/effort#effort-levels)
+
+旧式手动 extended thinking 则使用 `thinking: {"type": "enabled", "budget_tokens": N}`，例如 Claude Opus 4.5；Opus 4.6 和 Sonnet 4.6 也仍接受这种配置，但已标为弃用。因此要同时注明模型和思考模式，不能把自适应模式的预算说明套到所有 Claude 请求上。[手动 extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
+
+在前述自适应模式里，“日期提取用较短预算”变成了“给这类请求设较低的 effort”，但遇到个别难题，模型仍可能思考更久。因此要按请求类型核对响应里实际的 thinking token 数，不能只看配置。
 
 **外部路由。** 应用估计哪种模型更适合当前请求；即使候选模型没有 thinking 开关，也能做 routing。[自适应深度](../00-foundations/looped/adaptive-depth.md)则讨论网络内部多算几层或几轮，别把隐藏状态迭代和多生成一些文字混在一起。
 
@@ -78,7 +82,7 @@ $$P_{\mathrm{success}}=0.95^{20}\approx0.358.$$
 
 路由选错后可以再加输出检查或兜底，并非“没有补救”。只是要把补救成本和延迟一起算。蒸馏可以与以上策略组合，不是“每条请求的第 4 种分法”。
 
-## 5. 算一下：选错对象就白花钱 {#routing-example}
+## 5. 四条请求：路由怎样改变结果 {#routing-example}
 
 下面全是**人为构造的结果**，不是模型测评。A 每次成本记为 1，B 为 5；路由器每次额外花 0.1。为看清互补性，故意让 B 在第 4 题上出错。
 
@@ -159,7 +163,7 @@ C_{\text{cascade}}&=C_A+v+uC_B.
 \end{aligned}
 $$
 
-级联中的 A 已经答过一次，不能省掉那笔账。两个方案的 $u$ 也未必相同。真实请求长度不同，应逐条累计输入、输出和缓存费用，而不是一律套固定价格。
+级联中的 A 已经回答过一次，这次调用的成本必须计入。两个方案的 $u$ 也未必相同。真实请求长度不同，应逐条累计输入、输出和缓存费用，而不是一律套固定价格。
 
 <details markdown="1">
 <summary>API 与自部署的月成本估算器</summary>

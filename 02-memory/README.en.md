@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-This page distinguishes types of memory. [Writing, updating, and forgetting](memory-lifecycle.en.md) follows a timeline through expiration, conflicts, and deletion.
+Start with what an assistant might need to remember. Then follow [writing, updating, and forgetting](memory-lifecycle.en.md) to see what happens when the user changes their mind, information expires, or a record needs to be deleted.
 
 For a concrete example, start with [scheduling preferences during a trip](memory-lifecycle.en.md#two-clocks). For experiments, see [memory evaluation and public benchmarks](memory-lifecycle.en.md#memory-evaluation).
 
@@ -47,7 +47,7 @@ The context the current task is using: the conversation so far, open files, and 
 
 ### Episodic memory
 
-What specifically happened in the past, for example that the user planned a Tokyo trip last week. It keeps events and time and is in no hurry to generalize them into permanent preferences.
+Specific past events, such as the user planning a Tokyo trip last week. This records the event and when it happened, without necessarily turning it into a lasting preference.
 
 ### Semantic memory
 
@@ -100,7 +100,7 @@ So it is worth considering:
 - using routing / gating to decide which part of the state this task calls on;
 - storing evidence and time so the representation can be explained and corrected.
 
-The point is not “the more vectors the better.” It is whether the representation preserves the distinctions the task actually needs.
+Compare whether these designs retrieve less frequent interests more reliably, mistake temporary behavior for lasting preferences, or add too much retrieval cost. Multiple vectors can preserve more distinctions, but those distinctions still need to help with the task at hand.
 
 ## How to tell whether memory is working
 

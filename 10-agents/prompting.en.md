@@ -27,7 +27,7 @@ An expected output is:
 {"event":"Photography discussion","date_text":"Saturday afternoon","location":"Cedar Bookshop"}
 ```
 
-The event field summarizes; the other fields extract wording. If every field must be verbatim, change the contract. **Correctness depends on what the task actually asks.** Valid JSON does not establish factual support: check format and facts separately.
+The event field summarizes; the other fields extract wording. If every field must be copied verbatim, specify that requirement. **Correctness depends on what the task actually asks.** Valid JSON does not establish factual support: check format and facts separately.
 
 ## 2. Few-shot demonstrations are not fine-tuning
 
@@ -66,7 +66,9 @@ Freeze invented or authorized notices with normal, missing, conflicting, multi-d
 
 Ask **which errors decreased**, not whether answers became longer. Repeat sampling to assess generation variability; fix the model, version, decoding, budget, and test items. Items used to tune prompts are development data, no longer unseen tests.
 
-When the output must be JSON and the API or inference engine supports decoding constrained by a JSON Schema (structured outputs), use it to guarantee the format rather than relying on one sentence in the prompt (for diagnosing format failures in an engine, see [the vLLM and SGLang diagnosis table](../06-systems/inference-frameworks.en.md#bottlenecks)). Constrained decoding only governs the format. Code can validate schemas and check whether dates occur in the source. Semantic summaries still require human review or a calibrated judge. Successful parsing must not be the only pass condition. See [evaluation protocols](../07-evaluation/benchmark-protocols.en.md).
+When the output must be JSON and the API or inference engine supports decoding constrained by a JSON Schema (structured outputs), use it to guarantee the format rather than relying on one sentence in the prompt. For diagnosing format failures in an engine, see [the vLLM and SGLang diagnosis table](../06-systems/inference-frameworks.en.md#bottlenecks).
+
+Constrained decoding only governs the format. Code can check outputs against a schema and verify whether dates occur in the source. Semantic summaries still require human review or a calibrated judge. Successful parsing must not be the only pass condition. See [evaluation protocols](../07-evaluation/benchmark-protocols.en.md).
 
 ## 5. What changes with longer inputs?
 
@@ -74,4 +76,4 @@ Delimiters help distinguish instructions, examples, and documents; they are not 
 
 For long documents, locate evidence before answering and retain its source position, not only a summary. Output budgets, retrieved passages, and demonstrations also compete for context. Every addition should address a measured error rather than complete a checklist of prompting tricks.
 
-Next, [agent patterns](patterns.en.md) organizes multiple steps; [Deep Research](deep-research.en.md) connects retrieval, evidence, and stopping conditions.
+Next, the [agent patterns guide](patterns.en.md) explains how to organize multiple steps; [Deep Research](deep-research.en.md) connects retrieval, evidence, and stopping conditions.

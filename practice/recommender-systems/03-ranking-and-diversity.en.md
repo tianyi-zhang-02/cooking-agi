@@ -75,7 +75,7 @@ Consider a synthetic table with confirmed exposure, complete logs for both actio
 
 **No like isn't dislike; no rejection isn't liking.** The tasks predict separate actions, not mutually exclusive user classes. Incomplete logs or an unfinished window require masking the affected task; the two masks need not match.
 
-Filling the last row with zeros doesn't create information by adding heads; it trains harder on an assumption. Masking avoids treating unknown labels as known ones, but **does not remove exposure-policy selection bias**.
+If the last row is filled with zeros, adding more heads still supplies assumed negatives rather than new observations. Masking avoids treating unknown labels as known ones, but **does not remove exposure-policy selection bias**.
 
 ### What is the loss denominator? {#task-loss-mean}
 

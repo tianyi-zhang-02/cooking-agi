@@ -18,13 +18,13 @@ An ordinary assistant may handle only that one sentence. Personal AGI should als
 - which of these are only past preferences and which still hold;
 - which information is uncertain and should be checked with you first.
 
-The real value is not “remembering more.” It is **knowing what information this task needs and which earlier judgments still apply**.
+Remembering more only helps if the information fits the task. **Which details matter for this trip, and which earlier assumptions still hold?**
 
 ## How it differs from ordinary personalization
 
 Click prediction is a common personalization task, but personalization can also consider satisfaction, task completion, and long-term goals. Here, the focus is how an assistant could use its understanding of the user across different tasks.
 
-Personal AGI wants to go further and handle:
+Such an assistant would also need to handle:
 
 - what task the user is trying to accomplish right now;
 - how long-term goals and short-term intent coexist;
@@ -96,9 +96,11 @@ Walk through it with numbers (teaching example). Over three planning sessions, t
 | 2 | 3 seaside | Seaside | 1 |
 | 3 | 3 seaside | Seaside | 1 |
 
-Counting clicks alone, all 3 picks were the seaside, which looks like “loves the seaside 100%”. Yet a user with no preference leaves exactly the same record with probability $2/3\times1\times1\approx0.67$. A user who really loves the seaside leaves it with probability 1, so the two differ by only $1\big/\tfrac23=1.5$ times, and the record barely tells them apart.
+Counting clicks alone, all 3 picks were the seaside, which looks like “loves the seaside 100%”. Yet a user with no preference leaves exactly the same record with probability $2/3\times1\times1\approx0.67$. Compare that with an idealized user who always picks the seaside whenever it is offered: that user leaves the record with probability 1. The probabilities under the two assumptions differ by only $1\big/\tfrac23=1.5$ times, so the record gives limited evidence for distinguishing them.
 
 Change one condition: every session keeps 2 seaside and 1 mountain option. The chance that a user with no preference picks the seaside 3 times in a row drops to $(2/3)^3\approx0.30$, so the same record now differs by $1\big/(2/3)^3=27/8\approx3.4$ times between the two kinds of user and starts to count as evidence of a preference. A few different options buy data that can tell preferences apart; simply asking the user is often cheaper still.
+
+This also assumes the indifferent user chooses independently and uniformly among the three options each time. The multiplier is a likelihood ratio under two behavioral hypotheses, not the probability that the user likes the seaside. Inferring that probability requires further assumptions, including a prior.
 
 ### More personalized is not necessarily better
 

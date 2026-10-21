@@ -210,15 +210,22 @@ Knowledge Distillation normally has a capable or expensive Teacher and a Student
 will be deployed. It is not one fixed parameter-update method; it is a family of
 supervision sources.
 
-Three forms are common. <span id="response-distillation"></span>**Response distillation**: the Teacher generates answers and the Student treats them
+Three forms are common:
+
+<span id="response-distillation"></span>**Response distillation**: the Teacher generates answers and the Student treats them
 as SFT demonstrations; this is simple but keeps only one sampled output and loses the Teacher's relative
-preference over alternative tokens. <span id="logit-distribution-distillation"></span>**Logit / distribution distillation**: the Student matches the Teacher's
+preference over alternative tokens.
+
+<span id="logit-distribution-distillation"></span>**Logit / distribution distillation**: the Student matches the Teacher's
 token distribution, classically through a KL between both distributions softened by temperature $T$, multiplied
 by $T^2$; keeping only Teacher top-$k$ logits requires explicit handling of residual probability mass,
-tokenizer mapping, masking, and normalization. <span id="on-policy-distillation"></span>**On-policy distillation**: the Student samples from its current
+tokenizer mapping, masking, and normalization.
+
+<span id="on-policy-distillation"></span>**On-policy distillation**: the Student samples from its current
 policy, then the Teacher scores token distributions on those prefixes; supervision follows states the Student
-actually visits, at the cost of continuous rollouts, Teacher inference, and weight-version management. For worked
-examples and the details of temperature and top-k, see [distillation](distillation.en.md).
+actually visits, at the cost of continuous rollouts, Teacher inference, and weight-version management.
+
+For worked examples and the details of temperature and top-k, see [distillation](distillation.en.md).
 
 Distillation combines with any parameterization: the Student may full fine-tune or train
 only LoRA. The Teacher is normally frozen; the Student is optimized and deployed.

@@ -4,7 +4,9 @@
 
 > Reading time: ~13 min · Last reviewed: 2026-10
 
-BERT also hides a few words and guesses them. Yet if you take a trained BERT, start from an input that is all `[MASK]` and keep filling in blanks, you do not get a decent paragraph; LLaDA uses a Transformer without a causal mask and a cross-entropy loss too, and it can hold a conversation. The difference is not the network but two details: **each training example draws its own masking ratio $t$, anywhere from almost nothing masked to everything masked, and the loss on masked positions is multiplied by $1/t$. The resulting objective is exactly "the autoregressive (AR) loss averaged over all generation orders", and it is an upper bound on the negative log-likelihood (NLL). The price is that the model has to learn every order, including the hard ones.**
+BERT also predicts words hidden in a sentence. But starting a trained BERT from an input full of `[MASK]` tokens and repeatedly filling the blanks does not directly produce a coherent paragraph. LLaDA also uses a Transformer without a causal mask and a cross-entropy loss, yet it can hold a conversation. Two details of its training objective help explain the difference.
+
+Each training example draws its own masking ratio $t$, from almost nothing masked to everything masked, and the loss on masked positions is multiplied by $1/t$. The resulting objective is exactly the autoregressive (AR) loss averaged over all generation orders, and it is an upper bound on the negative log-likelihood (NLL). This also means the model has to learn every order, including the difficult ones.
 
 This note covers only the training objective. How the blanks are filled step by step, and when that beats AR decoding, is in [the next note](decoding-and-speed.en.md).
 
@@ -29,7 +31,7 @@ $$
 \mathcal{L}(\theta)=\mathbb{E}_{t\sim U(0,1]}\;\mathbb{E}_{x_t\sim q(x_t\mid x_0)}\Big[\frac{1}{t}\sum_{i=1}^{L}\mathbf{1}\big[x_t^i=\texttt{[M]}\big]\,\big(-\log p_\theta(x_0^i\mid x_t)\big)\Big]
 $$
 
-$p_\theta(\cdot\mid x_t)$ is a Transformer without a causal mask: it reads the whole partially masked sequence and outputs a vocabulary distribution at every position; $\mathbf{1}[\cdot]$ means only masked positions are scored. LLaDA's Eq. (4) states that this quantity upper-bounds the negative log-likelihood $-\mathbb{E}\log p_\theta(x_0)$. The model does not need to know $t$: the number of blanks is already visible in the input. In MDLM's experiments, dropping time conditioning leaves perplexity about the same; Theorem 1 of [RADD](https://arxiv.org/abs/2406.03736) (Ou et al., 2024-06) explains why: the conditional distributions the model has to learn do not depend on $t$ in the first place.
+$p_\theta(\cdot\mid x_t)$ is a Transformer without a causal mask: it reads the whole partially masked sequence and outputs a vocabulary distribution at every position; $\mathbf{1}[\cdot]$ means only masked positions are scored. LLaDA's Eq. (4) states that, after also averaging over training examples, this objective upper-bounds the negative log-likelihood $-\mathbb{E}\log p_\theta(x_0)$ of the corresponding reverse generative process. The bound applies to the expected objective, not to every sampled masking loss. The model does not need to know $t$: the number of blanks is already visible in the input. In MDLM's experiments, dropping time conditioning leaves perplexity about the same; Theorem 1 of [RADD](https://arxiv.org/abs/2406.03736) (Ou et al., 2024-06) explains why: the conditional distributions the model has to learn do not depend on $t$ in the first place.
 
 Compute it once on two hand-made examples (the probabilities are teaching numbers, not model outputs):
 
@@ -38,7 +40,7 @@ Compute it once on two hand-made examples (the probabilities are teaching number
 
 The second example has a single blank, more context and a more confident model, yet it is multiplied by 4. The reason: at small $t$ only $tL$ positions contribute on average, and after multiplying by $1/t$ every $t$ carries an expected "supervision weight" of $tL/t=L$ tokens. Without the factor, lightly masked examples would carry little weight in the total loss, yet the last steps of generation are made in exactly that state, with one or two blanks left.
 
-Other masking schedules give the same result. MDLM writes $\alpha_t$ for the fraction of original tokens kept at time $t$; in continuous time the weight is $-\alpha_t'/(1-\alpha_t)$, which is exactly $1/t$ for the linear schedule $\alpha_t=1-t$. MDLM §3.4 also notes that the continuous-time objective does not depend on the shape of $\alpha_t$. This follows from a change of variables: a different schedule only changes how often each masking ratio is drawn during training, so it affects the variance of the estimate, not the value of the objective.
+Other monotone masking schedules can represent the same objective if they preserve the endpoint masking rates and adjust the weights accordingly. MDLM writes $\alpha_t$ for the fraction of original tokens kept at time $t$; in continuous time the weight is $-\alpha_t'/(1-\alpha_t)$, which is exactly $1/t$ for the linear schedule $\alpha_t=1-t$. MDLM §3.4 notes that, under these conditions, the continuous-time objective does not depend on the shape of $\alpha_t$. This follows from a change of variables: a different schedule changes how often each masking ratio is drawn during training, and the corresponding weights compensate for that change. The estimator's variance can change while the objective's value stays the same.
 
 ## How it differs from BERT
 
@@ -46,11 +48,15 @@ Other masking schedules give the same result. MDLM writes $\alpha_t$ for the fra
 | --- | --- | --- | --- |
 | How much is masked | A fixed ~15%, with an 80/10/10 corruption of selected positions | Each example draws $t\sim U(0,1]$, from almost nothing to everything | Nothing; a causal mask hides the right side |
 | How the loss is weighted | Average over selected positions | Times $1/t$, giving an upper bound on the negative log-likelihood | $-\log p$ at every position, which sums to the exact negative log-likelihood |
-| Trained to start from all blanks? | No | Yes: $t=1$ is all blanks | Not needed: it writes one token at a time from the left |
+| Trained to start from all blanks? | No | Fully masked inputs have positive probability; $t=1$ always masks everything | Not needed: it writes one token at a time from the left |
 | Positions supervised per example | About 15% | Half on average | All $L$ |
 | Attention | Bidirectional | Bidirectional | Causal |
 
-BERT's masking details are in [the three masks section of the BERT note](../../00-foundations/core/bert.en.md#three-masks). MDLM §3.5 writes the diffusion objective as a "weighted average" of MLM losses and says this connects generative diffusion models with encoder-only BERT models. LLaDA §2.1 also notes that MaskGIT's objective, used for images, drops the $1/t$ and so has no link to maximum likelihood. "A diffusion LM is a BERT that can generate" is therefore only half right: the network can stay the same, but the distribution of masking ratios and the weighting have to change.
+Drawing exactly $t=1$ from a continuous uniform distribution has probability zero, but fully masked examples still occur. At a given $t$, independently masking all $L$ positions has probability $t^L$; averaging over $t$ gives $\int_0^1 t^L\,dt=1/(L+1)$.
+
+BERT's masking details are in [the three masks section of the BERT note](../../00-foundations/core/bert.en.md#three-masks). The standard MLM objective is not itself the joint NLL of a specified sentence generator. BERT's learned conditional probabilities support prediction and [pseudo-likelihood scoring](https://aclanthology.org/2020.acl-main.240/), but pseudo-likelihood scores cannot simply be treated as normalised sentence probabilities.
+
+MDLM §3.5 writes the diffusion objective as a "weighted average" of MLM losses and says this connects generative diffusion models with encoder-only BERT models. LLaDA §2.1 contrasts this with MaskGIT, an image generator whose objective omits $1/t$: dropping that weight does not preserve the diffusion likelihood bound used here. "A diffusion LM is a BERT that can generate" is therefore only half right: the network can stay the same, but a generative process must also be defined, with the masking-ratio distribution and weights matched to it.
 
 ## By hand: with two tokens, the objective is the average of two orders
 
@@ -69,9 +75,9 @@ $$
 \int_0^1\frac{1}{t}\Big[t^2(\ell_1+\ell_2)+t(1-t)\,\ell_{1\mid2}+t(1-t)\,\ell_{2\mid1}\Big]dt=\tfrac12\big(\ell_1+\ell_{2\mid1}\big)+\tfrac12\big(\ell_2+\ell_{1\mid2}\big)
 $$
 
-The $1/t$ cancels one factor of $t$, and the remaining $\int_0^1 t\,dt$ and $\int_0^1(1-t)\,dt$ are both $1/2$. The first bracket on the right is the AR loss written left to right: first `hot`, then `tea` after `hot`, $1.609+0.223=1.833$. The second is right to left: $2.303+0.693=2.996$. Their average, 2.414, is the diffusion objective on this sequence. **With the $1/t$, the objective is exactly the average loss over the two generation orders.** Drop the $1/t$ and the integral becomes $(\ell_1+\ell_2)/3+(\ell_{1\mid2}+\ell_{2\mid1})/6=1.457$, which is not an average over any orders and has no likelihood interpretation.
+The $1/t$ cancels one factor of $t$, and the remaining $\int_0^1 t\,dt$ and $\int_0^1(1-t)\,dt$ are both $1/2$. The first bracket on the right is the AR loss written left to right: first `hot`, then `tea` after `hot`, $1.609+0.223=1.833$. The second is right to left: $2.303+0.693=2.996$. Their average, 2.414, is the diffusion objective on this sequence. **With the $1/t$, the objective is exactly the average loss over the two generation orders.** Removing $1/t$ while keeping the sampling scheme unchanged gives $(\ell_1+\ell_2)/3+(\ell_{1\mid2}+\ell_{2\mid1})/6=1.457$. This is no longer the uniform-order average in this example, but it remains a conditional cross-entropy objective.
 
-Why is it an upper bound? The continuous-time sampler fills each position at an independent, uniformly distributed moment, which is the same as generating in a random order. This model generates `hot tea` with probability $\tfrac12(0.2\times0.8)+\tfrac12(0.1\times0.5)=0.105$, a negative log-likelihood of 2.254, below 2.414. The 0.16-nat gap comes from the two orders disagreeing; if the four conditional probabilities came from one joint distribution, both orders would give the same number and the bound would be tight. An AR model trains only the left-to-right order, with loss 1.833.
+Why is it an upper bound? The continuous-time sampler here fills each position at an independent, uniformly distributed moment, which is the same as generating in a random order. This model generates `hot tea` with probability $\tfrac12(0.2\times0.8)+\tfrac12(0.1\times0.5)=0.105$, a negative log-likelihood of 2.254, below 2.414. The unweighted value, 1.457, is even below 2.254, so it cannot upper-bound this generator's NLL. The original 0.16-nat gap comes from the two orders disagreeing; if the four conditional probabilities came from one joint distribution, both orders would give the same number and the bound would be tight. An AR model trains only the left-to-right order, with loss 1.833.
 
 ```python
 import math
@@ -84,13 +90,13 @@ print(round(objective, 3), round((left_to_right + right_to_left) / 2, 3), round(
 # 2.414 2.414 2.254
 ```
 
-The same holds at any length. RADD's Theorem 2 proves that the absorbing-diffusion training objective is equivalent to the any-order autoregressive objective: for a uniformly random permutation $\pi$, predict the tokens one by one in the order $\pi$ and take the expected sum of negative log-likelihoods. Earlier, [ARDM](https://arxiv.org/abs/2110.02037) (Hoogeboom et al., 2021-10, ICLR 2022) had already placed any-order autoregressive models and absorbing diffusion in one model family.
+The same holds at any length. With a fully masked endpoint, independent masking and the time-independent conditional predictor used here, RADD's Theorem 2 proves that the absorbing-diffusion training objective is equivalent to the any-order autoregressive objective: for a uniformly random permutation $\pi$, predict the tokens one by one in the order $\pi$ and take the expected sum of negative log-likelihoods. Earlier, [ARDM](https://arxiv.org/abs/2110.02037) (Hoogeboom et al., 2021-10, ICLR 2022) had already placed any-order autoregressive models and absorbing diffusion in one model family.
 
 ## What "any order" means, and what it costs
 
-The phrase has two meanings. In training, the objective averages over all orders; in the example above each order gets half the weight. At inference, blanks can be filled in any order: the most confident position first, using content already known on the right, or filling a gap in the middle.
+The phrase has two meanings. In training, the objective averages over all orders; in the example above each order gets half the weight. At inference, blanks can be filled in any order: the most confident position first, using content already known on the right, or filling a gap in the middle. Choosing positions by confidence or filling several in parallel over finitely many steps can change the generated distribution, so the random-order likelihood bound above does not automatically apply to those samplers.
 
-Published results show both sides:
+Published results show both the benefits and the costs of this flexibility:
 
 - **The hard orders must be learned too.** [Kim et al. (2025-02)](https://arxiv.org/abs/2502.06768) show theoretically and empirically that masked diffusion has to solve computationally intractable subproblems during training that AR models avoid; choosing the order adaptively by confidence at inference sidesteps them, raising a pretrained model's Sudoku accuracy from under 7% to about 90%, ahead of AR models with 7 times as many parameters trained with teacher forcing on the right order.
 - **Context on the right helps.** LLaDA §3.3 tests 496 pairs of lines from Chinese poems. Writing the first line from the second: LLaDA 8B Instruct 45.6, GPT-4o 34.3. Writing the second from the first: LLaDA 51.8, GPT-4o 82.7. Better in reverse, much worse forward.
@@ -129,7 +135,7 @@ Uniform-state diffusion has no `[M]` in its input: every position holds a real w
 | Try first | What to observe | What you can NOT conclude |
 | --- | --- | --- |
 | Check an implementation on the $L=2$ example (the code above) | The objective equals the average of the two orders | The objective is the model's exact negative log-likelihood |
-| Log the average loss per $t$ bucket during training | Loss grows with $t$; buckets near $t=0$ have the highest variance | $1/t$ is the only workable weight (schedules can change; they affect variance) |
+| Log the average loss per $t$ bucket during training | Separate weighted loss, CE per masked token and estimator variance; check variance near $t=0$ without assuming monotonicity | $1/t$ is the only workable weight (schedules and weights must match; estimator variance can change) |
 | Compare perplexity with an AR model | Diffusion gives an upper bound (≤); AR gives the exact value | The difference is how much "worse" diffusion really is |
 | Compare across diffusion families | Within one family, perplexity and downstream results broadly agree | Between masked and uniform-state, perplexity decides which is better |
 | Evaluate generations with generative perplexity | Also report token diversity or entropy | Lower is better: [Zheng et al. (2024-09, ICLR 2025)](https://arxiv.org/abs/2409.02908) found that categorical sampling at 32-bit precision lowers the effective temperature, biasing this metric toward low-diversity samples |

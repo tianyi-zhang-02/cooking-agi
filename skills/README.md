@@ -7,7 +7,9 @@ interviews, built from the notes in this repository. It asks one question at a t
 answer against the notes, follows up on gaps, and keeps a local progress log so weak areas come
 back. Works with Claude Code, Codex, and other agents that read `SKILL.md` skills. No server of its
 own and no API key beyond your agent's: the notes and questions come from the site's read-only
-data API and are cached on your machine; your answers and scores never leave it.
+data API and are cached on your machine. The script saves progress locally and does not upload
+it to this site. The conversation, including answers you enter, is still handled according to
+your agent's and model provider's settings; using this skill does not make it local-only.
 
 Install:
 
