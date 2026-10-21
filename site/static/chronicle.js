@@ -299,6 +299,18 @@
       if (G >= 1) return drawGrown(time, night);
       drawGrowing(G, time, night);
     }
+    // The glow used to come from shadowBlur on every one of ~2,000 stroke segments, which cost the GPU
+    // ~300 ms a frame while the tree grew. Now the segments are batched into one path per depth and
+    // position along the branch (they share width and colour), drawn once more into a half-size layer,
+    // and that layer is blurred in a single pass and laid underneath. Browsers without canvas filters
+    // get the same layer at a quarter size, where scaling it back up does a softer job of the blur.
+    const canBlur = typeof g.filter === 'string';
+    let glow = null;
+    function glowLayer() {
+      const k = canBlur ? 2 : 4, w = Math.ceil(canvas.width / k), h = Math.ceil(canvas.height / k);
+      if (!glow || glow.width !== w || glow.height !== h) { glow = Object.assign(document.createElement('canvas'), {width: w, height: h}); glow.k = k; }
+      return glow;
+    }
     function drawGrowing(G, time, night) {
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
@@ -306,29 +318,43 @@
         const halo = g.createRadialGradient(base[0], H * .45, 0, base[0], H * .45, H * .62);
         halo.addColorStop(0, `rgba(255,206,140,${.1 * G})`); halo.addColorStop(1, 'rgba(255,206,140,0)');
         g.fillStyle = halo; g.fillRect(0, 0, W, H);
+        // An orange copy of the halo: the old code drew the halo with a lights' shadow still switched on.
+        const haze = g.createRadialGradient(base[0], H * .45, 0, base[0], H * .45, H * .62);
+        haze.addColorStop(0, `rgba(245,184,61,${.1 * G})`); haze.addColorStop(1, 'rgba(245,184,61,0)');
+        g.fillStyle = haze; g.fillRect(0, 0, W, H);
       }
-      g.lineCap = 'round';
-      g.shadowColor = night ? 'rgba(255,214,160,.55)' : 'transparent';
-      g.shadowBlur = night ? 10 * unit : 0;
+      const paths = new Map();  // depth * 8 + segment -> {path, width, depth}
       for (const b of branches) {
         const f = Math.min(1, Math.max(0, (G - b.t0) / (b.t1 - b.t0)));
         if (f <= 0) continue;
         for (let i = 0; i < 8; i++) {
-          const [ax, ay] = qpoint(b, i / 8 * f), [bx, by] = qpoint(b, (i + 1) / 8 * f);
-          g.lineWidth = Math.max(.6, b.w * (1 - .3 * i / 8));
-          g.strokeStyle = night ? wood(b.depth) : woodLight(b.depth);
-          g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
+          const key = b.depth * 8 + i;
+          if (!paths.has(key)) paths.set(key, {path: new Path2D(), width: Math.max(.6, b.w * (1 - .3 * i / 8)), depth: b.depth});
+          const [ax, ay] = qpoint(b, i / 8 * f), [bx, by] = qpoint(b, (i + 1) / 8 * f), path = paths.get(key).path;
+          path.moveTo(ax, ay); path.lineTo(bx, by);
         }
       }
+      g.lineCap = 'round';
+      if (night && paths.size) {
+        const layer = glowLayer(), lg = layer.getContext('2d');
+        lg.setTransform(dpr / layer.k, 0, 0, dpr / layer.k, 0, 0); lg.clearRect(0, 0, W, H);
+        lg.lineCap = 'round'; lg.strokeStyle = 'rgba(255,214,160,.55)';
+        for (const {path, width} of paths.values()) { lg.lineWidth = width; lg.stroke(path); }
+        g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        if (canBlur) g.filter = `blur(${(5 * unit).toFixed(1)}px)`;  // shadowBlur 10 was a Gaussian with σ = 5 device pixels
+        g.drawImage(layer, 0, 0, canvas.width, canvas.height); g.restore();
+      }
+      for (const {path, width, depth} of paths.values()) {
+        g.lineWidth = width; g.strokeStyle = night ? wood(depth) : woodLight(depth); g.stroke(path);
+      }
+      if (!nodes.length) return;
       const colors = night ? ['#f5b83d', '#5ad1c0', '#fff6df'] : ['#c88a12', '#2a9c8c', '#8a6a3a'];
+      if (!sprites || sprites.night !== night) sprites = Object.assign(colors.map((colour) => sprite(colour, night)), {night});
       for (const n of nodes) {
         if (G < n.t) continue;
-        const pop = Math.min(1, (G - n.t) * 14), tw = .7 + .3 * Math.sin(time * 1.6 + n.p);
-        g.shadowColor = night ? colors[n.kind] : 'transparent';
-        g.shadowBlur = night ? 12 * unit : 0;
+        const pop = Math.min(1, (G - n.t) * 14), tw = .7 + .3 * Math.sin(time * 1.6 + n.p), size = n.r * (.6 + .4 * pop) * 2 * 4;
         g.globalAlpha = (night ? tw : .55) * pop;
-        g.fillStyle = colors[n.kind];
-        g.beginPath(); g.arc(n.x, n.y, n.r * (.6 + .4 * pop), 0, 6.283); g.fill();
+        g.drawImage(sprites[n.kind], n.x - size / 2, n.y - size / 2, size, size);
       }
       g.globalAlpha = 1;
     }
@@ -339,10 +365,14 @@
         drawGrowing(1, time, night);
         nodes = keep;
         const c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height;
-        c.getContext('2d').drawImage(canvas, 0, 0);
+        const cc = c.getContext('2d');
+        // A warm, blurred copy under the whole picture gives the grown tree its haze. It used to be
+        // redrawn every frame by a shadow left switched on; baking it in costs one blur, once.
+        if (night) { cc.shadowColor = 'rgba(255,214,160,.55)'; cc.shadowBlur = 10 * unit; }
+        cc.drawImage(canvas, 0, 0);
         grownTree = Object.assign(c, {night});
         const colors = night ? ['#f5b83d', '#5ad1c0', '#fff6df'] : ['#c88a12', '#2a9c8c', '#8a6a3a'];
-        sprites = colors.map((colour) => sprite(colour, night));
+        sprites = Object.assign(colors.map((colour) => sprite(colour, night)), {night});
       }
       g.setTransform(1, 0, 0, 1, 0, 0);
       g.clearRect(0, 0, canvas.width, canvas.height);
