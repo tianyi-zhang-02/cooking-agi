@@ -2,7 +2,7 @@
 
 **中文** · [English](vanilla-transformer.en.md)
 
-> 阅读时间：约 15 分钟 · 难度：必修 · 最近审阅：2026-10
+> 阅读时间：约 15 分钟 · 最近审阅：2026-10
 
 仍然以翻译为例：encoder 可以同时读整句原文，decoder 生成下一个词时，却不能偷看尚未写出的译文。原始 Transformer 用不同的 attention 和 mask 处理这两种条件。沿着一句话走过 encoder、decoder，再回来看每个 block，结构就不只是几排重复的方框了。**原版 Transformer 用 attention 在位置之间搬信息、用 FFN 在每个位置内部做变换；encoder 和 decoder 的区别，主要在 mask 和 attention 从哪里读。**
 

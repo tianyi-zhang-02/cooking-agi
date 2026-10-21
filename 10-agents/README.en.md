@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~5 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~5 min · Last reviewed: 2026-10
 
 Explaining an error message may take one response. Opening files, changing code, running tests, and reacting to the next failure needs a loop. The result of each action informs the next one. We start there to decide when an agent is useful and when a fixed workflow is simpler.
 

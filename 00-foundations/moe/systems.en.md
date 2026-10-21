@@ -2,7 +2,7 @@
 
 [中文](systems.md) · **English**
 
-> Reading time: ~8 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~8 min · Last reviewed: 2026-10
 
 If each token runs only 8 experts, why is MoE still hard to deploy? Because computing less is only one item on the bill. The other two are moving tokens between GPUs and storing every expert's weights.
 

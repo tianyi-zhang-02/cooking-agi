@@ -2,7 +2,7 @@
 
 [中文](fine-grained-and-shared.md) · **English**
 
-> Reading time: ~6 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~6 min · Last reviewed: 2026-10
 
 ## Cut the experts finer
 

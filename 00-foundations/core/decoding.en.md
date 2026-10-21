@@ -2,7 +2,7 @@
 
 [中文](decoding.md) · **English**
 
-> Reading time: ~12 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 Suppose the next-token probabilities are `0.6, 0.3, 0.1`. Greedy always chooses the first. Top-k with k=2 keeps the first two; top-p with p=0.8 also needs the first two to reach its probability-mass threshold. Sampling then uses the renormalized distribution. The model has not changed, but its selection rule has. **The model only supplies a distribution; truncate the same distribution differently and the candidate pool changes.**
 

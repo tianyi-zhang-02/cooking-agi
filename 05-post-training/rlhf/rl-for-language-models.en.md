@@ -2,7 +2,7 @@
 
 [中文](rl-for-language-models.md) · **English**
 
-> Reading time: ~4 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~4 min · Last reviewed: 2026-10
 
 A language model only predicts the next token each time, so why can it be trained with reinforcement learning? Because one generation can be read as a sequence of decisions: at each step the model sees the current prefix and picks a token, and at the end a reward model, a test, or an environment scores the whole result. Supervised learning usually supplies a target answer. Reinforcement learning (**RL**) instead evaluates the outcome of a sequence of behavior. The model can learn the score of a rollout without being told which individual step caused it or what the correct replacement action was.
 

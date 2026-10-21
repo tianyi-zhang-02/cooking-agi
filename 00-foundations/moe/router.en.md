@@ -2,7 +2,7 @@
 
 [中文](router.md) · **English**
 
-> Reading time: ~11 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 A token entering an MoE layer does not run through every expert. The router selects a few, then combines their outputs with learned weights. Selecting the largest scores is only the beginning: a token can take several branches, their results must return to the right position, and gradients must follow those paths back.
 

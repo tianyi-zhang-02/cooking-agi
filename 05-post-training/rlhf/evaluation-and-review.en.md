@@ -2,7 +2,7 @@
 
 [中文](evaluation-and-review.md) · **English**
 
-> Reading time: ~6 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~6 min · Last reviewed: 2026-10
 
 ## Reward increased: what explanations should we rule out? {#independent-evaluation}
 

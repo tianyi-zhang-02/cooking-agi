@@ -2,7 +2,7 @@
 
 [中文](residual-connections.md) · **English**
 
-> Reading time: ~10 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 Suppose the input is `[2, 3]` and a sublayer produces an update `[0.1, -0.2]`. Adding them gives `[2.1, 2.8]`. If the update is zero, the input passes through unchanged. **This simple addition lets each sublayer learn only how much to change the existing representation, and leaves gradients a path that bypasses the sublayer.**
 

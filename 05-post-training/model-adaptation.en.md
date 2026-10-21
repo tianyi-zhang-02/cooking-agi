@@ -2,7 +2,7 @@
 
 [中文](model-adaptation.md) · **English**
 
-> Reading time: about 15 minutes · Level: core · Last reviewed: 2026-10
+> Reading time: about 15 minutes · Last reviewed: 2026-10
 
 To make a model reliably produce a required JSON format, you might update all parameters or train LoRA adapters. The signal might come from demonstrations or preference comparisons. Which parameters change and which objective trains them are separate decisions: LoRA and SFT can be used together.
 

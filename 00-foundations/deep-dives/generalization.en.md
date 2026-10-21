@@ -2,7 +2,7 @@
 
 [中文](generalization.md) · **English**
 
-> Reading time: about 12 minutes · Level: foundations to advanced · Last reviewed: 2026-10
+> Reading time: about 12 minutes · Last reviewed: 2026-10
 
 Training accuracy keeps improving while validation barely moves. Should you add data, change the model, or increase regularization? A curve describes the symptom; it does not identify the cause.
 

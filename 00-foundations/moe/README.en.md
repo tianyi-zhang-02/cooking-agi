@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~5 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~5 min · Last reviewed: 2026-10
 
 Suppose a layer stores eight equally sized FFNs but each token uses only two. Different tokens can access different parameters without running all eight each time. The eight sets of weights still need storage, and tokens may travel between devices. To understand MoE, separate what is stored from what is used on one pass.
 

@@ -2,7 +2,7 @@
 
 [中文](review.md) · **English**
 
-> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~3 min · Last reviewed: 2026-10
 
 ## Interview questions
 

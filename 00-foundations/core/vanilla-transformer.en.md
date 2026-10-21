@@ -2,7 +2,7 @@
 
 [中文](vanilla-transformer.md) · **English**
 
-> Reading time: ~15 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~15 min · Last reviewed: 2026-10
 
 For translation, an encoder can read the entire source sentence at once. A decoder predicting the next word cannot look ahead at the unwritten translation. The original Transformer uses different attention paths and masks for those two conditions. Following one sentence through the encoder and decoder gives each block a concrete role. **The original Transformer moves information between positions with attention and transforms each position with an FFN; the encoder and decoder differ mainly in their masks and in where attention reads from.**
 

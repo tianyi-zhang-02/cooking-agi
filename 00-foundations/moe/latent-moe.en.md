@@ -2,7 +2,7 @@
 
 [中文](latent-moe.md) · **English**
 
-> Reading time: ~14 min · Level: advanced · Last reviewed: 2026-10 · Prerequisites: [Routing](router.en.md), [fine-grained and shared experts](fine-grained-and-shared.en.md)
+> Reading time: ~14 min · Last reviewed: 2026-10 · Prerequisites: [Routing](router.en.md), [fine-grained and shared experts](fine-grained-and-shared.en.md)
 
 Sending a token to eight experts means moving its representation to those experts. Even small expert computations can spend substantial time reading weights and moving data. What if the experts could work with a narrower representation?
 

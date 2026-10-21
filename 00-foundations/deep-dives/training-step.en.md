@@ -2,7 +2,7 @@
 
 [中文](training-step.md) · **English**
 
-> Reading time: about 6 minutes · Level: introductory to intermediate · Last reviewed: 2026-10
+> Reading time: about 6 minutes · Last reviewed: 2026-10
 
 An architecture diagram does not explain every `labels`, `mask`, and `backward` in training code. Follow one batch: **which tokens provide context, which get scored, and which parameters change?**
 

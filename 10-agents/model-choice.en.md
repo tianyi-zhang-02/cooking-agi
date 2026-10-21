@@ -2,7 +2,7 @@
 
 [中文](model-choice.md) · **English**
 
-> Reading time: ~12 min · Level: foundations to engineering · Last reviewed: 2026-10
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 Extracting a date from a paragraph and debugging across several files do not necessarily need the same compute budget. One may need a short answer; the other may require reading code, running tests, and investigating the next failure.
 

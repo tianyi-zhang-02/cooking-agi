@@ -2,7 +2,7 @@
 
 [中文](embeddings-and-similarity.md) · **English**
 
-> Reading time: about 6 minutes · Level: introductory · Last reviewed: 2026-10
+> Reading time: about 6 minutes · Last reviewed: 2026-10
 
 “Turn text into a vector” skips an important question: why should a list of numbers mean anything? The answer lies in training—which things the model is rewarded for bringing together or separating.
 

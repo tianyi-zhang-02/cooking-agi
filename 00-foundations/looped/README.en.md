@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~3 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~3 min · Last reviewed: 2026-10
 
 Run a four-layer block three times: that is twelve layer evaluations with only four layers of stored weights. Each pass receives the state produced by the previous one, so the result usually changes. A looped model reuses parameters to spend more computation; it does not acquire new facts merely by looping.
 

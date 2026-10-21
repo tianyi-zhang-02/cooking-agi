@@ -2,7 +2,7 @@
 
 [中文](multi-head-attention.md) · **English**
 
-> Reading time: ~15 min · Level: core · Last reviewed: 2026-10
+> Reading time: ~15 min · Last reviewed: 2026-10
 
 Start with one weighted sum. Two positions supply values `[2, 0]` and `[0, 4]`. With attention weights `0.75` and `0.25`, the output is `[1.5, 1]`. The rest of attention explains where those weights come from, which positions are masked, and how several such computations are combined.
 

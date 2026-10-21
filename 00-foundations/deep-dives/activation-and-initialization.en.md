@@ -2,7 +2,7 @@
 
 [中文](activation-and-initialization.md) · **English**
 
-> Reading time: about 17 minutes · Level: foundations to advanced · Last reviewed: 2026-10
+> Reading time: about 17 minutes · Last reviewed: 2026-10
 
 “Sigmoid causes vanishing gradients, so avoid it” leaves out the location and objective. A hidden-layer sigmoid is not the same as a binary-classification output. Initialization also takes more than remembering the names Xavier and He.
 
