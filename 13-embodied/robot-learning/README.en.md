@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~6 min · Draft, pending review
+> Reading time: ~6 min · Last reviewed: 2026-10
 
 Record 100 demonstrations on a robot arm and train a policy: will it learn to go around the cup and pick up the box? What about a different table, a different instruction, a different robot? **This series has just two notes. The first covers learning actions from demonstrations: why "taking the average" drives into the obstacle, and the trade-offs in action chunking and data. The second covers turning a vision-language model into a robot policy (VLA), and carrying what was learned in simulation over to a real robot.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## How the two notes divide the work
 

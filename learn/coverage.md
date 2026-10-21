@@ -14,22 +14,22 @@
 
 ## 这轮先整理什么 {#current-update}
 
-2026-10-15 加了第四部分“前沿观察”、两个新板块和几篇单独的笔记。标“待审核”的是草稿：开头有提示框，侧栏标「（待审核）」，站主读过后才去掉。引用草稿里的事实前，请回到文中链接的一手资料核对。
+2026-10-15 加了第四部分“前沿观察”、两个新板块和几篇单独的笔记。这些新内容在 2026-10-21 对照一手资料核对完毕，草稿标记已经去掉。
 
 | 内容 | 篇数 | 审阅状态 |
 | --- | ---: | --- |
 | [前沿观察](../11-frontier/README.md) · [世界模型](../11-frontier/world-models/README.md) | 7 | 已审阅 |
 | 前沿观察 · [递归自我改进（RSI）](../11-frontier/self-improvement/README.md) | 5 | 已审阅 |
-| 前沿观察 · [测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md) | 5 | 待审核草稿 |
-| 前沿观察 · [用 RL 训练 agent](../11-frontier/agentic-rl/README.md) | 4 | 待审核草稿 |
-| 前沿观察 · [机制可解释性](../11-frontier/interpretability/README.md) | 5 | 待审核草稿 |
-| 前沿观察 · [扩散语言模型（dLLM）](../11-frontier/diffusion-lm/README.md) | 4 | 待审核草稿（2026-10-16） |
-| 大模型基础 · [Scaling law 与超参数](../00-foundations/scaling/README.md) | 5 | 待审核草稿（2026-10-16） |
-| AI 基础设施 · [量化](../12-infra/quantization/README.md) | 6 | 待审核草稿（2026-10-16） |
-| [AI 基础设施（AI infra）](../12-infra/README.md)：晶圆与封装、CPU、GPU、NVIDIA 各代、CUDA、性能、框架、Kubernetes | 10 | 待审核草稿 |
-| [感知、机器人与自动驾驶](../13-embodied/README.md)：感知与几何、自动驾驶、机器人学习 | 14 | 待审核草稿 |
+| 前沿观察 · [测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md) | 5 | 已审阅（2026-10） |
+| 前沿观察 · [用 RL 训练 agent](../11-frontier/agentic-rl/README.md) | 4 | 已审阅（2026-10） |
+| 前沿观察 · [机制可解释性](../11-frontier/interpretability/README.md) | 5 | 已审阅（2026-10） |
+| 前沿观察 · [扩散语言模型（dLLM）](../11-frontier/diffusion-lm/README.md) | 4 | 已审阅（2026-10） |
+| 大模型基础 · [Scaling law 与超参数](../00-foundations/scaling/README.md) | 5 | 已审阅（2026-10） |
+| AI 基础设施 · [量化](../12-infra/quantization/README.md) | 6 | 已审阅（2026-10） |
+| [AI 基础设施（AI infra）](../12-infra/README.md)：晶圆与封装、CPU、GPU、NVIDIA 各代、CUDA、性能、框架、Kubernetes | 10 | 已审阅（2026-10） |
+| [感知、机器人与自动驾驶](../13-embodied/README.md)：感知与几何、自动驾驶、机器人学习 | 14 | 已审阅（2026-10） |
 | 强化学习：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习](../05-post-training/deep-rl/planning-and-learning.md)、[离线策略评估（OPE）的估计量](../05-post-training/deep-rl/ope-estimators.md) | 3 | 已审阅 |
-| 其他章节：[一个还是多个 agent](../10-agents/single-vs-multi-agent.md)、[LLM 辅助决策](../06-systems/decision-support.md)、[评估接到线上](../07-evaluation/eval-observability.md) | 3 | 待审核草稿 |
+| 其他章节：[一个还是多个 agent](../10-agents/single-vs-multi-agent.md)、[LLM 辅助决策](../06-systems/decision-support.md)、[评估接到线上](../07-evaluation/eval-observability.md) | 3 | 已审阅（2026-10） |
 
 篇数按中文笔记计（含各组导读），每篇另有英文版。这些内容不在参考清单里，下面的对照表也不统计它们。这张表只记审阅状态，不代表全站已经核对完；每批改动的检查范围和结果记在仓库的 `CONTENT_RELEASE_CHECKLIST.md`。
 

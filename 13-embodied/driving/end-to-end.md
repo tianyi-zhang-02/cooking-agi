@@ -2,11 +2,9 @@
 
 **中文** · [English](end-to-end.en.md)
 
-> 阅读时间：约 13 分钟 · 草稿，待审核
+> 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
 两个驾驶模型在开环评测上的 L2 误差一模一样；放进闭环仿真，一个不到两秒就压线，另一个稳稳开在车道里。**开环评测每一步都把车放回日志里的位置，模型自己的小偏差不会累积；闭环里，模型的偏差会改变它下一步看到的世界。端到端模型越强，越要用闭环或接近闭环的指标来判断，上路之前还要有一份安全论证。**
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 ## “端到端”到底指什么
 
@@ -25,9 +23,10 @@
 下面只按 Tesla 自己的文件和演讲、按日期列，数字都是公司自报；这些一手资料都没有给出 v12–v14 的逐层结构：
 
 - [2023 年第四季度股东信](https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q4-2023-Update.pdf)：V12 于 2023 年 12 月底开始推送，用 AI 来影响车辆控制，而不是把每种驾驶行为都手写出来，并称用了端到端训练。
+- 2025 年 10 月 ICCV 演讲的[文字版](https://x.com/aelluswamy/status/1981644831790379245)（Elluswamy，2025-10-24）：输入是各相机的像素、车速等运动学信号、音频、地图和导航，输出开车的控制命令。
 - [2025 年第四季度股东信](https://assets-ir.tesla.com/tesla-contents/IR/TSLA-Q4-2025-Update.pdf)：FSD 跑在用客户车和 Robotaxi 真实数据训练的端到端 foundation model 上。
 - 2026 年第一、二季度股东信（SEC 副本：[Q1](https://www.sec.gov/Archives/edgar/data/0001318605/000162828026026551/exhibit991.htm)、[Q2](https://www.sec.gov/Archives/edgar/data/1318605/000162828026049213/exhibit991.htm)）：v14.3 升级了针对长尾的 RL 阶段，推理延迟最多降 20%；v14 lite 把 AI4 上 v14 的驾驶行为蒸馏到 AI3 硬件。
-- 2026 年 6 月 CVPR WAD 演讲（[视频](https://www.youtube.com/watch?v=2V0ddkF1Svo)，据自动字幕转述）：Elluswamy 说输入包括相机、地图与导航、车辆状态和音频，网络在两颗冗余的 AI4 芯片上各跑一份。
+- 2026 年 6 月 3 日 CVPR 自动驾驶研讨会（WAD）的主题演讲（[日程](https://cvpr2026.wad.vision/)、[视频](https://www.youtube.com/watch?v=2V0ddkF1Svo)）：据视频自动字幕，Elluswamy 说网络在两颗冗余的 AI4 芯片上各跑一份；这一句没有文字稿可核对。
 
 ## 模仿之外：RL 与 self-play
 
@@ -35,8 +34,8 @@
 
 另一条路是让模型在模拟器里自己开、按结果学：
 
-- Apple 的 [GigaFlow](https://arxiv.org/abs/2502.03349)（ICML 2025）在批量模拟器里只用 self-play 做 RL。作者报告共模拟 16 亿公里、仿真中平均 17.5 年才出一次事故，在 CARLA、nuPlan、Waymax 上达到最好成绩；自述局限是只在仿真里，感知被抽象掉了。
-- Tesla 在 2025 年 10 月的 ICCV 演讲中说，用神经世界模拟器重放过去的失败、注入对抗性的加塞，并做闭环 RL（[视频](https://www.youtube.com/watch?v=IRu-cPkpiFk)，据自动字幕转述）。演讲者也说开环上的提升不一定能转化为真实驾驶，评测是最难的问题。
+- Apple 的 [GigaFlow](https://arxiv.org/abs/2502.03349)（[ICML 2025](https://proceedings.mlr.press/v267/cusumano-towner25a.html)）在批量模拟器里只用 self-play 做 RL。作者报告共模拟 16 亿公里、仿真中平均 17.5 年才出一次事故，在 CARLA、nuPlan、Waymax 上达到最好成绩；自述局限是只在仿真里，感知被抽象掉了。
+- Elluswamy 在 2025 年 10 月 ICCV 演讲的[文字版](https://x.com/aelluswamy/status/1981644831790379245)里写，Tesla 的神经世界模拟器可以拿历史数据验证新的驾驶模型、合成新的对抗场景来测 corner case，还能在闭环里做大规模 RL。他也写道，开环预测上的 loss 不一定对应真实路上的表现，评测是最难的一关。
 
 RL 绕开了“日志里没有偏离状态”的问题，但换来了新问题：模拟器不像真实世界的地方，可能被策略利用，这和 [model-based 一篇](../../05-post-training/deep-rl/model-based.md)里规划器钻模型漏洞是同一件事。
 

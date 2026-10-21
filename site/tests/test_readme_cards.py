@@ -54,10 +54,13 @@ class ReadmeCardTests(unittest.TestCase):
     def test_topics_cover_every_zone_and_mark_drafts(self):
         zones = [zone for zone in build.NAV["zone"]]
         self.assertEqual(len(self.topics["zones"]), len(zones))
-        self.assertTrue(any(d for *_, groups in self.topics["zones"] for *_, d in groups))
-        # the label wraps onto two lines of the stat column
-        for part in ("notes re-read in", "both languages"):
-            self.assertIn(part, self.cards[("topics", "en", "dark")])
+        # the draft count and the amber-bar legend appear only while some notes are still drafts
+        drafts = sum(d for *_, groups in self.topics["zones"] for *_, d in groups)
+        for lang, label in (("en", "drafts in review"), ("zh", "篇草稿待审核")):
+            self.assertEqual(label in self.cards[("topics", lang, "dark")], bool(drafts))
+        # the label wraps onto two lines of the stat column; read together they give the whole label
+        lines = re.findall(r">([^<]+)</text>", self.cards[("topics", "en", "dark")])
+        self.assertIn("notes re-read in both languages", " ".join(lines))
 
     def test_crew_is_numbered_by_first_participation_and_shown_by_username(self):
         crew = self.team["crew"]

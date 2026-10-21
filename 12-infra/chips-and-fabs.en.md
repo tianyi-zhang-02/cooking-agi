@@ -2,11 +2,9 @@
 
 [中文](chips-and-fabs.md) · **English**
 
-> Reading time: ~10 min · Draft, pending review
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 The news keeps saying "AI chips are in short supply." Short of what, exactly? Is it that the fab cannot make the GPUs? Not quite. **The larger a die, the fewer fit on a wafer and the larger the fraction that is defective; and a single die cannot exceed the exposure limit. So AI chips increasingly package several dies together with HBM, a step that needs advanced packaging and HBM, both of which have limited capacity of their own.** This note starts with the production chain, works through the yield of one wafer, and then looks at packaging and HBM.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## From design to server: the steps one GPU goes through
 

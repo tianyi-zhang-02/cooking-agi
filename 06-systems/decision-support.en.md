@@ -2,11 +2,9 @@
 
 [中文](decision-support.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 A support lead has to decide whether a late cancellation qualifies for an exceptional refund. The model reads the order and the policy, says "recommend deny, high confidence", and attaches the relevant clause; a person clicks the final button. With the model added, will the decision beat both the person alone and the model alone? **Not necessarily. For the team to beat the stronger of the two, three things must hold at once: the model's confidence signal separates the cases where it is reliable from those where it is not; on the cases where the model is unreliable, the person really is better than the model; and the interface leads the person to rely on the model according to that signal. In a number of experiments, adding explanations made people follow the AI more often whether it was right or wrong.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## The setting: a person decides; the model recommends, summarises or critiques
 

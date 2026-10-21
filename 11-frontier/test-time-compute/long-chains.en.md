@@ -2,11 +2,9 @@
 
 [中文](long-chains.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 DeepSeek-R1-Zero's reward checks only two things: whether the final answer is right, and whether the reasoning is wrapped in `<think>` tags. Nobody asked it to "think more", yet its answers grew longer during training while AIME 2024 pass@1 rose from 15.6% to 71.0% (v1 report, 2025-01). **Under verifiable rewards, checking, backtracking and switching methods raise the chance of being right, so they get reinforced and length grows with them. But length is not the goal: it overshoots, it hops between ideas on hard problems, the way the objective is written can push answers longer on its own, and the written reasoning is not necessarily the computation the model relied on.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## R1-Zero: reward only the answer, and length grows by itself
 
@@ -69,7 +67,7 @@ Among correct answers, the longest one is penalised; a wrong answer never earns 
 
 - OpenAI ([reasoning guide](https://developers.openai.com/api/docs/guides/reasoning)): `reasoning.effort` takes none, minimal, low, medium, high, xhigh or max, each model supporting only a subset; reasoning tokens are not visible and are billed as output tokens; it recommends reserving at least 25,000 tokens for reasoning and output when starting out.
 - Anthropic ([effort](https://platform.claude.com/docs/en/build-with-claude/effort), [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)): the 2025-era `budget_tokens` (minimum 1,024) is deprecated on the 4.6 models and rejected by 4.7 and later; instead, adaptive thinking lets the model decide whether and how long to think, and the caller adjusts effort levels (at most five: low, medium, high, xhigh, max, with support varying by model). The docs call effort a behavioural signal, not a strict token cap.
-- Google ([Gemini thinking](https://ai.google.dev/gemini-api/docs/thinking), page updated 2026-10-14): `thinking_level` takes low, medium or high, with minimal on some models; only thought summaries are returned, but the full thinking tokens are billed.
+- Google ([Gemini thinking](https://ai.google.dev/gemini-api/docs/thinking), page updated 2026-10-14): `thinking_level` takes low, medium or high, with minimal on some models; by default only the final output is returned, and `thinking_summaries` asks for thought summaries as well; either way, the full thinking tokens are billed.
 - DeepSeek ([change log](https://api-docs.deepseek.com/updates/)): since 2026-08-13, V4's thinking mode supports three levels, low, high and max.
 
 These levels do not line up across models: Anthropic's documentation states that Sonnet 5.5's levels were recalibrated, so the same level name thinks a different amount than on the previous generation. Who decides how long to think (the caller, the model itself, or an external router) is discussed separately in [choosing a model for an agent](../../10-agents/model-choice.en.md#thinking-control).

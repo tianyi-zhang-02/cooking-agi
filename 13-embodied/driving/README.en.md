@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 A car carries 6–8 cameras, often lidar and radar as well, producing dozens of frames per second; yet every few tens of milliseconds it only has to hand over one thing: a trajectory for the next few seconds, or the steering, throttle and brake commands directly. What happens in between? **The classic approach splits the path into perception, prediction, planning and control, with interfaces that can each be checked on their own; the end-to-end approach trains them as one network and turns the intermediate outputs into optional auxiliary heads. Either way, the hard part is not driving like a human on a recorded log, but showing that the car stays safe when it drives itself.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## One scene, four questions
 
@@ -34,7 +32,7 @@ Splitting it up means every interface can be read, tested and replaced on its ow
 "End-to-end" means different things in different systems, at least three:
 
 - **Intermediate tasks remain, but are trained together.** [UniAD](https://arxiv.org/abs/2212.10156) (CVPR 2023 Best Paper) chains tracking, mapping, motion forecasting, occupancy and planning through queries in one network, with planning as the final goal; the tasks are linked by queries and can be trained together.
-- **One network from pixels to actions.** Tesla's [Q4 2023 shareholder letter](https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q4-2023-Update.pdf) says V12 uses AI to influence vehicle controls (steering wheel, pedals, indicators and so on) instead of hard-coding every driving behaviour; in his October 2025 ICCV talk, Tesla's Ashok Elluswamy said one large network now maps pixels to the next action, with explicit perception only as optional auxiliary outputs (paraphrased from the video's auto-captions).
+- **One network from pixels to actions.** Tesla's [Q4 2023 shareholder letter](https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q4-2023-Update.pdf) says V12 uses AI to influence vehicle controls (steering wheel, pedals, indicators and so on) instead of hard-coding every driving behaviour; in the [text version](https://x.com/aelluswamy/status/1981644831790379245) of his October 2025 ICCV talk (posted on X on 2025-10-24), Tesla's Ashok Elluswamy wrote that one end-to-end network takes pixels from the cameras, kinematic signals such as vehicle speed, audio, maps and navigation, and directly produces the control commands that drive the car; it can also produce interpretable intermediate tokens, such as 3D geometry.
 - **A large model with structured outputs.** The Foundation Model described in Waymo's 2025-12-09 [blog post](https://waymo.com/blog/2025/12/demonstrably-safe-ai-for-autonomous-driving) keeps structured outputs such as objects and the road graph, adds a "Driving VLM" trained with Gemini, distils large Teacher models that cannot run in the car into onboard Students, and adds a separate validation layer on board.
 
 | Comparison | Modular stack | End-to-end model |
@@ -65,7 +63,7 @@ If you are heading toward autonomous driving work, one order is: perception note
 
 > **State as of 2026-10-15 (this changes quickly; check dates before citing)**
 >
-> - **Learned simulators became the main direction for closed-loop testing.** Tesla presented a neural world simulator in its October 2025 ICCV and June 2026 CVPR talks (from the videos' auto-captions); the [Waymo World Model](https://waymo.com/blog/2026/02/the-waymo-world-model-a-new-frontier-for-autonomous-driving-simulation) (2026-02-06); Wayve [GAIA-4](https://wayve.ai/thinking/gaia-4/) (2026-08-03). See the [world-models series](../../11-frontier/world-models/robotics-driving.en.md).
+> - **Learned simulators became the main direction for closed-loop testing.** Tesla presented a neural world simulator in the [text version](https://x.com/aelluswamy/status/1981644831790379245) of its October 2025 ICCV talk; the [Waymo World Model](https://waymo.com/blog/2026/02/the-waymo-world-model-a-new-frontier-for-autonomous-driving-simulation) (2026-02-06); Wayve [GAIA-4](https://wayve.ai/thinking/gaia-4/) (2026-08-03). See the [world-models series](../../11-frontier/world-models/robotics-driving.en.md).
 > - **nuScenes open-loop L2 and collision rates have largely left the stage.** The [Bench2Drive](https://github.com/Thinklab-SJTU/Bench2Drive) maintainers stopped reporting them; 2026 papers mostly report NAVSIM v1/v2, HUGSIM, nuPlan and Bench2Drive. Note 3 explains why.
 > - **Driving VLAs with open weights exist.** NVIDIA's [Alpamayo 2 Super](https://www.nvidia.com/en-us/solutions/autonomous-vehicles/alpamayo/llm-info/) (34B) released weights on 2026-08-04 under the OpenMDW-1.1 licence; its performance numbers are all NVIDIA's own.
 
@@ -79,7 +77,7 @@ The operating numbers below are all vendor-reported unless stated otherwise; eac
 | Tesla | 2026-07-22 | Tesla's Q2 2026 [shareholder letter](https://www.sec.gov/Archives/edgar/data/1318605/000162828026049213/exhibit991.htm) says Robotaxi is live in 7 major metros: the Bay Area with a safety driver; Austin, Dallas, Houston, Miami, Orlando and Tampa marked "Ramping Unsupervised" | Tesla's own statement; the letter does not say any city is fully unsupervised |
 | Tesla | 2026-09-17 | On the California DMV [list](https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicle-testing-permit-holders/), Tesla Robotaxi LLC holds only a testing permit with a safety driver | Regulator list |
 | Zoox | 2026-07-31 | NHTSA granted a Part 555 exemption to deploy commercially, up to 2,500 vehicles per 12 months ([Federal Register](https://public-inspection.federalregister.gov/2026-15485.pdf)) | Regulatory document |
-| Baidu Apollo Go | 2026 Q1 / Q2 | 3.2 million fully driverless rides in Q1 ([quarterly release](https://www.sec.gov/Archives/edgar/data/0001329099/000119312526228123/d156481dex991.htm)); about 1 million in Q2, which Robin Li attributed on the 2026-08-18 call to "operational adjustments" in some domestic cities | Vendor-reported; the Q2 figure is reported from a call transcript |
+| Baidu Apollo Go | 2026 Q1 / Q2 | 3.2 million fully driverless rides in Q1 ([quarterly release](https://www.sec.gov/Archives/edgar/data/0001329099/000119312526228123/d156481dex991.htm)); about 1 million in Q2; on the 2026-08-18 call Robin Li said ride volume was affected by "operational adjustments" in certain domestic cities due to regulatory considerations, and that operations in those cities began to resume in August ([call transcript](https://www.fool.com/earnings/call-transcripts/2026/08/18/baidu-bidu-q2-2026-earnings-call-transcript/), by The Motley Fool) | Vendor-reported; the Q2 [press release](https://www.prnewswire.com/news-releases/baidu-announces-second-quarter-2026-results-302853860.html) gives no ride count, so the figure comes only from the call |
 
 ## Reading order
 

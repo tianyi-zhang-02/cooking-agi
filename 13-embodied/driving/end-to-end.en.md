@@ -2,11 +2,9 @@
 
 [中文](end-to-end.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 Two driving models have exactly the same L2 error in open-loop evaluation; put them in closed-loop simulation and one is over the lane line in under two seconds while the other stays steadily in its lane. **Open-loop evaluation puts the car back at the logged position at every step, so the model's own small deviations never accumulate; in closed loop, the model's deviations change what it sees next. The stronger end-to-end models get, the more they must be judged with closed-loop or near-closed-loop metrics, and before they go on the road they also need a safety case.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What "end-to-end" actually means
 
@@ -25,9 +23,10 @@ What they share: the gradient of the planning or driving objective can flow back
 Below, only Tesla's own documents and talks, by date; all numbers are vendor-reported, and none of these primary sources gives a layer-by-layer structure for v12–v14:
 
 - [Q4 2023 shareholder letter](https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q4-2023-Update.pdf): the V12 rollout began in late December 2023; it uses AI to influence vehicle controls instead of hard-coding every driving behaviour, and the letter says it uses end-to-end training.
+- [Text version](https://x.com/aelluswamy/status/1981644831790379245) of the October 2025 ICCV talk (Elluswamy, 2025-10-24): the inputs are pixels from the cameras, kinematic signals such as vehicle speed, audio, maps and navigation; the output is the control commands that drive the car.
 - [Q4 2025 letter](https://assets-ir.tesla.com/tesla-contents/IR/TSLA-Q4-2025-Update.pdf): FSD runs on an end-to-end foundation model trained on real-world data from both customer cars and Robotaxi.
 - Q1 and Q2 2026 letters (SEC copies: [Q1](https://www.sec.gov/Archives/edgar/data/0001318605/000162828026026551/exhibit991.htm), [Q2](https://www.sec.gov/Archives/edgar/data/1318605/000162828026049213/exhibit991.htm)): v14.3 upgraded the RL stage for long-tail cases and cut inference latency by up to 20%; v14 lite distils the driving behaviour of AI4's v14 into AI3 hardware.
-- June 2026 CVPR WAD talk ([video](https://www.youtube.com/watch?v=2V0ddkF1Svo), paraphrased from auto-captions): Elluswamy said the inputs include cameras, maps and navigation, vehicle state and audio, and that the network runs as one copy on each of two redundant AI4 chips.
+- CVPR Workshop on Autonomous Driving (WAD) keynote, 3 June 2026 ([schedule](https://cvpr2026.wad.vision/), [video](https://www.youtube.com/watch?v=2V0ddkF1Svo)): according to the video's auto-captions, Elluswamy said the network runs as one copy on each of two redundant AI4 chips; there is no transcript to check this against.
 
 ## Beyond imitation: RL and self-play
 
@@ -35,8 +34,8 @@ Most end-to-end models are first trained by imitation on human driving logs, and
 
 The other route is to let the model drive itself in a simulator and learn from outcomes:
 
-- Apple's [GigaFlow](https://arxiv.org/abs/2502.03349) (ICML 2025) does RL with self-play only in a batched simulator. The authors report 1.6 billion km simulated and 17.5 years on average between incidents in simulation, with state-of-the-art results on CARLA, nuPlan and Waymax; their stated limits are simulation only, with perception abstracted away.
-- In its October 2025 ICCV talk Tesla said it uses a neural world simulator to replay past failures, inject adversarial cut-ins and run closed-loop RL ([video](https://www.youtube.com/watch?v=IRu-cPkpiFk), paraphrased from auto-captions). The speaker also said open-loop gains may not translate into real driving, and that evaluation is the hardest problem.
+- Apple's [GigaFlow](https://arxiv.org/abs/2502.03349) ([ICML 2025](https://proceedings.mlr.press/v267/cusumano-towner25a.html)) does RL with self-play only in a batched simulator. The authors report 1.6 billion km simulated and 17.5 years on average between incidents in simulation, with state-of-the-art results on CARLA, nuPlan and Waymax; their stated limits are simulation only, with perception abstracted away.
+- In the [text version](https://x.com/aelluswamy/status/1981644831790379245) of his October 2025 ICCV talk, Elluswamy wrote that Tesla's neural world simulator can validate new driving models against historical data, synthesise new adversarial scenarios to test corner cases, and run large-scale closed-loop RL. He also wrote that loss on open-loop predictions may not correlate with real-world performance, and that evaluation is the most difficult challenge.
 
 RL gets around "the logs contain no off-centre states", but brings a new problem: wherever the simulator differs from the real world, the policy may exploit it, the same thing as a planner exploiting model errors in [the model-based note](../../05-post-training/deep-rl/model-based.en.md).
 

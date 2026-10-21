@@ -235,21 +235,21 @@ summary_en = "Put a request back in its product context: observability, human ov
 id = "infra"
 category = "learn"
 zone = "design"
-zh = "AI 基础设施（待审核）"
-en = "AI infrastructure (draft)"
+zh = "AI 基础设施"
+en = "AI infrastructure"
 home = "12-infra/README.md"
-summary_zh = "一次请求背后的整条链路：从晶圆、芯片、GPU 和 CUDA，到框架、集群和产品。草稿，待审核。"
-summary_en = "The whole chain behind one request: wafers, chips, GPUs and CUDA, up to frameworks, clusters and products. Draft, pending review."
+summary_zh = "一次请求背后的整条链路：从晶圆、芯片、GPU 和 CUDA，到框架、集群和产品。"
+summary_en = "The whole chain behind one request: wafers, chips, GPUs and CUDA, up to frameworks, clusters and products."
 
 [[group]]
 id = "embodied"
 category = "learn"
 zone = "design"
-zh = "感知、机器人与自动驾驶（待审核）"
-en = "Perception, robots & driving (draft)"
+zh = "感知、机器人与自动驾驶"
+en = "Perception, robots & driving"
 home = "13-embodied/README.md"
-summary_zh = "从像素到动作：相机几何与跟踪、鸟瞰图与规划、模仿学习与 VLA。草稿，待审核。"
-summary_en = "From pixels to actions: camera geometry and tracking, bird's-eye view and planning, imitation learning and VLAs. Draft, pending review."
+summary_zh = "从像素到动作：相机几何与跟踪、鸟瞰图与规划、模仿学习与 VLA。"
+summary_en = "From pixels to actions: camera geometry and tracking, bird's-eye view and planning, imitation learning and VLAs."
 
 [[group]]
 id = "frontier"
@@ -485,8 +485,8 @@ order = ["precision-and-memory.md", "distributed-training.md", "tensor-parallel.
 dir   = "00-foundations/scaling"
 group = "pretraining"
 sequence = 3
-zh    = "03 · Scaling law 与超参数（待审核）"
-en    = "03 · Scaling laws & hyperparameters (draft)"
+zh    = "03 · Scaling law 与超参数"
+en    = "03 · Scaling laws & hyperparameters"
 order = ["README.md", "compute-optimal.md", "beyond-chinchilla.md", "hyperparameters.md", "review.md"]
 
 [[section]]
@@ -699,8 +699,8 @@ order = ["README.md", "chips-and-fabs.md", "cpu-architecture.md", "gpu-architect
 [[section]]
 dir   = "12-infra/quantization"
 group = "infra"
-zh    = "量化（待审核）"
-en    = "Quantization (draft)"
+zh    = "量化"
+en    = "Quantization"
 order = ["README.md", "formats-and-error.md", "weight-only-and-ptq.md", "fp8-and-kv-cache.md", "checking-quality.md", "review.md"]
 
 [[section]]
@@ -755,29 +755,29 @@ order = ["README.md", "generate-verify-train.md", "code-not-weights.md", "measur
 [[section]]
 dir   = "11-frontier/test-time-compute"
 group = "frontier"
-zh    = "测试时计算（待审核）"
-en    = "Test-time compute (draft)"
+zh    = "测试时计算"
+en    = "Test-time compute"
 order = ["README.md", "parallel-and-verify.md", "long-chains.md", "measuring.md", "review.md"]
 
 [[section]]
 dir   = "11-frontier/agentic-rl"
 group = "frontier"
-zh    = "Agentic RL（待审核）"
-en    = "Agent RL (draft)"
+zh    = "Agentic RL"
+en    = "Agent RL"
 order = ["README.md", "environments-and-rewards.md", "credit-and-training.md", "review.md"]
 
 [[section]]
 dir   = "11-frontier/interpretability"
 group = "frontier"
-zh    = "机制可解释性（待审核）"
-en    = "Interpretability (draft)"
+zh    = "机制可解释性"
+en    = "Interpretability"
 order = ["README.md", "features-and-superposition.md", "sparse-autoencoders.md", "circuits.md", "review.md"]
 
 [[section]]
 dir   = "11-frontier/diffusion-lm"
 group = "frontier"
-zh    = "扩散语言模型（dLLM，待审核）"
-en    = "Diffusion LMs (draft)"
+zh    = "扩散语言模型（dLLM）"
+en    = "Diffusion LMs"
 order = ["README.md", "masked-diffusion.md", "decoding-and-speed.md", "review.md"]
 
 [[section]]
@@ -1044,9 +1044,9 @@ en  = "Templates"
 "06-systems/README.md"                                  = ["总览", "Overview"]
 "06-systems/agent-observability.md"                     = ["Agent 可观测性", "Agent observability"]
 "06-systems/human-in-the-loop.md"                       = ["人工参与", "Human in the loop"]
-"06-systems/decision-support.md" = ["LLM 辅助决策（待审核）", "Decision support (draft)"]
+"06-systems/decision-support.md" = ["LLM 辅助决策", "Decision support"]
 "07-evaluation/README.md"                               = ["总览", "Overview"]
-"07-evaluation/eval-observability.md" = ["评估接到线上（待审核）", "Evaluation online (draft)"]
+"07-evaluation/eval-observability.md" = ["评估接到线上", "Evaluation online"]
 "07-evaluation/evaluation-stack.md" = ["分层评估", "Evaluation stack"]
 "07-evaluation/text-metrics.md" = ["BLEU、ROUGE、编辑距离与困惑度", "BLEU, ROUGE, edit distance & perplexity"]
 "07-evaluation/benchmark-protocols.md" = ["Benchmark 与长上下文测试", "Benchmarks & long-context tests"]
@@ -1119,7 +1119,7 @@ en  = "Templates"
 "10-agents/model-choice.md"                                      = ["模型选择与路由", "Model selection & routing"]
 "10-agents/tools-and-skills.md" = ["工具、MCP 与 Skills", "Tools, MCP & skills"]
 "10-agents/review.md"                                            = ["复习题", "Review"]
-"10-agents/single-vs-multi-agent.md" = ["一个还是多个 agent（待审核）", "One agent or several (draft)"]
+"10-agents/single-vs-multi-agent.md" = ["一个还是多个 agent", "One agent or several"]
 "11-frontier/README.md" = ["从这里开始", "Start here"]
 "13-embodied/README.md" = ["从这里开始", "Start here"]
 "13-embodied/perception/README.md" = ["总览", "Overview"]

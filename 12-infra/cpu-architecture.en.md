@@ -2,11 +2,9 @@
 
 [中文](cpu-architecture.md) · **English**
 
-> Reading time: ~10 min · Draft, pending review
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 An 8-GPU server also contains two CPUs. What are they doing, and why do you so often end up checking the CPU when GPU utilization will not go up? **A CPU core is designed to finish one instruction stream as fast as possible: pipelining, out-of-order execution, branch prediction and the cache hierarchy all exist to hide waiting. In an AI server the CPU reads data, preprocesses it, tokenizes, launches work on the GPU and moves data; when it falls behind, the GPU sits idle.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## How fast one core wants to run one instruction stream
 

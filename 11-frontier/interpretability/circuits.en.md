@@ -2,11 +2,9 @@
 
 [中文](circuits.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 "GPT-2 small uses 26 attention heads to find the indirect object"; "Claude 3.5 Haiku first thinks of Texas internally, then says Austin". What exactly do circuit claims like these say, and what is the evidence? **A circuit claim is a causal hypothesis that can be tested by intervention: on some class of inputs, which components, through which paths, carry how much of a behaviour. Activation patching and path patching test it, and attribution graphs automate the step of proposing the hypothesis; but an attribution graph explains a replacement model, and Anthropic itself says it gives a satisfying explanation on only about a quarter of the prompts it tried. For safety evaluation there is so far a set of lab-reported case studies and successes on deliberately implanted problems, but no independently validated general-purpose detector.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## From correlation to causation: activation patching
 

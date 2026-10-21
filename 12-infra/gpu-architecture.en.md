@@ -2,11 +2,9 @@
 
 [中文](gpu-architecture.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 When an H100 SXM runs a large matrix multiply, its dense BF16 Tensor Core peak is 989.4 TFLOPS; yet when the same card generates tokens one at a time for a large model, it spends most of its time waiting for data. Both are true at once. **A GPU is built for total throughput, not for making one thread fast: it keeps many warps resident and switches to another whenever one is waiting on memory, and whether the Tensor Cores stay busy comes down to how fast data can be moved into the SMs.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 Hardware numbers are mostly for the H100 SXM5; final specifications come from the [H100 architecture whitepaper V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf) (which states that it includes final clocks and TFLOPS), and the rest from NVIDIA product pages, architecture blogs and CUDA documentation; cycle counts and matrix entries in the worked examples are teaching assumptions and are marked as such. How to write kernels is in [CUDA](cuda.en.md), the roofline is in [Performance](performance.en.md), and the cross-generation comparison is in [NVIDIA GPU generations](nvidia-generations.en.md).
 

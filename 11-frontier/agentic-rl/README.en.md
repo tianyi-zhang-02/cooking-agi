@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 When you train on maths problems with RLVR, one sample is a prompt, one answer and one score. Now you want to train an agent that fixes bugs: it reads files, edits code, runs tests, reads the error and edits again, and after dozens of turns it submits; hidden tests decide whether it gets 1 or 0. **The skeleton of the algorithm does not change: sample, score, update the policy by the advantage. What changes is what a sample looks like: it is an interaction run inside a sandbox, the reward usually arrives once at the end, the text returned by tools sits inside the sequence without being the model's actions, and one rollout can take minutes to tens of minutes. So the hard part moves away from "which loss" to three places: whether the environment and reward can be trusted, how one trajectory's success or failure is split across its dozens of actions, and how to afford the rollouts.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## From single answers to multi-step tasks: what changes
 

@@ -2,11 +2,9 @@
 
 [中文](decoding-and-speed.md) · **English**
 
-> Reading time: ~14 min · Draft, pending review
+> Reading time: ~14 min · Last reviewed: 2026-10
 
 LLaDA 8B Instruct's GSM8K score was measured with one token committed per forward pass: a 512-token answer took 512 steps ([LLaDA, Appendix B.6](https://arxiv.org/abs/2502.09992)). When a third party, with generation length 128 and block size 32, made the same model commit a fixed 4 tokens per step, GSM8K dropped from 73.6 to 61.7 ([Kim et al., 2025-10](https://arxiv.org/abs/2510.04146)). **How much faster a diffusion model can be depends on two numbers: how many tokens it can safely commit per step on average (call it $\tau$), and how many positions each step recomputes (call it $G$). At low concurrency, decode is held back by memory bandwidth while compute sits idle, so speed can rise by up to about $\tau$ times; once concurrency is high enough to use all the compute, each token costs about $G/\tau$ times more computation, and the advantage disappears or even reverses.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 This note follows [the masked diffusion objective](masked-diffusion.en.md) and does its accounting with the notation and H100 numbers from [the roofline note](../../12-infra/performance.en.md#decode-batching).
 

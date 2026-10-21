@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~8 min · Draft, pending review
+> Reading time: ~8 min · Last reviewed: 2026-10
 
 An autoregressive (AR) model takes 256 steps to write 256 tokens, committing one per step. A diffusion language model writes differently: it first masks the entire span to be written, then at every step lets the model guess all the blanks at once, keeps only the few it is most confident about, and fills the span in a few dozen steps. Google's Gemini Diffusion demo of 2025-05, Inception's Mercury series and DiffusionGemma, released with open weights in 2026-06, all belong to this family, although the exact form of the noise differs between them and is not always published. **The route works: the masked diffusion training objective is an upper bound on the negative log-likelihood (NLL), so it has a clean probabilistic meaning, and, according to its authors, LLaDA, an 8B model trained from scratch, is comparable to AR models of similar size on many benchmarks. What it buys is several tokens committed per forward pass, use of context on the right, and infilling; what it costs is that training must learn every order, every step recomputes a whole block, committing too much in one step makes tokens inconsistent, and quality is lower in the vendors' own same-family comparisons. The speed advantage appears mainly at low concurrency, when memory bandwidth is the bottleneck.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Two ways to write the same sentence
 

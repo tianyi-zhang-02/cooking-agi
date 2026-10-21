@@ -2,11 +2,9 @@
 
 [中文](sparse-autoencoders.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 "34 million features extracted from Claude 3 Sonnet", "16 million latents trained on GPT-4": what do these numbers mean? And why did Google DeepMind's interpretability team announce in March 2025 that it was deprioritising fundamental SAE research? **A sparse autoencoder (SAE) writes an activation as a weighted sum of a few dictionary directions. Without any labels it finds a large number of directions that read sensibly and can be used to steer the model, which makes it good for exploration and debugging. But good reconstruction and fluent-sounding labels do not guarantee that what it finds are features the model really uses, and on downstream tasks with strong baselines it often does worse than linear probes, difference-in-means and prompting.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## The objective: reconstruction plus sparsity
 

@@ -14,22 +14,22 @@ Published notes are still being revised, and new material is checked locally bef
 
 ## What this update focuses on {#current-update}
 
-On 2026-10-15 we added a fourth area, Frontier watch, two new blocks, and a few single notes. Anything marked “pending review” is a draft: it opens with a notice and is marked “(draft)” in the sidebar until the site owner has read it. Check the primary sources a draft links before relying on its facts.
+On 2026-10-15 we added a fourth area, Frontier watch, two new blocks, and a few single notes. These additions were checked against primary sources on 2026-10-21, and their draft labels have been removed.
 
 | Content | Notes | Review state |
 | --- | ---: | --- |
 | [Frontier watch](../11-frontier/README.en.md) · [World models](../11-frontier/world-models/README.en.md) | 7 | Reviewed |
 | Frontier watch · [Recursive self-improvement](../11-frontier/self-improvement/README.en.md) | 5 | Reviewed |
-| Frontier watch · [Test-time compute](../11-frontier/test-time-compute/README.en.md) | 5 | Draft, pending review |
-| Frontier watch · [Agent RL](../11-frontier/agentic-rl/README.en.md) | 4 | Draft, pending review |
-| Frontier watch · [Interpretability](../11-frontier/interpretability/README.en.md) | 5 | Draft, pending review |
-| Frontier watch · [Diffusion language models](../11-frontier/diffusion-lm/README.en.md) | 4 | Draft, pending review (2026-10-16) |
-| Foundations · [Scaling laws and hyperparameters](../00-foundations/scaling/README.en.md) | 5 | Draft, pending review (2026-10-16) |
-| AI infrastructure · [Quantization](../12-infra/quantization/README.en.md) | 6 | Draft, pending review (2026-10-16) |
-| [AI infrastructure](../12-infra/README.en.md): wafers and packaging, CPUs, GPUs, NVIDIA generations, CUDA, performance, frameworks, Kubernetes | 10 | Draft, pending review |
-| [Perception, robots, and driving](../13-embodied/README.en.md): perception and geometry, autonomous driving, robot learning | 14 | Draft, pending review |
+| Frontier watch · [Test-time compute](../11-frontier/test-time-compute/README.en.md) | 5 | Reviewed (2026-10) |
+| Frontier watch · [Agent RL](../11-frontier/agentic-rl/README.en.md) | 4 | Reviewed (2026-10) |
+| Frontier watch · [Interpretability](../11-frontier/interpretability/README.en.md) | 5 | Reviewed (2026-10) |
+| Frontier watch · [Diffusion language models](../11-frontier/diffusion-lm/README.en.md) | 4 | Reviewed (2026-10) |
+| Foundations · [Scaling laws and hyperparameters](../00-foundations/scaling/README.en.md) | 5 | Reviewed (2026-10) |
+| AI infrastructure · [Quantization](../12-infra/quantization/README.en.md) | 6 | Reviewed (2026-10) |
+| [AI infrastructure](../12-infra/README.en.md): wafers and packaging, CPUs, GPUs, NVIDIA generations, CUDA, performance, frameworks, Kubernetes | 10 | Reviewed (2026-10) |
+| [Perception, robots, and driving](../13-embodied/README.en.md): perception and geometry, autonomous driving, robot learning | 14 | Reviewed (2026-10) |
 | Deep RL: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md), [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md) | 3 | Reviewed |
-| Other chapters: [one agent or several](../10-agents/single-vs-multi-agent.en.md), [LLMs for decision support](../06-systems/decision-support.en.md), [taking evaluation online](../07-evaluation/eval-observability.en.md) | 3 | Draft, pending review |
+| Other chapters: [one agent or several](../10-agents/single-vs-multi-agent.en.md), [LLMs for decision support](../06-systems/decision-support.en.md), [taking evaluation online](../07-evaluation/eval-observability.en.md) | 3 | Reviewed (2026-10) |
 
 Counts are per note, including each series overview; every note also has a Chinese version. None of this is in the reference list, so the comparison tables below do not count it. The table records review state only; it is not a completed site-wide audit. The scope and results of each batch's checks are in the repository's `CONTENT_RELEASE_CHECKLIST.md`.
 

@@ -2,11 +2,9 @@
 
 [中文](compute-optimal.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 Suppose you can run 64 H100s for four or five days, which works out to roughly $10^{22}$ floating-point operations. That budget could train a 3B-parameter model on a lot of data, or a 30B-parameter model on very little. Which gives the lower loss? **At a fixed training budget, parameters and data should grow in roughly equal proportion. By the Chinchilla fit, that is about 20 tokens per parameter, so $10^{22}$ FLOPs maps to about 9B parameters and 180B tokens. The ratio is fitted on small runs and then extrapolated; it holds only when the data and optimization recipe are similar and the data is seen about once. The further you extrapolate, the more you should treat it as a range rather than a point.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## First turn the budget into FLOPs
 

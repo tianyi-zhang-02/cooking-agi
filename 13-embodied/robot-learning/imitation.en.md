@@ -2,11 +2,9 @@
 
 [中文](imitation.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 A cup sits on the table. You teleoperate a robot arm around it to reach a box behind it and record 100 demonstrations: 50 pass on the left, 50 on the right. Train a policy with mean squared error and it drives straight into the cup. **Imitation learning on robots is hard in three places: one image can have several correct actions, small per-step deviations add up, and demonstrations are expensive and narrow. The common combination today is a generative action head (diffusion or flow matching) to represent "several answers are correct", action chunking to decide a short stretch at once and keep consecutive actions consistent, and cheaper ways to collect more data.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What changes on a real robot
 

@@ -2,11 +2,9 @@
 
 [中文](vla.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 You have a vision-language model (VLM) that answers questions about images, and you want it to drive a robot arm directly: two camera views and "put the cup in the sink" go in, joint commands at 50 Hz come out. The most direct approach is to write actions as text tokens too, but a quick latency estimate shows it cannot keep up. **As of October 2026, the common design lets the VLM understand the scene and the instruction while a continuous flow-matching "action expert" beside it generates a whole chunk of actions at once; humanoid robots further split slow reasoning from fast control into two or three layers. Policies trained in simulation reach real robots through randomization and online adaptation, and evaluation is moving from near-saturated simulation leaderboards to real-robot comparisons.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 Read first: [Learning actions from demonstrations](imitation.en.md) (multimodal actions, action chunking) and [LLaVA and DeepSeek-VL](../../03-multimodal-learning/vlm-designs.en.md) (how images enter a language model).
 

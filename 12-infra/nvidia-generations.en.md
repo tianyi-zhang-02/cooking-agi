@@ -2,11 +2,9 @@
 
 [中文](nvidia-generations.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 When you read "the new generation is N times faster", ask three things first: which precision? Dense or sparse? Which SKU, and is it per GPU or per system? **Once those are aligned, what has grown steadily across generations is low-precision Tensor throughput, HBM capacity and the size of the NVLink domain; memory bandwidth has grown too, but more slowly than compute. The number of operations you must do per byte read to saturate compute went from about 140 on the V100 to about 1,900 on the GB300 with NVFP4, so for read-heavy, compute-light work such as large-model decode, generational speedups mostly follow bandwidth.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 SMs, warps and Tensor Cores are explained in [GPU architecture](gpu-architecture.en.md). Every hardware number here comes from NVIDIA whitepapers, datasheets, product pages and technical blogs, checked on 2026-10-15; shipped and merely announced products are marked separately.
 
@@ -35,7 +33,7 @@ All throughput figures are dense and per GPU. The B-series figures are converted
 | GB200 (each GPU in NVL72) | Same | — | 5th gen | 186 GB HBM3e · 8 TB/s | NVLink 5: 1.8 TB/s | up to 1,200 W* | 2.5 PFLOPS | 5 PFLOPS | 10 PFLOPS |
 | B300 (HGX B300, Blackwell Ultra) | TSMC 4NP · 208B (2 dies) | up to 160 | 5th gen (faster NVFP4) | about 262 GB HBM3e · 8 TB/s | NVLink 5: 1.8 TB/s | up to 1,400 W* | 2.25 PFLOPS | 4.5 PFLOPS | 13.5 PFLOPS |
 | GB300 (each GPU in NVL72) | Same | up to 160 | Same | about 278 GB HBM3e · 8 TB/s | NVLink 5: 1.8 TB/s | up to 1,400 W* | 2.5 PFLOPS | 5 PFLOPS | 15 PFLOPS |
-| Rubin (announced, see below) | Process not disclosed · 336B (2 dies) | 224 | 5th gen (per the platform blog); 3rd-gen Transformer Engine | 288 GB HBM4 · 22 or 19.2 TB/s | NVLink 6: 3.6 or 3 TB/s | Not disclosed | 4 PFLOPS | 17.5 PFLOPS | 35 PFLOPS (NVFP4 training) |
+| Rubin (in production, see below) | Process not disclosed · 336B (2 dies) | 224 | 5th gen (per the platform blog); 3rd-gen Transformer Engine | 288 GB HBM4 · 22 or 19.2 TB/s | NVLink 6: 3.6 or 3 TB/s | Not disclosed | 4 PFLOPS | 17.5 PFLOPS | 35 PFLOPS (NVFP4 training) |
 
 Sources by row: V100 from the [Volta whitepaper](https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf) and the [V100 datasheet](https://images.nvidia.com/content/technologies/volta/pdf/volta-v100-datasheet-update-us-1165301-r5.pdf); A100 from the [Ampere blog](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/) and the [A100 datasheet](https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/nvidia-a100-datasheet-us-nvidia-1758950-r4-web.pdf); H100 from whitepaper V1.04 and the product page; H200 from the [H200 product page](https://www.nvidia.com/en-us/data-center/h200/), whose Tensor rows match the H100 SXM product page exactly, so 989.4 / 1,978.9 carry over; B200 memory and bandwidth converted from the DGX B200's 8-GPU totals of 1,440 GB and 64 TB/s, and its throughput from the HGX page; GB200 as the NVL72 page's superchip figures divided by 2; B300 memory as the [DGX B300](https://www.nvidia.com/en-us/data-center/dgx-b300/)'s 2.1 TB divided by 8, GB300 as the NVL72's 20 TB divided by 72; process and transistors for the H200 and the B series, and the B300's bandwidth and SM count ("up to 160, varies by SKU"), from the Blackwell Ultra blog's generational comparison table; Rubin is covered below.
 
@@ -71,15 +69,16 @@ Transistors, process and die count match Blackwell; what changed is the allocati
 
 Memory is stated three ways: the blog says up to 288 GB; the DGX and HGX B300 pages say 2.1 TB for 8 GPUs, about 262 GB each; the GB300 NVL72 page says 20 TB for 72 GPUs, about 278 GB each. The pages do not explain the difference.
 
-### Rubin / Vera Rubin (announced): HBM4 and NVLink 6
+### Rubin / Vera Rubin (in production): HBM4 and NVLink 6
 
 The timeline:
 
 - GTC, March 2025 ([NVIDIA blog recap](https://blogs.nvidia.com/blog/nvidia-keynote-at-gtc-2025-ai-news-live-updates/)): Vera Rubin NVL144 set for the second half of 2026, Rubin Ultra systems for the second half of 2027.
 - CES, 5 January 2026 ([press release](https://nvidianews.nvidia.com/news/rubin-platform-ai-supercomputer)): its Rubin Readiness section states "NVIDIA Rubin is in full production …", with partner products in the second half of the year; the rack was renamed Vera Rubin NVL72 (72 Rubin GPUs, 36 Vera CPUs). The GTC [press release](https://nvidianews.nvidia.com/news/nvidia-vera-rubin-platform) of 16 March added a seventh chip, the Groq 3 LPU, and the [POD blog](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/) described Rubin Ultra scaling to 576 GPUs and the Kyber rack with 144 per rack, without dates.
 - GTC Taipei, 31 May 2026 ([press release](https://nvidianews.nvidia.com/news/vera-rubin-full-production-agentic-ai-factory)): production shipments set to begin "this fall"; an [NVIDIA blog post](https://blogs.nvidia.com/blog/vera-cpu-delivery/) updated on 27 August said AWS had received its first Vera CPU server and Vera Rubin GPU.
+- 26 August 2026 ([second-quarter fiscal 2027 results release](https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027)): Jensen Huang said Vera Rubin is "now in full production", with racks running at partners including CoreWeave, Google Cloud, Microsoft Azure, Oracle Cloud Infrastructure and Nebius. An [NVIDIA blog post](https://blogs.nvidia.com/blog/coreweave-agentic-ai-vera-rubin/) of 30 September said CoreWeave had received its first Vera Rubin NVL72 production racks that month.
 
-As of October 2026, the [Vera Rubin NVL72 product page](https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/) is headed "Available Now", but no primary source confirming broad volume supply was found, so this note marks Rubin as "announced", and its numbers are NVIDIA's published specifications.
+As of October 2026, the [Vera Rubin NVL72 product page](https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/) is headed "Available Now" and says server makers are "shipping Vera Rubin-based systems", so this note marks Rubin as "in production". Broad cloud availability is still rolling out: an [NVIDIA blog post](https://blogs.nvidia.com/blog/google-cloud-vera-rubin-infrastructure/) of 21 October says general availability of Google Cloud's A5X instances, built on Vera Rubin NVL72, comes next month. The numbers below are NVIDIA's published specifications.
 
 The [Rubin GPU architecture blog](https://developer.nvidia.com/blog/inside-nvidia-rubin-gpu-architecture-powering-the-era-of-agentic-ai/) (21 July 2026) gives 336 billion transistors, two compute dies, 224 SMs and up to 288 GB of HBM4, without naming the process; the January [platform blog](https://developer.nvidia.com/blog/inside-the-nvidia-rubin-platform-six-new-chips-one-ai-supercomputer/) calls the SMs' Tensor Cores fifth-generation. The table's throughput comes from the per-GPU table on the [HGX page](https://www.nvidia.com/en-us/data-center/hgx/) and from the NVL72 page: NVFP4 training 35, FP8 17.5 and BF16 4 PFLOPS, all marked dense. The frequently quoted "50 PFLOPS of NVFP4 inference" is marked sparse on those two pages, while the platform blog attributes it to "adaptive compression" in the third-generation Transformer Engine without saying dense or sparse.
 
@@ -106,7 +105,7 @@ Divide each generation's dense peak at its lowest precision by memory bandwidth 
 | H200 SXM | FP8 1,978.9 TFLOPS | 4.8 TB/s | 412 |
 | GB200 (per GPU) | NVFP4 10 PFLOPS | 8 TB/s | 1,250 |
 | GB300 (per GPU) | NVFP4 15 PFLOPS | 8 TB/s | 1,875 |
-| Rubin (announced) | NVFP4 training 35 PFLOPS | 22 or 19.2 TB/s | 1,591 or 1,823 |
+| Rubin (in production) | NVFP4 training 35 PFLOPS | 22 or 19.2 TB/s | 1,591 or 1,823 |
 
 Several design threads show up in the table:
 
@@ -141,7 +140,7 @@ $P=70\times10^9$ is the parameter count, $b$ the bytes per parameter, $M$ the me
 | H200 SXM | 141 GB · 4.8 TB/s | 1 card (almost no headroom) · 29.2 ms; 14.6 ms on 2 cards | 1 card · 14.6 ms |
 | B200 (HGX) | 180 GB · 8 TB/s | 1 card · 17.5 ms | 1 card · 8.8 ms |
 | B300 (HGX) | about 262 GB · 8 TB/s | 1 card · 17.5 ms | 1 card · 8.8 ms |
-| Rubin (announced) | 288 GB · 19.2–22 TB/s | 1 card · 6.4–7.3 ms | 1 card · 3.2–3.6 ms |
+| Rubin (in production) | 288 GB · 19.2–22 TB/s | 1 card · 6.4–7.3 ms | 1 card · 3.2–3.6 ms |
 | RTX PRO 6000 Workstation Edition | 96 GB · 1.792 TB/s | 2 cards · 39.1 ms | 1 card · 39.1 ms |
 | DGX Spark (GB10) | 128 GB unified memory · 0.273 TB/s | Does not fit | 1 unit · 256 ms |
 

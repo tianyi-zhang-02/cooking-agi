@@ -2,11 +2,9 @@
 
 [中文](review.md) · **English**
 
-> Reading time: ~4 min · Draft, pending review
+> Reading time: ~4 min · Last reviewed: 2026-10
 
 This page condenses the series into interview questions and a self-check; every number and conclusion in the answers can be traced to the first three notes.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Interview questions
 

@@ -2,11 +2,9 @@
 
 [中文](weight-only-and-ptq.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 An 8B model generating one token at a time at batch 1 on an H100 needs at least 4.77 ms per step just to read its BF16 weights; stored as INT4 in groups of 128 (W4A16), it needs only 1.45 ms. Yet for the same model at batch 256, the two floors are 4.77 against 4.14 ms. **What weight-only compression buys is fewer bytes read during decode: at small batch the speedup is almost proportional to the bytes saved, and it disappears once the batch is large enough to be compute-bound. The methods of post-training quantization (PTQ) all use a small calibration set to keep the error from affecting the layer's output: GPTQ pushes each column's error onto the columns not yet quantized, and AWQ first scales up the channels that matter, judged by activation size. To bring the activations down to 8 bits as well, you first need a transformation such as SmoothQuant that moves the activation outliers onto the weights.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 Grids, scales and groups are in the previous note, [Formats and error](formats-and-error.en.md); the roofline and the batch ledger for decode are in [Performance](../performance.en.md#decode-batching).
 

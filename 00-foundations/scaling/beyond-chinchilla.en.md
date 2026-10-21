@@ -2,11 +2,9 @@
 
 [中文](beyond-chinchilla.md) · **English**
 
-> Reading time: ~10 min · Draft, pending review
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 Llama 3's 8B model saw more than 15T tokens, about 1,900 tokens per parameter, close to a hundred times Chinchilla's 20. That is not a mistake: Chinchilla answers "how to get the lowest loss for a fixed training budget", while a model that will be deployed also has inference on its bill, and a limit on how much non-repeated data you actually have. **Once inference tokens count toward total FLOPs, the optimum moves toward a smaller model trained on more data, and the more inference you expect, the further it moves. When data runs short, repeating the same data about 4 times is nearly as good as new data, and the value falls quickly after a dozen or so passes. These conclusions also come from fits; at a thousand or more tokens per parameter, the curves overestimate the benefit of more data.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Put inference on the same bill
 

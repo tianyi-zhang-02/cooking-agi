@@ -2,11 +2,9 @@
 
 [中文](prediction-planning.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 The car in front of you at the intersection might go straight, turn left or turn right; it has not started turning yet, and you already have to commit to your own next 4 seconds. **Forecasts must give several possibilities with probabilities, not one averaged trajectory; the planner picks one trajectory from a set of candidates by cost, where the weights decide "what counts as good" and the hard constraints decide "what is never allowed".**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What a forecast must deliver
 

@@ -2,11 +2,9 @@
 
 [中文](parallel-and-verify.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 A competition problem has an integer answer. The model is sampled 64 times: 26 times it says A, 30 times B, and the other 8 answers are all different. Voting returns B; if the right answer is A, more samples only make B win more firmly. **Voting converges to the answer the model gives most often, so it helps only when the right answer is already the most common one; a verifier can get around this, but the rate at which it accepts wrong answers sets the ceiling you can reach.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Three things to separate first: coverage, selection, search
 

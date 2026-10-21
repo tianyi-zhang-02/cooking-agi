@@ -2,11 +2,9 @@
 
 [中文](cuda.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 When you write `c = a + b` in PyTorch, what actually happens on the GPU? The CPU hands the GPU a function called a kernel, and the GPU starts thousands of threads at once, each computing one or two elements. The addition itself is cheap. **Whether a kernel is fast mostly depends on whether each warp uses the bytes it fetches, and on whether the same data is read from device memory again and again.** This note works through both questions with a vector add and a 4×4 matrix multiply, then connects them to cuBLAS, CUTLASS, and Triton.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 The rules below were checked against NVIDIA's [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html) v13.4.2 (updated 2026-09-10; formerly the CUDA C++ Programming Guide, "the Guide" below) and the [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html) 13.4 ("BPG" below). For why GPUs are built this way, see [GPU architecture](gpu-architecture.en.md); for how to tell whether a kernel is limited by compute or by bandwidth, see the next note, [Performance](performance.en.md).
 

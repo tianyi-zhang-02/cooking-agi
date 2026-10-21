@@ -81,7 +81,7 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 <!-- repository-only -->
 
-<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-zh-light.svg" width="100%" alt="按板块列出的主题、篇数和哪些是待审核草稿；随网站每次部署更新"></picture></a>
+<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-zh-light.svg" width="100%" alt="按板块列出的主题和篇数；随网站每次部署更新"></picture></a>
 
 <!-- /repository-only -->
 
@@ -90,7 +90,7 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 - **模型怎么工作**：[Transformer 交互图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html) · [BERT](00-foundations/core/bert.md) · [CLIP 与多模态](03-multimodal-learning/clip.md)。
 - **模型怎么学**：[训练基础](learn/pretraining/README.md) · [Deep RL](05-post-training/deep-rl/README.md) · [Post-training](05-post-training/README.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.md)。
 - **模型怎么用起来**：[推理](learn/inference/README.md) · [搜索与检索](04-search/README.md) · [Agents 与工具](10-agents/README.md)。
-- **正在变化的方向**：[前沿观察](11-frontier/README.md)（世界模型、递归自我改进（RSI）、测试时计算）· [AI 基础设施](12-infra/README.md)和[感知、机器人与自动驾驶](13-embodied/README.md)，后两块是待审核草稿。
+- **正在变化的方向**：[前沿观察](11-frontier/README.md)（世界模型、递归自我改进（RSI）、测试时计算）· [AI 基础设施](12-infra/README.md)和[感知、机器人与自动驾驶](13-embodied/README.md)。
 
 想动手练习，可以直接去 [ML Coding](learn/ml-exercises/README.md)、[Python](interview/python.md)、[算法方法](interview/leetcode.md)或[系统设计](learn/system-design/README.md)。
 
@@ -106,9 +106,9 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 ### 现在在做
 
-**把笔记写好，而不是写多。** 全部笔记的中英文已经各读过一遍；10 月又对照一手资料把事实重新核了一遍：改错、更新过时的数字，把重复的解释合到一处。最新的几组（AI 基础设施、感知与自动驾驶、三组前沿系列，以及 Scaling、扩散语言模型和量化）在站主读完之前都标着待审核。读到哪里觉得别扭、看不懂或者不对，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇文章末尾也有反馈按钮。
+**把笔记写好，而不是写多。** 全部笔记的中英文已经各读过一遍；10 月又对照一手资料把事实重新核了一遍：改错、更新过时的数字，把重复的解释合到一处；10 月 21 日又逐篇复核一遍，补上算例，最新的几组也摘掉了草稿标记。读到哪里觉得别扭、看不懂或者不对，欢迎[直接告诉我们](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)；每篇文章末尾也有反馈按钮。
 
-**接下来：** 让人更快找到答案：先把搜索和页面速度做好，再做 MCP 服务，让 Claude、ChatGPT、Cursor 直接查笔记、出题，和[面试练习 skill](#interview-coach) 读同一份数据。Jetson、物理仿真，以及视觉、驾驶、机器人这几组草稿的审稿，想请做过的朋友一起来。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
+**接下来：** 让人更快找到答案：先把搜索和页面速度做好，再做 MCP 服务，让 Claude、ChatGPT、Cursor 直接查笔记、出题，和[面试练习 skill](#interview-coach) 读同一份数据。Jetson、物理仿真，以及视觉、驾驶、机器人这几组的审稿，想请做过的朋友一起来。完整计划见[后续计划](community/roadmap.md)；待发布的 v1.0 面试准备，范围见[版本进展](community/updates.md)。
 
 ### 主题覆盖
 

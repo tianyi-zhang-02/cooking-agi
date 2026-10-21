@@ -2,11 +2,9 @@
 
 **中文** · [English](long-chains.en.md)
 
-> 阅读时间：约 12 分钟 · 草稿，待审核
+> 阅读时间：约 12 分钟 · 最近审阅：2026-10
 
 DeepSeek-R1-Zero 的奖励只看两件事：最终答案对不对，思考过程有没有写在 `<think>` 标签里。没有人要求它“多想一点”，可训练中回答越来越长，AIME 2024 的 pass@1 从 15.6% 涨到 71.0%（2025-01 的 v1 报告）。**在可验证奖励下，检查、回溯、换方法这些行为能提高做对的概率，于是被强化，长度跟着变长。但长度本身不是目标：它会过头，会在难题上来回换思路，训练目标的写法也会额外把回答推长，而写出来的推理也不一定是模型真正依赖的计算。**
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 ## R1-Zero：只奖励答案，长度自己涨
 
@@ -69,7 +67,7 @@ R1 报告用 R1 整理的 80 万条样本直接 SFT 了 Qwen2.5 和 Llama 的 1.
 
 - OpenAI（[推理指南](https://developers.openai.com/api/docs/guides/reasoning)）：`reasoning.effort` 可取 none、minimal、low、medium、high、xhigh、max，每个模型只支持其中一部分；推理 token 不可见，按输出 token 计费；建议起步时至少预留 25,000 token 给推理和输出。
 - Anthropic（[effort](https://platform.claude.com/docs/en/build-with-claude/effort)、[extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)）：2025 年的 `budget_tokens`（至少 1,024）在 4.6 代模型上已弃用，4.7 及以后的模型直接拒绝；改用 adaptive thinking，由模型决定想不想、想多久，调用方用 effort 档位调整（最多 low、medium、high、xhigh、max 五档，各模型支持的不完全相同）。文档说 effort 是行为信号，不是严格的 token 上限。
-- Google（[Gemini thinking](https://ai.google.dev/gemini-api/docs/thinking)，页面 2026-10-14 更新）：`thinking_level` 取 low、medium、high，部分模型还有 minimal；只返回思考摘要，但按完整的思考 token 计费。
+- Google（[Gemini thinking](https://ai.google.dev/gemini-api/docs/thinking)，页面 2026-10-14 更新）：`thinking_level` 取 low、medium、high，部分模型还有 minimal；默认只返回最终输出，用 `thinking_summaries` 可以要求返回思考摘要；无论返回什么，都按完整的思考 token 计费。
 - DeepSeek（[更新日志](https://api-docs.deepseek.com/updates/)）：2026-08-13 起，V4 的思考模式支持 low、high、max 三档。
 
 这些档位在模型之间对不齐：Anthropic 的文档明确说 Sonnet 5.5 的档位重新校准过，同名档位的思考量和上一代不同。谁来决定想多久（调用方、模型自己还是外部路由），[Agent 选模型](../../10-agents/model-choice.md#thinking-control)分开讨论过。

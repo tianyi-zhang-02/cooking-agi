@@ -2,11 +2,9 @@
 
 **中文** · [English](gpu-architecture.en.md)
 
-> 阅读时间：约 13 分钟 · 草稿，待审核
+> 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
 一张 H100 SXM 做大矩阵乘法时，dense BF16 的 Tensor Core 峰值是 989.4 TFLOPS；可同一张卡给大模型一个一个生成 token 时，大部分时间在等数据。这两件事并不矛盾。**GPU 追求的是总吞吐，不是单个线程跑得快：它同时挂着很多 warp，谁在等显存就换谁；而 Tensor Core 能不能吃饱，最后取决于数据能多快搬进 SM。**
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 硬件数字以 H100 SXM5 为主，最终规格取自 [H100 架构白皮书 V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf)（它注明收录了最终的频率和 TFLOPS），其余来自 NVIDIA 的产品页、架构博客和 CUDA 文档；手算例子里的周期数和矩阵元素是教学假设，会单独标出。怎么写 kernel 见 [CUDA](cuda.md)，roofline 见[性能](performance.md)，各代参数对比见 [NVIDIA 各代 GPU](nvidia-generations.md)。
 

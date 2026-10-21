@@ -2,11 +2,9 @@
 
 [中文](performance.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 `nvidia-smi` shows 100% GPU utilization, yet a 7B model generating one token at a time produces only a couple of hundred tokens per second. Is the card too slow, or is it being used badly? First look at what that 100% measures: NVML defines it as the fraction of the sample period during which at least one kernel was running ([NVML documentation](https://docs.nvidia.com/deploy/nvml-api/api/structnvmlUtilization__t.html)). It says nothing about how much compute is being used. **The more useful question is: for every byte this operation moves from memory, how many operations does it perform? Compare that with the card's "peak compute ÷ memory bandwidth": below it, you need to move fewer bytes; only above it does compute become the limit.** Using the published specifications of one H100, this note puts a large matrix multiply, an elementwise add, and 7B-model decode on the same chart, then works out MFU and multi-GPU communication, and ends with an order for profiling.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 This note follows [CUDA: threads, memory, and kernels](cuda.en.md). Unless a number is marked as reported by a paper, it is an upper bound computed from published specifications or a teaching assumption, not a benchmark.
 

@@ -2,11 +2,9 @@
 
 [中文](environments-and-rewards.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 If you want to train a code-fixing agent with RL, the first thing to prepare is not the algorithm but a few thousand tasks: for each one, a reproducible sandbox and a check that decides "is it fixed?". In single-turn RLVR, the checker looks at the answer from outside the model; an agent's checker often sits inside the very sandbox the agent can act on, where test files, git history and the network may all be within its reach. **The environment decides what the agent can learn, and the reward decides what it turns into. RL does not repair the failures a checker misses; it amplifies whatever path passes the check. So measure training reward and true success separately, and test the environment itself the way you test code.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What an agent environment has to provide
 

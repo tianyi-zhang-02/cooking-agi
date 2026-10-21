@@ -2,11 +2,9 @@
 
 [中文](foundation-models.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 You want to give a warehouse robot two skills: segment where on the floor it can drive, and estimate how far the obstacle ahead is. You have a few thousand labelled images, not enough to train a large backbone, so you plan to freeze a pretrained ViT and train only a small head on top. Should you pick a CLIP-style image–text model or a self-supervised model such as DINO? And can you read the numbers a depth model returns as metres? **In the frozen-backbone comparisons the authors report, DINO-family features are clearly better than CLIP-style features on pixel-level tasks; relative depth from a single image is missing one scale factor by construction, which has to come from a known distance somewhere else; and since 2025, geometry foundation models return cameras, depth and points in one forward pass, but many of the strongest checkpoints cannot be used commercially.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 It helps to have read [ViT](../../03-multimodal-learning/vit.en.md), [CLIP](../../03-multimodal-learning/clip.en.md) and this series' [camera geometry](camera-geometry.en.md) note first: this note assumes you know the intrinsics $K$, the extrinsics $[R\mid t]$ and pinhole projection.
 
