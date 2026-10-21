@@ -40,7 +40,7 @@ still an encoder–decoder, but recurrence is removed completely.
 1. **Attention mixing**：不同 token 之间交换信息。
 2. **Channel mixing / FFN**：每个 token 独立变换自己的通道。
 
-外面再套 residual connection 与 normalization。堆很多层，本质上还是反复“出去找信息 → 回来加工信息”。这样记，比背整张结构图轻松很多。
+外面再套 residual connection 与 normalization。堆很多层，也还是在反复“出去找信息 → 回来加工信息”。这样记，比背整张结构图轻松很多。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">

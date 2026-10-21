@@ -83,6 +83,16 @@ Stale information can be downweighted or excluded from retrieval; incorrect info
 
 One person may like machine learning, travel, rock music, and animals all at once. Compress the whole history into one vector and the mainstream interests may drown out niche but real needs.
 
+Work through the smallest case. Of a user's last 10 interactions, 8 are about machine learning (ML) and 2 about jazz. Reduce the two kinds of content to the directions $(1,0)$ and $(0,1)$, score by dot product, and keep only the top 2 each time:
+
+| Candidate | One average vector $(0.8,0.2)$ | Two interest vectors $(1,0)$ and $(0,1)$, higher score |
+| --- | --- | --- |
+| ML tutorial $(1,0)$ | 0.8 | 1 |
+| Popular item touching both $(0.6,0.6)$ | 0.6 | 0.6 |
+| Jazz album $(0,1)$ | 0.2 | 1 |
+
+With one vector, the top 2 are the ML tutorial and the popular item; the jazz album comes third and is left out. With two interest vectors it returns to the top 2. [MIND (Li et al., 2019)](https://arxiv.org/abs/1904.08030) learns several interest vectors per user for exactly this retrieval stage. The table also shows the cost: the two vectors count equally, so if those 2 jazz interactions were a gift for a friend, they are inflated into an interest as strong as ML, and retrieval runs once more. Interest vectors should therefore carry counts, time, and provenance, and be weighted by the task at read time.
+
 So it is worth considering:
 
 - several interest vectors instead of one average point;

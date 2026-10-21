@@ -2,7 +2,7 @@
 
 [中文](tensor-parallel.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisites: [tensors and shapes](../00-foundations/pytorch/README.en.md), [distributed training](distributed-training.en.md)
+> Last reviewed: 2026-10 · Prerequisites: [tensors and shapes](../00-foundations/pytorch/README.en.md), [distributed training](distributed-training.en.md)
 
 Cutting a weight matrix in half is easy. The useful question is whether each GPU can continue computing with its half. Does it hold a slice of the answer, or a partial sum that another GPU must contribute to? That determines where communication is necessary.
 

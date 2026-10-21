@@ -10,7 +10,7 @@
 
 **BatchNorm 沿着「一批样本」求统计量，LayerNorm 沿着「一个样本自己的特征」求。**
 
-先看统计轴，再看 running statistics 与 train / eval 模式，才能判断变长、batch size 为 1 和自回归生成时的行为。只看轴还不够，统计状态和 train / eval 模式也会改变结果。
+先看统计轴，再看 running statistics 与 train / eval 模式；只看轴还不够，三者合起来才能判断变长、batch size 为 1 和自回归生成时的行为。
 
 ![三种归一化各自沿哪条轴](../assets/norm-axes.svg)
 
@@ -106,7 +106,7 @@ $$
 x_{\ell+1}=x_\ell+f_\ell(x_\ell).
 $$
 
-如果每层分支输出的尺度都没有约束，残差相加会让不同深度的激活尺度逐渐漂移；反向传播时，不同方向的曲率和梯度尺度也可能相差很大。结果不是一定单调爆炸，而是**同一个学习率很难同时适合所有层和所有方向**。
+如果每层分支输出的尺度都没有约束，残差相加会让不同深度的激活尺度逐渐漂移；反向传播时，不同方向的曲率和梯度尺度也可能相差很大。结果未必是单调爆炸，更常见的麻烦是**同一个学习率很难同时适合所有层和所有方向**。
 
 Normalization 给每个 sublayer 一个尺度更可预测的输入，降低训练对初始化和参数尺度的敏感度，通常改善有效条件数（effective conditioning），因此更容易使用较大的学习率并训练更深的网络。
 
@@ -364,4 +364,4 @@ FFN 也一样。这里的 post-norm 只作用在**分支输出**上，加回残�
 | Pre-LN vs Post-LN | Pre-LN 把 Norm 移出残差主干，留下 identity gradient path | $I+J_fJ_{\mathrm{LN}}$ · final LN |
 | RMSNorm | 保留 re-scaling，去掉 re-centering | RMS only · no mean subtraction · cheaper reduction |
 
-> **Normalization 不是为了让所有表示永久保持“均值 0、方差 1”，而是为了控制送进每个子层的数值尺度，并让深网络更容易优化。**
+> **Normalization 要控制的是送进每个子层的数值尺度，让深网络更容易优化；它并不要求所有表示永久保持“均值 0、方差 1”。**

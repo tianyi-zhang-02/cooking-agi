@@ -46,7 +46,7 @@
 | 材料 | 怎么用 | 不据此推断什么 |
 | --- | --- | --- |
 | [Twitter 2023 · ee5e7fc](https://github.com/twitter/the-algorithm/blob/ee5e7fc18dc0e971a6c02826b196294048765817/README.md) | 01–03 的公开组件阅读 | 今天 X 的完整线上架构 |
-| [X 公开快照 · 77d431a](https://github.com/xai-org/x-algorithm/blob/77d431aabf409ca1c1eed9bec7e2183f7c914e23/README.md) | 04 的版本对照，核验于 2026-09-30 | 真实训练数据、所有实验配置或生产收益 |
+| [X 公开快照 · 77d431a](https://github.com/xai-org/x-algorithm/blob/77d431aabf409ca1c1eed9bec7e2183f7c914e23/README.md) | 04 的版本对照，核验于 2026-10-21 | 真实训练数据、所有实验配置或生产收益 |
 | 官方论文与工程资料 | 比较不同设计的前提 | 某一家公司的做法代表唯一答案 |
 | 本站架构图、代码与交互 | 用虚构数据检查机制 | 任何公司的业务结果或内部实现 |
 

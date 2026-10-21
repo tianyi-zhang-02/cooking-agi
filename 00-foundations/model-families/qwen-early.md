@@ -29,7 +29,7 @@
 
 ## Qwen1.5：接口也是实验的一部分
 
-这一代向标准 Transformers 接口靠拢，使用 tokenizer 中的 chat template 与 `generate`，而不是假定仍有旧版专用 `chat` 方法。这里值得学的不是背旧依赖版本，而是意识到**同样的消息列表可能被编码成不同输入**。
+这一代向标准 Transformers 接口靠拢，使用 tokenizer 中的 chat template 与 `generate`，而不是假定仍有旧版专用 `chat` 方法。旧依赖版本不用背；这里值得学的是：**同样的消息列表可能被编码成不同输入**。
 
 做一次升级前，保存旧、新 tokenizer 对同一 messages 的 token IDs，检查 role、turn boundary、assistant 起始位置、EOS 与 padding。别手动拼好模板后，又让库重复套一层。按 [Transformers 的模板说明](https://huggingface.co/docs/transformers/chat_templating)，`apply_chat_template(..., tokenize=True)` 可直接得到 ID；若先用 `tokenize=False` 得到文本，再单独 tokenize，应设 `add_special_tokens=False`，避免重复添加 special tokens。
 

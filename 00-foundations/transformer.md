@@ -128,7 +128,7 @@ $$\mathbf{x} \leftarrow \mathbf{x} + \text{Sublayer}\big(\text{Norm}(\mathbf{x})
 
 $$\text{lr}(t) = d_{\text{model}}^{-0.5} \cdot \min\big(t^{-0.5},\; t \cdot t_{\text{warmup}}^{-1.5}\big)$$
 
-先线性升高，再按步数平方根衰减。不能说“堆到 6 层必炸”或“没有这条调度就无法训练”。
+先线性升高，再与步数的平方根成反比衰减。不能说“堆到 6 层必炸”或“没有这条调度就无法训练”。
 
 > 实测提醒：`LambdaLR` 是拿 **base_lr 乘** lambda 的。把 Adam 的 `lr` 设成 0 再挂 Noam 调度，学习率会永远是 0，而 loss 因为 dropout 噪声看起来还在动。这个坑很常见。
 
@@ -209,7 +209,7 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 从零实现最容易错的四个地方，[`test_model.py`](code/test_model.py) 逐个验证：
 
 ```
-  因果性：      改第 9 个 token，前 8 个位置 logits 差 0.0（严格 0）
+  因果性：      改下标 9 的 token，它前面 9 个位置的 logits 差 0.0（严格 0）
   KV cache：    增量解码 vs 一次性前向，max 误差 3.6e-07
   RoPE 相对性： score(5,2) = score(20,17) = +5.6092，score(20,10) = +0.4579
   初始 loss：   4.19  vs  ln(V) = 4.16
@@ -235,7 +235,7 @@ $$2 \cdot n_{\text{layer}} \cdot n_{\text{kv}} \cdot d_{\text{head}} \cdot T \cd
 
 ## 继续阅读 {#_8}
 
-- [从线性模型到神经网络](from-linear-to-neural.md) —— 为什么最后一层永远是线性分类器
+- [从线性模型到神经网络](from-linear-to-neural.md) —— 为什么分类网络的最后一层常常只是线性分类器
 - [Post-Training](../05-post-training/) —— 这些参数后来怎么被继续改
 - [系统总览](../06-systems/) —— 它在整套系统里的位置
 

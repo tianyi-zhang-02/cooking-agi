@@ -36,7 +36,7 @@ Bellman 算子 $\mathcal T$ 在最大值范数 $\|\cdot\|_\infty$ 下是 $\gamma
 
 ## 两个状态，就能看到问题
 
-这个 value-iteration 反例沿用 Tsitsiklis 与 Van Roy 的经典构造（取 $\varepsilon=0$；Sutton & Barto 第 11.2 节也讲了这个例子）：两个状态都确定性转移到状态 2，奖励全为 0，$\gamma=0.9$，每个状态只有一个动作。因此真实 value 全为 0，Q 与 V 在这里等价。
+这个 value-iteration 反例沿用 Tsitsiklis 与 Van Roy 的经典构造（取 $\varepsilon=0$；[Sutton & Barto 第 2 版](http://incompleteideas.net/book/the-book-2nd.html)第 11.2 节的例 11.1 也讲了这个例子）：两个状态都确定性转移到状态 2，奖励全为 0，$\gamma=0.9$，每个状态只有一个动作。因此真实 value 全为 0，Q 与 V 在这里等价。
 
 我们限制表示为 $V_\theta=[\theta,2\theta]$，固定给两个状态相同回归权重。Bellman 更新产生标签 $[1.8\theta_k,1.8\theta_k]$。精确做一次最小二乘：
 

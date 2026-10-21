@@ -80,7 +80,7 @@ workflow 用事先写好的代码路径串起模型和工具；agent 让模型�
 - [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)：workflow 与 agent 的区分和常见结构
 - [ReAct](https://arxiv.org/abs/2210.03629)：推理与行动交替
 - [SWE-bench](https://arxiv.org/abs/2310.06770)：用真实 issue 评估写代码的 agent；Verified 子集已接近做满，OpenAI 自 2026-02 起改为推荐 [SWE-bench Pro](https://arxiv.org/abs/2509.16941)
-- [τ-bench](https://arxiv.org/abs/2406.12045)：带政策约束的工具与对话，以及 pass^k；后续的 [τ²-bench](https://arxiv.org/abs/2506.07982) 加入用户也要动手的 dual control，仓库截至 2026-10 已发布 τ³-bench
+- [τ-bench](https://arxiv.org/abs/2406.12045)：带政策约束的工具与对话，以及 pass^k；后续的 [τ²-bench](https://arxiv.org/abs/2506.07982) 加入用户也要动手的 dual control；[仓库](https://github.com/sierra-research/tau2-bench/releases)之后又发布了 τ³-bench，2026-10 的最新版本是 τ-bench 2.0
 - [WebArena](https://arxiv.org/abs/2307.13854)
 - [OSWorld](https://arxiv.org/abs/2404.07972)
 - [Not what you've signed up for](https://arxiv.org/abs/2302.12173)：indirect prompt injection

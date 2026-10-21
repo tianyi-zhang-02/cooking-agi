@@ -55,6 +55,15 @@ A three-step trajectory has zero original rewards, $\gamma=0.9$, and potentials 
 
 The sum is 3, exactly $-\Phi(s_0)$. Other trajectories from the same starting state with zero terminal potential receive the same constant addition, preserving their original ordering. Shaping redistributes feedback across steps rather than arbitrarily paying extra for a shorter route.
 
+Now calculate the reward-farming loop mentioned above. A corridor has cells 0, 1, and 2; the agent starts at 0, reaching 2 earns 1 and ends the episode, and $\gamma=0.9$. Compare an ad hoc bonus, "+1 for each step toward the goal, no penalty for stepping back," with the potential version $\Phi=[-2,-1,0]$:
+
+| Policy | Original return | +1 per step toward the goal | Potential version |
+| --- | --- | --- | --- |
+| Go straight 0→1→2 | 0.9 | $1+0.9\times(1+1)=2.8$ | $1.1+0.9\times2=2.9$ |
+| Shuttle between 0 and 1, never finishing | 0 | $1/(1-0.81)\approx5.26$ | $(1.1-0.9\times0.8)/(1-0.81)=2$ |
+
+The ad hoc bonus makes shuttling (5.26) worth more than finishing the task (2.8): stepping back costs nothing, so the same stretch of corridor pays out again and again. In the potential version, a step back costs $0.9\times(-2)-(-1)=-0.8$, both routes gain only $-\Phi(s_0)=2$, and the ranking matches the original 0.9 versus 0.
+
 RND bonuses generally lack this telescoping structure and change the objective. An agent can prefer novelty after adding the bonus even though external rewards are unchanged. Preserve original task return as a separate evaluation measure.
 
 ## An option selects a chunk of behavior

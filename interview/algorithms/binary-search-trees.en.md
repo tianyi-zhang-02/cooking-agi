@@ -2,7 +2,7 @@
 
 [中文](binary-search-trees.md) · **English** · [Pattern map](../leetcode.en.md)
 
-> Last reviewed: 2026-10-09 · Prerequisite: [DFS / BFS](traversal.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [DFS / BFS](traversal.en.md)
 
 The root is 8, its right child is 10, and 10's left child is 6. Every parent–child comparison looks fine: 10 exceeds 8; 6 is below 10. But 6 belongs to 8's right subtree and must exceed 8. This is not a BST.
 
@@ -98,6 +98,21 @@ For frequent rank queries, maintain each node's subtree size. Comparing the left
 | Two children | Replace the key with the right subtree's minimum, then delete that successor | Replacement lies between the remaining subtrees |
 
 The last case must remove the successor's **original node**; otherwise the duplicate violates strict ordering. If keys have associated values, move them together. This explains the invariant, not a complete balanced-tree implementation.
+
+Using the tree above, delete 3, which has two children. Its successor is the smallest key in its right subtree: start at 6 and keep going left. 6 has no left child, so the successor is 6. Replace 3 with 6, then delete the original 6 node; it is a leaf, so that falls into the first case.
+
+```text
+Before               Replace 3 with 6, then delete the old 6
+        8                     8
+       / \                   / \
+      3   10                6   10
+     / \                   /
+    1   6                 1
+
+inorder: 1 → 3 → 6 → 8 → 10    inorder: 1 → 6 → 8 → 10
+```
+
+Forget to delete the old 6 and inorder becomes `1 → 6 → 6 → 8 → 10`, a duplicate key. The successor never has a left child: a left child would be smaller, so the successor would not be the minimum. Deleting it therefore hits at most the one-child case and never triggers another two-child deletion.
 
 ## Choose a container, then test its contract
 

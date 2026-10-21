@@ -454,9 +454,9 @@ It returns per-head outputs, not attention weights; head merging and output proj
 ```
   from-scratch vs F.scaled_dot_product_attention : 1.19e-07
   from-scratch vs nn.MultiheadAttention          : 1.19e-07
-  from-scratch torch vs pure NumPy               : 1.19e-07
   every attention row sums to 1                  : 1.19e-07
   weight on any future position                  : 0.00e+00
+  from-scratch torch vs pure NumPy              : 1.19e-07
 ```
 
 Getting the from-scratch version to match `nn.MultiheadAttention` matters more than merely "it runs". When they disagree, locating the difference is itself an effective debugging exercise. `nn.MultiheadAttention` stores $W_Q, W_K, W_V$ as one concatenated `in_proj_weight`, while `nn.Linear` stores $(out, in)$, so moving weights to NumPy needs a transpose.

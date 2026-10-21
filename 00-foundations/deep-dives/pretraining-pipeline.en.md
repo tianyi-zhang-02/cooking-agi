@@ -2,7 +2,7 @@
 
 [中文](pretraining-pipeline.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisite: [LM objectives](language-model-objective.en.md) · Next: [one training step](training-step.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [LM objectives](language-model-objective.en.md) · Next: [one training step](training-step.en.md)
 
 Once next-token prediction makes sense, pretraining can look like a loop that feeds text into a loss. Yet identical models and objectives can learn different things because the documents, repetitions, and sequence boundaries differ.
 

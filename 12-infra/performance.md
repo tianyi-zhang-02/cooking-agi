@@ -80,7 +80,7 @@ Attention 的运算也要算进来：每层每个 query head 要和 $T$ 个位�
 
 $B$ 再大，算术强度也只会逼近 $(1.4\times10^{10}+2.15\times10^{9})/5.37\times10^{8}\approx30$，离 295 很远；而 $B=128$ 时，权重加 KV 已约 77 GiB，几乎占满 80 GB 显存。所以在这个上下文长度下，先碰到的是 KV 的带宽和容量，而不是算力。GQA、MLA、KV 量化和分页管理都是在减这部分字节或浪费，见 [KV 显存预算](../00-foundations/deep-dives/kv-cache-and-inference.md#inference-budget)和 [FlashAttention 与 PagedAttention](../00-foundations/deep-dives/attention-kernels.md)。
 
-反过来，prefill 一次处理一条请求的几千个 token，线性层的算术强度约等于一次处理的 token 数，几千个 token 时已经超过 295。同一个模型的两个阶段落在 roofline 两侧，这也是[一次 LLM 请求](../06-systems/llm-serving.md)里要把首 token 延迟和输出间隔分开看的一个原因。本节数字都按峰值算，没有扣除激活、kernel launch 和实际达不到的带宽。
+反过来，prefill 一次处理一条请求的几千个 token。和上面的 batch 表一样只算权重字节时，线性层的算术强度约等于一次处理的 token 数；把激活的读写也算上会低一些（hidden size 4096、一次 4096 个 token 时约 1,365），仍远高于 295。同一个模型的两个阶段落在 roofline 两侧，这也是[一次 LLM 请求](../06-systems/llm-serving.md)里要把首 token 延迟和输出间隔分开看的一个原因。本节数字都按峰值算，没有扣除激活、kernel launch 和实际达不到的带宽。
 
 ## MFU 与 HFU：分子分母各算什么 {#mfu}
 

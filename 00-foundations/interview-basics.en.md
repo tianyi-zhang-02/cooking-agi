@@ -64,7 +64,7 @@ $$\frac{\partial \mathcal{L}_{\text{BCE}}}{\partial p} = \frac{p-y}{p(1-p)} \;\L
 **The consequence**: when $y=1$ and the model is confidently wrong ($z\to-\infty$, $p\to0$) —
 
 - MSE gradient $\approx 2(0-1)\cdot 0\cdot 1 = 0$. **The gradient vanishes exactly when the error is largest.**
-- BCE gradient $= -1$. **Maximum gradient exactly when maximally wrong.**
+- BCE gradient $= -1$. **A useful gradient remains even when the error is largest.**
 
 **One layer deeper**: for logistic regression BCE is convex in the weights; squared error with a sigmoid isn't.
 
@@ -156,7 +156,7 @@ scores = np.where(mask, -np.inf, scores)             # add -inf, don't zero
 
 **Why it must be before the softmax** (the follow-up): adding $-\infty$ makes $e^{-\infty}=0$, and **the softmax renormalizes over the remaining positions** — mathematically identical to those positions not existing.
 
-Zeroing **after** the softmax **breaks normalization** — rows no longer sum to one, and unevenly: position 1 can only see itself, loses the most mass, and gets scaled down hardest. You've multiplied each position by an arbitrary, meaningless attenuation. [Multi-head attention](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong) works it through with two scores.
+Zeroing **after** the softmax **breaks normalization** — rows no longer sum to one, and unevenly: position 1 can only see itself, so its row has the most entries removed, usually loses the most probability mass, and gets scaled down hardest. You've multiplied each position by an arbitrary, meaningless attenuation. [Multi-head attention](core/multi-head-attention.en.md#the-six-places-a-from-scratch-implementation-goes-wrong) works it through with two scores.
 
 **Engineering detail**: a fully masked row has no valid probability distribution. A plain softmax over all `-inf` produces NaNs; finite negative values may produce a uniform distribution, which is not a valid fix. `-1e9` also exceeds fp16's finite range. Explicitly handle queries without valid keys, check your attention API's all-masked behavior, and exclude padding from the loss. Masking after softmax and correctly renormalizing can be mathematically equivalent; merely zeroing entries is not.
 
@@ -188,7 +188,7 @@ Shift the input and the feature map shifts by the same amount. **Invariance** �
 
 **One line**: translation equivariance comes free with convolution; rotation equivariance or invariance costs, and you pay in either data or the operator.
 
-**To make the conversation interesting**: even translation invariance is weaker than assumed — strided downsampling aliases, so a one-pixel shift can flip the prediction. The fix is anti-aliased downsampling.
+**To make the conversation interesting**: even translation invariance is weaker than assumed — strided downsampling aliases, so a one-pixel shift can flip the prediction. One mitigation is low-pass blurring before downsampling (anti-aliasing): it makes outputs more stable under small shifts but does not guarantee full shift invariance ([Zhang, ICML 2019](https://arxiv.org/abs/1904.11486)).
 
 </details>
 
@@ -211,7 +211,8 @@ $F(m,k)$:
 $$F(m,k)=F(m-1,k-1)+1+F(m-1,k),\qquad F(0,k)=F(m,0)=0.$$
 
 After the first drop, the breaking branch covers $F(m-1,k-1)$ floors below, the current floor
-adds one, and the surviving branch covers $F(m-1,k)$ above.
+adds one, and the surviving branch covers $F(m-1,k)$ above. Each extra move therefore covers
+two smaller subproblems plus the current floor.
 
 ```python
 def min_moves(eggs, floors):
@@ -282,10 +283,10 @@ When asked to "walk through the architecture," don't recite the figure. **Go com
 | Component | What it solves |
 | --- | --- |
 | Positional information | attention is permutation-equivariant — **on its own it cannot see word order** |
-| Residual | an identity path for gradients (same idea as the LSTM cell state) |
+| Residual | an identity path for gradients (similar in spirit to the LSTM cell state, but a different structure) |
 | $\sqrt{d_k}$ scaling | the dot product sums $d_k$ terms so variance grows with $d_k$; unscaled, the softmax tends toward one-hot and the gradient through it becomes small |
 | Multi-head | **one softmax expresses one attention pattern**; heads attend to different relations in different subspaces |
-| FFN (≈4× expansion) | **most of the parameters live here**; one common interpretation reads it as key-value memory |
+| FFN (≈4× expansion) | **most of the parameters live here**; one common interpretation reads it as key-value memory ([Geva et al., EMNLP 2021](https://arxiv.org/abs/2012.14913)) |
 | Causal mask | see above — train/inference consistency |
 
 **Then volunteer this**, which separates "read the 2017 paper" from "knows what current models look like":
@@ -294,8 +295,8 @@ When asked to "walk through the architecture," don't recite the figure. **Go com
 | --- | --- | --- |
 | Post-LN | Pre-LN + RMSNorm | Pre-LN reduces reliance on warmup and stacks deeper; RMSNorm drops centering to save compute |
 | Sinusoidal / learned absolute positions | RoPE | position enters $q\cdot k$ only through the offset $n-m$, while the score still depends on content; going past the training length still needs RoPE scaling |
-| ReLU FFN | SwiGLU | better at equal compute |
-| MHA | GQA / MQA, or [MLA](deep-dives/latent-and-sparse-attention.en.md) (cache only a low-dimensional latent) | **the KV cache is the inference memory bottleneck** |
+| ReLU FFN | SwiGLU | lower perplexity at matched parameters and compute ([Shazeer 2020](https://arxiv.org/abs/2002.05202), T5 setup) |
+| MHA | GQA / MQA, or [MLA](deep-dives/latent-and-sparse-attention.en.md) (cache a low-dimensional latent plus a small shared RoPE key; see [DeepSeek-V2](https://arxiv.org/abs/2405.04434) §2.1) | **the KV cache is the inference memory bottleneck** |
 | Softmax attention in every layer | Some layers become linear attention / recurrent state; e.g. in [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B), 3 of every 4 layers are [Gated DeltaNet](deep-dives/gated-deltanet.en.md) (as of October 2026) | The state has a fixed size, so those layers do not read a full KV history during decode |
 
 ## Where to read next {#where-to-read-next}
@@ -316,7 +317,7 @@ Most Transformer fundamentals test four things: **shape closure, causal informat
 
 **Interview answer**
 
-> I first write the input and output shapes and identify the reduction axis. Then I check causal masks and data boundaries for leakage, inspect residual paths and normalization for gradient flow, and finally verify that training, prefill, and decode implement equivalent computations.
+> I first write the input and output shapes and say which axis information flows along. Then I check causal masks and data boundaries for leakage, inspect residual paths and normalization for gradient flow, and finally verify that training, prefill, and decode implement equivalent computations.
 
 <details markdown="1">
 <summary><b>Deep dive</b>: why are invariants safer than memorized conclusions?</summary>

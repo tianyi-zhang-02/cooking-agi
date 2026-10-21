@@ -174,7 +174,7 @@ for n, (p_hat, half_width, mde) in rows.items():
 - 同一用户或对话的请求相关，有效样本比条数少，应按用户或对话聚类估计，见[指标稳健性](metric-robustness.md)。
 - 同时盯 20 个切片、5 个指标，即使什么都没变，每天也会冒出几个“显著”。
 
-另一种做法不依赖固定的 $s,t$：每个统计周期从随机样本里再抽一小部分请人标注，用 judge 在大样本上的平均，减去 judge 与人工在小样本上的平均差。这就是 [prediction-powered inference](https://arxiv.org/abs/2301.09633)（Angelopoulos 等，2023）的均值估计；正文的设定是人工样本和被评流量来自同一分布、独立抽取（随机审计正好满足），在这个前提下区间有效，不需要假设 judge 有多准。judge 越接近人工，区间越窄。代价是每个周期都要有新鲜的人工标签。
+另一种做法不依赖固定的 $s,t$：每个统计周期从随机样本里再抽一小部分请人标注，用 judge 在大样本上的平均，减去 judge 与人工在小样本上的平均差。这就是 [prediction-powered inference](https://arxiv.org/abs/2301.09633)（Angelopoulos 等，2023）的均值估计；论文的设定是人工样本和被评流量来自同一分布、独立抽取（随机审计正好满足），在这个前提下区间有效，不需要假设 judge 有多准。judge 越接近人工，区间越窄。代价是每个周期都要有新鲜的人工标签。
 
 <!-- paper-figure:ppi-intervals -->
 

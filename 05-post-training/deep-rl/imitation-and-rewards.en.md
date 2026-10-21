@@ -59,6 +59,17 @@ Classical analyses show that BC errors can compound over the horizon in adverse 
 
 Inverse RL asks which reward could explain expert behavior. Many reward functions can explain the same policy. Adding the same constant to every trajectory's return, or applying suitable potential-based shaping, can preserve policy rankings.
 
+Walk through the smallest case. There is one state with two actions, left and right, and the expert picks right 9 times out of 10. Each reward below "explains" the preference for right:
+
+| Reward hypothesis | $R(\text{left})$ | $R(\text{right})$ | Is choosing right optimal? | $P(\text{right})$ if choices follow $P(a)\propto e^{R(a)}$ |
+| --- | --- | --- | --- | --- |
+| $R_1$ | 0 | 1 | Yes | $\sigma(1)\approx0.73$ |
+| $R_2$: $R_1$ plus 5 everywhere | 5 | 6 | Yes | Also about 0.73 |
+| $R_3$: all zero | 0 | 0 | Yes, every policy is optimal | 0.5 |
+| Fitted to the observed frequency | $c$ | $c+\ln9$ | Yes | 0.9 |
+
+If the only question is whether the expert's choice is optimal, the first 3 rows all pass. The all-zero reward is always a solution; [Ng and Russell (2000), §3.1](https://aima.eecs.berkeley.edu/~russell/papers/ml00-irl.pdf) point out this degeneracy at the outset. Add a behavior model, such as [maximum-entropy IRL (Ziebart et al., 2008)](https://cdn.aaai.org/AAAI/2008/AAAI08-227.pdf), which makes a trajectory's probability proportional to $e^{R}$ (here one step is one trajectory), and the 0.9 versus 0.1 frequency pins down the difference $R(\text{right})-R(\text{left})=\ln9\approx2.20$, ruling out $R_3$. But every value of $c$ gives the same likelihood, so the absolute level is still not identified; this is the same fact as "adding 100 to both scores leaves the loss unchanged" in the preference model below. The 2.20 also depends on the model: if the expert always intends to go right and slips 10% of the time, it measures the slip rate, not the strength of a preference.
+
 Additional assumptions or inductive biases are necessary: a reward family, a maximum-entropy model, or preference comparisons. Experts also face capability, information, and cost constraints; observed behavior need not reveal perfectly rational optimal preferences. A complete MaxEnt IRL optimization derivation is outside this introduction.
 
 ## Where preference-based rewards can go wrong

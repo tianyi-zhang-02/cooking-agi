@@ -14,7 +14,7 @@ The E4M3 and E5M2 grids and block scaling are in [Formats and error](formats-and
 
 FP8 W8A8 buys two things at once: weight bytes are halved, so decode gets faster (2.54 against 4.77 ms at batch 1 in the previous note's table); and the activations are FP8 too, so matrix multiplications run on FP8 Tensor Cores, doubling the H100 SXM5 dense peak from 989.4 TFLOPS in BF16 to 1,978.9 TFLOPS ([whitepaper V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf)), which helps prefill and large batches as well. The precondition is FP8 Tensor Cores, i.e. compute capability 8.9 or higher; the [vLLM v0.31.0 FP8 documentation](https://docs.vllm.ai/en/v0.31.0/features/quantization/llm_compressor/fp8/) states that on Turing and Ampere the same FP8 model can only run as W8A16 with Marlin kernels, which saves weight memory without raising compute.
 
-The common way to set the scales is the `FP8_DYNAMIC` scheme that this documentation recommends: one static scale per output channel for the weights, and dynamic per-token scales for the activations, with no calibration data needed. Another, online mode, `fp8_per_tensor`, gives the weights one per-tensor scale and computes the activations' min and max on every forward pass; the documentation says latency improvements are limited in this mode. It self-reports that FP8 halves model memory and improves throughput by up to 1.6×.
+The common way to set the scales is the `FP8_DYNAMIC` scheme that this documentation recommends: one static scale per output channel for the weights, and dynamic per-token scales for the activations, with no calibration data needed. Another, online mode, `fp8_per_tensor`, gives the weights one per-tensor scale and computes the activations' min and max on every forward pass; the documentation says latency improvements are limited in this mode. It self-reports that FP8 halves model memory and improves throughput by up to 1.6×, without stating the hardware or workload.
 
 On quality, the FP8 W8A8 in [Kurtic et al. (2024-11, ACL 2025)](https://arxiv.org/abs/2411.02355) uses only RTN: symmetric per-output-channel weights and dynamic per-token activations, with no calibration data. On Llama-3.1 8B, 70B and 405B, the average recovery on Open LLM Leaderboard v2 (quantized score divided by BF16 score) is 101.2%, 100.0% and 99.9%, which the paper calls near lossless; in the same paper a well-tuned INT8 W8A8 loses 1–3%.
 
@@ -64,13 +64,13 @@ At batch 3 with 128K each, every decode step reads the weights plus 3 copies of 
 
 | Weights + KV | Bytes read per step | Per step, at least | KV share of bytes read |
 | --- | ---: | ---: | ---: |
-| BF16 + BF16 | 67.5 GB | 20.2 ms | 76% |
+| BF16 + BF16 | 67.5 GB | 20.1 ms | 76% |
 | FP8 + BF16 | 60.0 GB | 17.9 ms | 86% |
 | BF16 + FP8 | 41.8 GB | 12.5 ms | 62% |
 | FP8 + FP8 | 34.3 GB | 10.2 ms | 75% |
 | BF16 + INT4 | 32.1 GB | 9.6 ms | 50% |
 
-At this length, compressing only the weights goes from 20.2 ms to 17.9 ms, while compressing only the KV goes to 12.5 ms: **compress whatever holds the bulk of the bytes first.** During decode the attention part has an arithmetic intensity that does not depend on the batch, only a few operations per byte, see [Performance](../performance.en.md#decode-batching), so almost every byte saved turns into time saved. At short context the conclusion flips: at 2K tokens one sequence's BF16 KV is only 0.27 GB, and the weights are the bulk.
+At this length, compressing only the weights goes from 20.1 ms to 17.9 ms, while compressing only the KV goes to 12.5 ms: **compress whatever holds the bulk of the bytes first.** During decode the attention part has an arithmetic intensity that does not depend on the batch, only a few operations per byte, see [Performance](../performance.en.md#decode-batching), so almost every byte saved turns into time saved. At short context the conclusion flips: at 2K tokens one sequence's BF16 KV is only 0.27 GB, and the weights are the bulk.
 
 ### Why keys and values are quantized differently
 
@@ -89,7 +89,7 @@ $$
 
 The relative error of $K$ itself (Frobenius norm) is 8.6% against 0.6%, neither of which looks large, yet per token the scores are almost all wrong: the outlier channel inflates the norm while the query mostly looks at the other channels. **To measure the error of KV quantization, look at the attention scores and outputs, not only at the relative error of K.**
 
-KIVI's measurements (Llama-2-7B, Table 3): GSM8K is 13.50 at 16 bits; with simulated quantization of all tokens to 2 bits, it is 5.76 with keys per channel and values per token, and 0.83 with both per token; full KIVI-2 (group length 32, most recent 128 tokens in full precision) reaches 12.74. The LongBench average is 44.52 at 16 bits and 44.27 for KIVI-2 (Table 4). The paper self-reports 2.6× less peak memory including weights, batches up to 4× larger and 2.35–3.47× throughput. [KVQuant (2024-01, NeurIPS 2024)](https://arxiv.org/abs/2401.18079) also quantizes keys per channel, and quantizes keys before RoPE to reduce the positional embedding's effect on quantization, adding per-layer non-uniform grids and per-vector separation of outliers; it self-reports less than 0.1 perplexity loss on WikiText-2 and C4 at 3 bits, and LLaMA-7B running 1M tokens of context on one A100-80GB and 10M on 8 GPUs.
+KIVI's measurements (Llama-2-7B, Table 3): GSM8K is 13.50 at 16 bits; with simulated quantization of all tokens to 2 bits, it is 5.76 with keys per channel and values per token, and 0.83 with both per token; full KIVI-2 (group length 32, most recent 128 tokens in full precision) reaches 12.74. The LongBench average is 44.52 at 16 bits and 44.27 for KIVI-2 (Table 4). The paper self-reports (Llama-2-7B on one A100 80GB) 2.6× less peak memory including weights, batches up to 4× larger and 2.35–3.47× throughput. [KVQuant (2024-01, NeurIPS 2024)](https://arxiv.org/abs/2401.18079) also quantizes keys per channel, and quantizes keys before RoPE to reduce the positional embedding's effect on quantization, adding per-layer non-uniform grids and per-vector separation of outliers; it self-reports less than 0.1 perplexity loss on WikiText-2 and C4 at 3 bits, and LLaMA-7B running 1M tokens of context on one A100-80GB and 10M on 8 GPUs.
 
 ### Turning it on in an engine
 

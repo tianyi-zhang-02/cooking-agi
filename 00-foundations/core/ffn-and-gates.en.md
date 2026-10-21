@@ -21,6 +21,15 @@ with $x\in\mathbb R^d$, $W_{\mathrm{up}}\in\mathbb R^{h\times d}$, and $W_{\math
 
 Without $\phi$, the matrices compose into one linear map. Expanding the hidden dimension alone does not produce nonlinear expressiveness.
 
+Work it through with a one-dimensional input and two intermediate features. Let $W_{\mathrm{up}}=[1,\,-1]^\top$, $W_{\mathrm{down}}=[1,\ 1]$, and $\phi=\operatorname{ReLU}$:
+
+| Input $x$ | $z=W_{\mathrm{up}}x$ | $\operatorname{ReLU}(z)$ | Output $y$ | Output without ReLU |
+| ---: | --- | --- | ---: | ---: |
+| 2 | [2, −2] | [2, 0] | 2 | 0 |
+| −3 | [−3, 3] | [0, 3] | 3 | 0 |
+
+With ReLU, this FFN computes $\lvert x\rvert$: one intermediate feature handles the positive half-line, the other the negative half-line. Without ReLU, $W_{\mathrm{down}}W_{\mathrm{up}}=1-1=0$, so every input maps to 0; other weights still collapse to a single line through the origin, $y=ax$, which cannot make the corner in $\lvert x\rvert$.
+
 Tokens share FFN weights but do not directly exchange information inside an ordinary dense FFN. Earlier attention has already made their representations contextual. Position-wise does not mean context-free.
 
 ## SwiGLU adds an input-dependent multiplicative branch

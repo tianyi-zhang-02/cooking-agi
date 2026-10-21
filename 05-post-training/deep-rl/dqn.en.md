@@ -118,4 +118,4 @@ Compare environment interactions and gradient updates, not just an hour of train
 
 First test that terminal targets equal reward. Then verify that targets have no gradients, replay actions align with their states, and target synchronization uses the intended step units. If loss falls while return does not improve, inspect these semantics before enlarging the network.
 
-Reference: [Double DQN (arXiv v3, 2015)](https://arxiv.org/abs/1509.06461v3). Next: [What if continuous actions make enumeration impossible?](continuous-control.en.md)
+References: [DQN with experience replay and a target network (Mnih et al., 2015)](https://www.nature.com/articles/nature14236) · [Double DQN (arXiv v3, 2015)](https://arxiv.org/abs/1509.06461v3). Next: [What if continuous actions make enumeration impossible?](continuous-control.en.md)

@@ -2,7 +2,7 @@
 
 [中文](systems.md) · **English**
 
-> Reading time: ~6 min · Level: advanced · Last reviewed: 2026-10
+> Reading time: ~8 min · Level: advanced · Last reviewed: 2026-10
 
 If each token runs only 8 experts, why is MoE still hard to deploy? Because computing less is only one item on the bill. The other two are moving tokens between GPUs and storing every expert's weights.
 
@@ -80,7 +80,28 @@ A single request reads only about 3% of each layer's expert weights per step; at
 
 ## Numerical precision
 
-The router's softmax is sensitive to numerics. Switch Transformer computes the router in fp32 while the rest stays in low precision; ST-MoE's router z-loss, covered in the [load-balancing note](load-balancing.en.md), addresses the same problem.
+A small score gap can decide which expert a token gets, and low precision can erase exactly that gap. BF16 keeps only 8 significant bits, so the smallest gap it can represent grows with the value: $1/64\approx0.0156$ near 2, and already $1/16=0.0625$ near 10.
+
+Take two experts whose logits differ by 0.03 in both cases:
+
+| FP32 logits | After casting to BF16 | Result |
+| --- | --- | --- |
+| `[2.00, 2.03]` | `[2.0, 2.03125]` | Order kept; the second expert still scores higher |
+| `[10.00, 10.03]` | `[10.0, 10.0]` | Now a tie; the choice depends on tie-breaking, not on the router |
+
+In FP32 both pairs give softmax values of about `[0.4925, 0.5075]`; only the second pair loses that difference in BF16.
+
+```python
+import torch
+
+def bf16_logits(logits):
+    return torch.tensor(logits, dtype=torch.float32).bfloat16().float().tolist()
+
+assert bf16_logits([2.0, 2.03]) == [2.0, 2.03125]
+assert bf16_logits([10.0, 10.03]) == [10.0, 10.0]
+```
+
+Two common fixes target exactly this: [Switch Transformer](https://arxiv.org/abs/2101.03961) casts only the router's input and computation to FP32 and keeps the rest in low precision; [ST-MoE](https://arxiv.org/abs/2202.08906)'s router z-loss (see [load balancing](load-balancing.en.md)) keeps router logits small, which keeps rounding errors small too. Neither guarantees stable routing or replaces load balancing. This example shows that rounding can change a choice; it says nothing about how often that happens in training.
 
 ## In short
 

@@ -25,15 +25,21 @@ For a preference judge, randomize A/B order and check whether it merely favors l
 
 ## How evaluation feeds back into training {#closing-the-loop}
 
-The checks above cover one comparison. Across the whole training process, also evaluate several outcomes separately:
-capability regression, factual grounding, safety and policy compliance, tool use and task completion, multi-turn
-consistency, latency, and cost. Open-ended responses can combine human review, calibrated LLM judges, and deterministic
-checks; math, code, and structured tasks should prefer verifiers where possible.
+The checks above cover one comparison. Across the whole training process, evaluate capability regression, factual grounding, safety and policy compliance, tool use and task completion, multi-turn consistency, latency, and cost separately. Open-ended responses can combine human review, calibrated LLM judges, and deterministic checks; math, code, and structured tasks should prefer verifiers where possible.
 
-Keep a frozen regression suite before launch, then use shadow evaluation (the new model runs alongside real traffic,
-but its outputs are not returned to users) and controlled A/B tests. Do not feed every production failure straight back
-into training. Classify failures by type, deduplicate, audit, and stratify them, then decide whether each belongs as an
-SFT demonstration, preference pair, verifier case, or system rule.
+From launch to feeding failures back into training, work in this order:
+
+1. **Before launch**: keep a frozen regression suite and compare every candidate version on the same problems.
+2. **Shadow evaluation**: the new model runs alongside real traffic, but its outputs are not returned to users.
+3. **Controlled A/B test**: expose only part of the traffic, with the metrics and stopping conditions fixed in advance.
+4. **Handle production failures**: do not feed them all straight back. Classify failures by type, deduplicate, audit, and stratify them, then decide where each kind belongs:
+
+| What this kind of failure can supply | Better destination |
+|---|---|
+| A correct answer can be written | SFT demonstration |
+| One of two answers can be judged better | chosen/rejected pair |
+| A program can judge right or wrong | verifier case |
+| The problem lies in format, permissions, or call flow | system rule; the model may not need to change |
 
 ## Interview questions
 
@@ -63,9 +69,9 @@ GRPO constructs relative signals from answers to the same prompt instead of trai
 </details>
 
 <details class="interview" markdown="1">
-<summary>What is the essential difference between DPO and PPO?</summary>
+<summary>What is the key difference between DPO and PPO?</summary>
 
-DPO uses a derivation: KL-constrained reward maximization has a closed-form optimum, so the reward can be rewritten in terms of the policy and the preference loss differentiated directly. The reward model and the RL loop both disappear.
+DPO uses a derivation: KL-constrained reward maximization has a closed-form optimum, so the reward can be rewritten in terms of the policy and the preference loss differentiated directly. Standard offline DPO therefore trains no separate reward model and runs no online RL loop; the reward difference is implicit in the loss.
 
 Standard DPO's cost is **offline** preference data. The policy changes while the data does not, so it cannot actively explore its current failures. PPO and other online RL methods resample from the current policy and are more natural for exploration, environment interaction, or verifiable multi-step outcomes, but rollout is expensive and training less stable.
 

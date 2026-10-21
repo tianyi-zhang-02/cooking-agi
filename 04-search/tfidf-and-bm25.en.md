@@ -2,7 +2,7 @@
 
 [中文](tfidf-and-bm25.md) · **English**
 
-> Reading time: about 12 minutes · Prerequisites: counts, logarithms, weighted sums · Reviewed: 2026-10-10
+> Reading time: about 12 minutes · Prerequisites: counts, logarithms, weighted sums · Last reviewed: 2026-10
 
 When you search for an error message, an article on a similar topic may not be enough. An error code, function name, or version number can identify the exact problem. Keyword retrieval preserves these literal clues. But how should matching two different words compare with matching one word twice?
 

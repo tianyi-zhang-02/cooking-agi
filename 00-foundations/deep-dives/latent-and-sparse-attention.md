@@ -6,7 +6,7 @@
 
 一段历史很长，推理成本会从两个地方涨：存下来的状态越来越多，每次生成还要读这些状态。压缩状态与减少读取范围，处理的是不同问题。
 
-**MLA 主要回答“每个 token 留下多少缓存”；稀疏注意力回答“当前 query 需要看哪些位置”。**它们可以组合，但不能互相替代。
+**多头潜在注意力（MLA）主要回答“每个 token 留下多少缓存”；稀疏注意力回答“当前 query 需要看哪些位置”。**它们可以组合，但不能互相替代。
 
 ## 先看一条压缩后的表示
 
@@ -69,7 +69,7 @@ assert direct_score == latent_score == -3.0
 
 <span id="rope-absorption"></span>
 
-不是“MLA 不能用 RoPE”，而是**给展开后的整个 key 做 RoPE，会妨碍刚才那种省计算的重排**。注意力照样能算，只是不一定还能只靠一条压缩后的 query 去读全部历史。
+MLA 可以用 RoPE，问题更窄：**给展开后的整个 key 做 RoPE，会妨碍刚才那种省计算的重排**。注意力照样能算，只是不一定还能只靠一条压缩后的 query 去读全部历史。
 
 先看矩阵的顺序。位置 $t$ 的 query 乘旋转矩阵 $R_t$，历史位置 $j$ 的 key 乘 $R_j$，分数变成
 
@@ -328,7 +328,7 @@ assert sparse_output == 0
 
 少读位置也不等于少存全部历史。后续 query 可能选到别的位置，MLA 历史 cache 仍要保留，另外还存在 indexer 状态。NSA 的 block 选择与 DSA 的 token 选择，计算路径和硬件取舍并不相同。
 
-实现检查要包含 causal selection、top-k 边界、cache 与位置编码。[V3.2-Exp 模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp) 记录过 indexer 与 MLA 使用不同 RoPE layout 的修正：shape 都正确，也可能算错旋转。本文核对到 2026-10-08，讲的是 V3.2 路径，不把它自动套到后续 DeepSeek 版本。
+实现检查要包含 causal selection、top-k 边界、cache 与位置编码。[V3.2-Exp 模型卡](https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp) 记录过 indexer 与 MLA 使用不同 RoPE layout 的修正：shape 都正确，也可能算错旋转。本文核对到 2026-10-21，讲的是 V3.2 路径，不把它自动套到后续 DeepSeek 版本。
 
 后续版本确实改了：截至 2026-10，[DeepSeek-V4 报告 §2.3](https://arxiv.org/html/2606.19348v1#S2.SS3)把注意力层分成两类交错使用。CSA 先沿序列把每 m 个 token 的 KV 压成一个条目，再在压缩条目上做 DSA 式选择；HCA 压得更重，不做稀疏选择，读全部压缩条目。两类层都另外保留近处的局部窗口。CSA 层选择的对象因此从逐 token 的 KV 变成了压缩条目，详见 [DeepSeek-V4 笔记](../model-families/deepseek-v4.md)。
 

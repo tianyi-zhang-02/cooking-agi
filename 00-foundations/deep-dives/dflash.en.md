@@ -2,7 +2,7 @@
 
 [中文](dflash.md) · **English**
 
-> Checked: 2026-10-10 · Prerequisite: [generation and KV cache](kv-cache-and-inference.en.md) · Start with the flow and example; read sampling, caches, and the experiment table when implementing.
+> Checked: 2026-10-21 · Prerequisite: [generation and KV cache](kv-cache-and-inference.en.md) · Start with the flow and example; read sampling, caches, and the experiment table when implementing.
 
 Generating several tokens can all sound like “parallel prediction.” First ask: **who proposes, who decides, and what happens to the work behind a wrong guess?** MTP concerns training objectives and prediction modules; DFlash uses a small drafter to accelerate a target model. The names describe different levels of a system.
 
@@ -35,7 +35,7 @@ Training must respect the same information boundary: full answers may be availab
 <details id="feature-shapes" markdown="1">
 <summary>Two concatenations, two different axes</summary>
 
-Selected target layers are joined along the **feature axis**, then projected to draft width. Inside draft attention, context and block K/V are joined along the **sequence axis**. Only the block supplies Q; context positions do not get new outputs. Compare the [official attention implementation](https://github.com/z-lab/dflash/blob/07ebd93db9f472af339b644bb70221ad8428328a/dflash/model.py#L343-L370).
+Selected target layers are joined along the **feature axis**, then projected to draft width. Inside draft attention, context and block K/V are joined along the **sequence axis**. Only the block supplies Q; context positions do not get new outputs. Compare the [official attention implementation](https://github.com/z-lab/dflash/blob/07ebd93db9f472af339b644bb70221ad8428328a/dflash/model.py#L379-L393).
 
 For an original single-head example, take 2 context tokens, 3 target layers of width 4, and a block containing 1 anchor plus 3 masks. Omit the batch axis.
 
@@ -190,7 +190,7 @@ Another route is [D-Loop](https://arxiv.org/abs/2610.06011), submitted 2026-10-0
 | DFlash 2 | Parallel proposals plus local mixing and path selection | Local modules and selection |
 | D-Loop | Shared-backbone suffix refinement after initial drafting | Second draft forward pass |
 
-Versions also affect usability. The [current official repository](https://github.com/z-lab/dflash) lists DFlash 2 and backend-specific support. The old project page still describes vLLM integration as in progress, but as of 2026-10 both [vLLM v0.31.0](https://github.com/vllm-project/vllm/blob/v0.31.0/vllm/config/speculative.py) ( `method: dflash` in the speculative config) and [SGLang v0.5.21](https://github.com/sgl-project/sglang/blob/v0.5.21/python/sglang/srt/speculative/spec_info.py) ( `--speculative-algorithm DFLASH`) ship DFlash in their main code. Check the commit, target/draft checkpoints, and backend before running, rather than copying an old installation command.
+Versions also affect usability. The [current official repository](https://github.com/z-lab/dflash) lists DFlash 2 and backend-specific support. The old project page still describes vLLM integration as in progress, but as of 2026-10 both [vLLM v0.31.0](https://github.com/vllm-project/vllm/blob/v0.31.0/vllm/config/speculative.py) (`method: dflash` in the speculative config) and [SGLang v0.5.21](https://github.com/sgl-project/sglang/blob/v0.5.21/python/sglang/srt/speculative/spec_info.py) (`--speculative-algorithm DFLASH`) ship DFlash in their main code. Check the commit, target/draft checkpoints, and backend before running, rather than copying an old installation command.
 
 ## What evidence should precede deployment?
 

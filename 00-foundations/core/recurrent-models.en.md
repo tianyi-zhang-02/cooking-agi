@@ -31,6 +31,8 @@ flowchart LR
 
 During training, gradients to earlier states pass through a sequence of Jacobians: the derivative matrices $\partial h_t/\partial h_{t-1}$ of each state with respect to the previous one. The weights are shared, but each Jacobian also depends on the current inputs, hidden state, and tanh derivative. Repeated contraction along a direction can shrink the gradient toward zero; repeated expansion can make it explode. Gating changes this propagation path rather than merely adding parameters.
 
+Start with a one-dimensional RNN to see the scale: $h_t=\tanh(w\,h_{t-1}+u\,x_t)$ with $w=0.9$, and assume the state stays near $h_t\approx0.5$. Each step's derivative is $w\,(1-h_t^2)=0.9\times0.75=0.675$. Ten steps apart, the product is about $0.675^{10}\approx0.020$; fifty steps apart, only about $2.9\times10^{-9}$. Each step shrinks the signal by only a third, yet after 50 steps almost nothing gets back. Treating every step as the same number is only for seeing the scale of the product; in a real network each step's Jacobian differs and is a matrix. The derivation is in [BPTT and gates](../deep-dives/recurrent-dynamics.en.md).
+
 So this is not just a matter of “a few more parameters would fix it.” The real trouble is that **both information and gradients have to cross the same narrow state path over and over**; the farther apart two positions are, the more easily something is lost on the way.
 
 ## LSTM manages information with gates {#lstm-manages-information-with-gates}
@@ -48,6 +50,16 @@ $$o_t = \sigma(W_o[x_t;h_{t-1}] + b_o), \qquad h_t = o_t \odot \tanh(c_t)$$
 - output gate $o_t$: how much of the current memory is exposed.
 
 The important part is the additive path inside $c_t$. A forget gate near 1 causes less attenuation along this direct path. New writes can still change the state, and other gradient paths remain, so this does not guarantee successful long-range learning.
+
+Continue the numbers from the previous section. With the gates held fixed, each step along this direct cell-state path multiplies by the forget gate (derived in the deep dive at the end). The table counts only this one path, with hand-set gate values:
+
+| Factor per step | 10 steps apart | 50 steps apart |
+| --- | ---: | ---: |
+| Vanilla RNN, about 0.675 | 0.020 | $2.9\times10^{-9}$ |
+| LSTM, forget = 0.9 | 0.35 | 0.0052 |
+| LSTM, forget = 0.99 | 0.90 | 0.61 |
+
+A forget gate of 0.9 still leaves only half a percent after 50 steps; for gradients to travel far, the forget gate has to learn values very close to 1. Having gates is not the same as remembering; it depends on what training makes of them.
 
 ### Trace the three gates with one number {#gate-example}
 

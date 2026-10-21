@@ -63,7 +63,7 @@ def subsets(values):
 - 不选它：剩下的问题是 `best(index + 1)`。
 - 选它：拿到 `values[index]`，下一项不能选，剩下是 `best(index + 2)`。
 
-两边取较大值，就得到递推式。这里不是先猜一个公式，再想它是什么意思，而是把题目允许的选择逐项写出来。
+两边取较大值，就得到递推式。它是把题目允许的选择逐项写出来得到的，不用先猜一个公式、再去想它的意思。
 
 ```text
 best(0)
@@ -184,6 +184,6 @@ def rob_iterative(values):
 ## 7. 换一种讲法再看
 
 - [Hello 算法：初探动态规划](https://www.hello-algo.com/chapter_dynamic_programming/intro_to_dynamic_programming/)：用爬楼梯把搜索、记忆化、填表和空间优化连起来，可以和本页的例子对照。
-- [代码随想录：动态规划理论基础](https://github.com/youngyangyang04/leetcode-master/blob/master/problems/动态规划理论基础.md)：写完以后，可以按状态含义、递推、初值和遍历顺序检查，尤其别省掉手算一张小表。
+- [代码随想录：动态规划理论基础](https://github.com/youngyangyang04/leetcode-master/blob/master/problems/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.md)：写完以后，可以按状态含义、递推、初值和遍历顺序检查，尤其别省掉手算一张小表。
 
 不同资料可能从前往后定义状态，也可能像本页这样从后往前。两种都可以；改写代码时先确认每个变量的含义，不要只照着换循环方向。

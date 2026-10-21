@@ -4,15 +4,13 @@
 
 [中文](README.md) · **English**
 
-On your first visit, the [project route](../learn/choose-your-path.en.md#projects) can help you choose a starting point. For a design interview, skip straight to [system-design practice](#system-design); you don't have to build every project first.
+These pages start from concrete projects: how data, models, services, and evaluation fit together into one system, and why it is designed that way.
 
-Once you can call a model, other questions tend to follow. Where does its data come from? Which computations can run ahead of time? When the result is wrong, did the model fail, or did something go wrong earlier?
+- **Your first complete project:** start with [this site and a reading list](web-lab/README.en.md). Follow a Markdown edit into a published page, then connect a browser, API, and database. No GPU or frontend framework is required.
+- **Understanding ML systems:** read the recommendation, RAG, or post-training project and follow the data through each module. The recommender series draws on public code; the other two start from small teaching implementations.
+- **Preparing for a system-design interview:** go straight to [design practice](#system-design). Propose a design yourself, then compare it with the projects' implementations.
 
-If you haven't built a complete small app, start with [this site and a reading list](web-lab/README.en.md). Follow a Markdown edit into a published page, then connect a browser, API, and database. No GPU or frontend framework is required.
-
-The other routes cover recommendation, a RAG knowledge assistant, and post-training experiments. The recommender series draws on public code; the other two use small original projects. Follow the data through a system, then change one condition and see what breaks. Read the explanations first if you prefer; the code is there when you're ready.
-
-**Engineering practice includes more than system design.** You can start from requirements and propose a design, or follow an existing project through data, components, training, serving, and evaluation. The first develops judgment; the second checks that judgment against an implementation.
+The [project route](../learn/choose-your-path.en.md#projects) suggests more orderings. Engineering practice covers design, implementation, and debugging; read the explanations first and build when you have time.
 
 <span id="beyond-the-architecture-diagram"></span>
 

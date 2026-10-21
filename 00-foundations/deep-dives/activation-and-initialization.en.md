@@ -2,7 +2,7 @@
 
 [中文](activation-and-initialization.md) · **English**
 
-> Reading time: about 14 minutes · Level: foundations to advanced · Reviewed: 2026-10
+> Reading time: about 17 minutes · Level: foundations to advanced · Last reviewed: 2026-10
 
 “Sigmoid causes vanishing gradients, so avoid it” leaves out the location and objective. A hidden-layer sigmoid is not the same as a binary-classification output. Initialization also takes more than remembering the names Xavier and He.
 
@@ -31,7 +31,7 @@ At $z=10,y=0$, the prediction is confidently wrong and the gradient is close to 
 
 $$\frac{\partial L_{MSE}}{\partial z}=(p-y)p(1-p).$$
 
-That extra factor is small in saturation. Use a stable logits loss rather than materializing probabilities and then taking logs. [BCEWithLogitsLoss](https://docs.pytorch.org/docs/main/generated/torch.nn.BCEWithLogitsLoss.html) combines the operations.
+That extra factor is small in saturation. Use a stable logits loss rather than materializing probabilities and then taking logs, so probabilities never round to exactly 0 or 1 first. [BCEWithLogitsLoss](https://docs.pytorch.org/docs/main/generated/torch.nn.BCEWithLogitsLoss.html) combines the operations.
 
 <!-- widget:step-bce-vs-mse -->
 
@@ -63,6 +63,17 @@ For $h_\ell=\phi(W_\ell h_{\ell-1}+b_\ell)$, the local Jacobian is
 $$J_\ell=\operatorname{diag}(\phi'(u_\ell))W_\ell,\qquad u_\ell=W_\ell h_{\ell-1}+b_\ell.$$
 
 The full derivative passes through a product of these matrices, not activation derivatives alone. If every operator norm is bounded by $c<1$, the product norm is at most $c^L$: a sufficient condition for decay. A largest singular value above 1 in one layer does not guarantee explosion, because subsequent layers can contract that direction.
+
+Shrink the chain to its simplest form: one neuron per layer, $h_\ell=\phi(w\,h_{\ell-1})$. Each $J_\ell$ is then a single number $w\,\phi'(u_\ell)$, and passing through 10 layers multiplies the gradient by 10 of these numbers:
+
+| Factor per layer | Gradient multiplier after 10 layers |
+| --- | ---: |
+| Sigmoid, $w=1$, $\phi'\le0.25$ | At most $0.25^{10}\approx9.5\times10^{-7}$ |
+| ReLU active region, $w=0.5$ | $0.5^{10}\approx9.8\times10^{-4}$ |
+| ReLU active region, $w=1$ | $1$ |
+| ReLU active region, $w=2$ | $2^{10}=1024$ |
+
+The sigmoid derivative peaks at 0.25 (at $u=0$), so with $w=1$ each layer shrinks the gradient to at most a quarter. ReLU has derivative 1 in its active region, so the gradient depends entirely on $w$: a factor of 2 in the weight becomes a factor of $2^{10}$ after 10 layers. Initialization sets this per-layer factor. In a wide layer the single $w$ becomes a whole matrix, and the Xavier and He sections below work out how large it should be.
 
 A negative ReLU input on one example is not a permanently dead unit. The concern is a unit that stays negative for nearly all training examples without an update path that brings it back. Small weights alone do not make symmetric zero-mean inputs predominantly negative.
 
@@ -108,6 +119,41 @@ def initialization_std(fan_in, fan_out, kind, negative_slope=0.0):
         return math.sqrt(2.0 / ((1.0 + negative_slope ** 2) * fan_in))
     raise ValueError("unknown initialization")
 ```
+
+Put the three scales into the same 20-layer, width-512 ReLU network and see how much gradient reaches the input. By the second-moment relation above, each layer multiplies the gradient's second moment by about $n s^2/2$, so the input-gradient RMS is about $(n s^2/2)^{10}$: $0.0256^{10}\approx1.2\times10^{-16}$ for standard deviation 0.01, $0.5^{10}\approx9.8\times10^{-4}$ for Xavier, and 1 for He. The code below reuses `initialization_std` from the previous block and requires PyTorch:
+
+```python
+import torch
+
+
+def input_gradient_rms(weight_std, depth=20, width=512, seed=0):
+    generator = torch.Generator().manual_seed(seed)
+    inputs = torch.randn(256, width, generator=generator, requires_grad=True)
+    hidden = inputs
+    for _ in range(depth):
+        weight = torch.randn(width, width, generator=generator) * weight_std
+        hidden = torch.relu(hidden @ weight)
+    upstream = torch.randn(hidden.shape, generator=generator)
+    (hidden * upstream).sum().backward()
+    return inputs.grad.square().mean().sqrt().item()
+
+
+small = input_gradient_rms(0.01)
+xavier = input_gradient_rms(initialization_std(512, 512, "xavier"))
+he = input_gradient_rms(initialization_std(512, 512, "he"))
+assert 5e-17 < small < 5e-16
+assert 5e-4 < xavier < 2e-3
+assert 0.5 < he < 2
+```
+
+On PyTorch 2.8 / CPU, seed 0 gives about $1.1\times10^{-16}$, $9.2\times10^{-4}$, and 0.94; other seeds land in the same range. Xavier comes out small here because its derivation uses a linear approximation and does not account for ReLU zeroing half the inputs. This checks the moment of initialization only, not gradients later in training.
+
+He only controls whether one layer preserves scale. Each Transformer or ResNet block also adds its branch back to a residual: $h_\ell=h_{\ell-1}+F_\ell(h_{\ell-1})$. If every branch preserves its input's second moment and is uncorrelated with the residual, the second moment doubles at every block: $2^{10}=1024$ times after 10 blocks, about 32 times in RMS. [Fixup §2](https://arxiv.org/abs/1901.09321) also shows that with standard initialization and no normalization, the output variance of such residual networks grows exponentially with depth. Two common fixes:
+
+- **Add normalization:** the [GPT-2 report §2.3](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) moves layer normalization to the input of each sub-block and adds one more after the final self-attention block.
+- **Scale residual-branch initialization with depth:** in the same section, GPT-2 multiplies the weights of residual layers by $1/\sqrt N$ at initialization, where $N$ is the number of residual layers. [Fixup §3](https://arxiv.org/abs/1901.09321) drops normalization, initializes the last layer of each residual branch to 0, and scales down the other layers inside the branch according to depth.
+
+So in a deep network with residual paths, He alone is not enough: you also need to decide where normalization goes and how large the residual branches start.
 
 ## Checks Before a Real Run
 

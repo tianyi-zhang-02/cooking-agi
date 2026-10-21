@@ -101,7 +101,7 @@ IVF 负责少找几个区域，PQ 负责少存一些数。常见的 IVFADC 还�
 
 [HNSW](https://arxiv.org/abs/1603.09320)用分层邻接图寻找近邻：先在稀疏的上层移动，再在下层扩大搜索。它没有要求把所有向量压成 PQ 码；图结构本身也占内存。
 
-它有三个要调的参数：`M` 控制图的连接度，越大图越密、内存越多。[pgvector v0.8.7 的实现](https://github.com/pgvector/pgvector/blob/v0.8.7/src/hnsw.h#L115-L116)里，上层每个节点最多 `M` 个邻居，底层则是 `2M`（`m=16` 时为 32）；`efConstruction` 是建图时保留的候选数，越大建得越慢、图质量越好；查询时的 `ef`（很多库叫 `efSearch`）是搜索时保留的候选数，越大 recall 越高、延迟也越高。以 pgvector 为例，三者对应 `m`、`ef_construction` 和 `hnsw.ef_search`，默认值分别是 16、64 和 40（[pgvector 文档](https://github.com/pgvector/pgvector#hnsw)，v0.8.7，2026-10-16 核对）。
+它有三个要调的参数：`M` 控制图的连接度，越大图越密、内存越多。[pgvector v0.8.7 的实现](https://github.com/pgvector/pgvector/blob/v0.8.7/src/hnsw.h#L126-L127)里，上层每个节点最多 `M` 个邻居，底层则是 `2M`（`m=16` 时为 32）；`efConstruction` 是建图时保留的候选数，越大建得越慢、图质量越好；查询时的 `ef`（很多库叫 `efSearch`）是搜索时保留的候选数，越大 recall 越高、延迟也越高。以 pgvector 为例，三者对应 `m`、`ef_construction` 和 `hnsw.ef_search`，默认值分别是 16、64 和 40（[pgvector 文档](https://github.com/pgvector/pgvector#hnsw)，v0.8.7，2026-10-16 核对）。
 
 | 方案 | 先试它的理由 | 不能省略的检查 |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ IVF 负责少找几个区域，PQ 负责少存一些数。常见的 IVFADC 还�
 | IVF-Flat | 想单独观察“少扫一些区域”的影响 | 簇是否偏斜、`nprobe` 与尾延迟 |
 | IVF-PQ | 向量存储成为主要限制 | 码长、量化误差、训练样本代表性，以及原始向量重排成本 |
 
-这是选实验起点，不是规模到某个阈值就必须换算法。硬件、并发、过滤比例和更新频率都能改变结果。Flat 的批量扫描本质上是一次大矩阵乘法，可能把硬件算力用得很满，所以精确不一定最慢；怎么判断一个操作受算力还是带宽限制，见[性能：roofline](../12-infra/performance.md#roofline)。
+这是选实验起点，不是规模到某个阈值就必须换算法。硬件、并发、过滤比例和更新频率都能改变结果。Flat 的批量扫描其实就是一次大矩阵乘法，可能把硬件算力用得很满，所以精确不一定最慢；怎么判断一个操作受算力还是带宽限制，见[性能：roofline](../12-infra/performance.md#roofline)。
 
 <span id="6-ann-recall-recall"></span>
 

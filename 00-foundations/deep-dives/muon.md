@@ -2,7 +2,7 @@
 
 **中文** · [English](muon.en.md)
 
-> 核对：2026-10-10 · 前置：[动量与 AdamW](optimizers.md) · 想先了解思路，读前 2 节和最后的比较表即可。
+> 核对：2026-10-21 · 前置：[动量与 AdamW](optimizers.md) · 想先了解思路，读前 2 节和最后的比较表即可。
 
 一个线性层的权重是矩阵，梯度也是。AdamW 按每个坐标的历史调整步长；Muon 则保留矩阵结构，调整整张更新矩阵的方向和尺度。**它改的是参数怎么更新，不是 loss，也不是 attention 的计算。**
 
@@ -126,7 +126,7 @@ $$\operatorname{RMS}(O)=\sqrt{\frac{\min(m,n)}{mn}}
 
 同样的 learning rate，矩阵越大，逐元素 RMS 反而越小。[Muon 的扩展训练论文](https://arxiv.org/abs/2502.16982)采用 $0.2\sqrt{\max(m,n)}$ 的更新缩放来匹配 AdamW 的经验尺度。这个常数不是数学定理；原始形状缩放和 RMS 匹配也不是同一套配置。
 
-例如按 [PyTorch v2.9.0 的尺度选项](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L69)，`original` 使用 $\sqrt{\max(1,m/n)}$。下面用理想满秩参照算 RMS，暂不乘学习率，也不把有限步 NS 当作精确正交化：
+例如按 [PyTorch v2.9.0 的尺度选项](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L74-L86)，`original` 使用 $\sqrt{\max(1,m/n)}$。下面用理想满秩参照算 RMS，暂不乘学习率，也不把有限步 NS 当作精确正交化：
 
 | 矩阵形状 | 不加尺度系数 | `original` 后 | RMS 匹配后 |
 | --- | ---: | ---: | ---: |
@@ -135,7 +135,7 @@ $$\operatorname{RMS}(O)=\sqrt{\frac{\min(m,n)}{mn}}
 
 截至 2026-10，稳定版 [PyTorch 2.14 文档](https://docs.pytorch.org/docs/2.14/generated/torch.optim.Muon.html)多了第三个选项 `spectral_unclamped`：系数是 $\sqrt{m/n}$，不再把它的下限夹到 1。上表 $8\times2$ 仍是 0.7071，$2\times8$ 则变成 $0.3536\times0.5\approx0.1768$。不传参数时仍按 `original` 处理。
 
-v2.9.0 实现里，weight decay 使用基础学习率，而不是形状调整后的学习率。若 $\eta=0.1,\lambda=0.2$，衰减项是 $0.98W$；更新方向乘 2，不会把衰减也改成 $0.96W$。
+[v2.9.0 实现里](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L317-L320)，weight decay 使用基础学习率，而不是形状调整后的学习率。若 $\eta=0.1,\lambda=0.2$，衰减项是 $0.98W$；更新方向乘 2，不会把衰减也改成 $0.96W$。
 
 **其次是参数分组。** 经典混合用法让隐藏层矩阵用 Muon，embedding、输出层、bias 和 norm 参数继续用 AdamW。Embedding 明明也是二维矩阵，所以不能只用 `ndim == 2` 判断归属。共享 embedding / output 权重要按对象去重，不能被两个优化器更新两遍。[原仓库的用法说明](https://github.com/KellerJordan/Muon)明确区分了这些参数。
 

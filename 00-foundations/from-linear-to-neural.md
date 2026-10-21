@@ -8,7 +8,7 @@
 
 先看一种常见的分类网络：**隐藏层学习特征，线性分类头读出结果**。二分类时再接 sigmoid，就像在学到的特征上做逻辑回归。这是理解本章的入口，不是所有神经网络都必须采用的输出结构。
 
-这一页从最小二乘推到反向传播，每一步都给出公式和一份不依赖框架的 Python 实现。
+这一页从最小二乘推到反向传播，主要步骤都给出公式；逻辑回归和两层网络各附一份只用 NumPy 的 Python 实现。
 
 ## 线性回归：决策边界只能是超平面 {#_3}
 
@@ -18,7 +18,7 @@ $$\hat{y} = \mathbf{w}^\top \mathbf{x} + b = \sum_{i=1}^{n} w_i x_i + b, \qquad 
 
 $$\nabla_{\mathbf{w}}\mathcal{L} = X^\top(X\mathbf{w} - \mathbf{y}) = 0 \;\Longrightarrow\; \hat{\mathbf{w}} = (X^\top X)^{-1} X^\top \mathbf{y}$$
 
-如果特征线性相关，$X^\top X$ 可能不可逆，可以用伪逆求最小范数解。实际代码通常用 QR / SVD 最小二乘求解器，不显式计算逆矩阵。
+如果特征线性相关，$X^\top X$ 就不可逆，可以用伪逆求最小范数解。实际代码通常用 QR / SVD 最小二乘求解器，不显式计算逆矩阵。
 
 拿它做分类的话，判定面是
 
@@ -82,7 +82,7 @@ $$\nabla_{\mathbf{w}} \mathcal{L} = (\sigma(z) - y)\,\mathbf{x}, \qquad \frac{\p
 
 ![sigmoid 及其导数](assets/sigmoid.svg)
 
-$\sigma'$ 在 $z=0$ 处最大（$0.25$），两端趋近 $0$——这正是**梯度消失**的来源，也是后来隐藏层多改用 ReLU 的主要原因之一。
+$\sigma'$ 在 $z=0$ 处最大（$0.25$），两端趋近 $0$——这是**梯度消失**的一个重要来源，也是后来隐藏层多改用 ReLU 的主要原因之一。
 
 ### Python：从零写一遍 {#python}
 
@@ -233,6 +233,18 @@ $$\frac{\partial \mathcal{L}}{\partial \mathbf{w}_2} = \delta_2\, \mathbf{h}, \q
 $$\boldsymbol{\delta}_1 = \underbrace{(\delta_2\, \mathbf{w}_2)}_{\text{误差传回来}} \odot \underbrace{\phi'(\mathbf{z}_1)}_{\text{过激活的门}}, \qquad \frac{\partial \mathcal{L}}{\partial W_1} = \boldsymbol{\delta}_1 \mathbf{x}^\top$$
 
 $\odot$ 是逐元素乘。对 ReLU，$\phi'(z) = \mathbb{1}[z > 0]$——梯度要么原样通过，要么被完全掐断。这就是全部。
+
+**手算一步。** 先拿一个已经能分开 XOR 的小网络：2 个隐藏单元，$W_1$ 的两行是 $(1,1)$ 和 $(-1,-1)$，$\mathbf b_1=\mathbf 0$，$\mathbf w_2=(1,1)$，$b_2=-1$。这时 $z_2=|x_1+x_2|-1$。[`why_nonlinear.py`](code/why_nonlinear.py) 里四团的中心在 $(\pm1.5,\pm1.5)$，符号相同的那条对角是正类：$(1.5,1.5)$、$(-1.5,-1.5)$ 得到 $z_2=2$，$(1.5,-1.5)$、$(-1.5,1.5)$ 得到 $-1$，四个中心都分对了。取右上那团的中心 $\mathbf x=(1.5,1.5)$，$y=1$，走一遍：
+
+| 步骤 | 计算 | 结果 |
+| --- | --- | --- |
+| 前向：隐藏层 | $\mathbf z_1=W_1\mathbf x+\mathbf b_1$，$\mathbf h=\operatorname{ReLU}(\mathbf z_1)$ | $\mathbf z_1=(3,-3)$，$\mathbf h=(3,0)$ |
+| 前向：输出 | $z_2=\mathbf w_2^\top\mathbf h+b_2$，$\hat y=\sigma(z_2)$ | $z_2=2$，$\hat y=0.881$，损失 $-\ln 0.881=0.127$ |
+| 反向：输出层 | $\delta_2=\hat y-y$，$\partial\mathcal L/\partial\mathbf w_2=\delta_2\mathbf h$ | $\delta_2=-0.119$，$\partial\mathcal L/\partial\mathbf w_2=(-0.358,0)$，$\partial\mathcal L/\partial b_2=-0.119$ |
+| 反向：过 ReLU 的门 | $\boldsymbol\delta_1=(\delta_2\mathbf w_2)\odot\mathbb 1[\mathbf z_1>0]$ | $(-0.119,-0.119)\odot(1,0)=(-0.119,0)$ |
+| 反向：第一层 | $\partial\mathcal L/\partial W_1=\boldsymbol\delta_1\mathbf x^\top$ | 第一行 $(-0.179,-0.179)$，第二行 $(0,0)$；$\partial\mathcal L/\partial\mathbf b_1=(-0.119,0)$ |
+
+单元 2 的 $z=-3$，门是关的：它的输入权重（$W_1$ 第二行和 $\mathbf b_1$ 第二项）梯度为 0；它的输出权重 $w_{2,2}$ 也因为 $h_2=0$ 拿到 0。这个点完全改不动单元 2，只有单元 1 在学，这就是上面说的「完全掐断」。把这一个点交给下面的 `step`（N = 1），算出的梯度和这张表一样。
 
 ```python
 def init(n_in, n_hidden, seed=0):

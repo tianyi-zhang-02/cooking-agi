@@ -2,7 +2,7 @@
 
 [中文](06-why-two-towers.md) · **English**
 
-> Last checked: 2026-09. Architecture explanations and invented examples, not an internal company implementation.
+> Last checked: 2026-10. Architecture explanations and invented examples, not an internal company implementation.
 
 ## Start with a million possible items
 
@@ -37,7 +37,7 @@ A rough comparison:
 | --- | --- | --- |
 | Joint encoding over the catalog | Run an interaction model for each user–item pair | Rich interactions, but cost grows with the candidate count |
 | Dual encoder + exhaustive dot products | One user encoding and $N$ dot products of dimension $d$ | Reuses item encoding but still scans vectors |
-| Dual encoder + ANN + ranking | User encoding, approximate search, then ranking a small set | Avoids some scanning but may miss exact neighbors |
+| Dual encoder + approximate nearest-neighbor (ANN) search + ranking | User encoding, approximate search, then ranking a small set | Avoids some scanning but may miss exact neighbors |
 
 An exhaustive dot-product scan costs $O(Nd)$ arithmetic, plus vector access. ANN cost depends on the algorithm, settings, and data; it cannot universally be called $O(\log N)$. Measure its quality–latency trade-off separately. [Efficient retrieval and approximation](https://www.tensorflow.org/recommenders/examples/efficient_serving)
 
@@ -96,7 +96,9 @@ Here $u$ is the user, $i^+$ a known positive, $s(u,i)$ the matching score, and $
 
 With one comparison item, equal scores assign probability 1/2 to the positive, giving loss $-\ln(1/2)\approx0.693$. If the positive's score exceeds the other's by $\tau\ln3$, its probability becomes 3/4 and loss is about 0.288. Training favors relative ordering within this comparison set; that probability is not the user's true click probability.
 
-Other batch members' positives are convenient comparison items, but some may also interest this user: false negatives. Duplicate items, multiple positives, and the sampling distribution change the objective. In-batch negatives are drawn roughly in proportion to how often an item appears as a positive, so popular items are over-penalized; a common fix subtracts the log of each candidate's sampling probability from its logit (logQ correction). Multiple positives require adjusting the single-positive formula above.
+Other batch members' positives are convenient comparison items, but some may also interest this user: false negatives. Duplicate items, multiple positives, and the sampling distribution change the objective. In-batch negatives are drawn roughly in proportion to how often an item appears as a positive, so popular items are over-penalized.
+
+A common fix subtracts the log of each candidate's sampling probability from its logit (logQ correction). If a popular item is sampled with probability 0.5 and a niche item with 0.05, their logits gain $-\ln0.5\approx0.69$ and $-\ln0.05\approx3.00$ respectively: the popular item appears often, so each appearance counts for relatively less. [Yi et al., RecSys 2019](https://research.google/pubs/sampling-bias-corrected-neural-modeling-for-large-corpus-item-recommendations/) estimate these sampling frequencies from streaming data for YouTube's two-tower retrieval. Multiple positives require adjusting the single-positive formula above.
 
 A stronger tower may not fix missing label distinctions, coverage, or unsuitable negatives. Also distinguish contrastive retrieval training from generative next-token SFT: they don't have the same loss.
 

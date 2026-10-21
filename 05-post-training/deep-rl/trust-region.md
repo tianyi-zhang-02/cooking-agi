@@ -67,7 +67,7 @@ $$
 | 回报梯度 $g$ | 0.25 | $J=p$，$dp/d\theta=p(1-p)$ |
 | Fisher $F$ | 0.25 | Bernoulli 的 score 是 $a-p$，其二阶矩为 $p(1-p)$ |
 | KL 预算 $\delta$ | 0.01 | 例子里人为指定 |
-| 建议步长 $\Delta$ | 0.28284 | $\sqrt{2\delta/F}$ |
+| 建议步长 $\Delta$ | 0.28284 | 一维时通式为 $\sqrt{2\delta F/g^2}\cdot g/F$；这里 $g=F$，化简为 $\sqrt{2\delta/F}$ |
 | 更新后 $p$ | 0.57024 | $\sigma(0.28284)$ |
 
 用真实 Bernoulli KL 复核，约为 0.009967。这次很接近 0.01，但局部二阶近似不保证任何一步都满足真实 KL 预算。

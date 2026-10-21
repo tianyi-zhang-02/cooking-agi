@@ -2,7 +2,7 @@
 
 [中文](distributed-training.md) · **English**
 
-> Reviewed: 2026-10 · Prerequisites: [one training step](../00-foundations/deep-dives/training-step.en.md), [precision and memory](../00-foundations/deep-dives/precision-and-memory.en.md)
+> Last reviewed: 2026-10 · Prerequisites: [one training step](../00-foundations/deep-dives/training-step.en.md), [precision and memory](../00-foundations/deep-dives/precision-and-memory.en.md)
 
 “Multiple GPUs” does not describe the training system. **It could mean complete replicas seeing different data, or each device holding only part of a model; both communicate, for different reasons.**
 
@@ -201,8 +201,8 @@ Retained versions consume state. Local forward/backward consistency does not aut
 
 | Method | What to inspect | What cannot be omitted |
 | --- | --- | --- |
-| Sequence parallel / SP | In Megatron, sequence-sharded activations around operations such as LayerNorm and dropout, alongside TP | This alone does not partition every attention layer across the context |
-| Context parallel / CP | Sequence-partitioned inputs and activations | Local queries still need remote keys and values |
+| Sequence parallel / SP | In Megatron, sequence-sharded activations around operations such as LayerNorm and dropout, alongside TP | This does not mean attention is split along the sequence across devices (the accompanying TP splits heads) |
+| Context parallel / CP | Inputs and activations split along the sequence; each device holds one stretch of context | Local queries still need remote keys and values, so an exchange must be arranged |
 | Expert parallel / EP | Expert placement across devices | Token dispatch, result combination, and load imbalance |
 
 These names follow [Megatron's SP / CP distinction](https://docs.nvidia.com/megatron-core/developer-guide/latest/user-guide/features/context_parallel.html). Other frameworks may use SP more broadly. Inspect the data flow, not only the name.

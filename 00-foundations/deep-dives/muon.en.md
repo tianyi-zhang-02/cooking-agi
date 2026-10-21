@@ -2,7 +2,7 @@
 
 [中文](muon.md) · **English**
 
-> Checked: 2026-10-10 · Prerequisite: [momentum and AdamW](optimizers.en.md) · For a first pass, read the first 2 sections and the comparison table.
+> Checked: 2026-10-21 · Prerequisite: [momentum and AdamW](optimizers.en.md) · For a first pass, read the first 2 sections and the comparison table.
 
 A linear layer has a weight matrix and a gradient matrix. AdamW adapts updates using each coordinate's history; Muon preserves matrix structure and changes the geometry of the update. **It changes parameter updates, not the loss or the attention computation.**
 
@@ -126,7 +126,7 @@ $$\operatorname{RMS}(O)=\sqrt{\frac{\min(m,n)}{mn}}
 
 With the same learning rate, larger matrices receive smaller per-entry RMS updates. The [scaling paper](https://arxiv.org/abs/2502.16982) uses $0.2\sqrt{\max(m,n)}$ to match an empirical AdamW update scale. That constant is not a theorem; the original shape adjustment and RMS matching are different configurations.
 
-For example, the `original` option in [PyTorch v2.9.0](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L69) uses $\sqrt{\max(1,m/n)}$. For ideal full-rank directions, before multiplying by the learning rate (reference values, not a claim that finite-step NS is exactly orthogonal):
+For example, the `original` option in [PyTorch v2.9.0](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L74-L86) uses $\sqrt{\max(1,m/n)}$. For ideal full-rank directions, before multiplying by the learning rate (reference values, not a claim that finite-step NS is exactly orthogonal):
 
 | Matrix shape | Without scaling | After `original` | After RMS matching |
 | --- | ---: | ---: | ---: |
@@ -135,7 +135,7 @@ For example, the `original` option in [PyTorch v2.9.0](https://github.com/pytorc
 
 As of October 2026, the stable [PyTorch 2.14 documentation](https://docs.pytorch.org/docs/2.14/generated/torch.optim.Muon.html) adds a third option, `spectral_unclamped`: the factor is $\sqrt{m/n}$, no longer clamped below at 1. The $8\times2$ row stays at 0.7071, while $2\times8$ becomes $0.3536\times0.5\approx0.1768$. Leaving the argument unset still means `original`.
 
-In the v2.9.0 implementation, weight decay uses the base learning rate, not the shape-adjusted rate. With $\eta=0.1,\lambda=0.2$, the decay term is $0.98W$; doubling the update direction does not change it to $0.96W$.
+In the [v2.9.0 implementation](https://github.com/pytorch/pytorch/blob/v2.9.0/torch/optim/_muon.py#L317-L320), weight decay uses the base learning rate, not the shape-adjusted rate. With $\eta=0.1,\lambda=0.2$, the decay term is $0.98W$; doubling the update direction does not change it to $0.96W$.
 
 **Second, parameter groups.** The classical hybrid uses Muon for hidden matrices and AdamW for embeddings, output layers, biases, and normalization parameters. Embeddings are themselves matrices, so `ndim == 2` is not a sufficient selector. Deduplicate tied embedding/output weights by object identity to avoid two updates to the same parameter. The [original repository's usage guide](https://github.com/KellerJordan/Muon) distinguishes these groups.
 

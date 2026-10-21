@@ -2,7 +2,7 @@
 
 [中文](vision-to-language.md) · **English**
 
-> Reading time: about 7 minutes · Level: intermediate · Last reviewed: 2026-10
+> Reading time: about 8 minutes · Level: intermediate · Last reviewed: 2026-10
 
 CLIP can score an image against a caption, but it does not continue with a written answer. A visual language model needs usable visual inputs and a training objective that teaches it to answer.
 
@@ -42,6 +42,17 @@ This is one paper's recipe, not a rule that all VLMs freeze vision. Check each a
 ## Which positions receive loss
 
 In this answer-generation teaching setup, the input contains the image, question, and true answer prefix. The objective predicts the next answer token. Visual and question positions do not directly contribute to answer-only loss, but they remain valid context: they influence answers and can carry gradients to trainable modules.
+
+Count one made-up sample: the image becomes 196 visual positions, the question “Is the red square left of the circle?” is assumed to take 8 tokens, the answer “Yes” plus an end marker takes 2 tokens, and 2 padding positions fill out the batch.
+
+| Position | Count | Scored as a prediction target? | Can answer positions read it through attention? |
+| --- | ---: | --- | --- |
+| Visual positions | 196 | No | Yes |
+| Question tokens | 8 | No | Yes |
+| Answer and end marker | 2 | Yes | They read themselves and earlier positions |
+| Padding | 2 | No | No |
+
+Only 2 of the 208 positions are scored, so the denominator below is $M=2$, not 208, and not the 206 left after removing padding. For per-position labels, see [the VLM fine-tuning mask example](vlm-finetuning.en.md).
 
 Padding is different. It fills out the batch shape and should be excluded from both the loss and the context attended to by valid answer positions. **The loss mask chooses which predictions are scored; the attention mask chooses which inputs can be read. Neither replaces the other.** Properly masked padding input positions should not provide information or gradient paths to the answer. This is a statement about those input positions, not a claim that shared embedding / output parameters never receive gradients from elsewhere. [PyTorch padding-mask documentation](https://docs.pytorch.org/docs/2.8/generated/torch.nn.MultiheadAttention.html)
 

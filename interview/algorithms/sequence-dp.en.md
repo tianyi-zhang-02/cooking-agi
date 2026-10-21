@@ -2,7 +2,7 @@
 
 [中文](sequence-dp.md) · **English** · [Pattern map](../leetcode.en.md)
 
-> Last reviewed: 2026-10-09 · Prerequisite: [Backtracking and DP](backtracking-and-dp.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [Backtracking and DP](backtracking-and-dp.en.md)
 
 `AB` appears in order in both `CAB` and `ACB`, with characters skipped. This is a subsequence, not a contiguous substring. Their longest common subsequence (LCS) has length 2. `CB` is another answer, so returning a length is not the same as returning a unique sequence.
 

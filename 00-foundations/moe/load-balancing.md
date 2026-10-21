@@ -32,7 +32,7 @@ Switch Transformer 的辅助 loss：
 
 $$\mathcal L_{\text{aux}} = \alpha \cdot N \cdot \sum_{i=1}^{N} f_i P_i$$
 
-- $f_i$：这一批里 argmax 落在 expert $i$ 上的 token 比例，本质是个计数，不可导；
+- $f_i$：这一批里 argmax 落在 expert $i$ 上的 token 比例，来自离散计数，不可导；
 - $P_i$：这一批 token 分给 expert $i$ 的平均 router 概率，可导；
 - $\alpha = 10^{-2}$。
 

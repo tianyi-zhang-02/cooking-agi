@@ -50,7 +50,7 @@ Matching predictions mostly checks model state. **Taking the next update** also 
 
 | Artifact | Contents | Use |
 | --- | --- | --- |
-| Recovery checkpoint | Model/adapter, optimizer, scheduler, counters, RNG, data state, manifest; AMP scaler and other state when used | Continue interrupted training |
+| Recovery checkpoint | Model/adapter, optimizer, scheduler, counters, RNG, data state, manifest; the GradScaler state when one is used, as is common with FP16 mixed precision ([AMP recipe](https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html)) | Continue interrupted training |
 | Inference export | Weights or adapter plus exact base, tokenizer, template, configuration and generation conventions | Offline evaluation and serving |
 
 A small LoRA adapter does not identify its base by itself. Record an immutable revision, not only a model name. After merging, quantization, or a backend change, rerun fixed-input checks. Generation inside the training process does not validate the exported artifact.

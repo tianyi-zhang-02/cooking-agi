@@ -66,6 +66,6 @@ $$p_j=\frac{\exp(s_j/\tau)}{\sum_k\exp(s_k/\tau)},\qquad \tau>0.$$
 python 00-foundations/code/multimodal_math.py
 ```
 
-先猜，再改脚本末尾的数字验证：把 $a$ 从 `[2, 2]` 改成 `[20, 20]`，点积和余弦各会怎么变？给 `SCORES[0]` 的每个数都加 100，打印出的概率呢？
+先猜，再改脚本里的数字验证：把 $a$ 从 `[2, 2]` 改成 `[20, 20]`，点积和余弦各会怎么变？给 `SCORES[0]` 的每个数都加 100，打印出的概率呢？
 
-下一篇读 [CLIP](../../03-multimodal-learning/clip.md)：不是把图片和文字混成一串输入，而是先让两个 encoder 学会在同一个空间里配对。
+下一篇读 [CLIP](../../03-multimodal-learning/clip.md)：两个 encoder 先学会在同一个空间里配对，图片和文字并没有混成一串输入。

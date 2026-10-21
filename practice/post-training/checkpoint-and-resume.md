@@ -50,7 +50,7 @@ assert abs(warm_weight - 0.80) < 1e-12
 
 | 产物 | 应包含什么 | 用在哪里 |
 | --- | --- | --- |
-| 恢复 checkpoint | 模型或 adapter、优化器、调度器、步数、RNG、数据状态、运行清单；启用 AMP 时还需 GradScaler 等状态 | 中断后继续训练 |
+| 恢复 checkpoint | 模型或 adapter、优化器、调度器、步数、RNG、数据状态、运行清单；用了 GradScaler（常见于 FP16 混合精度）时，也要存它的状态（[AMP 教程](https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html)） | 中断后继续训练 |
 | 推理导出 | 权重或 adapter + 精确基座、tokenizer、聊天模板、配置与生成约定 | 离线评估、推理服务 |
 
 LoRA adapter 很小，也不能独立说明用了哪个基座。记录不可变 revision，不只写模型名。合并、量化或更换推理后端后，用同一组固定输入再测；训练进程里生成正常，不保证导出的产物也一致。

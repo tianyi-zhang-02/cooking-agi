@@ -2,7 +2,7 @@
 
 [中文](string-matching.md) · **English** · [Pattern map](../leetcode.en.md)
 
-> Last reviewed: 2026-10-09 · Prerequisite: [Pointers and windows](pointers-and-search.en.md)
+> Last reviewed: 2026-10 · Prerequisite: [Pointers and windows](pointers-and-search.en.md)
 
 Find `abab` in `ababab`. The starting positions are 0 and 2. Jumping four characters after the first match misses the overlapping second one.
 

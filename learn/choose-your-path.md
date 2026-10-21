@@ -77,7 +77,7 @@
 | 推理速度、成本与可靠性 | [推理](inference/README.md) · [AI 系统](../06-systems/README.md) · [模型体验](../08-model-experience/README.md) |
 | 芯片、GPU、CUDA 与集群 | [AI 基础设施（AI infra）](../12-infra/README.md) · 待审核草稿 |
 | 感知、机器人与自动驾驶 | [从像素到动作](../13-embodied/README.md) · 待审核草稿 |
-| 还在变化的方向 | [前沿](../11-frontier/README.md)：世界模型、递归自我改进（RSI）已审阅；测试时计算（test-time compute）、用 RL 训练 agent、机制可解释性是待审核草稿 |
+| 还在变化的方向 | [前沿](../11-frontier/README.md)：世界模型、递归自我改进（RSI）已审阅；测试时计算（test-time compute）、用 RL 训练 agent、机制可解释性和扩散语言模型（dLLM）是待审核草稿 |
 
 </div>
 

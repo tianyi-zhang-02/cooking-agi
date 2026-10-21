@@ -4,7 +4,7 @@
 
 > 阅读时间：约 13 分钟 · 草稿，待审核
 
-写下 `y = torch.relu(x @ w + b)`，Python 立刻返回，GPU 却可能还在算；套上 `torch.compile`，同一行又快了一截。中间到底经过了哪几层？**在 eager 模式下，这一行会变成 3 个独立的 ATen 算子、至少 3 个 kernel 和两次本可以省掉的显存往返；编译器主要省的不是乘法，而是每个算子的 CPU 调度开销和中间结果的读写。**
+写下 `y = torch.relu(x @ w + b)`，Python 立刻返回，GPU 却可能还在算；套上 `torch.compile`，同一行又快了一截。中间到底经过了哪几层？**在 eager 模式下，这一行会变成 3 个独立的 ATen 算子、至少 3 个 kernel 和两次本可以省掉的显存往返；编译器省下的主要是每个算子的 CPU 调度开销和中间结果的读写，乘法一次也没少。**
 
 > **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
@@ -127,6 +127,17 @@ y = compiled(x, w, b)
 **JAX 和 XLA。** [`jax.jit`](https://docs.jax.dev/en/latest/jit-compilation.html) 用 tracer 对象包住参数，记录下来的运算组成 jaxpr；按 [AOT 文档](https://docs.jax.dev/en/latest/aot.html)，jaxpr 再降到 XLA 的输入语言 StableHLO，然后编译成 CPU、GPU 或 TPU 上的可执行程序，并缓存起来。被追踪的值只能通过 shape、dtype 这类静态属性影响控制流，依赖数值的 Python `if` 在 jit 里会报错；标成 static 的参数，每换一个值就重新编译一次。和 Dynamo 遇到不支持的代码就 graph break、回退到 Python 不同，jit 要求整个函数能被追踪。[XLA 架构文档](https://openxla.org/xla/architecture)说，它先做与硬件无关的优化（公共子表达式消除、算子融合、buffer 分析），再由后端按硬件优化；CPU 和 GPU 后端用 LLVM 生成代码，NVIDIA GPU 走 LLVM 的 NVPTX 后端。
 
 **TensorRT。** 它是 NVIDIA 的推理 SDK，分两个阶段：[构建阶段](https://docs.nvidia.com/deeplearning/tensorrt/latest/architecture/how-trt-works.html)由 builder 在目标 GPU 上计时，为每一层挑最快的 kernel，输出序列化的 engine（plan 文件）；运行阶段加载 engine 执行。文档说，默认情况下 engine 只保证在构建时相同的操作系统、CPU 架构、GPU 型号和 TensorRT 版本上正确运行，可用版本兼容和硬件兼容选项放宽。常见入口是先导出 ONNX 再用 ONNX parser 建网络，也可以用 Torch-TensorRT 在进程内编译（[能力说明](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/capabilities.html)），`torch.compile` 也有仅用于推理的 `"tensorrt"` backend。所以 engine 是和硬件绑定的构建产物，换卡型或升级版本后要重新构建或验证。截至 2026-10-15，文档列出的最新版本是 11.4.0。
+
+把三条路线并排放（只列上面引用过的文档说法）：
+
+| | `torch.compile`（默认 Inductor） | `jax.jit` | TensorRT |
+| --- | --- | --- | --- |
+| 什么时候抓图 | 第一次调用时，Dynamo 在字节码执行前抓出 FX graph | 第一次调用时，用 tracer 记下 jaxpr，降到 StableHLO 交给 XLA | 在单独的构建阶段：builder 在目标 GPU 上给每层计时、挑 kernel |
+| 遇到抓不了的 Python | 默认 graph break，那一段回到普通 Python 跑；`fullgraph=True` 时直接报错 | 依赖数值的 `if` 直接报错，整个函数必须能被追踪 | 不直接接 Python：先导出 ONNX，或用 Torch-TensorRT 在进程内编译 |
+| 产出什么 | GPU 上的 Triton、CPU 上的 C++/OpenMP 代码 | CPU、GPU 或 TPU 上的 XLA 可执行程序 | 序列化的 engine（plan 文件） |
+| 什么情况要重来 | guard 不满足：dtype、设备、形状、stride、`requires_grad` 变了 | 只有 shape、dtype 相同的输入才复用（[tracing 文档](https://docs.jax.dev/en/latest/tracing.html)）；static 参数换值就重编译 | 默认换操作系统、CPU 架构、GPU 型号或 TensorRT 版本，就要重新构建或验证 |
+
+从左到右，留给 Python 写法的余地越来越小；只有 TensorRT 把 GPU 型号也固定进了产物。
 
 ## 多卡：NCCL 和分布式 API 只画地图 {#nccl-map}
 

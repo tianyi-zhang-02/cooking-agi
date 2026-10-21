@@ -2,7 +2,7 @@
 
 **中文** · [English](activation-and-initialization.en.md)
 
-> 阅读时间：约 14 分钟 · 难度：基础到进阶 · 最近审阅：2026-10
+> 阅读时间：约 17 分钟 · 难度：基础到进阶 · 最近审阅：2026-10
 
 “Sigmoid 容易梯度消失，所以不要用。”这句话少了位置和任务：放在深层网络中间，和放在二分类输出端，效果并不一样。初始化也是如此，不是记住 Xavier / He 两个名字就够了。
 
@@ -64,6 +64,17 @@ $$J_\ell=\operatorname{diag}(\phi'(u_\ell))W_\ell,\qquad u_\ell=W_\ell h_{\ell-1
 
 总梯度穿过的是一串 $J_\ell$，不是只连乘激活函数的导数。若每层算子范数都至多 $c<1$，乘积范数至多为 $c^L$，这是梯度衰减的一个充分条件。反过来，某一层最大奇异值大于 1，并不保证整条链爆炸：方向可能在后续层被压缩。
 
+先把链缩到最简单：每层只有 1 个神经元，$h_\ell=\phi(w\,h_{\ell-1})$。这时每个 $J_\ell$ 就是一个数 $w\,\phi'(u_\ell)$，穿过 10 层，梯度就乘上 10 个这样的数：
+
+| 每层乘上的因子 | 10 层后的梯度倍数 |
+| --- | ---: |
+| Sigmoid，$w=1$，$\phi'\le0.25$ | 至多 $0.25^{10}\approx9.5\times10^{-7}$ |
+| ReLU 激活区，$w=0.5$ | $0.5^{10}\approx9.8\times10^{-4}$ |
+| ReLU 激活区，$w=1$ | $1$ |
+| ReLU 激活区，$w=2$ | $2^{10}=1024$ |
+
+Sigmoid 的导数最大只有 0.25（在 $u=0$ 处），$w=1$ 时每过一层至少缩成 1/4。ReLU 在激活区导数是 1，梯度大小全看 $w$：权重只差 2 倍，10 层后就差 $2^{10}$ 倍。初始化要定的，就是这个每层因子；层变宽以后，单个 $w$ 换成一整张矩阵，下面 Xavier 和 He 两节算的就是它该取多大。
+
 ReLU 负输入一次为 0，也不等于这个神经元永久死亡。更值得担心的是：它对训练中几乎所有样本都落在负半轴，且没有其他更新路径把它带回来。小权重本身不会让对称、零均值输入“几乎都变负”。
 
 先看每层 pre-activation、激活、梯度的分布，再决定是学习率、初始化、饱和、loss scale 还是计算图出了问题。裁剪梯度能限制爆炸，不能恢复已消失的信息。
@@ -108,6 +119,41 @@ def initialization_std(fan_in, fan_out, kind, negative_slope=0.0):
         return math.sqrt(2.0 / ((1.0 + negative_slope ** 2) * fan_in))
     raise ValueError("unknown initialization")
 ```
+
+把三种尺度放进同一个 20 层、宽 512 的 ReLU 网络，看梯度传回输入端还剩多少。按上面的二阶矩关系，每过一层，梯度的二阶矩约乘 $n s^2/2$，所以输入端梯度 RMS 约为 $(n s^2/2)^{10}$：标准差 0.01 时是 $0.0256^{10}\approx1.2\times10^{-16}$，Xavier 是 $0.5^{10}\approx9.8\times10^{-4}$，He 是 1。下面接着用上一段的 `initialization_std`，需要安装 PyTorch：
+
+```python
+import torch
+
+
+def input_gradient_rms(weight_std, depth=20, width=512, seed=0):
+    generator = torch.Generator().manual_seed(seed)
+    inputs = torch.randn(256, width, generator=generator, requires_grad=True)
+    hidden = inputs
+    for _ in range(depth):
+        weight = torch.randn(width, width, generator=generator) * weight_std
+        hidden = torch.relu(hidden @ weight)
+    upstream = torch.randn(hidden.shape, generator=generator)
+    (hidden * upstream).sum().backward()
+    return inputs.grad.square().mean().sqrt().item()
+
+
+small = input_gradient_rms(0.01)
+xavier = input_gradient_rms(initialization_std(512, 512, "xavier"))
+he = input_gradient_rms(initialization_std(512, 512, "he"))
+assert 5e-17 < small < 5e-16
+assert 5e-4 < xavier < 2e-3
+assert 0.5 < he < 2
+```
+
+在 PyTorch 2.8 / CPU 上，seed 0 跑出约 $1.1\times10^{-16}$、$9.2\times10^{-4}$ 和 0.94，换几个 seed 也在同一量级。Xavier 在这里偏小，因为它按线性近似推导，没算 ReLU 砍掉的一半。这只检查初始化那一刻，不代表训练中途的梯度。
+
+He 只管“穿过一层，尺度变不变”。Transformer 和 ResNet 的每个块还要把分支加回残差：$h_\ell=h_{\ell-1}+F_\ell(h_{\ell-1})$。假设每个分支都保住了输入的二阶矩，又和残差不相关，那么每过一块二阶矩就翻倍，10 块后是 $2^{10}=1024$ 倍，RMS 约大 32 倍。[Fixup 论文 §2](https://arxiv.org/abs/1901.09321) 也指出，用标准初始化、又没有 normalization 时，这类残差网络的输出方差随深度指数增长。常见的补法有两类：
+
+- **加 normalization**：[GPT-2 报告 §2.3](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) 把 LayerNorm 挪到每个子块的输入端，并在最后一个 self-attention 块之后再加一层。
+- **按深度缩小残差分支的初始化**：同一节里，GPT-2 在初始化时把残差层的权重乘 $1/\sqrt N$，$N$ 是残差层数。[Fixup §3](https://arxiv.org/abs/1901.09321) 不用 normalization，把每个残差分支的最后一层初始化为 0，分支里其余的层按深度缩小。
+
+所以网络一深、又带残差时，光有 He 不够，还要看 normalization 放在哪里、残差分支初始化成多大。
 
 ## 真正写代码时，最后检查哪几件事
 

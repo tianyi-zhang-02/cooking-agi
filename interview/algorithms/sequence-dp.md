@@ -2,7 +2,7 @@
 
 **中文** · [English](sequence-dp.en.md) · [方法地图](../leetcode.md)
 
-> 最近审阅：2026-10-09 · 先读：[回溯与 DP](backtracking-and-dp.md)
+> 最近审阅：2026-10 · 先读：[回溯与 DP](backtracking-and-dp.md)
 
 `CAB` 和 `ACB` 里，`AB` 都按同样顺序出现，但可以跳过字符。这是在找子序列，不是在找一段连续文本。最长公共子序列（LCS）长度为 2；`CB` 也是一个答案，所以“返回长度”和“返回唯一序列”不是一回事。
 

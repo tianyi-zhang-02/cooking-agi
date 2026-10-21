@@ -38,7 +38,7 @@ A dissatisfied user may reflect stale memory rather than a small model. A higher
 
 <div class="curriculum-hero">
   <div><span class="level-chip core">01 · Understand</span><strong>Follow one example</strong><p>What comes in, what computation happens, and who uses the output? Mark difficult formulas for later.</p></div>
-  <div><span class="level-chip deep">02 · Inspect</span><strong>Calculate or run a small test</strong><p>Check shapes, denominators, masks, and assumptions. Change one condition and predict the effect.</p></div>
+  <div><span class="level-chip deep">02 · Inspect</span><strong>Calculate or run a small test</strong><p>Check shapes, denominators, masks, and assumptions. Change one condition and see how the result changes.</p></div>
   <div><span class="level-chip lab">03 · Recall</span><strong>Explain it in your own words</strong><p>Pick an example, explain the design, and consider a different assumption. Return to the notes wherever you get stuck.</p></div>
 </div>
 

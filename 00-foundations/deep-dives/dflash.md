@@ -2,7 +2,7 @@
 
 **中文** · [English](dflash.en.md)
 
-> 核对：2026-10-10 · 前置：[生成与 KV cache](kv-cache-and-inference.md) · 第一遍读流程和算例；准备实现时再看采样、缓存与实验表。
+> 核对：2026-10-21 · 前置：[生成与 KV cache](kv-cache-and-inference.md) · 第一遍读流程和算例；准备实现时再看采样、缓存与实验表。
 
 一次生成多个 token，听起来都像“并行预测”。但你得先问：**谁在猜，谁说了算，猜错的计算怎么办？** MTP 主要讨论训练时的预测目标和模块；DFlash 讨论怎样用一个小 drafter 帮目标模型（target model）更快生成。两个名字并不在同一个分类层级。
 
@@ -35,7 +35,7 @@
 <details id="feature-shapes" markdown="1">
 <summary>两次“拼接”，拼的不是同一个维度</summary>
 
-先从 target 取出几层表示，拼在**特征维**上，再投影到 draft 的宽度。进入 draft attention 后，上下文与当前块的 K/V 则沿**序列维**接起来。Q 只来自当前块，不给旧上下文再算一遍输出。[官方实现的 attention](https://github.com/z-lab/dflash/blob/07ebd93db9f472af339b644bb70221ad8428328a/dflash/model.py#L343-L370)可以对照这两个轴。
+先从 target 取出几层表示，拼在**特征维**上，再投影到 draft 的宽度。进入 draft attention 后，上下文与当前块的 K/V 则沿**序列维**接起来。Q 只来自当前块，不给旧上下文再算一遍输出。[官方实现的 attention](https://github.com/z-lab/dflash/blob/07ebd93db9f472af339b644bb70221ad8428328a/dflash/model.py#L379-L393)可以对照这两个轴。
 
 用一个自拟的单头例子：2 个上下文 token，从 3 层各取宽度 4 的表示；当前块有 1 个 anchor 和 3 个 mask。暂不写 batch 维。
 

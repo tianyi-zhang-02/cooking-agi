@@ -16,7 +16,7 @@
 python3 practice/web-lab/code/server.py --db /tmp/agi-reading-list.sqlite3
 ```
 
-打开 `http://127.0.0.1:8787/?lang=zh`；右上角可以切英文。不要双击 HTML 文件，也不要把它塞进本站 `_site/` 后期待 API 自动出现。Windows 可以把 `--db` 换成自己可写的临时目录路径。
+打开 `http://127.0.0.1:8787/?lang=zh`；右上角可以切英文。地址要写 `127.0.0.1`：服务端只接受这个 Host，用 `localhost:8787` 打开会得到 403（`host_not_allowed`）。不要双击 HTML 文件，也不要把它塞进本站 `_site/` 后期待 API 自动出现。Windows 可以把 `--db` 换成自己可写的临时目录路径。
 
 试这几步：添加“BERT”→ 改成“在读”→ 刷新 → Ctrl+C 关闭 Python → 用**同一个数据库路径**重启。记录应该仍在。`/tmp` 只是练习位置，可能被系统清理，不是长期备份；保留练习结果时选仓库外的持久目录。
 

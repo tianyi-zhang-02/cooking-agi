@@ -2,7 +2,7 @@
 
 **中文** · [English](vision-to-language.en.md)
 
-> 阅读时间：约 7 分钟 · 难度：进阶 · 最近审阅：2026-10
+> 阅读时间：约 8 分钟 · 难度：进阶 · 最近审阅：2026-10
 
 CLIP 能说“这张图更像这句描述”，但不会接着写答案。要让语言模型读图，我们需要把视觉信息变成它能利用的输入，再用合适的目标教它回答。
 
@@ -42,6 +42,17 @@ flowchart TD
 ## 训练时，loss 算在哪里
 
 在这个回答生成的教学设置中，输入含图片、问题和真实答案前缀；目标是预测答案中的下一个 token。视觉位置和问题不直接计入 answer-only loss，但它们是有效上下文，仍会影响答案，梯度也可能经过它们流向可训练模块。
+
+拿一条自拟样本数一遍：一张图变成 196 个视觉位置，问题“红色方块在圆的左边吗？”假设切成 8 个 token，答案“是”加结束标记共 2 个 token，为了凑齐 batch 再补 2 个 padding。
+
+| 位置 | 个数 | 作为预测目标计入 loss？ | 答案位置能通过 attention 读到它吗？ |
+| --- | ---: | --- | --- |
+| 视觉位置 | 196 | 否 | 能 |
+| 问题 token | 8 | 否 | 能 |
+| 答案与结束标记 | 2 | 是 | 能读到自己及之前的位置 |
+| Padding | 2 | 否 | 否 |
+
+208 个位置里只有 2 个算分，所以下面公式的分母 $M=2$，不是 208，也不是去掉 padding 后的 206。逐位置的 label 怎样写，见 [VLM 微调的 mask 算例](vlm-finetuning.md)。
 
 Padding 要另看：它只是为了把样本补齐，应同时排除它的 loss，并阻止有效答案位置通过 attention 读到它。**Loss mask 决定哪些预测算分，attention mask 决定可以看哪些输入；二者不能互相替代。**正确屏蔽后，padding 输入位置不应成为答案的信息或梯度路径。这里说的是这个输入位置，不是说共享的 embedding / output 参数永远不会从其他位置收到梯度。[PyTorch 的 padding mask 说明](https://docs.pytorch.org/docs/2.8/generated/torch.nn.MultiheadAttention.html)
 

@@ -72,7 +72,18 @@ $G(X)\odot O(X)$ adds input-dependent multiplicative nonlinearity. Reading infor
 
 The gate also changes optimization. Sigmoid's derivative is $g(1-g)$, largest near 0.5 and small near either endpoint. Very large initial logits approximate an identity gate but can make the gate harder to train.
 
-The [paper](https://arxiv.org/abs/2505.06708) compares placements and gate forms and studies attention sinks and training stability. Those results are evidence for its training settings, not a guarantee that attaching a gate to any checkpoint removes attention sinks. Nor can a single attention heatmap show whether a sink is present.
+Now consider attention sinks. Softmax weights must sum to one, so a head with nothing useful to read still has to hand out that one unit of attention. Prior work cited in the paper's introduction explains sinks this way: the model piles the spare weight onto one token, often the first, whose value is near zero. The numbers below are a **teaching illustration of the mechanism, not data from the paper**: three keys have values 0 (the sink), 4, and 2.
+
+| Approach | Scores | Attention weights | SDPA output | Gate | Passed on |
+| --- | --- | --- | --- | --- | --- |
+| No gate, rely on the sink | `[3, 0, 0]` | $[0.909, 0.045, 0.045]$ | 0.27 | None | 0.27 |
+| Gate, attention stays spread out | `[0, 0, 0]` | $[1/3, 1/3, 1/3]$ | 2 | 0.1 | 0.2 |
+
+Both heads pass on little. Without a gate, the head can only do that by scoring the sink high, so the sink takes $e^3/(e^3+2)\approx0.909$ of the weight. With a gate, the attention pattern does not have to bend for this; the gate scales the output down to a tenth.
+
+The [paper](https://arxiv.org/abs/2505.06708) compares 30 gating variants on 15B-total (2.54B active) MoE models and 1.7B dense models, trained on 400B to 3.5T tokens. The best was an elementwise, head-specific sigmoid gate that multiplies the SDPA output ([§3.2](https://arxiv.org/html/2505.06708v1#S3.SS2)). It reports that in the baseline, 46.7% of attention goes to the first token on average across layers, and 4.8% with this gate; the authors attribute the drop to query-dependent sparse gating ([§4.3](https://arxiv.org/html/2505.06708v1#S4.SS3)). Those results are evidence for its training settings, not a guarantee that attaching a gate to any checkpoint removes attention sinks. Nor can a single attention heatmap show whether a sink is present.
+
+The gate also has costs: each head gets extra projection parameters and one more multiplication. The paper's dense experiments narrow the FFN to keep the total parameter count fixed ([§3.2.2](https://arxiv.org/html/2505.06708v1#S3.SS2.SSS2)). Whether the gate helps in another architecture or at another scale needs its own ablation.
 
 ## What makes a useful comparison?
 

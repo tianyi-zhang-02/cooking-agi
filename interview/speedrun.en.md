@@ -2,7 +2,7 @@
 
 [中文](speedrun.md) · **English**
 
-> Last reviewed: 2026-10 · Choose by focused learning time, not a completion deadline. This does not promise coverage of a company's entire interview loop.
+> Last reviewed: 2026-10 · Times are suggestions and can be split across sessions. This page is not any company's question bank.
 
 Your interview is scheduled, and you do not have time for hundreds of notes. Start with a few things you can finish: implement something, find a bug, explain a mechanism, and discuss a project. Open a longer note when you get stuck, not because every link needs a visit.
 

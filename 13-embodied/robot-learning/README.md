@@ -50,7 +50,7 @@
 - **开放程度分两边**：[openpi](https://github.com/Physical-Intelligence/openpi)（π0、π0-FAST、π0.5）、GR00T N1.x、OpenVLA、Octo、SmolVLA 有开放权重；Gemini Robotics 的 VLA、Figure Helix、π0.6 / π0.7 没有。PI 在 2026-10-13 开放了托管 API 内测（[PI 博客](https://www.pi.website/blog/api-beta)）。许可细节见第二篇的表。
 - **仿真往 GPU 并行集中**：[Newton](https://www.linuxfoundation.org/press/linux-foundation-announces-contribution-of-newton-by-disney-research-google-deepmind-and-nvidia-to-accelerate-open-robot-learning) 在 2025-09 交给 Linux Foundation，1.0 版在 2026-03-10 发布；NVIDIA 2026-03-16 的[新闻稿](https://nvidianews.nvidia.com/news/nvidia-and-global-robotics-leaders-take-physical-ai-to-the-real-world)说 Isaac Lab 3.0（early access）建在 Newton 1.0 和 PhysX 上；MuJoCo Warp 也属于 Newton 项目。
 - **评测转向真机**：[RoboArena](https://arxiv.org/abs/2506.18123v1) 做双盲的真机成对比较；OpenVLA-OFT 在 LIBERO 常用的 4 个评测套件上报告平均 97.1%，我们的判断是这个仿真基准已经接近天花板。
-- **人形机器人有真实部署，但规模小**：BMW 确认一台 Figure 02 参与生产了 3 万多辆 X3；Tesla 2026-07-22 的致股东信说第一代 Optimus 产线正在安装，“in anticipation of production in 2026”，首批机器人先用来采集训练数据。按官方说法逐家整理的列表在[第二篇末尾](vla.md)。
+- **人形机器人有真实部署，但规模小**：BMW 确认 Figure 02 参与生产了 3 万多辆 X3（没说用了几台）；Tesla 2026-07-22 的致股东信说第一代 Optimus 产线正在安装，“in anticipation of production in 2026”，首批机器人先用来采集训练数据。按官方说法逐家整理的列表在[第二篇末尾](vla.md)。
 
 ### 人行道配送机器人
 

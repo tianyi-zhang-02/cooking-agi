@@ -42,6 +42,16 @@ This is one way to organize the design, not a sufficient recipe for AGI or a req
 
 Retain only the goals, preferences, knowledge, constraints, and context needed for the task and permitted for storage. Track source, scope, when information was learned, and when it applies. Separate explicit statements from model inferences; a model-written “high confidence” label is not a calibrated probability of correctness.
 
+In the trip example, three records could look like this (teaching example):
+
+| Record | Source | Scope | Valid until | How this trip uses it |
+| --- | --- | --- | --- | --- |
+| Last itinerary was too packed and tiring | The user said so after the last trip | Travel pace | Long-term, but confirmed before each plan | Schedule one fewer sight per day and tell the user why |
+| Traveling with parents this time; keep it relaxed | The user said so for this trip | This trip only | The end of this trip | Affects this plan only |
+| Likes the seaside | Model inference: last time the user picked one of the seaside options the assistant offered | Destination suggestions | Never confirmed | Not used as a fact; ask first |
+
+The first two came from the user; the third is the system's guess. Why its evidence is weak is worked out under “Behavior is not the goal” below.
+
 ### 2. Long-term memory
 
 Know what is worth keeping, when to retrieve it, how to update it, and when it should be forgotten.
@@ -77,6 +87,18 @@ A person can hold several interests and roles at once, and they change over time
 What the user clicked is shaped by exposure, interface, and timing. The system needs to distinguish preference from a choice restricted by what was shown.
 
 Suppose the assistant only recommends seaside destinations and the user selects one. Treating that as evidence that they only like the seaside creates a loop: recommendations determine exposure, exposure produces feedback, and feedback narrows recommendations. Log what was shown and what was explicitly corrected; offer different options within the user's constraints rather than treating unseen options as rejected. [Chaney et al., v1](https://arxiv.org/abs/1710.11214v1) study this confounding risk in simulations, not as an inevitable outcome of all personalization.
+
+Walk through it with numbers (teaching example). Over three planning sessions, the assistant offers 3 destinations each time. The first time it offers 2 seaside places and 1 mountain place, and the user picks the seaside; the assistant then follows “recommend more of what was picked”, so sessions 2 and 3 offer only seaside places, and the user can only pick the seaside.
+
+| Session | Options shown | User picked | Chance of picking the seaside for a user with no preference who picks at random |
+| --- | --- | --- | --- |
+| 1 | 2 seaside, 1 mountain | Seaside | $2/3$ |
+| 2 | 3 seaside | Seaside | 1 |
+| 3 | 3 seaside | Seaside | 1 |
+
+Counting clicks alone, all 3 picks were the seaside, which looks like “loves the seaside 100%”. Yet a user with no preference leaves exactly the same record with probability $2/3\times1\times1\approx0.67$. A user who really loves the seaside leaves it with probability 1, so the two differ by only $1\big/\tfrac23=1.5$ times, and the record barely tells them apart.
+
+Change one condition: every session keeps 2 seaside and 1 mountain option. The chance that a user with no preference picks the seaside 3 times in a row drops to $(2/3)^3\approx0.30$, so the same record now differs by $1\big/(2/3)^3=27/8\approx3.4$ times between the two kinds of user and starts to count as evidence of a preference. A few different options buy data that can tell preferences apart; simply asking the user is often cheaper still.
 
 ### More personalized is not necessarily better
 

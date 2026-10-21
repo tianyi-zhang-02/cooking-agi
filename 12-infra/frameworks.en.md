@@ -4,7 +4,7 @@
 
 > Reading time: ~13 min · Draft, pending review
 
-You write `y = torch.relu(x @ w + b)`. Python returns at once while the GPU may still be working; wrap it in `torch.compile` and the same line gets noticeably faster. What sits in between? **In eager mode this line becomes 3 separate ATen operators, at least 3 kernels and two memory round-trips that could have been avoided; what a compiler saves is mostly not multiplications but per-operator CPU overhead and the reads and writes of intermediate results.**
+You write `y = torch.relu(x @ w + b)`. Python returns at once while the GPU may still be working; wrap it in `torch.compile` and the same line gets noticeably faster. What sits in between? **In eager mode this line becomes 3 separate ATen operators, at least 3 kernels and two memory round-trips that could have been avoided; a compiler mostly saves per-operator CPU overhead and the reads and writes of intermediate results; it does not remove a single multiplication.**
 
 > **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
@@ -127,6 +127,17 @@ Compilation has costs too: the first call pays for compiling; a shape change may
 **JAX and XLA.** [`jax.jit`](https://docs.jax.dev/en/latest/jit-compilation.html) wraps arguments in tracer objects, and the recorded operations form a jaxpr; per the [AOT docs](https://docs.jax.dev/en/latest/aot.html), the jaxpr is then lowered to StableHLO, XLA's input language, compiled into an executable for CPU, GPU or TPU, and cached. Traced values can influence control flow only through static attributes such as shape and dtype; a value-dependent Python `if` raises an error under jit, and an argument marked static triggers a recompilation for every new value. Unlike Dynamo, which graph-breaks and falls back to Python on unsupported code, jit requires the whole function to be traceable. The [XLA architecture page](https://openxla.org/xla/architecture) says XLA first runs hardware-independent optimizations (common subexpression elimination, operation fusion, buffer analysis) and then backend-specific ones; the CPU and GPU backends use LLVM for code generation, with NVIDIA GPUs going through LLVM's NVPTX backend.
 
 **TensorRT.** It is NVIDIA's inference SDK and works in two phases: in the [build phase](https://docs.nvidia.com/deeplearning/tensorrt/latest/architecture/how-trt-works.html) a builder times candidates on the target GPU and picks the fastest kernel for each layer, producing a serialized engine (a plan file); the runtime phase loads the engine and executes it. The docs say that by default an engine is only guaranteed to work with the same OS, CPU architecture, GPU model and TensorRT version used to build it, and that version- and hardware-compatibility options can relax this. The common entry is to export ONNX and build the network with the ONNX parser; Torch-TensorRT compiles in-process instead (see [capabilities](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/capabilities.html)), and `torch.compile` also has an inference-only `"tensorrt"` backend. So an engine is a build artifact tied to the hardware: after changing GPU type or upgrading versions, rebuild or re-validate it. As of 2026-10-15, the docs list 11.4.0 as the latest version.
+
+The three routes side by side (only what the docs cited above say):
+
+| | `torch.compile` (default Inductor) | `jax.jit` | TensorRT |
+| --- | --- | --- | --- |
+| When the graph is captured | On the first call, Dynamo captures an FX graph before the bytecode runs | On the first call, tracers record a jaxpr, which is lowered to StableHLO and handed to XLA | In a separate build phase: the builder times each layer on the target GPU and picks kernels |
+| Python it cannot capture | Graph break by default, and that part runs as plain Python; with `fullgraph=True` it raises an error | A value-dependent `if` raises an error; the whole function must be traceable | Takes no Python directly: export ONNX first, or compile in-process with Torch-TensorRT |
+| What it produces | Triton code on GPU, C++/OpenMP code on CPU | An XLA executable for CPU, GPU or TPU | A serialized engine (plan file) |
+| What forces a redo | A failed guard: dtype, device, shape, stride or `requires_grad` changed | Only inputs with the same shape and dtype reuse it ([tracing docs](https://docs.jax.dev/en/latest/tracing.html)); a new value of a static argument recompiles | By default, a different OS, CPU architecture, GPU model or TensorRT version means rebuilding or re-validating |
+
+From left to right, there is less and less room for arbitrary Python; only TensorRT also fixes the GPU model into its output.
 
 ## Multi-GPU: only a map of NCCL and the distributed APIs {#nccl-map}
 

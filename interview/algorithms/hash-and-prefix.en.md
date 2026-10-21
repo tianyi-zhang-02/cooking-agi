@@ -2,7 +2,7 @@
 
 [中文](hash-and-prefix.md) · **English** · [Pattern map](../leetcode.en.md)
 
-> Reading time: ~7 min · Last reviewed: 2026-09
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 If every new value makes you scan all earlier ones, ask: **can I store the information I'll need to query later?** The important part isn't memorizing `dict`; it's choosing keys and values.
 

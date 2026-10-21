@@ -47,7 +47,7 @@ assert coarse == fine == with_shared == (786432, 196608)
 
 第二个改动：留出 $K_s$ 个**所有 token 都要经过**的 shared expert，让共享计算有一条固定路径，减少 routed experts 重复学习的需要。这是设计意图，不是给专家规定好了知识分区；不能保证“语法一定在 shared，数学一定在某个 routed expert”。
 
-论文报告 DeepSeekMoE 16B 用大约 40% 的计算量，做到了和 LLaMA2 7B 相当的效果。DeepSeek-V3 把这两个改动都留了下来：61 层里前 3 层是 dense，其余每层 1 个 shared expert 加 256 个 routed expert，每个 token 挑 8 个，每个 expert 的中间维度只有 2048（模型的 hidden size 是 7168）。
+论文报告 DeepSeekMoE 16B 用大约 40% 的计算量，做到了和 LLaMA2 7B 相当的效果。DeepSeek-V3 把这两个改动都留了下来：61 层里前 3 层是 dense，其余 58 层每层 1 个 shared expert 加 256 个 routed expert，每个 token 挑 8 个，每个 expert 的中间维度只有 2048（模型的 hidden size 是 7168）。
 
 ## 不是每家都这么做
 
@@ -63,7 +63,7 @@ assert coarse == fine == with_shared == (786432, 196608)
 | Gemma 4 26B A4B（2026） | 128 | 8 | 1 个 |
 | Kimi K3（2026） | 896 | 16 | 2 个（完整宽度） |
 
-[Qwen3 技术报告](https://arxiv.org/abs/2505.09388)明确说明，相比报告中的 Qwen2.5-MoE，Qwen3-MoE 不再使用 shared experts。Llama 4 Maverick 则每个 token 走 1 个 shared expert，外加 128 个 routed expert 里的 1 个。到了 2026 年，Qwen 的 MoE 又把 shared expert 加了回来：Qwen3-Next-80B-A3B、Qwen3.5-397B-A17B 和 Qwen3.8-2.4T-A95B 都是 512 个 routed 加 1 个 shared，Qwen3.6-35B-A3B 是 256 个加 1 个，所以“Qwen3 没有 shared expert”只对初版成立。比较时记下具体 checkpoint，别只记家族名。2026 年各行的来源见 [MoE 总览的参数表](README.md)（截至 2026-10）。
+[Qwen3 技术报告](https://arxiv.org/abs/2505.09388)明确说明，相比报告中的 Qwen2.5-MoE，Qwen3-MoE 不再使用 shared experts。Llama 4 Maverick 则每个 token 走 1 个 shared expert，外加 128 个 routed expert 里的 1 个。从 2025-09 的 [Qwen3-Next-80B-A3B](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct) 起，Qwen 的 MoE 又把 shared expert 加了回来：它和 2026 年的 [Qwen3.5-397B-A17B](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)、[Qwen3.8-2.4T-A95B](https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B) 都是 512 个 routed 加 1 个 shared，[Qwen3.6-35B-A3B](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) 是 256 个加 1 个，所以“Qwen3 没有 shared expert”只对初版成立。比较时记下具体 checkpoint，别只记家族名。表中其他 2026 行的来源见 [MoE 总览的参数表](README.md)（截至 2026-10）。
 
 ## 怎么选
 

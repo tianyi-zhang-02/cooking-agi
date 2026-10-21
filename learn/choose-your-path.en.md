@@ -2,7 +2,7 @@
 
 [中文](choose-your-path.md) · **English**
 
-Pick what you'd like to do next: understand a model, practice for an interview, read research, build something, study one topic, or get ready to apply.
+Find material by your current goal: getting started, reviewing for interviews, reading papers, building a project, studying one topic, or preparing to apply. Each route lists a starting point and a suggested exercise.
 
 <nav class="study-route goal-route" aria-label="Choose a route by goal">
 <a href="#getting-started"><small>Build an understanding</small><strong>I'm new to ML / LLMs</strong><span>From a prediction problem to a Transformer</span></a>
@@ -13,7 +13,7 @@ Pick what you'd like to do next: understand a model, practice for an interview, 
 <a href="#applications"><small>Plan the job search</small><strong>I need to decide what to prepare</strong><span>Role choices, project discussions, and interview reflections</span></a>
 </nav>
 
-Each route has a starting point and somewhere you can stop for now. Skip what you know and fill in gaps as needed. These notes are closest to ML / LLM learning and MLE / research preparation, not a universal interview syllabus.
+Skip what you already know. These notes mainly cover ML / LLM and MLE / research topics; other roles need knowledge from their own fields as well.
 
 ## Getting started: follow one computation {#getting-started}
 
@@ -23,11 +23,11 @@ A little Python is enough to begin. If vectors and gradients are unfamiliar, sta
 2. [Transformer walkthrough](../00-foundations/transformer-lab.en.md): follow a short input through attention, FFNs, and residual connections.
 3. [Training basics](pretraining/README.en.md): how a prediction error becomes a parameter update.
 
-**A useful stopping point:** explain the input, prediction, loss, and update for a short sentence. You don't need every matrix equation memorized. To check your understanding in code, try the [PyTorch exercises](../00-foundations/pytorch/README.en.md). Model families, MoE, and distributed training can wait.
+**Try it:** take a short sentence and explain how the input becomes a prediction and how the loss takes part in the parameter update. Then check the computation against the [PyTorch exercises](../00-foundations/pytorch/README.en.md). Model families, MoE, and distributed training can wait.
 
 ## Interviews: find the part that needs practice {#interviews}
 
-In [Interview prep](../interview/README.en.md), pick the area you need. With a background, go straight to the [quick review](../interview/speedrun.en.md); to build up step by step, use the [study plan](../interview/study-plan.en.md). The first narrows the scope; the second follows the prerequisites. Both let you start with what you know. Suggested hour budgets are not deadlines.
+In [Interview prep](../interview/README.en.md), pick the area you need. With a background, go straight to the [quick review](../interview/speedrun.en.md); to build up systematically, use the [study plan](../interview/study-plan.en.md). The hours in the routes are a guide; split them to fit your schedule.
 
 Start with the job description and any interview information you've received. Two MLE roles may emphasize quite different things. For what to practice first by role, and what to leave when time is short, see the [role-based guide](../interview/ai-roles-prep.en.md#routes). Without a particular interview coming up, try one concept question and one small implementation to see where you get stuck.
 
@@ -35,17 +35,17 @@ Start with the job description and any interview information you've received. Tw
 2. **Understand it but can't implement it?** Try [ML coding](ml-exercises/README.en.md). Check shapes, masks, gradients, and boundary cases.
 3. **Slow to code or unsure how to approach a problem?** Start with [Python](../interview/python.en.md) and [algorithm patterns](../interview/leetcode.en.md). Practice methods rather than memorizing problem numbers.
 
-**A useful stopping point:** solve a small problem independently, explain your choices, and test a different input. Add [Feed / RAG / Memory design](system-design/README.en.md) when you need system design, and [project preparation](../career/prepare.en.md) for project discussions. One interview isn't a reason to complete every route at once.
+**Practice:** solve a problem on your own, explain your approach, then test a few other inputs. For design questions, continue with [Feed / RAG / Memory design](system-design/README.en.md); for project follow-up questions, see [what to prepare](../career/prepare.en.md).
 
 ## Research: work out what actually changed {#research}
 
-This route is for readers who know roughly how a Transformer works and want to read model reports or discuss a research project. Research Scientist and Research Engineer requirements vary by team. This is practice in reading and discussing work, not a promise of meeting a role's requirements.
+This route suits readers who know how a Transformer works and want to read papers or model reports. The focus is what the authors changed and what their experiments support; Research Scientist and Research Engineer requirements still depend on the team.
 
 1. [Architecture components](../00-foundations/deep-dives/README.en.md): identify the component a paper changes, then fill in unfamiliar mechanisms.
 2. [Model families](../00-foundations/model-families/README.en.md): compare designs using the same questions rather than collecting version names.
 3. [Evaluation basics](../07-evaluation/README.en.md): examine baselines, data, metrics, and ablations to decide what the results support.
 
-**A useful stopping point:** write one page describing the problem, method, evidence, and something you still aren't sure about. Recalculate an example where possible. If you can't reproduce the full model, state which part you checked. For post-training research, connect the [principles](../05-post-training/README.en.md) to [experiment design](../practice/post-training/README.en.md); you don't need to read every model family first.
+**Try it:** summarize the problem, method, results, and open questions on one page. Recompute any example you can; if you only checked part of it, say which part. If post-training interests you, continue with the [principles](../05-post-training/README.en.md) and [experiment practice](../practice/post-training/README.en.md).
 
 ## Projects: get one path working first {#projects}
 
@@ -57,11 +57,11 @@ Already comfortable writing programs? Pick the project you want to explore:
 - [A RAG knowledge base](../practice/rag/README.en.md): connect document versions and permissions to retrieval, citations, and answer checks.
 - [Post-training experiments](../practice/post-training/README.en.md): start with an error to fix, then choose SFT, construct batches, consider multiple GPUs, restore checkpoints, and decide whether to release.
 
-**A useful stopping point:** run a minimal example, change one condition, and explain the effect. Remove a supporting document, for example, or interrupt and resume training. For a design interview, try a [system-design problem](system-design/README.en.md) first, then use the implementations to challenge your proposal.
+**Try it:** run a minimal example, then change one condition: remove the document that supports an answer, for example, or interrupt training and resume it, and watch how the system handles it. For a design interview, try a [system-design problem](system-design/README.en.md) first, then check your proposal against the project implementations.
 
 ## Only interested in one topic? Start there {#topics}
 
-You don't need to follow the routes above first. These are topic entrances, each with its own reading order—not a required syllabus.
+The entries below are grouped by topic; each topic has its own, more detailed reading order.
 
 <div class="worked-table" markdown="1">
 
@@ -77,7 +77,7 @@ You don't need to follow the routes above first. These are topic entrances, each
 | Inference speed, cost, and reliability | [Inference](inference/README.en.md) · [AI systems](../06-systems/README.en.md) · [Model experience](../08-model-experience/README.en.md) |
 | Chips, GPUs, CUDA, and clusters | [AI infrastructure](../12-infra/README.en.md) (draft, pending review) |
 | Perception, robots, and driving | [From pixels to actions](../13-embodied/README.en.md) (draft, pending review) |
-| Directions still in motion | [Frontier](../11-frontier/README.en.md): world models and recursive self-improvement are reviewed; test-time compute, agent RL, and interpretability are drafts pending review |
+| Directions still in motion | [Frontier](../11-frontier/README.en.md): world models and recursive self-improvement are reviewed; test-time compute, agent RL, interpretability, and diffusion language models are drafts pending review |
 
 </div>
 
@@ -88,10 +88,10 @@ For a particular term, use the search button at the top or press `/`. Try either
 1. [What to prepare](../career/prepare.en.md): allocate effort around the role and your own gaps.
 2. [An interview retrospective](../career/one-interview.en.md): record specific problems after an interview, then adjust your preparation.
 
-**A useful stopping point:** pick a near-term goal, identify the gap that matters most, and plan one concrete exercise. For my experience, see the [25–26 internship search](../career/journey.en.md) and [26–27 new-grad search](../career/new-grad-2026-2027.en.md). They're accounts of a search, not a schedule you need to match.
+Start by listing what you need to fill in before your next interview, then plan specific exercises. My own experience is in the [25–26 internship search](../career/journey.en.md) and [26–27 new-grad search](../career/new-grad-2026-2027.en.md), for reference only.
 
 ## See the full collection, or come back later {#all-notes}
 
-Pick an area for what you need: [Foundations](README.en.md) explains mechanisms, [Interview prep](../interview/README.en.md) has review and practice, [Engineering practice](../practice/README.en.md) breaks down systems, [Tech history](technology-timeline.en.md) follows how the field developed, and [Career](../career/README.en.md) covers experiences and decisions. A note lives in one place; routes link to it rather than duplicating it.
+Everything lives in [Foundations](README.en.md), [Interview prep](../interview/README.en.md), [Engineering practice](../practice/README.en.md), [Tech history](technology-timeline.en.md), and [Career](../career/README.en.md). The routes are only different reading orders that point to the same articles.
 
-Use **中文 / EN** at the top to switch the same note. Save a note with **Save this page** under its title, then find it, along with recently opened pages, under **My reading**. Records stay in this browser; export a backup under Settings before moving devices. The collection is still growing. [Coverage and backlog](coverage.en.md) distinguishes what is written from what still needs checking.
+Use **中文 / EN** at the top to switch the same note. Save a note with **Save this page** under its title, then find it, along with recently opened pages, under **My reading**. Records stay in this browser; export a backup under Settings before moving devices. The collection is still growing; [coverage and backlog](coverage.en.md) shows what is written and what still needs checking.

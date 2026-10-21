@@ -90,7 +90,7 @@ $h$ 是模型某层的激活，$w,b$ 是探针参数，$\hat y$ 是读出的变�
 
 **Physics-IQ。** [Motamed 等](https://arxiv.org/abs/2501.09038)（Google DeepMind 与 INSAIT，2025-01）用真实视频做物理基准，原论文里最好的成绩是 29.5%（VideoPoet，multiframe），并发现物理理解程度和画面逼真度无关。[Physics-IQ Verified](https://arxiv.org/abs/2606.18943)（Rädsch 等，2026-06-17）审核了原基准，修订了 57.6% 的样本，改为按样本计分，模型排名有中等程度的变化（Kendall τ = 0.46）。
 
-社区维护的 [Physics-IQ Verified 排行榜](https://github.com/google-deepmind/physics-IQ-benchmark)在 2026-10-15 读取时：榜首是 Odyssey-3 Pro 加 best-of-8，66.10（video-to-video，Odyssey 公司自报）；前沿的 image-to-video 模型里，Sora 2 为 26.5，Veo 3.1 Fast 为 29.96，Seedance 2.5 为 42.43；Cosmos3-Super（multiframe）为 50.8 ± 2.2。分数由社区提交，有的用了 best-of-N 和定制提示，输入方式也不同，不能直接横比。
+[Physics-IQ Verified 排行榜](https://github.com/google-deepmind/physics-IQ-benchmark)放在 Google DeepMind 的仓库里，但 README 写明它是独立的第三方基准，不经 Google DeepMind 背书。2026-10-15 读取时：榜首是 Odyssey-3 Pro 加 best-of-8，66.10（video-to-video，Odyssey 公司自报）；前沿的 image-to-video 模型里，Sora 2 为 26.5，Veo 3.1 Fast 为 29.96，Seedance 2.5 为 42.43；Cosmos3-Super（multiframe）为 50.8 ± 2.2。条目通过 pull request 提交，要附报告或可复现的代码；有的用了 best-of-N 和定制提示，输入方式也不同，不能直接横比。
 
 best-of-N 会抬高多少？教学算例：假设单次生成“物理对”的概率是 0.3，各次独立，再有一个总能挑中对的那条的裁判，8 选 1 的成功率是 $1-0.7^8\approx0.94$。真实的 Physics-IQ 分数不是对错二值，挑选也不完美，但方向一样：只有在相同 N、相同提示策略下比较才公平。
 

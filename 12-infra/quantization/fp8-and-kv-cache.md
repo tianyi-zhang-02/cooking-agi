@@ -14,7 +14,7 @@ E4M3、E5M2 的格子和块缩放见[格式与误差](formats-and-error.md)，KV
 
 FP8 W8A8 同时换来两样东西：权重字节减半，decode 跟着快（上一篇的表里 batch 1 是 2.54 对 4.77 ms）；激活也是 FP8，矩阵乘走 FP8 Tensor Core，H100 SXM5 的 dense 峰值从 BF16 的 989.4 TFLOPS 翻到 1,978.9 TFLOPS（[白皮书 V1.04](https://dam-cdn.nvd.orangelogic.com/AssetLink/705n6ur546g0uk43w0117r17n8042d73.pdf)），prefill 和大 batch 也受益。前提是硬件有 FP8 Tensor Core，即 compute capability 8.9 以上；[vLLM v0.31.0 的 FP8 文档](https://docs.vllm.ai/en/v0.31.0/features/quantization/llm_compressor/fp8/)写明，Turing、Ampere 上同一个 FP8 模型只能用 Marlin kernel 跑 W8A16，权重省了，算力没有涨。
 
-scale 的常见定法，就是这份文档推荐的 `FP8_DYNAMIC` 方案：权重按输出通道各一个静态 scale；激活按 token 动态算 scale，不需要校准数据。另一种在线模式 `fp8_per_tensor` 给权重一个 per-tensor scale，激活的最大最小值每次前向都现算，文档说这种模式下延迟改善有限。文档自报 FP8 让模型显存减半、吞吐最多提高 1.6 倍。
+scale 的常见定法，就是这份文档推荐的 `FP8_DYNAMIC` 方案：权重按输出通道各一个静态 scale；激活按 token 动态算 scale，不需要校准数据。另一种在线模式 `fp8_per_tensor` 给权重一个 per-tensor scale，激活的最大最小值每次前向都现算，文档说这种模式下延迟改善有限。文档自报 FP8 让模型显存减半、吞吐最多提高 1.6 倍，但没有写明硬件和负载。
 
 质量上，[Kurtic 等（2024-11，ACL 2025）](https://arxiv.org/abs/2411.02355)的 FP8 W8A8 只用 RTN：权重 per-output-channel 对称量化，激活 per-token 动态量化，不用校准数据。在 Llama-3.1 8B、70B、405B 上，Open LLM Leaderboard v2 的平均分恢复率（量化后得分 ÷ BF16 得分）分别是 101.2%、100.0%、99.9%，论文称之为近似无损；同一篇里调好的 INT8 W8A8 掉 1–3%。
 
@@ -64,13 +64,13 @@ batch 3、每条 128K 时，每一步 decode 要读权重加 3 份 KV。按 3,35
 
 | 权重 + KV | 每步读的字节 | 每步至少 | KV 占读取量 |
 | --- | ---: | ---: | ---: |
-| BF16 + BF16 | 67.5 GB | 20.2 ms | 76% |
+| BF16 + BF16 | 67.5 GB | 20.1 ms | 76% |
 | FP8 + BF16 | 60.0 GB | 17.9 ms | 86% |
 | BF16 + FP8 | 41.8 GB | 12.5 ms | 62% |
 | FP8 + FP8 | 34.3 GB | 10.2 ms | 75% |
 | BF16 + INT4 | 32.1 GB | 9.6 ms | 50% |
 
-在这个长度上，只压权重从 20.2 ms 到 17.9 ms，只压 KV 到 12.5 ms：**谁占字节的大头，就先压谁。** decode 时 attention 部分的算术强度和 batch 无关，只有每字节几次运算，见[性能](../performance.md#decode-batching)，所以少读的字节几乎都会变成时间。短上下文时情况相反：2K token 时一条序列的 BF16 KV 只有 0.27 GB，权重才是大头。
+在这个长度上，只压权重从 20.1 ms 到 17.9 ms，只压 KV 到 12.5 ms：**谁占字节的大头，就先压谁。** decode 时 attention 部分的算术强度和 batch 无关，只有每字节几次运算，见[性能](../performance.md#decode-batching)，所以少读的字节几乎都会变成时间。短上下文时情况相反：2K token 时一条序列的 BF16 KV 只有 0.27 GB，权重才是大头。
 
 ### key 和 value 为什么要分开量化
 
@@ -89,7 +89,7 @@ $$
 
 两种方式下 $K$ 的相对误差（Frobenius 范数）是 8.6% 对 0.6%，看起来都不算大，但按 token 时分数几乎全错：离群通道撑大了范数，query 却主要看其他通道。**量 KV 量化的误差，要看 attention 分数和输出，不能只看 K 本身的相对误差。**
 
-KIVI 的实测（Llama-2-7B，表 3）：16 位时 GSM8K 13.50；用模拟量化把所有 token 都压到 2 bit 时，key 按通道、value 按 token 是 5.76，两者都按 token 只剩 0.83；完整的 KIVI-2（组长 32，最近 128 个 token 保持全精度）是 12.74。LongBench 平均分 16 位 44.52、KIVI-2 44.27（表 4）。论文自报连同权重的峰值显存少 2.6 倍，batch 最多大 4 倍，吞吐提高 2.35–3.47 倍。[KVQuant（2024-01，NeurIPS 2024）](https://arxiv.org/abs/2401.18079)也按通道量化 key，并在 RoPE 之前量化 key 以减小位置编码对量化的影响，再加上按层的非均匀格子和逐向量的离群值分离；自报 3 bit 时 WikiText-2 和 C4 困惑度损失小于 0.1，LLaMA-7B 在一张 A100-80GB 上能跑 100 万 token 上下文、8 卡上 1,000 万。
+KIVI 的实测（Llama-2-7B，表 3）：16 位时 GSM8K 13.50；用模拟量化把所有 token 都压到 2 bit 时，key 按通道、value 按 token 是 5.76，两者都按 token 只剩 0.83；完整的 KIVI-2（组长 32，最近 128 个 token 保持全精度）是 12.74。LongBench 平均分 16 位 44.52、KIVI-2 44.27（表 4）。论文自报（Llama-2-7B，单张 A100 80GB）连同权重的峰值显存少 2.6 倍，batch 最多大 4 倍，吞吐提高 2.35–3.47 倍。[KVQuant（2024-01，NeurIPS 2024）](https://arxiv.org/abs/2401.18079)也按通道量化 key，并在 RoPE 之前量化 key 以减小位置编码对量化的影响，再加上按层的非均匀格子和逐向量的离群值分离；自报 3 bit 时 WikiText-2 和 C4 困惑度损失小于 0.1，LLaMA-7B 在一张 A100-80GB 上能跑 100 万 token 上下文、8 卡上 1,000 万。
 
 ### 在引擎里怎么开
 

@@ -78,7 +78,7 @@ Beam search 只改变推理时怎样保留候选序列，不改变模型训练�
 - 任意两位置之间的信息路径仍可能很长；
 - attention 提供了动态读取，但 recurrent state 仍限制时间维的并行。
 
-Transformer 的关键动作不是“发明 attention”，而是把 recurrence 全部拿掉，只保留 attention 与逐位置计算。
+Attention 在 Transformer 之前就有了；Transformer 的关键动作是把 recurrence 全部拿掉，只保留 attention 与逐位置计算。
 
 ## 实验：学习序列反转 {#_5}
 

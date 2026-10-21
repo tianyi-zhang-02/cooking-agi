@@ -2,7 +2,7 @@
 
 **中文** · [English](systems.en.md)
 
-> 阅读时间：约 6 分钟 · 难度：进阶 · 最近审阅：2026-10
+> 阅读时间：约 8 分钟 · 难度：进阶 · 最近审阅：2026-10
 
 每个 token 只算 8 个专家，为什么部署起来还是不省事？因为“算得少”只是一笔账。另外两笔是：token 要在卡之间搬来搬去，全部专家的权重都得放得下。
 
@@ -80,7 +80,28 @@ assert round(experts_touched(256, 8, 128), 3) == 0.983
 
 ## 数值精度
 
-router 的 softmax 对数值很敏感。Switch Transformer 让 router 单独用 fp32 算，其余部分照旧低精度；[负载均衡那篇](load-balancing.md)讲的 z-loss，针对的也是这个问题。
+Router 的分数只差一点，就可能换一个专家；低精度恰好会抹掉这一点差距。BF16 只有 8 位有效二进制位，能分辨的最小间隔随数值变大：2 附近是 $1/64\approx0.0156$，10 附近已经是 $1/16=0.0625$。
+
+拿两个 expert 的 logits 算一次，两组都只差 0.03：
+
+| FP32 logits | 转成 BF16 后 | 结果 |
+| --- | --- | --- |
+| `[2.00, 2.03]` | `[2.0, 2.03125]` | 次序保留，第 2 个仍然更高 |
+| `[10.00, 10.03]` | `[10.0, 10.0]` | 变成并列；选谁取决于并列怎么处理，不再由 router 决定 |
+
+在 FP32 里，两组的 softmax 都约为 `[0.4925, 0.5075]`；只有第二组在 BF16 里丢掉了这点差别。
+
+```python
+import torch
+
+def bf16_logits(logits):
+    return torch.tensor(logits, dtype=torch.float32).bfloat16().float().tolist()
+
+assert bf16_logits([2.0, 2.03]) == [2.0, 2.03125]
+assert bf16_logits([10.0, 10.03]) == [10.0, 10.0]
+```
+
+两种常见做法管的正是这件事：[Switch Transformer](https://arxiv.org/abs/2101.03961) 只把 router 的输入和计算转成 FP32，其余部分照旧低精度；[ST-MoE](https://arxiv.org/abs/2202.08906) 的 router z-loss（见[负载均衡](load-balancing.md)）让 router logits 保持较小，舍入误差也就跟着变小。两者都不保证路由稳定，也不能代替负载均衡。这个算例只说明舍入能改变选择，不代表训练中这种翻转有多常见。
 
 ## 小结
 

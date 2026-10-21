@@ -32,7 +32,7 @@ The same judgment may serve different purposes. Comparing two prompts offline an
 
 **New to judges?** Follow 01 → 02 → 03. **Already using one?** Start with [bias checks](bias-and-workflow.en.md) and [calibration](calibration.en.md). **Ready to build?** Bring one rubric to the [minimal implementation](implementation.en.md), then return to the concepts you need.
 
-Each page tackles one question. There's no checklist to memorize before moving on, and no need to finish everything in one sitting.
+Each page tackles one question.
 
 ## Why ask a model when a rule would do?
 

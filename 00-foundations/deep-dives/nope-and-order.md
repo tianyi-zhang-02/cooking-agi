@@ -85,7 +85,7 @@ $$
 
 ## Kimi K3：顺序信息换了来源 {#kimi-k3}
 
-Kimi K3 v1 把 KDA 与 Gated MLA 按 3:1 交替堆叠，末尾再加一层 MLA。KDA 提供有序状态更新；MLA 的 Q/K 不加显式位置编码。这里的全局读取仍受因果约束。[报告 §2.1](https://arxiv.org/html/2607.24653v1#S2.SS1)
+据 Kimi K3 技术报告（arXiv v1），K3 把 KDA 与 Gated MLA 按 3:1 交替堆叠，末尾再加一层 MLA。KDA 提供有序状态更新；MLA 的 Q/K 不加显式位置编码。这里的全局读取仍受因果约束。[报告 §2.1](https://arxiv.org/html/2607.24653v1#S2.SS1)
 
 所以它不是“把一个现成 RoPE 模型的旋转函数删掉”。要看完整的 token-mixing 路径。KDA 的矩阵状态也比开头的标量例子复杂；先读 [Gated DeltaNet](gated-deltanet.md) 的按误差写入，再看 [Kimi Linear](https://arxiv.org/abs/2510.26692) 的通道级遗忘，比直接背缩写容易理解。
 

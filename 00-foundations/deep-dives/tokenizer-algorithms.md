@@ -50,7 +50,7 @@ pieces = tokenizer.tokenize("rair")
 ids = tokenizer.encode("rair")
 assert tokenizer.token_to_id["<unk>"] not in ids
 assert tokenizer.decode_tokens(pieces) == "rair"
-print(pieces, ids)
+print(pieces, ids)  # ['▁rai', 'r'] [9, 6]
 ```
 
 从 `00-foundations/code/` 运行。这个实现额外使用 `▁` 标记词首，所以具体 merge 顺序不必等于上表。它还会折叠连续空白，不是生产级、逐字节可逆的 tokenizer。原始 BPE 子词方法见 [Sennrich 等人的论文](https://arxiv.org/abs/1508.07909)。
@@ -84,7 +84,7 @@ player  → play + ##er
 
 `##` 在这里表示“不是词首”，不是原文真的有井号。BERT 风格实现若无法完整分解一个词，可能把整个词变成 `[UNK]`；具体处理要看实现。
 
-WordPiece **训练**与**编码**别混在一起。教材常用 `freq(a,b)/(freq(a)freq(b))` 解释候选合并，但不能把它称为所有 WordPiece 实现的统一规范。Hugging Face 的[教学实现](https://huggingface.co/learn/llm-course/chapter6/6)也明确说明：原始训练实现未完整公开，这是一种根据文献做的重建。编码阶段的最长匹配，与 BPE 按 merge 优先级合并，是更应该记住的区别。
+WordPiece **训练**与**编码**别混在一起。教材常用 `freq(a,b)/(freq(a)freq(b))` 解释候选合并，但不能把它称为所有 WordPiece 实现的统一规范。Hugging Face 的[教学实现](https://huggingface.co/learn/llm-course/chapter6/6)也明确说明：Google 没有开源原始的训练实现，这是一种根据文献做的重建。编码阶段的最长匹配，与 BPE 按 merge 优先级合并，是更应该记住的区别。
 
 ## Unigram：比较完整切分的得分
 

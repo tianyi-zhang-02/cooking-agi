@@ -2,7 +2,7 @@
 
 [中文](04-modern-recsys.md) · **English**
 
-> Checked 2026-10-09. The X discussion uses the linked `77d431a` snapshot. Public code and papers only—not a claim to know complete production configurations.
+> Checked 2026-10-21. The X discussion uses the linked `77d431a` snapshot. Public code and papers only—not a claim to know complete production configurations.
 
 ## Newer doesn't mean replacing everything
 
@@ -40,6 +40,17 @@ A Transformer may encode history, score candidates, or autoregressively generate
 3. **TIGER: can retrieval generate identifiers?** The paper uses Semantic IDs and a sequence model to predict the next item's identifier. This is a research direction, not proof that every platform replaced ANN, and not a chatbot writing recommendation explanations. [Paper](https://arxiv.org/abs/2305.05065v3)
 
 Another distinction: **using Semantic IDs does not by itself make retrieval generative.** The Phoenix snapshot uses SIDs as item-side inputs and still compares vectors. TIGER generates ID sequences as its target. Look at whether the model outputs a vector or decodes an identifier—not simply whether it uses SIDs.
+
+### Candidate isolation: does a different batch change the score? {#candidate-isolation}
+
+Work through a toy by hand. Each position holds one number: user 0.6, history 0.4, candidates c1=0.9, c2=0.1, c3=0.5. To keep the arithmetic simple, let a candidate's “score” be the mean of the numbers it can see. A real model takes an attention-weighted sum; the toy keeps only the question of which positions it can see.
+
+| c1's batch partner | Isolated: c1 sees user, history, and itself | Not isolated: c1 also sees other candidates |
+| --- | --- | --- |
+| c2 | (0.6+0.4+0.9)/3 ≈ 0.633 | (0.6+0.4+0.9+0.1)/4 = 0.500 |
+| c3 | (0.6+0.4+0.9)/3 ≈ 0.633 | (0.6+0.4+0.9+0.5)/4 = 0.600 |
+
+Without isolation, c1's score moves with its batch partner. With isolation, it depends only on the user context and c1 itself. Each candidate can then be scored and debugged on its own, and repetition and diversity are left to the later list-selection step. The cost comes from the same mask: this scoring step does not consider which other candidates share the batch. Phoenix's documentation draws this mask and states that a candidate's score depends only on the user and that candidate. [Attention-mask description](https://github.com/xai-org/x-algorithm/blob/77d431aabf409ca1c1eed9bec7e2183f7c914e23/phoenix/README.md)
 
 ## What hasn't disappeared
 
