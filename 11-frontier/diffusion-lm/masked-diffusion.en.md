@@ -2,11 +2,9 @@
 
 [中文](masked-diffusion.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 BERT also hides a few words and guesses them. Yet if you take a trained BERT, start from an input that is all `[MASK]` and keep filling in blanks, you do not get a decent paragraph; LLaDA uses a Transformer without a causal mask and a cross-entropy loss too, and it can hold a conversation. The difference is not the network but two details: **each training example draws its own masking ratio $t$, anywhere from almost nothing masked to everything masked, and the loss on masked positions is multiplied by $1/t$. The resulting objective is exactly "the autoregressive (AR) loss averaged over all generation orders", and it is an upper bound on the negative log-likelihood (NLL). The price is that the model has to learn every order, including the hard ones.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 This note covers only the training objective. How the blanks are filled step by step, and when that beats AR decoding, is in [the next note](decoding-and-speed.en.md).
 

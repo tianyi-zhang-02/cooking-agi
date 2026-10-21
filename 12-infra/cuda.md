@@ -2,11 +2,9 @@
 
 **中文** · [English](cuda.en.md)
 
-> 阅读时间：约 13 分钟 · 草稿，待审核
+> 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
 在 PyTorch 里写一句 `c = a + b`，GPU 上到底发生了什么？CPU 把一个叫 kernel 的函数交给 GPU，GPU 一次启动成千上万个线程，每个线程只算一两个元素。加法本身很便宜；**一个 kernel 快不快，多半看每个 warp 搬来的字节有没有用上，以及同一份数据有没有被反复从显存读出来。** 这一篇用一个 vector add 和一个 4×4 的矩阵乘法把这两件事算清楚，再接到 cuBLAS、CUTLASS 和 Triton。
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 文中的规则核对自 NVIDIA [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html) v13.4.2（2026-09-10 更新，旧名 CUDA C++ Programming Guide，下称 Guide）和 [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html) 13.4（下称 BPG）。GPU 为什么做成这样，见 [GPU 架构](gpu-architecture.md)；怎样判断一个 kernel 被算力还是带宽卡住，见下一篇[性能](performance.md)。
 

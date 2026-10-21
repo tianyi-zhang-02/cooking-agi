@@ -2,11 +2,9 @@
 
 [中文](single-vs-multi-agent.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 A research task runs slowly and tool results keep filling the context, so it is natural to ask: why not let a lead agent split the task and send several subagents to search in parallel? You can, but the split buys something specific: **wall-clock time from parallelism and contexts kept apart from each other. You pay with more tokens, more hand-offs, and the information lost in those hand-offs. The more independent and read-only the subquestions are, the more a split pays; when steps depend on each other or the parts must share the same unstated decisions, a single agent is usually more reliable. Compare the two designs at the same token and tool budget.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What multi-agent actually changes
 

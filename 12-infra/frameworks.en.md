@@ -2,11 +2,9 @@
 
 [中文](frameworks.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 You write `y = torch.relu(x @ w + b)`. Python returns at once while the GPU may still be working; wrap it in `torch.compile` and the same line gets noticeably faster. What sits in between? **In eager mode this line becomes 3 separate ATen operators, at least 3 kernels and two memory round-trips that could have been avoided; a compiler mostly saves per-operator CPU overhead and the reads and writes of intermediate results; it does not remove a single multiplication.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 For what kernels, streams and SMs are, see [CUDA](cuda.en.md) and [GPU architecture](gpu-architecture.en.md); for how to measure the bottleneck with a profiler, see [Performance](performance.en.md). How to choose training and inference frameworks is already covered in [Training frameworks](../06-systems/training-frameworks.en.md) and [vLLM and SGLang](../06-systems/inference-frameworks.en.md); this note only puts them back on one map. Source links are pinned to PyTorch v2.14.1 (released 2026-09-30), documentation is the 2.14 version, checked on 2026-10-15.
 

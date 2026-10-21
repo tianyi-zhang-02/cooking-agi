@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 You may have read claims like these: Claude has a "Golden Gate Bridge" feature, and turning it up makes the model say it is the Golden Gate Bridge; when Claude 3.5 Haiku writes a poem, it picks the rhyming word for the end of a line before it starts writing the line. How were these conclusions reached, and how far should you trust them? That is what mechanistic interpretability is for: **instead of only looking at inputs and outputs, it looks inside the model for features and circuits that explain a behaviour, and then tests the explanation by changing internal state. As of October 2026, the toolkit can give verifiable local explanations for some models on some prompts; it is still a long way from fully reading a frontier model.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What it asks: the step beyond behavioural evaluation
 

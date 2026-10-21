@@ -16,12 +16,12 @@ Not sure which part to pick? Start with the [reading routes](choose-your-path.en
 
 Recent additions (October 2026):
 
-- [Frontier watch](../11-frontier/README.en.md), a new fourth area. The [world models](../11-frontier/world-models/README.en.md) and [recursive self-improvement](../11-frontier/self-improvement/README.en.md) series have been reviewed; [test-time compute](../11-frontier/test-time-compute/README.en.md), [agent RL](../11-frontier/agentic-rl/README.en.md), and [interpretability](../11-frontier/interpretability/README.en.md) are drafts pending review.
-- [AI infrastructure](../12-infra/README.en.md) (from chips, GPUs, and CUDA up to frameworks and clusters) and [Perception, robots, and driving](../13-embodied/README.en.md): two new blocks, both drafts pending review.
-- Three more drafts pending review, added 2026-10-16: [scaling laws and hyperparameters](../00-foundations/scaling/README.en.md), on choosing model size, data and learning rate before a run; [diffusion language models](../11-frontier/diffusion-lm/README.en.md) in Frontier watch; and [quantization](../12-infra/quantization/README.en.md) in AI infrastructure.
+- [Frontier watch](../11-frontier/README.en.md), a new fourth area. The [world models](../11-frontier/world-models/README.en.md) and [recursive self-improvement](../11-frontier/self-improvement/README.en.md) series, along with [test-time compute](../11-frontier/test-time-compute/README.en.md), [agent RL](../11-frontier/agentic-rl/README.en.md), and [interpretability](../11-frontier/interpretability/README.en.md), have all been reviewed.
+- [AI infrastructure](../12-infra/README.en.md) (from chips, GPUs, and CUDA up to frameworks and clusters) and [Perception, robots, and driving](../13-embodied/README.en.md): two new blocks.
+- Three more series, added 2026-10-16: [scaling laws and hyperparameters](../00-foundations/scaling/README.en.md), on choosing model size, data and learning rate before a run; [diffusion language models](../11-frontier/diffusion-lm/README.en.md) in Frontier watch; and [quantization](../12-infra/quantization/README.en.md) in AI infrastructure.
 - Three new deep RL notes: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [how planning and learning feed each other](../05-post-training/deep-rl/planning-and-learning.en.md), and [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md).
 
-Drafts pending review open with a notice and are marked “(draft)” in the sidebar; check the primary sources they link before relying on a fact.
+These additions were checked against primary sources on 2026-10-21, and their draft labels have been removed.
 
 ## Start with the foundations
 
@@ -53,8 +53,8 @@ Find the question closest to yours in the left column and read the route in the 
 | RL equations make sense, but experiments are unstable | [Value estimates and GAE](../05-post-training/deep-rl/actor-critic-gae.en.md) → [PPO clipping](../05-post-training/rlhf/ppo-clipping.en.md) → [Debugging experiments](../05-post-training/deep-rl/experiments.en.md) | What changed in rewards, advantages, and update size |
 | Retrieval scores improve, but answers do not | [Dual encoders](../04-search/dual-encoder.en.md) → [Hybrid retrieval and reranking](../04-search/hybrid-and-reranking.en.md) → [Metric robustness](../07-evaluation/metric-robustness.en.md) | Which examples improve when the candidate pool is held fixed |
 | What changes when I replace an embedding model? | [Qwen Embedding and BGE-M3](../04-search/embedding-models.en.md) → [Vector indexes](../04-search/vector-indexes.en.md) | Input and pooling compatibility, and when to rebuild the index |
-| `nvidia-smi` shows 100%, yet generation is slow | [AI infrastructure](../12-infra/README.en.md) → [GPU architecture](../12-infra/gpu-architecture.en.md) → [Performance: roofline and MFU](../12-infra/performance.en.md) | Operations per byte moved from memory, and whether bandwidth or compute is the limit (draft, pending review) |
-| How do cars and robots get from pixels to actions? | [Perception and geometry](../13-embodied/perception/README.en.md) → [Autonomous driving](../13-embodied/driving/README.en.md) → [Robot learning](../13-embodied/robot-learning/README.en.md) | What each step hands to the next (draft, pending review) |
+| `nvidia-smi` shows 100%, yet generation is slow | [AI infrastructure](../12-infra/README.en.md) → [GPU architecture](../12-infra/gpu-architecture.en.md) → [Performance: roofline and MFU](../12-infra/performance.en.md) | Operations per byte moved from memory, and whether bandwidth or compute is the limit |
+| How do cars and robots get from pixels to actions? | [Perception and geometry](../13-embodied/perception/README.en.md) → [Autonomous driving](../13-embodied/driving/README.en.md) → [Robot learning](../13-embodied/robot-learning/README.en.md) | What each step hands to the next |
 | What do “world model” and “self-improvement” actually mean? | [Frontier](../11-frontier/README.en.md) → [World models](../11-frontier/world-models/README.en.md) → [Recursive self-improvement](../11-frontier/self-improvement/README.en.md) | Which of several things the word refers to, and how far the evidence goes |
 
 <span id="area-coding"></span>

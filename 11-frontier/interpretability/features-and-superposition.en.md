@@ -2,11 +2,9 @@
 
 [中文](features-and-superposition.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 A linear probe reads "is this sentence true or false?" from one layer's activations with 95% accuracy. Can you say the model "represents truth" at that layer? A second phenomenon: the same neuron fires on academic citations and on Korean text. Both rest on the same set of ideas. **"A concept corresponds to a direction in activation space" is a useful working assumption that does not always hold; probe accuracy only shows that information can be read out, and it takes control tasks and interventions before you can talk about the model using it; when there are more features than dimensions and the features are sparse, a network superposes them on the same neurons, so looking at neurons one by one is not enough and you have to look for directions instead.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Is a feature a direction? The linear representation hypothesis
 

@@ -55,8 +55,9 @@ class AgentApiTests(unittest.TestCase):
             self.assertNotIn(phrase, text)
 
     def test_drafts_are_flagged(self):
-        drafts = [path for path, note in self.notes.items() if note["draft"]]
-        self.assertTrue(drafts)
+        # a note is a draft while its text carries the review banner; questions inherit the flag
+        for path, note in self.notes.items():
+            self.assertEqual(note["draft"], "Draft, pending review" in note["text"], path)
         self.assertTrue(all(q["draft"] == self.notes[q["note"]]["draft"] for q in self.bank))
 
     def test_no_generated_copies_in_the_skill(self):

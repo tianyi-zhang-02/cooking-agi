@@ -2,11 +2,9 @@
 
 [中文](detection.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 You need a detector for a robot or a car. Papers show a row of COCO AP numbers, and the names run from YOLO26 and RF-DETR to SAM 3. How is that number computed? Which kind of model should you pick? Can you ship the weights commercially? **A detection score comes from matching predicted boxes one-to-one to ground truth and averaging precision over several IoU thresholds. The real choice in 2026 is between fast closed-set real-time models that you fine-tune on your own labels, and slower open-vocabulary or promptable models (such as SAM 3) that need no retraining; the licence often decides for you before the AP does.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What a detector outputs, and how IoU is computed
 

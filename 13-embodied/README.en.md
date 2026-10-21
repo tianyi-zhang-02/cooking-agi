@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~2 min · Draft, pending review
+> Reading time: ~2 min · Last reviewed: 2026-10
 
 A camera captures a frame; a car has to decide where to drive, a robot arm where to reach. In between are several steps: recover the things in 3D from the pixels, keep track of them, predict what they will do next, and choose an action. **This block follows that chain in three short series: perception and geometry, autonomous driving, and robot learning.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Three series
 

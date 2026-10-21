@@ -10,7 +10,7 @@
 
 | 想知道什么 | 可以参考的测试 | 还需要补什么 |
 | --- | --- | --- |
-| 学科知识与选择题能力 | [MMLU](https://github.com/hendrycks/test)；前沿模型已超过 90%，拉不开差距时改看 [MMLU-Pro](https://arxiv.org/abs/2406.01574)、[GPQA](https://arxiv.org/abs/2311.12022) 或 [HLE](https://arxiv.org/abs/2501.14249) | 开放式回答、引用、真实任务与数据污染检查 |
+| 学科知识与选择题能力 | [MMLU](https://github.com/hendrycks/test)；前沿模型已超过 90%（例如 2025-01 [DeepSeek-R1 报告](https://arxiv.org/abs/2501.12948)的表 4：OpenAI-o1-1217 为 91.8%，DeepSeek-R1 为 90.8%），拉不开差距时改看 [MMLU-Pro](https://arxiv.org/abs/2406.01574)、[GPQA](https://arxiv.org/abs/2311.12022) 或 [HLE](https://arxiv.org/abs/2501.14249) | 开放式回答、引用、真实任务与数据污染检查 |
 | 中文学科知识 | [C-Eval](https://github.com/hkust-nlp/ceval) | 中文交流、行业语言、混合语言和领域任务 |
 | 代码能否通过测试 | [LiveCodeBench](https://livecodebench.github.io/)；按发布版本取题，截至 2026-10 [最新的 `release_v6`](https://github.com/LiveCodeBench/LiveCodeBench) 收的是 2023-05 到 2025-04 的 1,055 道题；题目早于模型的训练截止日期，就不能再算没见过的新题 | 依赖环境、安全与维护性 |
 | 仓库级代码修改 | [SWE-bench Pro](https://arxiv.org/abs/2509.16941)；OpenAI 2026-02 起[不再报告 SWE-bench Verified](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/)，理由是接近做满、测试有错和题目泄漏 | 评分测试本身是否可靠、运行环境、代码审查 |

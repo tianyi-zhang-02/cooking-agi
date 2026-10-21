@@ -2,11 +2,9 @@
 
 [中文](review.md) · **English**
 
-> Reading time: ~8 min · Draft, pending review
+> Reading time: ~8 min · Last reviewed: 2026-10
 
 Interview questions on AI infrastructure tend to land on one chain: how chips are made, how a GPU runs kernels, how a framework launches them, and how a cluster hands out GPUs. **To answer them, first fix the basis (precision, dense or sparse, which SKU), then work out which layer holds the bottleneck and which number limits it.** Every number below comes from the notes in this series, where the derivations and sources are.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Interview questions
 

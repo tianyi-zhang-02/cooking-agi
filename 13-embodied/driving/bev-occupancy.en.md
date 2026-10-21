@@ -2,11 +2,9 @@
 
 [中文](bev-occupancy.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 The planner wants to ask "is there anything in the cell 8 m ahead and 2 m to the left?", but 6–8 cameras deliver pixels in their own views, and in a single image nobody knows how far each pixel is from the car. **Putting every camera's features into one top-down grid (bird's-eye view, BEV) gives planning one shared metric frame; the hard part is always depth: lift-splat spreads each pixel's features along its line of sight according to a depth distribution, BEV queries go the other way and let each cell fetch features from the images, and occupancy grids refine the output to "is this piece of space taken", without first deciding what it is.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Why a top-down map
 
@@ -117,7 +115,7 @@ Labels made this way inherit lidar's blind spots: voxels that were occluded or n
 
 ## What they became inside end-to-end stacks
 
-In the October 2025 ICCV talk Tesla said explicit perception is now an optional auxiliary output, and the same model can be asked to output occupancy, objects and so on ([video](https://www.youtube.com/watch?v=IRu-cPkpiFk), from auto-captions of the talk). Waymo's Foundation Model still has a World Decoder that outputs other road users' behaviour, maps and trajectories. [Bench2Drive](https://github.com/Thinklab-SJTU/Bench2Drive) 0.0.4 (2026-08) added an occupancy modality. BEV and occupancy have not disappeared: they became auxiliary supervision, debugging views, and intermediate results that safety checks can read.
+In the [text version](https://x.com/aelluswamy/status/1981644831790379245) of his October 2025 ICCV talk, Tesla's Elluswamy wrote that besides control commands the end-to-end model can produce interpretable intermediate tokens, such as 3D geometry; the text does not mention occupancy or objects. That the same model can be asked to output occupancy, objects and so on comes only from the talk video's auto-captions ([video](https://www.youtube.com/watch?v=IRu-cPkpiFk)), with no transcript to check against. Waymo's Foundation Model still has a World Decoder that outputs other road users' behaviour, maps and trajectories. [Bench2Drive](https://github.com/Thinklab-SJTU/Bench2Drive) 0.0.4 (2026-08) added an occupancy modality. BEV and occupancy have not disappeared: they became auxiliary supervision, debugging views, and intermediate results that safety checks can read.
 
 ## What to look at when reproducing and debugging
 

@@ -2,11 +2,9 @@
 
 [中文](checking-quality.md) · **English**
 
-> Reading time: ~9 min · Draft, pending review
+> Reading time: ~9 min · Last reviewed: 2026-10
 
 When [Dutta et al. (2024-07, NeurIPS 2024)](https://arxiv.org/abs/2407.09141) compressed Llama2-70B-chat to W4A16 with GPTQ, MMLU accuracy fell by only 0.45 points, yet 4.26% of the answers flipped between right and wrong. When [Marchisio et al. (2024-07)](https://arxiv.org/abs/2407.03211) compressed the 103B Command R+ to 4-bit weights with group scales, automatic evaluations in Japanese dropped by only 1.7% on average, while human evaluators on realistic prompts saw a 16.0% drop. **One average score misses the most common way quantization does damage. Accepting a quantized model takes three things together: compare the two models' next-token distributions on fixed text (KL divergence and top-1 agreement); compare them item by item on the same questions, counting flips and checking how wide the interval on the net change is; and look specifically at the slices that break first, namely long context, non-English, math reasoning and long outputs.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 The statistics of paired comparison (McNemar's test, the paired bootstrap) are worked out in [The score improved. What does that actually establish?](../../07-evaluation/metric-robustness.en.md#paired-binary); which fields of the evaluation setup to record is in [Before choosing a benchmark](../../07-evaluation/benchmark-protocols.en.md). This note covers only what to watch for when applying them to quantization.
 

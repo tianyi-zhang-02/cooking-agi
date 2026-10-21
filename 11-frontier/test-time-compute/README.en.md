@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 Take one model and one competition problem. Sampling once, sampling 64 times and voting, or letting the model think for tens of thousands of tokens first can differ by more than ten points of accuracy and by tens of times in cost. Since 2024, "reasoning models" have turned this into a training target and a product setting. **Extra inference compute pays off only under two conditions: the model has a fair chance of reaching the right answer, and something can pick the right sample out, or let the model correct itself within one chain. Without either one, thinking longer just costs more.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What test-time compute means
 

@@ -2,11 +2,9 @@
 
 **中文** · [English](nvidia-generations.en.md)
 
-> 阅读时间：约 13 分钟 · 草稿，待审核
+> 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
 读到“新一代比上一代快 N 倍”，先问三件事：哪种精度？dense 还是 sparse？哪个 SKU、按每张 GPU 还是按整机算？**三件事对齐以后再看，过去几代一直在涨的是低精度 Tensor 吞吐、HBM 容量和 NVLink 域的大小；显存带宽也在涨，但比算力慢。每读 1 字节要配多少次运算才能用满算力，从 V100 的约 140 涨到 GB300 用 NVFP4 时的约 1,900，所以大模型 decode 这类读得多、算得少的工作，代际提速主要跟着带宽走。**
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 SM、warp、Tensor Core 这些概念见 [GPU 架构](gpu-architecture.md)。本文所有硬件数字都来自 NVIDIA 的白皮书、数据表、产品页和技术博客，核对日期 2026-10-15；已经出货和仅宣布的产品分开标。
 
@@ -35,7 +33,7 @@ SM、warp、Tensor Core 这些概念见 [GPU 架构](gpu-architecture.md)。本�
 | GB200（NVL72 中每颗 GPU） | 同上 | — | 第 5 代 | 186 GB HBM3e · 8 TB/s | NVLink 5：1.8 TB/s | 最高 1,200 W* | 2.5 PFLOPS | 5 PFLOPS | 10 PFLOPS |
 | B300（HGX B300，Blackwell Ultra） | TSMC 4NP · 2,080 亿（2 颗 die） | 最多 160 | 第 5 代（NVFP4 提速） | 约 262 GB HBM3e · 8 TB/s | NVLink 5：1.8 TB/s | 最高 1,400 W* | 2.25 PFLOPS | 4.5 PFLOPS | 13.5 PFLOPS |
 | GB300（NVL72 中每颗 GPU） | 同上 | 最多 160 | 同上 | 约 278 GB HBM3e · 8 TB/s | NVLink 5：1.8 TB/s | 最高 1,400 W* | 2.5 PFLOPS | 5 PFLOPS | 15 PFLOPS |
-| Rubin（已宣布，见下文） | 工艺未公布 · 3,360 亿（2 颗 die） | 224 | 第 5 代（平台博客的说法）；第 3 代 Transformer Engine | 288 GB HBM4 · 22 或 19.2 TB/s | NVLink 6：3.6 或 3 TB/s | 未公布 | 4 PFLOPS | 17.5 PFLOPS | 35 PFLOPS（NVFP4 训练） |
+| Rubin（已投产，见下文） | 工艺未公布 · 3,360 亿（2 颗 die） | 224 | 第 5 代（平台博客的说法）；第 3 代 Transformer Engine | 288 GB HBM4 · 22 或 19.2 TB/s | NVLink 6：3.6 或 3 TB/s | 未公布 | 4 PFLOPS | 17.5 PFLOPS | 35 PFLOPS（NVFP4 训练） |
 
 出处，按行：V100 来自 [Volta 白皮书](https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf)和 [V100 数据表](https://images.nvidia.com/content/technologies/volta/pdf/volta-v100-datasheet-update-us-1165301-r5.pdf)；A100 来自 [Ampere 博客](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/)和 [A100 数据表](https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/nvidia-a100-datasheet-us-nvidia-1758950-r4-web.pdf)；H100 来自白皮书 V1.04 和产品页；H200 来自 [H200 产品页](https://www.nvidia.com/en-us/data-center/h200/)，它的 Tensor 各行与 H100 SXM 产品页完全相同，所以沿用 989.4 / 1,978.9；B200 的显存与带宽由 DGX B200 的 8 卡合计 1,440 GB、64 TB/s 折算，吞吐由 HGX 页面折算；GB200 由 NVL72 页面的 superchip 数字除以 2；B300 的显存由 [DGX B300](https://www.nvidia.com/en-us/data-center/dgx-b300/) 的 2.1 TB 除以 8，GB300 由 NVL72 的 20 TB 除以 72；H200 和 B 系列的工艺、晶体管，以及 B300 的带宽和 SM 数（“最多 160，随 SKU 不同”），来自 Blackwell Ultra 博客的代际对照表；Rubin 见下文。
 
@@ -71,15 +69,16 @@ Blackwell Ultra 在 2025 年 3 月 18 日的 GTC 上发布，合作伙伴产品�
 
 显存数字有三种写法：博客写最高 288 GB；DGX、HGX B300 页面写 8 卡共 2.1 TB，约每卡 262 GB；GB300 NVL72 页面写 72 卡共 20 TB，约每卡 278 GB。页面没有解释差异。
 
-### Rubin / Vera Rubin（已宣布）：HBM4 与 NVLink 6
+### Rubin / Vera Rubin（已投产）：HBM4 与 NVLink 6
 
 时间线：
 
 - 2025 年 3 月 GTC（[NVIDIA 博客汇总](https://blogs.nvidia.com/blog/nvidia-keynote-at-gtc-2025-ai-news-live-updates/)）：Vera Rubin NVL144 定在 2026 年下半年，Rubin Ultra 系统在 2027 年下半年。
 - 2026 年 1 月 5 日 CES（[新闻稿](https://nvidianews.nvidia.com/news/rubin-platform-ai-supercomputer)）：NVIDIA 在其中的 Rubin Readiness 一节写道“NVIDIA Rubin is in full production …”（Rubin 已全面投产），合作伙伴产品下半年供货；机架改称 Vera Rubin NVL72（72 颗 Rubin GPU、36 颗 Vera CPU）。3 月 16 日 GTC 的[新闻稿](https://nvidianews.nvidia.com/news/nvidia-vera-rubin-platform)加入第七颗芯片 Groq 3 LPU，[POD 博客](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/)介绍了可扩到 576 颗 GPU 的 Rubin Ultra 和每柜 144 颗的 Kyber 机架，没给日期。
 - 2026 年 5 月 31 日 GTC Taipei（[新闻稿](https://nvidianews.nvidia.com/news/vera-rubin-full-production-agentic-ai-factory)）：量产出货“今年秋天”开始；8 月 27 日更新的 [NVIDIA 博客](https://blogs.nvidia.com/blog/vera-cpu-delivery/)说 AWS 收到了第一台 Vera CPU 服务器和 Vera Rubin GPU。
+- 2026 年 8 月 26 日（[第二财季财报新闻稿](https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027)）：黄仁勋说 Vera Rubin“now in full production”（已全面投产），机架已在 CoreWeave、Google Cloud、Microsoft Azure、Oracle Cloud Infrastructure 和 Nebius 等合作伙伴处运行。9 月 30 日的 [NVIDIA 博客](https://blogs.nvidia.com/blog/coreweave-agentic-ai-vera-rubin/)说 CoreWeave 当月收到了第一批 Vera Rubin NVL72 量产机架。
 
-截至 2026 年 10 月，[Vera Rubin NVL72 产品页](https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/)标着“Available Now”，但没找到能确认大批量供货的一手资料，所以本文把 Rubin 标为“已宣布”，数字都是 NVIDIA 公布的规格。
+截至 2026 年 10 月，[Vera Rubin NVL72 产品页](https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/)标着“Available Now”，并写道服务器厂商正在“shipping Vera Rubin-based systems”，所以本文把 Rubin 标为“已投产”。云上的全面开放还在铺开：10 月 21 日的 [NVIDIA 博客](https://blogs.nvidia.com/blog/google-cloud-vera-rubin-infrastructure/)说，Google Cloud 基于 Vera Rubin NVL72 的 A5X 实例下个月才全面开放。下面的数字都是 NVIDIA 公布的规格。
 
 [Rubin GPU 架构博客](https://developer.nvidia.com/blog/inside-nvidia-rubin-gpu-architecture-powering-the-era-of-agentic-ai/)（2026 年 7 月 21 日）给出 3,360 亿晶体管、两颗计算 die、224 个 SM、最高 288 GB HBM4，没写工艺；1 月的[平台博客](https://developer.nvidia.com/blog/inside-the-nvidia-rubin-platform-six-new-chips-one-ai-supercomputer/)说 SM 里是第五代 Tensor Core。表中吞吐取自 [HGX 页面](https://www.nvidia.com/en-us/data-center/hgx/)的单卡表和 NVL72 页面：NVFP4 训练 35、FP8 17.5、BF16 4 PFLOPS，都标 dense。常被引用的“NVFP4 推理 50 PFLOPS”，这两页标 sparse；平台博客则说它来自第三代 Transformer Engine 的“自适应压缩”，没写 dense 或 sparse。
 
@@ -106,7 +105,7 @@ Blackwell Ultra 在 2025 年 3 月 18 日的 GTC 上发布，合作伙伴产品�
 | H200 SXM | FP8 1,978.9 TFLOPS | 4.8 TB/s | 412 |
 | GB200（每 GPU） | NVFP4 10 PFLOPS | 8 TB/s | 1,250 |
 | GB300（每 GPU） | NVFP4 15 PFLOPS | 8 TB/s | 1,875 |
-| Rubin（已宣布） | NVFP4 训练 35 PFLOPS | 22 或 19.2 TB/s | 1,591 或 1,823 |
+| Rubin（已投产） | NVFP4 训练 35 PFLOPS | 22 或 19.2 TB/s | 1,591 或 1,823 |
 
 从表里能读出几条设计逻辑：
 
@@ -141,7 +140,7 @@ $P=70\times10^9$ 是参数量，$b$ 是每参数字节数，$M$ 是每卡显存�
 | H200 SXM | 141 GB · 4.8 TB/s | 1 张（几乎没有余量）· 29.2 ms；用 2 张是 14.6 ms | 1 张 · 14.6 ms |
 | B200（HGX） | 180 GB · 8 TB/s | 1 张 · 17.5 ms | 1 张 · 8.8 ms |
 | B300（HGX） | 约 262 GB · 8 TB/s | 1 张 · 17.5 ms | 1 张 · 8.8 ms |
-| Rubin（已宣布） | 288 GB · 19.2–22 TB/s | 1 张 · 6.4–7.3 ms | 1 张 · 3.2–3.6 ms |
+| Rubin（已投产） | 288 GB · 19.2–22 TB/s | 1 张 · 6.4–7.3 ms | 1 张 · 3.2–3.6 ms |
 | RTX PRO 6000 工作站版 | 96 GB · 1.792 TB/s | 2 张 · 39.1 ms | 1 张 · 39.1 ms |
 | DGX Spark（GB10） | 128 GB 统一内存 · 0.273 TB/s | 放不下 | 1 台 · 256 ms |
 

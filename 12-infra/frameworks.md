@@ -2,11 +2,9 @@
 
 **中文** · [English](frameworks.en.md)
 
-> 阅读时间：约 13 分钟 · 草稿，待审核
+> 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
 写下 `y = torch.relu(x @ w + b)`，Python 立刻返回，GPU 却可能还在算；套上 `torch.compile`，同一行又快了一截。中间到底经过了哪几层？**在 eager 模式下，这一行会变成 3 个独立的 ATen 算子、至少 3 个 kernel 和两次本可以省掉的显存往返；编译器省下的主要是每个算子的 CPU 调度开销和中间结果的读写，乘法一次也没少。**
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 kernel、stream 和 SM 是什么，见 [CUDA](cuda.md) 和 [GPU 架构](gpu-architecture.md)；怎样用 profiler 量出瓶颈，见[性能](performance.md)。训练与推理框架怎么选，已经在[训练框架](../06-systems/training-frameworks.md)和 [vLLM 与 SGLang](../06-systems/inference-frameworks.md) 讲过，这里只把它们放回同一张图。源码链接固定在 PyTorch v2.14.1（2026-09-30 发布），文档对照 2.14 版，2026-10-15 核对。
 

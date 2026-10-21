@@ -97,7 +97,6 @@ You need not complete all of these. They serve two purposes: identifying gaps an
 | Resource | What it is useful for |
 | --- | --- |
 | [Alisa: Notes on the Industry Job Search](https://alisawuffles.github.io/blog/job-search/) · 2026-06 | A PhD perspective that separates ML coding, technical discussion, and research discussion rather than focusing only on presenting papers |
-| [Evan: from an astrophysics postdoc to ML](https://evanhanders.blog/2026/04/02/my-path-from-astrophysics-postdoc-to-anthropic/) · 2026-04 | A career-change account; in hindsight he would spend more time on engineering, other people's code, and code review |
 | [Silvia: ML Job Interviews](https://silviasapora.github.io/blog/ml-interviews.html) · 2026-06 | An ML PhD's RS search, including implementation and debugging topics; her topic range is not everyone's required syllabus |
 | [Andrey: ML/Research Engineer interviews 2025](https://reyzharkov.com/blog/posts/interviews-2025-ml-research-engineer-uk) · published 2026-03 | An experienced engineer's 2025 UK / remote search; publication date and interview dates differ |
 | [Stanford CS336 Assignment 1](https://github.com/stanford-cs336/assignment1-basics) | Implement the student interfaces and connect tests; a substantial assignment, not a solution dump. Follow course collaboration rules if enrolled |

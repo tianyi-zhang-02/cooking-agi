@@ -2,11 +2,9 @@
 
 [中文](eval-observability.md) · **English**
 
-> Reading time: ~14 min · Draft, pending review
+> Reading time: ~14 min · Last reviewed: 2026-10
 
 A new prompt scores 92 on the offline eval set. Two weeks after launch, complaints that answers "miss the question" go up. The offline set did not change; the traffic did: new topics, new languages, longer conversations, and perhaps a provider that swapped the model behind the same alias. Production has no reference answers, and nobody can read a hundred thousand requests a day. **Online evaluation has to answer a question you can compute: if you judge only a small fraction of requests, how large a regression can you detect, how quickly, and with what confidence? The answer is usually worse than intuition suggests, especially for small slices.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## How offline eval sets differ from production traffic
 

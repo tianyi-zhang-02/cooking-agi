@@ -2,11 +2,9 @@
 
 [中文](hyperparameters.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 Sweep the best learning rate on a narrow small model, copy it unchanged to a model 8 times wider, and a common outcome is unstable training or a clearly suboptimal result. There is more than one reason: under the standard parametrization the optimal learning rate moves with width; the useful batch size limit grows as the loss falls and as the data grows; and a cosine schedule's shape is tied to the total training length. **Scaling up means handling three things separately. For batch size, look at the critical batch size first: past it, each doubling of the batch saves fewer steps and costs more data. For learning rate, either start from a fitted empirical formula for your scale, or use a parametrization such as µP that makes it transferable across width. For the schedule, either match it to the training length, or use warmup-stable-decay to postpone deciding how long to train until the end.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 It helps to read [one training step](../deep-dives/training-step.en.md) and [from SGD to AdamW](../deep-dives/optimizers.en.md) first: we use optimizer steps, gradient accumulation and Adam's update rule. The teaching budget is the $C=10^{22}$ FLOPs from [note 1](compute-optimal.en.md).
 

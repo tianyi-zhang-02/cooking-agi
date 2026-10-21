@@ -2,11 +2,9 @@
 
 [中文](credit-and-training.md) · **English**
 
-> Reading time: ~12 min · Draft, pending review
+> Reading time: ~12 min · Last reviewed: 2026-10
 
 A bug-fixing agent runs for 3 turns: it reads a file, edits the code and runs the tests, then submits. The hidden tests all pass, so the reward is 1. Training immediately raises two questions: which tokens should that 1 be credited to? And should the thousand-odd tokens returned by tools also go into the loss? **The most common answer today treats the whole trajectory as one sample: run a group of trajectories on the same task, compute one episode-level advantage from the group's outcomes, and spread it over every token the model itself generated in that trajectory; tool outputs stay in the context but are masked out of the loss. Splitting success and failure more finely (comparing by shared states, training a turn-level critic, rewarding each turn) requires environment states that recur, or an extra model, or trustworthy intermediate signals.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## What a trajectory looks like once it reaches the trainer
 

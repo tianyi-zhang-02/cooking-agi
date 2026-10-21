@@ -2,11 +2,9 @@
 
 **中文** · [English](hyperparameters.en.md)
 
-> 阅读时间：约 13 分钟 · 草稿，待审核
+> 阅读时间：约 13 分钟 · 最近审阅：2026-10
 
 在一个窄的小模型上扫出最好的学习率（LR），原样搬到宽 8 倍的大模型上，常见的结果是训练不稳定，或者明显不是最优。原因不止一个：标准参数化（SP）下，最优学习率会随宽度移动；有用的 batch size 上限会随 loss 下降和数据量增长而变大；cosine schedule 的形状还绑定了训练总长度。**放大时要分开处理三件事。batch size 先看临界 batch size，超过它以后，每多一倍 batch 省下的步数越来越少、多看的数据越来越多。学习率要么用按规模拟合的经验公式当起点，要么用最大更新参数化（µP）一类方法让它在宽度之间可迁移。schedule 要么对准训练长度，要么用 warmup-stable-decay（WSD）把“训多久”推迟到最后再定。**
-
-> **待审核草稿。** 这一篇还没有经过站主审阅，事实、取舍和措辞都可能修改；引用前请回到文中链接的一手资料核对。
 
 先读[一次训练](../deep-dives/training-step.md)和[从 SGD 到 AdamW](../deep-dives/optimizers.md)会更顺：要用到 optimizer step、梯度累积和 Adam 的更新式。教学预算沿用[第 1 篇](compute-optimal.md)的 $C=10^{22}$ FLOPs。
 

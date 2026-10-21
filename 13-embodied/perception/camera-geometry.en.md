@@ -2,11 +2,9 @@
 
 [中文](camera-geometry.md) · **English**
 
-> Reading time: ~10 min · Draft, pending review
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 In the front camera, a pedestrian's foot lands on pixel (860, 690). How far away is the pedestrian? That one pixel cannot tell you: projection throws depth away, and a pixel corresponds only to a ray. **To get depth back you must add one more constraint: the point lies on a known plane, a second view sees it, or a learned depth prior fills it in.** This note follows a single point through forward projection, back-projection, distortion, two views and triangulation. Linear algebra is all you need.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Which frames does a point pass through?
 

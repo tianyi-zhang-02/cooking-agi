@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 A 70B-parameter dense model has 140 GB of BF16 weights, which does not fit on one 80 GB GPU; even when it fits, generating one token at a time at batch 1 means reading every weight from memory at every step. Quantization stores these numbers in fewer bits. You can compress the weights, the activations or the KV cache, and each buys something different. **Find the bottleneck first: if the model does not fit, or decode is limited by memory reads, compress the weights; if prefill and large batches are limited by compute, compress the activations as well, so the lower-precision Tensor Cores can be used; if the KV cache dominates at long context, compress the KV cache. Whichever you compress, compare the two models item by item on the same set of questions, and look specifically at the kinds of task that break first; only then do you know what you lost.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## First, the ledger: a 70B model and one 80 GB GPU
 

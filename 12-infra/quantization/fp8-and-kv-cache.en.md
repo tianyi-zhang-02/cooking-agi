@@ -2,11 +2,9 @@
 
 [中文](fp8-and-kv-cache.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 At 128K context, one sequence of this series' 8B teaching model has 16 GiB of BF16 KV, more than the BF16 weights themselves (16 GB, about 14.9 GiB); an 80 GB H100 holds only 3 such sequences. Store the KV in FP8 and it holds 6; with the same 3 sequences, the bytes read per step drop by 38%. **At long context the KV cache has more bytes than the weights, so compressing the KV decides more directly than compressing the weights how many requests you can serve at once and how many bytes each step reads. FP8 is today's most common 8-bit starting point, usable for weights, activations and KV, and whether it is stable depends mostly on how the scales are set. At 4 or 2 bits, KIVI uses per-channel keys and per-token values; that is one method's choice, not a requirement for all KV quantization. Test the chosen layout on the target model and long-context workload.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 The E4M3 and E5M2 grids and block scaling are in [Formats and error](formats-and-error.en.md); the basic KV memory formula is in [KV cache](../../00-foundations/deep-dives/kv-cache-and-inference.en.md).
 

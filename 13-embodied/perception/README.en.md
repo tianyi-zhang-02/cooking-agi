@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 A car's front camera captures a frame. What is in it? Where is each thing in 3D? Is it the same thing as in the last frame? Those three questions go to detection, geometry and tracking. **What these roles rest on is not any single network but two old crafts: geometry (converting between pixels and 3D) and estimation (combining repeated observations while tracking their uncertainty). In 2026 large models output cameras, depth and pointmaps directly, but reading, checking and using those outputs still takes these two.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Why geometry and estimation cannot be skipped
 

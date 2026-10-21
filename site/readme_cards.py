@@ -203,10 +203,12 @@ def topics_svg(data, lang, palette, built, signals):
     notes_total = sum(n for *_, groups in data["zones"] for *_, n, _ in groups) + sum(n for *_, n in data["others"])
     drafts_total = sum(d for *_, groups in data["zones"] for *_, d in groups)
     inner = WIDTH - 2 * INSET
-    y = _stats(out, INSET, INSET + 30, [(str(signals["reviewed"]), _pick(zh, "篇中英文逐篇复核", "notes re-read in both languages")),
-                                    (str(signals["figures"]), _pick(zh, "张交互与分步图解", "interactive figures")),
-                                    (str(signals["paper"]), _pick(zh, "张论文原图", "figures from papers")),
-                                    (str(drafts_total), _pick(zh, "篇草稿待审核", "drafts in review"))], colors, inner) + 10
+    stats = [(str(signals["reviewed"]), _pick(zh, "篇中英文逐篇复核", "notes re-read in both languages")),
+             (str(signals["figures"]), _pick(zh, "张交互与分步图解", "interactive figures")),
+             (str(signals["paper"]), _pick(zh, "张论文原图", "figures from papers"))]
+    if drafts_total:  # only while some notes still wait for the owner's review
+        stats.append((str(drafts_total), _pick(zh, "篇草稿待审核", "drafts in review")))
+    y = _stats(out, INSET, INSET + 30, stats, colors, inner) + 10
     gap = 14
     col_w = (inner - gap) / 2
     zones = data["zones"]
@@ -263,8 +265,9 @@ def topics_svg(data, lang, palette, built, signals):
         _text(out, x + w - 13, y, count, colors["muted"], 13, anchor="end")
         x += w + 8
     y += 30
-    for line in wrap(_pick(zh, f"{built} 构建 · 左侧色条是待审核草稿 · 随网站每次部署更新",
-                             f"Built {built} · an amber bar marks drafts pending review · updated on every deploy"), inner, 11.5):
+    marks = _pick(zh, " · 左侧色条是待审核草稿", " · an amber bar marks drafts pending review") if drafts_total else ""
+    for line in wrap(_pick(zh, f"{built} 构建{marks} · 随网站每次部署更新",
+                             f"Built {built}{marks} · updated on every deploy"), inner, 11.5):
         _text(out, INSET, y, line, colors["muted"], 11.5)
         y += 15
     title = _pick(zh, "内容一览", "What's inside")

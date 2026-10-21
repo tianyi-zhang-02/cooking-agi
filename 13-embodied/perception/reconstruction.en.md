@@ -2,11 +2,9 @@
 
 [中文](reconstruction.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 Your fleet recorded a 20-second multi-camera log. You changed the planner and want to know whether the new planner would change lanes at the same moment, and what the cameras would see after the lane change. Replaying the recording does not work: once the car drives differently from the log, the images no longer match (the difference between open and closed loop is in the [world-models note](../../11-frontier/world-models/robotics-driving.en.md)). Could you reconstruct this stretch of road as a 3D scene first, then render it from new positions? **Yes, but it is trustworthy only where the log has looked. 3D Gaussian splatting (3DGS) made reconstruction render in real time and editable object by object, which is why it became the base layer of driving simulation; once the car moves somewhere the log never saw, reconstruction has no data to draw on, and that gap is what generative world models try to fill.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 Read this series' [camera geometry](camera-geometry.en.md) and [frozen backbones and geometry foundation models](foundation-models.en.md) first: this note reuses their pinhole projection, pointmaps and scale ambiguity.
 

@@ -2,11 +2,9 @@
 
 [中文](tracking.md) · **English**
 
-> Reading time: ~10 min · Draft, pending review
+> Reading time: ~10 min · Last reviewed: 2026-10
 
 A detector produces a pile of boxes every frame, each frame on its own. A planner needs something else: "the car ahead is at 12.75 m, moves about 2 m per frame, and here is how uncertain that is", and "this pedestrian is the same one as in the last frame". **Tracking splits into two jobs: predict with a motion model, then correct with a measurement weighted by both uncertainties (the Kalman filter); and decide which measurement belongs to which track (data association). The first has a closed-form optimal answer under linear-Gaussian assumptions; many identity switches come from the second.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Write "what you believe" as a Gaussian
 

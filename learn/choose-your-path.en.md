@@ -75,9 +75,9 @@ The entries below are grouped by topic; each topic has its own, more detailed re
 | Retrieval and persistent state | [Search and retrieval](../04-search/README.en.md) · [Memory](../02-memory/README.en.md) |
 | Tools and agents | [Agents](../10-agents/README.en.md) · [Personal AGI](../09-personal-agi/README.en.md) |
 | Inference speed, cost, and reliability | [Inference](inference/README.en.md) · [AI systems](../06-systems/README.en.md) · [Model experience](../08-model-experience/README.en.md) |
-| Chips, GPUs, CUDA, and clusters | [AI infrastructure](../12-infra/README.en.md) (draft, pending review) |
-| Perception, robots, and driving | [From pixels to actions](../13-embodied/README.en.md) (draft, pending review) |
-| Directions still in motion | [Frontier](../11-frontier/README.en.md): world models and recursive self-improvement are reviewed; test-time compute, agent RL, interpretability, and diffusion language models are drafts pending review |
+| Chips, GPUs, CUDA, and clusters | [AI infrastructure](../12-infra/README.en.md) |
+| Perception, robots, and driving | [From pixels to actions](../13-embodied/README.en.md) |
+| Directions still in motion | [Frontier](../11-frontier/README.en.md): world models, recursive self-improvement, test-time compute, agent RL, interpretability, and diffusion language models |
 
 </div>
 

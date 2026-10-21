@@ -2,11 +2,9 @@
 
 [中文](kubernetes.md) · **English**
 
-> Reading time: ~13 min · Draft, pending review
+> Reading time: ~13 min · Last reviewed: 2026-10
 
 The cluster has 24 GPUs and the dashboard shows 16 of them idle, yet a training job that needs 16 GPUs stays Pending; worse, half of its Pods start, the other half do not, and the half that started holds its GPUs while waiting. **By default Kubernetes finds a node for one Pod at a time, while distributed training needs "either the whole group of Pods is placed, or none of them holds anything"; and GPUs can only be handed out whole, ideally with topology in mind. The total number of idle GPUs tells you little about whether a large job can run.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 For how the program inside a Pod hands work to the GPU, see [The framework layer](frameworks.en.md); for why every rank of a training job must be present, see [Multi-GPU training](../06-systems/distributed-training.en.md). This note follows the official kubernetes.io and NVIDIA documentation, checked on 2026-10-15; the latest Kubernetes release at that time was 1.37.1 (released 2026-09-15, see the [releases page](https://kubernetes.io/releases/)).
 

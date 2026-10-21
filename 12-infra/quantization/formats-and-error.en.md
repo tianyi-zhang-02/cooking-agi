@@ -2,11 +2,9 @@
 
 [中文](formats-and-error.md) · **English**
 
-> Reading time: ~11 min · Draft, pending review
+> Reading time: ~11 min · Last reviewed: 2026-10
 
 Take a group of 8 weights and compress them to INT4 with one shared scale: the mean squared error (MSE) is 0.0042. Replace one 1.40 with 14.0 and the other 7 values all become 0. **Quantization error is set by the step between grid points, and the step is set by the largest value among the numbers sharing a scale. The format decides how the grid is laid out (evenly spaced for integers, proportional for floating point), and the granularity decides who shares a scale; the damage an outlier does is that it stretches the step for its whole group.**
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 The bit layouts and rounding of FP16 and BF16 are in [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md); the table of formats each Tensor Core generation supports and a small NVFP4 example are in [GPU architecture](../gpu-architecture.en.md). They are not repeated here. Except where a source is given, the numbers in this note are teaching examples you can work out by hand.
 

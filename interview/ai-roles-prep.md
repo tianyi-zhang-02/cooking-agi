@@ -97,7 +97,6 @@ BQ 可以准备合作分歧、失败、模糊需求各一个真实故事：当�
 | 资料 | 适合拿来做什么 |
 | --- | --- |
 | [Alisa：Notes on the Industry Job Search](https://alisawuffles.github.io/blog/job-search/) · 2026-06 | PhD 求职视角；把 ML coding、技术讨论和研究讨论区分开，不只准备论文介绍 |
-| [Evan：从天体物理博士后转行做 ML](https://evanhanders.blog/2026/04/02/my-path-from-astrophysics-postdoc-to-anthropic/) · 2026-04 | 转行视角；作者反思会多练工程编码、读别人的代码与 code review |
 | [Silvia：ML Job Interviews](https://silviasapora.github.io/blog/ml-interviews.html) · 2026-06 | ML PhD 的 RS 求职经历；实现和 debugging 清单。她的题目范围不等于所有人的必修课 |
 | [Andrey：ML/Research Engineer interviews 2025](https://reyzharkov.com/blog/posts/interviews-2025-ml-research-engineer-uk) · 2026-03 发布 | 复盘的是 2025 年英国 / 远程求职，有经验工程师的视角；别把发布时间当面试发生年份 |
 | [Stanford CS336 Assignment 1](https://github.com/stanford-cs336/assignment1-basics) | 从学生版接口写实现、接测试；是系统性作业，不是现成答案。正在修课时遵守课程协作规则 |

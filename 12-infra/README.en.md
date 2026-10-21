@@ -2,11 +2,9 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~7 min · Draft, pending review
+> Reading time: ~7 min · Last reviewed: 2026-10
 
 A user types a question into a chat box, waits a moment, and the answer appears a few words at a time. Where did those two or three seconds go, and what decided them? **In the hand-worked example below, more than 90% of the time goes to decode, generating tokens one at a time; and decode speed depends mainly on how many bytes per second the GPU can read from its memory (HBM), not on how many multiplications per second it can do.** This series starts from that number, follows it down layer by layer to the chip and the fab, and then comes back up to the product.
-
-> **Draft, pending review.** The site owner has not reviewed this note yet; facts, emphasis and wording may change. Check the primary sources linked in the text before relying on it.
 
 ## Nine layers, from wafer to product
 
