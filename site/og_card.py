@@ -152,7 +152,7 @@ def main() -> None:
 
     x0 = 96
     d.rounded_rectangle([x0, 132, x0 + 56, 135], radius=2, fill=EMBER)
-    spaced(d, (x0, 152), f"{site['title_en'].upper()} · {site['author_en'].upper()}", mono, EMBER + (215,), 4.2)
+    spaced(d, (x0, 152), site['title_en'].upper(), mono, EMBER + (215,), 4.2)
     d.text((x0 - 5, 190), site["title_zh"], font=cjk_bold, fill=INK)
     d.text((x0, 336), site["tagline_zh"], font=cjk, fill=MUTED)
     d.text((x0, 394), site["tagline_en"], font=latin, fill=MUTED + (205,))

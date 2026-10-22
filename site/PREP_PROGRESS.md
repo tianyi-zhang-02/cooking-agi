@@ -4,6 +4,8 @@ Saved notes, reading history and reading positions are user data, not content in
 
 Readers see two things: a **Save this page** button under each note's title, and the **My reading** drawer at the top right (reading history, saved notes, settings and one backup row). There is no separate dashboard; `interview/dashboard.html` and its English page redirect to the interview-prep page.
 
+The SI Study Notes rebrand changes display names only. Keep the `cooking-agi` URL path, storage keys, backup format and site identifiers, export filename prefix, and note IDs unchanged. Existing bookmarks, language preferences and backups must keep working without a migration.
+
 ## Files
 
 | File | Role |

@@ -8,10 +8,12 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from urllib.parse import urljoin, urlsplit
+from xml.etree import ElementTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build
 import paritycheck
+import readme_hero
 
 
 class Elements(HTMLParser):
@@ -43,10 +45,10 @@ class LanguageEntryTests(unittest.TestCase):
     def test_repository_default_and_home_are_english(self):
         self.assertEqual(self.home['en'].src, build.ROOT / 'README.md')
         self.assertEqual(self.home['en'].url, 'index.html')
-        self.assertEqual(self.home['en'].title, 'AGI Study Notes')
+        self.assertEqual(self.home['en'].title, 'SI Study Notes')
         self.assertEqual(self.home['zh'].src, build.ROOT / 'README.zh.md')
         self.assertEqual(self.home['zh'].url, 'index.zh.html')
-        self.assertEqual(self.home['zh'].title, 'AGI 学习笔记')
+        self.assertEqual(self.home['zh'].title, 'SI 学习笔记')
         self.assertTrue(all(page.kind == 'home' for page in self.home.values()))
         self.assertEqual(len([page for page in self.pages if page.kind == 'home']), 2)
 
@@ -64,6 +66,30 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertIn('ML and LLM notes' if language == 'en' else '这里整理了中英文的', output)
             self.assertIn('class="hero"', output)
             self.assertNotIn('{{', output)
+
+    def test_brand_matches_navigation_readmes_and_hero_assets(self):
+        for language, name in [('en', 'SI Study Notes'), ('zh', 'SI 学习笔记')]:
+            self.assertEqual(self.nav['site']['title_' + language], name)
+            self.assertEqual(self.home[language].title, name)
+            self.assertEqual(readme_hero.BRAND[language], name)
+            self.assertIn('Super Intelligence', self.home[language].src.read_text())
+            hero = ElementTree.parse(build.ROOT / '.github/media' / f'hero.{language}.svg').getroot()
+            self.assertIn(name, hero.attrib['aria-label'])
+            self.assertIn(name, list(hero.itertext()))
+            page = self.home[language]
+            build.build_page(page, [], self.nav['site']['repo'], self.known)
+            output = build.assemble(page, self.sections, self.nav, 'test',
+                                    (build.SITE / 'template.html').read_text())
+            metadata = [attrs for tag, attrs in Elements(output).elements if tag == 'meta']
+            self.assertIn({'property': 'og:site_name', 'content': name}, metadata)
+            self.assertNotIn('AGI Study Notes', output)
+            self.assertNotIn('AGI 学习笔记', output)
+
+    def test_rebrand_keeps_repository_and_public_url_identity(self):
+        self.assertEqual(self.nav['site']['repo'], 'tianyi-zhang-02/cooking-agi')
+        self.assertEqual(self.nav['site']['base_url'], '/cooking-agi')
+        self.assertEqual(self.nav['site']['origin'], 'https://tianyi-zhang-02.github.io/cooking-agi')
+        self.assertEqual(self.nav['redirects']['index.en.html'], 'index.html')
 
     def test_home_ends_with_a_next_page_link(self):
         # issue #77: a button at the bottom of the home page that goes straight to the next page

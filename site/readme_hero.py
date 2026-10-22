@@ -61,7 +61,7 @@ SCENES = [  # name, page path (en, zh), caption (number, title lines, subtitle l
 ]
 FOOTER = {"en": "Free to read · open source · tianyi-zhang-02.github.io/cooking-agi",
           "zh": "免费阅读 · 开源 · tianyi-zhang-02.github.io/cooking-agi"}
-BRAND = {"en": "AGI Study Notes", "zh": "AGI 学习笔记"}
+BRAND = {"en": "SI Study Notes", "zh": "SI 学习笔记"}
 
 
 # ---------------------------------------------------------------- capture
@@ -320,8 +320,8 @@ def compose(shots, lang):
             '<filter id="shadow" x="-40%" y="-20%" width="180%" height="160%"><feGaussianBlur stdDeviation="18"/></filter>'
             '</defs>')
     font = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif"
-    label = {"en": "A tour of AGI Study Notes: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search",
-             "zh": "AGI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"}[lang]
+    label = {"en": "A tour of SI Study Notes: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search",
+             "zh": "SI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"}[lang]
     # without animation (reduced motion, or a renderer that ignores CSS) only the first scene shows
     base = (".scene,.cap,.ph{opacity:0}.s0,.c0{opacity:1}"
             ".pg{transform:scaleX(0);transform-box:fill-box;transform-origin:left center}.p0{transform:scaleX(1)}")

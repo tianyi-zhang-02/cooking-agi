@@ -1,4 +1,4 @@
-# AGI Study Notes
+# SI Study Notes
 
 The English README is now the repository's [main README](README.md).
 

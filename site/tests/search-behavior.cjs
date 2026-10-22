@@ -110,14 +110,14 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   assert.equal(closed.results.children.length, 0);
 
   const homes = [
-    {u: 'index.html', t: 'AGI Study Notes', s: 'Home', l: 'en', x: 'Study notes'},
-    {u: 'index.zh.html', t: 'AGI 学习笔记', s: '首页', l: 'zh', x: '学习笔记'}
+    {u: 'index.html', t: 'SI Study Notes', s: 'Home', l: 'en', x: 'Study notes'},
+    {u: 'index.zh.html', t: 'SI 学习笔记', s: '首页', l: 'zh', x: '学习笔记'}
   ];
   for (const language of ['zh', 'en']) {
     for (const prefix of ['', '../', '../../']) {
       const homeSearch = mount(language, prefix);
       homeSearch.opener.click();
-      homeSearch.type('AGI');
+      homeSearch.type('SI');
       homeSearch.requests[0].resolve({ok: true, json: async () => homes});
       await tick();
       const ownLink = homeSearch.results.querySelectorAll('a')[0].href;

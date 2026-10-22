@@ -1,10 +1,12 @@
-# AGI 学习笔记
+# SI 学习笔记
+
+SI 是 **Super Intelligence（超级智能）** 的缩写。
 
 **把零散的 ML / LLM 知识整理清楚，方便学习，也方便复习。**
 
 <!-- repository-only -->
 
-<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><img src=".github/media/hero.zh.svg" width="100%" alt="AGI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"></a></p>
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><img src=".github/media/hero.zh.svg" width="100%" alt="SI 学习笔记一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"></a></p>
 
 <p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><b>在线阅读 →</b></a> &nbsp;·&nbsp; <a href="README.md">English</a> &nbsp;·&nbsp; <a href="#contributors">贡献者</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md">加入我们</a></p>
 

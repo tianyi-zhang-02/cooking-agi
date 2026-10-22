@@ -1,10 +1,12 @@
-# AGI Study Notes
+# SI Study Notes
+
+SI stands for **Super Intelligence**.
 
 **ML / LLM notes for learning, building, and interview preparation.**
 
 <!-- repository-only -->
 
-<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><img src=".github/media/hero.en.svg" width="100%" alt="A tour of AGI Study Notes: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search"></a></p>
+<p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><img src=".github/media/hero.en.svg" width="100%" alt="A tour of SI Study Notes: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search"></a></p>
 
 <p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><b>Read the notes →</b></a> &nbsp;·&nbsp; <a href="README.zh.md">中文</a> &nbsp;·&nbsp; <a href="#contributors">Contributors</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md#english">Contribute</a></p>
 
