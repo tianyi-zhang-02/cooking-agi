@@ -1,3 +1,4 @@
+import importlib.util
 import math
 from pathlib import Path
 import re
@@ -6,6 +7,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 CHAPTERS = ("generalization", "activation-and-initialization", "optimizers")
+HAS_TORCH = importlib.util.find_spec("torch") is not None
 
 
 def code_blocks(chapter, language=""):
@@ -13,13 +15,28 @@ def code_blocks(chapter, language=""):
     return re.findall(r"```python\n(.*?)```", source.read_text(), re.DOTALL)
 
 
+def needs_torch(block):
+    """The notes say which examples need PyTorch; CI installs only the site's own dependencies."""
+    return re.search(r"^(import torch|from torch)\b", block, re.MULTILINE) is not None
+
+
 class TrainingFundamentalsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.namespace = {}
+        cls.namespace, cls.torch_blocks = {}, []
         for chapter in CHAPTERS:
             for block in code_blocks(chapter):
+                if needs_torch(block):
+                    cls.torch_blocks.append((chapter, block))
+                    continue
                 exec(compile(block, chapter, "exec"), cls.namespace)
+
+    @unittest.skipUnless(HAS_TORCH, "PyTorch is not installed")
+    def test_torch_examples_run(self):
+        self.assertTrue(self.torch_blocks)
+        for chapter, block in self.torch_blocks:
+            with self.subTest(chapter=chapter):
+                exec(compile(block, chapter, "exec"), dict(self.namespace))
 
     def test_bilingual_examples_match(self):
         for chapter in CHAPTERS:
