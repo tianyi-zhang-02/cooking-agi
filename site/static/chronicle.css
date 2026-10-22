@@ -170,8 +170,7 @@ body:has(.technology-chronicle.is-starmap) .ch-tree { opacity: .12 !important; }
 @media (max-width: 650px) {
   .page-technology-tree { --ch-gutter: 1rem; }
   .page-technology-tree .article-head { margin-top: 1.8rem; }
-  .ch-fields { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .ch-fields::-webkit-scrollbar { display: none; }
+  .ch-bar .ch-fields { flex: none; width: 100%; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
   .ch-bar:has(.ch-views:not([hidden])) { flex-direction: column-reverse; gap: .6rem; }
   .ch-starmap canvas { height: 60vh; }
   .ch-item-hook { padding-left: 0; }

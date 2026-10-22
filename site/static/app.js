@@ -93,9 +93,13 @@
     open = open && drawerScreen.matches;
     if (!open && side.contains(document.activeElement) && menu) menu.focus();
     side.classList.toggle("open", open);
+    root.classList.toggle("drawer-is-open", open);
     side.inert = drawerScreen.matches && !open;
     if (scrim) scrim.hidden = !open;
-    if (menu) menu.setAttribute("aria-expanded", String(open));
+    if (menu) {
+      menu.setAttribute("aria-expanded", String(open));
+      menu.setAttribute("aria-label", LANG === "en" ? (open ? "Close navigation" : "Open navigation") : (open ? "关闭目录" : "打开目录"));
+    }
   }
   drawer(false);
   drawerScreen.addEventListener("change", function () { drawer(false); });
@@ -109,6 +113,9 @@
     }
   });
   if (scrim) scrim.addEventListener("click", function () { drawer(false); });
+  if (side) side.addEventListener("click", function (event) {
+    if (event.target.closest("a[href]")) drawer(false);
+  });
   document.addEventListener("keydown", function (e) {
     if ($(".note-search[open]")) return;
     if (!side || !side.classList.contains("open")) return;
