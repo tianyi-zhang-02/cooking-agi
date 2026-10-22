@@ -54,6 +54,39 @@ test('an export carries the whole envelope, including records the site no longer
   assert.equal(exported.entries[first].note, 'Kept');
 });
 
+test('reading changes, reload and backup restoration retain retired plans and check-ins', () => {
+  const original = withBookmarks({
+    ['bookmark-' + first]: {saved: true, updatedAt: early},
+    ['position-' + first]: {anchor: 'input', language: 'zh', updatedAt: early},
+    'reads-20261010': {notes: {[first]: 2}, updatedAt: early}
+  });
+  original.mode = {value: 'plan', updatedAt: early};
+  original.entries[first] = {status: 'learning', title: 'Old study record', note: 'Keep my memo', updatedAt: early};
+  original.schedule = {version: 1, sessions: {
+    'session-0123456789abcdef0123456789abcdef': {
+      title: 'Review attention', date: '2026-10-10', minutes: 30, noteId: first,
+      status: 'done', completedOn: '2026-10-10', actualMinutes: 25, updatedAt: early
+    },
+    'session-fedcba9876543210fedcba9876543210': {
+      title: 'Read when ready', date: '2026-10-12', minutes: 20, noteId: second,
+      status: 'planned', completedOn: '', actualMinutes: null, updatedAt: early
+    }
+  }};
+  const context = environment({initial: api.encode(original)});
+  context.progress.updateWorkspace({['bookmark-' + second]: {saved: true, updatedAt: later}});
+  const reloaded = environment({initial: context.data.get(api.KEY)});
+  const restored = environment();
+  assert.equal(restored.progress.importBackup(reloaded.progress.exportBackup()).persisted, true);
+  const result = restored.state();
+  assert.deepEqual(result.schedule, original.schedule);
+  assert.deepEqual(result.entries, original.entries);
+  assert.deepEqual(result.mode, original.mode);
+  for (const [key, record] of Object.entries(original.workspace.records)) {
+    assert.deepEqual(result.workspace.records[key], record);
+  }
+  assert.equal(result.workspace.records['bookmark-' + second].saved, true);
+});
+
 test('an import merges: the newer copy of a record wins and local-only records stay', () => {
   const local = withBookmarks({
     ['bookmark-' + first]: {saved: true, updatedAt: later},

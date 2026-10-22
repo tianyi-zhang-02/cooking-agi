@@ -24,6 +24,9 @@
   --rh-l1: #f9e4b4; --rh-l2: #f2c766; --rh-l3: #e29f1f; --rh-l4: #b97803;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 0 0 1px var(--rh-line), 0 30px 70px -28px rgba(20, 16, 8, .28); }
 .reader-hub[hidden] { display: none; }
+.reader-hub > * { flex-shrink: 0; }
+.reader-hub-nav { position: sticky; top: -1.1rem; z-index: 3; margin: -1.1rem -1.1rem 0; padding: 1.1rem 1.1rem .65rem; background: var(--paper); border-bottom: 1px solid var(--rh-line); }
+.reader-hub-status:empty { display: none; }
 @keyframes reader-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } to { opacity: 1; transform: none; } }
 .reader-hub-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .55rem; }
 .reader-hub-head h2 { margin: 0; font-size: 1.25rem; font-weight: 500; letter-spacing: -.02em; }
@@ -186,10 +189,28 @@
 .star-toast a:focus-visible, .star-toast button:focus-visible, .repo-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 @media (max-width: 760px) {
+  html:has(.reader-hub:not([hidden])) { overflow: hidden; }
   .star-toast { right: 12px; bottom: 76px; }
   .repo-pill-divider, .repo-pill-label { display: none; }
   .repo-btn.repo-pill { padding: 0 .55rem; }
   .reader-hub { top: 56px; right: 8px; bottom: 8px; width: calc(100vw - 16px); }
+  .reader-hub-close, .reader-hub-remove { width: 44px; height: 44px; }
+  .reader-hub-tabs button, .reader-hub-segment button, .reader-hub-chip { min-height: 44px; line-height: 1.3; }
+  .reader-hub-list li { align-items: center; gap: .4rem; }
+  .reader-hub-list a, .reader-hub-unknown { overflow-wrap: anywhere; }
+  .reader-hub-list small { max-width: 5.5rem; text-align: center; white-space: normal; }
+  .reader-hub-setting { flex-wrap: wrap; gap: .65rem; }
+  .reader-hub-setting-text { flex: 1 1 8rem; }
+  .reader-hub-setting[data-backup-row] { display: block; }
+  .reader-hub-backup { margin-top: .75rem; }
+  .reader-hub-backup button { flex: 1; }
+  .reader-hub-setting:has(.reader-hub-switch) .reader-hub-setting-text { flex: 1 1 0; }
+  .reader-hub-switch { min-width: 44px; height: 44px; background: none; }
+  .reader-hub-switch::before { content: ''; position: absolute; left: 1px; top: 10px; width: 42px; height: 24px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+  .reader-hub-switch::after { top: 13px; left: 4px; }
+  .reader-hub-switch[aria-checked="true"] { background: none; }
+  .reader-hub-switch[aria-checked="true"]::before { background: var(--rh-accent); }
+  .reader-hub-local { padding-bottom: env(safe-area-inset-bottom); }
 }
 @media (prefers-reduced-motion: reduce) {
   .reader-hub, .star-toast, .reader-hub-badge.is-bump, .reader-hub .is-new .bar, .reader-hub rect.is-new { animation: none; }

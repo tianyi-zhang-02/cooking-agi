@@ -262,13 +262,14 @@
   const panels = {};
   for (const [name, label] of tabs) {
     tabList.append(el('button', {type: 'button', role: 'tab', id: `reader-tab-${name}`, 'aria-controls': `reader-panel-${name}`,
-      'aria-selected': name === 'reading' ? 'true' : 'false', 'data-tab': name, text: label}));
+      'aria-selected': name === 'reading' ? 'true' : 'false', tabindex: name === 'reading' ? '0' : '-1', 'data-tab': name, text: label}));
     panels[name] = el('section', {class: 'reader-hub-panel', role: 'tabpanel', id: `reader-panel-${name}`,
       'aria-labelledby': `reader-tab-${name}`, hidden: name !== 'reading'});
   }
   const status = el('p', {class: 'reader-hub-status', role: 'status', 'aria-live': 'polite'});
-  drawer.append(el('header', {class: 'reader-hub-head'}, [el('h2', {id: 'reader-hub-title', text: say('我的阅读', 'My reading')}), close]),
-    tabList, ...Object.values(panels), status,
+  drawer.append(el('div', {class: 'reader-hub-nav'}, [
+    el('header', {class: 'reader-hub-head'}, [el('h2', {id: 'reader-hub-title', text: say('我的阅读', 'My reading')}), close]),
+    tabList, status]), ...Object.values(panels),
     el('p', {class: 'reader-hub-local', text: say('个人记录保存在这个浏览器里；换设备时可在「设置」里导出、导入。公开计数另行开启，只统计后续操作，不上传已有记录。',
       'Personal records stay in this browser; export or import them under Settings when switching devices. Public counting is a separate opt-in for subsequent activity, not an upload of existing records.')}));
   document.body.append(drawer);
@@ -302,9 +303,11 @@
   }
   tabList.addEventListener('click', event => { const tab = event.target.closest('[data-tab]'); if (tab) select(tab.dataset.tab); });
   tabList.addEventListener('keydown', event => {
-    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
     const order = tabs.map(([name]) => name);
-    const next = order[(order.indexOf(active) + (event.key === 'ArrowRight' ? 1 : order.length - 1)) % order.length];
+    const next = event.key === 'Home' ? order[0] : event.key === 'End' ? order[order.length - 1]
+      : order[(order.indexOf(active) + (event.key === 'ArrowRight' ? 1 : order.length - 1)) % order.length];
     select(next);
     tabList.querySelector(`[data-tab="${next}"]`).focus();
   });
@@ -589,8 +592,8 @@
       let text;
       try { text = progress.exportBackup(); } catch { status.textContent = say('没能导出：浏览器里的记录暂时读不出来。', 'Could not export: the records in this browser cannot be read right now.'); return; }
       const url = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
-      const link = el('a', {href: url, download: 'agi-notes-backup-' + dayKey(new Date()) + '.json'});
-      document.body.append(link);
+      const link = el('a', {href: url, download: 'agi-notes-backup-' + dayKey(new Date()) + '.json', hidden: true});
+      drawer.append(link);
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -624,7 +627,7 @@
       render();
     });
     const backup = row(say('备份', 'Backup'), say('收藏、阅读记录和阅读位置都在里面。换浏览器或设备前先导出，到新地方再导入；导入是合并，不会删掉已有记录。', 'Saved notes, reading history and positions. Export before switching browsers or devices, then import there; importing merges and never deletes anything.'),
-      el('div', {class: 'reader-hub-backup'}, [exportButton, importButton, file]));
+      el('div', {class: 'reader-hub-backup'}, [exportButton, importButton, file]), 'div', {'data-backup-row': true});
     let armed = false;
     const wipeLabel = el('strong', {text: say('清空阅读记录', 'Clear reading history')});
     const wipe = el('button', {type: 'button', class: 'reader-hub-setting is-danger reader-hub-danger'}, [el('div', {class: 'reader-hub-setting-text'}, [wipeLabel,
@@ -638,12 +641,13 @@
       render();
     });
     panel.append(
+      ...group(say('备份与恢复', 'Backup & restore'), [backup]),
       ...group(say('阅读', 'Reading'), [row(say('记录阅读次数', 'Count my reading'), say('一篇笔记在前台读满 15 秒记一次，只存在这个浏览器。', 'A note counts after 15 visible seconds; kept in this browser only.'), history)]),
       ...group(say('外观与提示', 'Look and notices'), [
         row(say('主题', 'Theme'), say('和顶栏的切换按钮是同一个设置。', 'Same as the toggle in the top bar.'), theme),
         row(say('Star 提示', 'Star notice'), say('偶尔在右下角提醒一次。', 'An occasional notice in the corner.'), star),
         row(say('学习小伙伴', 'Study buddy'), say('右下角的小窗，跟着时间和节日变化。', 'The little window in the corner that follows the time of day.'), buddy)]),
-      ...group(say('数据', 'Data'), [backup, wipe]));
+      ...group(say('清理记录', 'Clear history'), [wipe]));
   }
 
   let renderedDay = dayKey(new Date());

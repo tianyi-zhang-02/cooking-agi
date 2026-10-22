@@ -24,8 +24,9 @@ class Element {
   }
   append(...children) { children.forEach(child => { child.parent = this; this.children.push(child); }); }
   replaceChildren(...children) { this.children = []; this.append(...children); }
+  remove() { this.parent.children = this.parent.children.filter(child => child !== this); this.parent = null; }
   addEventListener(name, handler) { this.events[name] = handler; }
-  focus() {}
+  focus() { this.focused = true; }
   matches(selector) {
     if (selector.startsWith('.')) return (this.attributes.class || '').split(' ').includes(selector.slice(1));
     const attribute = /^\[([^=\]]+)(?:="([^"]*)")?\]$/.exec(selector);
@@ -53,12 +54,22 @@ function environment(initialSettings = {}, language = 'en', noteId = '') {
     static now() { return Date.now() + elapsed; }
   }
   const dispatched = [];
+  const documentEvents = {};
   const document = {
     body, documentElement: {lang: language, dataset: {}}, visibilityState: 'visible', title: 'A note',
-    createElement: tag => new Element(tag), createElementNS: (namespace, tag) => new Element(tag),
+    createElement: tag => {
+      const node = new Element(tag);
+      if (tag === 'a') node.addEventListener('click', () => {
+        const path = [];
+        for (let current = node; current; current = current.parent) path.push(current);
+        documentEvents.click?.({target: node, composedPath: () => path});
+      });
+      return node;
+    },
+    createElementNS: (namespace, tag) => new Element(tag),
     createTextNode: text => Object.assign(new Element('text'), {textContent: text}),
     querySelector: selector => selector === '.topbar-right' ? right : selector === '[data-prep-note]' && noteId ? {dataset: {prepNote: noteId}} : null,
-    addEventListener() {}
+    addEventListener(name, handler) { documentEvents[name] = handler; }
   };
   const window = {
     SITE: {prefix: '/'},
@@ -68,7 +79,7 @@ function environment(initialSettings = {}, language = 'en', noteId = '') {
     dispatchEvent: event => { dispatched.push(event); return true; },
     matchMedia: () => ({matches: false})
   };
-  vm.runInNewContext(source, {window, document, URL, Date: Clock, Event, CustomEvent, location: {href: 'https://example.com/note.html'}});
+  vm.runInNewContext(source, {window, document, URL, Blob, setTimeout: window.setTimeout, Date: Clock, Event, CustomEvent, location: {href: 'https://example.com/note.html'}});
   const selectSettings = () => {
     body.querySelector('.reader-hub-toggle').click();
     const tab = body.querySelector('[data-tab="settings"]');
@@ -188,4 +199,52 @@ test('retrying a quota-failed clear writes the already empty in-memory snapshot'
   retry.click();
   assert.match(context.body.querySelector('.reader-hub-status').textContent, /Reading history cleared/);
   assert.deepEqual(store.createStore(context.storage).read().workspace.records['reads-20261012'].notes, {});
+});
+
+test('settings put backup first and keep navigation and feedback in the sticky header', () => {
+  for (const [language, heading] of [['en', 'Backup & restore'], ['zh', '备份与恢复']]) {
+    const context = environment({}, language);
+    context.selectSettings();
+    const drawer = context.body.querySelector('.reader-hub');
+    const navigation = drawer.querySelector('.reader-hub-nav');
+    assert.ok(navigation.querySelector('.reader-hub-head'));
+    assert.ok(navigation.querySelector('.reader-hub-tabs'));
+    assert.ok(navigation.querySelector('.reader-hub-status'));
+    const panel = drawer.querySelector('[id="reader-panel-settings"]');
+    assert.equal(panel.children[0].children[0].textContent, heading);
+    assert.ok(panel.querySelector('[data-backup-row]'));
+    assert.equal(panel.children.at(-1).querySelector('.reader-hub-danger'), context.body.querySelector('.reader-hub-danger'));
+  }
+});
+
+test('tab navigation supports arrows and Home/End without rewriting saved records', () => {
+  const context = environment();
+  const tabList = context.body.querySelector('.reader-hub-tabs');
+  assert.deepEqual(tabList.children.map(tab => tab.attributes.tabindex), ['0', '-1', '-1']);
+  const before = context.storage.getItem(store.KEY);
+  context.body.querySelector('.reader-hub-toggle').click();
+  for (const [key, selected] of [['End', 'settings'], ['Home', 'reading'], ['ArrowLeft', 'settings'], ['ArrowRight', 'reading']]) {
+    let prevented = false;
+    tabList.events.keydown({key, preventDefault() { prevented = true; }});
+    const tab = tabList.querySelector(`[data-tab="${selected}"]`);
+    assert.equal(prevented, true);
+    assert.equal(tab.attributes['aria-selected'], 'true');
+    assert.equal(tab.focused, true);
+    assert.equal(tab.tabIndex, 0);
+    assert.equal(tabList.children.filter(item => item.tabIndex === 0).length, 1);
+  }
+  assert.equal(context.storage.getItem(store.KEY), before);
+});
+
+test('export does not close the drawer as an outside click or hide its feedback', () => {
+  const context = environment();
+  context.window.PreparationProgress.exportBackup = () => store.encode(context.progress.read());
+  context.selectSettings();
+  const drawer = context.body.querySelector('.reader-hub');
+  const backup = drawer.querySelector('[data-backup-row]');
+  backup.querySelector('.reader-hub-chip').click();
+  assert.equal(drawer.hidden, false);
+  assert.match(drawer.querySelector('.reader-hub-status').textContent, /Backup exported/);
+  assert.equal(drawer.querySelector('[download]'), null);
+  context.timers.at(-1)();
 });
