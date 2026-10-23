@@ -45,10 +45,10 @@ class LanguageEntryTests(unittest.TestCase):
     def test_repository_default_and_home_are_english(self):
         self.assertEqual(self.home['en'].src, build.ROOT / 'README.md')
         self.assertEqual(self.home['en'].url, 'index.html')
-        self.assertEqual(self.home['en'].title, 'SI Study Notes')
+        self.assertEqual(self.home['en'].title, 'Cooking AGI')
         self.assertEqual(self.home['zh'].src, build.ROOT / 'README.zh.md')
         self.assertEqual(self.home['zh'].url, 'index.zh.html')
-        self.assertEqual(self.home['zh'].title, 'SI 学习笔记')
+        self.assertEqual(self.home['zh'].title, 'AGI 大锅烩')
         self.assertTrue(all(page.kind == 'home' for page in self.home.values()))
         self.assertEqual(len([page for page in self.pages if page.kind == 'home']), 2)
 
@@ -68,11 +68,11 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertNotIn('{{', output)
 
     def test_brand_matches_navigation_readmes_and_hero_assets(self):
-        for language, name in [('en', 'SI Study Notes'), ('zh', 'SI 学习笔记')]:
+        for language, name in [('en', 'Cooking AGI'), ('zh', 'AGI 大锅烩')]:
             self.assertEqual(self.nav['site']['title_' + language], name)
             self.assertEqual(self.home[language].title, name)
             self.assertEqual(readme_hero.BRAND[language], name)
-            self.assertIn('Super Intelligence', self.home[language].src.read_text())
+            self.assertNotIn('Super Intelligence', self.home[language].src.read_text())
             hero = ElementTree.parse(build.ROOT / '.github/media' / f'hero.{language}.svg').getroot()
             self.assertIn(name, hero.attrib['aria-label'])
             self.assertIn(name, list(hero.itertext()))
@@ -90,6 +90,43 @@ class LanguageEntryTests(unittest.TestCase):
         self.assertEqual(self.nav['site']['base_url'], '/cooking-agi')
         self.assertEqual(self.nav['site']['origin'], 'https://tianyi-zhang-02.github.io/cooking-agi')
         self.assertEqual(self.nav['redirects']['index.en.html'], 'index.html')
+        for source, anchors in [
+            ('README.md', ['si-study-notes', 'agi-study-notes']),
+            ('README.en.md', ['si-study-notes', 'agi-study-notes']),
+            ('README.zh.md', ['si-学习笔记', 'agi-学习笔记']),
+        ]:
+            content = (build.ROOT / source).read_text()
+            for anchor in anchors:
+                self.assertIn(f'<span id="{anchor}"></span>', content)
+
+    def test_page_and_share_titles_use_one_site_name(self):
+        for source in ['README.md', 'learn/README.md', '09-personal-agi/README.md']:
+            for language, page in build.BY_SRC[source].items():
+                with self.subTest(source=source, language=language):
+                    name = self.nav['site']['title_' + language]
+                    expected = name if page.kind == 'home' else f'{page.title} · {name}'
+                    build.build_page(page, [], self.nav['site']['repo'], self.known)
+                    output = build.assemble(page, self.sections, self.nav, 'test',
+                                            (build.SITE / 'template.html').read_text())
+                    self.assertEqual(re.search(r'<title>(.*?)</title>', output).group(1), expected)
+                    elements = Elements(output).elements
+                    self.assertIn(('meta', {'property': 'og:title', 'content': expected}), elements)
+                    self.assertIn(('meta', {'name': 'twitter:title', 'content': expected}), elements)
+                    self.assertIn(f'<span class="brand-full">{name}</span>', output)
+                    self.assertIn('<span class="brand-short" aria-hidden="true">AGI</span>', output)
+
+    def test_published_notes_do_not_use_legacy_brand_names(self):
+        legacy = re.compile(r'\b(?:SI\s*(?:Study\s+Notes|学习笔记)|(?:AGI|AI)\s*(?:Study\s+Notes|学习笔记|大杂烩))', re.I)
+        for page in self.pages:
+            with self.subTest(source=page.src):
+                self.assertIsNone(legacy.search(page.src.read_text()))
+
+    def test_mobile_brand_keeps_the_full_accessible_name(self):
+        styles = (build.SITE / 'static/mobile-reading.css').read_text()
+        self.assertIn('.topbar-brand .brand-short { display: none; }', styles)
+        self.assertIn('body .topbar-brand .brand-short { display: inline;', styles)
+        self.assertIn('body .topbar-brand .brand-full { position: absolute;', styles)
+        self.assertNotIn('body .topbar-brand span {', styles)
 
     def test_home_ends_with_a_next_page_link(self):
         # issue #77: a button at the bottom of the home page that goes straight to the next page

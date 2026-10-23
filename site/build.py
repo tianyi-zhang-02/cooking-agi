@@ -1944,6 +1944,8 @@ def assemble(page, sections, nav, built, template):
         template = template.replace('</head>', f'<link rel="stylesheet" href="{page.rel("static/career.css")}?v={built}">\n</head>')
     zh = page.lang == "zh"
     html_lang = "zh-Hans" if zh else "en"
+    site_title = site["title_zh" if zh else "title_en"]
+    document_title = site_title if page.kind == "home" else f"{page.title} · {site_title}"
     sib = getattr(page, "sibling", None)
     lang_href = page.rel(sib.url) if sib else "#"
     lang_cls = "" if sib else " disabled"
@@ -2016,8 +2018,9 @@ def assemble(page, sections, nav, built, template):
             .replace("{{lang}}", html_lang)
             .replace("{{dir_class}}", "lang-zh" if zh else "lang-en")
             .replace("{{page_class}}", page_class)
+            .replace("{{document_title}}", html.escape(document_title, quote=True))
             .replace("{{title}}", html.escape(page.title))
-            .replace("{{site_title}}", html.escape(site["title_zh" if zh else "title_en"]))
+            .replace("{{site_title}}", html.escape(site_title))
             .replace("{{tagline}}", html.escape(site["tagline_zh" if zh else "tagline_en"]))
             .replace("{{description}}", html.escape(description, quote=True))
             .replace("{{canonical}}", html.escape(canonical, quote=True))

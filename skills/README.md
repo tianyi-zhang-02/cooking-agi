@@ -3,7 +3,7 @@
 ## cooking-agi-interview
 
 A mock interviewer and review coach for MLE / research engineer / LLM engineer / AI infra
-interviews, built from the notes in this repository. It asks one question at a time, grades the
+interviews, built from Cooking AGI. It asks one question at a time, grades the
 answer against the notes, follows up on gaps, and keeps a local progress log so weak areas come
 back. Works with Claude Code, Codex, and other agents that read `SKILL.md` skills. No server of its
 own and no API key beyond your agent's: the notes and questions come from the site's read-only

@@ -1,4 +1,7 @@
-# SI Study Notes
+# Cooking AGI
+
+<span id="si-study-notes"></span>
+<span id="agi-study-notes"></span>
 
 The English README is now the repository's [main README](README.md).
 

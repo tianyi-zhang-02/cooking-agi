@@ -1,4 +1,4 @@
-# Releasing SI Study Notes
+# Releasing Cooking AGI
 
 Public scope and status live in `community/updates.md` and `community/updates.en.md`. Priorities live in the paired roadmap pages. Do not keep a second full changelog in the README: link to these pages. The first proposed named release is **v1.0.0 — Study workspace**, not a claim that every AI topic is covered.
 

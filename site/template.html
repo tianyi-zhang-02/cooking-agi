@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="{{prefix}}static/language.js?v={{built}}" data-site-root="{{prefix}}"></script>
-<title>{{title}} · {{site_title}}</title>
+<title>{{document_title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="canonical" href="{{canonical}}">
 <meta property="og:type" content="{{og_type}}">
 <meta property="og:locale" content="{{og_locale}}">
 <meta property="og:site_name" content="{{site_title}}">
-<meta property="og:title" content="{{title}} · {{site_title}}">
+<meta property="og:title" content="{{document_title}}">
 <meta property="og:description" content="{{description}}">
 <meta property="og:url" content="{{canonical}}">
 <meta name="twitter:card" content="{{twitter_card}}">
-<meta name="twitter:title" content="{{title}} · {{site_title}}">
+<meta name="twitter:title" content="{{document_title}}">
 <meta name="twitter:description" content="{{description}}">
 {{social_image}}
 <meta name="theme-color" content="#0C0A08">
@@ -60,7 +60,8 @@
       <path d="M4.5 6.5h6.8c1.5 0 2.7 1.2 2.7 2.7v12.3c0-1.5-1.2-2.7-2.7-2.7H4.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M23.5 6.5h-6.8c-1.5 0-2.7 1.2-2.7 2.7v12.3c0-1.5 1.2-2.7 2.7-2.7h6.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
     </svg>
-    <span>{{site_title}}</span>
+    <span class="brand-full">{{site_title}}</span>
+    <span class="brand-short" aria-hidden="true">AGI</span>
   </a>
   {{tabs}}
   <div class="topbar-right">

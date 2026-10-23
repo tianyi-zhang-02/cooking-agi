@@ -8,12 +8,12 @@ const base = 'https://example.org/cooking-agi/';
 const keys = storageKeys(base);
 const {prepareIndex, rankNotes, safePath} = require('../static/search.js');
 const homes = prepareIndex([
-  {u: 'index.html', t: 'SI Study Notes', s: 'Home', l: 'en', x: 'Start here'},
-  {u: 'index.zh.html', t: 'SI 学习笔记', s: '首页', l: 'zh', x: '从这里开始'}
+  {u: 'index.html', t: 'Cooking AGI', s: 'Home', l: 'en', x: 'Start here'},
+  {u: 'index.zh.html', t: 'AGI 大锅烩', s: '首页', l: 'zh', x: '从这里开始'}
 ]);
 assert.equal(homes.length, 2);
-assert.equal(rankNotes(homes, 'study notes', 'zh', false)[0].u, 'index.zh.html');
-assert.equal(rankNotes(homes, '学习笔记', 'en', false)[0].u, 'index.html');
+assert.equal(rankNotes(homes, 'Cooking AGI', 'zh', false)[0].u, 'index.zh.html');
+assert.equal(rankNotes(homes, '大锅烩', 'en', false)[0].u, 'index.html');
 for (const unsafe of ['../index.zh.html', '/index.zh.html', '//index.zh.html', 'index.zh.html?url=elsewhere']) {
   assert.equal(safePath(unsafe), false);
 }

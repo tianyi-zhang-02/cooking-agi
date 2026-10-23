@@ -65,6 +65,18 @@ class AgentApiTests(unittest.TestCase):
         self.assertFalse((skill / "notes").exists())
         self.assertFalse((skill / "data").exists())
 
+    def test_skill_brand_preserves_install_and_progress_identity(self):
+        source = (SCRIPT.parent.parent / 'SKILL.md').read_text()
+        guide = (ROOT / 'skills/README.md').read_text()
+        self.assertIn('# Cooking AGI interview coach', source)
+        self.assertIn('name: cooking-agi-interview\n', source)
+        self.assertIn('<a id="cooking-agi-interview-coach"></a>', source)
+        self.assertIn('[Cooking AGI](https://github.com/tianyi-zhang-02/cooking-agi)', source)
+        self.assertIn('--skill cooking-agi-interview', guide)
+        self.assertIn('Cooking AGI', guide)
+        for text in [source, guide]:
+            self.assertIn('~/.cooking-agi-interview/progress.json', text)
+
     def test_interview_commands(self):
         topic = next(t for t in self.topics if t["questions"])
         for args in (["topics"], ["notes", topic["id"]], ["ask", "-t", topic["id"], "-n", "1", "--seed", "1"],

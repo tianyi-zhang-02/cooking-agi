@@ -5,8 +5,8 @@
 #                  alphabetically, so you only name the ones you care about.
 [site]
 repo        = "tianyi-zhang-02/cooking-agi"
-title_zh    = "SI 学习笔记"
-title_en    = "SI Study Notes"
+title_zh    = "AGI 大锅烩"
+title_en    = "Cooking AGI"
 tagline_zh  = "从基础开始，理解模型怎么工作"
 tagline_en  = "From first principles to AI systems that work"
 base_url    = "/cooking-agi"
