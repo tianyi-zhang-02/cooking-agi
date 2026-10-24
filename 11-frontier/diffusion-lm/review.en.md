@@ -60,7 +60,7 @@ Smaller blocks move closer to AR and reduce the number of positions available fo
 
 Use the teaching model in [decoding and speed](decoding-and-speed.en.md): linear layers only, with 7B parameters, BF16, and H100 SXM5 peak specifications. The lower bound for one forward pass is $\max(4.18\,\text{ms},\ n\times0.01415\,\text{ms})$; below about 295 positions, reading the weights dominates.
 
-For one request with a 512-token prompt and 256 generated tokens: AR takes about 1,076 ms; whole-sequence diffusion without a cache computes 768 positions per step and takes 2,782 ms at one token per step, slower than AR; blocks with $G=32$ plus a cache, at 4 per step, take about 275 ms, 3.9 times faster.
+For one request with a 512-token prompt and 256 generated tokens: AR takes about 1,076 ms; whole-sequence diffusion without a cache computes 768 positions per step and takes 2,782 ms at one token per step, slower than AR; blocks with $G=32$ plus a cache, at 4 per step, take about 275 ms, 3.9 times faster. Adding a commit pass after each of the 8 blocks costs about 33 ms more: about 308 ms, or roughly 3.5 times faster.
 
 As concurrency rises, diffusion computes $G/\tau=8$ positions per committed token. This simplified model gives a throughput ceiling of 8,834 tok/s, versus AR's 70,671 tok/s, with AR catching up at about 37 concurrent requests. The low-concurrency speedup is therefore about $\tau$, and the throughput ratio at compute saturation is about $\tau/G$. These are estimates, not measurements. Third-party measurements and Google's discussion of DiffusionGemma also highlight the difference between low-concurrency latency and high-concurrency throughput.
 
