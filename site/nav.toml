@@ -778,7 +778,7 @@ dir   = "11-frontier/diffusion-lm"
 group = "frontier"
 zh    = "扩散语言模型（dLLM）"
 en    = "Diffusion LMs"
-order = ["README.md", "masked-diffusion.md", "decoding-and-speed.md", "review.md"]
+order = ["README.md", "masked-diffusion.md", "mdlm-walkthrough.md", "decoding-and-speed.md", "ar-and-diffusion.md", "context-reuse.md", "review.md"]
 
 [[section]]
 dir   = "practice"
@@ -1179,7 +1179,10 @@ en  = "Templates"
 "11-frontier/interpretability/review.md" = ["复习题", "Review"]
 "11-frontier/diffusion-lm/README.md" = ["总览", "Overview"]
 "11-frontier/diffusion-lm/masked-diffusion.md" = ["掩码扩散在训练什么", "What masked diffusion trains"]
+"11-frontier/diffusion-lm/mdlm-walkthrough.md" = ["MDLM：训练到生成", "MDLM walkthrough"]
 "11-frontier/diffusion-lm/decoding-and-speed.md" = ["解码步数、缓存与速度", "Steps, caching & speed"]
+"11-frontier/diffusion-lm/ar-and-diffusion.md" = ["AR 对比与混合生成", "AR comparison & hybrids"]
+"11-frontier/diffusion-lm/context-reuse.md" = ["缓存与上下文复用", "Context reuse & caching"]
 "11-frontier/diffusion-lm/review.md" = ["复习题", "Review"]
 "00-foundations/scaling/README.md" = ["总览", "Overview"]
 "00-foundations/scaling/compute-optimal.md" = ["给定算力：模型多大、数据多少", "Compute-optimal size and data"]

@@ -12,6 +12,8 @@ LLaDA 8B Instruct 在 GSM8K 上的分数，是每次前向只落下 1 个 token 
 
 ## 一步在做什么：预测所有空位，只留下有把握的
 
+这一节用 LLaDA 的置信度选择举例；[MDLM 的基础采样器](mdlm-walkthrough.md)按日程随机揭开位置，两者不要混成同一个算法。
+
 LLaDA §2.4 的采样从全空的回答开始，生成长度和步数都是超参数。从时刻 $t$ 走到 $s$ 的一步：把提示词和部分被遮的回答一起送进模型，一次前向预测所有空位，再把其中约 $s/t$ 的预测重新遮住。默认的“低置信度重遮”（low-confidence remasking）留下最有把握的预测，遮回其余的；EOS 之后的内容最后丢掉。
 
 拿 `the tea is cold` 走一遍：生成长度 4，分 2 步，每步留 2 个。置信度是教学数字。
@@ -36,11 +38,15 @@ def sample(model, prompt, gen_len, steps):
     return x
 ```
 
-**能改已经落下的 token 吗？** 掩码扩散默认不能，这是它和下面几种方法的区别。[Mask-Predict](https://arxiv.org/abs/1904.09324)（Ghazvininejad 等，2019-04，EMNLP 2019）在机器翻译里会反复遮住所有位置中最没把握的词，重新预测。[ReMDM](https://arxiv.org/abs/2503.00307)（Wang 等，2025-03，NeurIPS 2025）给预训练好的掩码扩散模型加上重遮已解码 token 的采样器，步数越多质量越接近自回归（AR）。[LLaDA2.1](https://arxiv.org/abs/2602.08676)（2026-02）在“把空位填成词”之外加了“把词改成另一个词”的编辑。DiffusionGemma 的[模型卡](https://ai.google.dev/gemma/docs/diffusiongemma/model_card)写，每步没被选中的 token 会被完全重新加噪；[开发者指南](https://developers.googleblog.com/diffusiongemma-the-developer-guide/)也说，置信度下降的 token 可以重新加噪、换掉。
+**能改已经确定的 token 吗？** 上面的基础采样器不能，但这不是所有掩码扩散方法的限制。[Mask-Predict](https://arxiv.org/abs/1904.09324)（Ghazvininejad 等，2019-04，EMNLP 2019）在机器翻译里会反复遮住所有位置中最没把握的词，重新预测。[ReMDM](https://arxiv.org/abs/2503.00307)（Wang 等，2025-03，NeurIPS 2025）给预训练好的掩码扩散模型加上重遮已解码 token 的采样器，作者报告增加步数后，质量更接近自回归。[LLaDA2.1](https://arxiv.org/abs/2602.08676)（2026-02）在“把空位填成词”之外加了“把词改成另一个词”的编辑。
+
+DiffusionGemma 的[模型卡](https://ai.google.dev/gemma/docs/diffusiongemma/model_card)写，每步没被选中的 token 会被完全重新加噪；[开发者指南](https://developers.googleblog.com/diffusiongemma-the-developer-guide/)也说，置信度下降的 token 可以重新加噪、换掉。能不能修改已生成内容，要看具体采样器，而不只是模型是否叫扩散模型。
 
 ## 一步落几个：并行解码为什么会写出 high house
 
-一步里同时落下的几个 token，是各自按自己的边缘分布选出来的，没有看到彼此。[Fast-dLLM](https://arxiv.org/abs/2505.22618)（Wu 等，2025-05）用扑克牌型举例。设答案一半是 `full house`、一半是 `high card`（教学分布）。第 1 位的边缘分布是 full 0.5、high 0.5，第 2 位是 house 0.5、card 0.5。一步同时采两个位置，拼出合法牌型的概率只有 $0.5\times0.5+0.5\times0.5=0.5$，另一半是 `full card` 或 `high house`；分两步，先落一个，第二个就确定了，合法率回到 1。上一篇的 `hot tea` 也一样：一步落两个，生成它的概率是 $0.2\times0.1=0.02$，一个一个填是 0.105。
+一步里同时确定的几个 token，分别从各位置的边缘分布采样，还不知道其他位置最终选了什么。[Fast-dLLM](https://arxiv.org/abs/2505.22618)（Wu 等，2025-05）用扑克牌型举例。设答案一半是 `full house`、一半是 `high card`（教学分布）。第 1 位的边缘分布是 full 0.5、high 0.5，第 2 位是 house 0.5、card 0.5。
+
+一步独立采样两个位置，拼出合法牌型的概率只有 $0.5\times0.5+0.5\times0.5=0.5$，另一半是 `full card` 或 `high house`。若分两步，先选一个，再按条件分布选另一个，理想模型的合法率就回到 1。[训练目标一篇](masked-diffusion.md)里的 `hot tea` 也类似：一步独立采样两个位置，生成它的概率是 $0.2\times0.1=0.02$；按例子里的两种顺序等概率逐词生成，则是 0.105。
 
 Fast-dLLM 的办法是按置信度决定落几个：置信度超过阈值（默认 0.9）的位置都落下，一个都没有就只落最高的那个。它的定理 1 说：若 $n$ 个位置的边缘置信度都高于 $1-\epsilon$，且 $(n+1)\epsilon\le1$，那么各自取最大值，和对联合分布取最大值，选出的是同一个序列。3 个位置都在 0.95 以上时，$(3+1)\times0.05=0.2\le1$，可以一起落；扑克的例子里 $\epsilon=0.5$、$n=2$，$3\times0.5=1.5>1$，没有保证，而且阈值规则也只会先落一个。于是 $\tau$ 会随内容变化：容易确定的片段可以一步落很多，难的地方一次一个；DiffusionGemma 的模型卡也写，简单的提示和代码这类结构化任务需要的去噪步数更少。
 
@@ -163,4 +169,4 @@ $\Theta$ 是吞吐。这个账忽略了 attention 和 KV。roofline 一篇的第
 | 计时包括 prefill、每块的提交前向和固定开销 | 端到端延迟和首 token 时间 | 只看“采样速度”就能估出用户等多久 |
 | 记录每一步落下几个 token 的分布 | 难题和简单片段的 $\tau$ 差多少 | 平均 $\tau$ 能代表每一道题 |
 
-下一篇：[复习题](review.md)。
+下一篇：[自回归与扩散：怎么比较，又怎么结合](ar-and-diffusion.md)，用一个分块例子看缓存，再看混合生成和近期进展。

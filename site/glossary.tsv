@@ -158,6 +158,13 @@
 反向传播穿越时间	backpropagation through time, BPTT	把递归计算沿时间展开后执行反向传播
 预填充	prefill	一次并行处理完整 prompt 并建立 KV cache 的推理阶段
 自回归解码	autoregressive decoding	把刚生成的 token 作为下一步输入并逐步继续生成
+自回归	Autoregressive, AR	按一个顺序分解联合概率，每次生成都以之前已确定的内容为条件
+扩散语言模型	Diffusion Language Model, dLLM	通过学习逆转加噪过程生成文本；具体噪声、生成顺序与采样器随方法而异
+掩码扩散	masked diffusion	以遮盖 token 作为加噪方式，生成时逐步恢复文本
+去噪	denoising	根据当前状态和上下文预测更干净的内容；是否能修改已确定的 token 取决于方法
+前向计算	forward pass	输入经过网络得到预测；不同于反向传播和参数更新
+边缘分布	marginal distribution	只看部分变量的概率分布，其他变量的可能取值已被求和或积分消去
+条件分布	conditional distribution	已知一些变量的取值后，其他变量的概率分布
 随机失活	dropout	训练时随机置零一部分激活，逼模型不依赖固定通道，换取泛化
 正则化	regularization	通过约束、惩罚或训练方式减少过拟合，让模型更好地处理新数据
 过拟合	overfitting	训练集越来越好，没见过的数据反而变差

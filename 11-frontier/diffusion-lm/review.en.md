@@ -4,28 +4,36 @@
 
 > Reading time: ~8 min · Last reviewed: 2026-10
 
-This page condenses the series into interview questions and a self-check; every number and conclusion in the answers can be traced to a source in the first two notes.
+This page collects interview questions and self-checks for the series; every number and conclusion in the answers can be traced to a source in the preceding notes.
 
 ## Interview questions
 
 <details class="interview" markdown="1">
 <summary>What are the forward process and the training objective of masked diffusion? What does the $1/t$ do?</summary>
 
-Forward process: at time $t\in[0,1]$, each position is independently replaced by `[M]` with probability $t$, and once it becomes `[M]` it never changes back (the absorbing state). Training objective: draw $t\sim U(0,1]$ and the corresponding $x_t$, compute the cross-entropy only at masked positions, and multiply by $1/t$ (LLaDA, Eq. 3). At small $t$ only $tL$ positions contribute on average; after the $1/t$, every $t$ carries an expected weight of $L$ tokens, and the whole objective becomes an upper bound on the negative log-likelihood (NLL). With another masking schedule, the continuous-time weight is $-\alpha_t'/(1-\alpha_t)$; the objective itself does not change, only the gradient variance. The model does not need to know $t$, since the number of blanks is already in the input.
+Forward process: at time $t\in[0,1]$, each position is independently replaced by `[M]` with probability $t$, and once it becomes `[M]` it never changes back (the absorbing state). Training objective: draw $t\sim U(0,1]$ and the corresponding $x_t$, compute the cross-entropy only at masked positions, and multiply by $1/t$ (LLaDA, Eq. 3). At small $t$, only $tL$ positions contribute on average. Weighting by $1/t$ gives expected supervision weight $L$ at each time, though the loss still depends on prediction difficulty. The complete expected objective upper-bounds negative log-likelihood (NLL); an individual random mask need not give a bound.
+
+For the same ideal denoising conditional, a smooth monotone schedule covering the same endpoints leaves the continuous-time objective unchanged when paired with its corresponding weight $-\alpha_t'/(1-\alpha_t)$. Sampling variance and practical optimization can still differ. Under independent, content-independent masking, the ideal word distribution given the visible context does not depend on $t$, so the prediction network can omit time. The sampler still needs it to determine reveal probabilities. See the [MDLM worked example](mdlm-walkthrough.en.md).
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>How does it differ from BERT's masked language modeling (MLM)? Why can't BERT be used to generate directly?</summary>
 
-The network can be the same bidirectional Transformer; the difference lies in the distribution of masking ratios and the weighting. BERT masks a fixed ~15% and averages over selected positions; it never learns to start from all blanks and has no likelihood interpretation. Masked diffusion draws a $t$ per example, so it practises everything from almost no masking to full masking, and the $1/t$ ties it to maximum likelihood; MDLM writes it as a weighted average of MLM losses. LLaDA also notes that MaskGIT drops the $1/t$ and so loses the link to maximum likelihood.
+Both can use bidirectional Transformers; the training problem and generative process differ. BERT usually selects about 15% of positions as prediction targets, only some of which are replaced with `[MASK]`. Its original objective does not also specify a reverse process that generates from all masks. Masked diffusion samples different masking levels and weights losses by $1/t$. MDLM writes this as a weighted average of MLM losses and derives a likelihood lower bound for the corresponding reverse process.
+
+Avoid reducing this to “BERT has no likelihood interpretation.” MLM can provide [pseudo-likelihood scores](https://arxiv.org/abs/1910.14659), but those do not directly give a normalized joint sequence probability. Similarly, removing $1/t$ changes this objective, so the same bound derivation no longer applies. That does not mean an unweighted masked model cannot be given a generative process. See the [two-token derivation](masked-diffusion.en.md) and the [MDLM training–sampling walkthrough](mdlm-walkthrough.en.md).
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>What does "any order" mean? Use the two-token example to show what the objective equals.</summary>
 
-In training, the objective averages over all generation orders; at inference, blanks can be filled in any order. With two tokens: both are masked with probability $t^2$ and exactly one with probability $t(1-t)$ each; after multiplying by $1/t$ and integrating, both terms get weight $1/2$, so the objective is the average of the left-to-right and right-to-left autoregressive (AR) losses. With the teaching numbers that is $(1.833+2.996)/2=2.414$; the negative log-likelihood of the model actually generating the sequence is $-\ln 0.105=2.254$, so it is an upper bound, loose when the two orders disagree. At any length, RADD's Theorem 2 proves equivalence with the any-order autoregressive objective. The price is that hard orders must be learned too: the same validation loss takes about 16 times the compute of autoregressive models (Nie et al., 2024-10).
+In training, the objective averages over all generation orders; at inference, blanks can be filled in different orders. With two tokens, both are masked with probability $t^2$, and each of the two single-mask cases has probability $t(1-t)$. After multiplying by $1/t$ and integrating, both terms get weight $1/2$. The objective is the average of the left-to-right and right-to-left autoregressive (AR) losses.
+
+Using the earlier teaching example, the objective is $(1.833+2.996)/2=2.414$. Choosing randomly between those two orders gives a sequence negative log-likelihood of $-\ln 0.105=2.254$. The first quantity is an upper bound; it is loose when the two orders assign different probabilities.
+
+At any length, RADD's Theorem 2 proves equivalence with the any-order autoregressive objective. Hard orders must be learned too, but that does not imply a fixed compute multiple: the roughly 16 times reported by Nie et al. (2024-10) belongs to their scoring and training setup. [Later comparisons](ar-and-diffusion.en.md) need to distinguish scoring, architecture and data conditions.
 
 </details>
 
@@ -39,14 +47,22 @@ The tokens in one step are each chosen from their marginal distributions without
 <details class="interview" markdown="1">
 <summary>Why can't a diffusion LM use a KV cache directly? What are the two fixes, and what does each cost?</summary>
 
-In an autoregressive model, the K and V at position $i$ depend only on $x_{\le i}$, which never change. Under bidirectional attention, from layer 2 onward every position has read the blanks that change at every step, so even the prompt's K and V change, and LLaDA recomputes the whole span at every step. Fix one is approximate caching (Fast-dLLM): KV is very similar between adjacent steps, so reuse it within a block and refresh after the block, which requires checking accuracy separately. Fix two is block diffusion: left to right across blocks, diffusion within a block, so the KV of finished blocks can be cached exactly; smaller blocks are closer to autoregressive and give better perplexity, but less parallelism.
+In an autoregressive model, the K and V at position $i$ depend only on $x_{\le i}$, which stays fixed. With bidirectional attention, a mask read by the previous layer may become a word in the next round. From layer 2 onward, even the prompt's K and V can therefore change. Original LLaDA recomputes the full span each round; AR's exact caching rule does not carry over directly.
+
+One option is approximate caching, as in Fast-dLLM: exploit similarity between nearby steps, reuse KV within a block, refresh periodically, and check the quality loss. Another is block diffusion: generate blocks left to right and denoise within each block. Block-causal attention isolates completed prefixes from updates in the active block, making their KV exactly reusable. A completed block usually still needs a pass over its final tokens to create the clean representations to cache.
+
+Smaller blocks move closer to AR and reduce the number of positions available for parallel generation. The Block Diffusion paper reports lower perplexity bounds for smaller blocks under its training setup, not a guarantee that shrinking blocks improves every model. See the [block-cache example](ar-and-diffusion.en.md#block-cache); reusing attention outputs is a [separate question](context-reuse.en.md).
 
 </details>
 
 <details class="interview" markdown="1">
 <summary>Why isn't parallel decoding automatically faster? Estimate low and high concurrency with the roofline.</summary>
 
-With the second note's teaching model (linear layers only, numbers from the roofline note: 7B, BF16, H100 SXM5 peak), the lower bound for one forward pass is $\max(4.18\,\text{ms},\ n\times0.01415\,\text{ms})$; below about 295 positions, the weight read dominates. For one request with a 512-token prompt and 256 generated tokens: AR takes about 1,076 ms; whole-sequence diffusion without a cache computes 768 positions per step and takes 2,782 ms at one token per step, slower than AR; blocks with $G=32$ plus a cache, at 4 per step, take about 275 ms, 3.9 times faster. As concurrency rises, diffusion computes $G/\tau=8$ positions per committed token and caps at 8,834 tok/s against AR's 70,671 tok/s, so AR catches up at about 37 concurrent requests. The low-concurrency speedup is therefore about $\tau$, and the throughput ratio at compute saturation is about $\tau/G$. Third-party measurements and Google's own notes on DiffusionGemma point the same way.
+Use the teaching model in [decoding and speed](decoding-and-speed.en.md): linear layers only, with 7B parameters, BF16, and H100 SXM5 peak specifications. The lower bound for one forward pass is $\max(4.18\,\text{ms},\ n\times0.01415\,\text{ms})$; below about 295 positions, reading the weights dominates.
+
+For one request with a 512-token prompt and 256 generated tokens: AR takes about 1,076 ms; whole-sequence diffusion without a cache computes 768 positions per step and takes 2,782 ms at one token per step, slower than AR; blocks with $G=32$ plus a cache, at 4 per step, take about 275 ms, 3.9 times faster.
+
+As concurrency rises, diffusion computes $G/\tau=8$ positions per committed token. This simplified model gives a throughput ceiling of 8,834 tok/s, versus AR's 70,671 tok/s, with AR catching up at about 37 concurrent requests. The low-concurrency speedup is therefore about $\tau$, and the throughput ratio at compute saturation is about $\tau/G$. These are estimates, not measurements. Third-party measurements and Google's discussion of DiffusionGemma also highlight the difference between low-concurrency latency and high-concurrency throughput.
 
 </details>
 
@@ -60,7 +76,11 @@ Four things: at what concurrency; is the baseline on the same GPU and the same e
 <details class="interview" markdown="1">
 <summary>How does DFlash differ from a native diffusion LM?</summary>
 
-DFlash uses block diffusion only to draft: a small model reads the target model's features, writes a block in one forward pass, and the autoregressive target model verifies it and keeps only the contiguously accepted prefix, so the output distribution equals the target model's and the quality risk is not on the diffusion side. A native diffusion LM decides the final tokens itself and bears the risk of inconsistent parallel commits and lower same-family quality. The speed accounting has the same shape for both: each forward pass computes a whole block, the more tokens accepted (or committed) the better the trade, and the gain shrinks at high concurrency.
+DFlash uses block diffusion to draft: a small model reads the target model's features and predicts a block in one forward pass. The AR target model then verifies it, retaining the consecutively accepted prefix. The draft does not directly determine the final output. [DFlash paper](https://arxiv.org/html/2602.06036v1#S4)
+
+Preserving the target distribution requires correct exact verification and subsequent sampling. Greedy decoding must preserve the target's choices; stochastic sampling needs the corresponding acceptance, rejection, and correction rules. Keeping high-confidence draft tokens alone is not enough. Under these conditions, poor drafts mainly reduce acceptance length and speed rather than change the target distribution. [Original speculative-decoding derivation](https://proceedings.mlr.press/v202/leviathan23a.html)
+
+A native diffusion LM decides its own final tokens. Its parallel-sampling consistency and task quality need direct evaluation; it cannot inherit another target model's quality guarantee. Both approaches must account for drafting or denoising and verification or commit costs. More tokens per cycle usually help amortize those costs, but extra computation and scheduling at high concurrency can change the result. A single-request speedup is not a serving-throughput guarantee.
 
 </details>
 
@@ -69,7 +89,7 @@ DFlash uses block diffusion only to draft: a small model reads the target model'
 <div class="taste-check">
   <strong>Use these questions to check your understanding:</strong>
   <ol>
-    <li>What does the two-token objective become without the $1/t$, and why does it lose its likelihood interpretation?</li>
+    <li>What does the two-token objective become without $1/t$, and why can't the original likelihood-bound derivation be reused directly?</li>
     <li>At how many tokens per step was LLaDA's GSM8K score measured? What does that imply for claims of "both good and fast"?</li>
     <li>In the poker example, why is only half of the one-step outputs a valid hand? How does Fast-dLLM's threshold rule handle it?</li>
     <li>Without a cache, why is whole-sequence diffusion slower than AR even at one token per step? With blocks and a cache, what changes in the accounting?</li>

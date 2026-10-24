@@ -8,7 +8,7 @@ BERT also predicts words hidden in a sentence. But starting a trained BERT from 
 
 Each training example draws its own masking ratio $t$, from almost nothing masked to everything masked, and the loss on masked positions is multiplied by $1/t$. The resulting objective is exactly the autoregressive (AR) loss averaged over all generation orders, and it is an upper bound on the negative log-likelihood (NLL). This also means the model has to learn every order, including the difficult ones.
 
-This note covers only the training objective. How the blanks are filled step by step, and when that beats AR decoding, is in [the next note](decoding-and-speed.en.md).
+This note starts with the training objective. Follow the [two-sentence MDLM example](mdlm-walkthrough.en.md) through training and generation, then continue to [decoding and speed](decoding-and-speed.en.md).
 
 ## The forward process: each token is masked with probability t
 
@@ -31,7 +31,9 @@ $$
 \mathcal{L}(\theta)=\mathbb{E}_{t\sim U(0,1]}\;\mathbb{E}_{x_t\sim q(x_t\mid x_0)}\Big[\frac{1}{t}\sum_{i=1}^{L}\mathbf{1}\big[x_t^i=\texttt{[M]}\big]\,\big(-\log p_\theta(x_0^i\mid x_t)\big)\Big]
 $$
 
-$p_\theta(\cdot\mid x_t)$ is a Transformer without a causal mask: it reads the whole partially masked sequence and outputs a vocabulary distribution at every position; $\mathbf{1}[\cdot]$ means only masked positions are scored. LLaDA's Eq. (4) states that, after also averaging over training examples, this objective upper-bounds the negative log-likelihood $-\mathbb{E}\log p_\theta(x_0)$ of the corresponding reverse generative process. The bound applies to the expected objective, not to every sampled masking loss. The model does not need to know $t$: the number of blanks is already visible in the input. In MDLM's experiments, dropping time conditioning leaves perplexity about the same; Theorem 1 of [RADD](https://arxiv.org/abs/2406.03736) (Ou et al., 2024-06) explains why: the conditional distributions the model has to learn do not depend on $t$ in the first place.
+$p_\theta(\cdot\mid x_t)$ is a Transformer without a causal mask: it reads the whole partially masked sequence and outputs a vocabulary distribution at every position; $\mathbf{1}[\cdot]$ means only masked positions are scored. LLaDA's Eq. (4) states that, after also averaging over training examples, this objective upper-bounds the negative log-likelihood $-\mathbb{E}\log p_\theta(x_0)$ of the corresponding reverse generative process. The bound applies to the expected objective, not to every sampled masking loss.
+
+Under this independent, content-independent masking process, the ideal clean-token conditional distribution no longer depends on $t$ once the visible tokens and mask pattern are given. That does not mean the mask count determines $t$ exactly: the count is random too. The sampler still needs $t$ to decide how many positions to reveal, while the prediction network can omit it. In MDLM's experiments, dropping time conditioning leaves perplexity about the same; Theorem 1 of [RADD](https://arxiv.org/abs/2406.03736) (Ou et al., 2024-06) gives the corresponding conditional-distribution relation.
 
 Compute it once on two hand-made examples (the probabilities are teaching numbers, not model outputs):
 
@@ -100,7 +102,7 @@ Published results show both the benefits and the costs of this flexibility:
 
 - **The hard orders must be learned too.** [Kim et al. (2025-02)](https://arxiv.org/abs/2502.06768) show theoretically and empirically that masked diffusion has to solve computationally intractable subproblems during training that AR models avoid; choosing the order adaptively by confidence at inference sidesteps them, raising a pretrained model's Sudoku accuracy from under 7% to about 90%, ahead of AR models with 7 times as many parameters trained with teacher forcing on the right order.
 - **Context on the right helps.** LLaDA §3.3 tests 496 pairs of lines from Chinese poems. Writing the first line from the second: LLaDA 8B Instruct 45.6, GPT-4o 34.3. Writing the second from the first: LLaDA 51.8, GPT-4o 82.7. Better in reverse, much worse forward.
-- **Training costs more compute.** In IsoFLOP experiments from $6\times10^{18}$ to $10^{20}$ FLOPs, [Nie et al. (2024-10)](https://arxiv.org/abs/2410.18514) found that masked diffusion needs about 16 times the compute of an AR model to reach the same validation loss.
+- **Training costs more compute in the original setting.** In IsoFLOP experiments from $6\times10^{18}$ to $10^{20}$ FLOPs, [Nie et al. (2024-10)](https://arxiv.org/abs/2410.18514) found that masked diffusion needs about 16 times the compute of an AR model to reach the same validation loss. That multiple depends on scoring and architecture. An [October 2026 reanalysis](ar-and-diffusion.en.md) separates the effects of changing the score and changing the model; 16 times is not a fixed cost for all dLLMs.
 - **Less supervision per example, higher variance.** Only half the positions carry a loss on average. In [Block Diffusion](https://arxiv.org/abs/2503.09573) (Arriola et al., 2025-03, ICLR 2025), the diffusion objective with block size 1 equals the AR objective in expectation, yet trained that way it reaches an LM1B perplexity of ≤25.56 against 22.88 for AR; switching to full masking brings it back to 22.88. The authors attribute the gap to the high variance of the training objective.
 - **Real decoding is not arbitrary.** When LLaDA 8B Instruct switches to block-wise, left-to-right sampling, GSM8K rises from 69.4 to 78.6 and MATH from 31.9 to 42.2 (§3.2); the authors' explanation is that the SFT data is padded with many EOS tokens, so low-confidence remasking makes the model write the ending too early. The third-party [Asaria et al. (2026-06)](https://arxiv.org/abs/2606.14620) recorded which positions DiffusionGemma commits at each step and found a weak left-to-right tendency (clearer the coarser the analysis), with large batches of positions often committed at once.
 
@@ -108,7 +110,7 @@ When data is scarce, learning every order becomes an advantage. [Prabhudesai et 
 
 ## LLaDA: scaling the objective to 8B
 
-LLaDA (submitted 2025-02, updated to v3 in 2025-10) trained an 8B model from scratch: 2.3T tokens, 0.13M H800 GPU hours, sequence length 4096, with 1% of the data cut to a random length between 1 and 4096 (§2.2). Because it cannot use a KV cache (see the next note), the authors used plain multi-head attention instead of GQA and reduced the FFN dimension to keep the parameter count. SFT uses 4.5 million prompt-response pairs and masks only the response (Eq. 5); short examples are padded with EOS, which is trained as an ordinary token, so the model learns where to stop.
+LLaDA (submitted 2025-02, updated to v3 in 2025-10) trained an 8B model from scratch: 2.3T tokens, 0.13M H800 GPU hours, sequence length 4096, with 1% of the data cut to a random length between 1 and 4096 (§2.2). Because AR-style exact KV caching does not carry over directly (see [decoding and speed](decoding-and-speed.en.md)), the authors used plain multi-head attention instead of GQA and reduced the FFN dimension to keep the parameter count. SFT uses 4.5 million prompt-response pairs and masks only the response (Eq. 5); short examples are padded with EOS, which is trained as an ordinary token, so the model learns where to stop.
 
 **Check what the scalability claim compares.** The authors trained AR baselines of similar size on the same data (the 8B point is compared with a 7B AR model), from $10^{20}$ to $10^{23}$ FLOPs, compared them on six downstream tasks, and concluded that the overall trend is competitive with AR models and stronger on MMLU and GSM8K (§3.1). This is the authors' own experiment and compares downstream scores. Nie et al.'s "about 16 times" compares validation loss, at a much smaller scale. The two results do not contradict each other, but neither alone answers "for the same money, which is better".
 
@@ -140,4 +142,4 @@ Uniform-state diffusion has no `[M]` in its input: every position holds a real w
 | Compare across diffusion families | Within one family, perplexity and downstream results broadly agree | Between masked and uniform-state, perplexity decides which is better |
 | Evaluate generations with generative perplexity | Also report token diversity or entropy | Lower is better: [Zheng et al. (2024-09, ICLR 2025)](https://arxiv.org/abs/2409.02908) found that categorical sampling at 32-bit precision lowers the effective temperature, biasing this metric toward low-diversity samples |
 
-Next: [decoding steps, caching and real speed](decoding-and-speed.en.md).
+Next: [MDLM: from a masked training example to a generated sentence](mdlm-walkthrough.en.md).
