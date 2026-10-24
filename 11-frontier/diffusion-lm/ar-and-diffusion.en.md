@@ -12,7 +12,7 @@ This note builds on [decoding and speed](decoding-and-speed.en.md): which tasks 
 
 | Goal | What diffusion offers | What the comparison still needs |
 | --- | --- | --- |
-| Latency | Several positions can be committed per forward pass | Cost per pass, extra commit passes, answer quality |
+| Single-request latency | Several positions can be committed per forward pass | Cost per pass, extra commit passes, answer quality |
 | Infilling | Missing positions can attend directly to both sides | An AR model trained for FIM, not just ordinary continuation |
 | Data reuse | Different masks produce different prediction tasks | A distinction between saving fresh data and saving compute |
 | Order | More certain positions can be filled first | Checks for inconsistent parallel choices; whether the sampler can revise committed tokens |
