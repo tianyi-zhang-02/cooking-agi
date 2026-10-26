@@ -4,7 +4,9 @@
 
 > 阅读时间：约 15 分钟 · 最近审阅：2026-10
 
-要让一个模型稳定输出客服需要的 JSON，可以修改全部参数，也可以只训练 LoRA；训练信号则可以来自示范，也可以来自偏好比较。“改哪些参数”和“按什么目标训练”是两件事，LoRA 与 SFT 完全可以同时使用。把这两个问题分开，后面的选择就容易多了。
+假设你想让模型把客服消息分成“退款、物流、商品咨询”三类，再按规定的 JSON 格式输出。选训练方法时，会遇到两个问题：用什么信号教它，以及允许修改哪些参数。
+
+前一个问题，可以用示范做监督微调，也可以用成对回答做偏好训练；后一个问题，可以更新全部权重，也可以只训练低秩适配（Low-Rank Adaptation，LoRA）的附加参数。因此，LoRA 和 SFT 并不冲突：一次训练完全可以同时用到两者。输出格式还需要单独检查，后面会用这个分类任务继续说明。
 
 这页负责比较方法。想看具体计算，可以接着读：
 
@@ -14,17 +16,17 @@
 
 ## 四种参数适配方式 {#_2}
 
-### Full Fine-Tuning：整个模型都能动 {#full-fine-tuning}
+### 全参数微调：更新整套权重 {#full-fine-tuning}
 
-Full-parameter fine-tuning 对所有参数求梯度：
+全参数微调（full fine-tuning）允许更新模型的全部参数：
 
 $$
 \theta\leftarrow\theta-\eta\nabla_\theta\mathcal L.
 $$
 
-它给优化器最大的自由度，通常也需要最多的训练显存、optimizer state 和 checkpoint
-存储。数据少或学习率控制不好时，还更容易过拟合或破坏原有能力。它适合数据充分、
-任务变化大，而且确实需要改变模型内部表示的场景。
+因为所有权重都可以改变，训练时需要为它们计算梯度，并保存相应的优化器状态；保存完整检查点也要存下整套权重。在同一个基座、精度和优化器设置下，这些开销通常比只训练少量附加参数更大。
+
+如果新任务需要较大的调整、数据和预算也足够，全参数微调值得尝试。不过，“能改的参数多”不等于效果一定更好。数据不足或学习率不合适时，它可能过拟合，也可能让原有能力下降；仍要与更轻量的方法比较。
 
 ### LoRA：学习权重更新，而不是重训整块权重 {#lora}
 
@@ -36,15 +38,13 @@ $$
 
 其中 $A\in\mathbb R^{r\times d_{in}}$、$B\in\mathbb R^{d_{out}\times r}$，且
 $r\ll\min(d_{in},d_{out})$；$\alpha/r$ 控制增量尺度。基础权重冻结，只更新 $A,B$。
-它改的是模型内部线性变换，
-比只改输入的 Prompt Tuning 表达自由度更高；部署时也可以动态挂载或合并 adapter。
+它直接改变所选层的线性变换，而 Prompt Tuning 从输入侧影响模型。两者的更新位置和约束不同，不能仅凭这一点断定谁的效果更好。LoRA 部署时可以单独加载，也可以在权重格式允许时合并到基础权重中；具体计算见 [LoRA / QLoRA](lora-and-qlora.md)。
 
-### Prompt Tuning：只学习输入前的 virtual tokens {#prompt-tuning-virtual-tokens}
+### Prompt Tuning：在输入前加一组可学习向量 {#prompt-tuning-virtual-tokens}
 
-Prompt Tuning 冻结整个模型，只在正常 token embedding 前拼接 $m$ 个可学习向量 $P$，直接参数量是 $m\,d_{model}$。
-$P$ 叫 **soft prompt**。它不是一句隐藏的自然语言，也不对应词表里的 lexical token ID
-（框架可以给它分配占位索引），通常不能翻译成人能读懂的词。公式、参数账，以及“模型冻结了，梯度为什么还要穿过它”，
-见 [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)。
+Prompt Tuning 冻结原模型，在输入的嵌入向量前拼接 $m$ 个可学习向量 $P$，直接参数量是 $m\,d_{model}$，其中 $d_{model}$ 是嵌入维度。这组向量叫**软提示（soft prompt）**，也常被称为虚拟 token（virtual tokens）。
+
+这些向量可以在连续空间里更新，不必对应词表中的某个词。框架即使给它们分配了占位索引，也不代表它们是一句藏起来的自然语言指令。[原论文的第 2 节](https://arxiv.org/html/2104.08691v2#S2)给出了这种拼接方式；参数量的计算和“模型冻结了，为什么还需要反向传播”，见 [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)。
 
 每个任务可以保存一份很小的 $P_k$，共享同一个大模型：
 
@@ -54,13 +54,12 @@ P_routing + 用户消息 → 冻结模型 → 路由任务输出
 P_summary + 对话记录 → 冻结模型 → 摘要
 ```
 
-推理时 soft prompt 也必须放在输入前；它不是训练完就被吸收到基础模型里。代价是多占
-$m$ 个上下文位置，并让每层多处理这些位置。
+推理时仍要在输入前放上这组软提示，训练并没有把它写入基础权重。代价是多占 $m$ 个上下文位置；以这里的 decoder-only 模型为例，每层也都要处理这些额外位置。
 
 <details class="interview" markdown="1">
 <summary>完整例子：用 Prompt Tuning 做电商客服分类</summary>
 
-假设固定类别为 `退款 / 物流 / 商品咨询`。为这个任务训练五个 virtual-token embeddings：
+假设固定类别为 `退款 / 物流 / 商品咨询`。为这个任务训练五个虚拟 token 的嵌入向量：
 
 $$P_{route}=[p_1,p_2,p_3,p_4,p_5].$$
 
@@ -77,48 +76,39 @@ $$P_{route}=[p_1,p_2,p_3,p_4,p_5].$$
 [p1][p2][p3][p4][p5] 我的包裹什么时候到？
 ```
 
-如果第一次给“物流”的概率很低，classification loss 或 label-token CE 产生梯度。模型
-权重不动，五个 $p_i$ 被更新。许多样本之后，这组向量学会把冻结模型带入“客服路由”
-的内部工作状态。上线后，任何新消息都先拼同一组 $P_{route}$。
+如果模型给“物流”的概率很低，就可以用分类损失，或标签 token 的交叉熵计算梯度。模型权重保持不变，只更新这五个 $p_i$。训练的目标是让拼上它们之后的模型更容易选对类别。上线时，每条新消息都使用同一组 $P_{route}$。
 
-这组向量主要是在**调用与重组模型已有能力**。如果基础模型根本不懂新的企业政策或
-商品事实，soft prompt 很难凭少量参数把知识装进去；此时更应考虑 retrieval、continued
-pretraining、LoRA 或 full fine-tuning。
+这组向量适合用来调整已有模型的任务行为，但不能因此假定它已经可靠学会新政策或新商品知识。例如，“物流”分类正确，不代表模型知道这家店春节期间的发货安排。涉及新事实时，要另外测试，也可以比较检索、继续预训练、LoRA 和全参数微调；更新频繁的规则通常更适合放在可查询的数据源里。
 
 </details>
 
 ### Prefix Tuning：不只在输入层加向量 {#prefix-tuning}
 
-Prompt Tuning 通常只在 embedding 层加 virtual tokens；Prefix Tuning 为每一层 attention
-直接提供可学习的 prefix key/value，普通 token 的 Query 可以在每一层关注它们。直接存储的规模约为
-$2Lmd_{KV}$，其中 $d_{KV}$ 是每层实际的 KV 宽度，GQA / MQA 下小于 $d_{model}$；若用小 MLP 生成各层
-prefix，可训练参数还要把 MLP 算进去。逐项的参数账见 [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)。
-它比 Prompt Tuning 更直接影响各层注意力，参数更多、表达力也通常更强：
+Prompt Tuning 在输入嵌入层加向量；Prefix Tuning 则为各层注意力直接提供可学习的前缀键和值（prefix keys and values，K/V）。普通 token 在计算注意力时，可以通过查询向量关注这些前缀。区别在于：现在可以直接调整每层的前缀状态，不必全靠一组输入向量逐层传过去。
+
+这里以 decoder-only 模型为例。若有 $L$ 层、每层 $m$ 个前缀位置，直接存下这些 K/V 约需 $2Lmd_{KV}$ 个参数，其中 $d_{KV}$ 是每层实际的 K/V 宽度。使用分组查询注意力（GQA）或多查询注意力（MQA）时，这个宽度通常小于 $d_{model}$；若用一个小型多层感知机（MLP）生成各层前缀，还要把它的参数算进去。[原论文第 4 节](https://arxiv.org/html/2101.00190v1#S4)介绍了前缀及其重参数化方式；逐项计算见 [Prompt / Prefix / Adapter](parameter-efficient-tuning.md)。
 
 ```text
-Prompt Tuning：input embedding 前加 P
-Prefix Tuning：每一层 attention 都加入 learned K/V prefix
+Prompt Tuning：在输入嵌入向量前加 P
+Prefix Tuning：在每层注意力中加入可学习的 K/V 前缀
 ```
 
-两者都属于 parameter-efficient fine-tuning（PEFT），但不是同一个机制。
+两者都属于参数高效微调（parameter-efficient fine-tuning，PEFT）。直接调整更多层给了我们更多控制位置，但任务效果仍取决于模型、数据和训练设置，不能只按参数量排高低。
 
 <details class="interview" markdown="1">
 <summary>一句话分清：为什么 Prompt Tuning 也会产生每层 K/V，却仍不等于 Prefix Tuning？</summary>
 
-Prompt tokens 像普通 token 一样从输入层逐层传播，因此当然会在每层产生 K/V；但这些
-状态都由**同一组输入 embeddings 间接演化**而来。Prefix Tuning 则为各层直接提供
-layer-specific prefix K/V，每层拥有独立控制信号。
+软提示像普通 token 的嵌入一样，从输入层向后传播，因此也会产生每层的 K/V。不过，这些状态都由**同一组输入向量经过冻结的模型计算得到**。Prefix Tuning 则直接提供各层的前缀 K/V；即使用一个共享的小网络生成它们，也不必受原模型逐层传播关系的限制。
 
 </details>
 
 ## 分类输出怎么保证只落在合法标签里 {#_3}
 
-Soft prompt 只能让正确标签更可能，**不能单独保证输出 schema**。可靠系统要把“模型学得
-准不准”和“输出是否合法”分开处理。
+即使模型更倾向于正确标签，也可能多写一句解释，或输出业务代码不认识的名称。软提示本身**不能保证输出符合规定的格式（schema）**，还需要选择标签打分、约束解码或分类头等方式来限制输出。
 
 ### 方法一：直接给固定标签打分 {#_4}
 
-不让模型自由生成，而是比较候选标签的 sequence log-probability（条件里的 $P$ 是前面学到的 soft prompt，$c_j$ 是标签 $c$ 的第 $j$ 个 token）：
+一种直接做法是不给模型自由发挥的空间，而是分别计算各个候选标签的序列对数概率。条件里的 $P$ 是前面学到的软提示，$c_j$ 是标签 $c$ 的第 $j$ 个 token：
 
 $$
 \hat c=\arg\max_{c\in\mathcal C}\log P(c\mid P,x),
@@ -126,12 +116,11 @@ $$
 \log P(c\mid P,x)=\sum_j\log P(c_j\mid P,x,c_{<j}).
 $$
 
-工程上常用单 token、等长的 `A/B/C` 再映射到业务标签，避免不同 tokenization 与标签
-长度带来的偏差。
+可以选用在当前上下文中各占一个 token 的 `A/B/C`，再映射到业务标签。这样能去掉标签长度不同带来的影响，但并不消除模型对字母本身的偏好；仍应检查换一种标签映射后结果是否稳定。
 
-### 方法二：Constrained Decoding {#constrained-decoding}
+### 方法二：约束解码 {#constrained-decoding}
 
-约束的是**完整标签序列**，不是把标签里出现过的 token 合成一张固定白名单。
+约束解码（constrained decoding）限制的是**完整标签序列**，不能只把标签里出现过的 token 合成一张固定白名单。
 例如合法标签是两个 token 组成的 `a b` 和 `a c`，仅允许 `a/b/c` 仍会生成非法的
 `b a`。即使标签都是单 token 的 `A/B/C`，连续生成两步也可能得到非法的 `AA`。
 
@@ -172,7 +161,7 @@ token，**恰好生成一步就停止**，再映射回业务枚举。前缀约�
 [vLLM 的 structured outputs](https://docs.vllm.ai/en/stable/features/structured_outputs.html) 可以用 `choice` 让输出恰好是几个候选之一，
 也支持正则、JSON schema 和语法约束（2026-10 核对 stable 文档）。
 
-### 方法三：Classification Head {#classification-head}
+### 方法三：分类头 {#classification-head}
 
 取一个 hidden state $h$，训练固定输出维度的分类头：
 
@@ -180,62 +169,53 @@ $$
 p(c\mid x)=\operatorname{softmax}(W_ch+b).
 $$
 
-类别固定、只需要分类时，这通常比让 decoder 自由生成更直接。可以冻结 backbone，同时
-训练 soft prompt 与小分类头。
+类别固定、只需要分类时，这通常比让解码器自由生成更直接。可以冻结主干模型，同时训练软提示与一个小分类头；随后取分数最高的类别，映射成规定的标签。
 
-> **模型或 soft prompt 提高 accuracy；serving constraint 保证 schema。** 不要把格式
-> 保证寄托在一句“请只输出标签”的自然语言指令上。
+> 选对类别和返回合法格式，需要分别检查。模型可能稳定返回合法标签，却总把“物流”判成“退款”；也可能分类正确，却夹带额外解释。单靠一句“请只输出标签”，不能保证后端一定能解析。
 
-## Distillation：监督来自 Teacher {#distillation-teacher}
+## 蒸馏：用教师模型提供监督 {#distillation-teacher}
 
-Knowledge Distillation（知识蒸馏）通常有一个能力更强或成本更高的 Teacher，以及要部署的
-Student。它不是一种固定的参数更新方式，而是一类监督来源。
+知识蒸馏（knowledge distillation）用教师模型的输出或分布训练学生模型。教师通常能力更强，或运行成本更高；学生是我们想训练和部署的模型。“蒸馏”说明监督从哪里来，还没有规定学生的哪些参数可以更新。
 
 常见的有三种：
 
-<span id="response-distillation"></span>**Response distillation**：Teacher 先生成答案，Student 把它当示范做 SFT；实现简单，但只保留一条
-采样结果，看不到 Teacher 对其他 token 的相对偏好。
+<span id="response-distillation"></span>**回答蒸馏（response distillation）**：教师先生成答案，学生把筛选后的回答当示范做 SFT。保存的是具体生成结果，看不到每一步其他 token 的完整概率；即使一个问题采样多份回答，也不等于拿到了教师的完整分布。
 
-<span id="logit-distribution-distillation"></span>**Logit / distribution distillation**：Student 拟合 Teacher 的
-token 分布，经典做法是用温度 $T$ 软化两边分布后算 KL，再乘 $T^2$；只存 Teacher top-$k$ logits 时，要明确处理
-剩余概率质量、tokenizer 映射以及 mask 和归一化。
+<span id="logit-distribution-distillation"></span>**分布蒸馏（logit / distribution distillation）**：学生拟合教师的 token 分布。经典做法是用温度 $T$ 软化两边分布后计算 KL 散度，再乘 $T^2$。如果只存教师概率最高的 $k$ 个 token，还要处理剩余概率、词表对应关系，以及哪些位置参与损失、损失怎样取平均。
 
-<span id="on-policy-distillation"></span>**On-policy distillation**：Student 先从当前策略采样，Teacher
-再给这些前缀上的 token 分布打分；监督更贴近 Student 真正会访问的状态，代价是持续 rollout、Teacher 推理和
-权重版本管理。
+<span id="on-policy-distillation"></span>**同策略蒸馏（on-policy distillation）**：学生先用当前策略生成回答，教师再对这些前缀给出下一 token 的分布。这样能针对学生实际会生成的内容提供指导，代价是持续采样、运行教师模型，以及同步和记录使用的权重版本。
 
 三种做法的算例、温度和 top-k 的细节见[蒸馏](distillation.md)。
 
-Distillation 可以和任何 parameterization 组合：Student 可以 full fine-tune，也可以只训
-LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。
+学生可以做全参数微调，也可以只训练 LoRA，或采用其他参数适配方式。教师通常保持冻结，用来提供监督；学生则根据这些信号更新。
 
 ## 怎么选 {#_5}
 
 | 目标 | 更自然的起点 | 原因 |
 | --- | --- | --- |
 | 多个简单任务共享同一超大模型 | Prompt / Prefix Tuning | 每个任务只保存少量参数 |
-| 需要明显改变内部行为，但资源有限 | LoRA-SFT | 比 soft prompt 自由度高；可训练参数、optimizer state 和 checkpoint 远小于 full FT |
-| 数据充分、任务差异大、追求最高适配上限 | Full Fine-Tuning | 参数约束最少，但成本和回归风险最高 |
-| 把大模型能力迁到小模型 | Distillation | Teacher 可以大量生成示范；logit 蒸馏还能提供比 hard label 更密的监督 |
-| 固定枚举分类 | Label scoring 或 classification head | 不需要承担自由生成的不确定性 |
-| 缺少会变化的外部事实 | Retrieval / tool use | 不应指望微调参数充当实时数据库 |
+| 需要调整模型行为，但训练资源有限 | LoRA-SFT | 直接调整所选层；通常比全参数微调少存很多梯度、优化器状态和任务参数 |
+| 数据和预算充足，希望解除低秩等参数约束 | 全参数微调 | 所有权重都可更新；需要同时检查任务收益、资源成本和原有能力回退 |
+| 把大模型能力迁到小模型 | 蒸馏 | 可以用教师生成示范，或提供候选 token 的概率，而不只给一个目标答案 |
+| 固定枚举分类 | 标签打分或分类头 | 直接在合法类别中选，不需要自由生成 |
+| 缺少会变化的外部事实 | 检索或工具调用 | 把易变信息放在可更新、可查询的数据源里 |
 
 ## 面试时最值得说清楚的三句话 {#_6}
 
-1. Prompt Tuning 学的是连续 virtual-token embeddings，不是自然语言 prompt；模型冻结，推理时仍要把它们拼到输入前。
-2. LoRA、Prompt Tuning 和 full fine-tuning 描述参数怎样更新；SFT、DPO 和 distillation 描述监督与 objective，两组概念可以交叉组合。
-3. 对分类任务，训练方法负责 accuracy，固定标签打分、constrained decoding 或 classification head 负责输出合法性。
+1. Prompt Tuning 学的是连续向量，不是反复修改一句自然语言提示；基础模型冻结，推理时仍要把这组向量拼到输入前。
+2. LoRA、Prompt Tuning 和全参数微调说明哪些参数可以更新；SFT、直接偏好优化（Direct Preference Optimization，DPO）和蒸馏说明怎样提供监督、怎样计算损失，两类选择可以组合。
+3. 分类准确率和输出格式要分别验证。固定标签打分、约束解码或分类头能把成功返回的结果限制在合法类别里，但不保证选对类别。
 
 ## 自检 {#_7}
 
 <div class="taste-check">
-  <strong>如果真的理解了，你应该能解释：</strong>
+  <strong>可以用这几个问题检查自己的理解：</strong>
   <ol>
-    <li>为什么 soft prompt 不对应词表里的 lexical token，也不一定能翻译成人话？</li>
+    <li>为什么软提示不必对应词表里的某个词，也不一定能还原成可读的句子？</li>
     <li>Prompt Tuning 与 Prefix Tuning 分别在哪一层加入参数？</li>
     <li>为什么“LoRA 和 SFT 哪个更好”不是一个完整的问题？</li>
     <li>如何让生成式分类器保证只返回合法枚举值？</li>
-    <li>Response distillation 与 token-distribution distillation 丢失的信息有什么不同？</li>
+    <li>只保存教师的回答，和保存每一步的 token 分布，能给学生提供的信息有何不同？</li>
   </ol>
 </div>
 
@@ -249,39 +229,34 @@ LoRA。Teacher 通常冻结；Student 才是被优化和最终部署的模型。
 <details class="interview" markdown="1">
 <summary>两分钟讲清这些方法到底差在哪里</summary>
 
-**第一条轴是 learning objective（学什么）**：可以用 demonstration 做 SFT，用 teacher
-distribution 做 distillation，用 chosen/rejected pair 做 DPO，也可以用 reward 做 RL。
+**先看训练信号和目标**：示范可以用于 SFT；教师的回答或分布可以用于蒸馏；一对较好与较差的回答可以用于 DPO；对尝试结果的奖励可以用于强化学习。
 
-**第二条轴是 parameterization（改哪里）**：可以更新全部权重，训练 LoRA / Adapter，
-或者只训练输入侧的 soft prompt。两条轴可以组合，例如 LoRA-SFT、LoRA-DPO，或者用
-LoRA 参数化的 student 做 distillation。
+**再看允许更新的参数**：可以更新全部权重，训练 LoRA 或适配器（Adapter），也可以只训练输入侧的软提示。两种选择可以组合，例如 LoRA-SFT、LoRA-DPO，或用 LoRA 训练一个接受教师监督的学生模型。
 
-> **Distillation 决定监督从 teacher 来；LoRA 与 Prompt Tuning 决定梯度允许改哪些参数。**
+> 蒸馏用教师提供监督；LoRA 和 Prompt Tuning 决定更新模型的哪些部分。
 
 <details markdown="1">
 <summary><b>深挖</b>：为什么这个区分很重要？</summary>
 
-如果实验说“LoRA 比 SFT 好”，比较本身就不完整：LoRA 是更新参数的方式，SFT 是数据与
-损失。正确对照应当是 full-parameter SFT 与 LoRA-SFT，或者在相同 parameterization 下
-比较 SFT 与 distillation。否则改变了两件事，却不知道提升来自哪里。
+如果实验说“LoRA 比 SFT 好”，我们还不知道它究竟比了什么。可以在相同数据和损失下比较全参数 SFT 与 LoRA-SFT；也可以固定参数更新方式，比较人工示范与教师生成的示范，或者比较目标答案的交叉熵与教师分布的蒸馏损失。要先说清哪一项发生了变化，才能判断提升来自哪里。
 
 </details>
 </details>
 
 ```mermaid
 flowchart LR
-    B["Pretrained / SFT model"] --> O{"训练信号<br/>Learning objective"}
-    O --> S["Demonstrations · SFT"]
-    O --> D["Teacher outputs · Distillation"]
-    O --> P["Preferences · DPO"]
-    O --> R["Reward · RL"]
-    S --> U{"更新哪些参数<br/>Parameterization"}
+    B["预训练或已做过 SFT 的模型"] --> O{"用什么训练信号"}
+    O --> S["示范回答 · SFT"]
+    O --> D["教师回答或分布 · 蒸馏"]
+    O --> P["偏好比较 · DPO"]
+    O --> R["尝试的奖励 · RL"]
+    S --> U{"允许更新哪些参数"}
     D --> U
     P --> U
     R --> U
-    U --> F["Full fine-tuning"]
-    U --> L["LoRA / Adapter"]
-    U --> T["Prompt / Prefix tuning"]
+    U --> F["全参数微调"]
+    U --> L["LoRA / 适配器"]
+    U --> T["Prompt / Prefix Tuning"]
 ```
 
 ## 参考论文 {#_9}

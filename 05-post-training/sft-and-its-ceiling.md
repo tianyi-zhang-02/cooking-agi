@@ -10,21 +10,21 @@
 
 给模型一批客服对话，示范怎样引用退货规则、怎样询问订单号，它可以学会类似的回答方式。但如果示范里总是立即答复，几乎没有“信息不够，先问一句”，模型也可能学到这个习惯。
 
-SFT 的问题不只是有多少样本，更是这些样本示范了什么。它能泛化，也能学习新知识，不能简单说能力上限等于示范上限；只是这些变化都需要在未见过的情境里验证。
+用这些示范训练模型，就是监督微调（supervised fine-tuning，SFT）。准备数据时，除了样本数量，还要看它们教了哪些行为。模型有可能把学到的做法用到新情境中，也可以学到新知识；具体学会了多少，要用没参与训练的任务来检验。
 
 如果还不清楚为什么训练总要回头改数据，可以先看[数据在教模型什么](../01-data-and-feedback/data-as-supervision.md)：从一条示范开始，看看筛选、采样和标签怎样改变学习方向。
 
-先看一条对话是怎么训练的，再讨论数据能教会什么。已经在做实验的话，可以直接跳到[检查 loss mask](#mask-example)或[什么时候尝试 RL](#rl-readiness)。
+先看一条对话怎样进入训练，再讨论数据能教会什么。已经在做实验的话，可以直接跳到[检查哪些 token 参与损失](#mask-example)，或[什么时候尝试强化学习](#rl-readiness)。
 
 ## 它在做什么 {#_1}
 
-给一批「输入 → 理想输出」的示范，最大化模型产出那个输出的似然。逐 token 的交叉熵：
+给定一批“输入 → 目标回答”的示范，训练时提高目标回答在该输入下的似然。把输入记为 $x$，目标回答的第 $t$ 个 token 记为 $y_t$，$y_{<t}$ 表示它之前的目标文本。逐 token 的交叉熵可以写成：
 
 $$\mathcal{L}_{\text{SFT}} = -\sum_{t} \log \pi_\theta(y_t \mid x, y_{<t})$$
 
-普通离线 SFT 的这一步不需要模型先尝试回答、再根据奖励调整。它用已经选好的示范更新参数，属于模仿学习。示范本身可以来自模型采样和筛选；不要把“这次更新不用 rollout”理解成“整个数据流程都没有采样”。
+普通离线 SFT 用已经选好的示范更新参数，不必在每次更新前让模型重新生成一批回答、再给它们打分。这属于模仿学习。不过，示范本身可以由模型生成后筛选而来：参数更新使用现成答案，不代表准备数据时没有采样。
 
-正因为简单，它在这些事上很好用：固定任务格式、建立基本的指令遵循、把专家的做法蒸馏进模型、以及给后面的 RL 一个合理的起点。
+因此，SFT 常用于学习任务格式、遵循指令、模仿专家的处理方式，也可以为后续强化学习（reinforcement learning，RL）准备一个起点。是否足够，仍要看任务测试的结果。
 
 ## 一条对话样本究竟怎样进入 SFT {#sft_3}
 
@@ -47,14 +47,9 @@ $$
 \end{aligned}
 $$
 
-它不需要人为逐 token 标注，因此称为 self-supervised learning。SFT 的示范则告诉模型：
-给定 system 和 user 上下文，理想的 assistant 行为是什么。示范可以由人编写、由模型
-生成后筛选，或由多种来源组合；“supervised”指目标行为被外部选定，不等于每个字都由
-人手写。
+预训练不需要人为逐个标注这些目标，因此称为自监督学习（self-supervised learning）。SFT 的示范则指定：在系统指令（system）和用户消息（user）给出的上下文里，助手（assistant）应该怎样回应。示范可以由人编写、由模型生成后筛选，也可以混合多种来源。“监督”指我们选定了要学习的行为，不代表每个字都要人手写。
 
-二者都能使用 next-token cross-entropy，但不能说训练“完全相同”。它们的数据来源、
-序列结构、loss mask、数据混合与优化目标不同：预训练主要学习语言分布，SFT 主要把
-已有能力塑造成指定行为。
+二者都可以用交叉熵训练下一个 token 的预测，但训练数据和用法有区别。预训练通常从大规模文本中学习规律；SFT 用选定的示范调整任务行为。样本如何组织、混合哪些来源、哪些位置参与损失，也都会影响模型学到什么。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
@@ -70,16 +65,9 @@ $$
 \end{aligned}
 $$
 
-No human must label each token, so this is self-supervised learning. An SFT
-demonstration instead specifies the desired assistant behavior for a system-and-user
-context. Demonstrations may be human-written, model-generated and filtered, or drawn
-from mixed sources; “supervised” means the target behavior is externally selected, not
-that every character was typed by a person.
+The text supplies its own targets without separate token-by-token annotation: this is self-supervised learning. An SFT demonstration specifies how the assistant should respond to the system and user messages. People may write those demonstrations, models may generate them for later filtering, or the dataset may combine several sources. “Supervised” means we select the behavior to learn; it does not require every word to be written by a person.
 
-Both stages can use next-token cross-entropy, but their training is not “completely the
-same.” Data provenance, sequence structure, loss masks, mixtures, and optimization
-intent differ: pre-training learns a language distribution, while SFT shapes existing
-capability into selected behavior.
+Both can use cross-entropy to train next-token prediction. Pre-training usually learns patterns from a large text collection; SFT uses selected demonstrations to adjust task behavior. How examples are structured, which data sources are mixed, and which positions contribute loss all affect what the model learns.
 
 </div>
 </section>
@@ -89,9 +77,7 @@ capability into selected behavior.
 
 ### 2. 预测下一位，不代表每一位都要算 loss {#2-label-shift-loss}
 
-对话先经过 [chat template 与 tokenizer](../00-foundations/core/tokenization.md) 得到
-序列 $z_1,\ldots,z_T$。输入和标签仍然错开一位：模型根据 $z_{<t}$ 预测 $z_t$。
-常见的 assistant-only objective 再加入 mask：
+先用[对话模板与分词器](../00-foundations/core/tokenization.md)把消息转成序列 $z_1,\ldots,z_T$。输入和标签错开一位：模型根据 $z_{<t}$ 预测 $z_t$。如果只想训练助手的回答（assistant-only loss），再用损失掩码（loss mask）选出需要评分的位置：
 
 $$
 \begin{aligned}
@@ -100,29 +86,23 @@ $$
 \end{aligned}
 $$
 
-其中 $m_t\in\{0,1\}$ 指定哪些目标参与监督。下面是一种简化模板，不代表所有模型的 role marker 都必须忽略：
+其中 $m_t\in\{0,1\}$ 指定哪些目标参与监督。下面是一种简化模板；是否监督角色标记，要根据实际模板决定：
 
 ```text
 system / user / assistant role marker  → m_t = 0
 assistant answer / end-of-message      → m_t = 1
 ```
 
-这样 system 和 user 仍在左侧上下文里影响预测，但不会因“是否被模型复述得好”贡献损失。
-训练代码常把忽略位置的 label 设为 `-100`，让 cross-entropy 跳过它们。
+这样，系统和用户消息仍然影响后面的预测，只是不要求模型练习把它们复述出来。训练代码常把忽略位置的标签设为 `-100`，让交叉熵跳过这些位置。
 
-这是一种常见方案，不是唯一方案。多轮数据可能训练所有 assistant turns，也可能只训练
-最后一轮；有些训练配置对整段序列计算 loss。最危险的工程错误不是选哪种，而是模板
-边界与 mask 错位，让 user 文本或 padding 意外进入目标。
+多轮数据可以训练每一轮助手回答，也可以只训练最后一轮；有些设置会对整段序列计算损失。选好方案后，要检查模板边界和掩码是否对齐，避免本想忽略的用户文本或填充位置意外参与训练。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
 <div class="concept-title-en" role="heading" aria-level="3">2. Next-token prediction does not require scoring every token</div>
 
-The conversation passes through the
-[chat template and tokenizer](../00-foundations/core/tokenization.md) to produce
-$z_1,\ldots,z_T$. Inputs and labels are still shifted by one position: the model uses
-$z_{<t}$ to predict $z_t$. A common assistant-only objective adds a mask:
+The [chat template and tokenizer](../00-foundations/core/tokenization.en.md) turn the messages into a sequence $z_1,\ldots,z_T$. Inputs and labels are shifted by one position: the model uses $z_{<t}$ to predict $z_t$. To train only on assistant responses, an assistant-only loss uses a loss mask to select the scored positions:
 
 $$
 \begin{aligned}
@@ -138,14 +118,9 @@ system / user / assistant role marker  → m_t = 0
 assistant answer / end-of-message      → m_t = 1
 ```
 
-System and user tokens remain in the left context and affect every prediction, but
-their reconstruction does not contribute loss. Training code commonly assigns ignored
-labels the value `-100`, which tells cross-entropy to skip those positions.
+System and user messages remain available as context for later predictions, but the model is not trained to reproduce them. Training code commonly sets ignored labels to `-100` so cross-entropy skips those targets.
 
-This is common, not universal. Multi-turn data may train every assistant turn or only
-the final one, and some training setups score the full sequence. The most dangerous engineering
-failure is not choosing one policy over another; it is misaligning template boundaries
-and masks so user text or padding accidentally becomes a target.
+Multi-turn training may score every assistant answer or only the final one; some setups score the full sequence. Whichever policy you choose, check that template boundaries and masks agree. Otherwise, user text or padding that you meant to ignore can accidentally become training targets.
 
 </div>
 </section>
@@ -155,26 +130,22 @@ and masks so user text or padding accidentally becomes a target.
 
 ### 3. 回答结束，也要有一个信号 {#3-end-token}
 
-如果这条目标回答只包含“我很好。”却不包含 end-of-message / EOS，这条样本就没有提供“此处应该停”的明确监督；不代表模型原本完全不会停止。常见 SFT target 会把结束标记也设为
-$m_t=1$：
+如果目标回答只有“我很好。”，没有消息结束标记或序列结束符（end of sequence，EOS），这条样本就没有明确教模型“这里该停了”。模型可能在先前训练中学过停止，但这次示范没有提供该位置的信号。常见做法是让结束标记也参与损失，即 $m_t=1$：
 
 ```text
 我 → 很好 → 。 → <|im_end|>
 ```
 
-推理系统把对应 token 放入 stop set，检测到它便终止当前消息。这里必须同时对齐三件事：
-训练 target 中的结束标记、tokenizer 的 special-token ID，以及推理引擎的停止配置。
+推理系统会在检测到相应的停止 token 时结束当前消息。因此，训练目标中的结束标记、分词器对应的特殊 token 编号，以及推理引擎的停止配置，三者必须一致。
 
-长度上限仍然需要作为安全兜底，但它不等价于让模型学会自然结束；前者是系统强制截断，
-后者是模型给“回答完成”分配高概率。
+系统仍然需要长度上限，以免回答无限延长。不过，达到上限是强制截断；学会结束则是模型在回答完成时，主动给结束标记较高的概率。
 
 </div>
 <div class="concept-face concept-en" data-concept-en markdown="1">
 
 <div class="concept-title-en" role="heading" aria-level="3">3. The end token is behavioral supervision too</div>
 
-If this target contains only “I am fine.” without an end-of-message or EOS token, this example supplies no explicit stopping supervision. The model may already know how to stop from earlier training. A common SFT target gives the end marker
-$m_t=1$ as well:
+If the target contains only “I am fine.” without an end-of-message or end-of-sequence (EOS) token, this example does not explicitly teach where to stop. The model may have learned stopping in earlier training, but this demonstration supplies no target for it. A common choice is to include the end marker in the loss, with $m_t=1$:
 
 ```text
 I → am fine → . → <|im_end|>
@@ -185,9 +156,7 @@ message when it appears. Three pieces must agree: the ending marker used as a tr
 target, its special-token ID in the tokenizer, and the inference engine's stop
 configuration.
 
-A maximum-length limit remains a necessary safety fallback, but it is not the same as
-teaching natural termination. One is a cut-off the system imposes; the other makes the
-model assign high probability to “the answer is complete.”
+The system still needs a length limit to prevent unbounded generation. Reaching that limit forces a cutoff; learning to stop means assigning the ending token a high probability when the answer is complete.
 
 </div>
 </section>
@@ -239,12 +208,12 @@ active_positions = (logits.grad.abs().sum(-1) > 0).nonzero().tolist()
 assert active_positions == [[0, 2], [0, 3]]
 ```
 
-这里手动 shift，是因为我们直接调用 CE。[Transformers 的 causal LM loss 实现](https://github.com/huggingface/transformers/blob/v5.20.0/src/transformers/loss/loss_utils.py)会做这一步（2026-10 对照 v5.20.0 的 `ForCausalLMLoss` 核对）；把 labels 交给已处理 shift 的模型时，不要再提前 shift 一遍。
+这里手动错开输出与标签，是因为代码直接调用交叉熵。[Transformers 的因果语言模型损失实现](https://github.com/huggingface/transformers/blob/v5.20.0/src/transformers/loss/loss_utils.py)已经包含这一步（2026-10 对照 v5.20.0 的 `ForCausalLMLoss` 核对）。如果调用的模型内部会处理这种对齐，就不要先把 labels 再移动一遍。
 
 <details id="teacher-forcing" markdown="1">
 <summary>两个位置都算对了，为什么还要让模型自己生成一次？</summary>
 
-上面预测 `<EOS>` 时，模型看到的前一个 token 是示范里的 `5`，不是它自己刚刚采样的结果。这叫 **teacher forcing**：每个位置都根据标准前文学习下一步。
+上面预测 `<EOS>` 时，模型看到的前一个 token 是示范里的 `5`，不是它自己刚刚采样的结果。这叫**教师强制（teacher forcing）**：训练时给每个位置提供标准前文，让它学习下一步。
 
 所以 0.6 表示“前面已经是 `5` 时，接着输出 `<EOS>` 的概率”。按这些概率逐步采样，完整生成 `5 → <EOS>` 的概率是 $0.8\times0.6=0.48$，也等于 $\exp(-2\times\text{平均 loss})$。这只是这条两 token 序列的概率，不是整个任务的成功率；其他说法也可能答对。
 
@@ -252,13 +221,13 @@ assert active_positions == [[0, 2], [0, 3]]
 
 </details>
 
-### Mask 了 user，为什么模型还会学着理解问题？
+### 用户消息不算损失，模型怎么学着理解问题？ {#mask-user}
 
-Loss mask 决定“哪些预测要评分”，不是“哪些文字可以看”。预测 `5` 时仍然需要读到前面的 `2 + 3`。梯度也能通过 attention、共享参数等路径传回处理上下文的计算。**不监督问题本身的复述，不等于切断问题对学习的影响。**
+损失掩码选出需要评分的预测，用户问题仍然是模型能读到的上下文。预测 `5` 时，模型需要利用前面的 `2 + 3`；梯度也可以通过注意力和共享参数，传回处理问题的计算过程。**忽略问题对应的目标标签，不会切断问题对学习的影响。**
 
-Attention mask 是另一件事：它控制可见位置，例如不看未来 token、不看 padding。若把 user 在 attention 里也屏蔽了，模型会失去答题所需的上下文。
+注意力掩码（attention mask）控制的才是“能看见哪些位置”，例如隐藏未来 token 或填充位置。如果在这里也屏蔽用户消息，模型就失去了回答所需的信息。
 
-### 多轮对话和工具调用怎么选？
+### 多轮对话和工具调用，哪些内容参与训练？ {#_5}
 
 | 数据里的内容 | 常见 assistant-only 处理 | 需要确认的地方 |
 | --- | --- | --- |
@@ -272,7 +241,7 @@ Attention mask 是另一件事：它控制可见位置，例如不看未来 toke
 
 assistant-only 要求聊天模板里有 `{% generation %}` 与 `{% endgeneration %}` 标记。文档说，对 Qwen3 等已知模型族，打开 `assistant_only_loss=True` 时 TRL 会自动补上；其他模型要自己确认模板。检查真实模板返回的 mask，再解码几条最终 labels，看看哪些文本实际参与监督。
 
-长对话被截断时尤其要看：是不是只剩问题、没剩回答？结束标记是否被截掉？全部 labels 都是 `-100` 的样本没有有效监督，应在数据检查阶段处理。Packing 还需要独立的样本边界与 attention 检查，loss mask 本身不能隔开两条对话。
+长对话被截断后，要看看是不是只剩问题、没剩回答，结束标记是否还在。全部 labels 都是 `-100` 的样本没有有效监督，应在数据检查阶段处理。把多条样本拼进同一条训练序列（packing）时，还要检查样本边界和注意力可见范围；损失掩码本身不能阻止两条对话互相影响。
 
 ## 没见过的情况，得单独测 {#_2}
 
@@ -292,7 +261,7 @@ assistant-only 要求聊天模板里有 `{% generation %}` 与 `{% endgeneration
 
 如果所有示范都自信地回答，模型就很少练习澄清、拒答或承认不知道。但这不是 SFT 做不到：我们完全可以加入“请先提供订单号”或“现有资料不足以判断”的示范。
 
-真正难的是示范要和可见信息匹配。同一问题，给足证据时应当回答，缺关键信息时应当追问。只加一批统一的拒答模板，又可能让模型在能回答时也回避。
+示范还要和模型当时能看到的信息匹配。同一问题，给足证据时应当回答，缺关键信息时应当追问。只加一批统一的拒答模板，又可能让模型在能回答时也回避。
 
 偏好训练或 RL 可以比较不同选择的代价，但也依赖奖励是否合理。没有哪种训练方法本身就能保证诚实。
 
@@ -330,7 +299,7 @@ SFT 可以把事实学进参数里，但不保证一次出现的事实被可靠�
 
 ## SFT 训练到什么程度，可以试 RL？ {#rl-readiness}
 
-没有通用的“loss 低于 0.5 就可以开始”。Tokenizer、回答长度、mask 和平均方式都能改变这个数字。更实用的是挑几个 checkpoint，在同一批未参与训练的问题上生成回答，记录它们会怎样失败。
+没有通用的“loss 低于 0.5 就可以开始”。分词方式、回答长度、参与损失的位置和取平均的方式，都能改变这个数字。更实用的是挑几个训练检查点（checkpoint），在同一批未参与训练的问题上生成回答，记录它们会怎样失败。
 
 比如要训练一个会调用订单工具的客服助手。下面是**示意实验，不是实测结果，也不是上线阈值**：
 
@@ -340,13 +309,13 @@ SFT 可以把事实学进参数里，但不保证一次出现的事实被可靠�
 | 100 个任务完成数 | 42 | 61 | B 的格式好了，但离完成任务还有差距 |
 | 信息不足的 20 题中合理追问数 | 3 | 12 | 不能让总体成功率掩盖这类错误 |
 
-接下来，不是看到 B 的数字就立刻决定用 RL，而是补 3 个问题：
+B 的表现有所改善，但要不要改用 RL，还需要回答三个问题：
 
-1. **奖励能不能分清好坏？** 只奖励 JSON 合法，会不会把答非所问也当成功？用人工检查的小切片验证 reward / verifier。
-2. **同一道题的不同尝试，有没有可学习的差别？** 对组内相对 advantage 的方法，某题所有回答得分都相同，就没有这项区分信号（这种组有多常见，见 [DAPO 的动态采样](dapo.md#dynamic-sampling)）。全错时先查题目难度、采样和奖励；这不自动等于“必须再做 SFT”。
-3. **同样预算下，RL 比简单方案多解决了什么？** 从同一 checkpoint 比较继续 SFT、生成后筛选再训练、小规模 RL。记录质量、长度、成本和原有能力回退，不只看训练 reward。
+1. **奖励能不能分清好坏？** 只奖励 JSON 合法，会不会把答非所问也当成功？拿一小批人工检查过的样本，验证奖励函数或验证器的判断。
+2. **同一道题的不同尝试，有没有可学习的差别？** 如果方法用组内得分计算相对优势（advantage），同题所有回答得分都相同时，这一项就无法区分它们（见 [DAPO 的动态采样](dapo.md#dynamic-sampling)）。全错时先查题目难度、采样和奖励，不一定要直接回去加做 SFT。
+3. **同样预算下，RL 比简单方案多解决了什么？** 从同一检查点比较继续 SFT、生成后筛选再训练，以及小规模 RL。记录质量、长度、成本和原有能力回退，不只看训练奖励。
 
-先确定观察指标和停止条件，再跑小实验。比如成功率没变、输出变长、reward 却上涨，就该检查奖励漏洞，而不是继续加步数。
+先确定观察指标和停止条件，再跑小实验。比如成功率没变、输出变长，奖励却上涨，就该检查模型是否利用了评分规则的漏洞，别急着继续加训练步数。
 
 “先 SFT 再 RL”是一条常见路径，不是定律。[DeepSeek-R1-Zero](https://arxiv.org/abs/2501.12948v1)就研究了不以前置 SFT 开始的 RL；这里“不做 SFT”不等于从随机权重开始。是否需要这个阶段，要根据你的模型和任务判断。
 

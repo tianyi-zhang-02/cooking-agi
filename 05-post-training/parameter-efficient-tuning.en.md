@@ -4,86 +4,88 @@
 
 > Reviewed: 2026-10 · Prerequisites: [model adaptation](model-adaptation.en.md), [LoRA / QLoRA](lora-and-qlora.en.md)
 
-Suppose an existing model should convert support records to a fixed format. Keep data and loss constant while comparing which parameters may change. Otherwise, gains from a new task can be mistaken for gains from a different update location.
+Consider the same task: adapting an existing model to organize support records into a fixed format. Keep the data and loss unchanged while varying which parameters can learn. That lets you compare update locations without confusing their effects with a change in the training task.
 
-PEFT is a family of parameter-efficient adaptation methods, not a loss. It can accompany SFT or other objectives. Freezing the base also does not imply that gradients never pass through it.
+Parameter-efficient fine-tuning (PEFT) covers methods that update only a small set of parameters; it is not a loss function. These methods can be used for supervised fine-tuning or other objectives. The approaches below freeze most or all of the original model parameters, but gradients may still need to pass through the frozen parts.
 
 ## Four locations where adaptation can happen
 
 ```text
-Input embeddings: [learned soft prompt] + [text]
-Layer attention:  [learned prefix K/V] + [text K/V]
+Input embeddings: [learned soft prompt] + [text embeddings]
+Layer attention:  [learned prefix keys/values] + [text keys/values]
 Hidden states:    h → small nonlinear adapter → h'
 Linear weights:   W0 → W0 + low-rank update BA
 ```
 
-These are mechanism sketches. Placement, sharing, and parameterization vary by implementation, so the method name alone does not identify what was trained.
+The last approach is low-rank adaptation, or LoRA. This sketch shows where each method changes the computation. Exact placement, parameter sharing, and parameterization vary across implementations; the method name alone does not tell you what was trained.
 
 ## Prompt tuning learns input vectors
 
-For model width $d$, prepend $m$ trainable vectors $P\in\mathbb R^{m\times d}$:
+Prompt tuning prepends a set of learned vectors to the text input. For a model of width $d$ and a prompt with $m$ positions, write these vectors as $P\in\mathbb R^{m\times d}$:
 
 $$
 H_0=[P;E(x)],\qquad \hat y=f_{\theta_0}(H_0).
 $$
 
-Only $P$ updates; $\theta_0$ is frozen. This is not a human-written instruction, and soft vectors generally do not map one-to-one to readable text. [Prompt Tuning](https://arxiv.org/abs/2104.08691) studies this adaptation mechanism.
+Here, $E(x)$ is the sequence of text embeddings, $[P;E(x)]$ concatenates the two sequences, and $\theta_0$ denotes the frozen model parameters. Only $P$ is trained. These vectors form a soft prompt, not a human-written instruction: individual vectors generally do not correspond to readable words. See [Section 2 of Prompt Tuning (2021)](https://arxiv.org/abs/2104.08691).
 
-With $m=16,d=512$, the prompt has 8,192 parameters. The model still processes the extra positions, and gradients still travel from output to input. Activation memory does not shrink in proportion to trainable parameters.
+With $m=16,d=512$, the soft prompt has 8,192 parameters. The model still processes the extra positions, and gradients still travel from output to input. Activation memory therefore does not shrink in proportion to the trainable parameter count.
 
-In a decoder, some fixed-prompt states can be precomputed, subject to task, position, and implementation constraints. This does not remove their context occupancy or attention work.
+At inference time, a decoder with causal attention can precompute some soft-prompt states if the model weights, prompt, and position handling remain fixed. What can be cached depends on the task and implementation. Those positions still occupy context space and participate in subsequent attention computation. During training, the prompt changes, so cached states cannot simply be reused across parameter updates.
 
 ## Prefix tuning supplies layerwise keys and values
 
-A simplified direct-K/V prefix at each layer gives
+In a simplified version of prefix tuning, each layer directly learns $m$ extra key/value pairs, $K_P,V_P$, that the text queries $Q$ can attend to:
 
 $$
 \operatorname{Attn}\left(Q,[K_P;K_x],[V_P;V_x]\right).
 $$
 
-Ordinary token queries can attend to those positions. This acts deeper than an input-only embedding prompt. [Prefix-Tuning](https://arxiv.org/abs/2101.00190) can use an additional network during training, so final prefix state size is not the trainable parameter count of every implementation.
+Here, $K_x,V_x$ are the keys and values from the text. The queries can attend to the added prefix positions, which supply keys and values directly at each layer rather than only adding vectors at the input. [Section 4.3 of Prefix-Tuning (2021)](https://arxiv.org/abs/2101.00190) uses an additional network to generate the prefix during training. After training, only the generated prefix states need to be saved, so their size need not equal the training parameter count.
 
-With $L=6$ layers, $m=16$, and total K and V widths each equal to $d=512$, a direct prefix contains $2Lmd=98,304$ scalars. For GQA, use the actual KV width rather than query width.
+With $L=6$ layers, $m=16$, and total key and value widths each equal to $d=512$, the stored prefix contains $2Lmd=98,304$ scalars. With grouped-query attention, where several query heads share keys and values, use the actual key/value width rather than the total query width.
 
-The virtual prefix need not produce ordinary output tokens, but it still participates in attention and cache storage. Compare initialization, length, and layerwise parameterization as well as learning rate.
+The virtual prefix positions need no ordinary output predictions, but they still participate in attention and occupy key/value-cache space. Experiments should compare initialization, prefix length, and how prefix parameters are organized across layers—not just learning rate.
 
 ## Adapters add nonlinear bottlenecks within layers
 
-One bottleneck adapter is
+A bottleneck adapter maps a layer's representation to a lower dimension and then back to its original width. Omitting biases, a common form is:
 
 $$
 h'=h+W_{\mathrm{up}}\phi(W_{\mathrm{down}}h),
 $$
 
-where $W_{\mathrm{down}}\in\mathbb R^{r\times d}$ and $W_{\mathrm{up}}\in\mathbb R^{d\times r}$. It compresses, transforms, and adds back to the input. [Houlsby et al.](https://arxiv.org/abs/1902.00751) provide a classic adapter design; placement can vary.
+Here, $r$ is the bottleneck width, $W_{\mathrm{down}}\in\mathbb R^{r\times d}$, $W_{\mathrm{up}}\in\mathbb R^{d\times r}$, and $\phi$ is a nonlinear activation function. The input is projected down, transformed, projected back up, and added to the original input. [Section 2 of Houlsby et al. (2019)](https://arxiv.org/abs/1902.00751) describes this design; placement can vary by implementation.
 
-Ignoring biases, one module uses $2dr$ parameters: 8,192 for $d=512,r=8$. The nonlinearity generally prevents folding it into the original matrix as a linear LoRA update, so inference includes additional computation.
+Without biases, one module has $2dr$ parameters: 8,192 for $d=512,r=8$. The nonlinearity generally prevents merging it into the original matrix as a linear LoRA update could be, so inference requires additional computation.
 
-A narrow bottleneck may underfit; widespread insertion increases overhead. Near-identity initialization can help, but zeroing both matrices may prevent the branch from learning. Check initialization gradients.
+A bottleneck that is too narrow may limit what the adapter can learn; adding adapters to every layer increases overhead. Initializing the module close to an identity mapping lets training begin near the original model's behavior. However, in the bias-free formulation above, if $\phi(0)=0$, setting both matrices to zero also makes their gradients zero. Check that the chosen initialization allows the branch to learn.
 
 ## Compare all four on the same small model
 
-Use $L=6,d=512,m=16,r=8$. This is parameter accounting, not a quality ranking:
+Use $L=6,d=512,m=16,r=8$. The table counts parameters or stored states under explicit assumptions; it does not compare task performance:
 
 | Method | Assumption | Trainable parameters / state size |
 | --- | --- | ---: |
 | Prompt | One input $m\times d$ table | 8,192 |
-| Prefix | Direct per-layer K/V, each width $d$ | 98,304 |
+| Prefix | Direct per-layer keys and values, each with total width $d$ | 98,304 |
 | Adapter | One bottleneck per layer, no biases | 49,152 |
 | LoRA | One adapted $d\times d$ matrix per layer | 49,152 |
 
-Equal adapter and LoRA counts do not imply equal function classes. Adapting Q, K, V, O, and multiple FFN projections increases LoRA parameters. List target modules when making comparisons.
+The adapter row is a teaching example, not the complete Houlsby configuration, which uses two adapters per layer and also trains layer-normalization parameters and a task-specific classification head. This count includes only one bias-free adapter per layer, not those additional parameters.
+
+Equal adapter and LoRA parameter counts do not mean they can represent the same functions. Adding LoRA to the attention query, key, value, and output projections, as well as multiple feed-forward matrices, increases the count. Always list the target modules when comparing configurations.
 
 ## Why must gradients pass through frozen weights?
 
-An input prompt precedes the model; its loss follows the model. Computing $\partial\mathcal L/\partial P$ requires the chain rule through the intervening operations. Putting the entire model under no-grad usually severs that path. Freezing controls parameter updates, not arbitrary graph disconnection.
+The soft prompt is at the model's input, while the loss $\mathcal L$ is computed from its output. Obtaining $\partial\mathcal L/\partial P$ requires applying the chain rule through the intervening operations. Wrapping the whole model in `no_grad()` usually cuts that path. Freezing should prevent updates to the model weights, not disconnect the loss from the prompt.
 
-Adapters and LoRA also rely on gradient propagation through surrounding operations. Some intermediates can be avoided or recomputed, but savings depend on the graph; see [precision and memory](../00-foundations/deep-dives/precision-and-memory.en.md).
+Training bottleneck adapters and LoRA can likewise require gradients to pass through surrounding operations. Implementations can avoid saving intermediates that backward computation does not need, or recompute some results with activation checkpointing. The savings depend on the computation graph; see [precision and memory](../00-foundations/deep-dives/precision-and-memory.en.md).
 
 ## Make the small comparison fair
 
-Fix data, objective, tokenizer, training tokens, and tuning budget. Record task quality, general-capability regressions, trainable parameters, peak training memory, inference latency, and per-task storage.
+Fix the data, training objective, tokenizer, total training tokens, and hyperparameter-tuning budget. Equal tuning budgets do not require a shared learning rate: tune each method within the same budget. Record task quality, regressions in general capabilities, trainable parameter count, peak training memory, inference latency, and the additional parameter storage needed for each task.
 
-For formatting-only tasks, compare against a good ordinary prompt first. For major capability changes or substantial new domain knowledge, do not assume a tiny adapter suffices. Multi-task serving also needs tests for cache invalidation, batching, and version binding.
+For a formatting-only task, first compare against a well-designed text prompt. Do not assume a tiny adapter will suffice for major capability changes or substantial new domain knowledge. When serving several tasks, also check whether caches remain valid after switching adaptation parameters, whether tasks can share a batch, and whether the base model and adaptation parameters have compatible versions.
 
-A useful choice explains the behavior to change, where to intervene, and what resources are actually saved. The smallest checkpoint is not automatically the best option.
+Choose based on the behavior you need to change, where the model can best be adapted, and the resources saved in practice. The smallest per-task file is not necessarily the best overall choice.

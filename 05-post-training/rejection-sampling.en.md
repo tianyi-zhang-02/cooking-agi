@@ -4,28 +4,28 @@
 
 > Reading time: ~12 min · Type: chapter · Last reviewed: 2026-10
 
-A model produces four solutions to a coding task. Two pass the tests, one passes some tests, and one does not run. You could train on both passing solutions, select the highest-scoring one, or return that solution to the user without training at all.
+A model produces four solutions to a coding task. Two pass the tests, one passes only some tests, and one does not run. You could train on both passing solutions, train only on the highest-scoring solution, or return that solution to the user without training at all.
 
-All of these may appear under the label rejection sampling. They are not the same algorithm. Two questions usually clear things up: **What determines which answers survive? Are those answers returned at inference time, or used to update the model?**
+All of these procedures may be called rejection sampling, but they are not the same algorithm. To distinguish them, ask: **How are answers selected? Are they returned to the user, or used to update the model?**
 
-For the training workflow, read the first two sections and [the data records](#data-records). The four small calculations in between explain how selection changes a distribution. Basic probability and [SFT](sft-and-its-ceiling.en.md) are enough to follow them.
+For the training workflow, start with the first two sections and [the record-keeping section](#data-records). The four worked examples in between explain how selection changes a distribution. Basic probability and [supervised fine-tuning (SFT)](sft-and-its-ceiling.en.md) are enough to follow them.
 
 ## One name, several procedures {#four-uses}
 
-| Procedure | What survives | Parameter updates? |
+| Procedure | What is retained? | Are parameters updated? |
 | --- | --- | --- |
-| Classical accept–reject sampling | Samples accepted with a probability chosen to recover a target distribution | Not inherently a training method |
+| Classical accept–reject sampling | Candidates accepted with a probability chosen to recover a target distribution | The sampling algorithm itself does not train a model |
 | Verifier filtering | Answers that pass checks or a threshold; possibly several per prompt | Filtering alone does not update weights; SFT may follow |
-| Best-of-N | The highest-scoring of N generated candidates | Can be inference-only; for how verifier errors cap it, see [sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md) |
+| Best-of-N | The highest-scoring of N generated candidates | Can be used at inference time without training; see [sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md) for the effect of verifier errors |
 | Rejection-sampling fine-tuning | Selected answers become demonstrations | SFT updates the parameters |
 
-[Llama 2 (2023), §3.2.3](https://arxiv.org/html/2307.09288v2) used multiple candidates per prompt, selected the highest reward, and fine-tuned on those answers. The [initial DeepSeek-R1 report (2025), §2.3.3](https://arxiv.org/html/2501.12948v1#S2.SS3.SSS3) describes retaining correct responses, with additional readability filters. Keeping exactly one reward-model winner is therefore not the definition of every such pipeline. Neither procedure is automatically exact statistical accept–reject sampling.
+[Llama 2 (2023), §3.2.3](https://arxiv.org/html/2307.09288v2) describes generating multiple candidates per prompt, selecting the one with the highest reward score, and fine-tuning on those answers. The [initial DeepSeek-R1 report (2025), §2.3.3](https://arxiv.org/html/2501.12948v1#S2.SS3.SSS3) describes sampling multiple responses per prompt and retaining the correct ones, with additional readability filters. Keeping exactly one reward-model winner is therefore only one possible procedure. Neither pipeline, as described, is the statistical accept–reject algorithm that guarantees an exact target distribution.
 
 ## What does filtered SFT learn? {#filtered-sft}
 
-The workflow has four parts: fix a generator and sampling configuration, produce candidates, score and filter them, then run SFT on the retained answers. A later iteration can generate a fresh dataset from the updated model. For ReST-EM, which writes this loop as EM, and for how the verifier sets the ceiling of this route, see the frontier draft [Self-improvement: generate, verify, retrain](../11-frontier/self-improvement/generate-verify-train.en.md).
+The workflow has four steps: fix a generator and sampling configuration; generate candidates; score, filter, and deduplicate them; then run SFT on the retained answers. The updated model can generate a fresh dataset for the next iteration. ReST-EM organizes this loop using expectation–maximization. For that approach and the limits imposed by the verifier, see the frontier draft [Self-improvement: generate, verify, retrain](../11-frontier/self-improvement/generate-verify-train.en.md).
 
-For the retained dataset $D_{\rm keep}$, first sum the supervised token losses within each answer to get $\ell(x,y)$. Then divide the total across answers by M, the number of supervised tokens:
+For the retained dataset $D_{\rm keep}$, first sum the negative log-probabilities at supervised positions within each answer to get $\ell(x,y)$. Sum these answer losses, then divide by $M$, the total number of supervised tokens. Tokens are the units produced by a tokenizer and need not be whole words or characters:
 
 $$
 \ell(x,y)
@@ -37,9 +37,9 @@ $$
 =\frac{1}{M}\sum_{(x,y)\in D_{\rm keep}}\ell(x,y).
 $$
 
-Here x is the prompt, y the retained response, $\mathcal T_y$ the supervised response positions, and M their total count. Prompt and padding positions do not enter that denominator. Averaging each response first and then averaging responses would give long and short answers different relative weights.
+Here $x$ is the prompt, $y$ the retained response, $\mathcal T_y$ the supervised response positions, and $M$ their total count. Prompt and padding positions contribute neither to the loss sum nor to its denominator. Averaging within each response before averaging across responses would change the relative weights of long and short answers.
 
-The verifier decides **which demonstrations enter the dataset**. Training still means imitating the retained answers; it needs neither gradients through the verifier nor PPO's policy ratio. Discarded answers are simply absent from this SFT update. They do not directly teach the model what to avoid, though a separate preference objective could use them.
+The verifier decides **which demonstrations enter the dataset**. Training then imitates the retained answers. It requires neither gradients through the verifier nor the new-to-old policy probability ratio used by proximal policy optimization (PPO). Discarded answers are simply absent from this SFT update; they do not directly teach the model what to avoid. A separate preference objective could make use of them.
 
 ## Filtering changes the distribution {#filter-distribution}
 
@@ -62,13 +62,13 @@ $$
 Z(x)=\sum_y q(y\mid x)a(x,y).
 $$
 
-This requires $Z(x)>0$. It is a conditional distribution, not a guarantee that filtering recovers an ideal answer distribution. False rejections, false acceptances, and solutions the generator rarely produces all matter. Here a summarizes pass rates within categories; a deterministic verifier can instead assign each individual answer an acceptance value of 0 or 1.
+This requires $Z(x)>0$. It is a conditional distribution, not a guarantee that filtering produces an ideal answer distribution. False rejections, false acceptances, and solutions the generator rarely produces all affect it. Here $a$ summarizes pass rates within categories; a deterministic verifier assigns each individual answer an acceptance value of 0 or 1. The formula describes per-answer acceptance under a fixed rule. Groupwise selection, deduplication, or retention caps can change the distribution further.
 
 ## Classical rejection sampling needs an envelope {#classical-rejection}
 
-Suppose the aim is specifically to sample from a known target p. Generate from an easier proposal q and accept y with probability $a(y)=p(y)/(M q(y))$. Here M is the envelope constant, unrelated to the token count M in the previous section. A finite M must satisfy $p(y)\le Mq(y)$ across the target support. Wherever p is positive, q must also be positive. See the classical derivation in [CMU's Monte Carlo lecture, slide 8](https://www.cs.cmu.edu/~epxing/Class/10708/lectures/lecture16-MC.pdf#page=8).
+Now suppose the aim is to sample from a specified target distribution $p$, rather than merely retain answers that pass a check. Generate from an easier proposal distribution $q$ and accept $y$ with probability $a(y)=p(y)/(M q(y))$. Here $M$ is the envelope constant, unrelated to the supervised-token count in the earlier SFT formula. A finite $M$ must satisfy $p(y)\le Mq(y)$ wherever the target has positive probability. In particular, $q(y)$ cannot be zero where $p(y)>0$. See the derivation in [CMU's Monte Carlo lecture, slide 8](https://www.cs.cmu.edu/~epxing/Class/10708/lectures/lecture16-MC.pdf#page=8).
 
-Take $p=(0.6,0.3,0.1)$ and $q=(1/3,1/3,1/3)$. The smallest valid M is 1.8:
+Take $p=(0.6,0.3,0.1)$ and $q=(1/3,1/3,1/3)$. The smallest valid $M$ is 1.8:
 
 | Category | Acceptance p / (M q) | Proposal mass × acceptance |
 | --- | --- | --- |
@@ -76,25 +76,25 @@ Take $p=(0.6,0.3,0.1)$ and $q=(1/3,1/3,1/3)$. The smallest valid M is 1.8:
 | B | 1/2 | 1/6 |
 | C | 1/6 | 1/18 |
 
-The total acceptance rate is $5/9=1/M$. Normalizing the retained masses gives exactly $(0.6,0.3,0.1)$. A larger valid M rejects more proposals but leaves the target unchanged. An acceptance probability above 1 means the envelope condition failed; clipping it to 1 does not preserve the exact-sampling guarantee.
+The total acceptance rate is $5/9=1/M$. Normalizing the retained masses gives exactly $(0.6,0.3,0.1)$. A larger valid $M$ rejects more proposals but leaves the accepted distribution unchanged. An acceptance probability above 1 means the envelope condition has failed; clipping it to 1 does not preserve the exact-sampling guarantee.
 
-An unnormalized target density also works with a suitable envelope. Its acceptance rate is the target's normalizing constant divided by the envelope constant, not simply $1/M$. Typical LLM filtering pipelines neither specify that target density nor establish a global envelope. That distinction is why the shared name needs care.
+The method also works when only an unnormalized target density is available, provided the envelope bounds that density. The acceptance rate is then the target's normalizing constant divided by the envelope constant, not simply $1/M$. Large language model filtering pipelines typically neither specify such a target density nor establish a global envelope. They should not be confused with this exact-sampling procedure.
 
 ## Best-of-N can amplify a scoring error {#best-of-n}
 
-Return to the original probabilities $(0.5,0.3,0.2)$, but let a scorer rank C > B > A. Draw two independent candidates and keep the higher-scoring one. A wins only when both draws are A, with probability $0.5^2=0.25$. C wins whenever it appears, with probability $1-0.8^2=0.36$. The remaining 0.39 belongs to B.
+Return to the original probabilities $(0.5,0.3,0.2)$, but let a scorer rank C > B > A. Draw two independent candidates from this distribution and keep the higher-scoring one. A wins only when both draws are A, with probability $0.5^2=0.25$. C wins whenever it appears, with probability $1-0.8^2=0.36$. The remaining probability, 0.39, is the chance that B wins.
 
 If C is an incorrect answer that fools the scorer, more candidates make it easier to select that error. This is a constructed counterexample, not a model measurement. It shows why selection budgets and scorer quality need to be evaluated together.
 
 <!-- widget:step-best-of-n -->
 
-[Reward Model Overoptimization (2022; ICML 2023)](https://proceedings.mlr.press/v202/gao23h.html) also studies RL and best-of-N using a synthetic setup with a larger “gold” reward model standing in for true preferences. It motivates checking whether proxy scores separate from independently measured quality, not claiming that every increase in N is harmful.
+[Reward Model Overoptimization (2022; ICML 2023, §2.1)](https://proceedings.mlr.press/v202/gao23h.html) studies reinforcement learning and best-of-N in a synthetic setting. A larger reward model serves as the “gold standard” in place of real human preferences. The study motivates checking whether rising proxy scores are accompanied by falling independent quality scores. It does not show that every increase in candidate count is harmful.
 
 ## The prompt mix changes too {#prompt-selection}
 
-Suppose easy and hard prompts are equally common. Generate ten answers per prompt; each attempt passes with probability 0.8 for an easy prompt and 0.1 for a hard one. Keeping all passing answers gives expected contributions of eight and one. Equal prompt counts become a training-row ratio approaching 8:1 over many prompts.
+Suppose easy and hard prompts are equally common. Generate ten answers per prompt, with a per-attempt pass probability of 0.8 for easy prompts and 0.1 for hard ones. Keeping every passing answer yields an expected eight examples per easy prompt but only one per hard prompt. Across many prompts, equal counts of the two prompt types produce close to an 8:1 ratio of training examples.
 
-Capping each prompt at one retained answer does not completely fix this. The probability of retaining anything is $1-(1-p)^{10}$: approximately 1 for the easy prompt, but 0.651 for the hard one. Prompts without a successful candidate still disappear.
+Capping retention at one answer per prompt does not fully solve the problem. If attempts for a given prompt are independent and each has the same pass probability $p$, the probability that at least one passes is $1-(1-p)^{10}$. That is approximately 1 for an easy prompt but only 0.651 for a hard one. Prompts with no successful candidate still disappear from training. Correlated attempts or changes to the sampling policy require a different calculation.
 
 | Adjustment | What it helps | Cost or limitation |
 | --- | --- | --- |
@@ -103,7 +103,7 @@ Capping each prompt at one retained answer does not completely fix this. The pro
 | Deduplicate while retaining distinct valid methods | Reduces repeated templates | Identifying genuinely different solutions takes additional judgment |
 | Mix in trusted human or teacher demonstrations | Adds behavior the current generator struggles to produce | Introduces another source's errors and style biases |
 
-Compare methods under a fixed generation-token or time budget. Report retention, prompt coverage, and independent evaluation, rather than treating the pass rate after filtering as evidence of learning.
+Compare methods under a fixed budget of generated tokens or elapsed time. Report retained example counts, prompt coverage, and independent evaluation results. A higher pass rate after filtering may reflect the selection rule rather than anything the model has learned.
 
 ## Keep enough records to investigate failures {#data-records}
 
@@ -111,27 +111,27 @@ Training may only consume prompts and responses. Debugging needs more context:
 
 | Field | Why keep it? |
 | --- | --- |
-| prompt_id, origin, split | Paraphrases and near-duplicates must not leak between training and evaluation |
+| Prompt identifier (`prompt_id`), source, and dataset split | Prevents paraphrases and near-duplicates from leaking between training and evaluation |
 | Generator version, sampling settings, seed | Identifies the generating iteration; a seed alone does not ensure reproducibility across hardware |
 | Raw response, termination reason, length | Separates completion, truncation, and format failures |
 | Verifier version and individual check results | A single total score hides which rule misjudged an answer |
-| Retention reason and candidate-group identifier | Allows selection changes without regenerating every candidate |
+| Reason for keeping or discarding the answer, and its candidate group | Allows selection changes without regenerating every candidate |
 
-Split prompts before generating candidates, and do not evaluate solely with the same checks used to construct training data. When the verifier changes, rescore stored candidates without silently overwriting their original records. Executing model-generated code requires isolation and resource limits. The example here only evaluates finite probability tables; it does not execute generated programs.
+Assign prompts to training and evaluation splits before generating candidates. Do not evaluate solely with the checks used to construct the training data. When the verifier changes, rescore stored candidates while preserving their original records. Executing model-generated code requires isolation and resource limits. The example here only works with finite probability tables; it does not execute generated programs.
 
 ## Check the arithmetic {#worked-code}
 
-The [standard-library teaching script](code/selection_and_entropy.py) checks filtering and best-of-N by deterministic enumeration. It does not call a model or reproduce a training run:
+The [teaching script](code/selection_and_entropy.py) uses only the standard library and checks filtering and best-of-N by enumerating all possible outcomes. It does not call a model or reproduce a paper's training run:
 
 ```bash
 python3 05-post-training/code/selection_and_entropy.py
 ```
 
-The first three lines show an acceptance rate of 0.65 with retained probabilities near `[0.769231, 0.230769, 0]`, the classical accept–reject rate of about 0.5556 (5/9) with distribution `(0.6, 0.3, 0.1)`, and best-of-2 probabilities `(0.25, 0.39, 0.36)`. The remaining lines (entropy, sorting checks, and so on) belong to other notes. Try giving C the lowest score instead. Does extra sampling now help a correct answer, or amplify the scorer's mistake?
+The first three lines show an acceptance rate of 0.65 with retained probabilities near `[0.769231, 0.230769, 0]`, the classical accept–reject rate of about 0.5556 (5/9) with distribution `(0.6, 0.3, 0.1)`, and best-of-2 probabilities `(0.25, 0.39, 0.36)`. Later lines report entropy, sorting checks, and other results used in separate notes. Try assigning the incorrect category C the lowest score, then compare each category's selection probability. After correcting the ranking, does generating more candidates still amplify the same error?
 
 ## Where to go next {#next}
 
-- [SFT](sft-and-its-ceiling.en.md): turning selected demonstrations into a training objective.
+- [Supervised fine-tuning](sft-and-its-ceiling.en.md): turning selected demonstrations into a training objective.
 - [Verifiable rewards](verifiable-rewards.en.md): passing a check without completing the task.
 - [Alignment tax and entropy](alignment-tax.en.md): useful concentration versus lost solution coverage.
 - [Post-training practice](../practice/post-training/README.en.md): frameworks, data, and checkpoints.

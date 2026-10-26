@@ -6,43 +6,47 @@
 
 ## Replace a learned reward with a checkable rule {#replace-a-learned-reward-with-a-checkable-rule}
 
-A model writes a sorting function. You could ask another model whether it looks good, or execute tests. Tests make part of the judgment reproducible.
+A model writes a sorting function. You could ask another model to assess it, or run tests. Tests turn part of that assessment into a repeatable check.
 
-If the only test is `[3, 1, 2]`, always returning `[1, 2, 3]` passes. Empty lists, repeated elements, or negative values expose the error. Verifiable rewards offer explicit, repeatable checks, not automatic immunity to loopholes.
+If the only test is `[3, 1, 2]`, always returning `[1, 2, 3]` passes. Empty lists, repeated elements, or negative values expose the error. Using such checks as rewards is called Reinforcement Learning with Verifiable Rewards (RLVR). The benefit is explicit, repeatable assessment, not immunity to loopholes.
 
 ## What gets swapped out {#what-gets-swapped-out}
 
-Recall [RLHF's four roles](rlhf/three-stages.en.md): Policy, Critic, Reward, Reference. For objectives that admit explicit checks, a verifier can replace the Reward Model learned from [preference data](where-preferences-come-from.en.md). Other objectives can still use human or model judgment; the entire system need not use one reward source.
+Recall the [four roles in RL from Human Feedback (RLHF)](rlhf/three-stages.en.md): the policy generates responses, the critic estimates returns, the reward model scores responses, and the reference model provides a baseline for constraining policy changes. For objectives with explicit checks, a verifier can replace the reward model learned from [preference data](where-preferences-come-from.en.md). Other objectives can still use human or model judgment; a system need not rely on a single reward source.
 
 $$r(x,y) = \operatorname{verify}(x,y) \in \{0, 1\}$$
 
-Here x includes the task and checking context, and y is the candidate answer. Binary reward is one option; fractions of tests passed or multiple component scores are possible too. Reproducibility depends on fixed test inputs, environment, random seeds, and timeout rules. The reward source **does not determine PPO versus GRPO, or whether a Critic is trained**.
+Here $x$ contains the task and the context needed to check it, and $y$ is the candidate answer. A binary reward is one option; the fraction of tests passed or multiple component scores are alternatives. Reproducibility also depends on fixed test inputs, environment, random seeds, and timeout rules. Verifiable rewards describe the source of feedback. They can be used with Proximal Policy Optimization (PPO) or Group Relative Policy Optimization (GRPO): **the reward source determines neither the optimization algorithm nor whether a critic must be trained**.
 
-## Why it narrows reward hacking {#why-it-narrows-reward-hacking}
+## Why tests can reduce some forms of reward hacking {#why-it-narrows-reward-hacking}
 
-Replacing an RM with tests removes the need to infer code correctness from how the answer looks. The checked properties are more explicit, and failures are easier to reproduce. This avoids some reward-model generalization errors.
+Replacing a reward model with tests lets you check aspects of the code's behavior directly, rather than relying only on another model's assessment of the response. The checked properties are explicit, and failures are easier to reproduce. This can avoid some reward-model generalization errors.
 
-A discrete, nondifferentiable reward is not protection against exploitation. Policy gradients adjust sampled-output probabilities using their rewards; they do not need gradients through the test program. An incorrect implementation that passes an incomplete test suite can still be reinforced.
+A discrete, nondifferentiable reward does not prevent exploitation. Policy gradients use the rewards of sampled outputs to adjust their generation probabilities; they do not need to differentiate through the test program. An incorrect implementation that passes an incomplete test suite can still be reinforced.
 
 ## A rule can miss the actual requirement {#but-reward-hacking-only-moved}
 
-Reward hacking describes behavior that earns more proxy reward without delivering the intended result. The proxy need not be a neural network: handwritten rules can give the wrong incentive too.
+Reward hacking occurs when behavior earns a higher proxy reward without better serving the intended goal. The proxy need not be a neural network: handwritten rules can create the wrong incentives too.
 
-Incomplete checks can reinforce a model that learns to:
+Incomplete checks can reinforce behavior such as:
 
-- hardcode returns for the specific test cases;
-- swallow every exception so the program doesn't crash, satisfying "doesn't error" style checks;
-- find bugs in the test harness itself.
+- hardcoding return values for specific test cases;
+- swallowing every exception to pass checks that only require the program not to crash;
+- exploiting bugs in the test harness itself.
 
-These are not hypothetical: for exploits already documented in agent tasks, see the frontier draft [Agent RL: where environments and rewards come from](../11-frontier/agentic-rl/environments-and-rewards.en.md). Conversely, a rising reward need not mean the model learned what the reward asks for: [Spurious Rewards (Shao et al., 2025)](https://arxiv.org/abs/2506.10947) reports that RLVR with randomly assigned rewards still raises Qwen2.5-Math-7B's MATH-500 score by 21.4 percentage points (29.1 with ground-truth rewards), an effect that often fails to appear for Llama3 or OLMo2.
+For documented exploits in agent tasks, see the frontier draft [Agent RL: where environments and rewards come from](../11-frontier/agentic-rl/environments-and-rewards.en.md). A separate distinction matters here: improved accuracy after training does not, by itself, establish that the reward supplied useful information about correctness.
 
-For math, matching the final answer does not establish that every intermediate step is valid. A guess or an incorrect derivation can happen to reach the right result. Whether the process also needs checking depends on whether the task requires an answer or a dependable argument.
+In [Spurious Rewards (Shao et al., 2025, §§2–3 and Appendix A)](https://arxiv.org/abs/2506.10947), the authors train Qwen2.5-Math-7B on DeepScaleR with GRPO, replacing correctness rewards with random binary rewards. MATH-500 single-answer accuracy still improves by 21.4 percentage points, versus 29.1 with ground-truth rewards. The tested Llama3 and OLMo2 models generally do not show comparable gains. This is a model- and setup-specific analysis, not evidence that random rewards work in general or direct evidence of reward hacking.
+
+Read those gains alongside the setup: 16 responses per prompt, training temperature 1, no Kullback–Leibler (KL) divergence or entropy loss, and eight A100 GPUs. MATH-500 evaluation uses greedy decoding; the reported gains use the paper's ten-step smoothing at the end of the training curve.
+
+In math, matching the final answer does not establish that every intermediate step is valid. A guess or an incorrect derivation can happen to reach the right result. Whether the reasoning also needs checking depends on whether the task requires a correct answer or a dependable argument.
 
 This does not mean every model will discover every loophole. The reward supplies an optimization direction; exploiting it also depends on capability, sampling, and training. Check whether independent measurements support an improvement instead of inferring one from rising training reward.
 
 ## What did the sorting check forget? {#reward-entropy-example}
 
-The input is `[3, 1, 1]`. A verifier that only checks ascending order accepts all three outputs:
+The input is `[3, 1, 1]`. A verifier that only checks nondecreasing order accepts all three outputs:
 
 | Output | Nondecreasing? | Preserves every input element and its count? |
 | --- | --- | --- |
@@ -50,7 +54,7 @@ The input is `[3, 1, 1]`. A verifier that only checks ascending order accepts al
 | `[1, 3]` | Yes | No: one 1 is missing |
 | `[]` | Yes: no adjacent inversion | No: every element is missing |
 
-Sorting requires both order and preservation of the input multiset. For this integer-list example:
+Sorting requires both order and preservation of the input multiset: every element must appear the same number of times. For this integer-list example:
 
 ```python
 from collections import Counter
@@ -63,40 +67,40 @@ def verifies_sort(original, candidate):
     return ordered and Counter(original) == Counter(candidate)
 ```
 
-This teaching function checks **one input/output pair**, not all possible inputs, and does not safely execute unknown programs. A real evaluation also needs contracts for types, input mutation, exceptions, timeouts, and isolation.
+This teaching function checks **one input/output pair**, not all possible inputs, and does not provide a safe way to execute unknown programs. A real evaluation must also specify allowed types, whether input mutation is permitted, how exceptions and timeouts are handled, and how execution is isolated.
 
-Now let a policy choose equally between `[1, 3]` and `[]`. Its outputs vary, with entropy $\log2$, but neither solves the task. Another policy could always return the correct `[1, 1, 3]`, with entropy 0. **Reward loopholes and falling entropy are separate things to check.** The [entropy example](alignment-tax.en.md#entropy-versus-hacking) lays out that distinction.
+Now let a policy choose equally between `[1, 3]` and `[]`. Its output entropy—a measure of uncertainty over outputs for this fixed input—is $\log2$, but neither output solves the task. Another policy could always return the correct `[1, 1, 3]`, with entropy 0. **Reward loopholes and falling entropy need separate checks.** The [entropy example](alignment-tax.en.md#entropy-versus-hacking) compares the two.
 
 <details markdown="1">
 <summary>How do you test the verifier itself?</summary>
 
 Start with deliberately wrong outputs a person can judge directly: missing elements, duplicated elements, reversed order, and empty results. They should not receive full reward just because they resemble the expected format. Add correct edge cases too: empty input with empty output, repeated values, and negative numbers.
 
-Keep separate training checks and held-out checks that did not participate in training or selection. A holdout is not automatically independent: shared templates or parser bugs can affect both. Add checks targeting different failure mechanisms and review a sample manually. When changing the scoring rules, re-evaluate old checkpoints as well, so a changed ruler is not mistaken for a better model.
+Keep training checks separate from held-out checks that were not used for training or selection. Holding tests out does not guarantee independence: shared templates or parser bugs can make both sets fail in the same way. Add checks targeting different failure mechanisms and review a sample manually. After changing the scoring rules, re-evaluate earlier model checkpoints too, so that a change in scoring is not mistaken for a model improvement.
 
 </details>
 
-## A new problem: binary rewards are sparse {#a-new-problem-binary-rewards-are-sparse}
+## When binary rewards provide no within-group signal {#a-new-problem-binary-rewards-are-sparse}
 
-Return to sorting: four implementations of the same task receive `[0, 0, 0, 0]`. If training uses only outcome rewards centered by the group mean, all four advantages are zero. This term cannot distinguish which output deserves more probability. `[0, 1, 0, 0]` does provide a relative signal.
+Return to sorting: four implementations of the same task receive `[0, 0, 0, 0]`. Subtracting the group mean from each outcome reward gives four zero advantages. This term cannot distinguish which output's probability should increase. `[0, 1, 0, 0]` does provide a within-group signal. If advantages are also divided by the group standard deviation, zero variance needs explicit handling—for example, a small positive constant in the denominator—rather than computing $0/0$.
 
-This concerns the outcome-reward policy-gradient term. KL, entropy, or other auxiliary objectives can still produce updates. Programmatic rewards need not be binary: a fraction of tests passed is denser, but changes the objective and may reward solving only easy parts.
+This concerns the outcome-reward policy-gradient term. A KL penalty that discourages deviation from a reference policy, an entropy objective that adjusts output diversity, or other auxiliary objectives can still produce updates. Programmatic rewards need not be binary: scoring the fraction of tests passed distinguishes partial solutions, but changes the objective and may encourage solving only the easy parts.
 
-Task difficulty and sampling budget matter. Measure all-correct and all-incorrect groups before deciding whether you need different tasks, a stronger starting policy, or more attempts.
+Task difficulty and sampling budget matter. Measure how often groups are entirely correct or entirely incorrect before deciding whether you need different tasks, a stronger starting policy, or more attempts.
 
-We can estimate the frequency of homogeneous groups using [the mixed-group probability on the DAPO page](dapo.en.md#dynamic-sampling). For one fixed task with independent success probability p per attempt and G answers per group, the probability of equal rewards is $p^G+(1-p)^G$, the complement of the mixed-group probability. With G=4, only 12.5% of groups are homogeneous at p=0.5, rising to 65.62% at p=0.1 or 0.9: both very hard and very easy tasks can provide little within-group discrimination.
+We can estimate the frequency of equal-reward groups using [the mixed-group probability in DAPO's dynamic-sampling discussion](dapo.en.md#dynamic-sampling). For a fixed task, assume independent attempts, each with success probability $p$, and $G$ answers per group. All answers succeed with probability $p^G$ and all fail with probability $(1-p)^G$. Their sum, $p^G+(1-p)^G$, is the probability of equal rewards, complementary to the mixed-group probability. With $G=4$, only 12.5% of groups have equal rewards at $p=0.5$, rising to 65.62% at $p=0.1$ or $0.9$. Both very hard and very easy tasks can provide little within-group signal.
 
-This assumes independent, identically distributed draws. When difficulty varies or samples are correlated, measure groups per task rather than plugging the dataset-wide mean p into the formula.
+This assumes independent, identically distributed draws. When difficulty varies or samples are correlated, record group outcomes for each task rather than plugging the dataset-wide mean success probability $p$ into the formula.
 
-Filtering homogeneous groups, as DAPO does, increases the share of discriminative groups used for updates. It costs additional sampling and changes which prompts enter the update. It cannot create a successful solution to a hard task from nothing. As with [filtered SFT](rejection-sampling.en.md#prompt-selection), track prompt coverage as well as retention.
+Filtering equal-reward groups, as DAPO does, increases the share of groups with useful reward differences in each update. It requires additional sampling and changes which prompts enter the update. It cannot create a successful solution to a hard task from nothing. As with [supervised fine-tuning after filtering](rejection-sampling.en.md#prompt-selection), track prompt coverage as well as retention.
 
 ## Outcome rewards or process rewards {#outcome-rewards-or-process-rewards}
 
-Final-outcome checks are straightforward to integrate, but do not locate which step went wrong. Process rewards give finer feedback only if the intermediate judgments are reliable. Human annotation costs time, model annotation can misjudge, and formal checks require suitable representations and tools.
+Outcome rewards assess the final result. They are straightforward to integrate into training, but do not locate the step where an error occurred. Process rewards offer finer feedback, provided that intermediate steps can be judged reliably. Human annotation is costly, model judgments can be wrong, and formal proof checking requires suitable representations and tools.
 
-The two can be combined: tests check the final result while process signals guide search. Evaluate whether the extra signal improves equal-budget success, rather than merely increasing process scores.
+The two can be combined: tests check the final result while process signals guide search. Check whether the extra signal improves success at the same computational budget, rather than merely increasing process scores.
 
-For how outcome and process reward models pick answers at inference time, and how search over intermediate steps works, see the frontier draft [Test-time compute: sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md). Check where a paper's improvement occurs. [Let's Verify Step by Step, §2.1](https://arxiv.org/html/2305.20050v1#S2.SS1) keeps the generator fixed and compares reward models at selecting answers from multiple candidates; it does not update the generator with RL. Better selection with process scores is therefore not, by itself, evidence that training a policy with process rewards would improve it. That requires a separate training and evaluation comparison.
+The frontier draft [Test-time compute: sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md) explains how reward models select answers at inference time and guide search over intermediate steps. When reading a paper, distinguish better answer selection from better policy training. [Let's Verify Step by Step, §2.1](https://arxiv.org/html/2305.20050v1#S2.SS1) keeps the generator fixed and compares reward models' ability to select from multiple candidates; it does not update the generator with RL. Better selection with process scores is therefore not, by itself, evidence that training a policy with process rewards would improve it. That requires a separate training and evaluation comparison.
 
 ## Verifiability is a spectrum, not a binary {#verifiability-is-a-spectrum-not-a-binary}
 
@@ -112,25 +116,25 @@ It is more useful to ask exactly what each check establishes:
 
 A task can use several checks. For a report, code might verify numbers and links while a person reviews the argument. Using suitable evidence for each judgment makes failures easier to diagnose than collapsing every requirement into one score.
 
-## Down to a checklist {#down-to-a-checklist}
+## Questions to ask when designing verifiable rewards {#down-to-a-checklist}
 
 1. Which deliberately wrong outputs still receive full reward? Can targeted counterexample tests expose them?
-2. If the reward is binary, what fraction of my groups is all-right or all-wrong?
-3. Am I verifying outcome or process? If outcome, how often does it get there by guessing?
-4. Is my task really "unverifiable," or have I just not decomposed it? Which part is checkable?
+2. If the reward is binary, what fraction of groups in each training batch is entirely correct or entirely incorrect?
+3. Am I checking the outcome or the reasoning? If only the outcome, how often can a guess pass?
+4. Is the task really unverifiable, or does it need to be broken into smaller checks? Which parts can be verified?
 5. If I add model judgment, can independent checks catch the errors that judge favors?
 
 ## Where to read next {#where-to-read-next}
 
-- [Where preferences come from](where-preferences-come-from.en.md): the structural ceilings of a learned reward model
+- [Where preferences come from](where-preferences-come-from.en.md): the limits of learned reward models
 - [PPO, GRPO, and DPO](after-ppo.en.md): how binary sparse rewards and group baselines amplify each other
 - [The alignment tax](alignment-tax.en.md): check entropy, solution coverage, and actual quality separately
-- [Evaluation](../07-evaluation/): a verifier and an eval set are not the same thing
+- [Evaluation](../07-evaluation/): why a verifier is not the same thing as an evaluation set
 
 ## Quick learning: what does a verifiable reward replace? {#quick-learning-what-does-a-verifiable-reward-replace}
 
 <details class="interview" markdown="1">
-<summary>For review: explain the reward's limits with the sorting check</summary>
+<summary>Use the sorting example to explain what the reward does—and does not—verify</summary>
 
 **Remember**: a test establishes specific properties, not necessarily the whole task. High reward, low entropy, and high quality are different measurements.
 
@@ -149,6 +153,6 @@ Outcome-reward reliability depends on the specification and verifier coverage; i
 ## Starting papers {#starting-papers}
 
 - [DeepSeek-R1, §2.2.2](https://arxiv.org/html/2501.12948v1#S2.SS2.SSS2) — a concrete design using rule-based accuracy and format rewards
-- [DAPO](https://arxiv.org/abs/2503.14476) — dynamic sampling for all-right/all-wrong groups
+- [DAPO](https://arxiv.org/abs/2503.14476) — dynamic sampling when equal-reward groups provide no outcome-reward gradient
 - [Let's Verify Step by Step](https://arxiv.org/abs/2305.20050) — process versus outcome supervision
 - The sorting and probability examples are checked by the [standard-library teaching script](code/selection_and_entropy.py). It neither executes model-generated programs nor reproduces training results.

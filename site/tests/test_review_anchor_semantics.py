@@ -56,11 +56,12 @@ class ReviewAnchorSemanticsTests(unittest.TestCase):
     def test_removed_subheadings_remain_next_to_their_explanations(self):
         for suffix in (".md", ".en.md"):
             distillation = render("05-post-training/model-adaptation" + suffix)
-            for anchor, label in (
-                ("response-distillation", "Response distillation"),
-                ("logit-distribution-distillation", "Logit / distribution distillation"),
-                ("on-policy-distillation", "On-policy distillation"),
+            for anchor, chinese, english in (
+                ("response-distillation", "回答蒸馏（response distillation）", "Response distillation"),
+                ("logit-distribution-distillation", "分布蒸馏（logit / distribution distillation）", "Logit / distribution distillation"),
+                ("on-policy-distillation", "同策略蒸馏（on-policy distillation）", "On-policy distillation"),
             ):
+                label = english if suffix == ".en.md" else chinese
                 with self.subTest(language=suffix, anchor=anchor):
                     self.assertIn(f'<span id="{anchor}"></span><strong>{label}</strong>', distillation)
             plan = render("interview/study-plan" + suffix)
