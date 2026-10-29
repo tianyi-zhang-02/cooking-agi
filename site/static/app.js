@@ -401,7 +401,7 @@
      tx-* widget pay for them. */
   if ($('[data-widget^="tx-"]')) {
     var txBase = ((window.SITE && window.SITE.prefix) || "") + "static/tx-lab";
-    var txVer = "?v=" + ((window.SITE && window.SITE.built) || "");
+    var txVer = "?v=" + ((window.SITE && (window.SITE.assets || window.SITE.built)) || "");
     var txCss = document.createElement("link");
     txCss.rel = "stylesheet"; txCss.href = txBase + ".css" + txVer;
     document.head.appendChild(txCss);
@@ -416,7 +416,7 @@
      Transformer lab's figure chrome, so tx-lab.css comes along. */
   if ($('[data-widget^="algo-"], [data-widget^="step-"]')) {
     var algoBase = ((window.SITE && window.SITE.prefix) || "") + "static/";
-    var algoVer = "?v=" + ((window.SITE && window.SITE.built) || "");
+    var algoVer = "?v=" + ((window.SITE && (window.SITE.assets || window.SITE.built)) || "");
     ["tx-lab.css", "algo-lab.css"].forEach(function (file) {
       if (document.querySelector('link[href^="' + algoBase + file + '"]')) return;
       var link = document.createElement("link");
