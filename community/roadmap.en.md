@@ -27,7 +27,7 @@ The initial routes focus on ML / LLMs, post-training, inference systems, and alg
 
 ## Next: improve the parts people already use {#next}
 
-**First, we're reading every note again in both languages**: fixing stiff sentences and skipped steps, and adding missing examples. The home page's [topic coverage](../README.md#topic-coverage) shows how far that has got.
+**First, we're reading every note again in both languages**: fixing stiff sentences and skipped steps, and adding missing examples. The [coverage page](../learn/coverage.en.md) shows how far that has got.
 
 The items below are open work, not completed features. We'll use feedback to choose the order rather than add everything at once.
 

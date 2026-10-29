@@ -1488,16 +1488,8 @@ def build_page(page: Page, terms, repo: str, known: set):
             count=1,
             flags=re.M,
         )
-        home_details = {"怎么用这些笔记": "how-to-use-the-notes",
-                        "各个板块放什么": "whats-in-each-section",
-                        "现在在做": "now", "主题覆盖": "topic-coverage", "走到现在": "how-we-got-here"}
-        for title, identifier in home_details.items():
-            raw = re.sub(r"^### " + re.escape(title) + r"$",
-                         f"### {title} {{#{identifier}}}", raw, flags=re.M)
-        # a section added before the numbered legacy anchors (_1 … _5) gets an English id so they don't shift
-        for title, identifier in {"路线图": "roadmap"}.items():
-            raw = re.sub(r"^## " + re.escape(title) + r"$",
-                         f"## {title} {{#{identifier}}}", raw, flags=re.M)
+        # Chinese headings get numbered ids (_1 … _6) that old links still use: a section added to the
+        # Chinese home needs an English id of its own ({#id}) so those numbers don't shift.
     meta = re.search(r"^>\s*(?:阅读时间|Reading time)[:：]?\s*(.+)$", raw, re.M)
     if meta:
         parts = [p.strip() for p in meta.group(1).split("·")]
@@ -2112,20 +2104,19 @@ def main():
         for palette in topic_coverage.PALETTES:
             (OUT / f"static/topic-coverage-{language}-{palette}.svg").write_text(
                 topic_coverage.svg(coverage, language, palette, built[:10]), encoding="utf-8")
-    # README cards: what's inside, roadmap, contributors and reviewers (site/readme_cards.py).
+    # README cards: an overview of what's inside (with the roadmap's now and next), and the people (site/readme_cards.py).
     # Contributors are shown on GitHub, not on the site, so they are collected only for the cards.
     people = contributors(nav["site"]["repo"])
     topics = readme_cards.topic_rows(NAV, NAV.get("_sections", []))
     milestones = readme_cards.load_milestones(SITE / "milestones.toml")
     outcomes = json.loads((ROOT / "community/outcomes.json").read_text(encoding="utf-8"))
     team = readme_cards.people_data(people, collaboration.load_config(), nav["site"]["repo"], outcomes)
-    signals = {"reviewed": topic_coverage.totals(coverage)[1],  # the same count as the coverage chart below it
+    signals = {"reviewed": topic_coverage.totals(coverage)[1],  # the same count as the coverage chart
                "figures": len(FIGURE_LAB) + len(ALGO_LAB) + len(TX_LAB), "paper": len(PAPER_FIGURES)}
     for language in ("zh", "en"):
         for palette in readme_cards.PALETTES:
-            for name, card in (("topics", readme_cards.topics_svg(topics, language, palette, built[:10], signals)),
-                               ("roadmap", readme_cards.roadmap_svg(milestones, language, palette, built[:10])),
-                               ("people", readme_cards.people_svg(team, language, palette, built[:10]))):
+            for name, card in (("overview", readme_cards.overview_svg(topics, milestones, language, palette, built[:10], signals)),
+                               ("people", readme_cards.people_svg(team, milestones, language, palette, built[:10]))):
                 (OUT / f"static/readme-{name}-{language}-{palette}.svg").write_text(card, encoding="utf-8")
     for d in ROOT.glob("*/assets"):
         shutil.copytree(d, OUT / d.relative_to(ROOT))
