@@ -8,8 +8,8 @@ const base = 'https://example.org/cooking-agi/';
 const keys = storageKeys(base);
 const {prepareIndex, rankNotes, safePath} = require('../static/search.js');
 const homes = prepareIndex([
-  {u: 'index.html', t: 'Cooking AGI', s: 'Home', l: 'en', x: 'Start here'},
-  {u: 'index.zh.html', t: 'AGI 大锅烩', s: '首页', l: 'zh', x: '从这里开始'}
+  {u: 'index.html', t: 'Cooking AGI', s: 'Home', l: 'en', a: 'AGI 大锅烩', h: [['', '', 'Start here', '']]},
+  {u: 'index.zh.html', t: 'AGI 大锅烩', s: '首页', l: 'zh', a: 'Cooking AGI', h: [['', '', '从这里开始', '']]}
 ]);
 assert.equal(homes.length, 2);
 assert.equal(rankNotes(homes, 'Cooking AGI', 'zh', false)[0].u, 'index.zh.html');

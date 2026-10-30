@@ -38,8 +38,8 @@ function mount(language = 'zh', prefix = '../') {
   document.documentElement = {classList: {add() {}, remove() {}}};
   const requests = [], timers = new Map();
   let timerId = 0;
-  vm.runInNewContext(source, {document, window: {SITE: {lang: language, prefix}},
-    fetch: () => new Promise((resolve, reject) => requests.push({resolve, reject})),
+  vm.runInNewContext(source, {document, window: {SITE: {lang: language, prefix, search: {zh: 'z1', en: 'e1'}}},
+    fetch: url => new Promise((resolve, reject) => requests.push({url, resolve, reject})),
     setTimeout: callback => { timers.set(++timerId, callback); return timerId; },
     clearTimeout: identity => timers.delete(identity)});
   function type(text) {
@@ -51,11 +51,16 @@ function mount(language = 'zh', prefix = '../') {
 }
 
 const index = [
-  {u: 'attention.html', t: '注意力', s: '基础', l: 'zh', x: 'attention'},
-  {u: 'attention.en.html', t: 'Attention', s: 'Core', l: 'en', x: 'attention'},
-  {u: 'clip.html', t: '<CLIP>', s: '多模态', l: 'zh', x: 'images'}
+  {u: 'attention.html', t: '注意力', s: '基础', l: 'zh', h: [['', '', 'attention', '']]},
+  {u: 'attention.en.html', t: 'Attention', s: 'Core', l: 'en', h: [['', '', 'attention', '']]},
+  {u: 'clip.html', t: '<CLIP>', s: '多模态', l: 'zh', h: [['', '', 'images', ''], ['zero-shot', '零样本', 'zero shot images', '']]}
 ];
 const tick = () => new Promise(resolve => setImmediate(resolve));
+// each language is its own file; answer a request with that language's notes
+function answer(request, items = index) {
+  const language = request.url.match(/search-index\.(zh|en)\.json\?v=/)[1];
+  request.resolve({ok: true, json: async () => items.filter(item => item.l === language)});
+}
 
 (async () => {
   const page = mount();
@@ -65,13 +70,17 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   page.type('attention');
   page.type('CLIP');
   assert.equal(page.requests.length, 1);
-  page.requests[0].resolve({ok: true, json: async () => index});
+  assert.equal(page.requests[0].url, '../search-index.zh.json?v=z1');
+  answer(page.requests[0]);
   await tick();
   assert.equal(page.status.textContent, '1 篇笔记');
   assert.equal(page.results.querySelectorAll('a')[0].href, '../clip.html');
   page.type('attention');
   await tick();
   page.scopes[1].click();
+  assert.equal(page.requests.length, 2);
+  assert.equal(page.requests[1].url, '../search-index.en.json?v=e1');
+  answer(page.requests[1]);
   await tick();
   assert.equal(page.status.textContent, '2 篇笔记');
   page.dialog.listeners.keydown({key: 'ArrowDown', preventDefault() {}});
@@ -97,7 +106,7 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   assert.equal(failed.status.textContent, '搜索暂时没加载出来');
   failed.empty.children.at(-1).click();
   assert.equal(failed.requests.length, 2);
-  failed.requests[1].resolve({ok: true, json: async () => index});
+  answer(failed.requests[1]);
   await tick();
   assert.equal(failed.status.textContent, '1 篇笔记');
 
@@ -105,24 +114,48 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   closed.opener.click();
   closed.type('attention');
   closed.close.click();
-  closed.requests[0].resolve({ok: true, json: async () => index});
+  answer(closed.requests[0]);
   await tick();
   assert.equal(closed.results.children.length, 0);
 
+  // a section hit links to its heading and steps the dialog aside, even on the page already open
+  const section = mount();
+  section.opener.click();
+  section.type('zero shot');
+  answer(section.requests[0]);
+  await tick();
+  const sectionLink = section.results.querySelectorAll('a')[0];
+  assert.equal(sectionLink.href, '../clip.html#zero-shot');
+  assert.ok(sectionLink.children.some(child => child.className === 'note-search-section'));
+  sectionLink.click();
+  assert.equal(section.dialog.open, false);
+
+  // reaching for the button starts the download; opening the dialog reuses it
+  const warm = mount();
+  warm.opener.listeners.pointerenter();
+  assert.equal(warm.requests.length, 1);
+  warm.opener.click();
+  warm.type('attention');
+  assert.equal(warm.requests.length, 1);
+  answer(warm.requests[0]);
+  await tick();
+  assert.equal(warm.status.textContent, '1 篇笔记');
+
   const homes = [
-    {u: 'index.html', t: 'Cooking AGI', s: 'Home', l: 'en', x: 'Study notes'},
-    {u: 'index.zh.html', t: 'AGI 大锅烩', s: '首页', l: 'zh', x: '学习笔记'}
+    {u: 'index.html', t: 'Cooking AGI', s: 'Home', l: 'en', h: [['', '', 'Study notes', '']]},
+    {u: 'index.zh.html', t: 'AGI 大锅烩', s: '首页', l: 'zh', h: [['', '', '学习笔记', '']]}
   ];
   for (const language of ['zh', 'en']) {
     for (const prefix of ['', '../', '../../']) {
       const homeSearch = mount(language, prefix);
       homeSearch.opener.click();
       homeSearch.type('AGI');
-      homeSearch.requests[0].resolve({ok: true, json: async () => homes});
+      answer(homeSearch.requests[0], homes);
       await tick();
       const ownLink = homeSearch.results.querySelectorAll('a')[0].href;
       assert.equal(ownLink, prefix + (language === 'en' ? 'index.html?lang=en' : 'index.zh.html'));
       homeSearch.scopes[1].click();
+      answer(homeSearch.requests[1], homes);
       await tick();
       const links = homeSearch.results.querySelectorAll('a').map(link => link.href);
       assert.equal(links.length, 2);

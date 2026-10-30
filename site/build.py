@@ -1462,6 +1462,45 @@ def strip_tags(h):
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h)).strip()
 
 
+SEARCH_HEADING = re.compile(r'<h([23])\b[^>]*\bid="([^"]+)"[^>]*>(.*?)</h\1>', re.S)
+SEARCH_SKIPPED = re.compile(r'<(pre|svg|script|style)\b[^>]*>.*?</\1>', re.S)
+
+
+def search_sections(prose, title_only=False):
+    """The note cut at its h2/h3 headings for search: [anchor, heading, prose, code] each.
+    Results can then open the section that matched. Figures' labels stay out, code is kept
+    apart so excerpts read as prose, and long reference pages (the chronicle, the coverage
+    table) are found by their headings only: their body matches everything."""
+    cuts = list(SEARCH_HEADING.finditer(prose))
+    starts = [("", "", 0)] + [(m.group(2), m.group(3), m.end()) for m in cuts]
+    ends = [m.start() for m in cuts] + [len(prose)]
+    sections = []
+    for (anchor, heading, start), end in zip(starts, ends):
+        chunk = prose[start:end]
+        text = "" if title_only else html.unescape(strip_tags(SEARCH_SKIPPED.sub(" ", chunk)))
+        code = "" if title_only else html.unescape(strip_tags(" ".join(
+            re.findall(r"<pre\b[^>]*>(.*?)</pre>", chunk, flags=re.S))))
+        heading = html.unescape(strip_tags(heading))
+        if text or code or heading:
+            sections.append([html.unescape(anchor), heading, text, code])
+    return sections
+
+
+# each language's index version, set once the indexes are written and stamped into every page
+SEARCH_VERSIONS = {"zh": "", "en": ""}
+
+
+def search_index(pages, language):
+    """One language's index, and a version that changes only when the index does."""
+    entries = [{"u": page.url, "t": page.title, "l": page.lang,
+                "s": page.section["zh" if page.lang == "zh" else "en"],
+                "a": getattr(getattr(page, "sibling", None), "title", ""),
+                "h": page.search_sections}
+               for page in pages if page.lang == language]
+    text = json.dumps(entries, ensure_ascii=False, separators=(",", ":"))
+    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
 def build_page(page: Page, terms, repo: str, known: set):
     raw = page.src.read_text(encoding="utf-8")
     # A NUL byte means some editing pass left a placeholder behind and ate the
@@ -1521,9 +1560,8 @@ def build_page(page: Page, terms, repo: str, known: set):
     # the generated home blocks (routes, category cards) are navigation, not reading
     prose_only = re.sub(r'<section class="[^"]*home-block.*?</section>', " ", body, flags=re.S)
     page.text = strip_tags(prose_only)[:1500]
-    page.search_text = html.unescape(strip_tags(prose_only))
-    search_prose = re.sub(r'<(pre|svg|script|style)\b[^>]*>.*?</\1>', ' ', prose_only, flags=re.S)
-    page.search_preview = html.unescape(strip_tags(search_prose))
+    page.search_sections = search_sections(prose_only, title_only=any(
+        marker in body for marker in ('data-technology-tree', 'class="reference-coverage"')))
     plain = strip_tags(prose_only)
     cjk = len(re.findall(r"[\u3400-\u9fff]", plain))
     latin = len(re.findall(r"\b[\w'-]+\b", re.sub(r"[\u3400-\u9fff]", " ", plain)))
@@ -1930,8 +1968,44 @@ def with_csp(output, template, prefix, lang, built):
     return output.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n' + meta, 1)
 
 
+@functools.lru_cache(maxsize=None)
+def asset_version(name):
+    """A static file's content hash. The scheduled rebuilds change nothing here, so a returning
+    reader keeps the cached copy until the file itself changes."""
+    path = SITE / "static" / name
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.is_file() else None
+
+
+@functools.lru_cache(maxsize=None)
+def static_version():
+    """One version for the files app.js loads on demand (the figure labs)."""
+    digest = hashlib.sha256()
+    for path in sorted((SITE / "static").rglob("*")):
+        if path.is_file():
+            digest.update(path.relative_to(SITE).as_posix().encode("utf-8"))
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:12]
+
+
+TEMPLATE_IF = re.compile(r"<!-- if:([^ ]+) -->(.*?)<!-- /if -->(\n?)", re.S)
+MATH = re.compile(r"\$\$|\\\(|\\\[|\$[^$\n]+?\$")
+NOT_PROSE = re.compile(r"<(script|style|pre|code)\b[^>]*>.*?</\1>", re.S)
+
+
+def page_needs(condition, page, output):
+    """Template blocks marked <!-- if:... --> stay only on pages that use them: the labs where
+    their markers appear, KaTeX where there is math or a figure a script may write math into."""
+    if condition == "math":
+        return bool(MATH.search(NOT_PROSE.sub(" ", TEMPLATE_IF.sub(" ", output)))) or "data-widget=" in page.body \
+            or re.search(r"data-[a-z-]+-lab\b", page.body) is not None
+    return any(marker in page.body for marker in condition.split("|"))
+
+
 def assemble(page, sections, nav, built, template):
     site = nav["site"]
+    template = (template.replace("{{assets}}", static_version())
+                .replace("{{search_zh}}", SEARCH_VERSIONS["zh"])
+                .replace("{{search_en}}", SEARCH_VERSIONS["en"]))
     if page.section.get("group") == "career":
         template = template.replace('</head>', f'<link rel="stylesheet" href="{page.rel("static/career.css")}?v={built}">\n</head>')
     zh = page.lang == "zh"
@@ -2050,6 +2124,9 @@ def assemble(page, sections, nav, built, template):
             .replace("{{glossary}}", glossary_html(page))
             .replace("{{footer}}", footer_html(page, site["repo"], built))
             .replace("{{built}}", built))
+    output = TEMPLATE_IF.sub(lambda m: m.group(2) + m.group(3) if page_needs(m.group(1), page, output) else "", output)
+    output = re.sub(r"(static/([\w./-]+\.(?:css|js)))\?v=" + re.escape(built),
+                    lambda m: f"{m.group(1)}?v={asset_version(m.group(2)) or built}", output)
     return with_csp(output, template, prefix, html_lang, built)
 
 
@@ -2078,16 +2155,17 @@ def main():
     known = {str(p.out_rel).replace(os.sep, "/") for p in pages}
 
     print("rendering...")
-    index = []
     for page in pages:
         build_page(page, terms, nav['site']['repo'], known)
+    # Every page links its index by content version, so the index is written first.
+    for language in ("zh", "en"):
+        text, SEARCH_VERSIONS[language] = search_index(pages, language)
+        (OUT / f"search-index.{language}.json").write_text(text, encoding="utf-8")
+    for page in pages:
         dest = OUT / page.out_rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(assemble(page, sections, nav, built, template),
                         encoding="utf-8")
-        index.append({"u": page.url, "t": page.title, "l": page.lang,
-                      "s": page.section["zh" if page.lang == "zh" else "en"],
-                      "x": page.search_text, "p": page.search_preview})
     print(f"  {len(pages)} pages")
 
     redirect_count = write_redirects(nav, known)
@@ -2122,8 +2200,6 @@ def main():
         shutil.copytree(d, OUT / d.relative_to(ROOT))
         print(f"  assets: {d.relative_to(ROOT)}")
 
-    (OUT / "search-index.json").write_text(json.dumps(index, ensure_ascii=False),
-                                           encoding="utf-8")
     api = agent_api.build(OUT)
     print(f"  agent API: {api['topics']} topics, {api['notes']} notes, {api['questions']} questions")
     (OUT / ".nojekyll").write_text("")

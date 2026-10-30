@@ -21,17 +21,17 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 28 28%27%3E%3Cpath d=%27M4.5 6.5h6.8c1.5 0 2.7 1.2 2.7 2.7v12.3c0-1.5-1.2-2.7-2.7-2.7H4.5z%27 fill=%27none%27 stroke=%27%23E8A672%27 stroke-width=%271.8%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M23.5 6.5h-6.8c-1.5 0-2.7 1.2-2.7 2.7v12.3c0-1.5 1.2-2.7 2.7-2.7h6.8z%27 fill=%27none%27 stroke=%27%23E8A672%27 stroke-width=%271.8%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="{{prefix}}static/style.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/language.css?v={{built}}">
-<link rel="stylesheet" href="{{prefix}}static/clip-lab.css?v={{built}}">
-<link rel="stylesheet" href="{{prefix}}static/traversal-lab.css?v={{built}}">
-<link rel="stylesheet" href="{{prefix}}static/recsys-lab.css?v={{built}}">
-<link rel="stylesheet" href="{{prefix}}static/recsys-design.css?v={{built}}">
+<!-- if:data-clip-lab --><link rel="stylesheet" href="{{prefix}}static/clip-lab.css?v={{built}}"><!-- /if -->
+<!-- if:data-traversal-lab --><link rel="stylesheet" href="{{prefix}}static/traversal-lab.css?v={{built}}"><!-- /if -->
+<!-- if:data-recsys-lab --><link rel="stylesheet" href="{{prefix}}static/recsys-lab.css?v={{built}}"><!-- /if -->
+<!-- if:data-recsys-architecture|data-recsys-evaluation|data-recsys-vectors --><link rel="stylesheet" href="{{prefix}}static/recsys-design.css?v={{built}}"><!-- /if -->
 <link rel="stylesheet" href="{{prefix}}static/sidebar.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/curriculum.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/search.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/mobile-reading.css?v={{built}}">
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<!-- if:math --><link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-      integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+      integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous"><!-- /if -->
 <script>
   // set the theme before first paint so there is no flash
   (function () {
@@ -152,23 +152,23 @@
     <footer class="note-search-footer"><span>{{search_hint}}</span><span>{{search_privacy}}</span></footer>
   </div>
 </dialog>
-<script>window.SITE = { prefix: "{{prefix}}", lang: "{{lang}}", built: "{{built}}" };</script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+<script>window.SITE = { prefix: "{{prefix}}", lang: "{{lang}}", built: "{{built}}", assets: "{{assets}}", search: { zh: "{{search_zh}}", en: "{{search_en}}" } };</script>
+<!-- if:math --><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
         integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
         crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
-        crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script><!-- /if -->
 <script defer src="{{prefix}}static/app.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/mobile-reading.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/search.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/sidebar.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/note-reading.js?v={{built}}"></script>
 <script defer src="{{prefix}}static/page-feedback.js?v={{built}}"></script>
-<script defer src="{{prefix}}static/clip-lab.js?v={{built}}"></script>
-<script defer src="{{prefix}}static/traversal-lab.js?v={{built}}"></script>
-<script defer src="{{prefix}}static/recsys-lab.js?v={{built}}"></script>
-<script defer src="{{prefix}}static/recsys-design.js?v={{built}}"></script>
+<!-- if:data-clip-lab --><script defer src="{{prefix}}static/clip-lab.js?v={{built}}"></script><!-- /if -->
+<!-- if:data-traversal-lab --><script defer src="{{prefix}}static/traversal-lab.js?v={{built}}"></script><!-- /if -->
+<!-- if:data-recsys-lab --><script defer src="{{prefix}}static/recsys-lab.js?v={{built}}"></script><!-- /if -->
+<!-- if:data-recsys-architecture|data-recsys-evaluation|data-recsys-vectors --><script defer src="{{prefix}}static/recsys-design.js?v={{built}}"></script><!-- /if -->
 <script defer src="{{prefix}}static/sky.js?v={{built}}"></script>
 </body>
 </html>
