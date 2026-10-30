@@ -591,6 +591,7 @@ FIGURE_LAB = [
     ("step-best-of-n", "Best-of-2：谁会被选中", "Best-of-2: who gets picked", "step"),
     ("step-bt-scale", "平移不变，缩放会变", "A shift changes nothing; a scale does", "step"),
     ("step-token-mean", "按回答平均，还是按 token 平均", "Average by response or by token", "step"),
+    ("step-grpo-baseline", "基线从哪来：PPO 用 Critic，GRPO 用组内平均", "Where the baseline comes from: PPO vs GRPO", "step"),
     ("step-kl-penalty", "两种回答的 KL 惩罚", "The KL penalty on two answers", "step"),
     ("step-behavior-ratio", "比率的分母用哪个分布", "Which distribution goes in the denominator", "step"),
     ("step-chunked-prefill", "分块 prefill：每轮的位置怎么分", "Chunked prefill: sharing each round’s positions", "step"),

@@ -581,6 +581,35 @@
     ]);
   };
 
+  /* 05-post-training/after-ppo §grpo-advantage: one prompt (17 × 24). PPO's baseline is the Critic's V = 0.6, so 388
+     scoring 0 gets A = −0.6; GRPO's is the group mean of [1, 0, 1, 0], giving A = [1, −1, 1, −1]; an all-wrong group gives 0s. */
+  F.groupBaseline = function (rewards = [1, 0, 1, 0], value = 0.6, ppoReward = 0) {
+    const stats = rs => {
+      const mean = rs.reduce((a, b) => a + b, 0) / rs.length;
+      const sd = Math.sqrt(rs.reduce((a, r) => a + (r - mean) ** 2, 0) / rs.length);  // population sd, as in the note
+      return {mean, sd, adv: rs.map(r => (sd ? Math.round((r - mean) / sd * 1000) / 1000 : 0))};
+    };
+    const group = stats(rewards), dead = stats(rewards.map(() => 0));
+    const ppoAdv = Math.round((ppoReward - value) * 1000) / 1000;
+    const list = xs => xs.map(x => (x < 0 ? '−' + Math.abs(x) : String(x))).join(', ');
+    const base = {value, ppoReward, ppoAdv, rewards, mean: group.mean, sd: group.sd, adv: group.adv};
+    return frames([
+      {...base, stage: 0, zh: `同一道题：计算 17 × 24，正确答案是 408。先看 PPO：Actor 回答了 388，答错了，reward R = ${ppoReward}。光有这个 0 分，还不知道该往哪边改，要先有一个比较的基线。`,
+        en: `One prompt: calculate 17 × 24; the right answer is 408. Start with PPO: the Actor answers 388, which is wrong, so the reward is R = ${ppoReward}. A score of 0 alone does not say which way to update; it needs a baseline to compare with.`},
+      {...base, stage: 1, zh: `PPO 的基线来自 Critic：它预测这道题能拿 V = ${value}。实际只拿到 ${ppoReward}，advantage A = R − V = ${list([ppoAdv])}，所以降低这条回答的概率。这里把整条回答当作一次动作，暂不计 KL；Critic 本身也要训练。`,
+        en: `PPO’s baseline comes from the Critic, which predicted V = ${value} for this prompt. The answer got ${ppoReward}, so the advantage is A = R − V = ${list([ppoAdv])} and this answer’s probability goes down. The whole answer is treated as one action and KL is left out here; the Critic itself has to be trained.`},
+      {...base, stage: 2, zh: `GRPO 不训练 Critic，而是对同一道题采样一组回答：408、388、408（含过程）、428。答对得 1 分，答错得 0 分，reward 是 [${rewards.join(', ')}]。`,
+        en: `GRPO trains no Critic. It samples a group of answers to the same prompt: 408, 388, 408 with work, and 428. A right answer scores 1 and a wrong one 0, so the rewards are [${rewards.join(', ')}].`},
+      {...base, stage: 3, zh: `基线换成这一组的平均分 μ = ${group.mean}；组内标准差 σ = ${group.sd}（分母是组大小 ${rewards.length}）。答对的比均值高 ${1 - group.mean}，答错的低 ${group.mean}。`,
+        en: `The baseline becomes the group’s mean reward, μ = ${group.mean}, and the group’s standard deviation is σ = ${group.sd} (dividing by the group size, ${rewards.length}). Right answers sit ${1 - group.mean} above it and wrong ones ${group.mean} below.`},
+      {...base, stage: 4, zh: `再除以 σ：A = (R − μ)/σ = [${list(group.adv)}]。提高两份答对的，降低两份答错的。同样是 388，PPO 给 ${list([ppoAdv])}，GRPO 给 ${list([group.adv[1]])}：回答没变，变的是基线。`,
+        en: `Divide by σ: A = (R − μ)/σ = [${list(group.adv)}]. The two right answers go up and the two wrong ones go down. The same 388 gets ${list([ppoAdv])} from PPO and ${list([group.adv[1]])} from GRPO: the answer did not change, the baseline did.`},
+      {...base, stage: 5, done: true, rewards: rewards.map(() => 0), mean: dead.mean, sd: dead.sd, adv: dead.adv,
+        zh: `代价在这里：如果一组全错，reward 是 [${rewards.map(() => 0).join(', ')}]，均值是 0，每份的 advantage 都是 0（实现里的 ε 只是防止除零）。这一组对策略梯度没有信号，这几次采样就白花了。PPO 靠训练 Critic 得到基线，GRPO 靠多采样。`,
+        en: `Here is the cost: if the whole group is wrong, the rewards are [${rewards.map(() => 0).join(', ')}], the mean is 0, and every advantage is 0 (the ε in implementations only avoids dividing by zero). The group gives the policy gradient no signal, and those samples are wasted. PPO gets its baseline by training a Critic; GRPO gets it from extra samples.`}
+    ]);
+  };
+
   /* 05-post-training/rlhf/reference-and-critic §3: per-answer KL terms can be negative; their weighted mean cannot. */
   F.klPenalty = function () {
     const ref = [0.5, 0.5], actor = [0.8, 0.2], reward = 1, beta = 0.2;
@@ -2832,6 +2861,73 @@
         show(r.box, frame.stage >= 3); show(r.rank, frame.stage >= 3);
         r.side.textContent = frame.stage === 1 || frame.stage === 3 ? t(`均值 ${frame.means[ri]}`, `mean ${frame.means[ri]}`)
           : frame.stage >= 4 ? `${frame.sums[ri]} × ${frame.W}/${frame.N} = ${frame.scaled[ri]}` : '';
+      });
+    };
+  }});
+
+  FIGURES['step-grpo-baseline'] = name => stepper(name, F.groupBaseline(), {height: 240, readouts: f => {
+    const signed = x => (x < 0 ? '−' + Math.abs(x) : x > 0 ? '+' + x : '0');
+    return [[t('PPO 的基线', 'PPO baseline'), f.stage >= 1 ? `Critic V=${f.value}` : '—'],
+      [t('GRPO 的基线', 'GRPO baseline'), f.stage >= 3 ? `μ=${f.mean} σ=${f.sd}` : '—', f.done ? 'bad' : ''],
+      [t('388：PPO / GRPO', '388: PPO / GRPO'), f.stage >= 1 ? `${signed(f.ppoAdv)} / ${f.stage === 4 ? signed(f.adv[1]) : '—'}` : '—', f.stage === 4 ? 'key' : ''],
+      [t('这一组的 A', 'A for the group'), f.stage >= 4 ? f.adv.map(signed).join(' ') : '—', f.done ? 'bad' : '']];
+  }, setup(svg) {
+    const top = 46, bottom = 166, y = r => bottom - r * (bottom - top);
+    const arrow = () => { const p = s('path', {class: 'algo-edge'}); svg.append(p); return p; };
+    const point = (x, r, a) => {
+      // a vertical arrow from the baseline to the reward, its head at the reward
+      const y0 = y(r - a), y1 = y(r), d = y1 < y0 ? 1 : -1;
+      return `M${x} ${y0} L${x} ${y1} M${x - 4} ${y1 + 6 * d} L${x} ${y1} L${x + 4} ${y1 + 6 * d}`;
+    };
+    const axis = (x0, x1, title) => {
+      svg.append(s('line', {x1: x0, x2: x1, y1: bottom, y2: bottom, class: 'algo-edge'}));
+      V.text(svg, x0, 22, title, 'algo-strong');
+      V.text(svg, x0 - 8, top + 4, '1', 'algo-idx', 'end'); V.text(svg, x0 - 8, bottom + 4, '0', 'algo-idx', 'end');
+      svg.append(s('line', {x1: x0 - 4, x2: x1, y1: top, y2: top, class: 'algo-edge algo-dash is-out'}));
+    };
+    // PPO: one answer and the Critic's prediction
+    axis(60, 200, 'PPO');
+    const ppoLine = s('line', {x1: 60, x2: 200, class: 'algo-edge algo-dash is-look-line'});
+    svg.append(ppoLine);
+    const ppoLabel = V.text(svg, 208, 0, '', 'algo-note');
+    const ppoArrow = arrow();
+    const ppoDot = s('circle', {cx: 110, r: 7, class: 'algo-cell is-bad'});
+    svg.append(ppoDot);
+    V.text(svg, 110, bottom + 20, '388', 'algo-idx', 'middle');
+    const ppoGap = V.text(svg, 124, 0, '', 'algo-note');
+    const ppoChip = cell(svg, 76, bottom + 30, 68, 24, '', 'algo-note');
+    // GRPO: a group of four answers and their mean
+    const xs = [330, 400, 470, 540], ax = i => xs[i] + 14;  // arrows sit beside the dots
+    axis(300, 580, 'GRPO');
+    const grLine = s('line', {x1: 300, x2: 580, class: 'algo-edge algo-dash is-look-line'});
+    svg.append(grLine);
+    const grLabel = V.text(svg, 588, 0, '', 'algo-note');
+    const answers = ['408', '388', t('408+过程', '408 + work'), '428'];
+    const cols = xs.map((x, i) => {
+      const a = arrow(), dot = s('circle', {cx: x, r: 7, class: 'algo-cell'});
+      svg.append(dot);
+      return {a, dot, name: V.text(svg, x, bottom + 20, answers[i], 'algo-idx', 'middle'), chip: cell(svg, x - 30, bottom + 30, 60, 24, '', 'algo-note')};
+    });
+    return frame => {
+      const s1 = frame.stage;
+      ppoDot.setAttribute('cy', y(frame.ppoReward));
+      ppoLine.setAttribute('y1', y(frame.value)); ppoLine.setAttribute('y2', y(frame.value));
+      ppoLabel.setAttribute('y', y(frame.value) + 4); ppoLabel.textContent = `V = ${frame.value}`;
+      ppoArrow.setAttribute('d', point(124, frame.ppoReward, frame.ppoReward - frame.value)); ppoArrow.setAttribute('class', 'algo-edge is-bad');
+      ppoGap.setAttribute('y', (y(frame.value) + y(frame.ppoReward)) / 2 + 4); ppoGap.textContent = `−${Math.abs(frame.ppoAdv)}`;
+      ppoChip.set(s1 >= 1 ? `A = −${Math.abs(frame.ppoAdv)}` : '', s1 >= 1 ? 'is-bad' : 'algo-ghost');
+      [ppoLine, ppoLabel, ppoArrow, ppoGap].forEach(node => show(node, s1 >= 1));
+      grLine.setAttribute('y1', y(frame.mean)); grLine.setAttribute('y2', y(frame.mean));
+      grLabel.setAttribute('y', y(frame.mean) + 4); grLabel.textContent = `μ = ${frame.mean}`;
+      show(grLine, s1 >= 3); show(grLabel, s1 >= 3);
+      cols.forEach((c, i) => {
+        const r = frame.rewards[i], up = r > frame.mean, a = frame.adv[i];
+        c.dot.setAttribute('cy', y(r)); c.dot.setAttribute('class', 'algo-cell' + (s1 >= 4 && !frame.done ? (up ? ' is-keep' : ' is-bad') : ''));
+        c.a.setAttribute('d', point(ax(i), r, r - frame.mean)); c.a.setAttribute('class', 'algo-edge ' + (up ? 'is-keep' : 'is-bad'));
+        show(c.a, s1 >= 3 && r !== frame.mean);
+        c.name.textContent = frame.done ? '✗' : answers[i];
+        c.chip.set(s1 >= 4 ? `A = ${a > 0 ? '+' : a < 0 ? '−' : ''}${Math.abs(a)}` : '', s1 >= 4 ? (frame.done ? '' : up ? 'is-keep' : 'is-bad') : 'algo-ghost');
+        [c.dot, c.name, c.chip.rect, c.chip.label].forEach(node => show(node, s1 >= 2));
       });
     };
   }});
