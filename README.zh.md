@@ -59,7 +59,7 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 - **正在变化的方向**：[前沿观察](11-frontier/README.md) · [AI 基础设施](12-infra/README.md) · [感知、机器人与自动驾驶](13-embodied/README.md)
 - **动手练习**：[ML Coding](learn/ml-exercises/README.md) · [Python](interview/python.md) · [算法方法](interview/leetcode.md) · [系统设计](learn/system-design/README.md)
 
-部分内容仍在核对，哪些已经审过，见[内容覆盖](learn/coverage.md)；接下来做什么，见[后续计划](community/roadmap.md)和[版本进展](community/updates.md)。
+部分内容仍在核对，哪些已经审过，见[内容覆盖](learn/coverage.md)；接下来做什么，见[后续计划](community/roadmap.md)；网站怎样更新，见[更新与阅读记录](community/updates.md)。
 
 <span id="contributors"></span>
 

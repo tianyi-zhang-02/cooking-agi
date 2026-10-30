@@ -2,42 +2,33 @@
 
 [中文](roadmap.md) · **English**
 
-First, make the current version useful. Right now that means helping someone choose a starting point, make a little time, and return without losing their place. As the notes grow, we'd like people from other fields to help explain the parts we know less about.
+Notes matter for being accurate, easy to find and quick to open, not for their number. So the site itself comes first, then figures for mechanisms that are hard to explain in words, then ways for AI assistants and a question bank to use the notes directly. As the notes grow, we'd like people from other fields to help explain the parts we know less about.
 
 <nav class="study-route roadmap-route" aria-label="Roadmap navigation">
-<a href="#now"><small>THIS VERSION</small><strong>Interview prep & reading records</strong><span>Choose a route, read, save, and pick up where you left off</span></a>
-<a href="#next"><small>NEXT</small><strong>Make studying easier</strong><span>Less searching around, more useful practice</span></a>
+<a href="#now"><small>NOW</small><strong>Faster search and pages</strong><span>Find the right section, open it fast, skip re-downloads</span></a>
+<a href="#next"><small>NEXT</small><strong>Step figures, MCP, a question bank</strong><span>One at a time, in this order</span></a>
 <a href="#future"><small>OPEN TO CONTRIBUTORS</small><strong>From vision to robotics</strong><span>Start with one good explanation and one small project</span></a>
 </nav>
 
-**See [Updates](updates.en.md) for release status and [Coverage](../learn/coverage.en.md) for individual chapters.** This page describes intentions, not shipped features. There are no release dates for work we haven't scoped yet.
+**See [Updates](updates.en.md) for how the site is updated and where your reading records live, and [Coverage](../learn/coverage.en.md) for individual chapters.** This page describes intentions, not shipped features, and gives no dates.
 
-## This version: a complete interview-prep entry point {#now}
+## Now: faster search and pages {#now}
 
-The proposed **v1.0.0 · Interview prep** is about a usable learning flow, not complete coverage of AI.
+Most readers come to look up a concept, a derivation or a question, so finding and opening come first:
 
-- **Find a starting point.** Work up from small examples if a topic is new, or go straight to implementation, debugging, and tradeoffs if you know the basics.
-- **Use the time you have.** Study on the days you choose, for as long as you like. You don't need to keep a daily streak. Time estimates describe focused work, not how fast you should understand a chapter.
-- **Keep the reading connected.** Exercises link to the main notes rather than a second textbook. Save a note you want to revisit and find it under “My reading” at the top right.
-- **Keep your own records.** Saved notes and reading history stay in the current browser, with JSON export and import. No account or fork required.
+- **More accurate search:** an English term matches from the start of a word, so "exploration" no longer counts as a hit for "lora"; `kv-cache` and `kv cache` return the same notes; when a note isn't about the term itself, the result opens at the section that matched.
+- **Faster search:** one index per language, with the duplicate copy removed. On a phone, the first search drops from about 3.7 s to about 1.8 s, and loading starts as soon as you reach for the search button.
+- **Lighter pages:** interactive labs and math rendering load only on pages that use them. Files are versioned by content, so when the site rebuilds on schedule, returning readers don't download anything that hasn't changed.
 
-The initial routes focus on ML / LLMs, post-training, inference systems, and algorithms. The [release notes](updates.en.md#v1-0-0) describe the scope, limits, and checks still needed.
+This batch is in [#128](https://github.com/tianyi-zhang-02/cooking-agi/pull/128). Still to do: misspelled terms (such as "atention") find nothing yet, and some rankings need tuning.
 
-[Browse the preparation routes](../interview/README.en.md) · [Pick exercises by topic](../interview/study-plan.en.md#routes)
+## Next: one at a time, in this order {#next}
 
-## Next: improve the parts people already use {#next}
+1. **Step-by-step figures for more notes.** Some mechanisms are faster to see than to read, such as which positions prefill and decode each compute. We make one figure at a time: a still sketch first, then, once it is right, a figure you can step through. For an example, see prefill and decode in [Decoder-only](../00-foundations/core/decoder-only.en.md).
+2. **A remote MCP server.** The site already publishes a read-only data API (`/api/v1/`), which the interview coach skill reads notes and questions from. An MCP server on the same data lets assistants such as Claude, ChatGPT and Cursor look up notes and quiz you from them, without a second copy of the content.
+3. **A question bank on the key mechanisms.** Questions now sit inside individual notes, and [Quick review](../interview/questions.en.md) lists them by area. Next, we group them by mechanism, such as attention, the KV cache, normalization, PPO / DPO and decoding, with each question linked to the section that explains it.
 
-**First, we're reading every note again in both languages**: fixing stiff sentences and skipped steps, and adding missing examples. The [coverage page](../learn/coverage.en.md) shows how far that has got.
-
-The items below are open work, not completed features. We'll use feedback to choose the order rather than add everything at once.
-
-| Area | A small place to start | What a useful result looks like |
-| --- | --- | --- |
-| Connected practice | Review one route's prerequisites, example, exercise, and explanation | A beginner can attempt it from the linked notes; an experienced reader can skip the setup |
-| Backups and upgrades | Add older backup fixtures and cross-version restore tests | Routine updates preserve records; format changes have a migration path first |
-| Language and small screens | Fix a confusing passage or a layout problem you've encountered | Both languages read naturally, and the page works on a phone and with a keyboard |
-
-Accounts, cloud sync, streaks, and leaderboards are not part of the default plan. Offline use and cloud sync need separate proposals covering privacy, conflicts, and updates.
+**The interview-prep release (v1.0) is dropped.** The interview notes, the study plan, saved notes and reading records stay, but we won't build more interview-prep features. Accounts, cloud sync, streaks and leaderboards aren't planned either.
 
 ## Future topics: begin with a small project {#future}
 
@@ -70,14 +61,10 @@ A maintainer can help narrow the scope, find a home for it, and ask for a willin
 
 A ready note needs prerequisites, an explanation that builds from an example, a way to practice or check the result, and limits. State costs and versions for hardware work. Provide a CPU or simulated alternative when possible, and say when it isn't. Write each language naturally, credit sources, and distinguish an experiment you ran from one you only read about.
 
-## How will releases work? {#versions}
+## How is the site updated? {#versions}
 
-Each formal release will record what changed, what remains unfinished, compatibility with saved records, and the corresponding code snapshot. Small edits don't have to wait for a major release; they also remain in repository history.
+There are no version numbers. A change goes live once it is merged into main and deployed; scheduled rebuilds a few times a day refresh data such as the contributor list. The home page's [changelog](../README.md#changelog) lists every merge by date, and each article's source link and repository history show its own edits.
 
-- **Patch** (for example, 1.0.1): corrections, translations, links, and fixes that don't change how the site is used.
-- **Minor** (for example, 1.1.0): a complete feature or reviewed learning route that keeps existing progress usable.
-- **Major** (for example, 2.0.0): a change requiring readers to adjust a workflow or migrate data, with migration instructions and tests first.
+The backup format for saved notes and reading records is versioned separately, so site updates don't invalidate an old backup. Browser storage is not a permanent backup, though: export before clearing site data, changing devices, or moving to another origin.
 
-Site versions and backup-format versions are separate. Releasing a new site version won't by itself invalidate an old backup. Browser storage is not a permanent backup, though: export before clearing site data, changing devices, or moving to another origin.
-
-[GitHub Releases](https://github.com/tianyi-zhang-02/cooking-agi/releases) will record formal releases. Proposals can change the directions here; the table is not a queue everyone must follow. The site will stay free. If it helps you, please share it with someone who might find it useful.
+Proposals can change the directions here; the table is not a queue everyone must follow. The site will stay free. If it helps you, please share it with someone who might find it useful.

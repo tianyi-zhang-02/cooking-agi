@@ -63,7 +63,7 @@ See [skills/README.md](skills/README.md). Contributed by [@Juggernaut0825](https
 - **What's moving:** [Frontier watch](11-frontier/README.en.md) · [AI infrastructure](12-infra/README.en.md) · [Perception, robots and driving](13-embodied/README.en.md)
 - **Practice:** [ML coding](learn/ml-exercises/README.en.md) · [Python](interview/python.en.md) · [Algorithm patterns](interview/leetcode.en.md) · [System design](learn/system-design/README.en.md)
 
-Some material is still being reviewed; [coverage](learn/coverage.en.md) shows what has been checked. What comes next is in the [roadmap](community/roadmap.en.md) and the [release scope](community/updates.en.md).
+Some material is still being reviewed; [coverage](learn/coverage.en.md) shows what has been checked. What comes next is in the [roadmap](community/roadmap.en.md); how the site is updated is in [updates](community/updates.en.md).
 
 <span id="contributors"></span>
 

@@ -22,7 +22,7 @@ class Markup(HTMLParser):
 
 
 class ReleaseRoadmapTests(unittest.TestCase):
-    def test_roadmap_pairs_have_matching_sections_and_future_scope(self):
+    def test_roadmap_pairs_have_matching_sections_and_current_plan(self):
         for filename in ('roadmap', 'updates'):
             chinese = (build.ROOT / f'community/{filename}.md').read_text()
             english = (build.ROOT / f'community/{filename}.en.md').read_text()
@@ -30,10 +30,12 @@ class ReleaseRoadmapTests(unittest.TestCase):
             self.assertEqual(re.findall(r'\{#([^}]+)\}', chinese),
                              re.findall(r'\{#([^}]+)\}', english))
             for source in (chinese, english):
-                self.assertIn('v1.0.0', source)
-                self.assertIn('Jetson', source)
-                self.assertIn('CV', source)
-                self.assertIn('/cooking-agi/releases', source)
+                # the interview-prep release was dropped; the site deploys on every merge
+                self.assertNotIn('{#v1-0-0}', source)
+                self.assertIn('#changelog', source)
+                if filename == 'roadmap':
+                    for planned in ('#128', 'MCP', 'Jetson', 'CV'):
+                        self.assertIn(planned, source)
 
     def test_roadmap_belongs_to_community_not_a_top_level_subject(self):
         nav = build.load_nav()
