@@ -604,6 +604,7 @@ FIGURE_LAB = [
     ("step-swiglu", "跟着两个中间维度算一次 SwiGLU", "SwiGLU through two hidden dimensions", "step"),
     ("step-prefill-decode", "Prompt 5 个 token，生成 3 个：有没有 KV cache 差在哪", "A 5-token prompt and 3 new tokens: what the KV cache saves", "step"),
     ("step-top-p-order", "温度先作用，top-p 留下几个候选", "Temperature first: how many candidates top-p keeps", "step"),
+    ("step-kv-budget", "KV cache 的显存账：一张 24 GiB 的卡能装几条", "The KV cache bill: how many sequences fit on a 24 GiB card", "step"),
     ("step-depth-merge", "分批做深度 softmax，怎样合并", "Merging a depth softmax computed in batches", "step"),
     ("step-expert-budget", "切细与共享，预算怎么算", "Finer and shared experts on one budget", "step"),
     ("step-verifier-ceiling", "测试放过错解：一轮就到顶", "Tests that let wrong answers through: the ceiling in one round", "step"),

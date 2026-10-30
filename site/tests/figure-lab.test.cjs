@@ -245,6 +245,16 @@ test('top-p order: temperature first keeps 4 / 5 / 6 at T = 0.7 / 1 / 1.5, trunc
   assert.equal(F.topPOrder([0.6, 0.3, 0.1], 0.8)[1].kept, 2);
 });
 
+test('KV budget: 4 KiB → 128 KiB → 1 GiB; 6.96 GiB holds 6 at 8192, 3 at 16384, 1 with 32 KV heads', () => {
+  const frames = F.kvBudget();
+  assert.deepEqual(frames.slice(0, 3).map(f => f.product), ['4 KiB', '128 KiB', '1 GiB']);
+  assert.deepEqual([frames[0].weights, frames[0].free], [13.04, 6.96]);
+  assert.deepEqual(frames.slice(4).map(f => [f.seq, f.fit]), [[1, 6], [2, 3], [4, 1]]);
+  assert.equal(frames[4].want, 8);
+  // the note's paged check: [8192] * 6 fits, 7 does not; [16384] * 3 fits, 4 does not
+  assert.ok(frames[4].fit < 7 && frames[5].fit < 4);
+});
+
 test('depth merge: averaging gives 2, the stored sums give 3', () => {
   const end = last(F.depthMerge());
   assert.deepEqual([end.naive, end.merged, end.full], [2, 3, 3]);
