@@ -944,6 +944,38 @@
     ]);
   };
 
+  /* 00-foundations/deep-dives/kv-cache-and-inference §memory: 32 layers, 8 KV heads, head dim 128, BF16, 8192 tokens
+     = 1 GiB a sequence; a 24 GiB card minus 7B BF16 weights, 2 GiB runtime and 2 GiB margin holds 6 (3 at 16384). */
+  F.kvBudget = function ({layers = 32, kvHeads = 8, mhaHeads = 32, headDim = 128, bytes = 2, tokens = 8192, card = 24,
+    params = 7e9, runtime = 2, margin = 2} = {}) {
+    const GiB = 2 ** 30;
+    const size = (n, heads) => 2 * layers * n * heads * headDim * bytes;  // the note's M_KV with B = 1
+    const unit = x => (x >= GiB ? `${x / GiB} GiB` : `${x / 1024} KiB`);
+    const weights = Math.round(params * bytes / GiB * 100) / 100;
+    const free = Math.round((card - params * bytes / GiB - runtime - margin) * 100) / 100;
+    const fits = x => Math.floor((card * GiB - params * bytes - (runtime + margin) * GiB) / x);
+    const token = 2 * kvHeads * headDim * bytes;
+    const base = {layers, headDim, bytes, card, weights, runtime, margin, free};
+    const state = (stage, extra) => ({...base, stage, heads: kvHeads, tokens, lit: 6, ...extra});
+    const seq = size(tokens, kvHeads), longer = size(2 * tokens, kvHeads), mha = size(tokens, mhaHeads);
+    return frames([
+      {...state(0, {lit: 4, product: unit(token)}), zh: `KV cache 存的是每个位置在每一层的 K 和 V。先算一个 token 在一层里占多少：K、V 各一份，每份 ${kvHeads} 个 KV head × ${headDim} 维，BF16 每个数 ${bytes} 字节。2 × ${kvHeads} × ${headDim} × ${bytes} = ${token} 字节，也就是 ${unit(token)}。`,
+        en: `The KV cache stores K and V for every position in every layer. Start with one token in one layer: one K and one V, each ${kvHeads} KV heads × ${headDim} dimensions, ${bytes} bytes per number in BF16. 2 × ${kvHeads} × ${headDim} × ${bytes} = ${token} bytes, or ${unit(token)}.`},
+      {...state(1, {lit: 5, product: unit(token * layers)}), zh: `${layers} 层每层都要存一份：${unit(token)} × ${layers} = ${unit(token * layers)}。每多缓存一个 token，就多占这么多显存。`,
+        en: `Each of the ${layers} layers keeps its own copy: ${unit(token)} × ${layers} = ${unit(token * layers)}. That is what every extra cached token costs.`},
+      {...state(2, {product: unit(seq), seq: seq / GiB}), zh: `一条序列缓存 ${tokens} 个 token：${unit(token * layers)} × ${tokens} = ${unit(seq)}。同时服务 8 条这样的序列，就是 ${unit(8 * seq)}。`,
+        en: `Cache ${tokens} tokens of one sequence: ${unit(token * layers)} × ${tokens} = ${unit(seq)}. Serving 8 such sequences at once takes ${unit(8 * seq)}.`},
+      {...state(3, {product: unit(seq), seq: seq / GiB, bar: true}), zh: `放到一张 ${card} GiB 的卡上。7B 参数的权重用 BF16 是 14 GB，约 ${weights} GiB；再假设给运行时留 ${runtime} GiB、安全余量 ${margin} GiB，留给 KV 的只剩约 ${free} GiB。`,
+        en: `Put it on a ${card} GiB card. 7B parameters in BF16 are 14 GB of weights, about ${weights} GiB; assume ${runtime} GiB for the runtime and ${margin} GiB of safety margin. That leaves about ${free} GiB for the KV cache.`},
+      {...state(4, {product: unit(seq), seq: seq / GiB, bar: true, fit: fits(seq), want: 8}), zh: `每条 ${unit(seq)}，能装下 ${fits(seq)} 条。第 ${fits(seq) + 1} 条差一点：只剩 ${Math.round((free - fits(seq) * seq / GiB) * 100) / 100} GiB。所以 8 条装不下，尽管只装权重时，卡还空着将近一半。`,
+        en: `At ${unit(seq)} each, ${fits(seq)} sequences fit. Number ${fits(seq) + 1} just misses: only ${Math.round((free - fits(seq) * seq / GiB) * 100) / 100} GiB is left. So 8 do not fit, although with only the weights loaded nearly half the card was free.`},
+      {...state(5, {tokens: 2 * tokens, product: unit(longer), seq: longer / GiB, bar: true, fit: fits(longer), want: fits(longer) + 1}), zh: `长度翻倍到 ${2 * tokens}：每条 ${unit(longer)}，只能装 ${fits(longer)} 条。这里的长度包括 prompt 和已经生成的位置，回答越长，占得越多。`,
+        en: `Double the length to ${2 * tokens}: ${unit(longer)} each, so only ${fits(longer)} fit. The length counts the prompt and every generated position, so a longer answer takes more.`},
+      {...state(6, {heads: mhaHeads, product: unit(mha), seq: mha / GiB, bar: true, fit: fits(mha), want: fits(mha) + 1, done: true}), zh: `如果每个 query head 都有自己的 K/V（MHA，${mhaHeads} 个 KV head），${tokens} 个 token 一条就要 ${unit(mha)}，同样的预算只装得下 ${fits(mha)} 条。GQA 只留 ${kvHeads} 个 KV head，KV 剩 ${kvHeads}/${mhaHeads} = 1/${mhaHeads / kvHeads}。`,
+        en: `If every query head had its own K/V (MHA, ${mhaHeads} KV heads), a sequence of ${tokens} tokens would take ${unit(mha)} and the same budget would hold just ${fits(mha)}. GQA keeps ${kvHeads} KV heads, so the cache shrinks to ${kvHeads}/${mhaHeads} = 1/${mhaHeads / kvHeads}.`}
+    ]);
+  };
+
   /* 00-foundations/deep-dives/attention-residuals: a depth softmax split into two batches, merged with the stored sums. */
   F.depthMerge = function () {
     const batches = [[0], [4, 4, 4]], scores = [[0], [0, 0, 0]];
@@ -3187,6 +3219,65 @@
       show(pool, frame.cut); show(poolText, frame.cut);
       mass.setAttribute('x', at(frame.after)); mass.textContent = t(`累积 ${short(frame.after)}`, `sum ${short(frame.after)}`);
       show(mass, frame.cut);
+    };
+  }});
+
+  FIGURES['step-kv-budget'] = name => stepper(name, F.kvBudget(), {height: 200, readouts: f => [
+    [t('每 token · 每层', 'per token · per layer'), `${2 * f.heads * f.headDim * f.bytes / 1024} KiB`, f.done ? 'bad' : ''],
+    [t('每条序列', 'per sequence'), f.seq ? `${f.seq} GiB` : '—', f.stage === 5 || f.done ? 'bad' : ''],
+    [t('留给 KV', 'left for KV'), f.bar ? `${f.free} GiB` : '—'],
+    [t('能装几条', 'sequences that fit'), f.fit != null ? String(f.fit) : '—', f.fit != null ? 'key' : '']], setup(svg) {
+    const base = F.kvBudget()[0];
+    const names = [t('K 和 V', 'K and V'), 'KV heads', 'head dim', t('字节', 'bytes'), t('层', 'layers'), 'tokens'];
+    const cw = 62, step = 84, x0 = 20, cy = 30, ch = 30;
+    const chips = names.map((label, i) => {
+      V.text(svg, x0 + i * step + cw / 2, cy - 8, label, 'algo-idx', 'middle');
+      const c = cell(svg, x0 + i * step, cy, cw, ch);
+      if (i) V.text(svg, x0 + i * step - 11, cy + 20, '×', 'algo-note', 'middle');
+      return c;
+    });
+    const ex = x0 + 6 * step - 11;
+    V.text(svg, ex, cy + 20, '=', 'algo-note', 'middle');
+    const result = cell(svg, ex + 13, cy, 86, ch, '', 'algo-strong');
+    const right = ex + 13 + 86, per = (right - x0) / base.card, at = g => x0 + g * per;  // the bar spans the card
+    const by = 112, bh = 30;
+    const barParts = [];
+    const part = (from, size, cls, label, value) => {
+      const r = s('rect', {x: at(from), y: by, width: size * per - 2, height: bh, rx: 4, class: 'algo-cell ' + cls});
+      svg.append(r);
+      barParts.push(r, V.text(svg, at(from) + size * per / 2, by + bh + 16, label, 'algo-idx', 'middle'),
+        V.text(svg, at(from) + size * per / 2, by + bh + 30, value, 'algo-note', 'middle'));
+    };
+    const kv0 = base.card - base.free;
+    part(0, base.weights, 'is-written', t('权重', 'weights'), `${base.weights} GiB`);
+    part(base.weights, base.runtime, 'is-written', '', '');
+    part(base.weights + base.runtime, base.margin, 'algo-ghost', '', '');
+    const mid = at(base.weights + (base.runtime + base.margin) / 2);  // two narrow parts share one label
+    barParts.push(V.text(svg, mid, by + bh + 16, t('运行时 + 余量', 'runtime + margin'), 'algo-idx', 'middle'),
+      V.text(svg, mid, by + bh + 30, `${base.runtime} + ${base.margin} GiB`, 'algo-note', 'middle'));
+    part(kv0, base.free, '', 'KV', `${base.free} GiB`);
+    barParts.push(V.text(svg, x0, by - 12, t(`一张 ${base.card} GiB 的卡`, `one ${base.card} GiB card`), 'algo-head'),
+      V.text(svg, at(base.card), by - 12, `${base.card} GiB`, 'algo-idx', 'middle'));
+    const edge = s('line', {x1: at(base.card), x2: at(base.card), y1: by - 6, y2: by + bh + 6, class: 'algo-edge is-bad'});
+    svg.append(edge); barParts.push(edge);
+    const blocks = Array.from({length: 8}, () => {
+      const r = s('rect', {y: by + 4, height: bh - 8, rx: 3, class: 'algo-cell'});
+      svg.append(r);
+      return {r, n: V.text(svg, 0, by + bh / 2 + 4, '', 'algo-idx', 'middle')};
+    });
+    return frame => {
+      const values = [2, frame.heads, frame.headDim, frame.bytes, frame.layers, frame.tokens];
+      const changed = frame.stage === 1 ? 4 : frame.stage === 2 ? 5 : frame.stage === 5 ? 5 : frame.done ? 1 : -1;
+      chips.forEach((c, i) => c.set(i < frame.lit ? String(values[i]) : '', i >= frame.lit ? 'algo-ghost' : i === changed ? (frame.stage >= 5 ? 'is-change' : 'is-look') : ''));
+      result.set(frame.product, frame.stage >= 5 ? 'is-bad' : 'is-keep');
+      barParts.forEach(node => show(node, Boolean(frame.bar)));
+      blocks.forEach((b, i) => {
+        const on = frame.fit != null && i < frame.want, x = at(kv0 + i * frame.seq);
+        b.r.setAttribute('x', x + 1); b.r.setAttribute('width', Math.max(0, (frame.seq || 0) * per - 4));
+        b.r.setAttribute('class', 'algo-cell ' + (i < frame.fit ? 'is-keep' : 'is-bad'));
+        b.n.setAttribute('x', x + (frame.seq || 0) * per / 2); b.n.textContent = String(i + 1);
+        show(b.r, on); show(b.n, on);
+      });
     };
   }});
 

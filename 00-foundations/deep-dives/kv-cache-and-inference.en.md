@@ -102,6 +102,8 @@ Write a budget before choosing the GPU count. Suppose the model has exactly seve
 
 If its KV configuration is the earlier 32-layer, eight-KV-head example, each independent 8192-position cache takes 1 GiB. The budget accommodates at most six, not eight. At 16384 positions, each takes 2 GiB and only three fit. Length counts **prompt and generated positions already processed by the model**; prompt length alone understates the cost of a long answer.
 
+<!-- widget:step-kv-budget -->
+
 The 2 GiB runtime value is an input to this example, not a constant for every model. Measure with the intended model, batch, prefill chunks, and graph settings. Weight quantization need not quantize KV, and scales, zero-points, and unquantized modules can add storage. The [vLLM memory configuration guide](https://docs.vllm.ai/en/latest/configuration/conserving_memory/) is a useful deployment checklist.
 
 ### Unequal lengths, pages, and shared prefixes {#paged-budget}

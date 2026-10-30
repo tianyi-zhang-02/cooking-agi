@@ -102,6 +102,8 @@ print(one_sequence / 2**30, eight_sequences / 2**30)
 
 若 KV 恰好采用前面的 32 层、8 个 KV heads 配置，每条缓存 8192 tokens 占 1 GiB，那么这个预算最多装 6 条这样的独立缓存，装不下 8 条。长度翻倍到 16384，单条变成 2 GiB，最多 3 条。这里的长度包括**已经送入模型的 prompt 和生成位置**，不能只按输入长度估算长回答。
 
+<!-- widget:step-kv-budget -->
+
 2 GiB 运行时占用只是算例参数。实际应在目标模型、batch、prefill chunk 和 graph 配置下测量；不能给所有模型套一个固定常数。量化权重也未必同时量化 KV，还可能多出 scales、zero-points 和未量化模块。[vLLM 的内存配置说明](https://docs.vllm.ai/en/latest/configuration/conserving_memory/)可作为部署时的检查入口。
 
 ### 不同长度、分页和共享前缀怎么算？ {#paged-budget}
