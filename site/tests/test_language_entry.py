@@ -63,7 +63,7 @@ class LanguageEntryTests(unittest.TestCase):
                                      'class': 'lang-' + language}), elements)
             switches = [attrs for tag, attrs in elements if tag == 'a' and attrs.get('class') == 'lang-btn']
             self.assertEqual([attrs['href'] for attrs in switches], [target])
-            self.assertIn('ML and LLM notes in English and Chinese' if language == 'en' else '中英双语的 ML / LLM 笔记。', output)
+            self.assertIn('Bilingual ML / LLM notes' if language == 'en' else '中英双语的 ML / LLM 笔记', output)
             self.assertIn('class="hero"', output)
             self.assertNotIn('{{', output)
 
@@ -158,7 +158,7 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertNotIn('static/readme-', page.body)  # the cards are for GitHub; the site has the real pages
             intro = page.body.split('<h2', 1)[0]
             self.assertNotIn('<a ', intro)
-            self.assertIn('English and Chinese' if language == 'en' else '中英双语', intro)
+            self.assertIn('Bilingual' if language == 'en' else '中英双语', intro)
 
     def test_home_routes_precede_release_details_and_fit_two_columns(self):
         for language in ['en', 'zh']:
