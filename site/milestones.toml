@@ -35,24 +35,20 @@ zh = "面试练习 skill"
 en = "Interview coach skill"
 
 [[now]]
-zh = "站主审阅新草稿"
-en = "The site owner reviews the new drafts"
-
-[[now]]
 zh = "更快的搜索，更快的页面"
 en = "Faster search and faster pages"
+
+[[next]]
+zh = "给更多笔记补分步动画"
+en = "Step-by-step figures for more notes"
 
 [[next]]
 zh = "远程 MCP 服务，读同一份数据"
 en = "A remote MCP server on the same data"
 
 [[next]]
-zh = "v1.0 面试准备版"
-en = "v1.0: interview prep"
-
-[[next]]
-zh = "给新草稿补分步动画"
-en = "Step-by-step figures for the new drafts"
+zh = "按重要机制整理题库"
+en = "A question bank on the key mechanisms"
 
 [[open]]
 zh = "Jetson 与边缘部署"
