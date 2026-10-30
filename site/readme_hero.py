@@ -50,14 +50,14 @@ SCENES = [  # name, page path (en, zh), caption (number, title lines, subtitle l
      {"en": ("04 · Two languages", ["Every note in", "English and Chinese"],
              ["Written for each language,", "not translated line by line."]),
       "zh": ("04 · 中英双语", ["每一篇，", "中文和英文都有"], ["两种语言分别写，", "不是逐句翻译。"])}),
-    ("interview", ("interview/questions.en.html", "interview/questions.html"),
-     {"en": ("05 · Interview prep", ["Review by topic,", "in the time you have"],
-             ["Questions with short answers that link", "back to the notes they come from."]),
-      "zh": ("05 · 面试准备", ["按知识板块，", "过一遍考题"], ["每道题都有简短答案，", "并链接回出处的笔记。"])}),
-    ("search", ("index.en.html", "index.zh.html"),
-     {"en": ("06 · Find it fast", ["Search every note,", "in either language"],
-             ["Full-text search runs in your browser;", "your reading history stays there too."]),
-      "zh": ("06 · 全文搜索", ["所有笔记，", "中英文都能搜"], ["搜索在浏览器里完成，", "阅读记录也只存在你自己的浏览器。"])}),
+    ("chronicle", ("learn/technology-timeline.en.html", "learn/technology-timeline.html"),
+     {"en": ("05 · Tech history", ["From the power station", "to today's models"],
+             ["203 milestones in power, chips, software,", "data and models, each with its source."]),
+      "zh": ("05 · 技术编年史", ["从发电站，", "到今天的大模型"], ["电力、芯片、软件、数据和模型，", "203 个节点，每个都有出处。"])}),
+    ("search", ("00-foundations/core/decoder-only.en.html", "00-foundations/core/decoder-only.html"),
+     {"en": ("06 · Find it fast", ["Search opens the", "section that answers"],
+             ["Both languages, searched in your browser;", "your reading history stays there too."]),
+      "zh": ("06 · 全文搜索", ["搜索结果，", "直接跳到那一小节"], ["中英文都能搜，搜索在浏览器里完成，", "阅读记录也只存在你自己的浏览器。"])}),
 ]
 FOOTER = {"en": "Free to read · open source · tianyi-zhang-02.github.io/cooking-agi",
           "zh": "免费阅读 · 开源 · tianyi-zhang-02.github.io/cooking-agi"}
@@ -129,9 +129,6 @@ ACTIONS = {
     "paper": "(() => { document.querySelector('figure.paper-fig').id = 'hero-target'; return 1 })()",
     "frontier": """(() => { const t = [...document.querySelectorAll('table')].find(t => /Settled|比较确定|已经定/.test(
         t.querySelector('thead')?.textContent || '')); t.id = 'hero-target'; return 1 })()""",
-    "interview": """(() => { const ds = [...document.querySelectorAll('article details.qa')];
-        const i = Math.max(0, ds.findIndex(d => /KV|attention|DPO|PPO|注意力/.test(d.querySelector('summary').textContent)));
-        ds[i].open = true; ds[i].id = 'hero-target'; return i })()""",
 }
 RATIO = 540 / 372
 
@@ -154,20 +151,25 @@ def capture(base, shots):
             chrome.viewport(1280, 800, 2)
             for name, paths, _ in SCENES:
                 chrome.go(base + paths[li])
-                chrome.js(HIDE % ("true" if name not in ("bilingual", "search") else "false", "dark"))
+                chrome.js(HIDE % ("true" if name not in ("bilingual", "search", "chronicle") else "false", "dark"))
                 full = {"x": 0, "y": 0, "width": 1280, "height": 1280 / RATIO}
                 if name == "bilingual":
                     clip = full
+                elif name == "chronicle":
+                    # with the top bar hidden the tree and the field filters never drew, so the bar stays and the crop
+                    # starts just below it: the bottom of the tree, the filters and the first period
+                    chrome.js("(() => { scrollTo(0, 420); return 1 })()", 3.5)
+                    clip = {**full, "y": 472}
                 elif name == "search":
                     chrome.js("(() => { const b = document.querySelector('[data-search-open]'); b.hidden = false; b.click(); return 1 })()", 0.8)
-                    chrome.js("""(() => { const i = document.querySelector('#note-search input'); i.value = 'KV cache';
+                    chrome.js("""(() => { const i = document.querySelector('#note-search input'); i.value = 'beam search';
                         i.dispatchEvent(new Event('input', {bubbles: true})); document.querySelector('#note-search').id = 'note-search';
                         document.querySelector('#note-search').setAttribute('data-hero', 1); return 1 })()""", 1.2)
                     chrome.js("(() => { document.querySelector('#note-search').id = 'hero-target'; return 1 })()", 0.1)
                     clip = clip_around(chrome, 24, 760, True)
                 else:
                     chrome.js(ACTIONS[name], 0.8)
-                    clip = clip_around(chrome, 110 if name == "interview" else 36, 780 if name == "figure" else 900, name == "paper")
+                    clip = clip_around(chrome, 36, 780 if name == "figure" else 900, name == "paper")
                 chrome.shot(shots / f"{lang}-{name}.png", clip)
                 print(lang, name)
             chrome.viewport(390, 844, 3, mobile=True)
@@ -320,8 +322,8 @@ def compose(shots, lang):
             '<filter id="shadow" x="-40%" y="-20%" width="180%" height="160%"><feGaussianBlur stdDeviation="18"/></filter>'
             '</defs>')
     font = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif"
-    label = {"en": "A tour of Cooking AGI: step-by-step figures, the papers' own figures, frontier watch, two languages, interview prep and search",
-             "zh": "AGI 大锅烩一览：分步动画、论文原图、前沿观察、中英双语、面试准备与全文搜索"}[lang]
+    label = {"en": "A tour of Cooking AGI: step-by-step figures, the papers' own figures, frontier watch, two languages, the tech-history chronicle and search",
+             "zh": "AGI 大锅烩一览：分步动画、论文原图、前沿观察、中英双语、技术编年史与全文搜索"}[lang]
     # without animation (reduced motion, or a renderer that ignores CSS) only the first scene shows
     base = (".scene,.cap,.ph{opacity:0}.s0,.c0{opacity:1}"
             ".pg{transform:scaleX(0);transform-box:fill-box;transform-origin:left center}.p0{transform:scaleX(1)}")
