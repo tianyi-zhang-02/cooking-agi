@@ -234,6 +234,17 @@ test('prefill/decode: 7 positions with the cache, 18 without; the new positions 
   assert.deepEqual([longer.withCache, longer.without], [8, 26]);
 });
 
+test('top-p order: temperature first keeps 4 / 5 / 6 at T = 0.7 / 1 / 1.5, truncation first always 5', () => {
+  const frames = F.topPOrder();
+  assert.deepEqual([frames[0].first, frames[0].last], [[4, 5, 6], [5, 5, 5]]);
+  assert.deepEqual(frames.map(f => f.T), [1, 1, 1, 0.7, 1.5, 1]);
+  assert.deepEqual(frames.slice(1).map(f => [f.kept, f.before, f.after]), [[5, 0.88, 0.93], [5, 0.88, 0.93], [4, 0.896, 0.947], [6, 0.864, 0.918], [5, 0.88, 0.93]]);
+  assert.deepEqual(frames[2].renorm, [0.43, 0.269, 0.161, 0.086, 0.054]);
+  assert.equal(frames[3].p.slice(0, 3).join(), '0.51,0.26,0.126');
+  // the opening example: 0.6, 0.3, 0.1 with p = 0.8 keeps two
+  assert.equal(F.topPOrder([0.6, 0.3, 0.1], 0.8)[1].kept, 2);
+});
+
 test('depth merge: averaging gives 2, the stored sums give 3', () => {
   const end = last(F.depthMerge());
   assert.deepEqual([end.naive, end.merged, end.full], [2, 3, 3]);

@@ -87,6 +87,8 @@ Use probabilities `0.40, 0.25, 0.15, 0.08, 0.05, 0.03, 0.025, 0.015`, convert th
 
 Reversing the order gives a different candidate pool with the same parameters. At $T=1$, temperature leaves the distribution unchanged, so both orders necessarily give the same result. Testing only at the default temperature will therefore miss the difference.
 
+<!-- widget:step-top-p-order -->
+
 Record temperature and top-p together. Fix the processing order before tuning so you can distinguish flattening the distribution from truncating its support.
 
 ## Frequency penalty and presence penalty {#frequency-penalty-and-presence-penalty}
