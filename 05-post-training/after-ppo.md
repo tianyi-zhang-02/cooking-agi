@@ -67,6 +67,8 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 
 对同一个 prompt 采样 $G$ 个回答，得到奖励 $R_1,\ldots,R_G$。常见的 response-level advantage 是 $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$：$\mu_R$ 是组内均值，$\sigma_R$ 是组内总体标准差（分母为 $G$），$\varepsilon$ 防止除零。逐项写开的公式和 `[0, 1, 0, 0]` 的完整算例在[四份回答，只有一份答对](rlhf/after-rlhf.md#group-example)。开头那组奖励 $[1,0,1,0]$ 的 $\mu_R$、$\sigma_R$ 都是 0.5，忽略很小的 $\varepsilon$ 后，优势约为 $[1,-1,1,-1]$。代码库若用样本标准差，数值尺度会不同。奖励可以来自 Reward Model、人类、数学 verifier、单元测试、代码执行或格式检查器。
 
+<!-- widget:step-grpo-baseline -->
+
 常见 GRPO 实现把同一回答的 sequence-level advantage 广播给该回答里的 token，再使用 PPO-style clipped objective：
 
 $$

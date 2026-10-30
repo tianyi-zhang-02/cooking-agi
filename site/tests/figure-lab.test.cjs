@@ -161,6 +161,15 @@ test('DAPO: response mean 2, token mean 2.5, rank means 2, W/N scaling 2.5', () 
   assert.deepEqual(end.scaled, [0.5, 4.5]);
 });
 
+test('group baseline: PPO gives 388 −0.6; GRPO gives [1, −1, 1, −1]; an all-wrong group gives zeros', () => {
+  const frames = F.groupBaseline();
+  assert.equal(frames[1].ppoAdv, -0.6);
+  assert.deepEqual([frames[4].mean, frames[4].sd, frames[4].adv], [0.5, 0.5, [1, -1, 1, -1]]);
+  assert.deepEqual(last(frames).adv, [0, 0, 0, 0]);
+  // the companion note's group [0, 1, 0, 0]: 1.732 for the pass, −0.577 for the rest
+  assert.deepEqual(F.groupBaseline([0, 1, 0, 0])[4].adv, [-0.577, 1.732, -0.577, -0.577]);
+});
+
 test('KL penalty: log-ratios 0.47 / -0.9163, shaped 0.906 / 1.1833, KL 0.1927, objective 0.9615', () => {
   const end = last(F.klPenalty());
   assert.deepEqual([end.logRatio, end.shaped, end.kl, end.objective], [[0.47, -0.9163], [0.906, 1.1833], 0.1927, 0.9615]);

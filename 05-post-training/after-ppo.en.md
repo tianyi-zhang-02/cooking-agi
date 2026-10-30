@@ -65,6 +65,8 @@ The paper tests these simplifications on particular pretrained models and prefer
 
 Sample $G$ responses for one prompt and score them $R_1,\ldots,R_G$. A common response-level advantage is $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$, where $\mu_R$ is the group mean, $\sigma_R$ the group's population standard deviation (divide by $G$), and $\varepsilon$ prevents division by zero. The formula written out term by term, with a full worked example for `[0, 1, 0, 0]`, is in [four answers, one correct](rlhf/after-rlhf.en.md#group-example). For the opening rewards $[1,0,1,0]$, $\mu_R$ and $\sigma_R$ are both 0.5, giving advantages approximately $[1,-1,1,-1]$ when the small $\varepsilon$ is ignored. A sample-standard-deviation convention changes the scale. Rewards may come from a Reward Model, humans, a math verifier, unit tests, code execution, or a format checker.
 
+<!-- widget:step-grpo-baseline -->
+
 A common GRPO implementation broadcasts one sequence-level advantage to the tokens in that response and then uses a PPO-style clipped objective:
 
 $$
