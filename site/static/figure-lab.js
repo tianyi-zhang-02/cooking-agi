@@ -902,6 +902,48 @@
     ]);
   };
 
+  /* 00-foundations/core/decoding §order: eight probabilities, top_p = 0.9. Temperature first gives nuclei of 4 / 5 / 6
+     at T = 0.7 / 1 / 1.5; truncating first always keeps 5. */
+  F.topPOrder = function (probs = [0.40, 0.25, 0.15, 0.08, 0.05, 0.03, 0.025, 0.015], top = 0.9) {
+    const r = x => Math.round(x * 1000) / 1000;
+    const soften = T => {  // softmax(log p / T), the note's "convert to logits, then divide by T"
+      const w = probs.map(p => Math.pow(p, 1 / T)), sum = w.reduce((a, b) => a + b, 0);
+      return w.map(x => x / sum);
+    };
+    const nucleus = p => {  // smallest prefix (probs are sorted) whose mass reaches top; the crossing one stays
+      let mass = 0;
+      for (let k = 1; k <= p.length; k += 1) {
+        const before = mass; mass += p[k - 1];
+        if (mass >= top - 1e-12) return {kept: k, before: r(before), after: r(mass)};
+      }
+      return {kept: p.length, before: r(mass), after: r(mass)};
+    };
+    const temps = [0.7, 1, 1.5];
+    const first = temps.map(T => nucleus(soften(T)).kept), last = temps.map(() => nucleus(probs).kept);
+    const state = (stage, T, extra = {}) => {
+      const p = soften(T), cut = nucleus(p);
+      return {stage, T, top, base: probs, p: p.map(r), ...cut, first, last, ...extra};
+    };
+    const one = nucleus(probs), renorm = probs.slice(0, one.kept).map(x => r(x / one.after));
+    const cold = state(3, 0.7), hot = state(4, 1.5);
+    const head = (f, n) => f.p.slice(0, n).map(short).join('、'), headEn = (f, n) => f.p.slice(0, n).map(short).join(', ');
+    const sums = probs.slice(0, one.kept).reduce((acc, x) => [...acc, r((acc.length ? acc[acc.length - 1] : 0) + x)], []);
+    return frames([
+      {...state(0, 1), cut: false, zh: `模型给出 ${probs.length} 个候选，按概率从高到低排好：${head(state(0, 1), 3)} … ${short(probs[probs.length - 1])}，合计 1。这是 T = 1 的原分布。下面的横条把它们首尾相接，竖线是 top_p = ${top}。`,
+        en: `The model gives ${probs.length} candidates, sorted from most to least likely: ${headEn(state(0, 1), 3)} … ${short(probs[probs.length - 1])}, summing to 1. This is the original distribution, T = 1. The strip below lays them end to end; the line marks top_p = ${top}.`},
+      {...state(1, 1), cut: true, zh: `从第 1 个开始累加：${sums.slice(0, -1).map(short).join('、')}，还没到 ${top}；加上第 ${one.kept} 个是 ${short(one.after)}，跨过了。跨过线的那个也要留下，所以候选池是 ${one.kept} 个，后 ${probs.length - one.kept} 个丢掉。`,
+        en: `Add them up from the top: ${sums.slice(0, -1).map(short).join(', ')}, still short of ${top}. Candidate ${one.kept} brings it to ${short(one.after)} and crosses the line. The one that crosses is kept too, so the nucleus holds ${one.kept} and the last ${probs.length - one.kept} are dropped.`},
+      {...state(2, 1), cut: true, renorm, zh: `留下的 ${one.kept} 个都除以 ${short(one.after)}，重新归一化：${renorm.map(short).join('、')}，合计又是 1。然后才从这 ${one.kept} 个里采样。`,
+        en: `The ${one.kept} survivors are each divided by ${short(one.after)} so they sum to 1 again: ${renorm.map(short).join(', ')}. Only then is one of them sampled.`},
+      {...cold, cut: true, ghost: true, zh: `换成温度在前，T = 0.7：logits 先除以 0.7 再做 softmax。排序没变，前两个升到 ${head(cold, 2)}，后面的都被压低。前 ${cold.kept - 1} 个累积 ${short(cold.before)}，差一点不到 ${top}；加上第 ${cold.kept} 个是 ${short(cold.after)}，候选池缩到 ${cold.kept} 个。`,
+        en: `Now apply temperature first, T = 0.7: divide the logits by 0.7, then softmax. The order is unchanged; the top two rise to ${short(cold.p[0])} and ${short(cold.p[1])}, and everything after them drops. The first ${cold.kept - 1} sum to ${short(cold.before)}, just short of ${top}; candidate ${cold.kept} brings it to ${short(cold.after)}, so the nucleus shrinks to ${cold.kept}.`},
+      {...hot, cut: true, ghost: true, zh: `T = 1.5：分布变平，前两个降到 ${head(hot, 2)}，后面的都被抬高。要加到第 ${hot.kept} 个才到 ${short(hot.after)}，候选池变成 ${hot.kept} 个。`,
+        en: `T = 1.5 flattens it: the top two drop to ${short(hot.p[0])} and ${short(hot.p[1])}, and everything after them rises. It takes ${hot.kept} candidates to reach ${short(hot.after)}, so the nucleus grows to ${hot.kept}.`},
+      {...state(5, 1), cut: true, done: true, zh: `反过来先截断：top-p 在原分布上累加，总是留下这 ${one.kept} 个，温度之后只在它们之间重新分配概率。所以温度在前是 ${first.join(' / ')} 个，截断在前一直是 ${one.kept} 个。T = 1 时两种顺序必然相同，只在默认温度下测，看不出这个差别。`,
+        en: `Truncate first instead: top-p adds up the original distribution and always keeps these ${one.kept}; temperature then only moves probability among them. So temperature first gives ${first.join(' / ')} candidates, truncation first always ${one.kept}. At T = 1 the two orders must agree, so testing only at the default temperature never shows the difference.`}
+    ]);
+  };
+
   /* 00-foundations/deep-dives/attention-residuals: a depth softmax split into two batches, merged with the stored sums. */
   F.depthMerge = function () {
     const batches = [[0], [4, 4, 4]], scores = [[0], [0, 0, 0]];
@@ -3092,6 +3134,59 @@
       rows[2].count.textContent = live && s >= 2 ? t(`${redo} 个`, `${redo}`) : '';
       out.textContent = live ? `→ ${marks[s - 1]}` : '';
       rows[0].count.setAttribute('x', X(n - 1) + w + 52);
+    };
+  }});
+
+  FIGURES['step-top-p-order'] = name => stepper(name, F.topPOrder(), {height: 270, readouts: f => [
+    ['T', f.done ? '0.7 / 1.0 / 1.5' : f.T.toFixed(1)],
+    [t(`累积到 ${f.top}`, `mass reaching ${f.top}`), f.cut ? `${short(f.before)} → ${short(f.after)}` : '—'],
+    [t('候选池 · 温度在前', 'nucleus · T first'), f.done ? f.first.join(' / ') : f.cut ? String(f.kept) : '—', f.stage >= 3 ? 'key' : ''],
+    [t('候选池 · 截断在前', 'nucleus · top-p first'), f.done ? f.last.join(' / ') : f.cut ? String(f.last[0]) : '—']], setup(svg) {
+    const base = F.topPOrder()[0], n = base.p.length, w = 42, gap = 16, x0 = 120, yb = 160, scale = 190;
+    const X = i => x0 + i * (w + gap), span = X(n - 1) + w - x0, at = m => x0 + m * span;
+    V.text(svg, x0 - 16, yb - 50, t('概率', 'probability'), 'algo-head', 'end');
+    V.text(svg, x0 - 16, yb + 18, t('名次', 'rank'), 'algo-head', 'end');
+    const bars = Array.from({length: n}, (_, i) => {
+      const rect = s('rect', {x: X(i), width: w, rx: 4, class: 'algo-cell'});
+      const was = s('line', {x1: X(i) - 4, x2: X(i) + w + 4, class: 'algo-edge algo-dash'});
+      svg.append(rect, was);
+      V.text(svg, X(i) + w / 2, yb + 18, String(i + 1), 'algo-idx', 'middle');
+      return {rect, was, value: V.text(svg, X(i) + w / 2, 0, '', 'algo-idx', 'middle')};
+    });
+    svg.append(s('line', {x1: x0 - 6, y1: yb, x2: X(n - 1) + w + 6, y2: yb, class: 'algo-edge'}));
+    const pool = s('path', {class: 'algo-edge is-keep'});
+    svg.append(pool);
+    const poolText = V.text(svg, 0, 28, '', 'algo-strong', 'middle');
+    const ys = yb + 58, hs = 24;
+    V.text(svg, x0 - 16, ys + 16, t('累积', 'cumulative'), 'algo-head', 'end');
+    const segs = Array.from({length: n}, () => { const r = s('rect', {y: ys, height: hs, rx: 2, class: 'algo-cell'}); svg.append(r); return r; });
+    svg.append(s('line', {x1: at(base.top), x2: at(base.top), y1: ys - 8, y2: ys + hs + 8, class: 'algo-edge is-look-line'}));
+    V.text(svg, at(base.top), ys - 14, `top_p = ${base.top}`, 'algo-note', 'middle');
+    const mass = V.text(svg, 0, ys + hs + 22, '', 'algo-strong', 'middle');
+    return frame => {
+      // bars show what is sampled from (renormalised on the renorm step); the strip shows the mass the cut was made on
+      const shown = frame.renorm ? frame.p.map((_, i) => (i < frame.renorm.length ? frame.renorm[i] : 0)) : frame.p;
+      const state = i => (!frame.cut ? '' : i === frame.kept - 1 ? ' is-look' : i < frame.kept ? ' is-keep' : ' is-out');
+      bars.forEach((b, i) => {
+        const h = shown[i] * scale, before = frame.renorm ? frame.p[i] : frame.base[i], ghost = Boolean(frame.renorm || frame.ghost);
+        b.rect.setAttribute('y', yb - h); b.rect.setAttribute('height', h); b.rect.setAttribute('class', 'algo-cell' + state(i));
+        b.value.setAttribute('y', yb - Math.max(h, ghost ? before * scale : 0) - 7); b.value.textContent = shown[i] ? short(shown[i]) : '0';
+        b.value.classList.toggle('is-dim', frame.cut && i >= frame.kept);
+        b.was.setAttribute('y1', yb - before * scale); b.was.setAttribute('y2', yb - before * scale);
+        show(b.was, ghost);
+      });
+      let acc = 0;
+      segs.forEach((r, i) => {
+        r.setAttribute('x', at(acc)); r.setAttribute('width', Math.max(0.5, frame.p[i] * span - 1.5)); acc += frame.p[i];
+        r.setAttribute('class', 'algo-cell' + state(i));
+      });
+      const right = X(frame.kept - 1) + w;
+      pool.setAttribute('d', `M${X(0)} 44 L${X(0)} 36 L${right} 36 L${right} 44`);
+      poolText.setAttribute('x', (X(0) + right) / 2);
+      poolText.textContent = t(`候选池 ${frame.kept} 个`, `nucleus of ${frame.kept}`);
+      show(pool, frame.cut); show(poolText, frame.cut);
+      mass.setAttribute('x', at(frame.after)); mass.textContent = t(`累积 ${short(frame.after)}`, `sum ${short(frame.after)}`);
+      show(mass, frame.cut);
     };
   }});
 
