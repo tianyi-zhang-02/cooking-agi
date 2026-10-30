@@ -63,7 +63,7 @@ class LanguageEntryTests(unittest.TestCase):
                                      'class': 'lang-' + language}), elements)
             switches = [attrs for tag, attrs in elements if tag == 'a' and attrs.get('class') == 'lang-btn']
             self.assertEqual([attrs['href'] for attrs in switches], [target])
-            self.assertIn('ML and LLM notes' if language == 'en' else '这里整理了中英文的', output)
+            self.assertIn('ML and LLM notes in English and Chinese' if language == 'en' else '中英双语的 ML / LLM 笔记。', output)
             self.assertIn('class="hero"', output)
             self.assertNotIn('{{', output)
 
@@ -150,16 +150,15 @@ class LanguageEntryTests(unittest.TestCase):
             repository_block = re.search(
                 r'<!-- repository-only -->(.*?)<!-- /repository-only -->',
                 source, re.S).group(1)
-            self.assertIn('badge.svg', repository_block)
             self.assertIn(f'.github/media/hero.{language}.svg', repository_block)
             self.assertIn('https://tianyi-zhang-02.github.io/cooking-agi/', repository_block)
             build.build_page(page, [], self.nav['site']['repo'], self.known)
             self.assertNotIn('repository-only', page.body)
-            self.assertNotIn('badge.svg', page.body)
             self.assertNotIn('.github/media/', page.body)
+            self.assertNotIn('static/readme-', page.body)  # the cards are for GitHub; the site has the real pages
             intro = page.body.split('<h2', 1)[0]
             self.assertNotIn('<a ', intro)
-            self.assertIn('English or 中文' if language == 'en' else '中文或 English', intro)
+            self.assertIn('English and Chinese' if language == 'en' else '中英双语', intro)
 
     def test_home_routes_precede_release_details_and_fit_two_columns(self):
         for language in ['en', 'zh']:
@@ -170,7 +169,8 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertEqual(len(rows), 6)
             for row in rows:
                 self.assertEqual(len(re.findall(r'<t[hd]>', row)), 2)
-            self.assertLess(page.body.index('</table>'), page.body.index('v1.0'))
+            release = 'community/updates' + ('.en.html' if language == 'en' else '.html')
+            self.assertLess(page.body.index('</table>'), page.body.index(release))
             disclosures = re.findall(r'<details[^>]*>(.*?)</details>', page.body, re.S)
             self.assertTrue(any('CODEOWNER' in content and 'AI' in content
                                 for content in disclosures))
@@ -307,11 +307,9 @@ class LanguageEntryTests(unittest.TestCase):
     def test_new_home_details_do_not_shift_legacy_chinese_anchors(self):
         page = self.home['zh']
         build.build_page(page, [], self.nav['site']['repo'], self.known)
-        expected = [('_1', '从哪里开始'), ('_2', '内容一览'), ('roadmap', '路线图'), ('contributors-reviewers', '贡献者与审稿人（Contributors / Reviewers）'), ('_3', '加入我们！'),
+        expected = [('_1', '从哪里开始'), ('_2', '内容一览'), ('contributors-reviewers', '贡献者与审稿人（Contributors / Reviewers）'), ('_3', '加入我们！'),
                     ('_4', '本地阅读与检查'), ('_5', '为什么整理这些'), ('_6', '更新记录')]
         self.assertEqual([(heading['id'], heading['name']) for heading in page.toc], expected)
-        self.assertIn('id="how-to-use-the-notes"', page.body)
-        self.assertIn('id="whats-in-each-section"', page.body)
 
     def test_guide_is_hidden_without_javascript_and_is_not_a_modal(self):
         template = (build.SITE / 'template.html').read_text()

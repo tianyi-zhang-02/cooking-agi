@@ -6,7 +6,7 @@
 
 ## 先选一件小事
 
-还没想好做什么？[路线图](community/roadmap.md#contribute)列了可以独立完成的小任务和未来方向。[版本记录](community/updates.md)说明这版范围；不要为了赶版本，把没写完或没验证的内容标成完成。
+还没想好做什么？[路线图](community/roadmap.md#contribute)列了可以独立完成的小任务和未来方向。不要为了赶进度，把没写完或没验证的内容标成完成。
 
 - **错字、引用、翻译**：直接 fork → 修改 → PR。
 - **解释看不懂或发现问题**：用[反馈表](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml)，选内容纠错、信息过时、解释不清、想加主题或网站问题，贴页面链接和具体段落。不用先知道答案；不确定板块可以留空。
@@ -66,7 +66,7 @@ Fix a sentence, question a formula, or ask about something unclear. You don't ne
 
 ## Start small
 
-Not sure where to help? The [roadmap](community/roadmap.en.md#contribute) lists small tasks and proposed directions. [Updates](community/updates.en.md) defines the release scope; a version target is not a reason to mark unfinished or unverified work complete.
+Not sure where to help? The [roadmap](community/roadmap.en.md#contribute) lists small tasks and proposed directions. A deadline is not a reason to mark unfinished or unverified work complete.
 
 - **Typos, references, translations:** fork → edit → PR.
 - **Questions or corrections:** use [feedback](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) and choose a correction, outdated information, explanation request, topic request, or site problem. Link the page or passage; no solution is required, and the area can be left blank.

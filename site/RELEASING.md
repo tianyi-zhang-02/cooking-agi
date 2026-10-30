@@ -1,10 +1,8 @@
 # Releasing Cooking AGI
 
-Public scope and status live in `community/updates.md` and `community/updates.en.md`. Priorities live in the paired roadmap pages. Do not keep a second full changelog in the README: link to these pages. The first proposed named release is **v1.0.0 — Study workspace**, not a claim that every AI topic is covered.
+No named release is planned. The proposed v1.0.0 interview-prep release was dropped on 2026-10-29: each merge to main goes live once deployed, and the README changelog lists merges by date. `community/updates.md` and `.en.md` explain how the site is updated and where reading records live; priorities live in the paired roadmap pages. The checks below apply to every merge. The tag-and-release steps apply only if a named release is proposed again.
 
 ## Release scope
-
-A release should provide a usable end-to-end flow: choose a route, create a session, follow its note, record a question, and export/restore the record. Review the associated content and navigation too. Future CV, driving, edge, simulation, and robotics proposals are not release blockers or completed features.
 
 Before approving, compare the actual PR diff with the scope. Include all intentional changes, not just the most recent files, and preserve unrelated work. Never publish private backups, credentials, local review snapshots, private reference material, or social-platform drafts. Confirm authority to license prior contributions and third-party assets; the default license notice does not settle existing exceptions.
 
@@ -30,7 +28,7 @@ No GPU or hardware performance claim follows from these CPU/site tests. Semantic
 1. Read the latest remote main, existing PRs, tags, releases, and protection state. Don't append new work to a merged PR, reuse an existing tag, rewrite shared history, or sweep another author's changes into a release.
 2. Open a scoped PR with the proposed version, summary, test results, known limits, and data-compatibility note. Follow the repository's human review rules and required CI. No automatic admin bypass.
 3. Merge through the normal review process. Record the **actual merge SHA**, not the old branch tip. Confirm the Pages workflow for that SHA succeeds, including deploy, rather than checking an unrelated scheduled run.
-4. Check the interview-prep page, the reading drawer and a paired article at the deployed URL. Create the version tag and GitHub release at that verified SHA, with explicit notes on additions, fixes, limitations, and backup compatibility. Use an explicit target SHA when creating a release. Avoid making `latest` claims for a draft or prerelease.
+4. Check the home page, the reading drawer and a paired article at the deployed URL. Create the version tag and GitHub release at that verified SHA, with explicit notes on additions, fixes, limitations, and backup compatibility. Use an explicit target SHA when creating a release. Avoid making `latest` claims for a draft or prerelease.
 5. Update both public release pages and README status links to the actual release URL and date in a follow-up docs PR, then verify that deployment too. A short delay in marking a verified release is safer than claiming a pending release shipped.
 
 PR checks, Pages deployment, and a GitHub release are three different states. If any stage is pending or fails, report that state and keep the release marked unreleased. Do not manufacture an approval, hide an exception, or treat this checklist as authorization to publish.

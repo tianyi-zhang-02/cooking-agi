@@ -1,6 +1,6 @@
 # Cooking AGI
 
-**ML / LLM notes for learning, building, and interview preparation.**
+**Bilingual ML / LLM notes: worked examples, step-by-step figures, coding practice and interview prep.**
 
 <!-- repository-only -->
 
@@ -11,76 +11,41 @@
 
 <p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><b>Read the notes →</b></a> &nbsp;·&nbsp; <a href="README.zh.md">中文</a> &nbsp;·&nbsp; <a href="#contributors">Contributors</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md#english">Contribute</a></p>
 
-<p align="center"><a href="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml"><img src="https://github.com/tianyi-zhang-02/cooking-agi/actions/workflows/site.yml/badge.svg?branch=main" alt="Build"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/notes-CC%20BY%204.0-e8a672" alt="Notes: CC BY 4.0"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/code-MIT-e8a672" alt="Code: MIT"></a></p>
-
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/en-figure-light.webp"><img src=".github/media/tour/en-figure-dark.webp" width="280" alt="A roofline figure stepping through three operations"></picture>
-      <br><b>Step by step</b><br>Follow the worked example, pausing or replaying the calculation as needed.
-    </td>
-    <td align="center" width="33%">
-      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/en-paper-light.webp"><img src=".github/media/tour/en-paper-dark.webp" width="280" alt="BEVFormer's architecture figure embedded in a note"></picture>
-      <br><b>From the papers</b><br>Architecture figures alongside their explanations, with sources and licences.
-    </td>
-    <td align="center" width="33%">
-      <picture><source media="(prefers-color-scheme: light)" srcset=".github/media/tour/en-frontier-light.webp"><img src=".github/media/tour/en-frontier-dark.webp" width="280" alt="A table of settled, still moving and signals to watch"></picture>
-      <br><b>Frontier watch</b><br>What new methods have demonstrated and what remains open, with dates and sources.
-    </td>
-  </tr>
-</table>
-
 <!-- /repository-only -->
 
-When I started preparing for industry roles, my materials were scattered across lectures, papers, documentation, and bookmarks. Finding a good explanation took time. Working out what to read next took more. These notes grew out of trying to bring that material together.
-
-Here you'll find ML and LLM notes in English and Chinese, with examples, diagrams, code, and project walkthroughs. **They're free to read and will stay that way.** You can start with the basics, review for an interview, or explore a field outside your own. The aim is to make useful material easier to find and follow, even if you're new to it.
-
-**English or 中文:** use the switch at the top of any note. It opens the same article in the other language; Chinese notes keep familiar English technical terms. The site starts in English and remembers your choice in this browser. A direct link to a language opens that version.
+ML and LLM notes in English and Chinese. Each topic is built around a worked example you can follow, run, or replay, with the papers' own figures and sources alongside. Use it to learn from scratch, review before an interview, or look into a field outside your own. **Free to read, and it will stay that way.**
 
 <span id="_1"></span>
 
 ## Start here
 
-| What brings you here? | A place to start |
+| If you want to | Start with |
 | --- | --- |
-| I'm new to ML | [Starting out](interview/speedrun-start.en.md) — work through a prediction, a loss, and a parameter update. Python pointers are included. |
-| I want a learning plan | [Study at your pace](interview/study-plan.en.md) — choose a route and fit reading and practice around your week. |
-| I have an interview soon | [Quick review](interview/speedrun.en.md) — focus on topics relevant to the role and the time you have. |
-| I want to check what I know | [Coding checks](interview/coding-checks.en.md) · [Role-based preparation](interview/ai-roles-prep.en.md) — try first, then revisit what was difficult. |
-| I'm here out of curiosity | [Choose a topic](learn/choose-your-path.en.md#topics) · [Tech history](learn/technology-timeline.en.md) — explore a question or follow how a field developed. |
+| learn ML from the beginning | [Starting out](interview/speedrun-start.en.md) |
+| study on a plan | [Study at your pace](interview/study-plan.en.md) |
+| prepare for an interview soon | [Quick review](interview/speedrun.en.md) |
+| check what you know | [Coding checks](interview/coding-checks.en.md) · [Role-based preparation](interview/ai-roles-prep.en.md) |
+| explore a topic | [Choose a topic](learn/choose-your-path.en.md#topics) · [Tech history](learn/technology-timeline.en.md) |
 
-Choose for the topic, not your job title. You might know systems well and still want an introduction to RL.
+The site has five sections. You don't need to read them in order.
 
-### How to use the notes
-
-1. **Pick something you want to understand.** Use a route above, or the [topic guide](learn/choose-your-path.en.md). You don't need to read the site in order.
-2. **Follow the example, then try it.** Work through a calculation or run the code. Continue to the derivation and tradeoffs when you want more detail. We're still improving this progression in some chapters.
-3. **Keep your place.** Choose “Save this page” under a note's title, and find it later under “My reading” at the top right; a note reopens where you stopped. No account or fork is needed. Records stay in this browser; [export a JSON backup](interview/study-plan.en.md#backups) to keep a copy or move devices.
-
-Time estimates mean focused learning time, not a daily target. Split a session if you need to; there is no streak to maintain.
-
-### What's in each section
-
-- **[Foundations](learn/README.en.md)** — How models work, learn, and are evaluated. The [study guide](00-foundations/study-guide.en.md) is a starting point for language models.
-- **[Interview prep](interview/README.en.md)** — ML / LLM review, ML coding, Python, and reusable algorithm patterns.
-- **[Engineering practice](practice/README.en.md)** — Recommendation, RAG, and post-training systems: how data, training, serving, and evaluation fit together.
-- **[Tech history](learn/technology-timeline.en.md)** — Developments in power, chips, networks, software, and AI, with links to original sources.
-- **[Career notes](career/README.en.md)** — What I tried during internship and new-grad searches, and what I'd do differently.
-
-Diagrams show the main idea without requiring interaction. The controls are there when you want to change an input or compare outcomes.
+- **[Foundations](learn/README.en.md)** — how models work, learn, and are evaluated.
+- **[Interview prep](interview/README.en.md)** — ML / LLM review, ML coding, Python, and algorithm patterns.
+- **[Engineering practice](practice/README.en.md)** — recommendation, RAG, and post-training systems, end to end.
+- **[Tech history](learn/technology-timeline.en.md)** — power, chips, networks, software, and AI, with original sources.
+- **[Career notes](career/README.en.md)** — what I tried in internship and new-grad searches.
 
 <span id="interview-coach"></span>
 
-### Practice with your AI agent (interview coach skill)
+### Practice with your AI agent
 
-Install the skill into an AI agent such as Claude Code or Codex to practice against the notes: one question at a time, feedback and follow-ups after your answer, and a record of what to revisit next time. The notes and questions come from the site's read-only data API and update with the site. Progress records are saved on your machine; the script does not upload them to this site. Answers you enter into your AI agent are still handled according to that agent's and model provider's settings—this does not make the conversation local-only.
+The interview coach skill runs a mock interview against these notes in Claude Code or Codex: one question at a time, follow-ups on your answer, and a local record of what to revisit.
 
 ```bash
 npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-agi-interview
 ```
 
-Then ask, for example, "Mock interview for an LLM inference engineer role, 5 questions" or "What am I weak at? Quiz me on that". See [skills/README.md](skills/README.md) for details. The skill was contributed by [@Juggernaut0825](https://github.com/Juggernaut0825).
+See [skills/README.md](skills/README.md). Contributed by [@Juggernaut0825](https://github.com/Juggernaut0825).
 
 <span id="_2"></span>
 
@@ -88,73 +53,17 @@ Then ask, for example, "Mock interview for an LLM inference engineer role, 5 que
 
 <!-- repository-only -->
 
-<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-topics-en-light.svg" width="100%" alt="Topics by area and how many notes each has; numbers update on every deploy"></picture></a>
+<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-overview-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-overview-en-light.svg" width="100%" alt="What the notes are checked and illustrated with, topics by area, and what is being worked on now and next; updated on every deploy"></picture></a>
 
 <!-- /repository-only -->
 
-A few articles to start reading now:
+- **How models work:** [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [BERT](00-foundations/core/bert.en.md) · [CLIP and multimodal learning](03-multimodal-learning/clip.en.md)
+- **How models learn:** [Training basics](learn/pretraining/README.en.md) · [Deep RL](05-post-training/deep-rl/README.en.md) · [Post-training](05-post-training/README.en.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.en.md)
+- **How models get used:** [Inference](learn/inference/README.en.md) · [Search and retrieval](04-search/README.en.md) · [Agents and tools](10-agents/README.en.md)
+- **What's moving:** [Frontier watch](11-frontier/README.en.md) · [AI infrastructure](12-infra/README.en.md) · [Perception, robots and driving](13-embodied/README.en.md)
+- **Practice:** [ML coding](learn/ml-exercises/README.en.md) · [Python](interview/python.en.md) · [Algorithm patterns](interview/leetcode.en.md) · [System design](learn/system-design/README.en.md)
 
-- **How models work:** [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [BERT](00-foundations/core/bert.en.md) · [CLIP and multimodal learning](03-multimodal-learning/clip.en.md).
-- **How models learn:** [Training basics](learn/pretraining/README.en.md) · [Deep RL](05-post-training/deep-rl/README.en.md) · [Post-training](05-post-training/README.en.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.en.md).
-- **How models get used:** [Inference](learn/inference/README.en.md) · [Search and retrieval](04-search/README.en.md) · [Agents and tools](10-agents/README.en.md).
-- **What's moving:** [Frontier watch](11-frontier/README.en.md) (world models, self-improvement, test-time compute) · [AI infrastructure](12-infra/README.en.md) and [perception, robots and driving](13-embodied/README.en.md).
-
-For practice, head to [ML coding](learn/ml-exercises/README.en.md), [Python](interview/python.en.md), [algorithm patterns](interview/leetcode.en.md), or [system design](learn/system-design/README.en.md).
-
-**Still being worked on:** some explanations and source comparisons need more review. The [coverage and backlog](learn/coverage.en.md) separates material that exists from material that has been checked. Small tested examples are not claims of full-model training or benchmark reproduction.
-
-## Roadmap
-
-<!-- repository-only -->
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-roadmap-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-roadmap-en-light.svg" width="100%" alt="Roadmap: done, now, next and help wanted, from site/milestones.toml"></picture>
-
-<!-- /repository-only -->
-
-### Now
-
-Recent work has focused on revising existing notes: checking primary sources, updating old figures, consolidating repeated explanations, and adding worked examples. Both languages have had an initial read-through. The October 21 update included another note-by-note review and removed draft labels from several reviewed series.
-
-Review does not catch everything. If a passage sounds awkward, is hard to follow, or contains an error, please [tell us](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml). Every article has a feedback link at the end.
-
-**Next:** a faster way to the answer: better search and quicker pages, then an MCP server, so Claude, ChatGPT and Cursor can search the notes and quiz you from the same data as the [interview coach skill](#interview-coach). For Jetson, physical simulation, and reviewing the vision, driving and robotics series, we'd like people who have worked in those areas to join us. See the [roadmap](community/roadmap.en.md) for the full plan; the scope of the upcoming v1.0 interview-prep release is in [release scope](community/updates.en.md).
-
-### Topic coverage
-
-How many notes each topic has, and how far this review pass has got. The numbers update on every site deploy.
-
-<!-- repository-only -->
-
-<details>
-<summary>Show each topic's review progress</summary>
-
-<a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-en-light.svg" width="100%" alt="Notes per topic and how many this review pass has covered"></picture></a>
-
-</details>
-
-<!-- /repository-only -->
-
-<!-- widget:topic-coverage -->
-
-### How we got here
-
-<details markdown="1">
-<summary>By date: August 2026 to now</summary>
-
-| When | What happened |
-| --- | --- |
-| Early August 2026 | Started: Chinese notes and a systems study map; the first site and the Transformer foundations |
-| Late August | A post-training series from PPO to what came after; interview fundamentals and a whiteboard checklist |
-| Late September | Site redesign around career routes and knowledge blocks; interactive figures for RLHF, MoE, looped Transformers and Agents |
-| End of September to early October | The whole site in two languages; learning paths and self-checks, CLIP and multimodal, LLM-as-a-Judge, Deep RL labs |
-| October 9–11 | Bilingual routes organized into a system, examples checked one by one; training, inference and ML systems guides |
-| October 13 | The chronicle world tree (143 sourced milestones), reading history, page feedback and security hardening |
-| October 14 | Step-by-step animations in the LeetCode notes; saved notes and reading history folded into “My reading”; step-by-step figures in four chapters; first full read-through of every note in both languages |
-| October 15–16 | Frontier watch, AI infrastructure and embodied AI (with the papers' own figures and 26 step-by-step figures); every note audited for errors, stale facts and repetition; drafts on scaling, diffusion LMs and quantization |
-
-</details>
-
-Details of every merge are in the [changelog](README.md#changelog) at the bottom of this page.
+Some material is still being reviewed; [coverage](learn/coverage.en.md) shows what has been checked. What comes next is in the [roadmap](community/roadmap.en.md); how the site is updated is in [updates](community/updates.en.md).
 
 <span id="contributors"></span>
 
@@ -166,45 +75,39 @@ Details of every merge are in the [changelog](README.md#changelog) at the bottom
 
 <!-- /repository-only -->
 
-This lists contributors with commit or co-author credit, reviewers for each area, and readers' next steps when they choose to share them. The card updates on deployment and every hour using git history, GitHub, and `site/collaboration.toml`. Commit counts tell only part of the story; questions, reviews, and corrections matter too.
-
-To add credit for a review or correction, or share your next stop, open an issue: [add a contribution credit](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [share my next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml). Include only what you want to make public.
+Commit counts tell only part of the story; questions, reviews, and corrections count too. [Add a contribution credit](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [Share your next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)
 
 <span id="_3"></span>
 
 ## Join us!
 
-If a passage is confusing, something has changed, or a topic is missing, we'd like to hear about it. You don't need to have the answer before asking a question.
+If a passage is confusing, something is out of date, or a topic is missing, tell us. You don't need the answer first.
 
-- **Give feedback:** [open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) and link the part you're referring to. You can flag a correction, outdated information, an unclear explanation, a missing topic, or a site problem.
-- **Make a change:** small fixes can go straight into a PR. For a new article or navigation change, start with a [content proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) so we can coordinate.
-- **Pass it on:** if the notes helped you learn or prepare, share the link with a friend or classmate. Sharing an employer or job-search outcome is never required. The people behind the notes are listed under [Contributors and reviewers](#contributors).
+- **Feedback:** [open an issue](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=note-feedback.yml) and link the passage. Every note also has a feedback link at the end.
+- **Changes:** small fixes can go straight into a PR. For a new article, start with a [content proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml).
+- **Pass it on:** if the notes helped, share the link with a friend.
 
-These are our working notes, not an official curriculum. Our experience is mainly in ML / LLM and MLE / research preparation, and it shapes what we cover. Some material will be incomplete or out of date. We share public knowledge and preparation methods, not company-specific interview information or question banks. We can't predict questions or promise an offer.
+These are working notes, not an official curriculum. We share public knowledge and preparation methods, never company-specific interview questions. Notes are CC BY 4.0 and code is MIT; see the [licenses](LICENSE.md).
 
 <details markdown="1">
 <summary>Contributing, review, and privacy</summary>
 
-See the [contributing guide](CONTRIBUTING.md#english), [editorial guide](EDITORIAL.en.md), and [area reviewers](community/README.en.md). Community PRs need a relevant non-author CODEOWNER review and passing checks. Use public sources and your own explanations. Disclose and check AI-assisted work; an AI review is not formal approval or factual verification.
-
-Issues are public. Don't attach private progress backups, company material, or unredacted logs. A public source or software version is helpful when reporting a change, but not required to ask for a clearer explanation.
+See the [contributing guide](CONTRIBUTING.md#english), [editorial guide](EDITORIAL.en.md), and [area reviewers](community/README.en.md). Community PRs need a relevant non-author CODEOWNER review and passing checks. Use public sources and your own explanations; disclose and check AI-assisted work. Issues are public, so don't attach private progress backups, company material, or unredacted logs.
 
 </details>
-
-**Free to read, open to reuse.** There are no paid chapters or premium preparation routes. Original code uses MIT; original notes use CC BY 4.0. Keep attribution, source links, and the relevant notices, and mark your changes. Third-party materials retain their own terms. We don't endorse others' edited or redistributed versions; warranty and liability terms are in the [licenses](LICENSE.md).
 
 <span id="_4"></span>
 
 ## Run locally
 
-This repository contains the notes, examples, and static-site source. No database is needed. From the repository root, with Python 3.12 recommended:
+No database needed. From the repository root, with Python 3.12:
 
 ```bash
 python3 -m pip install markdown pygments numpy
 python3 site/build.py --serve
 ```
 
-Open <http://localhost:8000>. To build without starting a server, run `python3 site/build.py`; output goes to `_site/`.
+Then open <http://localhost:8000>. `python3 site/build.py` alone writes the site to `_site/`.
 
 <details markdown="1">
 <summary>Checks before submitting</summary>
@@ -217,7 +120,7 @@ python3 site/paritycheck.py --strict
 python3 site/build.py
 ```
 
-Some experiments also need PyTorch, as documented in their chapters; corresponding tests explicitly skip when it is unavailable. Your bookmark list, recently opened notes, and reading positions stay in this browser. Public counting is off by default; opting in sends only subsequent reads and manual save actions, not past records or backups.
+Some experiments also need PyTorch; their tests skip when it isn't installed.
 
 </details>
 
@@ -225,17 +128,16 @@ Some experiments also need PyTorch, as documented in their chapters; correspondi
 
 ## Why this exists
 
-Moving from academic research toward industry, I often found that something I recognized in a paper was much harder to explain or implement myself. Writing it down helped me notice those gaps. Sharing the notes gives other people a chance to point them out too.
+When I started preparing for industry roles, my materials were scattered across lectures, papers, documentation, and bookmarks, and something I recognized in a paper was often much harder to explain or implement myself. Writing it down showed me those gaps; sharing it lets others point out the rest.
 
-I hope this makes it easier to get started without already having a background in the field or someone to hand you a reading list. It won't replace study and practice. Where others explain something better, we'll link to them; where we lack experience, we'd like to learn from people who have it. Comparing notes across fields may reveal connections we wouldn't find on our own.
-
-If it saves you some searching and leaves a little more time for the rest of your life, that's a good reason to keep working on it.
+I hope it makes a field easier to start without a background in it or someone to hand you a reading list. If it saves you some searching and leaves a little more time for the rest of your life, that's a good reason to keep working on it.
 
 <span id="_6"></span>
 
 ## Changelog
 
-Every change merged into the main branch, by date, split into major and minor updates. Links go to the pull requests.
+<details markdown="1">
+<summary>Every merge into main, by date</summary>
 
 | Date | Major | Minor |
 | --- | --- | --- |
@@ -262,3 +164,5 @@ Every change merged into the main branch, by date, split into major and minor up
 | 2026-08-14 | — | Multi-head attention, normalization and residual connections ([#7](https://github.com/tianyi-zhang-02/cooking-agi/pull/7)) |
 | 2026-08-12 | Foundations chapter, reading order and the first site ([#3](https://github.com/tianyi-zhang-02/cooking-agi/pull/3)) | Smoother Chinese, grouped sidebar ([#4](https://github.com/tianyi-zhang-02/cooking-agi/pull/4)) · Architecture diagrams and intro / advanced layers ([#6](https://github.com/tianyi-zhang-02/cooking-agi/pull/6)) |
 | 2026-08-10 | First AI infrastructure study guide ([#1](https://github.com/tianyi-zhang-02/cooking-agi/pull/1)) | Redrawn diagrams ([#2](https://github.com/tianyi-zhang-02/cooking-agi/pull/2)) |
+
+</details>

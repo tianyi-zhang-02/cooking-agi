@@ -35,9 +35,9 @@ class ReadmeCardTests(unittest.TestCase):
         cls.cards = {}
         for lang in ("zh", "en"):
             for palette in readme_cards.PALETTES:
-                cls.cards[("topics", lang, palette)] = readme_cards.topics_svg(cls.topics, lang, palette, "2026-10-17", cls.signals)
-                cls.cards[("roadmap", lang, palette)] = readme_cards.roadmap_svg(cls.milestones, lang, palette, "2026-10-17")
-                cls.cards[("people", lang, palette)] = readme_cards.people_svg(cls.team, lang, palette, "2026-10-17")
+                cls.cards[("overview", lang, palette)] = readme_cards.overview_svg(cls.topics, cls.milestones, lang, palette,
+                                                                                  "2026-10-17", cls.signals)
+                cls.cards[("people", lang, palette)] = readme_cards.people_svg(cls.team, cls.milestones, lang, palette, "2026-10-17")
 
     def test_cards_are_valid_standalone_svg(self):
         for key, svg in self.cards.items():
@@ -51,16 +51,25 @@ class ReadmeCardTests(unittest.TestCase):
             if lang == "en":
                 self.assertIsNone(CJK.search(svg), name)
 
-    def test_topics_cover_every_zone_and_mark_drafts(self):
+    def test_overview_covers_every_zone_and_marks_drafts(self):
         zones = [zone for zone in build.NAV["zone"]]
         self.assertEqual(len(self.topics["zones"]), len(zones))
-        # the draft count and the amber-bar legend appear only while some notes are still drafts
+        lines = " ".join(re.findall(r">([^<]+)</text>", self.cards[("overview", "en", "dark")]))
+        for zone in zones:  # one bar per zone, named without its number
+            self.assertIn(readme_cards.esc(zone["en"].partition(" · ")[2]), lines)
+        # a draft count appears only while some notes are still drafts
         drafts = sum(d for *_, groups in self.topics["zones"] for *_, d in groups)
-        for lang, label in (("en", "drafts in review"), ("zh", "篇草稿待审核")):
-            self.assertEqual(label in self.cards[("topics", lang, "dark")], bool(drafts))
+        for lang, label in (("en", "in review)"), ("zh", "篇草稿待审核")):
+            self.assertEqual(label in self.cards[("overview", lang, "dark")], bool(drafts))
         # the label wraps onto two lines of the stat column; read together they give the whole label
-        lines = re.findall(r">([^<]+)</text>", self.cards[("topics", "en", "dark")])
-        self.assertIn("notes re-read in both languages", " ".join(lines))
+        self.assertIn("notes re-read in both languages", lines)
+
+    def test_overview_carries_now_and_next_and_people_carry_help_wanted(self):
+        for lang in ("zh", "en"):
+            overview, people = self.cards[("overview", lang, "dark")], self.cards[("people", lang, "dark")]
+            for item in self.milestones["now"] + self.milestones["next"]:
+                self.assertIn(readme_cards.esc(item[lang]), overview)
+            self.assertIn(readme_cards.esc(self.milestones["open"][0][lang]), people)
 
     def test_crew_is_numbered_by_first_participation_and_shown_by_username(self):
         crew = self.team["crew"]

@@ -80,14 +80,9 @@ class TopicCoverageTests(unittest.TestCase):
             if language == "en":
                 self.assertIsNone(CJK.search(markup))
 
-    def test_readmes_embed_the_deployed_chart_and_link_merged_pull_requests(self):
+    def test_readmes_link_merged_pull_requests(self):
         for filename, language in (("README.zh.md", "zh"), ("README.md", "en")):
             source = (build.ROOT / filename).read_text()
-            self.assertIn("<!-- widget:topic-coverage -->", source)
-            block = re.search(r"<!-- repository-only -->((?:(?!<!-- /repository-only -->).)*topic-coverage(?:(?!<!-- /repository-only -->).)*)<!-- /repository-only -->", source, re.S)
-            self.assertIsNotNone(block, filename)
-            for palette in topic_coverage.PALETTES:
-                self.assertIn(f"https://tianyi-zhang-02.github.io/cooking-agi/static/topic-coverage-{language}-{palette}.svg", block.group(1))
             self.assertIn("## 更新记录" if language == "zh" else "## Changelog", source)
             numbers = re.findall(r"\[#(\d+)\]\(https://github\.com/tianyi-zhang-02/cooking-agi/pull/(\d+)\)", source)
             self.assertTrue(numbers)
