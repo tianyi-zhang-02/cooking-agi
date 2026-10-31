@@ -13,6 +13,7 @@
 | 想弄清什么 | 阅读入口 |
 | --- | --- |
 | 没做过完整项目，想先知道有哪些环节 | 读完本页的全貌与团队交接 |
+| 想从基础弄清 GPU、Megatron 和 RL 框架怎么配合 | [ML / LLM 系统地图](../../06-systems/mlsys-llmsys-map.md#learning-route)：先看执行，再看多卡与集群，最后接 RL |
 | 数据怎么变成模型、index 和可发布版本 | [数据到模型](data-to-model.md) |
 | 一次请求怎么跑，线上慢了或答错了怎么查 | [上线与反馈](serving-and-feedback.md) |
 | FSDP、vLLM、SGLang 分别放在哪里 | FSDP 的位置见[数据到模型](data-to-model.md#training)，vLLM / SGLang 见[上线以后](serving-and-feedback.md#generation)，再读[训练框架](../../06-systems/training-frameworks.md)与[推理引擎](../../06-systems/inference-frameworks.md) |

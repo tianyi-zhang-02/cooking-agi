@@ -12,10 +12,10 @@ class DiffusionGlossaryTests(unittest.TestCase):
     def setUp(self):
         self.terms = build.load_glossary()
 
-    def test_key_terms_are_explained_once_in_prose(self):
+    def test_key_terms_have_english_at_every_occurrence(self):
         source = "<p>自回归和扩散语言模型。</p><p>再比较自回归和扩散语言模型。</p>"
         body, used = build.annotate(source, self.terms)
-        self.assertEqual(body.count('class="term-en"'), 2)
+        self.assertEqual(body.count('class="term-en"'), 4)
         self.assertIn("（Autoregressive, AR）", body)
         self.assertIn("（Diffusion Language Model, dLLM）", body)
         self.assertEqual([term["zh"] for term in used], ["自回归", "扩散语言模型"])
@@ -29,7 +29,8 @@ class DiffusionGlossaryTests(unittest.TestCase):
             '<p>自回归和扩散语言模型。</p>'
         )
         body, used = build.annotate(source, self.terms)
-        self.assertEqual(body, source)
+        self.assertTrue(body.startswith(source.rsplit('<p>', 1)[0]))
+        self.assertEqual(body.count('class="term-en"'), 2)
         self.assertEqual(len(used), 2)
 
     def test_language_model_term_does_not_split_diffusion_term(self):

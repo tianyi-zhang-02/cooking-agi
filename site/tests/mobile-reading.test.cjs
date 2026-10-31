@@ -52,14 +52,21 @@ function mount(language = 'en', options = {}) {
   const region = new Element();
   region.className = 'table-wrap';
   region.clientWidth = 288;
-  region.scrollWidth = 600;
+  region.scrollWidth = options.compact ? 288 : 600;
   if (options.label) region.setAttribute('aria-label', options.label);
   if (options.tabindex) region.setAttribute('tabindex', options.tabindex);
   const table = new Element('table');
   table.rows = [{cells: [{colSpan: 2}, {colSpan: 1}]}];
   region.append(table);
   region.firstElementChild = table;
-  article.append(region);
+  if (options.compact) {
+    const compact = new Element();
+    compact.className = 'compact-table';
+    compact.append(region);
+    article.append(compact);
+  } else {
+    article.append(region);
+  }
   const image = new Element('img');
   image.src = '/assets/architecture.svg';
   image.alt = 'Architecture <not markup>';
@@ -103,6 +110,19 @@ test('wide tables retain their columns and get localized, keyboard-accessible sc
     assert.equal(page.article.querySelector('.reading-scroll-hint').hidden, true);
     assert.equal(page.region.getAttribute('tabindex'), null);
     assert.equal(page.region.getAttribute('aria-label'), null);
+  }
+});
+
+test('compact examples fit without a forced width but keep overflow access when needed', () => {
+  for (const language of ['zh-Hans', 'en']) {
+    const page = mount(language, {compact: true});
+    assert.equal(page.region.style['--reading-table-width'], undefined);
+    assert.equal(page.region.getAttribute('tabindex'), null);
+    assert.equal(page.article.querySelector('.reading-scroll-hint').hidden, true);
+    page.region.scrollWidth = 600;
+    page.events.resize();
+    assert.equal(page.region.getAttribute('tabindex'), '0');
+    assert.equal(page.article.querySelector('.reading-scroll-hint').hidden, false);
   }
 });
 

@@ -51,12 +51,12 @@ class AlgorithmGlossaryTests(unittest.TestCase):
         self.assertEqual(translations["递归终止条件"], "base case")
         self.assertIn("dynamic programming", translations["动态规划"])
 
-    def test_first_mentions_have_english_without_overloading_paragraphs(self):
+    def test_every_occurrence_has_english(self):
         output, used = build.annotate(
             "<p>递归、回溯、动态规划。</p><p>动态规划也可以用迭代写。递归。</p>",
             self.terms)
         parsed = AlgorithmTerms(output)
-        self.assertEqual(parsed.block_counts, [2, 2])
+        self.assertEqual(parsed.block_counts, [3, 3])
         self.assertEqual([term["zh"] for term in used], ["递归", "回溯", "动态规划", "迭代"])
         self.assertIn('<span class="term-en">（recursion）</span>', output)
 
@@ -70,7 +70,8 @@ class AlgorithmGlossaryTests(unittest.TestCase):
     def test_existing_english_is_not_duplicated(self):
         source = "<p>递归（recursion）和记忆化搜索（memoization）。</p><p>再看递归。</p>"
         output, used = build.annotate(source, self.terms)
-        self.assertEqual(output, source)
+        self.assertTrue(output.startswith("<p>递归（recursion）和记忆化搜索（memoization）。</p>"))
+        self.assertEqual(len(AlgorithmTerms(output).terms), 1)
         self.assertEqual([term["zh"] for term in used], ["递归", "记忆化搜索"])
 
     def test_headings_links_code_and_controls_remain_unchanged(self):
@@ -98,7 +99,8 @@ class AlgorithmGlossaryTests(unittest.TestCase):
                         self.assertFalse(page.glossary)
                     else:
                         self.assertGreater(len(parsed.terms), 0)
-                        self.assertTrue(all(count <= 2 for count in parsed.block_counts))
+                        self.assertEqual(len(parsed.terms), page.body.count('class="term-en"'))
+                        self.assertEqual(len(page.glossary), len({term["zh"] for term in page.glossary}))
                         self.assertTrue(all(term["tabindex"] == "0" and term["data-tip"]
                                             for term in parsed.terms))
                         if page.src.name in ("traversal.md", "backtracking-and-dp.md"):

@@ -13,6 +13,7 @@ We follow a **document search product**. A user submits a question and optionall
 | Question | Start here |
 | --- | --- |
 | What belongs in a complete project? | This page's system map and handoffs |
+| How do GPUs, Megatron, and RL frameworks work together? | [ML / LLM systems map](../../06-systems/mlsys-llmsys-map.en.md#learning-route): start with execution, then multiple GPUs and clusters, then RL |
 | How do data become models, indexes, and releases? | [Data to model](data-to-model.en.md) |
 | What happens during a request or an incident? | [Serving and feedback](serving-and-feedback.en.md) |
 | Where do FSDP, vLLM, and SGLang fit? | FSDP in [data to model](data-to-model.en.md#training), vLLM / SGLang in [after deployment](serving-and-feedback.en.md#generation), then [training stacks](../../06-systems/training-frameworks.en.md) and [inference engines](../../06-systems/inference-frameworks.en.md) |

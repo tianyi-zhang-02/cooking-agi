@@ -53,17 +53,18 @@ class DeepRLGlossaryTests(unittest.TestCase):
         self.assertIn("递归模型", general[2])
         self.assertNotEqual(scoped, general)
 
-    def test_paragraph_budget_and_first_use(self):
+    def test_every_occurrence_has_english_and_glossary_stays_unique(self):
         output, used = build.annotate(
             "<p>回报、<strong>自举</strong>和行为策略。</p>"
             "<p>行为策略与目标策略。再次看回报。</p>", self.terms)
-        self.assertEqual(GlossaryMarkup(output).counts, [2, 2])
+        self.assertEqual(GlossaryMarkup(output).counts, [3, 3])
         self.assertEqual([term["zh"] for term in used], ["回报", "自举", "行为策略", "目标策略"])
 
     def test_existing_parentheses_and_compound_terms(self):
         source = "<p>广义优势估计（GAE）。</p><p>广义优势估计。</p>"
         output, used = build.annotate(source, self.terms)
-        self.assertEqual(output, source)
+        self.assertTrue(output.startswith("<p>广义优势估计（GAE）。</p>"))
+        self.assertEqual(len(GlossaryMarkup(output).terms), 1)
         self.assertEqual([term["zh"] for term in used], ["广义优势估计"])
         output, used = build.annotate("<p>目标策略和策略评估。</p>", self.terms)
         self.assertEqual([term["zh"] for term in used], ["目标策略", "策略评估"])
@@ -77,7 +78,7 @@ class DeepRLGlossaryTests(unittest.TestCase):
                 self.assertTrue(output.startswith(diagram))
                 self.assertEqual([term["zh"] for term in used], ["自举", "回报"])
 
-    def test_math_is_opaque_without_consuming_first_use(self):
+    def test_math_is_opaque_and_following_prose_has_english(self):
         for formula in (r"$\text{回报}$", r"$$\text{回报}$$",
                         r"\(\text{回报}\)", "\\[\n\\text{回报}\n\\]"):
             with self.subTest(formula=formula):
@@ -112,7 +113,8 @@ class DeepRLGlossaryTests(unittest.TestCase):
                         self.assertEqual(build.glossary_html(page), "")
                     else:
                         self.assertGreater(len(parsed.terms), 0)
-                        self.assertTrue(all(count <= 2 for count in parsed.counts))
+                        self.assertEqual(len(parsed.terms), page.body.count('class="term-en"'))
+                        self.assertEqual(len(page.glossary), len({term["zh"] for term in page.glossary}))
                         self.assertTrue(all(term["tabindex"] == "0" and term["data-tip"]
                                             for term in parsed.terms))
                         self.assertIn("本页术语", build.glossary_html(page))

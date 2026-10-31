@@ -23,6 +23,8 @@ These can be combined. Explain a configuration by drawing data flow, state place
 
 ## DDP computes local gradients, then synchronizes
 
+How do replicas stay identical when each GPU sees different examples? First locate the point where their gradients meet:
+
 ```text
 GPU 0: example A → all four layers → gradient g0 ┐
 GPU 1: example B → all four layers → gradient g1 ├→ average → local updates
@@ -30,7 +32,7 @@ GPU 2: example C → all four layers → gradient g2 ┤
 GPU 3: example D → all four layers → gradient g3 ┘
 ```
 
-Replicas remain aligned when initialization, optimizer state, and synchronized gradients agree. [PyTorch DDP](https://docs.pytorch.org/docs/stable/notes/ddp.html) synchronizes gradient buckets and can overlap communication with backward. The caller still arranges data partitioning.
+Each training process is identified by a rank. Replicas remain aligned when their initial parameters, optimizer state, and synchronized gradients agree. [PyTorch DDP](https://docs.pytorch.org/docs/stable/notes/ddp.html) synchronizes gradient buckets and can overlap communication with backward. The caller still arranges data partitioning.
 
 DDP is a training interface; Ring AllReduce is one collective implementation algorithm. They are different layers of the system. DDP also works within one machine, and the backend and configuration determine communication algorithms. “DP means a parameter server; DDP means multi-node Ring” is not a definition.
 
@@ -38,7 +40,7 @@ Two examples per microbatch, four accumulation steps, and four data-parallel ran
 
 ## The global denominator is easy to miss
 
-Rank 0 has two valid tokens with summed loss four; rank 1 has six with summed loss six. Averaging their local means gives 1.5, while the token-weighted mean is 1.25.
+Is averaging local mean losses always correct? Rank 0 has two valid tokens with summed loss four; rank 1 has six with summed loss six. Averaging their local means gives 1.5, while the token-weighted mean is 1.25. The first gives each rank half the weight; the second gives each valid token equal weight.
 
 Let $T$ be valid tokens across the entire update window, $W$ the data-parallel world size, and $S_r$ rank $r$'s differentiable summed loss. If synchronization averages gradients, backpropagate locally through
 
@@ -74,11 +76,13 @@ In a Parameter Server (PS) design, workers send gradients to servers maintaining
 
 Ring AllReduce commonly combines reduce-scatter, which leaves each rank with a fully reduced shard, and all-gather, which distributes those shards. Separate a collective's semantics from its algorithm. [NCCL's introduction](https://developer.nvidia.com/blog/fast-multi-gpu-collectives-nccl/) explains ring communication; it is a historical article, not a claim that every current collective uses a ring.
 
-For $P$ ranks and a message of $S$ bytes per rank, assume equal chunks on an ideal ring. Each round sends $S/P$, with $P-1$ rounds per phase. Thus **bytes sent per rank** are
+Start with four ranks and 120 MB of gradients. Equal partitioning gives 30 MB chunks, sent over three rounds per phase. Across both phases, each rank sends 180 MB, rather than the 360 MB required to send its whole gradient separately to the other three ranks.
+
+Generalize to $P$ ranks and a message of $S$ bytes per rank, assuming equal chunks on an ideal ring. Each round sends $S/P$, with $P-1$ rounds per phase. Thus **bytes sent per rank** are
 
 $$V_{\text{send}}=2\frac{P-1}{P}S.$$
 
-Received bytes are equal; counting both directions doubles this number. With four ranks and 120 MB of gradients, each rank sends 180 MB, rather than the 360 MB required to send its whole gradient separately to the other three ranks.
+Received bytes are equal; counting both directions doubles this number.
 
 With per-round latency $\alpha$ and effective bandwidth $B$, a simplified serial-round cost is
 
@@ -105,9 +109,20 @@ Record which parameter version each gradient was computed from, how stale an upd
 
 ## FSDP and ZeRO reduce replicated state
 
-[ZeRO](https://arxiv.org/abs/1910.02054) progressively shards optimizer states, gradients, and parameters. The [FSDP2 tutorial](https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html) explains a full-sharding implementation. They are not identical APIs, but address duplicated training state.
+Which persistent allocations does sharding actually reduce? Suppose parameters, gradients, and optimizer states occupy 2, 2, and 12 GB. On four devices, ideal persistent state is:
 
-One full-shard path that reshards after computation is:
+| Strategy | Per-device state |
+| --- | ---: |
+| Replicate all | $2+2+12=16$ GB |
+| ZeRO Stage 1: shard optimizer only | $2+2+12/4=7$ GB |
+| ZeRO Stage 2: shard optimizer and gradients | $2+2/4+12/4=5.5$ GB |
+| ZeRO Stage 3: shard all three | $(2+2+12)/4=4$ GB |
+
+This excludes activations, communication buffers, and temporary gathers. Four GB is not a peak-memory promise, and the largest computational unit must still fit.
+
+These stages correspond to [ZeRO](https://arxiv.org/abs/1910.02054)'s progressive sharding of optimizer states, gradients, and parameters. The [FSDP2 tutorial](https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html) explains a full-sharding implementation. They are not identical APIs, but address duplicated training state.
+
+How do shards participate in computation? One full-shard path that reshards after computation is:
 
 ```text
 local parameter shard
@@ -119,20 +134,9 @@ local parameter shard
 
 Parameter release, backward regathers, and prefetching affect peak memory and communication. Dividing total training memory by device count is insufficient.
 
-Suppose parameters, gradients, and optimizer states occupy 2, 2, and 12 GB. On four devices, ideal persistent state is:
-
-| Strategy | Per-device state |
-| --- | ---: |
-| Replicate all | $2+2+12=16$ GB |
-| ZeRO Stage 1: shard optimizer only | $2+2+12/4=7$ GB |
-| ZeRO Stage 2: shard optimizer and gradients | $2+2/4+12/4=5.5$ GB |
-| ZeRO Stage 3: shard all three | $(2+2+12)/4=4$ GB |
-
-This excludes activations, communication buffers, and temporary gathers. Four GB is not a peak-memory promise, and the largest computational unit must still fit.
-
 ### Same communication volume, same speed? {#zero-communication}
 
-After a Stage 2 update, each rank owns only the part of the parameters it updated. Each still needs a complete model for the next forward, so the updated shards must be gathered. Avoiding persistent full gradients does not remove synchronization.
+Where do the updated parameters go? In Stage 2, each rank updates only its assigned parameter shard. Each still needs a complete model for the next forward, so the updated shards must be gathered. Avoiding persistent full gradients does not remove synchronization.
 
 To calculate communication volume, use four ranks, 8 MiB each for the full gradient and parameter tensors, and evenly partitioned ring collectives. Count **payload sent per rank**, without adding received bytes again. A reduce-scatter or all-gather sends $8\times3/4=6$ MiB per rank:
 
@@ -147,6 +151,8 @@ This instantiates the analysis in [ZeRO §7](https://arxiv.org/html/1910.02054v3
 Equal bytes still need not take equal time. Message sizes, launch timing, overlap with computation, and the slowest rank all affect waiting. Measure **volume, scheduling, and exposed wait**, not just whether the byte count increased. This is arithmetic, not a multi-GPU benchmark.
 
 ## TP splits individual matrix operations
+
+Should two GPUs concatenate their partial outputs or add them? Start with a full matrix product: for $X=[1,2]$ and $W=\begin{bmatrix}1&3\\2&4\end{bmatrix}$, the output is $[5,11]$. Splitting the weight matrix by rows and the input along the matching dimension produces $[1,3]$ and $[4,8]$, which must be summed, not averaged. The combination rule depends on which dimension is partitioned.
 
 Using row vectors, $Y=XW$ can be column-partitioned:
 
@@ -166,8 +172,6 @@ W&=\begin{bmatrix}W_1\\W_2\end{bmatrix},\\
 Y&=X_1W_1+X_2W_2.
 \end{aligned}
 $$
-
-For $X=[1,2]$ and $W=\begin{bmatrix}1&3\\2&4\end{bmatrix}$, the full output is $[5,11]$. Row partitioning produces $[1,3]$ and $[4,8]$, which must be summed, not averaged.
 
 [Megatron-LM](https://arxiv.org/abs/1909.08053) shows how complementary column and row partitions organize Transformer layers. Whether an intermediate remains sharded depends on the next operation; gathering after every layer may just move the data an extra time.
 
@@ -191,13 +195,15 @@ Two stages and four microbatches give 80%. Real bubbles, forward/backward imbala
 
 ### Why does PipeDream retain old weights?
 
-When a pipeline allows updates between a microbatch's forward and backward passes, parameters can change in between. Weight stashing retains the forward version so backward uses matching local derivatives. [PipeDream](https://arxiv.org/abs/1806.03377)
-
 For a two-layer scalar model $y=bax$ with $x=1,a=2,b=3,L=y^2/2$, forward gives 6 and the correct $\partial L/\partial a$ is $6\times3=18$. Reusing the old activation but a newly updated $b=4$ gives 24. This illustrates the version issue, not a complete PipeDream schedule.
+
+When a pipeline allows updates between a microbatch's forward and backward passes, parameters can change in between. Weight stashing retains the forward version so backward uses matching local derivatives. [PipeDream](https://arxiv.org/abs/1806.03377)
 
 Retained versions consume state. Local forward/backward consistency does not automatically mean every stage uses the same global version, or make asynchronous training equivalent to synchronous large-batch SGD. Compare update semantics as well as throughput, not just pipeline bubbles.
 
 ## SP, CP, and EP partition different things
+
+Start with a concrete question: split eight tokens across two GPUs, four each—can each GPU work independently? If each device computes causal attention only locally, token eight loses access to the first four tokens. That changes the model. CP must preserve those dependencies while distributing memory and computation; concatenating local outputs is insufficient.
 
 | Method | What to inspect | What cannot be omitted |
 | --- | --- | --- |
@@ -207,9 +213,7 @@ Retained versions consume state. Local forward/backward consistency does not aut
 
 These names follow [Megatron's SP / CP distinction](https://docs.nvidia.com/megatron-core/developer-guide/latest/user-guide/features/context_parallel.html). Other frameworks may use SP more broadly. Inspect the data flow, not only the name.
 
-Split eight tokens across two GPUs, four each. If each device computes causal attention only locally, token eight loses access to the first four tokens. That changes the model. CP must preserve those dependencies while distributing memory and computation; concatenating local outputs is insufficient.
-
-EP solves a different problem. If a token selects two remote experts, send its activation, then return and combine the results at the original position. [Megatron's MoE parallelism guide](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md) describes composition with other strategies. The fraction of selected experts is not a communication-byte ratio or a guaranteed speedup. Hot experts can still leave other devices waiting.
+EP solves a different problem. If a token selects two remote experts, send its activation, then return and combine the weighted results at the original position. [Megatron's MoE parallelism guide](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md) describes composition with other strategies. The fraction of selected experts is not a communication-byte ratio or a guaranteed speedup. Hot experts can still leave other devices waiting.
 
 <span id="serving-dp-does-not-always-mean-independent-replicas"></span><span id="where-does-pp-keep-kv-and-what-crosses-a-boundary"></span>
 
@@ -219,11 +223,11 @@ The parallelism used in training needs a different question at serving time: wit
 
 ## Offload moves state, but transfers still take time
 
-CPU memory relieves GPU pressure; it is not free expansion. CPU optimizer updates require accounting for outgoing gradients, returning parameters, and CPU compute. With small batches, a fast GPU can spend its time waiting for the CPU. [ZeRO-Offload](https://arxiv.org/abs/2101.06840) studies these placement and scheduling choices.
+For example, transfer 2 GB of gradients out and 2 GB of weights back in sequence, with assumed effective bandwidth of 25 GB/s in each direction. Transfer alone takes `2/25 + 2/25 = 0.16` seconds, before the CPU update. These are decimal GB and hypothetical values, not a measured device specification.
+
+That is why offload needs both a capacity budget and a time budget. CPU memory relieves GPU pressure; it is not free expansion. CPU optimizer updates require accounting for outgoing gradients, returning parameters, and CPU compute. With small batches, a fast GPU can spend its time waiting for the CPU. [ZeRO-Offload](https://arxiv.org/abs/2101.06840) studies these placement and scheduling choices.
 
 Dividing ideal state memory by device count covers only part of the budget. Temporary materialization, activations, prefetching, bandwidth, and optimizer completion still matter. Larger models, longer sequences, and more devices can each move the bottleneck.
-
-For example, transfer 2 GB of gradients out and 2 GB of weights back in sequence, with assumed effective bandwidth of 25 GB/s in each direction. Transfer alone takes `2/25 + 2/25 = 0.16` seconds, before the CPU update. These are decimal GB and hypothetical values, not a measured device specification.
 
 Hiding this time requires independent computation and timely arrival of weights needed by the next step. The critical path depends on dependencies, prefetch granularity, memory, and contention; taking one `max` over every duration is not a complete schedule model.
 
@@ -247,3 +251,5 @@ Use a tiny model, fixed samples, and disabled dropout to compare one single-devi
 For performance, record valid tokens/s, per-device peaks, communication, and straggler waits. High utilization alone does not establish useful work; padding and repeated failed attempts are not productive throughput.
 
 Start simply: a DDP baseline if the model fits; sharding when state does not fit; TP for oversized within-layer computation; PP for layer partitioning. Every added parallelism should explain both the saving and the new communication.
+
+For a code walkthrough of these three basic partitions, read `data_parallelism_main`, `tensor_parallelism_main`, and `pipeline_parallelism_main` in [Stanford CS336's `lecture_07.py`](https://github.com/stanford-cs336/lectures/blob/main/lecture_07.py). Trace data slices, gradient reductions, and stage-to-stage transfers. The latter two demonstrate forward passes only, leave backward as an exercise, and omit communication/computation overlap. Use them to understand data flow, not as complete production trainers. When extending them into a multi-step training exercise, also check where gradients are cleared so they do not accumulate across updates unintentionally.

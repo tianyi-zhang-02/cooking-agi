@@ -6,9 +6,9 @@
 
 ## Follow one response into training {#infrastructure-decides-whether-the-algorithm-runs-as-intended}
 
-A model receives a multiplication question, calls a calculator, reads the result, and answers. That gives us an execution trace. Training on it requires more: which tokens did the model choose? Which weights generated them? Did the task finish, or did a length limit stop collection?
+A model receives a multiplication question, calls a calculator, reads the result, and answers. That gives us an execution trace, but not necessarily a training-ready example. Which tokens did the model choose? Which weights generated them? Did the task finish, or did a length limit stop collection?
 
-These are not optional debugging logs. Without them, we may not even know where to apply the loss. Start with the rollout record, then examine throughput, log-probs, and context. All numerical examples below are teaching assumptions, not framework benchmarks.
+These are not optional debugging logs. Without them, we may not even know where to apply the loss. Start with the rollout record, follow the dependencies between generation, scoring, and updates, then check log-probabilities and context. All numerical examples below are teaching assumptions, not framework benchmarks.
 
 ## A rollout need not be a complete answer {#why-this-layer-gets-ignored}
 
@@ -21,7 +21,7 @@ These are not optional debugging logs. Without them, we may not even know where 
 | Episode | The task from its start to success, failure, or another defined endpoint | It may contain several model calls and environment responses |
 | Fragment | A collected part of that process | Collection can stop before the task ends |
 
-An end marker may end only the current assistant turn; a pending tool result means the task is not yet complete. Conversely, for a task requiring just one answer, a completion can be the entire episode.
+An end marker may end only the current assistant turn; a pending tool result means the task is not yet complete. Conversely, for a task requiring just one answer, a completion can be the entire episode. These boundaries determine when scoring is possible and which actions belong to the same training record.
 
 <figure class="worked-update worked-update--pairs">
 <figcaption>Keep policy actions separate from environment observations in the same conversation.</figcaption>
@@ -33,7 +33,7 @@ An end marker may end only the current assistant turn; a pending tool result mea
 
 ### What a usable training record contains {#rollout-record}
 
-Consider these invented span lengths; they do not represent a real tokenizer's output:
+Break the calculator interaction into the following spans. Their invented lengths do not represent a real tokenizer's output:
 
 | Span | Tokens | Included as policy actions in loss? | Reason |
 | --- | ---: | --- | --- |
@@ -43,7 +43,7 @@ Consider these invented span lengths; they do not represent a real tokenizer's o
 | Assistant final answer | 5 | Yes | The model's generated answer |
 | Padding | 2 | No | Batch alignment only |
 
-There are 20 input positions but only 9 valid actions. Dividing policy loss by 20 would change its scale. Tool results still condition later actions even though they receive no direct policy loss. Excluding their loss does not mean deleting them from context. Whether role or control markers are sampled actions depends on the generation protocol, not their appearance in a decoded string.
+There are 20 input positions but only 9 valid actions. If the objective averages policy loss over valid actions, the denominator is 9; dividing by 20 would change its scale. Tool results still condition later actions even though they receive no direct policy loss. Excluding their loss does not mean deleting them from context. Whether role or control markers are sampled actions depends on the generation protocol, not their appearance in a decoded string.
 
 A record needs the following kinds of information; field names vary by implementation:
 
@@ -81,7 +81,7 @@ assert abs(action_mean(values, mask) - 28 / 9) < 1e-12
 
 ### Did the task end, or did collection run out of time? {#rollout-boundaries}
 
-Suppose a step gives reward 0.2, the next-state value is 0.8, and the discount is $\gamma=0.9$. For a one-step TD target:
+After aligning actions, check why collection ended. Suppose a step gives reward 0.2, the next-state value is 0.8, and the discount is $\gamma=0.9$. For a one-step TD target:
 
 - True task termination leaves no future return: target = 0.2.
 - An external collection limit interrupts a task that could continue: retain the bootstrap, giving `0.2 + 0.9 × 0.8 = 0.92`.
@@ -92,9 +92,26 @@ Bootstrap from the interrupted trajectory's final observation, not the first obs
 
 ## Find out where sampling time goes {#one-sampling-throughput-rls-real-cost-center}
 
-A batch can pass through generation, tool waits, scoring, training, and weight synchronization. GPU utilization alone can make “waiting for a tool” look like “the model is too small.” As NVML defines it, the utilization in `nvidia-smi` is only the fraction of the sample period during which some kernel was running; it says nothing about how much compute is used. See [Performance: the roofline, arithmetic intensity, and MFU](../12-infra/performance.en.md).
+A batch can pass through generation, tool waits, scoring, training, and weight synchronization. GPU utilization alone can make “waiting for a tool” look like “the model is too small.” As NVML defines it, the utilization in `nvidia-smi` is only the fraction of the sample period during which some kernel was running; it says nothing about how much compute is used. See [Performance: the roofline, arithmetic intensity, and MFU](../12-infra/performance.en.md). Before adding machines, inspect the dependencies to see which waits can actually be removed.
 
-Take hypothetical durations: 30 seconds sampling, 10 scoring, 20 training, and 5 synchronizing. Serial execution takes 65 seconds. If the first three stages have independent resources and overlap perfectly across batches, while the 5-second synchronization cannot overlap, the steady-state interval has a lower bound of `max(30, 10, 20) + 5 = 35` seconds: about 1.86× faster. This is not a general asynchronous speedup. The first batch still traverses all stages; contention, stragglers, and networking add time.
+### Within one batch, what has to wait? {#generation-to-update}
+
+In the calculator task, the final answer depends on the tool result, and scoring depends on the relevant answer or trajectory. For a batch intended for an update, check the following dependencies. They do not require every operation to run serially in one process.
+
+| Work | Prerequisites | What becomes available next |
+| --- | --- | --- |
+| Generation and tool interaction | Input context, the loaded behavior policy, and sampling settings | Actions, observations, generation versions, and stop reasons |
+| Scoring and training preparation | The answer or trajectory needed for scoring; models and inputs required for each statistic | Rewards, scoring status, and any old / reference log-probs, values, or other statistics the algorithm needs |
+| Target computation and update | Training records and required statistics; advantage estimation, for example, needs the relevant rewards and any required values | Weights updated by backpropagation and optimizer steps using the action-masked loss |
+| Weight publication | A completed update, followed by loading and version confirmation on the generation side | A new version that later rollouts can actually use |
+
+Reward scoring, reference-policy evaluation, and value estimation may run in parallel once their inputs are ready. Missing scores, however, cannot simply become zero rewards in an update. Nor does finishing an update mean the generator has loaded the new weights. For PPO's collection, advantage estimation, optimization, and policy handoff, see [Algorithm 1 in Section 5 of the original paper](https://arxiv.org/pdf/1707.06347#page=5). This is not a requirement that every method use both reference and value models.
+
+### Across batches, what can overlap? {#pipeline-overlap}
+
+Asynchronous execution interleaves work from different batches; it does not remove dependencies within a record. If each batch must use the weights updated and published by the previous batch, the next batch cannot begin generation early. Allowing that overlap introduces policy-version lag that must be managed.
+
+Take hypothetical durations: 30 seconds sampling, 10 scoring, 20 training, and 5 synchronizing. Serial execution takes 65 seconds. If independent resources and early generation allow the first three stages to overlap perfectly across batches, while each 5-second synchronization cannot overlap other work, the steady-state interval has a lower bound of `max(30, 10, 20) + 5 = 35` seconds: about 1.86× faster. The 35 seconds bounds the interval between completed batches in an ideal steady state, not one batch's generation-to-update latency. This is not a general asynchronous speedup. The first batch still traverses all stages; contention, stragglers, and networking add time.
 
 | Design | What is easier or cheaper? | What must be managed? |
 | --- | --- | --- |
@@ -106,7 +123,7 @@ Track generated tokens/s, loss-bearing tokens/s, queue-wait quantiles, policy-ve
 
 ## Identical weights can still produce different log-probs {#two-numerical-agreement-a-silent-crack}
 
-Separate the raw model distribution, the sampling distribution after temperature / top-p processing, and the distribution recomputed by the trainer. A field named `logprob` does not establish which one it represents.
+Version records tell us how old the data is, but not whether its probabilities agree with the trainer's. Separate the raw model distribution, the sampling distribution after temperature / top-p processing, and the distribution recomputed by the trainer. These may or may not coincide. A field named `logprob` does not establish which one it represents.
 
 For example, raw probabilities `[0.8, 0.2]` become `[2/3, 1/3]` under temperature 2. If the new model gives the second action probability 0.25, its ratio to actual behavior is `0.25 / (1/3) = 0.75`. Using the raw 0.2 denominator instead gives 1.25—even reversing whether that action has become more likely. Top-p truncation also changes support; ordinary importance sampling cannot recover actions that collection never sampled.
 
@@ -126,7 +143,9 @@ The guide draws on several primary sources worth reading directly. The blog post
 
 Frameworks are adopting these corrections too. As of October 2026, [TRL v1.16.0](https://huggingface.co/docs/trl/v1.16.0/en/grpo_trainer) turns on this kind of correction by default when generating with vLLM (`vllm_importance_sampling_correction=True`; the default mode in the config signature is `sequence_mask`, which masks whole sequences, with `vllm_importance_sampling_clip_max=3.0`). Enabling a correction by default does not mean the problem is solved: find where the mismatch comes from before choosing between truncating and discarding.
 
-After aligning sampling semantics, inspect kernels, precision, templates, positions, and masks. Score identical tokens and weights on both sides, examining valid-action differences by quantile, extremes, and length. Bitwise equality across hardware is not the requirement. Large ratios alone do not prove data staleness: alignment errors and numerical differences can also cause them.
+The [configuration field definitions at the same version](https://github.com/huggingface/trl/blob/v1.16.0/trl/trainer/grpo_config.py) confirm `sequence_mask` as the actual default, although the file's mode descriptions still label `token_truncate` as the default. Follow the field definition rather than conflating the two modes.
+
+After aligning sampling semantics, inspect kernels, precision, templates, positions, and masks. Score the same tokens with the same weights on both sides. Examine differences over valid actions, including quantiles, extremes, and length-based slices. Bitwise equality across hardware is not the requirement. Large ratios alone do not prove data staleness: alignment errors and numerical differences can also cause them.
 
 <details markdown="1">
 <summary>Why is the mean difference insufficient?</summary>
@@ -139,7 +158,7 @@ Also distinguish what you monitor: a raw ratio outside the clipping interval doe
 
 ## Removed context is information the policy no longer has {#three-context-management-so-long-tasks-can-finish}
 
-Return to the tool task. The user initially says “do not modify the original file.” Several turns later, the system removes that sentence to fit the context window. If the model then changes the file, reward design is not the only issue: the constraint was missing when it made the decision. For how truncation and compression affect scoring and the loss in multi-turn agent training, see the section “When episodes get long” in the frontier draft on [agent credit assignment and training](../11-frontier/agentic-rl/credit-and-training.en.md).
+Probability agreement is not enough; also check what the model could see. Return to the tool task. The user initially says “do not modify the original file.” Several turns later, the system removes that sentence to fit the context window. If the model then changes the file, reward design is not the only issue: the constraint was missing when it made the decision. For how truncation and compression affect scoring and the loss in multi-turn agent training, see the section “When episodes get long” in the frontier draft on [agent credit assignment and training](../11-frontier/agentic-rl/credit-and-training.en.md).
 
 | Approach | Benefit | What to validate |
 | --- | --- | --- |
@@ -151,7 +170,7 @@ These choices affect completion, answer quality, and latency—not just whether 
 
 ## Trace a small batch before scaling up {#what-the-three-have-in-common}
 
-You do not need the most elaborate asynchronous system first. Fix a small set of tasks and trace sampling through loss: reconcile action counts, explain stop reasons, and verify rewards before optimizing waits. The point is not that algorithms matter less than engineering; it is to rule out code that does not implement the objective you think it does.
+You do not need the most elaborate asynchronous system first. Fix a small set of tasks and trace sampling through loss: reconcile action counts, explain stop reasons, verify rewards, and track generation and update versions before optimizing waits. The point is not that algorithms matter less than engineering; it is to rule out code that does not implement the objective you think it does.
 
 Nor are these changes all objective-preserving. Changing truncated-response rewards, filtering, or sampling transformations can change the training distribution, estimator, or task definition. Record what changed rather than grouping everything under “performance optimization.”
 
@@ -161,15 +180,16 @@ Nor are these changes all objective-preserving. Changing truncated-response rewa
 2. Have unscored data, tool failure, task failure, and length truncation quietly become the same zero reward?
 3. What are old, current, reference, and actual behavior distributions? Is sampling configuration recorded?
 4. Does the synchronous / asynchronous comparison report throughput, data age, and quality at equal time?
-5. Beyond weights, is there an explicit resume policy for queues, samplers, tools, and context state?
+5. Beyond weights, is there an explicit resume policy for queues, samplers, tools, and context state? Can you verify which version the generator actually loaded?
 
 ## Where to read next {#where-to-read-next}
 
 - [Experiments and debugging](deep-rl/experiments.en.md): check the loop with small experiments.
+- [An RL update end to end](../06-systems/rl-systems.en.md): connect rollout, learning, and weight publication in NeMo RL, verl, and AReaL, then examine queues and policy lag in [async RL](../06-systems/async-rl.en.md).
 - [Checkpoints and resuming](../practice/post-training/checkpoint-and-resume.en.md): verify the next update, not merely file loading.
 - [Distillation](distillation.en.md): connect student rollouts to teacher supervision.
 - [The same base, different post-training](same-base-different-posttraining.en.md): algorithm and system changes in a specific report.
 
 ## The one thing to retain {#quick-learning-why-post-training-is-first-a-systems-problem}
 
-A rollout is more than generated training text. It must preserve enough information to explain which choices the model made and under what conditions. Establish that record before making collection faster.
+A rollout is more than generated training text. It must preserve enough information to explain which choices the model made and under what conditions. Make sure that record supports correct scoring and updates before making collection faster.

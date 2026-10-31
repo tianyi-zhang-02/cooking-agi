@@ -15,6 +15,8 @@
 | 你想了解什么 | 阅读入口 | 重点 |
 | --- | --- | --- |
 | 学过模型，但不知道完整产品有哪些环节 | [完整 ML 系统](ml-system/README.md) | 三条时间线、数据与服务接口、模块验收和团队分工 |
+| 想弄清 GPU、多卡训练和 RL 框架怎么接起来 | [ML / LLM 运行链路](../06-systems/mlsys-llmsys-map.md#learning-route) | 从 CPU / GPU 执行到 Megatron、集群与异步 RL，不需要先租 GPU |
+| 想把原理对应到开源库，知道慢了或训坏了怎么查 | [源码拆解](runtime-reading/README.md) | Prefill / decode、vLLM / SGLang 调度、NeMo RL 更新与训练稳定性 |
 | 写过代码，但还没把网页、服务和自动检查接起来 | [小项目入门](web-lab/README.md) | 静态站、CI/CD、请求、数据保存与失败提示 |
 | 拿到需求，不知道从哪一步设计 | [系统设计练习](../learn/system-design/README.md) | 先明确目标和约束，再比较组件、成本与失败处理 |
 | 好内容没有被推荐出来 | [推荐系统拆解](recommender-systems/README.md) | 是没召回、被过滤，还是排序靠后 |

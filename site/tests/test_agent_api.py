@@ -131,8 +131,8 @@ class AgentApiTests(unittest.TestCase):
 
     def test_card_fields_do_not_run_together(self):
         text = self.notes["06-systems/inference-frameworks.en.md"]["text"]
-        self.assertIn("Generation engine — Schedule work and reuse state", text)
-        self.assertNotIn("engineSchedule", text)
+        self.assertIn("Generation engine — Choose which requests run together", text)
+        self.assertNotIn("engineChoose", text)
 
     def test_read_one_section(self):
         path, note = next((p, n) for p, n in self.notes.items() if "## Self-check" in n["text"])

@@ -1,4 +1,4 @@
-# 术语表 — 中文正文首次出现时标注英文，每段最多两处；已有英文括注不重复添加。
+# 术语表 — 中文正文每次出现时都标注英文；该处已有英文括注则不重复添加。
 #
 # 格式：中文<TAB>English<TAB>一句话解释（可留空）
 # 只需在这里加一行，全站生效；不要在正文里手写括号注释。
@@ -91,7 +91,12 @@
 跨卡聚合	cross-rank gather	把各张卡上的张量收集到一起，让每张卡都看到全局视图
 激活值	activations	神经网络前向计算的中间输出；训练时会保存部分中间结果供反向使用，显存占用取决于长度、batch 和重计算策略
 梯度检查点	activation checkpointing	不存激活、反向时重算，用算力换显存
-数据并行	data parallelism	每张卡拿不同的数据、算同一个模型，再同步梯度
+数据并行	data parallelism, DP	多个模型副本处理不同数据；训练时同步梯度，推理时通常分担请求
+张量并行	tensor parallelism, TP	把同一层的张量和计算拆给多个设备，并通过通信组合结果
+流水线并行	pipeline parallelism, PP	把模型的不同层放到不同设备，让微批次依次经过各阶段
+专家并行	expert parallelism, EP	把 MoE 专家分布到不同设备，将 token 发送给选中的专家计算
+上下文并行	context parallelism, CP	按序列位置划分长上下文，各设备计算一部分位置并交换所需信息
+序列并行	sequence parallelism, SP	沿序列维度划分部分计算或激活；具体切分方式取决于实现
 序列级重要性采样	GSPO	把重要性比值按整条序列聚合，而不是逐 token；权重误差会沿序列累积
 权重同步	refit	训练器更新完权重后推回推理引擎，让下一轮 rollout 用上新策略
 
@@ -145,6 +150,26 @@
 逐位相同	bitwise identical	每一个二进制位都一致，比数值近似相等更严格
 惰性代理	lazy proxy	保留原接口名称，但只在真正使用时加载背后的依赖
 
+前缀复用	prefix reuse	复用相同输入前缀已经算好的中间结果，避免重复计算
+前缀缓存	prefix caching	保留可复用前缀的 KV，让后续匹配的请求少做一部分 prefill
+键值缓存	key–value cache, KV cache	保存已处理位置的 key 和 value，供后续注意力计算使用
+连续批处理	continuous batching	每轮重新安排活跃请求，已完成请求退出后让其他请求加入
+分块预填充	chunked prefill	将长输入的 prefill 拆成多个较小的计算块，便于调度
+推测解码	speculative decoding	先提出候选 token，再由目标模型验证，以减少串行生成的等待
+缓存命中率	cache hit rate	请求或 token 中有多少命中已有缓存；比较前需说清统计单位和分母
+缓存命中	cache hit	查找时找到满足当前复用条件的缓存内容
+缓存卸载	cache offloading	将缓存移到其他存储层，使用时再搬回或按实现直接读取
+缓存驱逐	cache eviction	移除已有缓存条目以腾出容量，之后需要时可能要重算或重新加载
+分层缓存	hierarchical caching	用多个速度和容量不同的存储层保存缓存
+首 token 延迟	time to first token, TTFT	从请求发出或被接收到第一个输出 token 的等待时间；测量时需注明起点
+尾延迟	tail latency	延迟分布中较慢那部分请求的耗时，通常用 P95 或 P99 等分位数表示
+吞吐量	throughput	单位时间内完成的请求或处理的 token 数，需注明计量方式与负载
+吞吐率	throughput	单位时间内完成的请求或处理的 token 数，需注明计量方式与负载
+吞吐	throughput	单位时间内完成的请求或处理的 token 数，需注明计量方式与负载
+算术强度	arithmetic intensity	计算操作量与数据传输量之比；需说明统计哪一层存储的数据传输
+异步调度	asynchronous scheduling	让调度准备与其他工作重叠执行；具体能重叠哪些步骤取决于实现
+请求调度	request scheduling	决定哪些请求何时执行，以及分配多少计算与缓存资源
+
 # 大模型学习
 分词器	tokenizer	把原始字符串切成 token 并映射为整数 ID 的组件
 子词	subword	介于完整单词和字符之间的可复用字符串片段
@@ -156,7 +181,7 @@
 序列到序列	sequence-to-sequence, Seq2Seq	用 encoder 表示输入、再由 decoder 生成输出序列的架构
 教师强制	teacher forcing	训练 decoder 时使用真实前缀而非模型自己预测的前缀
 反向传播穿越时间	backpropagation through time, BPTT	把递归计算沿时间展开后执行反向传播
-预填充	prefill	一次并行处理完整 prompt 并建立 KV cache 的推理阶段
+预填充	prefill	处理尚未缓存的输入位置并建立 KV cache 的阶段；可分块完成，不一定一次处理完整 prompt
 自回归解码	autoregressive decoding	把刚生成的 token 作为下一步输入并逐步继续生成
 自回归	Autoregressive, AR	按一个顺序分解联合概率，每次生成都以之前已确定的内容为条件
 扩散语言模型	Diffusion Language Model, dLLM	通过学习逆转加噪过程生成文本；具体噪声、生成顺序与采样器随方法而异

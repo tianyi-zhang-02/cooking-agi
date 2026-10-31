@@ -16,9 +16,9 @@ class ChineseCopyTests(unittest.TestCase):
             ("预训练", "pre-training", "学习通用能力"),
         ]
 
-    def test_first_mention_and_longest_term(self):
+    def test_every_occurrence_uses_longest_term_and_glossary_is_unique(self):
         output, used = build.annotate("<p>多头注意力。多头注意力。</p>", self.terms)
-        self.assertEqual(output.count('class="term"'), 1)
+        self.assertEqual(output.count('class="term"'), 2)
         self.assertIn("（multi-head attention）", output)
         self.assertEqual([term["zh"] for term in used], ["多头注意力"])
 
@@ -30,12 +30,12 @@ class ChineseCopyTests(unittest.TestCase):
         self.assertIn("（variance）", output)
         self.assertEqual([term["zh"] for term in used], ["方差"])
 
-    def test_paragraph_limit_survives_inline_markup(self):
+    def test_all_terms_are_annotated_across_inline_markup_and_paragraphs(self):
         output, used = build.annotate(
             "<p><strong>预训练</strong>之后是<em>监督微调</em>和强化学习。</p>"
             "<p>强化学习再单独讲。</p>", self.terms)
         paragraphs = output.split("</p>")
-        self.assertEqual(paragraphs[0].count('class="term"'), 2)
+        self.assertEqual(paragraphs[0].count('class="term"'), 3)
         self.assertEqual(paragraphs[1].count('class="term"'), 1)
         self.assertEqual([term["zh"] for term in used], ["预训练", "监督微调", "强化学习"])
 
@@ -44,10 +44,12 @@ class ChineseCopyTests(unittest.TestCase):
             with self.subTest(label=label):
                 source = f"<p>{label}。</p><p>强化学习。</p>"
                 output, used = build.annotate(source, self.terms)
-                self.assertEqual(output, source)
+                self.assertTrue(output.startswith(f"<p>{label}。</p>"))
+                self.assertEqual(output.count('class="term"'), 1)
+                self.assertIn('<span class="term-en">（RL）</span>', output)
                 self.assertEqual([term["zh"] for term in used], ["强化学习"])
 
-    def test_protected_content_does_not_consume_first_mention(self):
+    def test_protected_content_remains_unchanged(self):
         for tag in ("h2", "a", "code", "pre", "button", "label", "summary", "svg"):
             with self.subTest(tag=tag):
                 protected = f"<{tag}>强化学习</{tag}>"
@@ -66,15 +68,64 @@ class ChineseCopyTests(unittest.TestCase):
             with self.subTest(label=label):
                 source = f"<p>这些是 {label}。</p><p>反事实测试。</p>"
                 output, used = build.annotate(source, terms)
-                self.assertEqual(output, source)
+                self.assertTrue(output.startswith(f"<p>这些是 {label}。</p>"))
+                self.assertEqual(output.count('class="term"'), 1)
+                self.assertIn('<span class="term-en">（counterfactual）</span>', output)
                 self.assertEqual([term["zh"] for term in used], ["反事实"])
 
     def test_chinese_phrase_extension_keeps_existing_english(self):
         terms = [("反事实", "counterfactual", "改变条件，检查结果")]
         source = "<p>反事实测试（counterfactual tests），然后是反事实分析。</p>"
         output, used = build.annotate(source, terms)
-        self.assertEqual(output, source)
+        self.assertTrue(output.startswith("<p>反事实测试（counterfactual tests），然后是"))
+        self.assertEqual(output.count('class="term"'), 1)
+        self.assertIn('<span class="term-en">（counterfactual）</span>', output)
         self.assertEqual(len(used), 1)
+
+    def test_existing_english_across_inline_tags_is_preserved(self):
+        for paragraph in (
+            '<p><strong>强化学习</strong>（reinforcement learning, RL）。</p>',
+            '<p>强化学习（<em>RL</em>）。</p>',
+            '<p><em>RL</em>（<strong>强化学习</strong>）。</p>',
+            '<p>强化学习（<code>RL</code>）。</p>',
+        ):
+            with self.subTest(paragraph=paragraph):
+                output, used = build.annotate(paragraph + '<p>强化学习。</p>', self.terms)
+                self.assertTrue(output.startswith(paragraph))
+                self.assertEqual(output.count('class="term"'), 1)
+                self.assertEqual([term["zh"] for term in used], ["强化学习"])
+
+    def test_translation_detection_does_not_cross_blocks_or_line_breaks(self):
+        for source in (
+            '<p>强化学习</p><p>（RL）</p>',
+            '<p>强化学习<br>（RL）</p>',
+            '<p>强化学习<br/>（RL）</p>',
+            '<table><tr><td>强化学习</td><td>（RL）</td></tr></table>',
+        ):
+            with self.subTest(source=source):
+                output, used = build.annotate(source, self.terms)
+                self.assertEqual(output.count('class="term"'), 1)
+                self.assertEqual([term["zh"] for term in used], ["强化学习"])
+
+    def test_later_parentheses_only_explain_the_adjacent_occurrence(self):
+        output, used = build.annotate('<p>强化学习和强化学习（RL）。</p>', self.terms)
+        self.assertEqual(output.count('class="term"'), 1)
+        self.assertTrue(output.endswith('和强化学习（RL）。</p>'))
+        self.assertEqual([term["zh"] for term in used], ["强化学习"])
+
+    def test_english_first_abbreviation_is_already_a_translation(self):
+        terms = [("强化学习", "reinforcement learning, RL", "根据回报学习")]
+        paragraph = '<p><strong>RL</strong>（强化学习）。</p>'
+        output, used = build.annotate(paragraph + '<p>强化学习。</p>', terms)
+        self.assertTrue(output.startswith(paragraph))
+        self.assertEqual(output.count('class="term"'), 1)
+        self.assertEqual([term["zh"] for term in used], ["强化学习"])
+
+    def test_repeated_terms_in_table_cells_are_annotated(self):
+        source = '<table><tr><td>强化学习和强化学习。</td><td>强化学习。</td></tr></table>'
+        output, used = build.annotate(source, self.terms)
+        self.assertEqual(output.count('class="term"'), 3)
+        self.assertEqual([term["zh"] for term in used], ["强化学习"])
 
     def test_unrelated_parentheses_do_not_hide_a_needed_annotation(self):
         terms = [("反事实", "counterfactual", "改变条件，检查结果")]

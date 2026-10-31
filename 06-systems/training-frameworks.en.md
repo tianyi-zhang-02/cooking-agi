@@ -4,17 +4,21 @@
 
 > Checked 2026-10-16. FSDP2 mechanics were first written against PyTorch v2.8.0 source; in October 2026 they were re-checked against v2.14.1 (released 2026-09-30), and the grouping, DTensor sharding and `reshard_after_forward` behaviour are unchanged. No multi-GPU performance benchmark was run for this note.
 
-A model that fits on one GPU but trains too slowly has a different problem from a model that does not fit at all. The first may benefit from processing more data in parallel. The second also needs a different way to store or partition state.
+Will switching to FSDP2 make training faster? First distinguish a model that fits on one GPU but trains too slowly from a model that does not fit at all. The first may benefit from processing more data in parallel. The second also needs a different way to store or partition state. Identify the bottleneck before choosing the stack.
 
 Start with [data, tensor, and pipeline parallelism](distributed-training.en.md) if these are new. Here we look at what a framework takes over—and what remains your responsibility.
 
 ## The names belong to different layers {#layers}
 
+Follow a small batch of sequences through one update: the data loader supplies inputs, model modules produce predictions, a loss function reduces predictions and targets to a scalar, autograd computes gradients, and the optimizer updates parameters using those gradients and its own state. The training loop connects these steps; the distributed strategy determines state placement and communication. Replacing one layer does not replace the whole workflow.
+
+For why these interfaces are separate, see [CMU's *Neural Network Library Abstractions*, slides 14–16 and 19–20](https://dlsyscourse.org/slides/7-nn-framework.pdf#page=14), focusing on the relationships between modules, losses, optimizers, and data loading.
+
 | Layer | Examples | Responsibility | What it does not decide |
 | --- | --- | --- | --- |
 | Model and objective | PyTorch, Transformers, custom losses | Forward computation, trainable parameters, autograd | Whether labels or objectives are appropriate |
 | Training loop | Custom loop, Trainer / TRL | Batches, loss, updates, validation | Data selection and test separation |
-| Distributed strategy | DDP, FSDP2, DeepSpeed ZeRO; TP / PP at larger scales | State placement and communication | Whether extra GPUs are worthwhile or results correct |
+| Distributed strategy | DDP, FSDP2, DeepSpeed ZeRO; tensor parallelism (TP) / pipeline parallelism (PP) at larger scales | State placement, computation, and communication | Whether extra GPUs are worthwhile or results correct |
 | Launch and configuration | torchrun, Accelerate | Processes, devices, backend configuration | These are not model architectures |
 | Post-training orchestration | NeMo RL, verl | Training, generation, rewards, weight synchronization | Reward validity and off-policy corrections |
 | Generation engine | vLLM, SGLang | Efficient evaluation or rollout generation | The trainer's optimizer step |
@@ -25,7 +29,7 @@ A run can use TRL, FSDP2, and vLLM together: one for the loop, one for sharding,
 
 DDP means Distributed Data Parallel; FSDP means Fully Sharded Data Parallel. Both can process different data on each rank. One key distinction is whether model state remains fully replicated.
 
-In a common DDP setup, each rank holds the full model, processes different data, and synchronizes gradients. If the model, optimizer, and a useful microbatch fit on each device, this is a straightforward baseline to inspect.
+In a common DDP setup, each training process, identified by a rank, holds the full model, processes different data, and synchronizes gradients. If the model, optimizer state, and a useful microbatch fit on each device, this is a straightforward baseline to inspect.
 
 Two GPUs processing four sequences each are not splitting one sequence in half. Accumulating eight microbatches gives $2\times4\times8=64$ sequences per update. Effective target tokens still depend on lengths, padding, and loss masks. Matching “64 sequences” alone does not match the objective.
 
@@ -33,7 +37,7 @@ FSDP primarily reduces replicated state. Gathering parameters introduces additio
 
 ## FSDP2 gathers parameters when a block needs them {#fsdp-lifecycle}
 
-Imagine four GPUs each holding a parameter shard. Before a Transformer block runs, they gather that block's parameters. They can release the full copies afterward, gather again for backward, and retain only their assigned portions of the reduced gradients.
+How can a GPU compute a whole layer when it stores only a shard? Imagine four GPUs each holding a parameter shard. Before a Transformer block runs, an all-gather assembles that block's parameters. The GPUs can release the full copies afterward, gather again for backward, and use reduce-scatter to retain only their assigned portions of the reduced gradients.
 
 <figure class="worked-update" lang="en">
 <ol>
@@ -44,7 +48,7 @@ Imagine four GPUs each holding a parameter shard. Before a Transformer block run
 <figcaption>This path assumes reshard_after_forward=True. Retention, prefetching, and mixed precision change the memory and communication timeline.</figcaption>
 </figure>
 
-[PyTorch v2.14.1 fully_shard](https://github.com/pytorch/pytorch/blob/v2.14.1/torch/distributed/fsdp/_fully_shard/_fully_shard.py) creates communication groups and represents shards with DTensor. Apply it to blocks first, then to remaining root parameters. A root-only call puts many parameters in one group, limiting opportunities to reduce transient memory and overlap communication.
+[PyTorch v2.14.1 fully_shard](https://github.com/pytorch/pytorch/blob/v2.14.1/torch/distributed/fsdp/_fully_shard/_fully_shard.py) groups the parameters covered by each call for communication and represents shards with DTensor. A common approach applies it to blocks first, then to remaining root parameters. A root-only call puts many parameters in one group, limiting opportunities to reduce transient memory and overlap communication with computation.
 
 These are **FSDP parameter communication groups**, not attention head groups or optimizer hyperparameter groups.
 
@@ -52,7 +56,7 @@ These are **FSDP parameter communication groups**, not attention head groups or 
 
 Consider one billion parameters with FP32 persistent parameters and gradients, two FP32 Adam moments, and no separate master copy. These components total $10^9\times(4+4+8)=16$ GB, or an ideal 4 GB per rank over four ranks. GB here is decimal, not GiB.
 
-Peak memory also includes activations, temporary full parameters, communication buffers, kernel workspace, and allocator overhead:
+Does that mean 4 GB of GPU memory is enough? No: peak memory also includes activations, temporary full parameters, communication buffers, kernel workspace, and allocator overhead:
 
 $$M_{\text{peak}}=\max_t\left(M_{\text{persistent}}(t)+M_{\text{activation}}(t)+M_{\text{temporary}}(t)\right).$$
 
@@ -72,9 +76,11 @@ Independent component peaks may occur at different times; summing them is not an
 
 FSDP does not automatically divide long-sequence activations across GPUs. Adding data-parallel ranks does not shrink a fixed per-rank microbatch either.
 
+Capacity and memory traffic are also separate concerns. [CMU's *GPU Acceleration*, slides 10–17](https://dlsyscourse.org/slides/12-gpu-acceleration.pdf#page=10), uses the memory hierarchy and tiled matrix multiplication to explain reuse within one GPU—a different level of optimization from sharding state across GPUs.
+
 ## Group size and parameter retention {#grouping}
 
-A large group reduces message count but creates a larger transient gather. Many tiny groups can spend too much time on message latency. Transformer-block grouping is a starting point to test, not a universal optimum.
+Return to the 20-block example: gather the whole model at once, or gather each block when it is needed? A large group reduces message count but creates a larger transient gather. Many tiny groups offer finer control but can spend too much time on message latency. Transformer-block grouping is a starting point to test, not a universal optimum.
 
 `reshard_after_forward=True` releases full parameters and pays for another gather in backward. `False` retains them longer to avoid that gather. **Root defaults can differ from inner-block defaults**, so the diagram states its assumption explicitly. [FSDP2 tutorial](https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
 

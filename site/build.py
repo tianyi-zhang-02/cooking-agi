@@ -106,6 +106,7 @@ def glossary_for_page(page, terms):
     filename = {
         "deep-rl": "glossary.deep-rl.tsv",
         "algorithms": "glossary.algorithms.tsv",
+        "ml-systems": "glossary.systems.tsv",
     }.get(page.section.get("group"))
     if filename is None:
         return terms
@@ -284,14 +285,15 @@ def contributors(repo: str):
 # glossary annotation
 # --------------------------------------------------------------------------- #
 class Annotator(HTMLParser):
-    """Wrap the FIRST occurrence of each glossary term in readable prose.
+    """Add English to every glossary occurrence in readable Chinese prose.
 
     Skips anything inside code, links or headings, so we never corrupt an
     identifier or a URL. Operates on rendered HTML, which is the only place we
-    can reliably tell prose from markup.
+    can reliably tell prose from markup. Existing English is retained at that
+    occurrence; the page glossary lists each term only once.
     """
 
-    def __init__(self, terms):
+    def __init__(self, terms, contexts=()):
         super().__init__(convert_charrefs=True)
         self.terms = sorted(terms, key=lambda term: -len(term[0]))
         self.seen = set()
@@ -299,7 +301,7 @@ class Annotator(HTMLParser):
         self.stack = []          # one entry per open element: does it protect?
         self.out = []
         self.used = []
-        self.block_counts = []
+        self.contexts = iter(contexts)
 
     @staticmethod
     def _protects(tag, attrs):
@@ -312,8 +314,6 @@ class Annotator(HTMLParser):
         return bool(classes & NOGLOSS_CLASSES)
 
     def handle_starttag(self, tag, attrs):
-        if tag in GLOSS_BLOCKS:
-            self.block_counts.append(0)
         if tag not in VOID:
             hit = self._protects(tag, attrs)
             self.stack.append(hit)
@@ -324,8 +324,6 @@ class Annotator(HTMLParser):
         self.out.append(self.get_starttag_text())
 
     def handle_endtag(self, tag):
-        if tag in GLOSS_BLOCKS and self.block_counts:
-            self.block_counts.pop()
         if tag not in VOID and self.stack:
             self.depth -= self.stack.pop()
             self.depth = max(0, self.depth)
@@ -340,6 +338,7 @@ class Annotator(HTMLParser):
     def handle_data(self, data):
         prose, math_stash = protect_math(data)
         text = html.escape(prose, quote=False)
+        context, offset = next(self.contexts, (text, 0))
         if self.depth == 0 and self.terms:
             # Collect non-overlapping matches against the ORIGINAL text, then
             # splice once. Replacing term by term would let a later term match
@@ -347,7 +346,6 @@ class Annotator(HTMLParser):
             # "映到同一向量空间靠内积召回" contains 向量, which would then split
             # the attribute open and leak markup into the page.
             hits, taken = [], []
-            matched = set(self.seen)
             for zh, en, gloss in self.terms:
                 for occurrence in re.finditer(re.escape(zh), text):
                     start, stop = occurrence.span()
@@ -356,30 +354,28 @@ class Annotator(HTMLParser):
                         continue
                     if any(start < end and stop > begin for begin, end in taken):
                         continue
-                    following = text[stop:]
+                    aliases = [alias.strip().casefold() for alias in en.split(",") if alias.strip()]
+                    following = context[offset + stop:]
                     existing = re.match(r"\s*[（(]([^()（）\n]{1,160})[)）]", following)
                     extended = re.match(r"[\u3400-\u9fff]{1,6}\s*[（(]([^()（）\n]{1,160})[)）]", following)
-                    if not existing and extended and en.casefold() in extended.group(1).casefold():
+                    if (not existing and extended and zh not in following[:extended.start(1)]
+                            and any(alias in extended.group(1).casefold() for alias in aliases)):
                         existing = extended
                     explained = bool(existing and re.search(r"[A-Za-z]", existing.group(1)))
                     consumed = existing.end() if explained else 0
-                    leading = re.search(r"([A-Za-z][A-Za-z0-9 /_-]{0,160})\s*[（(][^()（）\n]*$", text[:start])
-                    if (leading and en.casefold() in leading.group(1).casefold()
+                    leading = re.search(r"([A-Za-z][A-Za-z0-9 /_-]{0,160})\s*[（(][^()（）\n]*$", context[:offset + start])
+                    if (leading and any(alias in leading.group(1).casefold() for alias in aliases)
                             and re.match(r"[^()（）\n]*[)）]", following)):
                         explained = True
                     end = stop + consumed
                     taken.append((start, end))
-                    if zh not in matched:
-                        hits.append((start, zh, en, gloss, explained))
-                        matched.add(zh)
+                    hits.append((start, zh, en, gloss, explained))
 
             out, prev = [], 0
-            remaining = max(0, 2 - self.block_counts[-1]) if self.block_counts else 2
             for i, zh, en, gloss, explained in sorted(hits):
-                if not explained and remaining == 0:
-                    continue
-                self.seen.add(zh)
-                self.used.append({"zh": zh, "en": en, "gloss": gloss})
+                if zh not in self.seen:
+                    self.seen.add(zh)
+                    self.used.append({"zh": zh, "en": en, "gloss": gloss})
                 tip = html.escape(f"{en}" + (f" — {gloss}" if gloss else ""), quote=True)
                 out.append(text[prev:i])
                 if explained:
@@ -387,9 +383,6 @@ class Annotator(HTMLParser):
                 else:
                     out.append(f'<span class="term" tabindex="0" data-tip="{tip}">{zh}'
                                f'<span class="term-en">（{html.escape(en)}）</span></span>')
-                    remaining -= 1
-                    if self.block_counts:
-                        self.block_counts[-1] += 1
                 prev = i + len(zh)
             out.append(text[prev:])
             text = "".join(out)
@@ -399,8 +392,45 @@ class Annotator(HTMLParser):
         return "".join(self.out)
 
 
+class GlossaryContext(HTMLParser):
+    """Keep adjacent inline text together when detecting existing translations."""
+
+    boundaries = GLOSS_BLOCKS | {
+        "div", "section", "article", "figure", "figcaption", "blockquote",
+        "ul", "ol", "dl", "table", "tr", "pre", "script", "style", "svg",
+        "h1", "h2", "h3", "h4", "h5", "h6", "br", "hr",
+    }
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.segments = [[]]
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.boundaries:
+            self.segments.append([])
+
+    def handle_endtag(self, tag):
+        if tag in self.boundaries:
+            self.segments.append([])
+
+    def handle_data(self, data):
+        prose, _ = protect_math(data)
+        self.segments[-1].append(html.escape(prose, quote=False))
+
+    def result(self):
+        for segment in self.segments:
+            context = "".join(segment)
+            offset = 0
+            for text in segment:
+                yield context, offset
+                offset += len(text)
+
+
 def annotate(html_text, terms):
-    a = Annotator(terms)
+    context = GlossaryContext()
+    context.feed(html_text)
+    context.close()
+    a = Annotator(terms, context.result())
     a.feed(html_text)
     a.close()
     return a.result(), a.used

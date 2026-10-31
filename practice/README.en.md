@@ -19,6 +19,8 @@ The [project route](../learn/choose-your-path.en.md#projects) suggests other rea
 | What do you want to understand? | Start here | What to look for |
 | --- | --- | --- |
 | You know models but not the surrounding product | [An ML system end to end](ml-system/README.en.md) | Three timelines, data and service contracts, acceptance, and ownership |
+| How do GPUs, distributed training, and RL frameworks connect? | [ML / LLM runtime walkthroughs](../06-systems/mlsys-llmsys-map.en.md#learning-route) | CPU/GPU execution, Megatron, clusters, and async RL; no GPU rental needed to start |
+| How do concepts map to open-source code, slow execution, and training failures? | [Source walkthroughs](runtime-reading/README.en.md) | Prefill/decode, vLLM/SGLang scheduling, NeMo RL updates, and training stability |
 | You've written code but haven't connected a page, server, and automated checks | [Build something small](web-lab/README.en.md) | Static hosting, CI/CD, requests, persistence, and useful errors |
 | You have requirements but no starting design | [System-design exercises](../learn/system-design/README.en.md) | Goals and constraints, then components, cost, and failure handling |
 | Useful content wasn't recommended | [Inside recommender systems](recommender-systems/README.en.md) | Missing retrieval, filtering, or a low rank |

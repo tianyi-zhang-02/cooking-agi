@@ -46,7 +46,7 @@
       var columns = Array.from(table.rows).reduce(function (maximum, row) {
         return Math.max(maximum, Array.from(row.cells).reduce(function (total, cell) { return total + cell.colSpan; }, 0));
       }, 0);
-      if (columns >= 3) region.style.setProperty('--reading-table-width', Math.min(columns * 144, 960) + 'px');
+      if (columns >= 3 && !region.closest('.compact-table')) region.style.setProperty('--reading-table-width', Math.min(columns * 144, 960) + 'px');
     }
     if (resize) {
       resize.observe(region);

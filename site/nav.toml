@@ -848,6 +848,29 @@ intro_en = "Start with three timelines, then examine data, training, indexes, re
 order = ["README.md", "data-to-model.md", "serving-and-feedback.md"]
 
 [[section]]
+dir = "practice/llm-runtime"
+group = "ml-systems"
+sequence = 2
+zh = "ML / LLM 运行链路"
+en = "ML / LLM runtime walkthroughs"
+home = "06-systems/mlsys-llmsys-map.md"
+intro_zh = "先理解一次计算和任务怎样运行，再看多卡训练、集群与 RL 的数据流。"
+intro_en = "Start with computation and task execution, then connect multi-GPU training, clusters, and RL data flow."
+include = ["06-systems/mlsys-llmsys-map.md", "06-systems/execution-boundaries.md", "06-systems/megatron-basics.md", "06-systems/rl-systems.md", "06-systems/async-rl.md"]
+order = ["mlsys-llmsys-map.md", "execution-boundaries.md", "megatron-basics.md", "rl-systems.md", "async-rl.md"]
+
+[[section]]
+dir = "practice/runtime-reading"
+group = "ml-systems"
+sequence = 3
+zh = "源码拆解：生成与训练"
+en = "Source walkthroughs: generation & training"
+home = "practice/runtime-reading/README.md"
+intro_zh = "先用小例子理解 prefill、decode 和训练目标，再沿 vLLM、SGLang、NeMo RL 的源码检查调度、更新与稳定性。"
+intro_en = "Connect prefill, decode, and learning objectives to scheduling, updates, and stability in vLLM, SGLang, and NeMo RL."
+order = ["README.md", "prefill-decode.md", "nemo-rl.md", "training-stability.md"]
+
+[[section]]
 dir = "practice/web-lab"
 group = "web-practice"
 zh = "从网页到小应用"
@@ -939,6 +962,15 @@ en  = "Templates"
 "06-systems/llm-serving.md" = ["一次请求怎样跑完", "A request through the service"]
 "06-systems/training-frameworks.md" = ["DDP、FSDP2 与训练框架", "DDP, FSDP2 & training stacks"]
 "06-systems/inference-frameworks.md" = ["vLLM 与 SGLang", "vLLM & SGLang"]
+"06-systems/mlsys-llmsys-map.md" = ["ML / LLM 系统地图", "ML / LLM systems map"]
+"practice/runtime-reading/README.md" = ["从算法到源码", "Algorithms to source"]
+"practice/runtime-reading/prefill-decode.md" = ["Prefill、decode 与调度", "Prefill, decode & scheduling"]
+"practice/runtime-reading/nemo-rl.md" = ["沿 NeMo RL 读一次训练", "A run through NeMo RL"]
+"practice/runtime-reading/training-stability.md" = ["训练稳定性与排错", "Training stability & debugging"]
+"06-systems/execution-boundaries.md" = ["CPU、GPU 与集群调度", "CPU, GPU & cluster scheduling"]
+"06-systems/megatron-basics.md" = ["多卡训练与 Megatron", "Multi-GPU training & Megatron"]
+"06-systems/rl-systems.md" = ["一次 RL 更新的链路", "An RL update end to end"]
+"06-systems/async-rl.md" = ["异步 RL 与 AReaL", "Async RL & AReaL"]
 "00-foundations/core/embeddings-and-similarity.md" = ["向量（embedding）与相似度", "Embeddings & similarity"]
 "00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
 "00-foundations/deep-dives/generalization.md" = ["泛化与训练诊断", "Generalization & diagnosis"]

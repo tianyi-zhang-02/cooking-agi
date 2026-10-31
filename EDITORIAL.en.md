@@ -71,7 +71,7 @@ Explain the assumptions and reasoning in a worked answer. For open questions, of
 
 Prefer small synthetic examples. Real measurements require public sources and experimental conditions. Review correctness, bilingual equivalence, and useful links.
 
-Write Chinese as a clear spoken explanation, not a word-for-word translation. Keep familiar names such as Transformer, SFT, and LLM. Use the glossary for English equivalents at first mention: at most two automatic annotations per paragraph, without duplicating existing parenthetical explanations. Keep headings, controls, and diagrams uncluttered. Prefer concrete inputs, outputs, and actions to abstract jargon or unnecessary language switching.
+Write Chinese as a clear spoken explanation, not a word-for-word translation. Keep familiar names such as Transformer, SFT, and LLM. The glossary adds English at every occurrence of a recognized Chinese term in prose and tables, so readers can start anywhere. Do not duplicate an English explanation already present at that occurrence. Preserve heading, control, and diagram layouts; do not insert annotations into code, formulas, or links. Prefer concrete inputs, outputs, and actions to abstract jargon or unnecessary language switching.
 
 An introduction does not need every conclusion at once, and a whole abstract rarely needs bold type. Establish the question, then explain it in manageable steps. Keep useful examples and necessary assumptions when shortening prose. Avoid repeated verdicts such as “the real key,” but do not mechanically remove contrasts that clarify a technical distinction. Forced slang is no substitute for a clear explanation.
 
@@ -82,7 +82,7 @@ Read the English independently. Do not carry over Chinese word order, metaphors,
 Preferred reading language and familiar terminology are separate choices. Some readers use only Chinese, some learned the subject in English but enjoy Chinese explanations, and others read only English. Do not infer a preference from nationality, education, or browser language.
 
 - **Chinese must stand on its own.** Explain what a concept does in Chinese before supplying its English name. Keep standard names such as Transformer and SFT, but explain essential acronyms at first use. Readers should not need to look up English just to continue.
-- **Bilingual readers choose freely.** Switch directly between the Chinese and English versions of the same article. Show English terms at first mention on Chinese pages by default, at most two per paragraph; avoid sentences built from unexplained jargon.
+- **Bilingual readers choose freely.** Switch directly between the Chinese and English versions of the same article. Show English alongside every occurrence of key terms in Chinese prose, without requiring a hover or a return to the first mention. Keep the explanations natural; a list of terms is not an explanation.
 - **English is not an appendix.** Preserve the derivations, examples, code, diagrams, interaction instructions, review questions, and caveats. Navigation, controls, and accessibility labels must also work in English. No essential material should require a trip to the Chinese page.
 - **Compare concepts in place.** Both faces of a bilingual card must be complete, with equivalent formulas, tensor shapes, examples, and assumptions. Open on the page's language and allow switching without losing the reading position.
 - **No forced redirects.** Respect the language of the URL the reader opened. Do not choose the page language from their identity or browser settings.
