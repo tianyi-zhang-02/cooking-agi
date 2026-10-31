@@ -602,6 +602,7 @@ FIGURE_LAB = [
     ("step-packing-masks", "Packing：能看谁，哪项算分", "Packing: what can be seen, what is scored", "step"),
     ("step-tp-backward", "反向传播：输入梯度也要相加", "Backward: the input gradient needs a sum too", "step"),
     ("step-bpe-merges", "手算两轮 BPE", "Two rounds of BPE by hand", "step"),
+    ("step-sqrt-dk", "为什么除以 √d_k：分数差变小，softmax 才不会过早变尖", "Why divide by √d_k: a smaller gap keeps softmax from turning sharp", "step"),
     ("step-swiglu", "跟着两个中间维度算一次 SwiGLU", "SwiGLU through two hidden dimensions", "step"),
     ("step-prefill-decode", "Prompt 5 个 token，生成 3 个：有没有 KV cache 差在哪", "A 5-token prompt and 3 new tokens: what the KV cache saves", "step"),
     ("step-top-p-order", "温度先作用，top-p 留下几个候选", "Temperature first: how many candidates top-p keeps", "step"),

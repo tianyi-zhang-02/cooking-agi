@@ -140,6 +140,8 @@ Without scaling, almost all weight goes to the first position. After scaling, th
 
 Dividing by a positive constant changes the gaps between scores and therefore the weights. Subtracting a common constant preserves the gaps; it makes exponentiation safer without changing the mathematical result. Even `[1000, 1000]` should give `[0.5, 0.5]`. Large absolute values alone do not imply saturation.
 
+<!-- widget:step-sqrt-dk -->
+
 <details markdown="1">
 <summary>Why a square root? Work through the variance</summary>
 
