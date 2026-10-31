@@ -873,6 +873,37 @@
     ]);
   };
 
+  /* 00-foundations/core/multi-head-attention §sqrt(d_k): d_k = 64, scores [8, −8]. Unscaled ≈ [0.9999999, 0.0000001],
+     ÷ 8 ≈ [0.881, 0.119], minus the max = unscaled, and [1000, 1000] → [0.5, 0.5]; the weight path's α₁(1 − α₁) follows. */
+  F.sqrtScale = function (d = 64, raw = [8, -8]) {
+    const root = Math.sqrt(d);
+    const num = x => (x < 0 ? '−' + Math.abs(x) : String(x));
+    const w = p => (p < 1e-3 || p > 1 - 1e-3 ? p.toFixed(7) : short(p));
+    const sup = n => String(n).replace(/[-0-9]/g, c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
+    const sci = x => { const e = Math.floor(Math.log10(x)); return x < 1e-3 ? `${(x / 10 ** e).toFixed(1)} × 10${sup(e)}` : short(x); };
+    const state = (stage, scores, op, extra = {}) => {
+      const gap = scores[0] - scores[1], second = 1 / (1 + Math.exp(gap)), first = 1 - second;
+      return {stage, d, root, op, scores, gap, weights: [first, second], grad: first * second,
+        weightText: [w(first), w(second)], gradText: sci(first * second), ...extra};
+    };
+    const unscaled = state(1, raw, 'raw'), scaled = state(2, raw.map(x => x / root), 'divide');
+    const shifted = state(3, raw.map(x => x - Math.max(...raw)), 'shift'), big = state(4, [1000, 1000], 'big', {done: true});
+    const g = f => f.gradText;
+    const odds = Math.round(Math.exp(unscaled.gap) / 1e5);  // e^gap in units of 100 000
+    return frames([
+      {...state(0, raw, 'none'), zh: `一个头的维度 d_k = ${d}。某个 query 对两个 key 的点积是 [${raw.map(num).join(', ')}]，两者相差 ${raw[0] - raw[1]}。`,
+        en: `One head has dimension d_k = ${d}. A query’s dot products with two keys are [${raw.map(num).join(', ')}], a gap of ${raw[0] - raw[1]}.`},
+      {...unscaled, zh: `不缩放，直接做 softmax：权重约为 [${unscaled.weightText.join(', ')}]。两者之比是 e${sup(unscaled.gap)}，约 ${odds * 10} 万比 1，第二个位置几乎读不到。经过权重传回分数的梯度项 α₁(1 − α₁) 也只剩约 ${g(unscaled)}。`,
+        en: `Without scaling, softmax gives about [${unscaled.weightText.join(', ')}]. The ratio is e${sup(unscaled.gap)}, about ${odds / 10} million to 1, so the second position is all but ignored. The gradient term through the weights back to the scores, α₁(1 − α₁), is only about ${g(unscaled)}.`},
+      {...scaled, zh: `除以 √${d} = ${root}：分数变成 [${scaled.scores.map(num).join(', ')}]，差只剩 ${scaled.gap}，权重约 [${scaled.weightText.join(', ')}]，第二个位置还能参与输出，梯度项约 ${g(scaled)}。为什么是 ${root}：若 q、k 的各分量独立、均值 0、方差 1，${d} 维点积的标准差就是 √${d} = ${root}，除以 ${root} 把尺度拉回 1。`,
+        en: `Divide by √${d} = ${root}: the scores become [${scaled.scores.map(num).join(', ')}], the gap shrinks to ${scaled.gap}, and the weights are about [${scaled.weightText.join(', ')}]. The second position still contributes, and the gradient term is about ${g(scaled)}. Why ${root}: if the components of q and k are independent with mean 0 and variance 1, a ${d}-dimensional dot product has standard deviation √${d} = ${root}, and dividing by ${root} brings it back to 1.`},
+      {...shifted, zh: `换成只减去最大值：[${shifted.scores.map(num).join(', ')}]。差还是 ${shifted.gap}，权重和不缩放时一模一样。减去同一个数只让指数运算更稳；除以正数才会改变分数差。`,
+        en: `Subtract the maximum instead: [${shifted.scores.map(num).join(', ')}]. The gap is still ${shifted.gap}, and the weights are exactly what they were without scaling. Subtracting a shared number only keeps the exponentials stable; dividing by a positive number changes the gap.`},
+      {...big, zh: `分数大不等于饱和：[1000, 1000] 的差是 0，权重仍是 [0.5, 0.5]，梯度项是 ${g(big)}。softmax 只看分数差。缩放防的是维度一大，softmax 就过早变尖；权重并不是越平均越好。`,
+        en: `Large scores do not mean saturation: [1000, 1000] has a gap of 0, the weights are still [0.5, 0.5], and the gradient term is ${g(big)}. Softmax only sees the gaps. Scaling keeps softmax from turning sharp just because the dimension grew; flatter weights are not better in themselves.`}
+    ]);
+  };
+
   /* 00-foundations/core/ffn-and-gates: SwiGLU with g = [0, 1], u = [3, 2], W_d = [1, −1]. */
   F.swiglu = function () {
     const g = [0, 1], u = [3, 2], Wd = [1, -1];
@@ -3198,6 +3229,44 @@
         const c = cell(table, 400, y, 190, 30, `(${key})  ${n}`, 'algo-note');
         c.set(`(${key})  ${n}`, pair === frame.gone ? 'is-cross is-out' : pair === frame.pick ? 'is-now is-look' : '');
       });
+    };
+  }});
+
+  FIGURES['step-sqrt-dk'] = name => stepper(name, F.sqrtScale(), {height: 230, readouts: f => [
+    ['d_k · √d_k', `${f.d} · ${f.root}`],
+    [t('分数差', 'gap'), String(f.gap), f.stage === 2 || f.done ? 'good' : f.stage ? 'bad' : ''],
+    [t('第二个位置的权重', 'weight on position 2'), f.stage ? f.weightText[1] : '—', f.stage ? (f.weights[1] < 1e-3 ? 'bad' : 'good') : ''],
+    [t('梯度项 α₁(1 − α₁)', 'gradient term α₁(1 − α₁)'), f.stage ? f.gradText : '—', f.stage ? (f.grad < 1e-3 ? 'bad' : 'good') : '']], setup(svg) {
+    const x0 = 130, span = 360, num = x => (x < 0 ? '−' + Math.abs(x) : String(x));
+    const ops = {none: t('点积', 'dot products'), raw: t('不缩放', 'no scaling'), divide: t('除以 √64 = 8', 'divided by √64 = 8'),
+      shift: t('只减去最大值', 'minus the maximum only'), big: t('另一组分数', 'another pair of scores')};
+    V.text(svg, x0 - 16, 62, t('分数', 'scores'), 'algo-head', 'end');
+    const op = V.text(svg, x0, 28, '', 'algo-note');
+    const cells = [0, 1].map(i => cell(svg, x0 + i * 120, 40, 104, 34));
+    const gap = V.text(svg, x0 + 240, 62, '', 'algo-strong');
+    const down = s('path', {d: `M${x0 + 110} 84 L${x0 + 110} 106 M${x0 + 105} 100 L${x0 + 110} 106 L${x0 + 115} 100`, class: 'algo-edge'});
+    svg.append(down);
+    const soft = V.text(svg, x0 + 122, 100, 'softmax', 'algo-idx');
+    V.text(svg, x0 - 16, 146, t('权重', 'weights'), 'algo-head', 'end');
+    const segs = ['is-look', 'is-keep'].map(cls => { const r = s('rect', {y: 126, height: 30, rx: 3, class: 'algo-cell ' + cls}); svg.append(r); return r; });
+    const wl = [V.text(svg, x0, 120, '', 'algo-note'), V.text(svg, x0 + span, 120, '', 'algo-note', 'end')];
+    V.text(svg, x0 - 16, 196, t('梯度项', 'gradient'), 'algo-head', 'end');
+    svg.append(s('rect', {x: x0, y: 186, width: span, height: 12, rx: 6, class: 'algo-cell algo-ghost'}));
+    const gbar = s('rect', {x: x0, y: 186, height: 12, rx: 6, class: 'algo-bar'});
+    svg.append(gbar);
+    const gl = V.text(svg, x0, 218, '', 'algo-note');
+    V.text(svg, x0 + span, 218, t('最大 0.25', 'max 0.25'), 'algo-idx', 'end');
+    return frame => {
+      const on = frame.stage >= 1;
+      op.textContent = ops[frame.op];
+      cells.forEach((c, i) => c.set(num(frame.scores[i]), frame.stage === 2 ? 'is-change' : ''));
+      gap.textContent = t(`差 ${frame.gap}`, `gap ${frame.gap}`);
+      segs[0].setAttribute('x', x0); segs[0].setAttribute('width', Math.max(0, frame.weights[0] * span - 1));
+      segs[1].setAttribute('x', x0 + frame.weights[0] * span + 1); segs[1].setAttribute('width', Math.max(0, frame.weights[1] * span - 1));
+      wl[0].textContent = `α₁ = ${frame.weightText[0]}`; wl[1].textContent = `α₂ = ${frame.weightText[1]}`;
+      gbar.setAttribute('width', Math.max(2, frame.grad / 0.25 * span));
+      gl.textContent = `α₁(1 − α₁) = ${frame.gradText}`;
+      [down, soft, ...segs, ...wl, gbar, gl].forEach(node => show(node, on));
     };
   }});
 

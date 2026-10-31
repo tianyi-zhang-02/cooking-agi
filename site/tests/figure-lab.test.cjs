@@ -227,6 +227,16 @@ test('BPE: 20 → 15 → 10 symbols, rair encodes as rai r', () => {
   assert.deepEqual(last(frames).encoding.map(e => e.join(' ')), ['r a i r', 'ra i r', 'rai r']);
 });
 
+test('sqrt(d_k): [8, −8] gives ≈ [0.9999999, 0.0000001]; ÷ 8 gives ≈ [0.881, 0.119]; minus the max changes nothing; [1000, 1000] gives halves', () => {
+  const frames = F.sqrtScale();
+  assert.deepEqual(frames.map(f => f.gap), [16, 16, 2, 16, 0]);
+  assert.deepEqual(frames[1].weightText, ['0.9999999', '0.0000001']);
+  assert.deepEqual(frames[2].weightText, ['0.881', '0.119']);
+  assert.deepEqual(frames[3].weights, frames[1].weights);
+  assert.deepEqual(last(frames).weights, [0.5, 0.5]);
+  assert.deepEqual(frames.slice(1).map(f => f.gradText), ['1.1 × 10⁻⁷', '0.105', '1.1 × 10⁻⁷', '0.25']);
+});
+
 test('SwiGLU: h = [0, 1.4621], y ≈ -1.4621, gate gradient 1.5', () => {
   const end = last(F.swiglu());
   assert.deepEqual([end.h, end.y, end.gradU, end.gradG], [[0, 1.4621], -1.4621, 0, 1.5]);
