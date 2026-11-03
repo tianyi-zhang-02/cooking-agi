@@ -111,10 +111,10 @@ Learning to defer treats "predict myself or hand off to the expert" as part of w
 
 Back to the example: the rule in the third row amounts to the model abstaining in the low-confidence group and handing those 40% to the person to judge independently. The cost is that all the hardest cases flow to people, so queues and fatigue must be counted too; see the hand-off conditions in [Human-in-the-Loop](human-in-the-loop.en.md).
 
-| Lever | Where evidence is fairly consistent | Mixed evidence or cost |
+| Lever | What the cited experiments observed | Limits, contrary findings, or cost |
 | --- | --- | --- |
 | Show uncertainty | In one experiment, first-person uncertainty phrasing reduced following and raised accuracy | Stated LLM confidence is often inaccurate; token highlighting had the smallest effect; no significant average effect in the meta-analysis |
-| Show evidence and sources | Sources reduce reliance on wrong answers; the easier the check, the better it works | Fluent explanations by themselves increase reliance, right or wrong |
+| Show evidence and sources | Sources reduced reliance on wrong answers in one experiment; the maze experiments also found that verification cost mattered | Explanations can increase acceptance of both correct and incorrect advice; their presence alone is not enough |
 | Decide first | The initial judgement gets recorded; following of wrong advice drops somewhat | The drop was not significant for the final decision in one study; another had a very small sample; participants rate it lower |
 | Critique mode | In one study, explanation without a recommendation improved both decisions and learning | Takes longer; interventions generally failed to improve appropriate reliance; the model may simply agree with the user |
 | Abstain and defer | People are more accurate when deferral hides the AI's guess | Hard cases pile up on people; queues and workload need managing |
@@ -146,3 +146,18 @@ Three issues can distort these calculations and comparisons:
 3. **Randomise interface variants.** A reviewer who uses different interfaces over time may carry habits from one to the next. Group by reviewer and time block, then compare with paired methods; see [Controlled comparisons and slices](../07-evaluation/ablation-and-slices.en.md).
 
 For log fields and redaction requirements, see [Agent observability](agent-observability.en.md); these records are also the source for updating rules and evaluation sets, not just an agreement rate on a dashboard.
+
+## Choosing the denominators for RAIR and RSR {#reliance-denominators}
+
+Use a separate teaching dataset to calculate the two reliance measures. For 100 binary questions, record each person's initial answer before showing AI advice. Assume the final answer must be either the initial answer or the AI's suggestion, with no third option.
+
+| Initial answer and AI advice | Cases | Final answers correct |
+| --- | ---: | ---: |
+| Both correct | 40 | 40 |
+| Both wrong | 10 | 0 |
+| Human wrong, AI correct | 30 | 24 |
+| Human correct, AI wrong | 20 | 15 |
+
+RAIR is `24 / 30 = 80%`: how often the person corrected their answer when the AI offered a correct alternative. RSR is `15 / 20 = 75%`: how often they kept a correct initial answer against wrong advice. Neither denominator is 100. The 50 cases where the two already agreed offer neither kind of opportunity. If an opportunity count is zero, report that measure as not applicable, not 0% or 100%. See [Schemmer et al., Section 3.2](https://arxiv.org/html/2302.02187v3#S3.SS2) for the definitions.
+
+The person alone gets `40 + 20 = 60` right, the AI alone `40 + 30 = 70`, and the combination `40 + 24 + 15 = 79`. The combination is better in this example, but neither 80% nor 75% establishes that on its own: opportunity counts and error costs also matter. Without initial answers, an online agreement rate cannot be relabeled RAIR.

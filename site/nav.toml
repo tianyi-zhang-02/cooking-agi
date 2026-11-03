@@ -228,8 +228,8 @@ zone = "design"
 zh = "AI 系统与体验"
 en = "AI systems & experience"
 home = "06-systems/README.md"
-summary_zh = "把一次请求放回完整产品：看可观测性、人工参与和长期使用体验。"
-summary_en = "Put a request back in its product context: observability, human oversight, and long-term use."
+summary_zh = "从一次请求到长期使用：排查失败、处理重试与人工接管，再看用户是否真的省事。"
+summary_en = "From one request to repeated use: diagnose failures, recover safely, involve people, and measure whether the system helps."
 
 [[group]]
 id = "infra"
@@ -653,7 +653,7 @@ dir   = "06-systems"
 group = "systems"
 zh    = "系统"
 en    = "Systems"
-order = ["README.md", "distributed-training.md", "agent-observability.md", "human-in-the-loop.md", "decision-support.md"]
+order = ["README.md", "agent-observability.md", "failure-and-recovery.md", "human-in-the-loop.md", "decision-support.md"]
 
 [[section]]
 dir   = "07-evaluation"
@@ -1075,6 +1075,7 @@ en  = "Templates"
 "05-post-training/alignment-tax.md"                     = ["对齐税", "Alignment tax"]
 "06-systems/README.md"                                  = ["总览", "Overview"]
 "06-systems/agent-observability.md"                     = ["Agent 可观测性", "Agent observability"]
+"06-systems/failure-and-recovery.md"                    = ["失败与恢复", "Failure & recovery"]
 "06-systems/human-in-the-loop.md"                       = ["人工参与", "Human in the loop"]
 "06-systems/decision-support.md" = ["LLM 辅助决策", "Decision support"]
 "07-evaluation/README.md"                               = ["总览", "Overview"]

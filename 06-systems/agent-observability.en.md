@@ -4,6 +4,8 @@
 
 > Last reviewed: 2026-10
 
+> Timing and asynchronous-correlation additions checked: 2026-11-02
+
 ## Observability has to explain the decision process {#observability-has-to-explain-the-decision-process}
 
 Agent observability helps reconstruct **what the agent saw, which decisions it made, how state changed, and at which step the failure began**. Knowing only whether a service reported an error is not enough.
@@ -93,6 +95,39 @@ A trace connects call dependencies and state changes. It supports hypotheses abo
 - `policy`: routing, stopping, fallback, and risk judgments;
 - `evaluation`: criteria, evidence, verdict, and evaluator version;
 - `human_review`: why it was escalated, how the human changed it, and the rationale for the change.
+
+## Reading latency from a trace {#trace-timing}
+
+A support agent retrieves the refund policy and queries the order before drafting a reply. This synthetic trace uses milliseconds from request arrival. The two lookups start together, and generation requires both results.
+
+| Span | Start → end | Duration | What it waits for |
+| --- | --- | ---: | --- |
+| Request entry | 0 → 50 | 50 | Validation and dispatch |
+| Policy retrieval | 50 → 250 | 200 | Retrieval results |
+| Order lookup | 50 → 500 | 450 | The order service |
+| Reply generation | 500 → 1,200 | 700 | Both results, then generation |
+
+Completion takes `50 + max(200, 450) + 700 = 1,200 ms`, not the sum of all four rows, `1,400 ms`. Policy retrieval finishes first, but the request still needs the order. The dependency chain determining completion is the critical path. Adding the root span, which covers the whole request, would double-count time again.
+
+Reducing policy retrieval from 200 ms to 50 ms leaves completion at 1,200 ms. Reducing generation alone from 700 ms to 350 ms gives 850 ms. These calculations hold everything else fixed. Real changes affect concurrency, queueing, and contention, so measure again rather than presenting this arithmetic as a performance guarantee.
+
+Separate queueing from execution too. A long model span may mean waiting for admission rather than slow GPU computation; client retries and transport may appear elsewhere. Across machines, account for clock skew and use dependency relationships alongside locally measured durations.
+
+## One task can span several traces {#task-and-attempt}
+
+A user may close the page and return, or a reviewer may approve two hours later. The trace ID of one HTTP request is not enough to identify the continuing task. Keep these relationships distinct; the names below are illustrative, not a required OTel schema.
+
+| Field | What it connects |
+| --- | --- |
+| `task_id` | The user's continuing task, including pauses and resumptions |
+| `trace_id` / `span_id` | Calls and dependencies within an execution |
+| `operation_id` | One external action, such as a refund; useful for lookup, but not itself an idempotency guarantee |
+| `attempt` | An attempt at one tool operation; count writes and status queries separately while linking both to the original external action |
+| `action_version` | The approved argument version, so resuming cannot silently execute a different action |
+
+Use [OpenTelemetry span links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) to associate asynchronous work with an earlier call when appropriate. Two hours waiting for approval should not look like two hours of model execution. Correlation IDs are not credentials; accessing their records still requires authorization.
+
+For example, refund submission times out on `attempt=1`, then a status query confirms that the refund completed. Two tool calls recovered one task; no second refund was issued. The query is not a second attempt to submit the refund. Safe retry behavior still depends on the external API; see [failure and recovery](failure-and-recovery.en.md#unknown-outcome).
 
 ## Common agent failures {#common-agent-failures}
 

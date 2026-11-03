@@ -2,6 +2,8 @@
 
 [中文](README.md) · **English**
 
+> Interaction and correction-cost additions checked: 2026-11-02
+
 <span id="model-experience-what-is-the-model-the-user-actually-experiences"></span>
 
 ## Look beyond a single answer {#user-experience-is-a-long-term-trajectory}
@@ -32,6 +34,46 @@ Staying with the workout plan, turn each dimension into a question you can check
 | Consistent | Can a new conversation pick up where the last one left off? | A correction from last week, "no training on Wednesdays", is still remembered in a new conversation this week; once the user withdraws it or it expires, it is no longer used |
 
 Consistency does not mean never forgetting, or turning one incidental behavior into a permanent preference. Information should carry across sessions only while its retention is authorized, it remains valid, and it is relevant to the task.
+
+## Waiting and correction should not mean starting over {#interaction-recovery}
+
+Before long-term experience comes the current task. A user may not know whether the assistant is retrieving evidence, waiting for a tool, or stuck. One wrong condition may force them to explain everything again. Answer scores capture little of this work.
+
+[Amershi et al.'s Human–AI Interaction guidelines (CHI 2019)](https://www.microsoft.com/en-us/research/wp-content/uploads/2019/01/Guidelines-for-Human-AI-Interaction-camera-ready.pdf) address correction, dismissing unwanted help, narrowing uncertain tasks, and cautious updates. They are design guidance, not evidence that a particular chat interface works. Here are concrete choices to test in a product:
+
+| User problem | Interface and system response | What to check |
+| --- | --- | --- |
+| A long unexplained wait | Show a verifiable stage, such as “Checking the order”; allow stopping further work | No invented completion percentages or premature success claims |
+| One condition is wrong | Edit the date or object while retaining valid inputs and evidence | No full form restart; invalidate and recompute results depending on the changed condition |
+| The reply is interrupted | Preserve completed external results; separate text interruption from action failure | Refresh restores access instead of placing another order |
+| The user rejects a suggestion | Keep manual actions and original sources available | Agreement with the AI is not required to finish the task |
+| A memory is misapplied | Show the record and distinguish a one-task correction from a lasting preference change | The same scope holds in a new session, not only in the next reply |
+
+“Checking the order” should reflect actual task state, not model-generated reassurance. Streaming makes text visible sooner but can also show a conclusion before verification. Distinguish drafts from confirmed results. For external actions, see [failure and recovery](../06-systems/failure-and-recovery.en.md#cancellation) for stopping, reversing, and unknown outcomes.
+
+### Worked example: first token versus finished task {#time-to-finish}
+
+Suppose both interfaces produce a correct draft for the same task, but B makes evidence and editable fields easier to inspect. The stages below are sequential and do not overlap; all numbers are assumed.
+
+<div class="worked-table" markdown="1">
+
+| Duration | A: earlier text | B: easier checks |
+| --- | ---: | ---: |
+| First token appears | 0.4 s | 1.0 s |
+| Request to complete draft | 3 s | 6 s |
+| User verifies evidence | 25 s | 10 s |
+| Edit, confirm, and finish | 16 s | 4 s |
+| Total time to finish | `3 + 25 + 16 = 44 s` | `6 + 10 + 4 = 20 s` |
+
+</div>
+
+Time to first token (TTFT) is already included in request-to-draft time, so do not add it again. A wins on TTFT; B saves time on this task. Real users may read while generation continues, so measure the actual timeline rather than blindly summing stages. Check correctness, abandonment, and tail latency too. The point is not that slower generation is better, but that the user's total effort matters.
+
+### Comparing two interfaces {#experience-test}
+
+Choose one change, such as making the date directly editable, and hold other conditions as steady as possible. Give groups comparable tasks and record completion, active work time, corrections, and reasons for abandonment. Comparing time only among completers excludes users who struggled enough to leave.
+
+If the same person tries both versions, familiarity with the task can make the second attempt faster. Randomize order or use a suitable group design. For lasting benefits, continue with the cross-session and longitudinal evaluation below. Small observational studies can reveal where people get stuck; experiments estimate the effect of a change. They serve different purposes.
 
 ## Why single-turn evaluation is not enough
 

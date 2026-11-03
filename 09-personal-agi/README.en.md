@@ -2,6 +2,8 @@
 
 [中文](README.md) · **English**
 
+> Context-selection and validation examples checked: 2026-11-02
+
 ## Personal AGI needs a revisable user state
 
 Here, Personal AGI names an aspiration for a personal assistant, not a claim that general intelligence has been achieved. Through long-term interaction, it would learn how to help you, ask when uncertain, and accept corrections—not just remember your name.
@@ -51,6 +53,23 @@ In the trip example, three records could look like this (teaching example):
 | Likes the seaside | Model inference: last time the user picked one of the seaside options the assistant offered | Destination suggestions | Never confirmed | Not used as a fact; ask first |
 
 The first two came from the user; the third is the system's guess. Why its evidence is weak is worked out under “Behavior is not the goal” below.
+
+#### Which record applies this time? {#context-selection}
+
+Suppose the assistant retained “I usually prefer quiet accommodation,” but the user now says, “Just one night near the station so I can catch the train.” Rather than leaving the model to infer priorities from a large history, distinguish the candidate records first.
+
+| Candidate record | Treatment for this task | Reason |
+| --- | --- | --- |
+| Usually prefers quiet places | Keep as a preference to satisfy where possible, not an override of station proximity | The user supplied an explicit exception |
+| Stay near the station this night | A primary condition for this task | Explicit statement with this stay as its scope |
+| Earlier model inference: high budget | Do not treat as fact; ask if needed | Unconfirmed inference, and budget may have changed |
+| Withdrawn accommodation preference | Exclude from retrieval and context | Similarity is not permission to reuse it |
+
+This is a testable product rule, not a universal priority order. Also separate preferences from hard constraints: “near the station” does not permit exceeding a confirmed budget, and current instructions cannot bypass authorization or service rules. If conditions conflict, explain the conflict and ask the user to choose rather than silently dropping one.
+
+After a correction, check three places: the current task follows the changed condition; a new session retains only information permitted for long-term use; and the temporary exception stops affecting unrelated tasks after the trip. Withdrawal from external memory also needs checks of derived summaries and retrieval indexes; see the [memory lifecycle](../02-memory/memory-lifecycle.en.md#deletion-propagation).
+
+Start with three conditions on the same scenarios: no memory, explicit preferences only, and added inferred preferences. Hold the model, tools, and budget fixed. Measure task completion, stale information use, corrections, and whether prohibited records enter context. More storage is not inherently better. If inferred preferences add correction work without helping, there is no reason to retain them.
 
 ### 2. Long-term memory
 

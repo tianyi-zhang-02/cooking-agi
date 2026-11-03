@@ -6,6 +6,21 @@
 
 An AI system's result depends on more than its model. Data, retrieved memories, evidence, and tools all affect what it does. Improving the result means examining those parts together, rather than only trying a larger model.
 
+## Where to start {#reading-route}
+
+This section follows a user trying to get something done. It does not repeat the implementation details of inference engines or distributed training. Read this overview for the request flow, then choose the problem you want to investigate.
+
+| Your question | Start here | What you can check afterward |
+| --- | --- | --- |
+| Where did this run go wrong? | [Agent observability](agent-observability.en.md#trace-timing) | Trace bad arguments, waits, and repeated actions without adding overlapping durations |
+| What happens after a timeout, retry, or cancellation? | [Failure and recovery](failure-and-recovery.en.md) | Distinguish not started, completed, and unknown before deciding whether to retry |
+| When should a person step in, and can the team keep up? | [Human-in-the-loop](human-in-the-loop.en.md#review-capacity) | Estimate review capacity and design approval, expiry, and handoff |
+| Does human review actually improve the decision? | [LLM decision support](decision-support.en.md) | Compare the person, model, and combined result, not just acceptance rates |
+| Does a faster answer actually save the user work? | [Model experience](../08-model-experience/README.en.md#interaction-recovery) | Include waiting, correction, and time to finish, not only time to first token |
+| What should carry across sessions? | [Personal AGI](../09-personal-agi/README.en.md#context-selection) | Select context by task, scope, and permission, then test corrections and withdrawal |
+
+For prefill, decode, GPUs, and training frameworks, use the [MLSys / LLMsys guide](mlsys-llmsys-map.en.md). For data, training, serving, and ownership across teams, see the [end-to-end ML system walkthrough](../practice/ml-system/README.en.md).
+
 ## Which stages one request really passes through
 
 Suppose a travel agent books the user a flight on the wrong date.
@@ -19,6 +34,24 @@ Suppose a travel agent books the user a flight on the wrong date.
 - the final evaluation only checked the reply text and never verified the real order.
 
 If you look only at the final answer, you may fix the wrong part of the system.
+
+## Agree on what completion means {#task-success}
+
+For a booking, HTTP 200, an assistant saying “booked,” and a correct confirmed order are different outcomes. Define a good event before measuring it: for example, a confirmed order returned within the allowed time, with the date, passenger, and amount matching the approved action. Record refusals, user cancellations, and pending approvals separately rather than folding them into one success rate.
+
+A service-level indicator (SLI) measures delivery; a service-level objective (SLO) sets its target. [Google's SRE chapter on SLOs](https://sre.google/workbook/implementing-slos/) starts with outcomes that matter to users and then specifies how to measure them. For an AI product, distinguish a successful response from a correct task result.
+
+Here is a simpler order-status example with entirely assumed numbers. All 10,000 queries in the measurement window require an answer and remain in the denominator; none are user cancellations. A good event means showing a correct, sufficiently fresh order status within 6 seconds.
+
+| Measurement | Count | Share of all queries |
+| --- | ---: | ---: |
+| Valid response returned | 9,800 | 98% |
+| Content verified as correct | 9,400 | 94% |
+| Correct and completed within 6 seconds | 9,100 | 91% |
+
+The response metric is 98%, but the agreed task metric is 91%. With an illustrative 95% target, the error budget is `10,000 × 5% = 500` missed targets. There were 900, consuming 1.8 times that budget. This is not a recommended booking target or permission for unauthorized actions or duplicate charges: check safety constraints separately, not as something a good average can offset.
+
+Correctness may also be unknown when the request finishes. Report pending outcomes and measurement coverage; do not count them as successes or choose a flattering denominator from known results alone. Break results down by language, task, and latency to see whether particular users consistently fare worse.
 
 ## Walk through it end to end
 
