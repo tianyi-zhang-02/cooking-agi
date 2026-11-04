@@ -27,6 +27,7 @@
 
 | 先弄清什么 | 阅读入口 | 接着核对什么 |
 | --- | --- | --- |
+| 矩阵运算怎样连接梯度与系统 | [从矩阵梯度到训练系统](matrix-gradients-to-systems.md) | 手算 dW、dX，再解释激活存储和多卡归约 |
 | 文本怎样切开 | [BPE、WordPiece 与 Unigram](tokenizer-algorithms.md) | 词表、byte coverage 与模型权重是否兼容 |
 | 序列梯度怎样传播 | [BPTT 与门控](recurrent-dynamics.md) | 乘法链为什么会衰减，LSTM 的加性路径改变了什么 |
 | 为什么训练集好、验证集差 | [泛化与诊断](generalization.md) | 过拟合、泄漏与分布变化，别用同一种办法处理 |

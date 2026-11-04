@@ -27,6 +27,7 @@ Place newer work next to the operation it changes: [Muon](muon.en.md) follows op
 
 | What to understand first | Read | What to check next |
 | --- | --- | --- |
+| Connecting matrix operations, gradients, and systems | [Matrix gradients to training systems](matrix-gradients-to-systems.en.md) | Calculate dW and dX, then explain activation storage and gradient reduction |
 | Splitting text | [BPE, WordPiece, and Unigram](tokenizer-algorithms.en.md) | Vocabulary, byte coverage, and compatibility with model weights |
 | Gradients through a sequence | [BPTT and gates](recurrent-dynamics.en.md) | Why products can shrink and what the LSTM additive path changes |
 | Good training performance, poor validation | [Generalization and diagnosis](generalization.en.md) | Overfitting, leakage, and distribution shift require different responses |

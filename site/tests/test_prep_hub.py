@@ -4,6 +4,7 @@ import re
 import sys
 import unittest
 from unittest.mock import patch
+from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,7 +25,7 @@ class HubMarkup(HTMLParser):
 
 class PrepHubTests(unittest.TestCase):
     def test_bilingual_structure_and_study_plan_anchors(self):
-        for chapter in ("README", "study-plan"):
+        for chapter in ("README", "study-plan", "core-chapters"):
             sources = [(ROOT / f"interview/{chapter}{suffix}.md").read_text()
                        for suffix in ("", ".en")]
             self.assertEqual(paritycheck.shape(sources[0]), paritycheck.shape(sources[1]))
@@ -46,8 +47,44 @@ class PrepHubTests(unittest.TestCase):
             links = [attrs['href'] for tag, attrs in markup.elements if tag == 'a']
             for target in (f'basics/README{suffix}.md', f'../learn/ml-exercises/README{suffix}.md', f'leetcode{suffix}.md',
                            f'code-comprehension{suffix}.md', f'../learn/system-design/README{suffix}.md',
-                           f'../career/prepare{suffix}.md', f'ai-roles-prep{suffix}.md'):
+                           f'../career/prepare{suffix}.md', f'ai-roles-prep{suffix}.md',
+                           f'core-chapters{suffix}.md'):
                 self.assertIn(target, links)
+
+    def test_core_chapters_link_to_bilingual_notes_and_existing_anchors(self):
+        for suffix in ("", ".en"):
+            source = ROOT / f"interview/core-chapters{suffix}.md"
+            text = source.read_text()
+            if suffix:
+                self.assertNotRegex(re.sub(r"\[中文\]\([^)]*\)", "", text), r"[\u3400-\u9fff]")
+            body, _ = build.render_markdown(text)
+            links = [attrs["href"] for tag, attrs in HubMarkup(body).elements
+                     if tag == "a" and "href" in attrs]
+            self.assertIn(f"../00-foundations/deep-dives/matrix-gradients-to-systems{suffix}.md", links)
+            for href in links:
+                parsed = urlsplit(href)
+                if parsed.scheme or parsed.netloc:
+                    continue
+                target = (source.parent / unquote(parsed.path)).resolve() if parsed.path else source
+                with self.subTest(source=source.name, href=href):
+                    self.assertTrue(target.is_file())
+                    if target.suffix == ".md" and target.stem not in ("core-chapters", "core-chapters.en"):
+                        self.assertEqual(target.name.endswith(".en.md"), bool(suffix))
+                    if parsed.fragment:
+                        raw = re.sub(r"^#\s+.+$", "", target.read_text(), count=1, flags=re.M)
+                        target_html, _ = build.render_markdown(build.protect_mermaid(raw))
+                        identifiers = [attrs.get("id") for _, attrs in HubMarkup(target_html).elements]
+                        self.assertIn(unquote(parsed.fragment), identifiers)
+
+    def test_core_chapters_have_one_navigation_entry_per_language(self):
+        with patch.dict(build.NAV), patch.dict(build.BY_SRC):
+            pages, sections = build.discover(build.load_nav())
+            section = next(item for item in sections if item["dir"] == "interview")
+            self.assertEqual(section["pages"][1]["zh"].src.name, "core-chapters.md")
+            for suffix in ("", ".en"):
+                matches = [page for page in pages if page.src == ROOT / f"interview/core-chapters{suffix}.md"]
+                self.assertEqual(len(matches), 1)
+                self.assertEqual(matches[0].url, f"interview/core-chapters{suffix}.html")
 
     def test_legacy_landing_anchors_survive(self):
         for suffix, anchors in [('', ['prep-routes', 'review', 'plan', 'ml', 'python', '_1', '_2']),

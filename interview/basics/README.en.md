@@ -4,6 +4,8 @@
 
 Use this section after studying a topic: try explaining a question, then revisit the part you cannot explain. For a first encounter, start in [Foundations](../../learn/README.en.md) rather than learning through follow-up questions alone.
 
+For a selected set of full explanations, use the [core interview chapters](../core-chapters.en.md): matrix gradients, the training loop, attention, generation, and evaluation, followed by role-specific reading.
+
 ## Pick a subject to review
 
 | Subject | Entry | What to practice |
