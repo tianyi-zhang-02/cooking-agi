@@ -452,11 +452,11 @@ group = "pretraining"
 sequence = 0
 zh = "先补训练基础"
 en = "Training foundations"
-home = "00-foundations/deep-dives/generalization.md"
-intro_zh = "先判断模型为什么没学好，再看激活、初始化和优化器各自改变了什么。"
-intro_en = "Diagnose learning failures, then examine activations, initialization, and optimizer updates."
-include = ["00-foundations/deep-dives/generalization.md", "00-foundations/deep-dives/activation-and-initialization.md", "00-foundations/deep-dives/optimizers.md", "00-foundations/deep-dives/muon.md"]
-order = ["generalization.md", "activation-and-initialization.md", "optimizers.md", "muon.md"]
+home = "00-foundations/deep-dives/matrix-gradients-to-systems.md"
+intro_zh = "从线性层的梯度开始，再看泛化、激活、初始化和优化器各自影响什么。"
+intro_en = "Start with a linear layer's gradients, then study generalization, activations, initialization, and optimizer updates."
+include = ["00-foundations/deep-dives/matrix-gradients-to-systems.md", "00-foundations/deep-dives/generalization.md", "00-foundations/deep-dives/activation-and-initialization.md", "00-foundations/deep-dives/optimizers.md", "00-foundations/deep-dives/muon.md"]
+order = ["matrix-gradients-to-systems.md", "generalization.md", "activation-and-initialization.md", "optimizers.md", "muon.md"]
 
 [[section]]
 dir = "learn/pretraining"
@@ -802,7 +802,7 @@ dir     = "interview"
 group   = "coding"
 zh      = "复习入口"
 en      = "Preparation guide"
-order   = ["README.md", "speedrun.md", "speedrun-start.md", "study-plan.md", "ai-roles-prep.md", "code-comprehension.md", "coding-checks.md", "python.md", "python-objects.md"]
+order   = ["README.md", "core-chapters.md", "speedrun.md", "speedrun-start.md", "study-plan.md", "ai-roles-prep.md", "code-comprehension.md", "coding-checks.md", "python.md", "python-objects.md"]
 
 [[section]]
 dir = "interview/basics"
@@ -973,6 +973,7 @@ en  = "Templates"
 "06-systems/async-rl.md" = ["异步 RL 与 AReaL", "Async RL & AReaL"]
 "00-foundations/core/embeddings-and-similarity.md" = ["向量（embedding）与相似度", "Embeddings & similarity"]
 "00-foundations/deep-dives/training-step.md" = ["一次训练怎么走", "One training step"]
+"00-foundations/deep-dives/matrix-gradients-to-systems.md" = ["矩阵梯度与训练系统", "Matrix gradients & training systems"]
 "00-foundations/deep-dives/generalization.md" = ["泛化与训练诊断", "Generalization & diagnosis"]
 "00-foundations/deep-dives/activation-and-initialization.md" = ["激活与初始化", "Activations & initialization"]
 "00-foundations/deep-dives/optimizers.md" = ["SGD 到 AdamW", "SGD to AdamW"]
@@ -1099,6 +1100,7 @@ en  = "Templates"
 "community/roadmap.md" = ["接下来一起做什么", "Roadmap"]
 "community/updates.md" = ["更新与阅读记录", "Updates & reading records"]
 "interview/README.md"                                   = ["准备首页", "Preparation home"]
+"interview/core-chapters.md"                            = ["核心章节", "Core chapters"]
 "interview/basics/README.md"                            = ["基础问答导读", "Fundamentals review guide"]
 "interview/leetcode.md"  = ["LeetCode 方法地图", "LeetCode pattern map"]
 "interview/algorithms/complexity-and-tools.md" = ["复杂度与工具", "Complexity & tools"]
