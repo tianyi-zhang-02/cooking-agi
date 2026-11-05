@@ -1,4 +1,4 @@
-"""The reading layout: the cover keeps the sky; every other page reads on plain paper."""
+"""The reading layout: quieter structure on every page but the cover, with the site's own touches kept."""
 from pathlib import Path
 import re
 import sys
@@ -27,14 +27,16 @@ class ReadingLayoutTests(unittest.TestCase):
                     build.build_page(page, [], cls.nav["site"]["repo"], known)
                     cls.output[key, language] = build.assemble(page, cls.sections, cls.nav, "test", TEMPLATE)
 
-    def test_only_the_cover_draws_the_sky(self):
+    def test_reading_pages_keep_the_sky_and_the_ember_touches(self):
         for language in ("zh", "en"):
             with self.subTest(language=language):
-                home, note = self.output["home", language], self.output["note", language]
-                self.assertIn('<canvas class="sky"', home)
-                self.assertIn("static/sky.js", home)
-                self.assertNotIn('<canvas class="sky"', note)
-                self.assertNotIn("static/sky.js", note)
+                for key in ("home", "note"):
+                    self.assertIn('<canvas class="sky"', self.output[key, language])
+                    self.assertIn("static/sky.js", self.output[key, language])
+        rules = re.sub(r"/\*.*?\*/", "", READING, flags=re.S)
+        for touch in ("--ember:", "reading-progress", "study-buddy", "sb-bubble", "widget-kicker", "canvas.sky"):
+            with self.subTest(touch=touch):
+                self.assertNotIn(touch, rules)
 
     def test_reading_pages_are_marked_and_the_cover_is_not(self):
         for language in ("zh", "en"):

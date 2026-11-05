@@ -1767,8 +1767,10 @@ def hero_html(page) -> str:
     kicker = site["title_zh" if zh else "title_en"]
     title = site["tagline_zh" if zh else "tagline_en"]
     label = "封面" if zh else "Cover"
+    hint = "往下看" if zh else "Scroll to the notes"
     return (f'<section class="hero" aria-label="{label}"><p class="hero-kicker">{html.escape(kicker.strip(" ·"))}</p>'
-            f'<h1 class="hero-title">{html.escape(title)}</h1></section>')
+            f'<h1 class="hero-title">{html.escape(title)}</h1>'
+            f'<a class="hero-scroll" href="#content" aria-label="{hint}"><span></span></a></section>')
 
 
 def toc_html(page):
@@ -2098,7 +2100,6 @@ def assemble(page, sections, nav, built, template):
         template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle-designs.js?v={built}"></script>\n</head>')
         template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle-artifacts.js?v={built}"></script>\n</head>')
         template = template.replace('</head>', f'<script defer src="{prefix}static/chronicle-starmap.js?v={built}"></script>\n</head>')
-    if page.kind != "home":                 # the sky belongs to the cover; nothing moves behind the text
         template = template.replace('<canvas class="sky" aria-hidden="true"></canvas>\n', "")
         template = re.sub(r'<script defer src="\{\{prefix\}\}static/sky\.js[^>]*></script>\n?', "", template)
     if 'class="paper-fig' in page.body:

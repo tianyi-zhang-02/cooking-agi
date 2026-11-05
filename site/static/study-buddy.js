@@ -380,7 +380,7 @@
 
   render();
   const stored = load();
-  setOpen(stored.open === true, false);
+  setOpen(typeof stored.open === 'boolean' ? stored.open : scope.matchMedia('(min-width: 900px)').matches, false);
   // Folded away, it still says hello once per part of the day (and holiday), so late at night it always does.
   const seen = `${civil(new Date())}:${current.period}:${current.holiday ? current.holiday.id : ''}`;
   if (!root.hidden && !root.classList.contains('is-open') && stored.seen !== seen) {

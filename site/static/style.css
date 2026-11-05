@@ -1,22 +1,33 @@
-/* AGI 大锅烩 — site styles */
+/* AGI 大锅烩 — site styles
+   Palette note: the ink-blue and ember below are the exact two colours the
+   generated SVG figures use, so figures sit in the page as native elements
+   rather than as pasted-in pictures. Ember is rationed: section numbers,
+   active nav, live badges. Nothing else. */
 
 /* ---------------------------------------------------------------- tokens
-   Three colours: --paper is about 70% of the page, --band about 30% (top bar and cover,
-   with --side-bg as its tint in the sidebar), --accent-fill a little. Dark is the site's
-   own look; light is the pinned alternative. Figures keep their own Q/K/V roles (tx-lab.css). */
+   The site is black and white: the design language is the night sky behind it
+   (static/sky.js), large quiet type and hairlines. Dark is the site's own look;
+   light is the pinned alternative, the same page in daylight. */
 :root {
   color-scheme: dark;
-  --paper: #040804; --panel: #10120F;
-  --ink: #E3E5E1; --ink-soft: #A9ACA8; --muted: #8A8D89; --faint: #7C7F7B;
-  --rule: #232723; --rule-soft: #161A16;
-  --link: #C4E8BB; --link-hover: #D4E6CE;
-  --ember: #7FEE64; --ember-bg: rgba(227, 229, 225, 0.05);
-  --code-bg: #0C0E0B; --mark: rgba(127, 238, 100, 0.18); --shadow: none;
-  --band: #181A17; --band-ink: #E3E5E1; --band-muted: #8C8E8A; --band-rule: rgba(227, 229, 225, 0.15);
-  --side-bg: #0C0E0B; --accent-fill: #7FEE64; --accent-ink: #0A1F06;
-  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, "Songti SC", "Noto Serif CJK SC",
-           "Source Han Serif SC", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --paper:      #000000;
+  --panel:      #0B0B0B;
+  --ink:        #F0F0F0;
+  --ink-soft:   #D8D8D8;
+  --muted:      #A4A4A4;
+  --faint:      #707070;
+  --rule:       #1F1F1F;
+  --rule-soft:  #161616;
+  --link:       #FFFFFF;
+  --link-hover: #FFFFFF;
+  --ember:      #DCDCDC;
+  --ember-bg:   rgba(255, 255, 255, 0.07);
+  --code-bg:    #111111;
+  --mark:       rgba(255, 255, 255, 0.16);
+  --shadow:     none;
+
   --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+  --serif: var(--sans);
   --cjk: "PingFang SC", "Hiragino Sans GB", "Source Han Sans SC",
          "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
@@ -27,14 +38,12 @@
 }
 :root[data-theme="light"] {
   color-scheme: light;
-  --paper: #F6F7F4; --panel: #FFFFFF;
-  --ink: #10120F; --ink-soft: #454744; --muted: #5C5E5B; --faint: #676966;
-  --rule: #D6D7D4; --rule-soft: #E4E5E2;
-  --link: #1F7A0E; --link-hover: #18460E;
-  --ember: #1F7A0E; --ember-bg: rgba(16, 18, 15, 0.05);
-  --code-bg: #EEF0EB; --mark: rgba(127, 238, 100, 0.3);
-  --band: #10120F; --band-ink: #E3E5E1; --band-muted: #868885; --band-rule: rgba(227, 229, 225, 0.15);
-  --side-bg: #ECEEE9; --accent-fill: #7FEE64; --accent-ink: #0A1F06;
+  --paper: #FFFFFF; --panel: #FAFAFA; --ink: #0A0A0A; --ink-soft: #333333;
+  --muted: #6B6B6B; --faint: #9A9A9A; --rule: #E6E6E6; --rule-soft: #F0F0F0;
+  --link: #000000; --link-hover: #000000; --ember: #111111;
+  --ember-bg: rgba(0, 0, 0, 0.06); --code-bg: #F3F3F3;
+  --mark: rgba(0, 0, 0, 0.10);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -1368,14 +1377,35 @@ p.q-src { margin-top: .8rem; padding-top: .55rem; border-top: 1px dashed var(--r
 }
 
 /* ======================================================================
-   Night sky + hero (static/sky.js) and the shared finish.
+   Night sky + hero (static/sky.js) and the black-and-white finish.
    ====================================================================== */
 html { background: var(--paper); }
 body { background: transparent; }
-.sky { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; background: var(--paper); transition: opacity 1.1s ease; }
+.sky { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; background: #000; transition: opacity 1.1s ease; }
+html.sky-back .sky { opacity: .12; }
+:root[data-theme="light"] .sky { display: none; }
+:root[data-theme="light"] body { background: var(--paper); }
+.topbar { background: color-mix(in srgb, var(--paper) 78%, transparent); }
+@media (min-width: 1081px) { .topbar { background: color-mix(in srgb, var(--paper) 78%, transparent); } }
 
+.hero {
+  position: relative; min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 4rem 1.5rem 26vh; font-family: var(--body);
+}
+.hero::before { content: ""; position: absolute; left: 50%; top: 50%; width: min(92vw, 980px); height: min(60vh, 420px); transform: translate(-50%, -56%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.62), rgba(0,0,0,.30) 45%, rgba(0,0,0,0) 72%); pointer-events: none; }
+.hero-kicker { position: relative; font: 500 .78rem/1.5 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: #CFCFCF; animation: hero-in 1.2s .1s ease both; }
+.hero-title {
+  max-width: 17ch; margin: 1.5rem 0 0; font-size: clamp(2.2rem, 5.6vw, 4.8rem); line-height: 1.05; letter-spacing: -.035em; font-weight: 500;
+  position: relative; color: #FFFFFF; text-shadow: 0 2px 28px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.6); text-wrap: balance; animation: hero-in 1.2s .25s ease both;
+}
+html.lang-zh .hero-title { font-weight: 600; letter-spacing: -.01em; }
+.hero-scroll { position: absolute; left: 50%; bottom: 2.1rem; width: 22px; height: 36px; margin-left: -11px; border: 1.5px solid var(--rule); border-radius: 12px; animation: hero-in 1.2s .9s ease both; }
+.hero-scroll span { position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: var(--muted); animation: hero-wheel 2.2s 1.2s ease-in-out infinite; }
+@keyframes hero-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes hero-wheel { 0%, 20% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 71%, 100% { transform: translateY(0); opacity: 0; } }
 .page-home .article-head { display: none; }        /* the hero is the home page's opening */
-@media (prefers-reduced-motion: reduce) { .hero-kicker, .hero-title { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hero-kicker, .hero-title, .hero-scroll, .hero-scroll span { animation: none; } }
 @media print { .hero, .sky { display: none; } }
 
 /* the finish: one radius, hairlines instead of shadows; colour is set in the dawn block below */
@@ -1388,6 +1418,52 @@ body { background: transparent; }
 .prose a:hover { text-decoration-color: var(--ink); }
 .article-head h1, .prose h2, .prose h3, .block-title, .rm-track-name, .cat-card strong, .kb-area-name strong { letter-spacing: -.02em; font-weight: 600; }
 .article-body blockquote::before { display: none; }
+
+/* ======================================================================
+   Dawn. Black on white was tiring to read for long: the whole palette is
+   warmed a step towards first light (a warm near-black, unbleached ink, an
+   amber accent), the leading and margins are opened up, and a low sunrise
+   glow sits under long pages. Colour lives here; the block above only sets
+   radii and hairlines.
+   ====================================================================== */
+:root {
+  --paper: #0C0A08; --panel: #14110E;
+  --ink: #EFE6DA; --ink-soft: #D6CCBF; --muted: #A59A8C; --faint: #6F665C;
+  --rule: #27221D; --rule-soft: #1B1714;
+  --link: #F2C39A; --link-hover: #FFD9B8;
+  --ember: #E8A672; --ember-bg: rgba(232, 166, 114, .10);
+  --code-bg: #17130F; --mark: rgba(242, 195, 154, .22);
+}
+:root[data-theme="light"] {
+  --paper: #F5F5F2; --panel: #FDFDFB;
+  --ink: #252A2D; --ink-soft: #414A50; --muted: #606A70; --faint: #636C71;
+  --rule: #D9DEDD; --rule-soft: #E7EBE9;
+  --link: #99512C; --link-hover: #773C20;
+  --ember: #98512B; --ember-bg: rgba(152, 81, 43, .08);
+  --code-bg: #ECEFEC; --mark: rgba(152, 81, 43, .14);
+}
+html.sky-back::after {
+  content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 42vh; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 62% 58% at 16% 108%, rgba(255, 168, 96, .17), rgba(255, 168, 96, 0) 70%),
+    linear-gradient(to top, rgba(236, 150, 88, .09), rgba(236, 150, 88, .03) 48%, rgba(236, 150, 88, 0));
+}
+:root[data-theme="light"].sky-back::after { display: none; }
+.hero-kicker { color: #D9CFC3; }
+.hero-title { color: #F7F1E8; }
+:root[data-theme="light"] .hero {
+  background:
+    radial-gradient(ellipse 85% 55% at 15% 100%, rgba(224, 199, 165, .18), transparent 75%),
+    linear-gradient(to top, #E3E9EC, var(--paper) 68%);
+}
+:root[data-theme="light"] .hero::before { display: none; }
+:root[data-theme="light"] .hero-kicker { color: var(--muted); }
+:root[data-theme="light"] .hero-title { color: var(--ink); text-shadow: none; }
+:root[data-theme="light"] .hero-scroll { border-color: var(--muted); }
+:root[data-theme="light"] .topbar {
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
+  backdrop-filter: blur(10px);
+}
 
 /* reading rhythm */
 body { line-height: 1.85; }
@@ -1560,85 +1636,12 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
   .has-zones .subtabs-label { padding-top: 0; }
 }
 
-/* ======================================================================
-   Star chart: quiet and technical. Near-black or soft off-white, a grey band,
-   one neon green; Mincho headings and hairlines instead of boxes.
-   Colour and type live here; the page's divisions are unchanged.
-   ====================================================================== */
-/* the band: the top bar and the cover carry the second colour, the sidebar a tint of it */
-.topbar {
-  --ink: var(--band-ink); --ink-soft: var(--band-ink); --muted: var(--band-muted); --faint: var(--band-muted);
-  --rule: var(--band-rule); --rule-soft: var(--band-rule); --ember: var(--accent-fill); --link: var(--band-ink);
-  background: var(--band); border-bottom: 0; backdrop-filter: none;
-}
-@media (min-width: 1081px) {
-  .side { background: var(--side-bg); border-right: 0; padding-left: .9rem; margin-left: -.9rem; box-shadow: 0 0 0 100vmax var(--side-bg); clip-path: inset(0 0 0 -100vmax); }
-}
-@media (max-width: 1080px) { .side { background: var(--side-bg); } }
-.page-home .shell { background: var(--paper); box-shadow: 0 0 0 100vmax var(--paper); clip-path: inset(0 -100vmax -100vmax); }
-.prose .algo-lab .algo-next, .prose .algo-lab .algo-next:hover:not(:disabled) { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-ink); }
-
-/* the cover: on the band, left-aligned and short, so the way in shows on the first screen */
-.hero {
-  position: relative; min-height: 62svh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
-  text-align: left; padding: 7rem clamp(1.25rem, 6vw, 5.5rem) 3.4rem; font-family: var(--body);
-}
-.hero-kicker { position: relative; font: 500 .9rem/1.5 var(--sans), var(--cjk); color: var(--band-muted); animation: hero-in 1.2s .1s ease both; }
-.hero-title {
-  position: relative; max-width: 16em; margin: .8rem 0 0; font-family: var(--serif); font-size: clamp(1.9rem, 3.6vw, 3rem);
-  font-weight: 500; line-height: 1.32; letter-spacing: .01em; color: var(--band-ink); text-wrap: balance; animation: hero-in 1.2s .25s ease both;
-}
-@keyframes hero-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
-/* Chinese titles break at punctuation, not inside a word */
-html.lang-zh :is(.hero-title, .article-head h1) { word-break: keep-all; overflow-wrap: anywhere; }
-
-/* note heads: one small line, a Mincho title, a rule */
-.chapter-mark, .article-head::before { display: none; }
-.article-head { margin: 0 0 2.1rem; padding: .4rem 0 1.5rem; border-bottom: 1px solid var(--rule); }
-.article-kicker span { font: 500 .78rem/1.2 var(--sans), var(--cjk); letter-spacing: 0; text-transform: none; color: var(--muted); }
-.article-head h1, html.lang-zh .article-head h1 {
-  max-width: 24em; font-family: var(--serif); font-size: clamp(1.7rem, 3vw, 2.35rem);
-  font-weight: 500; line-height: 1.38; letter-spacing: .01em;
-}
-.article-meta { margin-top: .9rem; }
-.article-meta .page-position { font-size: .72rem; }
-.article-meta b:has(+ .page-position) { display: none; }
-.reading-progress span { background: var(--accent-fill); }
-.prose .chapter-context { margin: 0 0 1.7rem; padding: 0; background: none; border: 0; }
-.prose .chapter-context strong { display: none; }
-.prose .chapter-context p { margin: 0; font-size: .86rem; line-height: 1.7; color: var(--muted); }
-
-/* body links: a soft tint with a green underline, so the accent stays a small share of the page */
-.prose a:not([class]) { text-decoration-color: color-mix(in srgb, var(--accent-fill) 70%, transparent); text-underline-offset: .2em; }
-:root[data-theme="light"] .prose a:not([class]) { text-decoration-color: color-mix(in srgb, var(--link) 55%, transparent); }
-
-/* headings */
-.prose h2, html.lang-zh .prose h2 {
-  font-family: var(--serif); font-size: 1.42rem; font-weight: 500; letter-spacing: .01em;
-  margin: 3.2rem 0 1rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
-}
-.prose h2::before, .prose h2::after { display: none; }
-.prose h3, html.lang-zh .prose h3 { font-size: 1.04rem; font-weight: 600; letter-spacing: 0; }
-
-/* hairlines instead of boxes */
-.rail-inner { background: none; border: 0; padding: 0; box-shadow: none; }
-.rail-inner::before { display: none; }
-.rail-title { font-size: .76rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
-.toc li a.active { color: var(--ink); font-weight: 500; }
-.article-body .table-wrap, .prose .table-wrap { background: none; border: 0; border-radius: 0; }
-.prose th { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); background: none; border-bottom: 1px solid var(--rule); }
-.prose td { border-bottom: 1px solid var(--rule-soft); }
-.prose td:first-child { font-weight: 500; }
-.prose blockquote { border-left: 1px solid var(--rule); background: none; border-radius: 0; color: var(--ink-soft); }
-.prose pre { border-radius: 3px; border: 1px solid var(--rule-soft); }
-.prose details, .prose .widget, .prose .widget .algo-stage, .prose .widget .algo-caption { border-radius: 3px; }
-.mobile-toc { background: none; border: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); border-radius: 0; }
-
-/* sidebar */
-.nav .cat a, .nav .cat span { font-size: .76rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
-.nav .sec-name { font-size: .74rem; font-weight: 500; letter-spacing: 0; text-transform: none; }
-.nav details > summary { font-weight: 500; border-radius: 2px; }
-.nav details[open] > summary .chev { color: var(--faint); }
-.nav .sec > ul > li > a { border-radius: 0; }
-.nav .sec > ul > li > a.active { font-weight: 500; background: none; box-shadow: none; }
+/* ---------------------------------------------------------------- finer typesetting */
+/* Chinese titles break at punctuation, never inside a word: 「从基础开始，/ 理解模型怎么工作」 */
+html.lang-zh :is(.hero-title, .article-head h1, .prose h2, .prose h3) { word-break: keep-all; overflow-wrap: anywhere; text-wrap: balance; }
+/* Chinese table headers keep their own case: 「送进 softmax 的值」, not 「送进 SOFTMAX 的值」 */
+html.lang-zh .prose th { text-transform: none; letter-spacing: .02em; }
+/* a short inline formula keeps the punctuation after it on its own line (app.js adds the span) */
+.math-hold { white-space: nowrap; }
+/* the cover page lists its sections in the right-hand contents; the left column need not repeat them */
+@media (min-width: 1081px) { .page-home .side-nav:has(.side-page-toc) { display: none; } }
