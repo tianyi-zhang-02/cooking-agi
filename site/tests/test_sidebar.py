@@ -28,16 +28,16 @@ class SidebarTests(unittest.TestCase):
         build.NAV = {
             "category": [
                 {"id": "learn", "zh": "学习笔记", "en": "Study notes", "home": "learn/README.md"},
-                {"id": "career", "zh": "求职", "en": "Career", "home": "career/README.md"},
+                {"id": "interview", "zh": "面试准备", "en": "Interview prep", "home": "interview/README.md"},
             ],
             "group": [
                 {"id": "basics", "zh": "基础", "en": "Basics", "category": "learn"},
-                {"id": "jobs", "zh": "求职准备", "en": "Preparation", "category": "career"},
+                {"id": "drills", "zh": "练习", "en": "Drills", "category": "interview"},
             ],
         }
         self.sections = []
         build.BY_SRC = {}
-        for directory, group in [("learn/core", "basics"), ("learn/models", "basics"), ("career", "jobs")]:
+        for directory, group in [("learn/core", "basics"), ("learn/models", "basics"), ("interview", "drills")]:
             section = {"dir": directory, "group": group, "zh": directory, "en": directory, "pages": []}
             for name in ["README", "example"]:
                 pair = {}
@@ -69,7 +69,7 @@ class SidebarTests(unittest.TestCase):
         self.assertTrue(categories)
         for attrs in categories:
             self.assertEqual("hidden" in attrs, attrs["data-category"] != "learn")
-        self.assertIn('href="../../career/example.html"', markup)
+        self.assertIn('href="../../interview/example.html"', markup)
         self.assertNotIn('side-scope', markup)
         self.assertNotIn('data-side-locate', markup)
         self.assertIn('data-side-collapse', markup)

@@ -35,7 +35,7 @@ class StudyNavigationTests(unittest.TestCase):
         build.BY_SRC.clear()
         build.BY_SRC.update(self.old_sources)
 
-    def test_technical_preparation_is_separate_from_foundations_and_career(self):
+    def test_technical_preparation_is_separate_from_foundations(self):
         technical = [page for source, page in self.chinese.items()
                      if source.startswith("interview/") or source in {
                          "00-foundations/interview-basics.md",
@@ -45,10 +45,6 @@ class StudyNavigationTests(unittest.TestCase):
         for page in technical:
             category = "practice" if page.src.name == "system-design.md" else "interview"
             self.assertEqual(build.page_category(page), category, str(page.src))
-        career = [page for page in self.pages if build.page_category(page) == "career"]
-        self.assertTrue(career)
-        self.assertTrue(all(page.src.relative_to(ROOT).as_posix().startswith("career/")
-                            for page in career))
 
     def test_all_old_technical_urls_remain(self):
         for source, url in {
@@ -72,7 +68,7 @@ class StudyNavigationTests(unittest.TestCase):
 
     def test_categories_separate_learning_preparation_design_and_history(self):
         self.assertEqual([category['id'] for category in self.nav['category']],
-                         ['learn', 'interview', 'practice', 'history', 'career'])
+                         ['learn', 'interview', 'practice', 'history'])
         expected = {
             '00-foundations/core/multi-head-attention.md': 'learn',
             '04-search/tfidf-and-bm25.md': 'learn',
@@ -83,7 +79,6 @@ class StudyNavigationTests(unittest.TestCase):
             'learn/system-design/README.md': 'practice',
             'learn/system-design/feed.md': 'practice',
             'practice/post-training/README.md': 'practice',
-            'career/README.md': 'career',
             'learn/technology-timeline.md': 'history',
             'learn/rl-timeline.md': 'history',
         }

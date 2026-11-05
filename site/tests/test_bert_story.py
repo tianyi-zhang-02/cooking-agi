@@ -84,7 +84,7 @@ class BertStoryTests(unittest.TestCase):
             known = {page.url for page in pages}
             for source, expected in [("00-foundations/core/bert.md", True),
                                      ("00-foundations/core/vanilla-transformer.md", False),
-                                     ("career/journey.md", False)]:
+                                     ("interview/ai-roles-prep.md", False)]:
                 for language in ["zh", "en"]:
                     with self.subTest(source=source, language=language):
                         page = build.BY_SRC[source][language]

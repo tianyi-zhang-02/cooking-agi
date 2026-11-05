@@ -26,7 +26,6 @@
 | 写一个 causal attention，标出各步 shape | [ML Coding](../learn/ml-exercises/README.md)：shape、mask 和测试 |
 | 用一个小图说明 DFS 和 BFS 的访问顺序 | [遍历方法](algorithms/traversal.md)：栈、队列和 visited |
 | 画出一条 LLM 请求从入队到返回 token 的路径 | [推理框架拆解](../06-systems/inference-frameworks.md)：调度、缓存与执行 |
-| 讲一个项目，说明为什么没选另一个方案 | [项目准备](../career/prepare.md)：约束、个人贡献和证据 |
 
 能独立完成的部分可以跳过。只记得结论时，就用一个具体输入验证它，看看自己能否解释中间每一步。
 
@@ -43,7 +42,7 @@
 | 3 · 写成训练循环 | [张量与 PyTorch](../00-foundations/pytorch/README.md) → [训练循环](../00-foundations/pytorch/training-loop.md) | 用一个小 batch 跑前向、反向和更新；区分 train / eval | 一个能重复跑的脚本和一次检查结果 |
 | 4 · 练一个算法方法 | [Hash Map](algorithms/hash-and-prefix.md) 或 [DFS / BFS](algorithms/traversal.md) | 自己写一次，补重复值或成环的例子，解释复杂度 | 一个边界测试，以及方法适用的条件 |
 | 5 · 接到目标方向 | [按岗位选练习](ai-roles-prep.md) | 从下面选一条分支，只做其中一个练习 | 一个实现、实验记录或设计草图 |
-| 6 · 合起来讲一次 | [代码理解](code-comprehension.md) 与 [项目准备](../career/prepare.md) | 给代码改一个要求；用一个项目解释自己做过的选择 | 这次没讲清的两处，下次从其中一处继续 |
+| 6 · 合起来讲一次 | [代码理解](code-comprehension.md) | 给代码改一个要求；用一个项目解释自己做过的选择 | 这次没讲清的两处，下次从其中一处继续 |
 
 1–3 适合刚接触 ML 的读者；算法也可以单独并行练，不必等模型部分全部学完。每个单元都可以拆开，或者在已经会做时跳过。
 

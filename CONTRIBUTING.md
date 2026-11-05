@@ -29,7 +29,7 @@
 
 ## 目录和本地检查
 
-站点分五个入口：`learn/` 组织基础知识，`interview/` 放 coding 和面试复习，`practice/` 讲系统设计与工程取舍，独立的「编年史」梳理技术与基础设施的发展，`career/` 留求职经历和准备方法。文章仍放在各自的主题目录；只调整导航时不要搬文件，避免已有链接失效。论文来源直接附在相关文章里，不再单设一级栏目。
+站点分四个入口：`learn/` 组织基础知识，`interview/` 放 coding 和面试复习，`practice/` 讲系统设计与工程取舍，独立的「编年史」梳理技术与基础设施的发展。文章仍放在各自的主题目录；只调整导航时不要搬文件，避免已有链接失效。论文来源直接附在相关文章里，不再单设一级栏目。
 
 ```bash
 pip install markdown pygments numpy
@@ -89,7 +89,7 @@ Maintainers can run the optional [three-role review tool](site/REVIEW_ASSIST.md)
 
 ## Structure and local checks
 
-The site has five entry points: `learn/` for foundations, `interview/` for coding and interview revision, `practice/` for system design and engineering decisions, a separate history section for developments in technology and infrastructure, and `career/` for job-search experiences and preparation. Articles stay in their topic directories. Don't move files just to reorganize navigation; preserve existing URLs. Link papers from the relevant articles rather than adding a separate top-level section.
+The site has four entry points: `learn/` for foundations, `interview/` for coding and interview revision, `practice/` for system design and engineering decisions, and a separate history section for developments in technology and infrastructure. Articles stay in their topic directories. Don't move files just to reorganize navigation; preserve existing URLs. Link papers from the relevant articles rather than adding a separate top-level section.
 
 ```bash
 pip install markdown pygments numpy

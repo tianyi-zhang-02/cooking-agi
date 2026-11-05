@@ -57,7 +57,7 @@ class EncoderLabTests(unittest.TestCase):
             known = {page.url for page in pages}
             for source, expected in [("00-foundations/core/bert.md", True),
                                      ("00-foundations/core/vanilla-transformer.md", True),
-                                     ("career/journey.md", False)]:
+                                     ("interview/ai-roles-prep.md", False)]:
                 for language in ["zh", "en"]:
                     page = build.BY_SRC[source][language]
                     build.build_page(page, [], nav["site"]["repo"], known)

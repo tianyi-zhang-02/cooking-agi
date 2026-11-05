@@ -2,7 +2,7 @@
 
 [中文](choose-your-path.md) · **English**
 
-Find material by your current goal: getting started, reviewing for interviews, reading papers, building a project, studying one topic, or preparing to apply. Each route lists a starting point and a suggested exercise.
+Find material by your current goal: getting started, reviewing for interviews, reading papers, building a project, or studying one topic. Each route lists a starting point and a suggested exercise.
 
 <nav class="study-route goal-route" aria-label="Choose a route by goal">
 <a href="#getting-started"><small>Build an understanding</small><strong>I'm new to ML / LLMs</strong><span>From a prediction problem to a Transformer</span></a>
@@ -10,7 +10,6 @@ Find material by your current goal: getting started, reviewing for interviews, r
 <a href="#research"><small>Read research</small><strong>I want to understand papers and experiments</strong><span>Mechanisms, comparisons, reproduction, and limits</span></a>
 <a href="#projects"><small>Build something</small><strong>I want a small working project</strong><span>Get it running, then examine the design choices</span></a>
 <a href="#topics"><small>Follow an interest</small><strong>I only need one topic</strong><span>Post-training, evaluation, RAG, multimodal models, inference…</span></a>
-<a href="#applications"><small>Plan the job search</small><strong>I need to decide what to prepare</strong><span>Role choices, project discussions, and interview reflections</span></a>
 </nav>
 
 Skip what you already know. These notes mainly cover ML / LLM and MLE / research topics; other roles need knowledge from their own fields as well.
@@ -25,6 +24,8 @@ A little Python is enough to begin. If vectors and gradients are unfamiliar, sta
 
 **Try it:** take a short sentence and explain how the input becomes a prediction and how the loss takes part in the parameter update. Then check the computation against the [PyTorch exercises](../00-foundations/pytorch/README.en.md). Model families, MoE, and distributed training can wait.
 
+<span id="applications"></span>
+
 ## Interviews: find the part that needs practice {#interviews}
 
 In [Interview prep](../interview/README.en.md), pick the area you need. If you already know the basics, go straight to the [quick review](../interview/speedrun.en.md); to study systematically, use the [study plan](../interview/study-plan.en.md). The hours in the routes are a guide; split them to fit your schedule.
@@ -35,7 +36,7 @@ Start with the job description and any interview information you've received. Tw
 2. **Understand it but can't implement it?** Try [ML coding](ml-exercises/README.en.md). Check shapes, masks, gradients, and boundary cases.
 3. **Slow to code or unsure how to approach a problem?** Start with [Python](../interview/python.en.md) and [algorithm patterns](../interview/leetcode.en.md). Practice methods rather than memorizing problem numbers.
 
-**Practice:** solve a problem on your own, explain your approach, then test a few other inputs. For design questions, continue with [Feed / RAG / Memory design](system-design/README.en.md); for project follow-up questions, see [what to prepare](../career/prepare.en.md).
+**Practice:** solve a problem on your own, explain your approach, then test a few other inputs. For design questions, continue with [Feed / RAG / Memory design](system-design/README.en.md).
 
 ## Research: work out what actually changed {#research}
 
@@ -83,16 +84,9 @@ The entries below are grouped by topic; each topic has its own, more detailed re
 
 For a particular term, use the search button at the top or press `/`. Try either the Chinese concept or the English term.
 
-## Job-search preparation: decide what to work on next {#applications}
-
-1. [What to prepare](../career/prepare.en.md): allocate effort around the role and your own gaps.
-2. [An interview retrospective](../career/one-interview.en.md): record specific problems after an interview, then adjust your preparation.
-
-Start by listing what you need to fill in before your next interview, then plan specific exercises. My own experience is in the [25–26 internship search](../career/journey.en.md) and [26–27 new-grad search](../career/new-grad-2026-2027.en.md), for reference only.
-
 ## See the full collection, or come back later {#all-notes}
 
-Everything lives in [Foundations](README.en.md), [Interview prep](../interview/README.en.md), [Engineering practice](../practice/README.en.md), [Tech history](technology-timeline.en.md), and [Career](../career/README.en.md). The routes are only different reading orders that point to the same articles.
+Everything lives in [Foundations](README.en.md), [Interview prep](../interview/README.en.md), [Engineering practice](../practice/README.en.md), and [Tech history](technology-timeline.en.md). The routes are only different reading orders that point to the same articles.
 
 Use **中文 / EN** at the top to switch languages within the same note. Select **Save this page** under its title to save it, then find it alongside recently opened pages under **My reading**. Records stay in this browser; export a backup under Settings before moving to another device.
 

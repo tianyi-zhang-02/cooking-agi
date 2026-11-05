@@ -44,7 +44,7 @@ class GoalRoutesTests(unittest.TestCase):
             self.assertEqual(re.findall(r"\{#([^}]+)\}", chinese), re.findall(r"\{#([^}]+)\}", english))
 
     def test_goal_cards_work_without_scripts(self):
-        expected = ["getting-started", "interviews", "research", "projects", "topics", "applications"]
+        expected = ["getting-started", "interviews", "research", "projects", "topics"]
         for language in ("zh", "en"):
             source = self.catalog["learn/choose-your-path.md"][language].src.read_text()
             cards = re.search(r'<nav class="study-route goal-route".*?</nav>', source, re.S)[0]
@@ -55,7 +55,7 @@ class GoalRoutesTests(unittest.TestCase):
             self.assertNotIn("<button", cards)
 
     def test_all_primary_areas_have_a_path_back_to_the_guide(self):
-        for source in ("learn/README.md", "interview/README.md", "practice/README.md", "career/README.md"):
+        for source in ("learn/README.md", "interview/README.md", "practice/README.md"):
             for language in ("zh", "en"):
                 page = self.catalog[source][language]
                 markup = build.sidebar_html(page, self.sections, self.nav["group"])
@@ -82,14 +82,14 @@ class GoalRoutesTests(unittest.TestCase):
             for link in links:
                 self.assertTrue((page.src.parent / link).resolve() in known_sources, f"{page.src.name}: {link}")
 
-    def test_application_route_uses_existing_career_notes(self):
+    def test_retired_job_search_route_keeps_its_old_anchor(self):
+        # The career section was removed on 2026-11-05; old #applications links land on the interview route.
         for language in ("zh", "en"):
-            page = self.catalog["learn/choose-your-path.md"][language]
-            source = page.src.read_text()
-            suffix = "" if language == "zh" else ".en"
-            self.assertIn(f"../career/prepare{suffix}.md", source)
-            self.assertIn(f"../career/one-interview{suffix}.md", source)
-            self.assertNotIn(f"../career/resume{suffix}.md", source)
+            source = self.catalog["learn/choose-your-path.md"][language].src.read_text()
+            self.assertNotIn("../career/", source)
+            self.assertNotIn("{#applications}", source)
+            self.assertEqual(source.count('<span id="applications"></span>'), 1)
+            self.assertLess(source.index('<span id="applications"></span>'), source.index("{#interviews}"))
 
 
 if __name__ == "__main__":

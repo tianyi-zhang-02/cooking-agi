@@ -75,6 +75,6 @@ For multimodal roles, continue with [visual features entering an LLM](../03-mult
 
 **Practice algorithms and code reading separately.** The [LeetCode pattern map](leetcode.en.md) organizes reusable methods; [code comprehension](code-comprehension.en.md) practices tracing and debugging existing implementations. Explaining attention does not establish that you can handle algorithmic edge cases, and solving algorithms does not establish that you can find a training-loop bug.
 
-**Connect the concepts through a real project.** Use [project preparation](../career/prepare.en.md) to explain the problem, your contribution, alternatives, evidence, and limitations. If asked why you used two-stage retrieval, connect the mechanism to your actual latency budget, data, and measurements. Say when something was not measured rather than inventing a plausible number.
+**Connect the concepts through a real project.** Pick a piece of your own work and explain the problem, your contribution, alternatives, evidence, and limitations. If asked why you used two-stage retrieval, connect the mechanism to your actual latency budget, data, and measurements. Say when something was not measured rather than inventing a plausible number.
 
 These chapters organize knowledge; they do not predict a company's interview scope. Save individual notes to return to them later. They retain their original links and use the existing “My reading” feature; this index does not create another progress tracker.

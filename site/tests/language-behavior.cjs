@@ -148,7 +148,7 @@ const unavailableStorage = simulate({blockLocal: true, blockSession: true});
 unavailableStorage.handlers.click({target: {closest: () => chineseLink}, button: 0});
 assert.equal(unavailableStorage.guide.hidden, true);
 assert.equal(unavailableStorage.redirected, null);
-const deepLink = simulate({href: base + 'career/journey.en.html', prefix: '../', local: new Map([[keys.choice, 'zh']])});
+const deepLink = simulate({href: base + 'interview/ai-roles-prep.en.html', prefix: '../', local: new Map([[keys.choice, 'zh']])});
 assert.equal(deepLink.redirected, null);
 assert.equal(deepLink.local.get(keys.choice), 'zh');
 console.log('Language entry, preferences, and first-visit guide passed.');

@@ -47,9 +47,9 @@ class PrepHubTests(unittest.TestCase):
             links = [attrs['href'] for tag, attrs in markup.elements if tag == 'a']
             for target in (f'basics/README{suffix}.md', f'../learn/ml-exercises/README{suffix}.md', f'leetcode{suffix}.md',
                            f'code-comprehension{suffix}.md', f'../learn/system-design/README{suffix}.md',
-                           f'../career/prepare{suffix}.md', f'ai-roles-prep{suffix}.md',
-                           f'core-chapters{suffix}.md'):
+                           f'ai-roles-prep{suffix}.md', f'core-chapters{suffix}.md'):
                 self.assertIn(target, links)
+            self.assertFalse([link for link in links if link.startswith('../career/')])
 
     def test_core_chapters_link_to_bilingual_notes_and_existing_anchors(self):
         for suffix in ("", ".en"):
