@@ -1,0 +1,90 @@
+/* The reading layout: every page except the cover and the technology chronicle.
+   One column, one text size, and side columns that wait until they are needed.
+   It takes away boxes and navigation, not the site's own touches: the sky, the ember
+   accents (progress bar, title rule, heading dashes, active markers) and the study buddy stay.
+   Colours stay in the token blocks of style.css.
+   Selectors start with `:root .page-reading` so they outrank the older layers in style.css. */
+
+:root .page-reading {
+  --page-ink: var(--ink); --page-soft: var(--ink-soft); --page-muted: var(--muted);
+  --page-faint: var(--faint); --page-rule: var(--rule); --page-rule-soft: var(--rule-soft);
+}
+
+/* the top bar joins the page and leaves while reading onward (app.js sets data-bar-hidden) */
+:root .page-reading .topbar {
+  --ink: var(--page-ink); --ink-soft: var(--page-soft); --muted: var(--page-muted); --faint: var(--page-faint);
+  --rule: var(--page-rule); --rule-soft: var(--page-rule-soft);
+  background: var(--paper); border-bottom: 1px solid var(--page-rule-soft); transition: transform .2s ease;
+}
+:root[data-bar-hidden] .page-reading .topbar:not(:has(:focus-visible)) { transform: translateY(-100%); }
+
+/* the note */
+:root .page-reading article.prose { max-width: 640px; margin-inline: auto; }
+:root .page-reading .article-head { margin: 0 0 1rem; border-bottom: 0; }
+:root .page-reading .article-meta { display: inline-flex; margin-top: .7rem; color: var(--faint); }
+:root .page-reading .article-meta .page-position, :root .page-reading .article-meta b:last-of-type { display: none; }
+:root .page-reading .note-tools:not([hidden]) { display: inline-flex; margin: 0 0 0 .9rem; vertical-align: baseline; }
+:root .page-reading .note-tools button { color: var(--faint); font-size: .8rem; }
+:root .page-reading .prose .chapter-context { margin: 0 0 1.5rem; }
+:root .page-reading .article-body > p, :root .page-reading .article-body > ul > li, :root .page-reading .article-body > ol > li { line-height: 1.85; color: var(--ink-soft); }
+:root .page-reading .article-body > p { font-size: 1.0625rem; margin-bottom: 1.15em; text-wrap: pretty; }
+:root .page-reading .article-body strong { font-weight: 600; color: var(--ink); }
+:root .page-reading .prose :not(pre) > code { background: none; padding: 0; font-size: .9em; color: inherit; }
+:root .page-reading .term-en { font-size: .78em; color: var(--faint); }
+@media (hover: hover) {                     /* touch screens have no hover, so they keep the underline as the only sign of a gloss */
+  :root .page-reading .term { border-bottom: 0; }
+  :root .page-reading .term:hover, :root .page-reading .term:focus { border-bottom: 1px dotted var(--muted); }
+}
+:root .page-reading .prose h2 { border-top: 0; padding-top: 0; margin: 3.6rem 0 1rem; }
+:root .page-reading .article-body .katex-display { background: none; margin: 1.5rem 0; padding: .2rem 0; border-radius: 0; }
+:root .page-reading .prose tbody tr:nth-child(even), :root .page-reading .prose tbody tr:hover { background: none; }
+:root .page-reading .prose td:first-child { font-weight: 400; }
+:root .page-reading .article-body details { background: none; border-radius: 0 !important; border-left: 0; border-right: 0; }
+
+/* figures: one frame at most */
+:root .page-reading .article-body .widget { border: 0; border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); border-radius: 0 !important; background: none; box-shadow: none; margin: 2.2rem 0; }
+:root .page-reading .article-body .widget-head { background: none; border: 0; padding: .8rem 0 .3rem; }
+:root .page-reading .article-body .widget-body { padding: .4rem 0 .9rem; }
+:root .page-reading .algo-lab .algo-stage { border: 0; background: none; padding: 6px 0; }
+
+/* the directory toggle is plain HTML: without scripts it still works, and nothing flashes on load */
+.side-all { display: none; }
+.side-all input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.side-all-less, .side-all:has(input:checked) .side-all-more { display: none; }
+.side-all:has(input:checked) .side-all-less { display: inline; }
+.side-all:has(input:focus-visible) { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+/* the side columns: still there, but quiet. On small screens the drawer keeps the whole directory. */
+@media (min-width: 1081px) {
+  :root .page-reading { --side-w: 212px; --rail-w: 212px; }
+  :root .page-reading .shell { gap: 0 3rem; max-width: 1280px; }
+  :root .page-reading .side {
+    --side-bg: var(--paper); --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted);
+    transition: top .2s ease;
+  }
+  :root[data-bar-hidden] .page-reading .side { top: 0; height: 100dvh; }
+  :root[data-bar-hidden] .page-reading .rail { top: 0; }
+  :root .page-reading .side .grp-count, :root .page-reading .side .zone small,
+  :root .page-reading .side-directory-actions, :root .page-reading .side-route-link { display: none !important; }
+  :root .page-reading .side :is(summary, a) { font-weight: 400 !important; }
+  :root .page-reading .side a.active { color: var(--page-ink) !important; }
+
+  /* only the current chapter, until the reader asks for the rest */
+  /* build.py renders the toggle only when there is a current note and something to fold away */
+  :root .page-reading .side-nav:has(.side-all input:not(:checked)) .nav > li:not(:has(a.active), .is-current),
+  :root .page-reading .side-nav:has(.side-all input:not(:checked)) .nav details:not(:has(a.active)) { display: none; }
+  :root .page-reading .side-all { display: block; margin: .8rem .55rem 0; color: var(--page-faint); font: .78rem/1.5 var(--body); cursor: pointer; }
+  :root .page-reading .side-all:hover { color: var(--page-ink); }
+  /* a page with no directory of its own: the right column already has its contents */
+  :root .page-reading .side-nav:has(.side-page-toc) { display: none; }
+
+  :root .page-reading .rail { --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted); --rule: var(--page-rule-soft); }
+  :root .page-reading .rail-title { display: none; }
+  :root .page-reading .toc a { font-size: .78rem; line-height: 1.55; }
+  :root .page-reading .toc li a { border-left-width: 1px; }
+  :root .page-reading .toc li a.active { color: var(--page-ink); font-weight: 400; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root .page-reading .topbar, :root .page-reading .side { transition: none; }
+}

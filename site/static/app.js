@@ -75,6 +75,16 @@
     show(home, false);
   });
 
+  /* ---------------------------------------------------------- colour option (settings → 配色)
+     The default night-sky palette has no attribute; the head script in template.html restores a choice before first paint. */
+  window.addEventListener("notes:palette", function (event) {
+    var value = typeof event.detail === "string" && /^[a-z]*$/.test(event.detail) ? event.detail : "";
+    var page = document.documentElement;
+    if (value) page.dataset.palette = value; else delete page.dataset.palette;
+    try { if (value) localStorage.setItem("palette", value); else localStorage.removeItem("palette"); } catch (error) {}
+    window.dispatchEvent(new CustomEvent("themechange"));
+  });
+
   /* ---------------------------------------------------------- theme */
   var root = document.documentElement;
   var themeBtn = $(".icon-btn.theme");
@@ -152,6 +162,17 @@
     wrap.appendChild(btn);
   });
 
+  /* ---------------------------------------------------------- the top bar leaves while reading onward */
+  if (document.body && document.body.classList.contains("page-reading")) {
+    var barRoot = document.documentElement, lastScroll = window.scrollY;
+    addEventListener("scroll", function () {
+      var y = window.scrollY;
+      if (Math.abs(y - lastScroll) < 6) return;
+      barRoot.toggleAttribute("data-bar-hidden", y > lastScroll && y > 120 && !barRoot.classList.contains("drawer-is-open"));
+      lastScroll = y;
+    }, { passive: true });
+  }
+
   /* ---------------------------------------------------------- toc scrollspy */
   var links = $$(".toc a");
   if (links.length) {
@@ -182,8 +203,29 @@
     });
     });
   }
-  if (document.readyState === "complete") typeset();
-  else addEventListener("load", typeset);
+  // No punctuation at the start of a line: a comma or full stop right after a short inline formula
+  // stays on the formula's line. Long formulas are left alone so they can still wrap inside themselves.
+  var CLOSING = /^[，。、；：？！）」』”’]/, BLOCK = "p, li, td, th, dd, figcaption, summary, blockquote";
+  function holdPunctuation() {
+    $$(".article-body .katex").forEach(function (math) {
+      if (math.closest(".katex-display")) return;
+      var tex = math.querySelector("annotation");
+      if (!tex || tex.textContent.length > 16) return;
+      var node = math;
+      while (!node.nextSibling && node.parentElement && !node.parentElement.matches(BLOCK)) node = node.parentElement;
+      var text = node.nextSibling;
+      if (!text || text.nodeType !== 3 || !CLOSING.test(text.data)) return;
+      var hold = document.createElement("span");
+      hold.className = "math-hold";
+      node.parentNode.insertBefore(hold, node);
+      hold.appendChild(node);
+      hold.appendChild(document.createTextNode(text.data.charAt(0)));
+      text.data = text.data.slice(1);
+    });
+  }
+  function typesetAll() { typeset(); holdPunctuation(); }
+  if (document.readyState === "complete") typesetAll();
+  else addEventListener("load", typesetAll);
 
   if ($(".mermaid")) {
     // Exact version, imported directly: no inline module script for the CSP to allow.

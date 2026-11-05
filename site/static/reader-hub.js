@@ -557,6 +557,10 @@
     }))], String(saved.length)));
   }
 
+  // the colour options; their values live in palettes.css, the default in style.css
+  const PALETTES = [['', say('夜空（默认）', 'Night sky (default)')], ['flexoki', 'Flexoki'], ['everforest', 'Everforest'], ['solarized', 'Solarized'],
+    ['gruvbox', 'Gruvbox'], ['rosepine', 'Rosé Pine'], ['kon', say('紺紙金泥', 'Indigo & gold')], ['seiji', say('青磁', 'Celadon')], ['sepia', say('纸书', 'Sepia')], ['firefly', say('萤火', 'Firefly')]];
+
   function renderSettings(panel, state) {
     panel.replaceChildren();
     const config = settings(state);
@@ -576,6 +580,15 @@
     const theme = segment(say('主题', 'Theme'), [['dark', say('深色', 'Dark')], ['light', say('浅色', 'Light')]],
       document.documentElement.dataset.theme === 'light' ? 'light' : 'dark',
       value => { if ((value === 'light') !== (document.documentElement.dataset.theme === 'light')) themeButton?.click(); render(); });
+    const root = document.documentElement;
+    const palettes = el('div', {class: 'reader-hub-palettes', role: 'radiogroup', 'aria-label': say('配色', 'Colours')});
+    for (const [value, name] of PALETTES) {
+      const option = el('button', {type: 'button', role: 'radio', class: 'reader-hub-palette', 'data-palette-option': value || 'night',
+        'aria-checked': String((root.dataset.palette || '') === value)}, [el('span', {class: 'reader-hub-swatch', 'aria-hidden': 'true'}), el('span', {text: name})]);
+      // app.js applies and remembers the choice, as it does for the theme
+      option.addEventListener('click', () => { scope.dispatchEvent(new CustomEvent('notes:palette', {detail: value})); render(); });
+      palettes.append(option);
+    }
     const star = segment(say('Star 提示', 'Star notice'), [['collapsed', say('显示', 'Show')], ['hidden', say('隐藏', 'Hide')]],
       config.mascot === 'hidden' ? 'hidden' : 'collapsed',
       value => {
@@ -645,6 +658,7 @@
       ...group(say('阅读', 'Reading'), [row(say('记录阅读次数', 'Count my reading'), say('一篇笔记在前台读满 15 秒记一次，只存在这个浏览器。', 'A note counts after 15 visible seconds; kept in this browser only.'), history)]),
       ...group(say('外观与提示', 'Look and notices'), [
         row(say('主题', 'Theme'), say('和顶栏的切换按钮是同一个设置。', 'Same as the toggle in the top bar.'), theme),
+        row(say('配色', 'Colours'), say('默认是原来的夜空配色。换一套只影响这个浏览器，深色浅色都跟着变。', 'The night-sky colours are the default. A choice stays in this browser and works in both themes.'), palettes, 'div', {'data-palette-row': true}),
         row(say('Star 提示', 'Star notice'), say('偶尔在右下角提醒一次。', 'An occasional notice in the corner.'), star),
         row(say('学习小伙伴', 'Study buddy'), say('右下角的小窗，跟着时间和节日变化。', 'The little window in the corner that follows the time of day.'), buddy)]),
       ...group(say('清理记录', 'Clear history'), [wipe]));
