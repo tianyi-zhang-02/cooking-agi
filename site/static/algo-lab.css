@@ -1,6 +1,6 @@
-/* Algorithm lab figures (static/algo-lab.js). Shares the figure chrome and colour
-   roles of tx-lab.css: blue = what we are looking at, ember = what changes,
-   green = done / kept. */
+/* Algorithm lab figures (static/algo-lab.js). Shares the colour roles of tx-lab.css
+   inside the drawing: blue = what we are looking at, orange = what changes, green = done
+   or kept. The chrome around the drawing (step card, progress) uses the site accent. */
 /* stepper chrome: modes on top, the drawing on a quiet canvas, then the step card,
    readouts and navigation (back / progress / next) */
 .algo-lab .algo-controls{gap:6px;margin-bottom:.6rem}
@@ -9,10 +9,10 @@
 .algo-lab .algo-scroll>svg{min-width:520px;margin:0 auto}
 .algo-lab .algo-foot{gap:12px;padding-top:12px}
 .algo-lab .algo-step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:12px 14px;
-  border:1px solid var(--rule);border-left:3px solid var(--c-k);border-radius:8px;background:color-mix(in srgb,var(--ink) 3%,transparent)}
+  border:1px solid var(--rule);border-left:3px solid var(--accent-fill);border-radius:3px;background:color-mix(in srgb,var(--ink) 3%,transparent)}
 .algo-lab .algo-step.is-plain{grid-template-columns:minmax(0,1fr);border-left:1px solid var(--rule)}
 .algo-lab .algo-step-num{display:grid;place-items:center;width:24px;height:24px;margin-top:1px;border-radius:50%;
-  background:var(--c-k-soft);color:var(--c-k);font:700 12px/1 var(--mono)}
+  background:var(--ember-bg);color:var(--ember);font:700 12px/1 var(--mono)}
 .algo-lab .algo-caption{margin:0;min-height:3.2em}
 .algo-lab .algo-step.is-plain .algo-caption{min-height:0}
 .algo-lab .algo-readouts{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 18px}
@@ -20,7 +20,7 @@
 .algo-lab .ro.is-wide{grid-column:1/-1}
 .algo-lab .ro.is-good .ro-val{color:var(--c-v)}
 .algo-lab .ro.is-bad .ro-val{color:#d6455a}
-.algo-lab .ro.is-key .ro-val{color:var(--c-k)}
+.algo-lab .ro.is-key .ro-val{color:var(--ember)}
 .algo-lab .algo-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .algo-lab .algo-btn{padding:0 13px;font:600 13px/1 var(--sans),var(--cjk)}
 .algo-lab .algo-btn:disabled{opacity:.35;cursor:default}
@@ -32,8 +32,8 @@
 .algo-lab .algo-tick{flex:1;min-width:8px;height:22px;padding:0;border:0;background:none;cursor:pointer}
 .algo-lab .algo-tick::before{content:"";display:block;height:6px;border-radius:3px;background:var(--rule);transition:background .2s ease}
 .algo-lab .algo-tick:hover::before{background:var(--tx-line-strong)}
-.algo-lab .algo-tick.is-done::before{background:color-mix(in srgb,var(--c-k) 45%,var(--rule))}
-.algo-lab .algo-tick.is-now::before{background:var(--c-k)}
+.algo-lab .algo-tick.is-done::before{background:color-mix(in srgb,var(--accent-fill) 45%,var(--rule))}
+.algo-lab .algo-tick.is-now::before{background:var(--accent-fill)}
 .algo-lab .algo-tick:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4px}
 .algo-lab .algo-count{font:600 12px/1 var(--mono);color:var(--muted);white-space:nowrap}
 .algo-lab.is-measuring *{transition:none!important}

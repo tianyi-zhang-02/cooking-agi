@@ -36,27 +36,34 @@ class LightThemeTests(unittest.TestCase):
                 with self.subTest(foreground=foreground, background=background):
                     self.assertGreaterEqual(contrast(tokens[foreground], tokens[background]), 4.5)
 
-    def test_light_hero_does_not_keep_the_night_scrim(self):
-        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .hero::before')["display"], "none")
-        title = declarations(STYLE, ':root[data-theme="light"] .hero-title')
-        self.assertEqual(title["color"], "var(--ink)")
-        self.assertEqual(title["text-shadow"], "none")
-        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .hero-kicker')["color"], "var(--muted)")
-        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .sky')["display"], "none")
+    def test_both_themes_keep_the_three_colour_roles_readable(self):
+        for selector in (":root", ':root[data-theme="light"]'):
+            tokens = declarations(STYLE, selector)
+            pairs = [("--band-ink", "--band"), ("--band-muted", "--band"), ("--accent-ink", "--accent-fill"),
+                     ("--ink", "--side-bg"), ("--muted", "--side-bg"), ("--faint", "--side-bg"), ("--ember", "--side-bg")]
+            for foreground, background in pairs:
+                with self.subTest(theme=selector, foreground=foreground, background=background):
+                    self.assertGreaterEqual(contrast(tokens[foreground], tokens[background]), 4.5)
 
-    def test_hero_text_also_contrasts_with_the_horizon(self):
-        tokens = declarations(STYLE, ':root[data-theme="light"]')
-        hero = declarations(STYLE, ':root[data-theme="light"] .hero')["background"]
-        for color in re.findall(r"#[0-9a-fA-F]{6}", hero):
-            for token in ("--ink", "--muted"):
-                self.assertGreaterEqual(contrast(tokens[token], color), 4.5)
-
-    def test_dark_theme_keeps_its_existing_palette_and_cover(self):
+    def test_dark_reading_colors_have_normal_text_contrast(self):
         tokens = declarations(STYLE, ":root")
-        self.assertEqual(tokens["--paper"], "#0C0A08")
-        self.assertEqual(tokens["--ink"], "#EFE6DA")
-        self.assertEqual(declarations(STYLE, ".hero-title")["color"], "#F7F1E8")
-        self.assertIn("rgba(0,0,0,.62)", declarations(STYLE, ".hero::before")["background"])
+        for foreground in ("--ink", "--ink-soft", "--muted", "--faint", "--link", "--ember"):
+            for background in ("--paper", "--panel", "--code-bg"):
+                with self.subTest(foreground=foreground, background=background):
+                    self.assertGreaterEqual(contrast(tokens[foreground], tokens[background]), 4.5)
+
+    def test_palette_is_near_black_grey_band_and_one_green(self):
+        tokens = declarations(STYLE, ":root")
+        self.assertEqual(tokens["--paper"], "#040804")
+        self.assertEqual(tokens["--band"], "#181A17")
+        self.assertEqual(tokens["--accent-fill"], "#7FEE64")
+
+    def test_cover_sits_on_the_band_in_both_themes(self):
+        self.assertEqual(declarations(STYLE, ".hero-title")["color"], "var(--band-ink)")
+        self.assertEqual(declarations(STYLE, ".hero-kicker")["color"], "var(--band-muted)")
+        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .sky'), {})
+        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .hero'), {})
+        self.assertIn("cover ? '--band' : '--paper'", (ROOT / "site/static/sky.js").read_text())
 
     def test_search_uses_a_separate_light_overlay(self):
         dialog = declarations(SEARCH, ':root[data-theme="light"] .note-search')

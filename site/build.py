@@ -1757,10 +1757,8 @@ def hero_html(page) -> str:
     kicker = site["title_zh" if zh else "title_en"]
     title = site["tagline_zh" if zh else "tagline_en"]
     label = "封面" if zh else "Cover"
-    hint = "往下看" if zh else "Scroll to the notes"
     return (f'<section class="hero" aria-label="{label}"><p class="hero-kicker">{html.escape(kicker.strip(" ·"))}</p>'
-            f'<h1 class="hero-title">{html.escape(title)}</h1>'
-            f'<a class="hero-scroll" href="#content" aria-label="{hint}"><span></span></a></section>')
+            f'<h1 class="hero-title">{html.escape(title)}</h1></section>')
 
 
 def toc_html(page):
