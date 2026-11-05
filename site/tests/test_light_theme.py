@@ -63,7 +63,7 @@ class LightThemeTests(unittest.TestCase):
         self.assertEqual(declarations(STYLE, ".hero-kicker")["color"], "var(--band-muted)")
         self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .sky'), {})
         self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .hero'), {})
-        self.assertIn("cover ? '--band' : '--paper'", (ROOT / "site/static/sky.js").read_text())
+        self.assertIn("getPropertyValue('--band')", (ROOT / "site/static/sky.js").read_text())
 
     def test_search_uses_a_separate_light_overlay(self):
         dialog = declarations(SEARCH, ':root[data-theme="light"] .note-search')

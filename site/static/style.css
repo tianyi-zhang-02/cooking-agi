@@ -7,12 +7,12 @@
 :root {
   color-scheme: dark;
   --paper: #040804; --panel: #10120F;
-  --ink: #E3E5E1; --ink-soft: #C6C9C3; --muted: #A8ABA6; --faint: #7E817C;
-  --rule: #222520; --rule-soft: #171916;
-  --link: #C4E8BB; --link-hover: #E3F5DE;
-  --ember: #7FEE64; --ember-bg: rgba(227, 229, 225, .05);
-  --code-bg: #0C0E0B; --mark: rgba(127, 238, 100, .16); --shadow: none;
-  --band: #181A17; --band-ink: #E3E5E1; --band-muted: #A8ABA6; --band-rule: rgba(227, 229, 225, .14);
+  --ink: #E3E5E1; --ink-soft: #A9ACA8; --muted: #8A8D89; --faint: #7C7F7B;
+  --rule: #232723; --rule-soft: #161A16;
+  --link: #C4E8BB; --link-hover: #D4E6CE;
+  --ember: #7FEE64; --ember-bg: rgba(227, 229, 225, 0.05);
+  --code-bg: #0C0E0B; --mark: rgba(127, 238, 100, 0.18); --shadow: none;
+  --band: #181A17; --band-ink: #E3E5E1; --band-muted: #8C8E8A; --band-rule: rgba(227, 229, 225, 0.15);
   --side-bg: #0C0E0B; --accent-fill: #7FEE64; --accent-ink: #0A1F06;
   --serif: "Iowan Old Style", "Palatino Linotype", Georgia, "Songti SC", "Noto Serif CJK SC",
            "Source Han Serif SC", "Yu Mincho", "Hiragino Mincho ProN", serif;
@@ -28,12 +28,12 @@
 :root[data-theme="light"] {
   color-scheme: light;
   --paper: #F6F7F4; --panel: #FFFFFF;
-  --ink: #10120F; --ink-soft: #30332E; --muted: #555853; --faint: #62655F;
-  --rule: #DDDFD9; --rule-soft: #EAECE7;
-  --link: #1F7A0E; --link-hover: #145A08;
-  --ember: #1F7A0E; --ember-bg: rgba(16, 18, 15, .045);
-  --code-bg: #EEF0EB; --mark: rgba(127, 238, 100, .28);
-  --band: #10120F; --band-ink: #E3E5E1; --band-muted: #A8ABA6; --band-rule: rgba(227, 229, 225, .16);
+  --ink: #10120F; --ink-soft: #454744; --muted: #5C5E5B; --faint: #676966;
+  --rule: #D6D7D4; --rule-soft: #E4E5E2;
+  --link: #1F7A0E; --link-hover: #18460E;
+  --ember: #1F7A0E; --ember-bg: rgba(16, 18, 15, 0.05);
+  --code-bg: #EEF0EB; --mark: rgba(127, 238, 100, 0.3);
+  --band: #10120F; --band-ink: #E3E5E1; --band-muted: #868885; --band-rule: rgba(227, 229, 225, 0.15);
   --side-bg: #ECEEE9; --accent-fill: #7FEE64; --accent-ink: #0A1F06;
 }
 
@@ -1577,20 +1577,6 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
 @media (max-width: 1080px) { .side { background: var(--side-bg); } }
 .page-home .shell { background: var(--paper); box-shadow: 0 0 0 100vmax var(--paper); clip-path: inset(0 -100vmax -100vmax); }
 .prose .algo-lab .algo-next, .prose .algo-lab .algo-next:hover:not(:disabled) { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-ink); }
-
-/* the sky: a chart behind the page, clear of the reading column */
-html.sky-back .sky {
-  opacity: .8;
-  -webkit-mask-image: linear-gradient(to right, #000 0, rgba(0,0,0,.35) 24%, transparent 34%, transparent 66%, rgba(0,0,0,.35) 76%, #000 100%);
-          mask-image: linear-gradient(to right, #000 0, rgba(0,0,0,.35) 24%, transparent 34%, transparent 66%, rgba(0,0,0,.35) 76%, #000 100%);
-}
-@media (max-width: 1080px) {
-  html.sky-back .sky {
-    -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 34vh);
-            mask-image: linear-gradient(to bottom, #000 0, transparent 34vh);
-  }
-}
-html:has(.hero) .sky, html.sky-back:has(.hero) .sky { opacity: 1; -webkit-mask-image: none; mask-image: none; }
 
 /* the cover: on the band, left-aligned and short, so the way in shows on the first screen */
 .hero {

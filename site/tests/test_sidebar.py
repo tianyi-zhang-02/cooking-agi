@@ -93,6 +93,15 @@ class SidebarTests(unittest.TestCase):
         self.assertEqual(len(active), 1)
         self.assertEqual(active[0]["aria-current"], "page")
 
+    def test_show_all_appears_only_when_other_chapters_fold_away(self):
+        markup = self.render()
+        self.assertIn('<label class="side-all"><input type="checkbox" data-side-all>', markup)
+        self.assertLess(markup.index('<ul class="nav">'), markup.index('class="side-all"'))
+        self.assertIn('查看全部目录', markup)
+        self.assertIn('Show all chapters', self.render(self.sections[0]["pages"][1]["en"]))
+        # one chapter in the block: nothing to fold, so no toggle
+        self.assertNotIn('data-side-all', self.render(self.sections[2]["pages"][1]["zh"]))
+
     def test_bilingual_links_share_bookmark_identity(self):
         versions = []
         for language in ["zh", "en"]:

@@ -152,6 +152,17 @@
     wrap.appendChild(btn);
   });
 
+  /* ---------------------------------------------------------- the top bar leaves while reading onward */
+  if (document.body && document.body.classList.contains("page-reading")) {
+    var barRoot = document.documentElement, lastScroll = window.scrollY;
+    addEventListener("scroll", function () {
+      var y = window.scrollY;
+      if (Math.abs(y - lastScroll) < 6) return;
+      barRoot.toggleAttribute("data-bar-hidden", y > lastScroll && y > 120 && !barRoot.classList.contains("drawer-is-open"));
+      lastScroll = y;
+    }, { passive: true });
+  }
+
   /* ---------------------------------------------------------- toc scrollspy */
   var links = $$(".toc a");
   if (links.length) {
