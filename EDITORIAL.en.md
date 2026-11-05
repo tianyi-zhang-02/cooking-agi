@@ -57,7 +57,7 @@ Place examples where a reader is likely to get stuck, rather than inventing a st
 
 Review with three questions: without the derivation, can readers explain the problem being solved? If they continue, can they see why the result holds and where it fails? If they want to build it, can they find an implementation and checks? Stopping early should still be useful, without making the rest of the article shallow.
 
-Split long topics by question, not word count. Guides explain the reading order; lessons develop the subject. Reuse examples and terminology across adjacent notes instead of introducing the whole system again. Career reflections and section landing pages do not need to follow a technical-lesson template.
+Split long topics by question, not word count. Guides explain the reading order; lessons develop the subject. Reuse examples and terminology across adjacent notes instead of introducing the whole system again. Section landing pages do not need to follow a technical-lesson template.
 
 Section introductions should explain what is here and where to start. Name interface actions directly, such as “Schedule” or “Notes and backups,” rather than using slogans. Keep usage instructions, contribution procedures, and release plans in their own places; do not repeat pacing reassurances at every entry point. Remove redundant guidance, not technical assumptions or reasoning. Chinese sentences and headings need not follow the length or phrasing of their English counterparts.
 

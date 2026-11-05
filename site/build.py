@@ -1040,7 +1040,7 @@ def gallery_html(page) -> str:
             continue
         href = link[0] + (f'#{v["anchor"]}' if v.get("anchor") else "")
         main, alt = both(v, zh)
-        block = both(names[v["layer"]], zh)[0] if v.get("layer") in names else ("求职" if zh else "Career")
+        block = both(names[v["layer"]], zh)[0] if v.get("layer") in names else ""
         cards.append(f'<a class="viz-card" href="{html.escape(href, quote=True)}"><span class="viz-kicker"><i>live</i>{block}</span>'
                      f'<strong>{main}</strong>{f"<em>{alt}</em>" if alt else ""}'
                      f'<span class="viz-desc">{both(v, zh, "desc_")[0]}</span></a>')
@@ -1813,8 +1813,6 @@ def page_header_html(page):
         "article": "概念笔记" if zh else "Concept note",
         "project": "项目进展" if zh else "Project updates",
     }
-    if page.section.get("group") == "career":
-        labels["article"] = "求职记录" if zh else "Career journal"
     if page.section.get("group") == "study":
         labels["article"] = "阅读导航" if zh else "Reading guide"
     read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"
@@ -2040,8 +2038,6 @@ def assemble(page, sections, nav, built, template):
     template = (template.replace("{{assets}}", static_version())
                 .replace("{{search_zh}}", SEARCH_VERSIONS["zh"])
                 .replace("{{search_en}}", SEARCH_VERSIONS["en"]))
-    if page.section.get("group") == "career":
-        template = template.replace('</head>', f'<link rel="stylesheet" href="{page.rel("static/career.css")}?v={built}">\n</head>')
     zh = page.lang == "zh"
     html_lang = "zh-Hans" if zh else "en"
     site_title = site["title_zh" if zh else "title_en"]

@@ -36,6 +36,21 @@ origin      = "https://tianyi-zhang-02.github.io/cooking-agi"
 "community/next-stop.en.html" = "index.html#contributors"
 "community/next-stop-guide.html" = "index.zh.html#contributors"
 "community/next-stop-guide.en.html" = "index.html#contributors"
+# the career (求职) section was removed on 2026-11-05
+"career/index.html" = "index.zh.html"
+"career/index.en.html" = "index.html"
+"career/journey.html" = "index.zh.html"
+"career/journey.en.html" = "index.html"
+"career/metrics.html" = "index.zh.html"
+"career/metrics.en.html" = "index.html"
+"career/new-grad-2026-2027.html" = "index.zh.html"
+"career/new-grad-2026-2027.en.html" = "index.html"
+"career/not-binary.html" = "index.zh.html"
+"career/not-binary.en.html" = "index.html"
+"career/one-interview.html" = "index.zh.html"
+"career/one-interview.en.html" = "index.html"
+"career/prepare.html" = "index.zh.html"
+"career/prepare.en.html" = "index.html"
 
 # home 是这个大类的落地页；每个 [[group]] 用 category 指到这里的 id。
 [[category]]
@@ -69,14 +84,6 @@ en = "Tech history"
 home = "learn/technology-timeline.md"
 blurb_zh = "从电力、芯片、软件和数据，到 AI 的方法与应用，沿感兴趣的分支看它们怎样发展。"
 blurb_en = "Explore the histories of power, chips, software, data, and AI, with sources and connections between fields."
-
-[[category]]
-id = "career"
-zh = "求职"
-en = "Career"
-home = "career/README.md"
-blurb_zh = "找实习和应届岗位时的经历、心态与选择，也记录走过的弯路。"
-blurb_en = "Internship and new-grad journeys, decisions, setbacks, and reflections."
 
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
 # 顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id；home 是点这个板块时落到哪一页（不写就用第一页）。
@@ -358,12 +365,6 @@ category = "history"
 zh = "技术发展"
 en = "How the field developed"
 home = "learn/technology-timeline.md"
-
-[[group]]
-id = "career"
-category = "career"
-zh = "求职与规划"
-en = "Job search"
 
 [[group]]
 id = "reference"
@@ -913,13 +914,6 @@ order   = ["leetcode.md", "complexity-and-tools.md", "hash-and-prefix.md", "poin
 include = ["interview/leetcode.md"]
 
 [[section]]
-dir   = "career"
-group = "career"
-zh    = "MLE / RE 求职笔记"
-en    = "MLE / RE job-search notes"
-order = ["README.md", "prepare.md", "journey.md", "new-grad-2026-2027.md", "one-interview.md", "not-binary.md", "metrics.md"]
-
-[[section]]
 dir = "papers"
 group = "reference"
 zh  = "论文"
@@ -1123,13 +1117,6 @@ en  = "Templates"
 "00-foundations/interview-basics.md"                    = ["基础题", "Basics"]
 "00-foundations/hand-write-kit.md"                      = ["白板手写", "Whiteboard coding"]
 "00-foundations/ml-math-interview.md"                   = ["ML 数学", "ML math"]
-"career/README.md"                                      = ["先读这一页", "Read this first"]
-"career/not-binary.md" = ["心态", "Mindset"]
-"career/metrics.md"    = ["别被指标锁死", "Metrics"]
-"career/prepare.md"    = ["准备什么", "What to prepare"]
-"career/journey.md"                                     = ["25-26 intern 求职", "25-26 internship search"]
-"career/new-grad-2026-2027.md"                          = ["26-27 new grad 求职 🚧", "26-27 new-grad search 🚧"]
-"career/one-interview.md" = ["一次面试复盘", "One interview"]
 "EDITORIAL.md"                                          = ["写作规范", "Editorial policy"]
 "papers/README.md"                                      = ["论文笔记", "Paper notes"]
 "templates/paper-note.md"                               = ["论文模板", "Paper template"]

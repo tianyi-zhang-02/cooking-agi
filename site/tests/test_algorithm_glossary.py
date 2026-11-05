@@ -37,7 +37,7 @@ class AlgorithmGlossaryTests(unittest.TestCase):
             SimpleNamespace(section={"group": "algorithms"}), self.general)
 
     def test_terms_are_scoped_and_complete(self):
-        for group in ("career", "reference", "foundations"):
+        for group in ("interview-basics", "reference", "foundations"):
             page = SimpleNamespace(section={"group": group})
             self.assertIs(build.glossary_for_page(page, self.general), self.general)
         scoped = build.load_glossary("glossary.algorithms.tsv")

@@ -24,7 +24,7 @@ body:
     id: area
     attributes:
       label: 板块 · Area
-      description: "页面入口会预填。不确定可以留空；维护者会补。已知时保留 Area: 前缀，可用 foundations / posttrain / evaluation / data-retrieval / systems-agents / practice / exercises / career / papers / site。 / Prefilled from a note; leave blank if unsure."
+      description: "页面入口会预填。不确定可以留空；维护者会补。已知时保留 Area: 前缀，可用 foundations / posttrain / evaluation / data-retrieval / systems-agents / practice / exercises / papers / site。 / Prefilled from a note; leave blank if unsure."
       placeholder: "Area: evaluation"
     validations:
       required: false

@@ -136,7 +136,7 @@ class MLSystemRuntimeNotesTests(unittest.TestCase):
         self.assertEqual(len(names), len(set(names)))
         for name in ("背压", "策略滞后", "微批次", "优化器状态", "张量"):
             self.assertIn(name, names)
-        for group in ("career", "systems", "infra", "inference"):
+        for group in ("interview-basics", "systems", "infra", "inference"):
             self.assertIs(build.glossary_for_page(SimpleNamespace(section={"group": group}), general), general)
         rendered, used = build.annotate("<p>背压与策略滞后。</p><p>再次检查背压与策略滞后。</p>", terms)
         self.assertEqual(len(Markup(rendered).annotations), 4)

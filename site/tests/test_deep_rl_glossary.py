@@ -37,7 +37,7 @@ class DeepRLGlossaryTests(unittest.TestCase):
 
     def test_scoped_terms_do_not_change_other_sections(self):
         general = build.load_glossary()
-        for group in ("career", "reference", "foundations"):
+        for group in ("interview-basics", "reference", "foundations"):
             page = SimpleNamespace(section={"group": group})
             self.assertIs(build.glossary_for_page(page, general), general)
         names = [term[0] for term in self.terms]

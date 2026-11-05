@@ -72,6 +72,7 @@
 .prose:has(.speedrun-route) table :is(th,td):first-child { white-space: nowrap; }
 .tree-reading-routes { margin: 1.25rem 0 2rem; }
 .study-route.goal-route a { min-width: 0; overflow-wrap: anywhere; }
+.study-route.goal-route a:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .page-index:has(.study-atlas) .article-head h1 { max-width: 24ch; }
 .rl-budget { margin: 1.6rem 0; padding: 1rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); }
 .rl-budget__bar { display: flex; overflow: hidden; border-radius: 5px; font: 600 .8rem/2.8 var(--mono); text-align: center; }

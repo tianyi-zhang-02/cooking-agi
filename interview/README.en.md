@@ -15,9 +15,8 @@
 <a id="python-algorithms" href="leetcode.en.md"><small>03 / ALGORITHMS</small><strong>Python & LeetCode</strong><span>Language basics, complexity, and reusable patterns</span></a>
 <a href="code-comprehension.en.md"><small>04 / DEBUGGING</small><strong>Code comprehension</strong><span>Read an implementation, find a problem, verify a fix</span></a>
 <a id="system-design" href="../learn/system-design/README.en.md"><small>05 / DESIGN</small><strong>System design</strong><span>Clarify requirements, compare options, handle failure</span></a>
-<a href="../career/prepare.en.md"><small>06 / PROJECTS</small><strong>Projects & experience</strong><span>Your contribution, the evidence, and what didn't work</span></a>
 </nav>
 <p class="prep-footnote">These are public concepts and original exercises, not confidential company questions—or a checklist everyone has to finish.</p>
-<nav class="prep-other" aria-label="Other reading routes"><a href="speedrun.en.md">Quick review</a><a href="study-plan.en.md">Study plan</a><a href="../learn/README.en.md">Full library</a><a href="../learn/choose-your-path.en.md#interviews">All learning routes</a><a href="../practice/README.en.md">Engineering practice</a><a href="../career/README.en.md">Career reflections</a></nav>
+<nav class="prep-other" aria-label="Other reading routes"><a href="speedrun.en.md">Quick review</a><a href="study-plan.en.md">Study plan</a><a href="../learn/README.en.md">Full library</a><a href="../learn/choose-your-path.en.md#interviews">All learning routes</a><a href="../practice/README.en.md">Engineering practice</a></nav>
 </div>
 </div>

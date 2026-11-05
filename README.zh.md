@@ -25,13 +25,12 @@
 | 看看哪里不熟 | [代码练习](interview/coding-checks.md) · [岗位指南](interview/ai-roles-prep.md) |
 | 对某个方向好奇 | [专题入口](learn/choose-your-path.md#topics) · [编年史](learn/technology-timeline.md) |
 
-网站分五个板块，不用按顺序读。
+网站分四个板块，不用按顺序读。
 
 - **[基础与原理](learn/README.md)**：模型怎么工作、怎么训练、怎么评估。
 - **[面试准备](interview/README.md)**：ML / LLM 复习、ML Coding、Python 和常见算法方法。
 - **[工程实践](practice/README.md)**：推荐、RAG 和后训练系统，从数据到上线。
 - **[编年史](learn/technology-timeline.md)**：电力、芯片、网络、软件与 AI 的发展，附原始资料。
-- **[求职记录](career/README.md)**：实习和 new-grad 求职中试过的做法。
 
 <span id="interview-coach"></span>
 

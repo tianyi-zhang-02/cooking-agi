@@ -1,3 +1,4 @@
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -22,6 +23,24 @@ class RetiredSectionsTests(unittest.TestCase):
                          "static/discussions.js", "static/discussions.css"):
             self.assertFalse((build.SITE / filename).exists())
 
+    def test_career_section_is_retired_and_old_urls_go_home(self):
+        # The career (求职) notes were removed on 2026-11-05.
+        nav = build.load_nav()
+        config = collaboration.load_config()
+        collaboration.validate(config, nav)
+        for kind in ("category", "group"):
+            self.assertNotIn("career", {entry["id"] for entry in nav[kind]})
+        self.assertNotIn("career", {entry["dir"] for entry in nav["section"]})
+        self.assertNotIn("career", {entry["id"] for entry in config["area"]})
+        self.assertFalse(any(path.startswith("career/") for path in nav.get("label", {})))
+        self.assertFalse(list((build.ROOT / "career").glob("*.md")))
+        self.assertFalse((build.SITE / "static/career.css").exists())
+        published = json.loads((build.SITE / "catalog-baseline.json").read_text())
+        redirects = {old: target for old, target in nav["redirects"].items() if old.startswith("career/")}
+        self.assertEqual(set(redirects), {url for url in published if url.startswith("career/")})
+        for old, target in redirects.items():
+            self.assertEqual(target, "index.html" if old.endswith(".en.html") else "index.zh.html", old)
+
     def test_bilingual_navigation_keeps_learning_and_collaboration(self):
         nav = build.load_nav()
         previous_sources = dict(build.BY_SRC)
@@ -35,6 +54,7 @@ class RetiredSectionsTests(unittest.TestCase):
                         "05-post-training/rlhf/ppo-clipping.en.html"}
             self.assertTrue(selected.issubset(known))
             self.assertFalse(any(url.startswith("quant/") for url in known))
+            self.assertFalse(any(url.startswith("career/") for url in known))
             for page in pages:
                 if page.url not in selected:
                     continue

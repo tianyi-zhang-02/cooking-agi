@@ -177,7 +177,7 @@ class LanguageEntryTests(unittest.TestCase):
 
     def test_existing_articles_keep_their_urls(self):
         for language, suffix in [('zh', ''), ('en', '.en')]:
-            self.assertEqual(build.BY_SRC['career/journey.md'][language].url, f'career/journey{suffix}.html')
+            self.assertEqual(build.BY_SRC['interview/ai-roles-prep.md'][language].url, f'interview/ai-roles-prep{suffix}.html')
             self.assertEqual(build.BY_SRC['learn/README.md'][language].url, f'learn/index{suffix}.html')
 
     def test_question_bank_links_to_foundations_in_its_language(self):
@@ -260,7 +260,7 @@ class LanguageEntryTests(unittest.TestCase):
         for language, filename in [('en', 'README.md'), ('zh', 'README.zh.md')]:
             text = (build.ROOT / filename).read_text()
             route_section = re.split(r'(?m)^## ', text)[1]
-            self.assertEqual(len(re.findall(r'(?m)^- \*\*\[', route_section)), 5)
+            self.assertEqual(len(re.findall(r'(?m)^- \*\*\[', route_section)), 4)
             local = {target.split('#')[0] for target in re.findall(r'\]\(([^)]+)\)', text)
                      if not target.startswith(('https:', 'http:', '#'))}
             for target in local:
@@ -268,7 +268,7 @@ class LanguageEntryTests(unittest.TestCase):
             routes[language] = {target.replace('.en.md', '.md') for target in local
                                 if target not in {'README.md', 'README.zh.md'}}
             self.assertTrue({'learn/README.md', 'interview/README.md',
-                             'practice/README.md', 'career/README.md',
+                             'practice/README.md',
                              'learn/coverage.md', 'learn/technology-timeline.md'} <= routes[language])
         self.assertEqual(routes['en'], routes['zh'])
 
@@ -279,10 +279,10 @@ class LanguageEntryTests(unittest.TestCase):
             links = {attrs['href'] for tag, attrs in Elements(page.body).elements
                      if tag == 'a' and 'href' in attrs}
             suffix = '.en.html' if language == 'en' else '.html'
-            for chapter in ['learn', 'interview', 'practice', 'career']:
+            for chapter in ['learn', 'interview', 'practice']:
                 self.assertIn(f'{chapter}/index{suffix}', links)
             self.assertIn('learn/coverage' + suffix, links)
-            self.assertFalse(any('quant/' in target or 'discussions/' in target
+            self.assertFalse(any('quant/' in target or 'discussions/' in target or 'career/' in target
                                  for target in links))
 
     def test_coverage_summary_does_not_claim_global_completion(self):

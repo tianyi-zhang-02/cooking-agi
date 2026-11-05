@@ -1,5 +1,12 @@
 # 内容发布验收
 
+## 删除求职板块（2026-11-05，Claude Code）
+
+- 站主决定删掉求职板块。删除 `career/` 下 7 篇笔记的中英文 14 个源文件、`site/static/career.css` 和只测这些笔记的 `test_career_journey.py`。`nav.toml` 去掉 `career` 大类（顶部「求职 / Career」）、分组、章节和侧栏短标题；`collaboration.toml` 去掉 `career` 审核区并重新生成 CODEOWNERS；`build.py` 去掉 career 专用样式表、「求职记录」页面类型和交互图卡片的「求职」兜底标签；`leakcheck.py` 去掉只为 `career/journey` 一行设的豁免，并像 quant 一样把 `career` 移出扫描列表；`agent_api.py` 跳过列表和 `expression-review.toml` 里的 career 条目一并删除。
+- 旧地址不会变成 404：14 个 `career/*.html` 跳转到同语言首页（中文 `index.zh.html`，英文 `index.html?lang=en`）。`catalog-baseline.json` 不改，`test_curriculum` 要求旧地址仍是页面或跳转；`test_retired_sections.py` 新增检查，确认 career 不再出现在导航和审核区，且旧地址都有跳转。
+- 其他页面：README 与 CONTRIBUTING 的板块数从五个改为四个；面试准备首页去掉「06 / 项目与经历」和「求职经历与心态」两个入口；按计划学习去掉两处「项目准备」链接；按目标找路线删掉「求职准备」一条（旧锚点 `#applications` 留作空 span，落到「准备技术面」）；写作规范、`site/NAVIGATION.md` 和反馈模板里的 career 提法一并去掉。README 更新记录里的历史条目保留。
+- 读者浏览器里已有的 career 收藏和阅读记录照常保留，在「我的阅读」里显示为「目录里没有这篇」；`progress-id-overrides.json` 本来就是空的，没有改。
+
 ## 删除 quant 源文件（2026-10-16，Claude Code）
 
 - 站主决定不再放 quant 内容。`quant/` 早已不在 `nav.toml`、不生成页面，这次把仓库里剩下的 30 篇源文件（中英各一份）和两个配套脚本一起删除，同时删掉只测试这些文件的 `test_quant_review.py`、`test_probability_proofs.py`，并把 `quant` 从 `leakcheck.py` 的扫描列表里去掉。git 历史里可以找回。

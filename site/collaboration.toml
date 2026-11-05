@@ -58,13 +58,6 @@ groups = ["practice", "ml-systems", "web-practice", "system-design", "recsys", "
 reviewers = ["tianyi-zhang-02"]
 
 [[area]]
-id = "career"
-zh = "求职经历与心态"
-en = "Career journeys & reflections"
-groups = ["career"]
-reviewers = ["tianyi-zhang-02"]
-
-[[area]]
 id = "exercises"
 zh = "面试准备"
 en = "Interview preparation"

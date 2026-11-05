@@ -37,7 +37,7 @@ writes into the site on every build (`site/agent_api.py`):
 - `/llms.txt`, a short index for agents
 
 So editing a note updates the skill after the next deploy; there is nothing to regenerate. Only
-published study notes are included (career notes and the project's own pages are left out), and
+published study notes are included (the project's own pages are left out), and
 draft notes are flagged. To try the skill against a local build:
 
 ```bash

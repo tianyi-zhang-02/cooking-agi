@@ -27,10 +27,7 @@ RULES = [
     # 形如内部代码路径
     ("internal code path", r"\b\w+\.py:\d+"),
 ]
-EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--",
-          # career/journey: the owner's own list of companies that interviewed them, all
-          # already public on their homepage. Scoped to that one line, not to the name.
-          r"HRT Algo Dev"]
+EXEMPT = [r"sub-1B", r"pytorch\.org", r"^\s*<!--"]
 
 PUBLIC_REFERENCE_URLS = {
     "https://huggingface.co/ByteDance/Ouro-1.4B/blob/7ea635ba1575ae9ab4ae1d83d83e16a6e47fe696/modeling_ouro.py":
@@ -46,17 +43,10 @@ def redact_public_reference_urls(line):
     return line
 
 
-def redact_public_career_role(line, source):
-    approved = '<li><strong>LinkedIn</strong><span>Machine Learning Engineer</span></li>'
-    if source in {"career/journey.md", "career/journey.en.md"} and line.strip() == approved:
-        return line.replace("LinkedIn", "[public company]")
-    return line
-
-
 SCAN = ["00-foundations", "01-data-and-feedback", "02-memory",
         "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
         "07-evaluation", "08-model-experience", "09-personal-agi",
-        "10-agents", "11-frontier", "12-infra", "13-embodied", "papers", "career", "interview", "practice", "learn", "community", "discussions", "skills"]
+        "10-agents", "11-frontier", "12-infra", "13-embodied", "papers", "interview", "practice", "learn", "community", "discussions", "skills"]
 
 
 def main():
@@ -86,7 +76,7 @@ def main():
             for label, scope, rx in rules:
                 if scope and not scope.search(rel):
                     continue
-                m = rx.search(redact_public_reference_urls(redact_public_career_role(line, rel)))
+                m = rx.search(redact_public_reference_urls(line))
                 if m:
                     hits.append((rel, i, label, m.group(0), line.strip()[:88]))
 

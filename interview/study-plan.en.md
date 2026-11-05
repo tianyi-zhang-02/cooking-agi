@@ -26,7 +26,6 @@ Pick a small task relevant to your role and try it before looking up a solution.
 | Write causal attention and label each tensor shape | [ML coding](../learn/ml-exercises/README.en.md): shapes, masks, and tests |
 | Trace DFS and BFS on a small graph | [Traversal](algorithms/traversal.en.md): stacks, queues, and visited nodes |
 | Trace an LLM request from the queue to a returned token | [Inference frameworks](../06-systems/inference-frameworks.en.md): scheduling, caching, and execution |
-| Explain why you rejected an alternative in a project | [Project preparation](../career/prepare.en.md): constraints, your contribution, and evidence |
 
 Skip what you can already do independently. If you can recall a conclusion but not explain it, try a runnable example. That often makes the missing step easier to see.
 
@@ -43,7 +42,7 @@ Pick the dates yourself; there is no daily commitment. Session length can differ
 | 3 · A training loop | [Tensors and PyTorch](../00-foundations/pytorch/README.en.md) → [Training loop](../00-foundations/pytorch/training-loop.en.md) | Run forward, backward, and update on a small batch; distinguish train from eval | A repeatable script and one checked result |
 | 4 · An algorithm pattern | [Hash maps](algorithms/hash-and-prefix.en.md) or [DFS / BFS](algorithms/traversal.en.md) | Implement it, add duplicate values or a cycle as appropriate, and explain complexity | An edge-case test and the conditions where the method applies |
 | 5 · Your target area | [Role-based practice](ai-roles-prep.en.md) | Choose one branch below and one exercise in it | An implementation, experiment log, or design sketch |
-| 6 · Put it together | [Code comprehension](code-comprehension.en.md) and [Project preparation](../career/prepare.en.md) | Change one requirement in code; explain a decision from a project | Two things you couldn't explain clearly; revisit one next time |
+| 6 · Put it together | [Code comprehension](code-comprehension.en.md) | Change one requirement in code; explain a decision from a project | Two things you couldn't explain clearly; revisit one next time |
 
 Units 1–3 help if ML is new to you. Algorithms can run alongside them; you don't have to finish the model material first. Split any unit across sessions, or skip it when you can already do the work.
 

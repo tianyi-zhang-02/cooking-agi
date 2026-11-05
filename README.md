@@ -27,13 +27,12 @@ Each topic is built around a worked example you can follow, run, or replay, with
 | check what you know | [Coding checks](interview/coding-checks.en.md) · [Role-based preparation](interview/ai-roles-prep.en.md) |
 | explore a topic | [Choose a topic](learn/choose-your-path.en.md#topics) · [Tech history](learn/technology-timeline.en.md) |
 
-The site has five sections. You don't need to read them in order.
+The site has four sections. You don't need to read them in order.
 
 - **[Foundations](learn/README.en.md)** — how models work, learn, and are evaluated.
 - **[Interview prep](interview/README.en.md)** — ML / LLM review, ML coding, Python, and algorithm patterns.
 - **[Engineering practice](practice/README.en.md)** — recommendation, RAG, and post-training systems, end to end.
 - **[Tech history](learn/technology-timeline.en.md)** — power, chips, networks, software, and AI, with original sources.
-- **[Career notes](career/README.en.md)** — what I tried in internship and new-grad searches.
 
 <span id="interview-coach"></span>
 

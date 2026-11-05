@@ -46,8 +46,9 @@ class PrepHubTests(unittest.TestCase):
             links = [attrs['href'] for tag, attrs in markup.elements if tag == 'a']
             for target in (f'basics/README{suffix}.md', f'../learn/ml-exercises/README{suffix}.md', f'leetcode{suffix}.md',
                            f'code-comprehension{suffix}.md', f'../learn/system-design/README{suffix}.md',
-                           f'../career/prepare{suffix}.md', f'ai-roles-prep{suffix}.md'):
+                           f'ai-roles-prep{suffix}.md'):
                 self.assertIn(target, links)
+            self.assertFalse([link for link in links if link.startswith('../career/')])
 
     def test_legacy_landing_anchors_survive(self):
         for suffix, anchors in [('', ['prep-routes', 'review', 'plan', 'ml', 'python', '_1', '_2']),

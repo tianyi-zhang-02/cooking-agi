@@ -2,7 +2,7 @@
 
 **中文** · [English](choose-your-path.en.md)
 
-按你现在的目标找资料：基础入门、复习面试、读论文、动手做项目、补一个专题，或者安排求职准备。每条路线都列了起点和建议练习。
+按你现在的目标找资料：基础入门、复习面试、读论文、动手做项目，或者补一个专题。每条路线都列了起点和建议练习。
 
 <nav class="study-route goal-route" aria-label="按目标选择阅读路线">
 <a href="#getting-started"><small>先建立理解</small><strong>我刚开始学 ML / LLM</strong><span>从一个预测问题，到 Transformer</span></a>
@@ -10,7 +10,6 @@
 <a href="#research"><small>读懂研究</small><strong>我想看懂论文和实验</strong><span>机制、比较条件、复现与局限</span></a>
 <a href="#projects"><small>动手做东西</small><strong>我想搭一个能用的项目</strong><span>先跑通，再讨论设计与取舍</span></a>
 <a href="#topics"><small>只看感兴趣的</small><strong>我只想补一个专题</strong><span>后训练、评估、RAG、多模态、推理……</span></a>
-<a href="#applications"><small>安排求职准备</small><strong>我想理一理准备的顺序</strong><span>岗位方向、项目追问和面试复盘</span></a>
 </nav>
 
 已经熟悉的部分可以跳过。这些笔记主要覆盖 ML / LLM 和 MLE / research 相关内容，其他岗位需要另补对应领域的知识。
@@ -25,6 +24,8 @@
 
 **读完试一试：**拿一句短句，讲清输入怎样变成预测，以及 loss 怎样参与参数更新。再用 [PyTorch 小实验](../00-foundations/pytorch/README.md)对照计算过程。模型家族、MoE 和分布式训练可以之后再看。
 
+<span id="applications"></span>
+
 ## 准备技术面：先找出自己卡在哪 {#interviews}
 
 在[面试准备](../interview/README.md)里按需要选一块。已有基础可以直接看[快速复习](../interview/speedrun.md)，想系统补课可以看[按计划学习](../interview/study-plan.md)。路线中的小时数是参考，可以按自己的时间拆开学。
@@ -35,7 +36,7 @@
 2. **原理懂，代码写不出来**：去 [ML Coding](ml-exercises/README.md)。重点核对 shape、mask、梯度和边界条件。
 3. **写题慢或方法想不到**：去 [Python](../interview/python.md) 和 [LeetCode 方法](../interview/leetcode.md)，按方法练，不按题号背。
 
-**练习建议：**独立完成一道题，解释思路，再换几个输入测试。需要准备设计题，接着看 [Feed / RAG / Memory](system-design/README.md)；项目追问参考[准备什么](../career/prepare.md)。
+**练习建议：**独立完成一道题，解释思路，再换几个输入测试。需要准备设计题，接着看 [Feed / RAG / Memory](system-design/README.md)。
 
 ## 读研究：弄清它到底改了什么 {#research}
 
@@ -83,16 +84,9 @@
 
 只想查某个词，点顶部搜索或按 `/`。中文、英文术语都可以试试。
 
-## 求职准备：先安排眼前需要做的事 {#applications}
-
-1. [到底要准备什么](../career/prepare.md)：按岗位和自己的短板安排精力。
-2. [一次面试复盘](../career/one-interview.md)：面完留下具体问题，再调整下一轮准备。
-
-可以先为最近一轮面试列出要补的内容，再安排具体练习。个人经历放在 [25–26 intern 求职](../career/journey.md)和 [26–27 new grad 求职](../career/new-grad-2026-2027.md)，仅供参考。
-
 ## 想看全貌，或以后接着读 {#all-notes}
 
-全部内容分在[基础与原理](README.md)、[面试准备](../interview/README.md)、[工程实践](../practice/README.md)、[编年史](technology-timeline.md)和[求职记录](../career/README.md)中。路线只是不同的阅读顺序，指向同一份文章。
+全部内容分在[基础与原理](README.md)、[面试准备](../interview/README.md)、[工程实践](../practice/README.md)和[编年史](technology-timeline.md)中。路线只是不同的阅读顺序，指向同一份文章。
 
 右上角 **中文 / EN** 可以切换同一篇文章的语言。点标题下的「收藏本页」保存文章，之后在「我的阅读」里找回收藏和最近读过的页面。记录只在当前浏览器，换设备前可以在「设置」里导出备份。
 

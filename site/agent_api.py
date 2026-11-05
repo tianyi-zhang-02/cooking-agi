@@ -17,8 +17,7 @@ Questions come from the same sources interview/questions.md uses:
 - quick-learning cards: <details> under a "Quick learning" heading (answer included)
 - self-check items: the <li> of a note's taste-check box (no answer: grade against the note)
 
-Only published notes are included (site/nav.toml); the project's own pages and the career notes,
-which are a personal record rather than study material, are left out.
+Only published notes are included (site/nav.toml); the project's own pages are left out.
 
     python site/agent_api.py            # write the API into _site/ (or --out DIR) without a full build
 
@@ -38,8 +37,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 API = "api/v1"
-# the project's own pages, and career notes (a personal record, not study material)
-SKIP_DIRS = {"community", "templates", "papers", "career"}
+# the project's own pages
+SKIP_DIRS = {"community", "templates", "papers"}
 
 
 def published_sources(nav):
