@@ -25,6 +25,8 @@ These additions were checked against primary sources on 2026-10-21, and their dr
 
 ## Start with the foundations
 
+To connect mathematics with implementation, begin with [matrix gradients and training systems](../00-foundations/deep-dives/matrix-gradients-to-systems.en.md), then follow the [one-question reading route](../practice/runtime-reading/README.en.md#small-steps) into attention, multiple GPUs, inference, and NeMo RL.
+
 If vectors, losses, and gradients are still unfamiliar, begin with [linear models to neural networks](../00-foundations/from-linear-to-neural.en.md). Steps 1–3 below explain computation and learning; step 5 covers checking the result. Post-training and inference optimization can wait until you need them. Pair your reading with the [small PyTorch experiments](../00-foundations/pytorch/README.en.md).
 
 <nav class="study-route" aria-label="Suggested reading route">

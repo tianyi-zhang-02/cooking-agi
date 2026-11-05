@@ -21,6 +21,8 @@
 
 ## 从基础开始
 
+想把数学和工程连起来，可以从[矩阵梯度与训练系统](../00-foundations/deep-dives/matrix-gradients-to-systems.md)开始，再沿[每次一个问题的选读路线](../practice/runtime-reading/README.md#small-steps)走到 attention、多卡、推理与 NeMo RL。
+
 向量、loss 和梯度还不熟，可以先读[从线性模型到神经网络](../00-foundations/from-linear-to-neural.md)。下面的第 1–3 步是模型计算与训练的基础，第 5 步讲评估；后训练和推理优化可以稍后再看。阅读时可以配合 [PyTorch 小实验](../00-foundations/pytorch/README.md)。
 
 <nav class="study-route" aria-label="建议阅读主线">

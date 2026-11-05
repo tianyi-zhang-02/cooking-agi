@@ -14,7 +14,30 @@
 | 回答怎样变成一次参数更新？ | [沿 NeMo RL 读一次训练](nemo-rl.md) | 两道题各采四个回答，跟踪奖励、概率与权重版本 |
 | 损失不降、出现 NaN，或奖励涨了但效果更差？ | [训练稳定性：从样本到一次更新](training-stability.md) | 两个微批次分别有 100 和 10 个 token，为什么先各自平均再合并，会把平均损失从 1.182 算成 2？ |
 
-如果前向、反向和梯度累积还不熟，先读[一次更新与 Megatron](../../06-systems/megatron-basics.md)。如果还分不清一个进程、一张卡和一个 rank，先读[执行与资源边界](../../06-systems/execution-boundaries.md)。源码是用来印证这些概念的，不是另一套要背的术语。
+如果前向和反向还不熟，先用[矩阵梯度算例](../../00-foundations/deep-dives/matrix-gradients-to-systems.md)算完一次更新，再读[梯度累积与多卡训练](../../06-systems/megatron-basics.md)。如果还分不清一个进程、一张卡和一个 rank，先读[执行与资源边界](../../06-systems/execution-boundaries.md)。源码是用来印证这些概念的，不是另一套要背的术语。
+
+## 每次拆一个问题：从矩阵走到 RL 系统 {#small-steps}
+
+如果希望分多次学，可以按下面的顺序选读。每次用约 15–25 分钟读一个机制、算一个例子；这个时间是选材参考，一篇长正文可以拆开读。前面的矩阵、梯度会在后面的缓存、多卡和 RL 中反复出现。
+
+[矩阵梯度与训练系统](../../00-foundations/deep-dives/matrix-gradients-to-systems.md)从一个线性层算到参数更新，再解释为什么要存激活、汇总梯度。后面逐步接到模型和系统；已有基础的话，直接选需要的主题就好。
+
+| 一次想弄清什么 | 阅读入口 | 读完试着做什么 |
+| --- | --- | --- |
+| 1. 矩阵乘法里的每个数是什么？ | [矩阵梯度与训练系统](../../00-foundations/deep-dives/matrix-gradients-to-systems.md) | 写出 X、W、Z 的 shape，手算一个输出 |
+| 2. 为什么多堆线性层还不够？ | [从线性模型到神经网络](../../00-foundations/from-linear-to-neural.md) | 合并两个线性变换，再用 XOR 看非线性的作用 |
+| 3. Attention 怎样连接不同 token？ | [完整 Transformer](../../00-foundations/transformer.md) | 跟踪 QKᵀ 的行列含义，指出 causal mask 挡住什么 |
+| 4. logits 如何变成 loss？ | [交叉熵](../../00-foundations/pytorch/cross-entropy.md) | 取目标 token 的 log-prob，检查 shift、mask 和分母 |
+| 5. 梯度为何能向前层传？ | [自动求导](../../00-foundations/pytorch/autograd.md) | 对照手算与 autograd；分清梯度经过和 `.grad` 存储 |
+| 6. 有了梯度，参数怎么变？ | [SGD 到 AdamW](../../00-foundations/deep-dives/optimizers.md) | 比较一次 SGD 更新与动量、二阶矩的额外状态 |
+| 7. 训练为什么占显存？ | [精度与显存](../../00-foundations/deep-dives/precision-and-memory.md) | 分开算参数、梯度、优化器状态和激活 |
+| 8. 分批和多卡怎样保持目标一致？ | [训练稳定性](training-stability.md#normalization) → [张量并行](../../06-systems/tensor-parallel.md) | 复算 100/10 token 的分母，再标明每卡矩阵分片 |
+| 9. GPU 在忙，为什么还是慢？ | [性能：roofline 与 MFU](../../12-infra/performance.md) | 固定 batch、序列长度与精度，区分计算和搬运成本 |
+| 10. Prefill 和 decode 为什么不同？ | [一次生成](prefill-decode.md) | 沿 A B C D → E F G 记录每轮输入与 KV 增量 |
+| 11. token 是离散的，RL 梯度怎么来？ | [策略梯度](../../05-post-training/deep-rl/policy-gradients.md) → [NeMo RL](nemo-rl.md) | 区分 reward 与 log-prob；跟踪一组回答如何进入训练 |
+| 12. 异步为什么会带来旧样本？ | [异步 RL](../../06-systems/async-rl.md) | 给生成和训练标上权重版本，找出排队与过期位置 |
+
+这些机制读通后，可以继续看 LoRA 的低秩更新、MoE 路由与 all-to-all、FlashAttention 的数据搬运，或者 top-k logits 的表示成本。每次还是从一个小问题入手：究竟少算了什么、少存了什么，又增加了哪些通信或近似？涉及性能的结论，再回到具体版本和负载上测。
 
 ## 为什么只改分批方式，也会影响训练？ {#connection}
 

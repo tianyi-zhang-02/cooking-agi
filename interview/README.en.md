@@ -5,7 +5,7 @@
 [中文](README.md) · **English**
 
 <div class="prep-hub" data-prep-hub>
-<p class="prep-intro">ML / LLM fundamentals, coding practice, algorithms, and system design. Pick the part you need; there is no need to start from the beginning.</p>
+<p class="prep-intro">ML / LLM fundamentals, coding practice, algorithms, and system design. Not sure which chapter to open? Start with the <a href="core-chapters.en.md">core interview chapters</a>, then follow the branch that matches your target work.</p>
 <div class="prep-directory">
 <span id="review"></span><span id="plan"></span><span id="how-to-review"></span>
 <div class="prep-directory-heading"><h2 id="prep-routes">Pick an area</h2><a href="ai-roles-prep.en.md">Find priorities for your role ↗</a></div>

@@ -1635,3 +1635,13 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
   .subtabs-pills::-webkit-scrollbar { display: none; }
   .has-zones .subtabs-label { padding-top: 0; }
 }
+
+/* ---------------------------------------------------------------- finer typesetting */
+/* Chinese titles break at punctuation, never inside a word: 「从基础开始，/ 理解模型怎么工作」 */
+html.lang-zh :is(.hero-title, .article-head h1, .prose h2, .prose h3) { word-break: keep-all; overflow-wrap: anywhere; text-wrap: balance; }
+/* Chinese table headers keep their own case: 「送进 softmax 的值」, not 「送进 SOFTMAX 的值」 */
+html.lang-zh .prose th { text-transform: none; letter-spacing: .02em; }
+/* a short inline formula keeps the punctuation after it on its own line (app.js adds the span) */
+.math-hold { white-space: nowrap; }
+/* the cover page lists its sections in the right-hand contents; the left column need not repeat them */
+@media (min-width: 1081px) { .page-home .side-nav:has(.side-page-toc) { display: none; } }

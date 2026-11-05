@@ -83,6 +83,8 @@
 /00-foundations/core/seq2seq.en.md @tianyi-zhang-02
 /00-foundations/deep-dives/recurrent-dynamics.md @tianyi-zhang-02
 /00-foundations/deep-dives/recurrent-dynamics.en.md @tianyi-zhang-02
+/00-foundations/deep-dives/matrix-gradients-to-systems.md @tianyi-zhang-02
+/00-foundations/deep-dives/matrix-gradients-to-systems.en.md @tianyi-zhang-02
 /00-foundations/deep-dives/generalization.md @tianyi-zhang-02
 /00-foundations/deep-dives/generalization.en.md @tianyi-zhang-02
 /00-foundations/deep-dives/activation-and-initialization.md @tianyi-zhang-02

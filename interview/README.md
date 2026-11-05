@@ -3,7 +3,7 @@
 **中文** · [English](README.en.md)
 
 <div class="prep-hub" data-prep-hub>
-<p class="prep-intro">这里整理了 ML / LLM 基础问答、代码练习、算法和系统设计资料。按需要挑一块读，不用从头学起。</p>
+<p class="prep-intro">这里整理了 ML / LLM 基础问答、代码练习、算法和系统设计资料。不知道先读哪篇，可以从<a href="core-chapters.md">面试核心章节</a>开始：先复习一组基础，再按目标方向深入。</p>
 <div class="prep-directory">
 <span id="review"></span><span id="plan"></span><span id="_2"></span>
 <div class="prep-directory-heading"><h2 id="prep-routes">按需要选一块</h2><a href="ai-roles-prep.md">按目标岗位找重点 ↗</a></div>

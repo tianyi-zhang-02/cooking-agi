@@ -8,6 +8,8 @@ Your interview is scheduled, and you do not have time for hundreds of notes. Sta
 
 The budgets mean **focused learning time**: reading, writing, thinking, and reviewing, with breaks excluded. Spread six or twelve hours across sessions that fit your life. Set aside half an hour or an hour when it works for you, try one small exercise, and pick up there next time. No need to finish in one sitting or keep a daily streak.
 
+Know your next round but unsure which notes to choose? The [core chapter index](core-chapters.en.md) connects foundational review with role-specific reading. Use it to select the chapters behind the exercises below.
+
 To come back to a note, choose “Save this page” under its title and find it under “My reading” at the top right. Before switching devices or clearing your browser, [export a backup](study-plan.en.md#backups).
 
 <nav class="study-route goal-route" aria-label="Choose a route for your starting point">

@@ -14,7 +14,30 @@ We start with these small questions. Follow a request through vLLM/SGLang, a gro
 | How do answers become a parameter update? | [Follow a training run through NeMo RL](nemo-rl.en.md) | Two questions, four answers each: follow rewards, probabilities, and weight versions |
 | Why does loss stall, become NaN, or improve while evaluation gets worse? | [Training stability: from samples to an update](training-stability.en.md) | Two microbatches have 100 and 10 tokens: why does averaging their means give 2 instead of the token mean, 1.182? |
 
-If forward, backward, and gradient accumulation are unfamiliar, start with [one update and Megatron](../../06-systems/megatron-basics.en.md). For processes, devices, and ranks, read [execution and resource boundaries](../../06-systems/execution-boundaries.en.md). Source should make those concepts concrete, not introduce another vocabulary to memorize.
+If forward and backward are unfamiliar, work through the [matrix-gradient example](../../00-foundations/deep-dives/matrix-gradients-to-systems.en.md), then read about [gradient accumulation and multiple GPUs](../../06-systems/megatron-basics.en.md). For processes, devices, and ranks, read [execution and resource boundaries](../../06-systems/execution-boundaries.en.md). Source should make those concepts concrete, not introduce another vocabulary to memorize.
+
+## One question at a time: matrices to RL systems {#small-steps}
+
+For shorter sessions, choose from the sequence below. Spend roughly 15–25 minutes on one mechanism and one checkable example; this is a guide to selecting material, not a deadline. Split a longer article across sessions. Matrices and gradients will reappear in caching, distributed execution, and RL.
+
+[Matrix gradients and training systems](../../00-foundations/deep-dives/matrix-gradients-to-systems.en.md) follows a linear layer through an update, then explains why training stores activations and combines gradients. The later steps move into models and systems. If you already know the basics, skip to the topic you need.
+
+| A question for one session | Read | A concrete check |
+| --- | --- | --- |
+| 1. What does each number in a matrix multiply mean? | [Matrix gradients and training systems](../../00-foundations/deep-dives/matrix-gradients-to-systems.en.md) | Write the shapes of X, W, and Z; calculate one output |
+| 2. Why are more linear layers insufficient? | [Linear models to neural networks](../../00-foundations/from-linear-to-neural.en.md) | Compose two linear maps, then use XOR to examine nonlinearity |
+| 3. How does attention connect tokens? | [The complete Transformer](../../00-foundations/transformer.en.md) | Identify the rows and columns of QKᵀ and what the causal mask blocks |
+| 4. How do logits become a loss? | [Cross-entropy](../../00-foundations/pytorch/cross-entropy.en.md) | Select target-token log-probabilities; check shifting, masks, and denominators |
+| 5. How does a gradient reach earlier layers? | [Autograd](../../00-foundations/pytorch/autograd.en.md) | Compare manual and automatic derivatives; distinguish propagation from `.grad` storage |
+| 6. How does a gradient change a parameter? | [SGD to AdamW](../../00-foundations/deep-dives/optimizers.en.md) | Compare an SGD step with the extra state for momentum and second moments |
+| 7. Why does training use memory? | [Precision and memory](../../00-foundations/deep-dives/precision-and-memory.en.md) | Account separately for parameters, gradients, optimizer state, and activations |
+| 8. How can batches and GPUs preserve the objective? | [Training stability](training-stability.en.md#normalization) → [Tensor parallelism](../../06-systems/tensor-parallel.en.md) | Recalculate the 100/10-token denominators, then label each GPU's matrix shards |
+| 9. Why can a busy GPU still be slow? | [Performance: roofline and MFU](../../12-infra/performance.en.md) | Fix batch size, sequence length, and precision; distinguish compute and data movement |
+| 10. Why do prefill and decode differ? | [One generation](prefill-decode.en.md) | Track input tokens and KV growth for A B C D → E F G |
+| 11. Tokens are discrete; where does the RL gradient come from? | [Policy gradients](../../05-post-training/deep-rl/policy-gradients.en.md) → [NeMo RL](nemo-rl.en.md) | Distinguish rewards and log-probabilities; follow an answer group into training |
+| 12. Why does async execution create stale samples? | [Async RL](../../06-systems/async-rl.en.md) | Label generation and training with weight versions; locate queues and stale data |
+
+From here, you can explore LoRA's low-rank updates, MoE routing and all-to-all, FlashAttention's data movement, or top-k logit representation costs. Keep asking concrete questions: what computation or storage does a method save, and what communication or approximation does it add? Test performance claims with the version and workload you actually use.
 
 ## How can a batch change become an objective change? {#connection}
 
