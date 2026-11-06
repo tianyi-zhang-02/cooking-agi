@@ -64,7 +64,7 @@ class ReadingLayoutTests(unittest.TestCase):
             for part in re.split(r",(?![^()]*\))", selector):   # commas inside :not(...) / :has(...) stay
                 part = part.strip()
                 with self.subTest(selector=part):
-                    self.assertTrue(part.startswith((":root .page-reading", ":root[data-bar-hidden] .page-reading", ".side-all")), part)
+                    self.assertTrue(part.startswith((":root .page-reading", ":root[data-bar-hidden] .page-reading", ":root[data-text", ".side-all")), part)
 
     def test_top_bar_leaves_only_while_reading_onward(self):
         app = (ROOT / "site/static/app.js").read_text()
@@ -72,6 +72,20 @@ class ReadingLayoutTests(unittest.TestCase):
         self.assertIn('y > lastScroll && y > 120 && !barRoot.classList.contains("drawer-is-open")', app)
         self.assertIn(":root[data-bar-hidden] .page-reading .topbar:not(:has(:focus-visible)) { transform: translateY(-100%); }", READING)
         self.assertIn("@media (prefers-reduced-motion: reduce)", READING)
+
+    def test_text_size_scales_note_text_and_survives_reloads(self):
+        hub = (ROOT / "site/static/reader-hub.js").read_text()
+        app = (ROOT / "site/static/app.js").read_text()
+        head = TEMPLATE[:TEMPLATE.index("</head>")]
+        self.assertIn("const TEXT_SIZES = [['s',", hub)
+        self.assertIn("scope.dispatchEvent(new CustomEvent('notes:text-size', {detail: value}))", hub)
+        self.assertIn('window.addEventListener("notes:text-size"', app)
+        self.assertIn('localStorage.setItem("text-size", value)', app)
+        self.assertIn('localStorage.getItem("text-size")', head)
+        for size, scale in (("s", ".94"), ("l", "1.12"), ("xl", "1.24")):
+            self.assertIn(f':root[data-text="{size}"] {{ --text-scale: {scale}; }}', READING)
+        # without a choice the note text keeps its default size
+        self.assertIn("font-size: calc(1.0625rem * var(--text-scale, 1))", READING)
 
     def test_touch_screens_keep_the_gloss_underline(self):
         hover = READING.index("@media (hover: hover)")
