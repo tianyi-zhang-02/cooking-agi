@@ -27,7 +27,14 @@
 :root .page-reading .note-tools button { color: var(--faint); font-size: .8rem; }
 :root .page-reading .prose .chapter-context { margin: 0 0 1.5rem; }
 :root .page-reading .article-body > p, :root .page-reading .article-body > ul > li, :root .page-reading .article-body > ol > li { line-height: 1.85; color: var(--ink-soft); }
-:root .page-reading .article-body > p { font-size: 1.0625rem; margin-bottom: 1.15em; text-wrap: pretty; }
+:root .page-reading .article-body > p { font-size: calc(1.0625rem * var(--text-scale, 1)); margin-bottom: 1.15em; text-wrap: pretty; }
+/* text size from 设置 → 字号: app.js sets data-text, the head script restores it; headings and navigation keep their size */
+:root[data-text="s"] { --text-scale: .94; }
+:root[data-text="l"] { --text-scale: 1.12; }
+:root[data-text="xl"] { --text-scale: 1.24; }
+:root[data-text] .page-reading .article-body { font-size: calc(1em * var(--text-scale)); }
+:root[data-text] .page-reading .prose table { font-size: calc(.9rem * var(--text-scale)); }
+:root[data-text] .page-reading .prose pre { font-size: calc(.84rem * var(--text-scale)); }
 :root .page-reading .article-body strong { font-weight: 600; color: var(--ink); }
 :root .page-reading .prose :not(pre) > code { background: none; padding: 0; font-size: .9em; color: inherit; }
 :root .page-reading .term-en { font-size: .78em; color: var(--faint); }

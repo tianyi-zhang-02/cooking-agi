@@ -85,6 +85,14 @@
     window.dispatchEvent(new CustomEvent("themechange"));
   });
 
+  /* ---------------------------------------------------------- text size (settings → 字号); reading.css scales the note text */
+  window.addEventListener("notes:text-size", function (event) {
+    var value = /^(s|l|xl)$/.test(event.detail) ? event.detail : "";
+    var page = document.documentElement;
+    if (value) page.dataset.text = value; else delete page.dataset.text;
+    try { if (value) localStorage.setItem("text-size", value); else localStorage.removeItem("text-size"); } catch (error) {}
+  });
+
   /* ---------------------------------------------------------- theme */
   var root = document.documentElement;
   var themeBtn = $(".icon-btn.theme");

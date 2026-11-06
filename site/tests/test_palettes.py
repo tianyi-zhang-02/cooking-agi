@@ -43,7 +43,7 @@ class PaletteTests(unittest.TestCase):
                     self.assertGreaterEqual(contrast(values["ink-soft"], values["paper"]), 7)
 
     def test_settings_list_matches_the_stylesheet(self):
-        listed = re.findall(r"\['([a-z]*)', (?:say\(|')", HUB[HUB.index("const PALETTES"):HUB.index("function renderSettings")])
+        listed = re.findall(r"\['([a-z]*)', (?:say\(|')", HUB[HUB.index("const PALETTES"):HUB.index("]];", HUB.index("const PALETTES"))])
         self.assertEqual(listed[0], "")                      # the night sky comes first and is the default
         self.assertEqual(sorted(listed[1:]), sorted(KEYS))
         for option in ["night", *KEYS]:

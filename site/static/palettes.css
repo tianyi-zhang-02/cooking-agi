@@ -3,7 +3,48 @@
    choice stays in this browser (localStorage "palette", restored before first paint in template.html).
    Each is one paper, one ink and one accent. Body text sits near 9:1, every text colour clears 4.5:1 on
    every surface (test_palettes.py), and the accent stays clear of the figures' Q/K/V colours.
+   The eye-care green is paler than the classic #C7EDCC so the figures' green V line still reads (3:1).
    To tune one, edit its values here and rerun test_palettes.py. */
+:root[data-palette="eyecare"] {
+  color-scheme: dark;
+  --paper: #1A201B; --panel: #212822; --ink: #DDE6DA; --ink-soft: #B8C0B6; --muted: #99A197; --faint: #899188; --rule: #353C36; --rule-soft: #2A302A; --link: #D4C7AF; --link-hover: #D8D6C4; --ember: #C9A27A; --ember-bg: rgba(221, 230, 218, 0.05); --code-bg: #1D241E; --mark: rgba(201, 162, 122, 0.18);
+}
+:root[data-palette="eyecare"] .reader-hub { --rh-accent: #C9A27A; --rh-accent-text: #C9A27A; --rh-glow: rgba(201, 162, 122, 0.3); --rh-l1: #403D30; --rh-l2: #695A46; --rh-l3: #987E5F; --rh-l4: #C9A27A; }
+:root[data-palette="eyecare"][data-theme="light"] {
+  color-scheme: light;
+  --paper: #DFEEDC; --panel: #E8F3E5; --ink: #1F2B22; --ink-soft: #364238; --muted: #4B584D; --faint: #59655A; --rule: #C4D3C2; --rule-soft: #D0DECD; --link: #784D26; --link-hover: #4C3C24; --ember: #7A4E26; --ember-bg: rgba(31, 43, 34, 0.05); --code-bg: #D3E6CF; --mark: rgba(185, 138, 90, 0.3);
+}
+:root[data-palette="eyecare"][data-theme="light"] .reader-hub { --rh-accent: #7A4E26; --rh-accent-text: #7A4E26; --rh-glow: rgba(122, 78, 38, 0.3); --rh-l1: #C9CBB4; --rh-l2: #B2A68A; --rh-l3: #967B59; --rh-l4: #7A4E26; }
+:root[data-palette="sepia"] {
+  color-scheme: dark;
+  --paper: #1F1A15; --panel: #26201A; --ink: #E8DCC8; --ink-soft: #C2B7A6; --muted: #A29889; --faint: #92897B; --rule: #3B352E; --rule-soft: #2F2A23; --link: #E1B7B8; --link-hover: #E4CAC0; --ember: #D98AA4; --ember-bg: rgba(232, 220, 200, 0.05); --code-bg: #221D17; --mark: rgba(217, 138, 164, 0.18);
+}
+:root[data-palette="sepia"] .reader-hub { --rh-accent: #D98AA4; --rh-accent-text: #D98AA4; --rh-glow: rgba(217, 138, 164, 0.3); --rh-l1: #483334; --rh-l2: #734C55; --rh-l3: #A56B7C; --rh-l4: #D98AA4; }
+:root[data-palette="sepia"][data-theme="light"] {
+  color-scheme: light;
+  --paper: #F8F1E3; --panel: #FCF7EC; --ink: #3A2614; --ink-soft: #513E2D; --muted: #685746; --faint: #736352; --rule: #DDD5C6; --rule-soft: #E9E1D2; --link: #8F4157; --link-hover: #643436; --ember: #A44868; --ember-bg: rgba(58, 38, 20, 0.05); --code-bg: #F0E7D4; --mark: rgba(168, 73, 107, 0.3);
+}
+:root[data-palette="sepia"][data-theme="light"] .reader-hub { --rh-accent: #A44868; --rh-accent-text: #A44868; --rh-glow: rgba(164, 72, 104, 0.3); --rh-l1: #E6CCC8; --rh-l2: #D2A5AC; --rh-l3: #BC778A; --rh-l4: #A44868; }
+:root[data-palette="morandi"] {
+  color-scheme: dark;
+  --paper: #1E1D1C; --panel: #262524; --ink: #E8E2DA; --ink-soft: #C0BBB4; --muted: #A19D98; --faint: #918D88; --rule: #3A3937; --rule-soft: #2E2D2B; --link: #DAC7C0; --link-hover: #E1D4CD; --ember: #C9A7A0; --ember-bg: rgba(232, 226, 218, 0.05); --code-bg: #222120; --mark: rgba(201, 167, 160, 0.18);
+}
+:root[data-palette="morandi"] .reader-hub { --rh-accent: #C9A7A0; --rh-accent-text: #C9A7A0; --rh-glow: rgba(201, 167, 160, 0.3); --rh-l1: #443B39; --rh-l2: #6B5B57; --rh-l3: #99807B; --rh-l4: #C9A7A0; }
+:root[data-palette="morandi"][data-theme="light"] {
+  color-scheme: light;
+  --paper: #F1EEE9; --panel: #F8F6F2; --ink: #3B3633; --ink-soft: #46413E; --muted: #5C5754; --faint: #686460; --rule: #D8D4D0; --rule-soft: #E2DFDA; --link: #675551; --link-hover: #514642; --ember: #77605B; --ember-bg: rgba(59, 54, 51, 0.05); --code-bg: #E9E5DF; --mark: rgba(184, 142, 135, 0.3);
+}
+:root[data-palette="morandi"][data-theme="light"] .reader-hub { --rh-accent: #77605B; --rh-accent-text: #77605B; --rh-glow: rgba(119, 96, 91, 0.3); --rh-l1: #D6CFCA; --rh-l2: #BAAEA9; --rh-l3: #998883; --rh-l4: #77605B; }
+:root[data-palette="nighthawk"] {
+  color-scheme: dark;
+  --paper: #0F1013; --panel: #16171B; --ink: #E4E5EA; --ink-soft: #ADAEB2; --muted: #8F9094; --faint: #808185; --rule: #2D2E31; --rule-soft: #202124; --link: #D6C6F0; --link-hover: #DDD6ED; --ember: #C4A1F7; --ember-bg: rgba(228, 229, 234, 0.05); --code-bg: #131418; --mark: rgba(196, 161, 247, 0.18);
+}
+:root[data-palette="nighthawk"] .reader-hub { --rh-accent: #C4A1F7; --rh-accent-text: #C4A1F7; --rh-glow: rgba(196, 161, 247, 0.3); --rh-l1: #373045; --rh-l2: #60517A; --rh-l3: #9178B7; --rh-l4: #C4A1F7; }
+:root[data-palette="nighthawk"][data-theme="light"] {
+  color-scheme: light;
+  --paper: #F7F7F9; --panel: #FFFFFF; --ink: #1C1D22; --ink-soft: #46464B; --muted: #5E5E62; --faint: #6B6B6F; --rule: #D8D8DB; --rule-soft: #E5E6E8; --link: #6D48B8; --link-hover: #44326D; --ember: #7A4FD0; --ember-bg: rgba(28, 29, 34, 0.05); --code-bg: #EFEFF3; --mark: rgba(196, 161, 247, 0.3);
+}
+:root[data-palette="nighthawk"][data-theme="light"] .reader-hub { --rh-accent: #7A4FD0; --rh-accent-text: #7A4FD0; --rh-glow: rgba(122, 79, 208, 0.3); --rh-l1: #DCD2F0; --rh-l2: #BFABE7; --rh-l3: #9D7EDB; --rh-l4: #7A4FD0; }
 :root[data-palette="flexoki"] {
   color-scheme: dark;
   --paper: #1C1B1A; --panel: #242322; --ink: #E6E4D9; --ink-soft: #BCBAB1; --muted: #9D9C94; --faint: #8D8C85; --rule: #383735; --rule-soft: #2C2B29; --link: #DCC681; --link-hover: #E1D5AD; --ember: #D0A215; --ember-bg: rgba(230, 228, 217, 0.05); --code-bg: #201F1E; --mark: rgba(208, 162, 21, 0.18);
@@ -74,16 +115,6 @@
   --paper: #F1F5F1; --panel: #FAFCFA; --ink: #1C2B2B; --ink-soft: #384545; --muted: #515D5C; --faint: #5E6A68; --rule: #D3D9D5; --rule-soft: #E0E5E1; --link: #1F5C5A; --link-hover: #1E4442; --ember: #815D4F; --ember-bg: rgba(28, 43, 43, 0.05); --code-bg: #E7EEE9; --mark: rgba(231, 143, 115, 0.3);
 }
 :root[data-palette="seiji"][data-theme="light"] .reader-hub { --rh-accent: #815D4F; --rh-accent-text: #815D4F; --rh-glow: rgba(129, 93, 79, 0.3); --rh-l1: #D8D4CD; --rh-l2: #BFB1A8; --rh-l3: #A0887C; --rh-l4: #815D4F; }
-:root[data-palette="sepia"] {
-  color-scheme: dark;
-  --paper: #1F1A15; --panel: #26201A; --ink: #E8DCC8; --ink-soft: #C2B7A6; --muted: #A29889; --faint: #92897B; --rule: #3B352E; --rule-soft: #2F2A23; --link: #E1B7B8; --link-hover: #E4CAC0; --ember: #D98AA4; --ember-bg: rgba(232, 220, 200, 0.05); --code-bg: #221D17; --mark: rgba(217, 138, 164, 0.18);
-}
-:root[data-palette="sepia"] .reader-hub { --rh-accent: #D98AA4; --rh-accent-text: #D98AA4; --rh-glow: rgba(217, 138, 164, 0.3); --rh-l1: #483334; --rh-l2: #734C55; --rh-l3: #A56B7C; --rh-l4: #D98AA4; }
-:root[data-palette="sepia"][data-theme="light"] {
-  color-scheme: light;
-  --paper: #F8F1E3; --panel: #FCF7EC; --ink: #3A2614; --ink-soft: #513E2D; --muted: #685746; --faint: #736352; --rule: #DDD5C6; --rule-soft: #E9E1D2; --link: #8F4157; --link-hover: #643436; --ember: #A44868; --ember-bg: rgba(58, 38, 20, 0.05); --code-bg: #F0E7D4; --mark: rgba(168, 73, 107, 0.3);
-}
-:root[data-palette="sepia"][data-theme="light"] .reader-hub { --rh-accent: #A44868; --rh-accent-text: #A44868; --rh-glow: rgba(164, 72, 104, 0.3); --rh-l1: #E6CCC8; --rh-l2: #D2A5AC; --rh-l3: #BC778A; --rh-l4: #A44868; }
 :root[data-palette="firefly"] {
   color-scheme: dark;
   --paper: #040804; --panel: #10120F; --ink: #E3E5E1; --ink-soft: #A9ACA8; --muted: #8A8D89; --faint: #7C7F7B; --rule: #232723; --rule-soft: #161A16; --link: #C4E8BB; --link-hover: #D4E6CE; --ember: #7FEE64; --ember-bg: rgba(227, 229, 225, 0.05); --code-bg: #0C0E0B; --mark: rgba(127, 238, 100, 0.18);
@@ -102,6 +133,10 @@
 }
 /* swatches in the settings list: paper, then accent */
 .reader-hub-palette[data-palette-option="night"] .reader-hub-swatch { background: linear-gradient(90deg, #0C0A08 0 64%, #E8A672 64% 100%); }
+.reader-hub-palette[data-palette-option="eyecare"] .reader-hub-swatch { background: linear-gradient(90deg, #DFEEDC 0 64%, #7A4E26 64% 100%); }
+.reader-hub-palette[data-palette-option="sepia"] .reader-hub-swatch { background: linear-gradient(90deg, #F8F1E3 0 64%, #A44868 64% 100%); }
+.reader-hub-palette[data-palette-option="morandi"] .reader-hub-swatch { background: linear-gradient(90deg, #1E1D1C 0 64%, #C9A7A0 64% 100%); }
+.reader-hub-palette[data-palette-option="nighthawk"] .reader-hub-swatch { background: linear-gradient(90deg, #0F1013 0 64%, #C4A1F7 64% 100%); }
 .reader-hub-palette[data-palette-option="flexoki"] .reader-hub-swatch { background: linear-gradient(90deg, #1C1B1A 0 64%, #D0A215 64% 100%); }
 .reader-hub-palette[data-palette-option="everforest"] .reader-hub-swatch { background: linear-gradient(90deg, #2D353B 0 64%, #A7C080 64% 100%); }
 .reader-hub-palette[data-palette-option="solarized"] .reader-hub-swatch { background: linear-gradient(90deg, #002B36 0 64%, #B58900 64% 100%); }
@@ -109,5 +144,4 @@
 .reader-hub-palette[data-palette-option="rosepine"] .reader-hub-swatch { background: linear-gradient(90deg, #191724 0 64%, #EBBCBA 64% 100%); }
 .reader-hub-palette[data-palette-option="kon"] .reader-hub-swatch { background: linear-gradient(90deg, #111A2C 0 64%, #D9BC76 64% 100%); }
 .reader-hub-palette[data-palette-option="seiji"] .reader-hub-swatch { background: linear-gradient(90deg, #0F1A1B 0 64%, #F0A48C 64% 100%); }
-.reader-hub-palette[data-palette-option="sepia"] .reader-hub-swatch { background: linear-gradient(90deg, #1F1A15 0 64%, #D98AA4 64% 100%); }
 .reader-hub-palette[data-palette-option="firefly"] .reader-hub-swatch { background: linear-gradient(90deg, #040804 0 64%, #7FEE64 64% 100%); }
