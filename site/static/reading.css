@@ -63,7 +63,8 @@
 
 /* the side columns: still there, but quiet. On small screens the drawer keeps the whole directory. */
 @media (min-width: 1081px) {
-  :root .page-reading { --side-w: 212px; --rail-w: 212px; }
+  /* narrower side columns inside the page only: the top bar keeps the cover's grid, so its tabs stay put */
+  :root .page-reading .shell { --side-w: 212px; --rail-w: 212px; }
   :root .page-reading .shell { gap: 0 3rem; max-width: 1280px; }
   :root .page-reading .side {
     --side-bg: var(--paper); --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted);
@@ -82,8 +83,9 @@
   :root .page-reading .side-nav:has(.side-all input:not(:checked)) .nav details:not(:has(a.active)) { display: none; }
   :root .page-reading .side-all { display: block; margin: .8rem .55rem 0; color: var(--page-faint); font: .78rem/1.5 var(--body); cursor: pointer; }
   :root .page-reading .side-all:hover { color: var(--page-ink); }
+  :root .page-reading .side-nav:has(.side-all input:not(:checked)) .grp-name::after { content: none; }
   /* a page with no directory of its own: the right column already has its contents */
-  :root .page-reading .side-nav:has(.side-page-toc) { display: none; }
+  :root .page-reading .side-nav:has(.side-page-toc), :root .page-reading .side-nav:has(.side-empty) { display: none; }
 
   :root .page-reading .rail { --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted); --rule: var(--page-rule-soft); }
   :root .page-reading .rail-title { display: none; }
@@ -91,6 +93,22 @@
   :root .page-reading .toc li a { border-left-width: 1px; }
   :root .page-reading .toc li a.active { color: var(--page-ink); font-weight: 400; }
 }
+
+/* details */
+/* contents, directory and table cells: no single character left alone on a last line */
+:root .page-reading :is(.toc a, .side a, .side summary, .prose td, .prose th) { text-wrap: pretty; }
+/* tables bleed evenly into both margins (.reading-scroll caps the width, which pulled them left) */
+:root .page-reading .article-body .table-wrap { max-width: none; }
+/* the glossary follows the last section: its own rule doubled the one above it */
+:root .page-reading .page-glossary { border-top: 0; padding-top: 0; }
+/* the footer (previous / next, feedback, links) lines up with the text column */
+:root .page-reading .page-foot { max-width: 640px; margin-inline: auto; }
+/* previous / next are whole cards: underline the title on hover only */
+:root .page-reading .page-turn :is(.page-turn-prev, .page-turn-next) { text-decoration: none; }
+:root .page-reading .page-turn :is(.page-turn-prev, .page-turn-next):hover strong { text-decoration: underline; text-underline-offset: 4px; }
+/* the interview home is a directory: no reading time, and its section heading keeps its own spacing */
+:root .page-reading.page-prep-hub .article-meta { display: none; }
+:root .page-reading .prose .prep-directory h2 { margin: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   :root .page-reading .topbar, :root .page-reading .side { transition: none; }
