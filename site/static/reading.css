@@ -54,13 +54,6 @@
 :root .page-reading .article-body .widget-body { padding: .4rem 0 .9rem; }
 :root .page-reading .algo-lab .algo-stage { border: 0; background: none; padding: 6px 0; }
 
-/* the directory toggle is plain HTML: without scripts it still works, and nothing flashes on load */
-.side-all { display: none; }
-.side-all input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.side-all-less, .side-all:has(input:checked) .side-all-more { display: none; }
-.side-all:has(input:checked) .side-all-less { display: inline; }
-.side-all:has(input:focus-visible) { outline: 2px solid var(--ember); outline-offset: 2px; }
-
 /* the side columns: still there, but quiet. On small screens the drawer keeps the whole directory. */
 @media (min-width: 1081px) {
   /* narrower side columns inside the page only: the top bar keeps the cover's grid, so its tabs stay put */
@@ -77,13 +70,7 @@
   :root .page-reading .side :is(summary, a) { font-weight: 400 !important; }
   :root .page-reading .side a.active { color: var(--page-ink) !important; }
 
-  /* only the current chapter, until the reader asks for the rest */
-  /* build.py renders the toggle only when there is a current note and something to fold away */
-  :root .page-reading .side-nav:has(.side-all input:not(:checked)) .nav > li:not(:has(a.active), .is-current),
-  :root .page-reading .side-nav:has(.side-all input:not(:checked)) .nav details:not(:has(a.active)) { display: none; }
-  :root .page-reading .side-all { display: block; margin: .8rem .55rem 0; color: var(--page-faint); font: .78rem/1.5 var(--body); cursor: pointer; }
-  :root .page-reading .side-all:hover { color: var(--page-ink); }
-  :root .page-reading .side-nav:has(.side-all input:not(:checked)) .grp-name::after { content: none; }
+  /* every topic of the section stays listed (folded); build.py opens only the current path */
   /* a page with no directory of its own: the right column already has its contents */
   :root .page-reading .side-nav:has(.side-page-toc), :root .page-reading .side-nav:has(.side-empty) { display: none; }
 

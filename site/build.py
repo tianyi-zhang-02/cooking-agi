@@ -1653,7 +1653,6 @@ def sidebar_html(page, sections, groups):
         by_group.setdefault(sec.get("group", "reference"), []).append(sec)
 
     out, seen_zone = [], None
-    current_seen = folds_away = False      # is there a current note, and would "current chapter only" hide anything?
     cats = {c["id"]: c for c in NAV.get("category", [])}
     zones = {z["id"]: z for z in NAV.get("zone", [])}
     scope = page_category(page)
@@ -1681,9 +1680,6 @@ def sidebar_html(page, sections, groups):
         rendered = [section_html(page, s, head) for s, head in zip(secs, heads)]
         body = "".join(h for h, _ in rendered)
         is_active = any(a for _, a in rendered)
-        if visible:
-            current_seen = current_seen or is_active
-            folds_away = folds_away or not is_active or any(head and not a for head, (_, a) in zip(heads, rendered))
         n_pages = sum(len(s["pages"]) for s in secs)
         label = html.escape(g["zh" if page.lang == "zh" else "en"])
         if n_pages == 1:
@@ -1707,11 +1703,6 @@ def sidebar_html(page, sections, groups):
     route_link = (f'<a class="side-route-link" href="{page.rel(route_url)}">'
                   f'{"按目标找路线" if zh else "Find a route for your goal"}'
                   '<span aria-hidden="true"> →</span></a>') if page.url != route_url else ''
-    show_all = ''
-    if scope in cats and current_seen and folds_away:
-        show_all = (f'<label class="side-all"><input type="checkbox" data-side-all>'
-                    f'<span class="side-all-more">{"查看全部目录" if zh else "Show all chapters"}</span>'
-                    f'<span class="side-all-less">{"只看当前章节" if zh else "Current chapter only"}</span></label>')
     local_toc = ""
     if scope not in cats:
         local_toc = (f'<div class="side-page-toc">{toc_html(page)}</div>' if getattr(page, "toc", [])
@@ -1723,7 +1714,7 @@ def sidebar_html(page, sections, groups):
         f'<div class="side-directory-actions" hidden>'
         f'<button type="button" data-side-current>{"定位本章" if zh else "Current chapter"}</button>'
         f'<button type="button" data-side-collapse>{"收起其他" if zh else "Collapse others"}</button></div>'
-        f'<ul class="nav">{"".join(out)}</ul>{show_all}</div>'
+        f'<ul class="nav">{"".join(out)}</ul></div>'
         '</div>')
 
 

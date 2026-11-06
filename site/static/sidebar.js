@@ -140,7 +140,5 @@
   renderSave();
   var noteTools = document.querySelector(".note-tools");
   if (noteTools && current) noteTools.hidden = false;
-  var showAll = directory.querySelector("[data-side-all]");
-  if (showAll) showAll.addEventListener("change", revealCurrent);
   if (active) revealCurrent();
 }());
