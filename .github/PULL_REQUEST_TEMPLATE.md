@@ -1,26 +1,29 @@
-## 改了什么 / What changed
+<!-- 简短、分块写；不贴聊天原话，不写背景故事或长串检查记录。
+     Keep it short and structured: no chat quotes, backstory or long check logs. -->
 
-对应页面与板块 / Pages and area:
-相关 issue（如果有）/ Related issue, if any:
+## Summary
 
-## 依据与检查 / Evidence and checks
+<!-- 一两句：改了什么。相关 issue 写在最后一行（Closes #N）。
+     One or two sentences on what changed. Put a related issue on the last line (Closes #N). -->
 
-关键来源、复现步骤或前后截图；未验证的部分也请说明。
-Public references, reproduction steps, or screenshots; mention what remains unverified.
+## Changes
 
-## 语言与署名 / Languages and credit
+<!-- 2–5 条短句，每条一行。 / 2–5 short bullets, one line each. -->
+-
 
-中英两版是否同步？如果没有，缺什么、怎么跟进？谁参与了写作或审阅？
-Are both languages updated? If not, what is the follow-up? Who helped write or review?
+## Testing
 
-## 提交前 / Before review
+<!-- 一行：实际跑了哪些检查、依据哪些来源；没验证的也写上。
+     One line: the checks you ran and the key sources; say what is unverified. -->
+-
 
-- [ ] 我已亲自检查内容，未包含内部资料、凭据或个人隐私。 / I checked the work and excluded internal material, credentials, and personal data.
-- [ ] 引用与素材有来源，结论区分已验证、假设和计划。 / Sources and assets are credited; verified claims, hypotheses, and plans are distinct.
-- [ ] 我有权按仓库对应许可提交原创内容，第三方材料已单独标明。 / I can contribute original work under the repository's applicable licenses; third-party exceptions are identified.
-- [ ] 已说明实际运行的检查与未验证部分。 / I listed actual checks and limitations.
+## Before review / 提交前
 
-AI 辅助（如有）：用在哪里、自己验证了什么？ / AI assistance, if any: where and how was it verified?
+- [ ] 未包含内部资料、凭据或个人隐私。 / No internal material, credentials or personal data.
+- [ ] 引用与素材有来源，已验证的结论和假设分开写。 / Sources and assets are credited; verified claims are kept apart from hypotheses.
+- [ ] 有权按仓库许可提交，第三方材料已单独标明。 / I can contribute this under the repository's licenses; third-party material is marked.
+- [ ] 中英两版已同步，或在 Changes 里写明怎么补。 / Both languages are updated, or Changes says how the other follows.
+- [ ] 用了 AI 的话，在 Changes 里说明用在哪里、怎么验证的。 / If AI helped, Changes says where and how it was verified.
 
-审核者：请检查事实、讲解、双语差异与隐私；不要仅凭 CI 通过就批准。
-Reviewers: check facts, clarity, language differences, and privacy, not just CI.
+<!-- 审核者：请检查事实、讲解、双语差异与隐私；不要仅凭 CI 通过就批准。
+     Reviewers: check facts, clarity, language differences and privacy, not just CI. -->
