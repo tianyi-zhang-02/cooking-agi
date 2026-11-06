@@ -91,6 +91,20 @@ class ReadingLayoutTests(unittest.TestCase):
         hover = READING.index("@media (hover: hover)")
         self.assertGreater(READING.index(":root .page-reading .term { border-bottom: 0; }"), hover)
 
+    def test_the_top_bar_does_not_move_between_the_cover_and_a_note(self):
+        # the top bar's first column is var(--side-w); the narrower reading columns must not reach it
+        self.assertIn(":root .page-reading .shell { --side-w: 212px; --rail-w: 212px; }", READING)
+        self.assertNotRegex(READING, r":root \.page-reading \{[^}]*--side-w")
+
+    def test_the_interview_home_title_clears_its_rule(self):
+        prep = (ROOT / "site/static/prep-hub.css").read_text()
+        head = re.search(r"\.page-prep-hub \.article-head \{([^}]*)\}", prep)[1]
+        left = re.search(r"padding: \S+ \S+ \S+ (\S+?);", head)
+        self.assertIsNotNone(left, head)                 # a left padding keeps the title off the ember rule
+        self.assertNotEqual(left[1], "0")
+        # its section heading keeps its own spacing under the reading layer's h2 margin
+        self.assertIn(":root .page-reading .prose .prep-directory h2 { margin: 0; }", READING)
+
 
 if __name__ == "__main__":
     unittest.main()
