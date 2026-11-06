@@ -44,18 +44,19 @@ class ReadingLayoutTests(unittest.TestCase):
                 self.assertRegex(self.output["note", language], r'<body class="page-article page-reading">')
                 self.assertNotIn("page-reading", self.output["home", language])
 
-    def test_the_directory_toggle_works_without_scripts(self):
-        labels = {"zh": ("查看全部目录", "只看当前章节"), "en": ("Show all chapters", "Current chapter only")}
-        for language, (more, less) in labels.items():
+    def test_the_sidebar_keeps_every_topic_of_the_section(self):
+        # the big topics stay listed while reading; only the current path is open
+        for language in ("zh", "en"):
             with self.subTest(language=language):
                 note = self.output["note", language]
-                toggle = re.search(r'<label class="side-all"><input type="checkbox" data-side-all>(.*?)</label>', note)
-                self.assertIsNotNone(toggle)
-                self.assertIn(more, toggle[1])
-                self.assertIn(less, toggle[1])
-                self.assertNotIn("data-side-all", self.output["home", language])
-        self.assertIn(".side-nav:has(.side-all input:not(:checked)) .nav details:not(:has(a.active)) { display: none; }", READING)
-        self.assertNotRegex(re.sub(r"/\*.*?\*/", "", READING, flags=re.S), r":has\([^()]*:has\(")   # :has() cannot nest; browsers drop the rule
+                side = note[note.index('<ul class="nav">'):note.index('</ul></div></div>', note.index('<ul class="nav">'))]
+                topics = re.findall(r'<li class="grp"(?: data-category="[^"]*")?><details data-grp="([^"]+)"( open)?', side)
+                self.assertGreater(len(topics), 1, topics)
+                self.assertEqual(sum(1 for _, opened in topics if opened), 1, topics)
+                self.assertNotIn("side-all", note)
+        rules = re.sub(r"/\*.*?\*/", "", READING, flags=re.S)
+        self.assertNotRegex(rules, r"\.nav[^{]*details[^{]*\{[^}]*display: none")
+        self.assertNotRegex(rules, r":has\([^()]*:has\(")   # :has() cannot nest; browsers drop the rule
 
     def test_reading_styles_load_last_and_stay_scoped(self):
         self.assertLess(TEMPLATE.index("static/mobile-reading.css"), TEMPLATE.index("static/reading.css"))
@@ -64,7 +65,7 @@ class ReadingLayoutTests(unittest.TestCase):
             for part in re.split(r",(?![^()]*\))", selector):   # commas inside :not(...) / :has(...) stay
                 part = part.strip()
                 with self.subTest(selector=part):
-                    self.assertTrue(part.startswith((":root .page-reading", ":root[data-bar-hidden] .page-reading", ":root[data-text", ".side-all")), part)
+                    self.assertTrue(part.startswith((":root .page-reading", ":root[data-bar-hidden] .page-reading", ":root[data-text")), part)
 
     def test_top_bar_leaves_only_while_reading_onward(self):
         app = (ROOT / "site/static/app.js").read_text()
