@@ -13,7 +13,7 @@
 - **新文章、交互图或目录调整**：先开[内容提案](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml)，避免重复劳动，再开 draft PR。
 - **想长期参与**：先看[板块分工与审核约定](community/README.md)。没有认领的板块由维护者接审，不要求你随时在线。
 
-每个 PR 尽量只做一件事。写清改了什么、依据是什么、怎么检查的。常规合并需要一位非作者的相关 CODEOWNER 批准、检查通过、讨论处理完；大范围调整才走提案，具体例外和分歧处理见上面的协作约定。
+每个 PR 尽量只做一件事。描述按模板分三块写：**Summary** 一两句，**Changes** 2–5 条短句，**Testing** 一行。不贴聊天原话，不写“某某让我改的”这类背景，也不贴长串检查记录。常规合并需要一位非作者的相关 CODEOWNER 批准、检查通过、讨论处理完；大范围调整才走提案，具体例外和分歧处理见上面的协作约定。
 
 维护者可以手动用[三角色初审工具](site/REVIEW_ASSIST.md)，分别检查技术、讲解、依据与公开边界。默认只在本地生成请求，不调用模型；发送到 API 需要另行选择模型、配置密钥并明确开启。AI 意见要由人核实，不自动留言、批准或合并。公开 issue 一发出就公开，不要把私人进度备份或内部材料交给初审来脱敏。
 
@@ -73,7 +73,7 @@ Not sure where to help? The [roadmap](community/roadmap.en.md#contribute) lists 
 - **New notes, visualizations, or navigation changes:** open a [proposal](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=proposal.yml) before a draft PR to avoid duplicate work.
 - **Ongoing involvement:** see [area contacts and review rules](community/README.en.md). Maintainers cover unassigned areas; constant availability isn't expected.
 
-Keep each PR focused and explain the change, evidence, and checks. Routine merges require one relevant CODEOWNER approval from a non-author, passing checks, and resolved discussions. Proposals are for broader changes; the collaboration guide explains exceptions and disagreements.
+Keep each PR focused. Write the description in the template's three parts: **Summary** (one or two sentences), **Changes** (2–5 short bullets) and **Testing** (one line). Leave out chat quotes, backstory such as "X asked for this", and long check logs. Routine merges require one relevant CODEOWNER approval from a non-author, passing checks, and resolved discussions. Proposals are for broader changes; the collaboration guide explains exceptions and disagreements.
 
 Maintainers can run the optional [three-role review tool](site/REVIEW_ASSIST.md) for technical accuracy, teaching, and evidence/safety. It prepares requests locally by default. Remote calls need an explicit model, key, and opt-in. Humans verify the findings; the tool never comments, approves, or merges. Issues are public immediately, so never submit private progress backups or internal material expecting AI to sanitize them.
 
