@@ -3437,10 +3437,11 @@
       result.set(frame.product, frame.stage >= 5 ? 'is-bad' : 'is-keep');
       barParts.forEach(node => show(node, Boolean(frame.bar)));
       blocks.forEach((b, i) => {
-        const on = frame.fit != null && i < frame.want, x = at(kv0 + i * frame.seq);
-        b.r.setAttribute('x', x + 1); b.r.setAttribute('width', Math.max(0, (frame.seq || 0) * per - 4));
+        const seq = frame.seq || 0;   // the first two steps have no sequence yet: blocks stay hidden at a real position
+        const on = frame.fit != null && i < frame.want, x = at(kv0 + i * seq);
+        b.r.setAttribute('x', x + 1); b.r.setAttribute('width', Math.max(0, seq * per - 4));
         b.r.setAttribute('class', 'algo-cell ' + (i < frame.fit ? 'is-keep' : 'is-bad'));
-        b.n.setAttribute('x', x + (frame.seq || 0) * per / 2); b.n.textContent = String(i + 1);
+        b.n.setAttribute('x', x + seq * per / 2); b.n.textContent = String(i + 1);
         show(b.r, on); show(b.n, on);
       });
     };

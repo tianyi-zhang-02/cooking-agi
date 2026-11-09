@@ -1500,6 +1500,56 @@ SEARCH_HEADING = re.compile(r'<h([23])\b[^>]*\bid="([^"]+)"[^>]*>(.*?)</h\1>', r
 SEARCH_SKIPPED = re.compile(r'<(pre|svg|script|style)\b[^>]*>.*?</\1>', re.S)
 
 
+TEX_SYMBOLS = {
+    "times": "×", "cdot": "·", "approx": "≈", "le": "≤", "leq": "≤", "ge": "≥", "geq": "≥", "ne": "≠", "neq": "≠",
+    "to": "→", "rightarrow": "→", "leftarrow": "←", "in": "∈", "notin": "∉", "infty": "∞", "sim": "~", "propto": "∝",
+    "pm": "±", "odot": "⊙", "otimes": "⊗", "nabla": "∇", "partial": "∂", "mid": "|", "ell": "ℓ", "sum": "Σ", "prod": "Π",
+    "ldots": "…", "dots": "…", "cdots": "…", "top": "ᵀ", "circ": "∘", "forall": "∀", "exists": "∃", "cup": "∪", "cap": "∩",
+    "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε", "varepsilon": "ε", "zeta": "ζ", "eta": "η",
+    "theta": "θ", "kappa": "κ", "lambda": "λ", "mu": "μ", "nu": "ν", "xi": "ξ", "pi": "π", "rho": "ρ", "sigma": "σ",
+    "tau": "τ", "phi": "φ", "varphi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
+    "Gamma": "Γ", "Delta": "Δ", "Theta": "Θ", "Lambda": "Λ", "Pi": "Π", "Sigma": "Σ", "Phi": "Φ", "Psi": "Ψ", "Omega": "Ω",
+}
+TEX_ACCENTS = {"hat": "\u0302", "widehat": "\u0302", "bar": "\u0304", "overline": "\u0304", "tilde": "\u0303", "vec": "\u20d7", "dot": "\u0307"}
+TEX_GROUP = r"\{([^{}]*)\}"
+TEX_FONT = r"\\(?:text\w*|math\w+|operatorname\*?|boldsymbol|rm|bf|it)\b"
+
+
+def plain_tex(tex):
+    r"""An inline formula as readable text for search excerpts: $\sqrt{d_k}$ -> √d_k, $\hat r$ -> r̂.
+    Not a TeX renderer: just enough that a snippet never shows raw commands."""
+    bare = lambda x: x if re.fullmatch(r"[\w.ᵀ√^]+", x) else f"({x})"
+    tex = re.sub(r"\\[,;:! ]|\\q?quad\b|~", " ", tex)
+    tex = re.sub(r"\\(?:left|right|[Bb]igg?[lr]?)\b\s*\\?", "", tex)
+    for _ in range(4):                                   # innermost groups first, a few levels deep
+        tex = re.sub(r"\\t?d?frac\s*" + TEX_GROUP + r"\s*" + TEX_GROUP, lambda m: f"{bare(m[1])}/{bare(m[2])}", tex)
+        tex = re.sub(r"\\sqrt\s*" + TEX_GROUP, lambda m: "√" + bare(m[1]), tex)
+        tex = re.sub(r"\\(" + "|".join(TEX_ACCENTS) + r")(?![A-Za-z])\s*(?:" + TEX_GROUP + r"|([A-Za-z]))",
+                     lambda m: (m[2] if m[2] is not None else m[3]) + TEX_ACCENTS[m[1]], tex)
+        tex = re.sub(TEX_FONT + r"\s*" + TEX_GROUP, r"\1", tex)
+        tex = re.sub(r"([_^])" + TEX_GROUP, r"\1\2", tex)
+    tex = re.sub(r"\\([A-Za-z]+)", lambda m: TEX_SYMBOLS.get(m[1], m[0]), tex)   # symbols first: \in\mathcal S
+    tex = re.sub(TEX_FONT + r"\s*", "", tex)
+    tex = re.sub(r"\\sqrt\s*", "√", tex)
+    tex = re.sub(r"\\([A-Za-z]+)", lambda m: "" if m[1] == "displaystyle" else m[1], tex)
+    tex = re.sub(r"\^\s*ᵀ", "ᵀ", tex)
+    tex = tex.replace("{", "").replace("}", "").replace("\\", "")
+    return re.sub(r"\s+", " ", tex).strip()
+
+
+SEARCH_MATH = re.compile(r"\$\$.+?\$\$|\\\[.+?\\\]|\\\((.+?)\\\)|(?<![\\$])\$(?!\$)(.+?)(?<!\\)\$", re.S)
+SEARCH_CODE = re.compile(r"(<code\b[^>]*>.*?</code>)", re.S)
+
+
+def search_prose(chunk):
+    """Rendered HTML as plain text for the index. Formulas follow the page's KaTeX delimiters:
+    display math is left out of excerpts, inline math becomes readable text; code keeps its $."""
+    parts = SEARCH_CODE.split(chunk)
+    for i in range(0, len(parts), 2):
+        parts[i] = SEARCH_MATH.sub(lambda m: plain_tex(html.unescape(m[1] or m[2])) if (m[1] or m[2]) else " ", parts[i])
+    return html.unescape(strip_tags("".join(parts)))
+
+
 def search_sections(prose, title_only=False):
     """The note cut at its h2/h3 headings for search: [anchor, heading, prose, code] each.
     Results can then open the section that matched. Figures' labels stay out, code is kept
@@ -1511,10 +1561,10 @@ def search_sections(prose, title_only=False):
     sections = []
     for (anchor, heading, start), end in zip(starts, ends):
         chunk = prose[start:end]
-        text = "" if title_only else html.unescape(strip_tags(SEARCH_SKIPPED.sub(" ", chunk)))
+        text = "" if title_only else search_prose(SEARCH_SKIPPED.sub(" ", chunk))
         code = "" if title_only else html.unescape(strip_tags(" ".join(
             re.findall(r"<pre\b[^>]*>(.*?)</pre>", chunk, flags=re.S))))
-        heading = html.unescape(strip_tags(heading))
+        heading = search_prose(heading)
         if text or code or heading:
             sections.append([html.unescape(anchor), heading, text, code])
     return sections
