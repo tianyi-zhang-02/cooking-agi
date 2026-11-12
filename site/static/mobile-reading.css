@@ -11,7 +11,7 @@
 .figure-viewer::backdrop { background: #000a; }
 .figure-viewer > header { display: flex; align-items: center; flex: none; gap: .6rem; padding: .6rem .8rem; border-bottom: 1px solid var(--rule); }
 .figure-viewer h2 { flex: 1; min-width: 0; font: 500 .9rem/1.5 var(--body); }
-.figure-viewer button { flex: none; min-width: 44px; min-height: 44px; padding: .4rem .6rem; border: 1px solid var(--rule); border-radius: 5px; background: none; color: var(--ink); font: .8rem/1.4 var(--body); cursor: pointer; }
+.figure-viewer button { display: inline-grid; place-items: center; flex: none; min-width: 44px; min-height: 44px; padding: .4rem .6rem; border: 1px solid var(--rule); border-radius: 5px; background: none; color: var(--ink); font: .8rem/1.4 var(--body); cursor: pointer; }
 .figure-viewer button:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
 .figure-viewer-stage { flex: 1; min-height: 0; overflow: auto; padding: 1rem; overscroll-behavior: contain; }
 .figure-viewer-stage img { display: block; width: var(--figure-width); max-width: none; height: auto; margin: 0 auto; }

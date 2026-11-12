@@ -74,7 +74,14 @@
     });
     var close = document.createElement('button');
     close.type = 'button';
-    close.textContent = '×';
+    // Lucide "x" (ISC, site/static/LUCIDE-LICENSE.txt), like the other close buttons
+    var cross = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    [['viewBox', '0 0 24 24'], ['width', '18'], ['height', '18'], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '2'],
+     ['stroke-linecap', 'round'], ['stroke-linejoin', 'round'], ['aria-hidden', 'true']].forEach(function (pair) { cross.setAttribute(pair[0], pair[1]); });
+    var crossPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    crossPath.setAttribute('d', 'M18 6 6 18M6 6l12 12');
+    cross.append(crossPath);
+    close.append(cross);
     close.setAttribute('aria-label', labels.close);
     close.addEventListener('click', function () { viewer.close(); });
     header.append(title, fitButton, close);

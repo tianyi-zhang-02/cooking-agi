@@ -6,6 +6,7 @@ This repository uses separate licenses for original code and original educationa
 - **Original content: CC BY 4.0.** This includes original explanatory prose, translations, tables, and educational diagrams, including diagram SVGs. These are licensed under the [Creative Commons Attribution 4.0 International license](https://creativecommons.org/licenses/by/4.0/legalcode.en). Code that generates a diagram remains MIT; the original explanatory diagram is CC BY 4.0.
 - **Third-party material is excluded from these defaults.** Quoted text, adapted or reproduced figures, fonts, logos, photographs, vendored code, linked papers, and other third-party assets retain their own terms and attribution requirements. A link or citation is not permission to relicense that material. Trademarks, privacy, and publicity rights are not granted by these licenses.
 - **Figures from papers** are listed in [site/paper_figures.toml](site/paper_figures.toml), one entry per figure with its paper, figure number, license and our changes. Only figures from papers under CC BY 4.0, CC BY-SA 4.0 or CC0 are copied (into `site/static/paper-figures/`) and shown with their credit; the rest appear as links to the paper. These images keep their own licenses.
+- **Interface icons** (menu, search, theme, chevron, close, bookmark, star) are from [Lucide](https://lucide.dev) 0.469.0 under the ISC License; the notice is in [site/static/LUCIDE-LICENSE.txt](site/static/LUCIDE-LICENSE.txt).
 
 For original notes, retain supplied creator credits, the source link, the CC BY 4.0 license link and notices, and indicate modifications. A suggested attribution is: “Adapted from Cooking AGI contributors, [source page], CC BY 4.0; changes: [brief description].” Preserve any more specific author and source notices on the material. The [repository history](https://github.com/tianyi-zhang-02/cooking-agi) and [contributor records](https://tianyi-zhang-02.github.io/cooking-agi/contributors.en.html) identify contributors; no endorsement is implied.
 
@@ -21,6 +22,7 @@ Keeping the official notes free is this project's publishing commitment, not an 
 - **原创内容用 CC BY 4.0**：包括原创讲解、翻译、表格和教学图示。生成图的代码用 MIT，原创教学图本身用 CC BY 4.0。完整条款见 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode.zh-Hans)。
 - **第三方材料不自动适用这些许可**：引用文字、转载或改编的图、字体、标志、照片、第三方代码和链接论文等，仍遵守各自许可。引用不等于获得重新许可的权利，也不授予商标、隐私或肖像等权利。
 - **论文原图**登记在 [site/paper_figures.toml](site/paper_figures.toml)，每张图写明论文、图号、许可证和我们做过的改动。只有 CC BY 4.0、CC BY-SA 4.0 或 CC0 论文的图会复制进仓库（`site/static/paper-figures/`）并附出处展示，其余只放链接。这些图片保留各自的许可。
+- **界面图标**（菜单、搜索、明暗切换、展开箭头、关闭、收藏、Star）来自 [Lucide](https://lucide.dev) 0.469.0，采用 ISC 许可，声明见 [site/static/LUCIDE-LICENSE.txt](site/static/LUCIDE-LICENSE.txt)。
 
 使用原创笔记时，请保留已有作者署名、来源链接、CC BY 4.0 许可链接及相关声明，并说明修改。可以写：“改编自 Cooking AGI 贡献者，[原文链接]，CC BY 4.0；修改：[简述]。”原材料中更具体的作者和来源声明也应保留，不表示作者为你的版本背书。
 

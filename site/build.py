@@ -468,6 +468,9 @@ def rewrite_links(html_text: str, page, repo: str, known: set) -> str:
             return f'{attr}="{asset_path}{frag}"'
 
         if source_path in {"README.md", "README.en.md", "README.zh.md"}:
+            readme = "README.zh.md" if source_path == "README.zh.md" else "README.md"
+            if frag[1:] in HOME_LEGACY_IDS:   # sections GitHub shows, the site home does not
+                return f'{attr}="https://github.com/{repo}/blob/main/{readme}{frag}"'
             home = "index.zh.html" if source_path == "README.zh.md" else "index.html"
             path = os.path.relpath(home, str(here)).replace(os.sep, "/")
         elif path.endswith(".en.md"):
@@ -1118,13 +1121,98 @@ def about_head_html(page) -> str:
             '</section>')
 
 
+HOME = SITE / "home.toml"
+# Old links to home sections that now live only on GitHub (contributors, run locally, why, changelog)
+# land on the home footer, which links there; links inside the site go straight to the README.
+HOME_LEGACY_IDS = ("_3", "_4", "_5", "_6", "contributors", "contributors-reviewers", "changelog")
+
+
+@functools.cache
+def home_data() -> dict:
+    return tomllib.loads(HOME.read_text(encoding="utf-8"))
+
+
+def inline_links(text: str) -> str:
+    """Plain text with [label](href) links, as written in home.toml."""
+    out, last = [], 0
+    for m in re.finditer(r"\[([^\]]+)\]\(([^)\s]+)\)", text):
+        out += [html.escape(text[last:m.start()]), f'<a href="{html.escape(m[2], quote=True)}">{html.escape(m[1])}</a>']
+        last = m.end()
+    return "".join(out) + html.escape(text[last:])
+
+
+def study_route_steps(lang: str) -> list:
+    """The six steps of the study map's reading route, links made relative to the repository root."""
+    source = ROOT / ("learn/README.en.md" if lang == "en" else "learn/README.md")
+    block = re.search(r'<nav class="study-route"[^>]*>(.*?)</nav>', source.read_text(encoding="utf-8"), re.S)
+    if not block:
+        raise ValueError(f"{source}: the study route the home page reuses is missing")
+    return [(os.path.normpath("learn/" + m[1]).replace(os.sep, "/"), m[2])
+            for m in re.finditer(r'<a href="([^"]+)">(.*?)</a>', block[1], re.S)]
+
+
+def readme_index(page) -> list:
+    """The README's topic list ("内容一览" / "What's inside"): [(group, [(label, href)])]."""
+    text = page.src.read_text(encoding="utf-8")
+    start = text.index("## 内容一览" if page.lang == "zh" else "## What's inside")
+    end = text.find("\n## ", start + 3)
+    groups = []
+    for line in text[start:end].splitlines():
+        m = re.match(r"- \*\*(.+?)\*\*[:：]?\s*(.+)$", line)
+        if m:
+            groups.append((m[1].rstrip(":："), re.findall(r"\[([^\]]+)\]\(([^)\s]+)\)", m[2])))
+    if not groups:
+        raise ValueError(f"{page.src}: no topic list for the home index")
+    return groups
+
+
+def home_html(page) -> str:
+    """Below the cover: where to start, the topic index, how the notes are written, the interview coach."""
+    lang = "zh" if page.lang == "zh" else "en"
+    esc = lambda value: html.escape(value, quote=True)
+    data = home_data()
+    start, lead = data["start"], data["start"]["lead"]
+    steps = "".join(f'<li><a href="{esc(href)}">{inner}</a></li>' for href, inner in study_route_steps(page.lang))
+    goals = "".join(f'<a class="home-goal" href="{esc(goal["href"])}"><strong>{esc(goal["title_" + lang])}</strong>'
+                    f'<span>{esc(goal["text_" + lang])}</span></a>' for goal in start["goal"])
+    lead_card = (f'<div class="home-lead"><h3>{esc(lead["title_" + lang])}</h3><p>{esc(lead["text_" + lang])}</p>'
+                 f'<ol class="home-steps">{steps}</ol><p class="home-lead-actions">'
+                 f'<a class="home-go" href="{esc(lead["href"])}">{esc(lead["go_" + lang])}</a>'
+                 f'<a href="{esc(lead["more"])}">{esc(lead["more_" + lang])}</a></p></div>')
+    groups = "".join(f'<div><h3>{esc(name)}</h3>' + "".join(f'<a href="{esc(href)}">{esc(label)}</a>' for label, href in links)
+                     + '</div>' for name, links in readme_index(page))
+    notes = "".join(f'<div><strong>{esc(item["title_" + lang])}</strong><span>{inline_links(item["text_" + lang])}</span></div>'
+                    for item in data["notes"]["item"])
+    coach = data["coach"]
+    readme = "README.zh.md" if lang == "zh" else "README.md"
+    foot_links = "".join(f'<a href="{esc(readme + "#" + link["readme"] if "readme" in link else link["href"])}">{esc(link[lang])}</a>'
+                         for link in data["foot"]["links"])
+    legacy = "".join(f'<span id="{name}"></span>' for name in HOME_LEGACY_IDS)
+    parts = [
+        f'<span id="_1"></span><section class="home-block home-start" aria-labelledby="start-here">'
+        f'<h2 id="start-here">{esc(start[lang])}</h2><div class="home-start-grid">{lead_card}{goals}</div></section>',
+        f'<span id="_2"></span><section class="home-block home-index" aria-labelledby="whats-inside">'
+        f'<h2 id="whats-inside">{esc(data["index"][lang])}</h2><div class="home-index-grid">{groups}</div>'
+        f'<p class="home-index-more">{inline_links(data["index"]["more_" + lang])}</p></section>',
+        f'<section class="home-block home-notes" aria-labelledby="how-the-notes-are-written">'
+        f'<h2 id="how-the-notes-are-written">{esc(data["notes"][lang])}</h2><div class="home-notes-grid">{notes}</div></section>',
+        f'<section class="home-block home-coach" id="interview-coach" aria-labelledby="coach-title"><div>'
+        f'<h2 id="coach-title">{esc(coach["title_" + lang])}</h2><p>{esc(coach["text_" + lang])}</p>'
+        f'<p class="home-coach-credit">{inline_links(coach["credit_" + lang])}</p></div>'
+        f'<pre><code>{esc(coach["command"])}</code></pre></section>',
+        f'<section class="home-block home-foot">{legacy}<nav aria-label="{"站点信息" if lang == "zh" else "About the site"}">'
+        f'{foot_links}</nav><p>{inline_links(data["foot"]["note_" + lang])}</p></section>',
+    ]
+    return "\n\n" + "".join(parts) + "\n\n"
+
+
 DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
                    "study-atlas": lambda page: curriculum.study_atlas(page, NAV, NAV.get('_sections', []), BY_SRC),
                    "reference-coverage": lambda page: curriculum.reference_coverage(page, BY_SRC, SITE / 'reference-coverage.toml'),
                    "appendix-coverage": lambda page: curriculum.appendix_coverage(page, BY_SRC, SITE / 'appendix-coverage.toml'),
                    "roadmap": roadmap_html, "blocks": blocks_html, "gallery": gallery_html,
                    "threads": threads_html, "categories": categories_html,
-                   "about-head": about_head_html,
+                   "about-head": about_head_html, "home": home_html,
                    "topic-coverage": lambda page: topic_coverage.figure(coverage_rows(), page.lang,
                                                                         page.rel("learn/coverage.html" if page.lang == "zh" else "learn/coverage.en.html"))}
 
@@ -1740,10 +1828,7 @@ def sidebar_html(page, sections, groups):
         out.append(
             f'<li class="grp"{category_attr}><details data-grp="{g["id"]}"'
             f'{" open" if expanded else ""}>'
-            f'<summary><svg class="chev" viewBox="0 0 12 12" width="11" height="11" '
-            f'aria-hidden="true"><path d="M4 2.5 L7.5 6 L4 9.5" fill="none" '
-            f'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" '
-            f'stroke-linejoin="round"/></svg>'
+            f'<summary>{icon("chevron-right", 13, "chev")}'
             f'<span class="grp-name">{label}</span>'
             f'<span class="grp-count">{n_pages} {"篇" if page.lang == "zh" else "notes"}</span></summary>'
             f'<ul class="grp-body">{body}</ul></details></li>')
@@ -1799,18 +1884,44 @@ def tabs_html(page):
     return f'<nav class="topbar-tabs" aria-label="{label_nav}">{links}</nav>'
 
 
+# --------------------------------------------------------------------------- #
+# interface icons: Lucide 0.469.0 (ISC, site/static/LUCIDE-LICENSE.txt), one 24-unit grid and stroke
+# --------------------------------------------------------------------------- #
+LUCIDE = {
+    "chevron-right": '<path d="m9 18 6-6-6-6"/>',
+    "search": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+}
+
+
+def icon(name: str, size: int, cls: str = "") -> str:
+    klass = f' class="{cls}"' if cls else ""
+    return (f'<svg{klass} width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{LUCIDE[name]}</svg>')
+
+
 def hero_html(page) -> str:
-    """The home page opens on the night sky with one line; other pages have no hero."""
+    """The home page opens on the night sky: one line, a search box and three ways in."""
     if page.url not in {"index.html", "index.zh.html"}:
         return ""
     zh = page.lang == "zh"
     site = NAV.get("site", {})
-    kicker = site["title_zh" if zh else "title_en"]
     title = site["tagline_zh" if zh else "tagline_en"]
     label = "封面" if zh else "Cover"
     hint = "往下看" if zh else "Scroll to the notes"
-    return (f'<section class="hero" aria-label="{label}"><p class="hero-kicker">{html.escape(kicker.strip(" ·"))}</p>'
-            f'<h1 class="hero-title">{html.escape(title)}</h1>'
+    cover = home_data()["cover"]
+    entries = []
+    for link in cover["links"]:
+        target = BY_SRC.get(link["href"], {}).get(page.lang)
+        if target:
+            entries.append(f'<a href="{page.rel(target.url)}">{html.escape(link["zh" if zh else "en"])}</a>')
+    placeholder = html.escape(cover["search_zh" if zh else "search_en"])
+    dot = '<span aria-hidden="true">·</span>'
+    # hidden until search.js wires it up, like the search button in the top bar
+    search = (f'<button type="button" class="hero-search" data-search-open hidden>{icon("search", 20)}'
+              f'<span>{placeholder}</span><kbd>⌘ K</kbd></button>')
+    return (f'<section class="hero" aria-label="{label}">'
+            f'<h1 class="hero-title">{html.escape(title)}</h1>{search}'
+            f'<p class="hero-links">{dot.join(entries)}</p>'
             f'<a class="hero-scroll" href="#content" aria-label="{hint}"><span></span></a></section>')
 
 
@@ -1910,18 +2021,9 @@ def mobile_toc_html(page):
             f'<span>{len(page.toc)}</span></summary><nav>{toc}</nav></details>')
 
 
-HOME_NEXT = "learn/README.md"   # where "Next" on the home page leads: the study map (issue #77)
-
-
 def page_nav_html(page):
-    if page.kind == "home":
-        target = BY_SRC.get(HOME_NEXT, {}).get(page.lang)
-        if not target:
-            return ""
-        zh = page.lang == "zh"
-        return (f'<nav class="page-turn" aria-label="{"继续阅读" if zh else "Continue reading"}"><span class="page-turn-empty"></span>'
-                f'<a class="page-turn-next" href="{page.rel(target.url)}"><small>→ {"开始读" if zh else "Start reading"}</small>'
-                f'<strong>{html.escape(target.title)}</strong></a></nav>')
+    if page.kind == "home":   # the cover and the start cards lead on; the lead card links the study map (#77)
+        return ""
     if not page.previous and not page.next:
         return ""
     zh = page.lang == "zh"
@@ -1946,6 +2048,8 @@ def page_nav_html(page):
 
 
 def footer_html(page, repo, built):
+    if page.kind == "home":   # the home page ends on its own footer (home.toml)
+        return ""
     when = page.updated[:10] if page.updated else built[:10]
     src = f"https://github.com/{repo}/blob/main/{page.src.relative_to(ROOT)}"
     zh = page.lang == "zh"

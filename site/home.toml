@@ -1,0 +1,113 @@
+# The home page below the cover. README.md and README.zh.md expand <!-- widget:home --> into it;
+# GitHub shows the README sections instead (they are marked repository-only for the site).
+#
+# Links are source paths, as in the notes (`interview/study-plan.md`); the build points them at
+# the page in the reader's language. Two parts are read from elsewhere so they never drift:
+#   - the six steps of the lead card: the study route in learn/README.md and learn/README.en.md;
+#   - the topic index: the 「内容一览」 / "What's inside" list in README.zh.md and README.md.
+
+[cover]   # under the title on the night sky
+search_zh = "搜索笔记：概念、模型或一道题"
+search_en = "Search notes: a concept, a model, or a question"
+links = [
+  { href = "interview/speedrun-start.md", zh = "从头学 ML", en = "Start from scratch" },
+  { href = "interview/speedrun.md", zh = "快面试了", en = "Interview soon" },
+  { href = "practice/README.md", zh = "工程实践", en = "Engineering practice" },
+]
+
+[start]
+zh = "从哪开始"
+en = "Start here"
+
+[start.lead]
+href = "interview/speedrun-start.md"
+title_zh = "从头学 ML"
+title_en = "Learn ML from the beginning"
+text_zh = "先用一个小模型把参数、loss、梯度和训练串起来，只需要 Python。然后沿这六步读主线。"
+text_en = "One small model ties parameters, loss, gradients and training together, and Python is all you need. Then follow the main line in six steps."
+go_zh = "从起步路线开始"
+go_en = "Begin with Starting out"
+more = "learn/README.md"
+more_zh = "看基础与原理"
+more_en = "Browse Foundations"
+
+[[start.goal]]
+href = "interview/study-plan.md"
+title_zh = "按计划学习"
+title_en = "Study on a plan"
+text_zh = "先用一个小练习判断从哪开始，再把阅读和动手排在一起。"
+text_en = "A short exercise finds your starting point; then reading and practice share one plan."
+
+[[start.goal]]
+href = "interview/speedrun.md"
+title_zh = "快面试了"
+title_en = "Interview soon"
+text_zh = "按 2、6、12 小时列出练习：写代码、排错、讲原理、讲项目。"
+text_en = "Practice laid out for 2, 6 or 12 hours: write code, debug, explain, and talk through a project."
+
+[[start.goal]]
+href = "interview/coding-checks.md"
+title_zh = "看看哪里不熟"
+title_en = "Check what you know"
+text_zh = "不用 GPU 的代码题，先讲清输入、结果和边界。"
+text_en = "Coding checks without a GPU: state the inputs, results and edge cases first."
+
+[[start.goal]]
+href = "learn/choose-your-path.md#topics"
+title_zh = "对某个方向好奇"
+title_en = "Curious about a topic"
+text_zh = "读论文、做项目或补一个专题，每条路线都有起点。"
+text_en = "Papers, a project or a single topic: every route says where to begin."
+
+[index]
+zh = "内容一览"
+en = "What's inside"
+more_zh = "每个板块写了什么、哪些已经审过，见[内容覆盖](learn/coverage.md)；技术发展的来龙去脉，见[编年史](learn/technology-timeline.md)。"
+more_en = "What each section covers and what has been checked is in [Coverage](learn/coverage.md); how the technology got here is in [Tech history](learn/technology-timeline.md)."
+
+[notes]
+zh = "这些笔记怎么写"
+en = "How the notes are written"
+
+[[notes.item]]
+title_zh = "从一个算例讲起"
+title_en = "Built on a worked example"
+text_zh = "每个主题先给能跟着算的例子，再展开推导和实现。"
+text_en = "Each topic starts from an example you can compute along with, then the derivation and the code."
+
+[[notes.item]]
+title_zh = "附原论文的图和出处"
+title_en = "The papers' own figures"
+text_zh = "关键结论都能回到原文核对。"
+text_en = "Key claims link back to the original work, with sources."
+
+[[notes.item]]
+title_zh = "中英两版对照"
+title_en = "Chinese and English"
+text_zh = "同一篇笔记，顶栏一键切换语言。"
+text_en = "Every note in both languages; switch from the top bar."
+
+[[notes.item]]
+title_zh = "2026-10 逐篇审过"
+title_en = "Reviewed note by note, 2026-10"
+text_zh = "改动和审稿记录都在[更新记录](community/updates.md)里。"
+text_en = "Changes and reviews are listed in the [updates](community/updates.md)."
+
+[coach]
+title_zh = "在 AI 助手里练面试"
+title_en = "Practice with your AI agent"
+text_zh = "在 Claude Code 或 Codex 里对照这些笔记模拟面试：一次一道题，根据回答追问，并在本地记下要复习的地方。"
+text_en = "A mock interview against these notes in Claude Code or Codex: one question at a time, follow-ups on your answer, and a local record of what to revisit."
+credit_zh = "用法见 [skills/README.md](skills/README.md)，由读者 [@Juggernaut0825](https://github.com/Juggernaut0825) 贡献。"
+credit_en = "See [skills/README.md](skills/README.md). Contributed by [@Juggernaut0825](https://github.com/Juggernaut0825)."
+command = "npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-agi-interview"
+
+[foot]
+links = [
+  { href = "community/roadmap.md", zh = "后续计划", en = "Roadmap" },
+  { href = "community/updates.md", zh = "更新记录", en = "Updates" },
+  { href = "CONTRIBUTING.md", zh = "参与贡献", en = "Contribute" },
+  { readme = "contributors", zh = "贡献者与本地阅读", en = "Contributors and running locally" },
+]
+note_zh = "这些是一边学、一边改的笔记，不是官方课程。免费开放；笔记 CC BY 4.0，代码 MIT，见[许可条款](LICENSE.md)。"
+note_en = "Working notes, not an official curriculum. Free to read; notes are CC BY 4.0 and code is MIT, see the [licenses](LICENSE.md)."

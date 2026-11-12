@@ -63,8 +63,9 @@ class LanguageEntryTests(unittest.TestCase):
                                      'class': 'lang-' + language}), elements)
             switches = [attrs for tag, attrs in elements if tag == 'a' and attrs.get('class') == 'lang-btn']
             self.assertEqual([attrs['href'] for attrs in switches], [target])
-            self.assertIn('Bilingual ML / LLM notes' if language == 'en' else '中英双语的 ML / LLM 笔记', output)
+            self.assertIn('Start here' if language == 'en' else '从哪开始', output)
             self.assertIn('class="hero"', output)
+            self.assertIn('class="hero-search" data-search-open hidden', output)   # search.js shows it
             self.assertNotIn('{{', output)
 
     def test_brand_matches_navigation_readmes_and_hero_assets(self):
@@ -128,13 +129,14 @@ class LanguageEntryTests(unittest.TestCase):
         self.assertIn('body .topbar-brand .brand-full { position: absolute;', styles)
         self.assertNotIn('body .topbar-brand span {', styles)
 
-    def test_home_ends_with_a_next_page_link(self):
-        # issue #77: a button at the bottom of the home page that goes straight to the next page
+    def test_home_leads_to_the_study_map_from_its_start_card(self):
+        # issue #77: the home page goes straight on to the study map; the start card carries that link now
         for language, target in [('en', 'learn/index.en.html'), ('zh', 'learn/index.html')]:
-            nav = build.page_nav_html(self.home[language])
-            self.assertIn('class="page-turn-next"', nav)
-            self.assertIn(f'href="{target}"', nav)
-            self.assertIn(build.BY_SRC['learn/README.md'][language].title, nav)
+            page = self.home[language]
+            self.assertEqual(build.page_nav_html(page), '')
+            build.build_page(page, [], self.nav['site']['repo'], self.known)
+            lead = re.search(r'<div class="home-lead">.*?</div>', page.body, re.S).group(0)
+            self.assertIn(f'href="{target}"', lead)
 
     def test_home_navigation_stays_in_its_language(self):
         for language in ['en', 'zh']:
@@ -158,22 +160,47 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertNotIn('static/readme-', page.body)  # the cards are for GitHub; the site has the real pages
             intro = page.body.split('<h2', 1)[0]
             self.assertNotIn('<a ', intro)
-            self.assertIn('Bilingual' if language == 'en' else '中英双语', intro)
+            self.assertIn('Bilingual' if language == 'en' else '中英双语', repository_block)
+            # contributors, joining, running locally, why and the changelog stay on GitHub only
+            for marker in ('Contributors and reviewers', '贡献者与审稿人', 'python3 site/build.py', 'Changelog', '更新记录</h2>'):
+                self.assertNotIn(marker, page.body)
+            self.assertIn('## ' + ('Contributors and reviewers' if language == 'en' else '贡献者与审稿人'), source)
 
-    def test_home_routes_precede_release_details_and_fit_two_columns(self):
+    def test_home_sections_come_from_home_toml_the_study_route_and_the_readme_list(self):
+        data = build.home_data()
         for language in ['en', 'zh']:
             page = self.home[language]
             build.build_page(page, [], self.nav['site']['repo'], self.known)
-            table = re.search(r'<table>.*?</table>', page.body, re.S).group(0)
-            rows = re.findall(r'<tr>(.*?)</tr>', table, re.S)
-            self.assertEqual(len(rows), 6)
-            for row in rows:
-                self.assertEqual(len(re.findall(r'<t[hd]>', row)), 2)
-            release = 'community/updates' + ('.en.html' if language == 'en' else '.html')
-            self.assertLess(page.body.index('</table>'), page.body.index(release))
-            disclosures = re.findall(r'<details[^>]*>(.*?)</details>', page.body, re.S)
-            self.assertTrue(any('CODEOWNER' in content and 'AI' in content
-                                for content in disclosures))
+            heads = re.findall(r'<h2 id="[^"]+">(.*?)</h2>', page.body)
+            self.assertEqual(heads[:3], [data['start'][language], data['index'][language].replace("'", '&#x27;'),
+                                         data['notes'][language]])
+            # one lead card with the study map's six steps, then one card per goal
+            steps = build.study_route_steps(language)
+            self.assertEqual(len(steps), 6)
+            self.assertEqual(page.body.count('<li><a href='), 6)
+            self.assertEqual(page.body.count('class="home-goal"'), len(data['start']['goal']))
+            # the topic index is the README's own list, group for group
+            groups = build.readme_index(page)
+            self.assertEqual(len(groups), 5)
+            index = re.search(r'<div class="home-index-grid">(.*?)</div><p', page.body, re.S).group(1)
+            self.assertEqual(index.count('<h3>'), len(groups))
+            self.assertEqual(index.count('<a href='), sum(len(links) for _, links in groups))
+            # GitHub keeps the routes table and the contribution details
+            source = page.src.read_text()
+            table = re.search(r'^\| .+ \|\n\| --- \| --- \|\n((?:\|.+\|\n)+)', source, re.M).group(1)
+            self.assertEqual(len(table.strip().splitlines()), 5)
+            self.assertIn('CODEOWNER', source)
+
+    def test_links_to_sections_that_moved_to_github_go_there(self):
+        page = build.BY_SRC['community/README.md']['zh']
+        build.build_page(page, [], self.nav['site']['repo'], self.known)
+        self.assertIn('href="https://github.com/tianyi-zhang-02/cooking-agi/blob/main/README.zh.md#contributors"', page.body)
+        self.assertNotIn('index.zh.html#contributors', page.body)
+        for language in ['en', 'zh']:   # old links from elsewhere still land on the home footer
+            home = self.home[language]
+            build.build_page(home, [], self.nav['site']['repo'], self.known)
+            ids = {attrs['id'] for tag, attrs in Elements(home.body).elements if 'id' in attrs}
+            self.assertTrue(set(build.HOME_LEGACY_IDS) <= ids)
 
     def test_existing_articles_keep_their_urls(self):
         for language, suffix in [('zh', ''), ('en', '.en')]:
@@ -279,6 +306,8 @@ class LanguageEntryTests(unittest.TestCase):
             links = {attrs['href'] for tag, attrs in Elements(page.body).elements
                      if tag == 'a' and 'href' in attrs}
             suffix = '.en.html' if language == 'en' else '.html'
+            output = build.assemble(page, self.sections, self.nav, 'test', (build.SITE / 'template.html').read_text())
+            links |= {attrs['href'] for tag, attrs in Elements(output).elements if tag == 'a' and 'href' in attrs}
             for chapter in ['learn', 'interview', 'practice']:
                 self.assertIn(f'{chapter}/index{suffix}', links)
             self.assertIn('learn/coverage' + suffix, links)
@@ -307,9 +336,10 @@ class LanguageEntryTests(unittest.TestCase):
     def test_new_home_details_do_not_shift_legacy_chinese_anchors(self):
         page = self.home['zh']
         build.build_page(page, [], self.nav['site']['repo'], self.known)
-        expected = [('_1', '从哪里开始'), ('_2', '内容一览'), ('contributors-reviewers', '贡献者与审稿人（Contributors / Reviewers）'), ('_3', '加入我们！'),
-                    ('_4', '本地阅读与检查'), ('_5', '为什么整理这些'), ('_6', '更新记录')]
-        self.assertEqual([(heading['id'], heading['name']) for heading in page.toc], expected)
+        ids = [attrs['id'] for tag, attrs in Elements(page.body).elements if 'id' in attrs]
+        self.assertLess(ids.index('_1'), ids.index('start-here'))     # 从哪开始
+        self.assertLess(ids.index('_2'), ids.index('whats-inside'))   # 内容一览
+        self.assertEqual(page.toc, [])   # a short page of cards: no "on this page" list
 
     def test_guide_is_hidden_without_javascript_and_is_not_a_modal(self):
         template = (build.SITE / 'template.html').read_text()
