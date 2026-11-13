@@ -2,15 +2,17 @@
 # GitHub shows the README sections instead (they are marked repository-only for the site).
 #
 # Links are source paths, as in the notes (`interview/study-plan.md`); the build points them at
-# the page in the reader's language. Two parts are read from elsewhere so they never drift:
+# the page in the reader's language. Three parts are read from elsewhere so they never drift:
 #   - the six steps of the lead card: the study route in learn/README.md and learn/README.en.md;
-#   - the topic index: the 「内容一览」 / "What's inside" list in README.zh.md and README.md.
+#   - the topic index: the 「内容一览」 / "What's inside" list in README.zh.md and README.md;
+#   - the numbers of the first calculation: computed from [example] below, and a test checks that
+#     interview/speedrun-start(.en).md still works through the same inputs, targets and steps.
 
 [cover]   # under the title on the night sky
 search_zh = "搜索笔记：概念、模型或一道题"
 search_en = "Search notes: a concept, a model, or a question"
 links = [
-  { href = "interview/speedrun-start.md", zh = "从头学 ML", en = "Start from scratch" },
+  { href = "interview/speedrun-start.md", zh = "从头学 ML", en = "Learn ML from the beginning" },
   { href = "interview/speedrun.md", zh = "快面试了", en = "Interview soon" },
   { href = "practice/README.md", zh = "工程实践", en = "Engineering practice" },
 ]
@@ -31,19 +33,41 @@ more = "learn/README.md"
 more_zh = "看基础与原理"
 more_en = "Browse Foundations"
 
+# beside the lead card: the two other ways people arrive, each with deep links into its page
+[[start.path]]
+href = "interview/speedrun.md"
+title_zh = "快面试了"
+title_en = "Interview soon"
+text_zh = "按手上的时间排好复习：写代码、排错、讲原理、讲项目。"
+text_en = "Review sized to the time you have: write code, debug, explain, and talk through a project."
+links = [
+  { href = "interview/speedrun.md#two-hours", zh = "2 小时", en = "2 hours" },
+  { href = "interview/speedrun.md#six-hours", zh = "6 小时", en = "6 hours" },
+  { href = "interview/speedrun.md#twelve-hours", zh = "12 小时", en = "12 hours" },
+]
+
+[[start.path]]
+href = "practice/README.md"
+title_zh = "工程实践"
+title_en = "Engineering practice"
+text_zh = "从具体项目看数据、模型、服务和评估怎么接成一个系统。"
+text_en = "Concrete projects: how data, models, services and evaluation fit into one system."
+links = [
+  { href = "practice/web-lab/README.md", zh = "第一个完整项目", en = "A first complete project" },
+  { href = "practice/README.md#system-design", zh = "系统设计", en = "System design" },
+]
+
+# a quieter row under the three routes
+[start.more]
+zh = "其他入口"
+en = "Other ways in"
+
 [[start.goal]]
 href = "interview/study-plan.md"
 title_zh = "按计划学习"
 title_en = "Study on a plan"
 text_zh = "先用一个小练习判断从哪开始，再把阅读和动手排在一起。"
 text_en = "A short exercise finds your starting point; then reading and practice share one plan."
-
-[[start.goal]]
-href = "interview/speedrun.md"
-title_zh = "快面试了"
-title_en = "Interview soon"
-text_zh = "按 2、6、12 小时列出练习：写代码、排错、讲原理、讲项目。"
-text_en = "Practice laid out for 2, 6 or 12 hours: write code, debug, explain, and talk through a project."
 
 [[start.goal]]
 href = "interview/coding-checks.md"
@@ -58,6 +82,51 @@ title_zh = "对某个方向好奇"
 title_en = "Curious about a topic"
 text_zh = "读论文、做项目或补一个专题，每条路线都有起点。"
 text_en = "Papers, a project or a single topic: every route says where to begin."
+
+# The first calculation of 「起步路线」 / "Starting out", to try on the page: predict, take the loss,
+# update the weight. The model is prediction = weight × input with a mean squared error, as in the lesson.
+# Without JavaScript the page shows all three steps worked out; static/home-example.js steps through them.
+[example]
+zh = "先算一次"
+en = "Try the first calculation"
+text_zh = "起步路线的第一个算例：一个参数、两个样本。预测、算 loss、更新参数，三步就是一次训练。"
+text_en = "The first example in Starting out: one parameter and two examples. Predict, take the loss, update the weight: that is one training step."
+inputs = [1, 2]
+targets = [2, 4]
+weight = 1
+rates = [0.1, 1]          # the lesson's step, then the one it warns about
+lesson = "interview/speedrun-start.md#prediction"
+update = "interview/speedrun-start.md#update"
+steps_zh = ["预测", "算 loss", "更新参数"]
+steps_en = ["Predict", "Loss", "Update"]
+columns_zh = ["输入", "目标", "预测", "误差的平方"]
+columns_en = ["Input", "Target", "Prediction", "Squared error"]
+rule_zh = "预测 = weight × 输入"
+rule_en = "prediction = weight × input"
+loss_zh = "loss = 误差平方的平均"
+loss_en = "loss = mean of the squared errors"
+gradient_zh = "梯度 = 每个样本 2 × (预测 − 目标) × 输入 的平均"
+gradient_en = "gradient = mean of 2 × (prediction − target) × input"
+step_rule_zh = "新参数 = 旧参数 − 学习率 × 梯度"
+step_rule_en = "new weight = old weight − learning rate × gradient"
+rate_zh = "学习率"
+rate_en = "Learning rate"
+better_zh = "loss 变小了：在训练数据上更合适了。"
+better_en = "Loss went down: the weight fits the training data better."
+worse_zh = "步子太大，越过了最低点，loss 反而变大。"
+worse_en = "The step is too large: it overshoots, and loss goes up."
+next_zh = ["下一步：算 loss", "下一步：更新参数", "从头再来"]
+next_en = ["Next: take the loss", "Next: update the weight", "Start over"]
+curve_zh = "loss 随 weight 的变化"
+curve_en = "Loss against weight"
+slope_zh = "斜率"
+slope_en = "slope"
+axis_zh = ["weight", "loss"]
+axis_en = ["weight", "loss"]
+caption_zh = "数字和起步路线里的算例一致；梯度这一步的推导见[为什么往这个方向改](interview/speedrun-start.md#update)。"
+caption_en = "The numbers are the worked example in Starting out; the gradient step is derived in [why the weight moves this way](interview/speedrun-start.md#update)."
+read_zh = "读这一课"
+read_en = "Read the lesson"
 
 [index]
 zh = "内容一览"

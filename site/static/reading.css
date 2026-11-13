@@ -26,13 +26,22 @@
 :root .page-reading .note-tools:not([hidden]) { display: inline-flex; margin: 0 0 0 .9rem; vertical-align: baseline; }
 :root .page-reading .note-tools button { color: var(--faint); font-size: .8rem; }
 :root .page-reading .prose .chapter-context { margin: 0 0 1.5rem; }
-:root .page-reading .article-body > p, :root .page-reading .article-body > ul > li, :root .page-reading .article-body > ol > li { line-height: 1.85; color: var(--ink-soft); }
-:root .page-reading .article-body > p { font-size: calc(1.0625rem * var(--text-scale, 1)); margin-bottom: 1.15em; text-wrap: pretty; }
-/* text size from 设置 → 字号: app.js sets data-text, the head script restores it; headings and navigation keep their size */
-:root[data-text="s"] { --text-scale: .94; }
+/* type and spacing: the scale in style.css (after the GOV.UK type scale), as on the home page.
+   Note text is 19px on every screen, as GOV.UK sets body copy. Its leading stays a reading leading on
+   the same 5px grid (19/30 in English, 19/35 in Chinese) instead of the 19/25 set for short service
+   copy. Titles 48, sections 24, subsections 19, captions and meta 16. */
+:root .page-reading { --body-lh: 1.58; }
+:root .page-reading:lang(zh) { --body-lh: 1.84; }
+:root .page-reading .article-body { font-size: calc(var(--fs-19) * var(--text-scale, 1)); }
+:root .page-reading .article-body > p, :root .page-reading .article-body > ul > li, :root .page-reading .article-body > ol > li { line-height: var(--body-lh); color: var(--ink-soft); }
+:root .page-reading .article-body > p { margin-bottom: var(--sp-4); text-wrap: pretty; }
+:root .page-reading .prose .article-head h1 { max-width: none; font-size: var(--fs-48); line-height: var(--lh-48); }
+:root .page-reading :is(.article-meta, .prose figcaption) { font-size: var(--fs-16); line-height: var(--lh-16); }
+/* text size from 设置 → 字号: app.js sets data-text, the head script restores it; headings and navigation keep their size.
+   小 is the earlier 17px default. */
+:root[data-text="s"] { --text-scale: .895; }
 :root[data-text="l"] { --text-scale: 1.12; }
 :root[data-text="xl"] { --text-scale: 1.24; }
-:root[data-text] .page-reading .article-body { font-size: calc(1em * var(--text-scale)); }
 :root[data-text] .page-reading .prose table { font-size: calc(.9rem * var(--text-scale)); }
 :root[data-text] .page-reading .prose pre { font-size: calc(.84rem * var(--text-scale)); }
 :root .page-reading .article-body strong { font-weight: 600; color: var(--ink); }
@@ -42,7 +51,8 @@
   :root .page-reading .term { border-bottom: 0; }
   :root .page-reading .term:hover, :root .page-reading .term:focus { border-bottom: 1px dotted var(--muted); }
 }
-:root .page-reading .prose h2 { border-top: 0; padding-top: 0; margin: 3.6rem 0 1rem; }
+:root .page-reading .prose h2 { border-top: 0; padding-top: 0; margin: var(--sp-9) 0 var(--sp-3); font-size: var(--fs-24); line-height: var(--lh-24); }
+:root .page-reading .prose h3 { margin: var(--sp-7) 0 var(--sp-2); font-size: var(--fs-19); line-height: var(--lh-19); }
 :root .page-reading .article-body .katex-display { background: none; margin: 1.5rem 0; padding: .2rem 0; border-radius: 0; }
 :root .page-reading .prose tbody tr:nth-child(even), :root .page-reading .prose tbody tr:hover { background: none; }
 :root .page-reading .prose td:first-child { font-weight: 400; }

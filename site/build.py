@@ -1166,13 +1166,93 @@ def readme_index(page) -> list:
     return groups
 
 
+def number(value: float) -> str:
+    """A number as the lessons write it: no trailing zeros, and a true minus sign."""
+    text = f"{round(value, 6):g}"
+    return text.replace("-", "−")
+
+
+def example_numbers(example: dict) -> dict:
+    """The first calculation of Starting out, worked through: prediction = weight × input, mean squared
+    error, one gradient step per learning rate. static/home-example.js computes the same steps."""
+    inputs, targets, weight = example["inputs"], example["targets"], example["weight"]
+
+    def at(w):
+        predictions = [w * x for x in inputs]
+        errors = [(p - y) ** 2 for p, y in zip(predictions, targets)]
+        return predictions, errors, sum(errors) / len(errors)
+
+    predictions, errors, loss = at(weight)
+    terms = [2 * (p - y) * x for p, y, x in zip(predictions, targets, inputs)]
+    gradient = sum(terms) / len(terms)
+    steps = []
+    for rate in example["rates"]:
+        new_weight = weight - rate * gradient
+        new_predictions, _, new_loss = at(new_weight)
+        steps.append({"rate": rate, "weight": new_weight, "predictions": new_predictions, "loss": new_loss})
+    return {"predictions": predictions, "errors": errors, "loss": loss, "terms": terms,
+            "gradient": gradient, "steps": steps}
+
+
+def example_html(lang: str) -> str:
+    """The first calculation, worked out in full. Without JavaScript this is the whole example;
+    static/home-example.js turns it into three steps and draws the loss curve beside it."""
+    example = home_data()["example"]
+    esc = lambda value: html.escape(str(value), quote=True)
+    text = lambda key: example[f"{key}_{lang}"]
+    n = example_numbers(example)
+    weight = number(example["weight"])
+    columns = text("columns")
+    last = ' data-part="loss"'     # the squared errors arrive with the loss step
+    head = "".join(f'<th scope="col"{last if i == len(columns) - 1 else ""}>{esc(name)}</th>' for i, name in enumerate(columns))
+    rows = "".join(f'<tr><td>{number(x)}</td><td>{number(y)}</td><td>{number(p)}</td><td data-part="loss">{number(e)}</td></tr>'
+                   for x, y, p, e in zip(example["inputs"], example["targets"], n["predictions"], n["errors"]))
+    mean = lambda values: f'({" + ".join(number(v) for v in values)}) / {len(values)}'.replace("+ −", "− ")
+    results = []
+    for step in n["steps"]:
+        better = step["loss"] < n["loss"]
+        results.append(
+            f'<p class="hx-line hx-result" data-part="update" data-rate="{esc(number(step["rate"]))}">'
+            f'<span class="hx-label">{esc(text("rate"))} {number(step["rate"])}</span>'
+            f'{weight} − {number(step["rate"])} × ({number(n["gradient"])}) = <b>{number(step["weight"])}</b>'
+            f'<span class="hx-then">loss {number(n["loss"])} → <b>{number(step["loss"])}</b></span>'
+            f'<span class="hx-verdict" data-good="{str(better).lower()}">{esc(text("better" if better else "worse"))}</span></p>')
+    labels = "".join(f"<li>{esc(name)}</li>" for name in text("steps"))
+    data = {"inputs": example["inputs"], "targets": example["targets"], "weight": example["weight"],
+            "rates": example["rates"], "next": text("next"), "rate": text("rate"), "axis": text("axis"),
+            "curve": text("curve"), "slope": text("slope")}
+    return (
+        f'<section class="home-block home-example" aria-labelledby="first-calculation">'
+        f'<div class="home-example-head"><h2 id="first-calculation">{esc(example[lang])}</h2>'
+        f'<p>{esc(text("text"))}</p></div>'
+        f'<figure class="hx" data-home-example="{esc(json.dumps(data, ensure_ascii=False))}">'
+        f'<div class="hx-work"><ol class="hx-steps">{labels}</ol>'
+        f'<p class="hx-line" data-part="predict"><span class="hx-label">{esc(text("rule"))}</span>weight = <b>{weight}</b></p>'
+        f'<div class="hx-table compact-table"><table><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div>'
+        f'<p class="hx-line" data-part="loss"><span class="hx-label">{esc(text("loss"))}</span>'
+        f'{mean(n["errors"])} = <b>{number(n["loss"])}</b></p>'
+        f'<p class="hx-line" data-part="update"><span class="hx-label">{esc(text("gradient"))}</span>'
+        f'{mean(n["terms"])} = <b>{number(n["gradient"])}</b></p>'
+        f'<p class="hx-line hx-rule" data-part="update">{esc(text("step_rule"))}</p>'
+        + "".join(results) +
+        f'</div><div class="hx-plot" hidden></div>'
+        f'<figcaption>{inline_links(text("caption"))} <a class="hx-read" href="{esc(example["lesson"])}">{esc(text("read"))}</a></figcaption>'
+        f'</figure></section>')
+
+
 def home_html(page) -> str:
-    """Below the cover: where to start, the topic index, how the notes are written, the interview coach."""
+    """Below the cover: where to start, the first calculation, the topic index, how the notes are
+    written, and the interview coach."""
     lang = "zh" if page.lang == "zh" else "en"
     esc = lambda value: html.escape(value, quote=True)
     data = home_data()
     start, lead = data["start"], data["start"]["lead"]
     steps = "".join(f'<li><a href="{esc(href)}">{inner}</a></li>' for href, inner in study_route_steps(page.lang))
+    paths = "".join(
+        f'<div class="home-path"><h3><a href="{esc(path["href"])}">{esc(path["title_" + lang])}</a></h3>'
+        f'<p>{esc(path["text_" + lang])}</p><p class="home-path-links">'
+        + "".join(f'<a href="{esc(link["href"])}">{esc(link[lang])}</a>' for link in path["links"])
+        + '</p></div>' for path in start["path"])
     goals = "".join(f'<a class="home-goal" href="{esc(goal["href"])}"><strong>{esc(goal["title_" + lang])}</strong>'
                     f'<span>{esc(goal["text_" + lang])}</span></a>' for goal in start["goal"])
     lead_card = (f'<div class="home-lead"><h3>{esc(lead["title_" + lang])}</h3><p>{esc(lead["text_" + lang])}</p>'
@@ -1190,7 +1270,9 @@ def home_html(page) -> str:
     legacy = "".join(f'<span id="{name}"></span>' for name in HOME_LEGACY_IDS)
     parts = [
         f'<span id="_1"></span><section class="home-block home-start" aria-labelledby="start-here">'
-        f'<h2 id="start-here">{esc(start[lang])}</h2><div class="home-start-grid">{lead_card}{goals}</div></section>',
+        f'<h2 id="start-here">{esc(start[lang])}</h2><div class="home-start-grid">{lead_card}{paths}</div>'
+        f'<div class="home-more"><h3>{esc(start["more"][lang])}</h3><div class="home-more-grid">{goals}</div></div></section>',
+        example_html(lang),
         f'<span id="_2"></span><section class="home-block home-index" aria-labelledby="whats-inside">'
         f'<h2 id="whats-inside">{esc(data["index"][lang])}</h2><div class="home-index-grid">{groups}</div>'
         f'<p class="home-index-more">{inline_links(data["index"]["more_" + lang])}</p></section>',

@@ -46,6 +46,28 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* ---------------------------------------------------------------- type and spacing scale
+   The points of the GOV.UK type scale (Frontend v6, design-system.service.gov.uk/styles/type-scale):
+   one set of sizes for titles, section heads, card titles, body and captions, each with a line
+   height on a 5px grid. Up to 640px the small-screen sizes apply; 19 and 16 stay the same on phones.
+   Chinese takes one more 5px step of line height. Spacing uses the same 5px grid.
+   The home page and the reading pages (reading.css) both draw on these. */
+:root {
+  --fs-48: 3rem;      --lh-48: 3.125rem;    /* 48/50: note titles */
+  --fs-36: 2.25rem;   --lh-36: 2.5rem;      /* 36/40: home sections */
+  --fs-24: 1.5rem;    --lh-24: 1.875rem;    /* 24/30: note sections, the lead card */
+  --fs-19: 1.1875rem; --lh-19: 1.5625rem;   /* 19/25: body, card titles */
+  --fs-16: 1rem;      --lh-16: 1.25rem;     /* 16/20: captions, card text */
+  --sp-1: 5px; --sp-2: 10px; --sp-3: 15px; --sp-4: 20px; --sp-5: 25px; --sp-6: 30px;
+  --sp-7: 40px; --sp-8: 50px; --sp-9: 60px; --sp-10: 80px;
+}
+html.lang-zh { --lh-48: 3.75rem; --lh-36: 2.8125rem; --lh-24: 2.1875rem; --lh-19: 1.875rem; --lh-16: 1.5625rem; }
+@media (max-width: 640px) {
+  :root { --fs-48: 2rem; --lh-48: 2.1875rem; --fs-36: 1.6875rem; --lh-36: 1.875rem; --fs-24: 1.3125rem; --lh-24: 1.5625rem;
+          --sp-7: 30px; --sp-8: 40px; --sp-9: 50px; --sp-10: 60px; }
+  html.lang-zh { --lh-48: 2.8125rem; --lh-36: 2.5rem; --lh-24: 1.875rem; }
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 
@@ -1422,80 +1444,189 @@ html.lang-zh .hero-title { font-weight: 600; letter-spacing: -.01em; }
 .hero-links > span { margin: 0 .7rem; }
 @media (max-width: 760px), (hover: none) { .hero-search kbd { display: none; } }
 @media (max-width: 760px) { .hero-search { height: 50px; margin-top: 1.7rem; } .hero-links > span { margin: 0 .45rem; } }
+/* each way in wraps as a whole; on phones the dots go and the gap separates them */
+.hero-links a { white-space: nowrap; }
+@media (max-width: 760px) { .hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem 1.3rem; } .hero-links > span { display: none; } }
 
-/* below the cover: start here, the topic index, how the notes are written, the interview coach (home.toml) */
+/* below the cover: a reading room (home.toml). Type and spacing come from the scale at the top.
+   Start here is a Process Bento: the lead route is the large tile, the two other routes sit beside it,
+   and three quieter entries follow. The first calculation gets open space and one caption format. */
 @media (min-width: 1081px) {
   .page-home .shell { grid-template-columns: minmax(0, 1fr); max-width: 1120px; }
   .page-home .shell > :is(.side, .rail) { display: none; }
 }
 .page-home .prose { max-width: none; }
-.prose .home-block { font-family: var(--body); }
-.prose .home-block + .home-block { margin-top: 4.2rem; }
+.prose .home-block { font-family: var(--body); font-size: var(--fs-19); line-height: var(--lh-19); }
+.prose .home-block + .home-block { margin-top: var(--sp-10); }
 .prose .home-block a { text-decoration: none; }
-.prose .home-block h2 { margin: 0 0 1.1rem; padding: 0; border: 0; font-size: 1.55rem; font-weight: 600; }
+.prose .home-block h2 { margin: 0 0 var(--sp-6); padding: 0; border: 0; font-size: var(--fs-36); line-height: var(--lh-36); font-weight: 600; }
 .prose .home-block h2::before { content: none; }
-.prose .home-block h3 { margin: 0; }
+.prose .home-block h3 { margin: 0; font-size: var(--fs-19); line-height: var(--lh-19); font-weight: 600; }
 .prose .home-block p { margin: 0; }
-.home-start-grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 14px; }
-.home-lead { grid-row: span 4; padding: 1.6rem 1.6rem 1.4rem; border: 1px solid var(--rule); border-radius: 14px; background: var(--panel); }
-.prose .home-lead h3 { font-size: 1.3rem; font-weight: 600; }
-.prose .home-lead > p:first-of-type { margin: .55rem 0 1.25rem; max-width: 34rem; color: var(--ink-soft); line-height: 1.75; }
+
+.home-start-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--sp-4); }
+.home-lead { grid-row: span 2; padding: var(--sp-6); border: 1px solid var(--rule); border-radius: 14px; background: var(--panel); }
+.prose .home-lead h3 { font-size: var(--fs-24); line-height: var(--lh-24); }
+.prose .home-lead > p:first-of-type { margin: var(--sp-2) 0 var(--sp-6); max-width: 36rem; color: var(--ink-soft); }
 .prose .home-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
 .prose .home-steps li { margin: 0; border-bottom: 1px solid var(--rule); }
 .prose .home-steps li:nth-child(3n + 2) { border-inline: 1px solid var(--rule); }
-.prose .home-steps a { display: block; height: 100%; padding: .95rem .9rem 1rem; color: var(--ink); }
+.prose .home-steps a { display: block; height: 100%; padding: var(--sp-3) var(--sp-3) var(--sp-4); color: var(--ink); }
 .prose .home-steps a:hover { background: var(--ember-bg); }
-.home-steps small { display: block; margin-bottom: .35rem; color: var(--ember); font-size: .78rem; }
-.home-steps strong { display: block; font-weight: 600; font-size: .98rem; line-height: 1.4; }
-.home-steps span { display: block; margin-top: .3rem; color: var(--muted); font-size: .84rem; line-height: 1.5; }
-.prose .home-lead-actions { display: flex; flex-wrap: wrap; gap: .9rem 1.4rem; align-items: center; margin-top: 1.25rem; font-size: .96rem; }
+.home-steps small { display: block; margin-bottom: var(--sp-1); color: var(--ember); font-size: .8125rem; line-height: var(--lh-16); }
+.home-steps strong { display: block; font-weight: 600; font-size: var(--fs-16); line-height: var(--lh-16); }
+.home-steps span { display: block; margin-top: var(--sp-1); color: var(--muted); font-size: .875rem; line-height: 1.45; }
+.prose .home-lead-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-5); align-items: center; margin-top: var(--sp-6); font-size: var(--fs-16); line-height: var(--lh-16); }
 .prose .home-lead-actions a { color: var(--ink); border-bottom: 1px solid var(--rule); }
-.prose .home-lead-actions .home-go { padding: .55rem .95rem; border: 0; border-radius: 8px; background: var(--ember); color: var(--paper); font-weight: 600; }
-.prose .home-goal { display: block; padding: 1rem 1.15rem; border: 1px solid var(--rule); border-radius: 12px; color: var(--ink); }
-.prose .home-goal:hover { border-color: color-mix(in srgb, var(--ember) 55%, var(--rule)); }
-.home-goal strong { display: block; font-weight: 600; font-size: 1.02rem; }
-.home-goal span { display: block; margin-top: .3rem; color: var(--muted); font-size: .88rem; line-height: 1.6; }
-.home-index-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 1.6rem; border-top: 1px solid var(--rule); }
-.home-index-grid > div { padding-top: 1rem; }
-.prose .home-index-grid h3 { margin: 0 0 .5rem; color: var(--muted); font-size: .86rem; font-weight: 600; }
-.prose .home-index-grid a { display: block; padding: .5rem 0; border-bottom: 1px solid var(--rule-soft); color: var(--ink); font-size: .98rem; }
+.prose .home-lead-actions .home-go { padding: var(--sp-2) var(--sp-4); border: 0; border-radius: 8px; background: var(--ember); color: var(--paper); font-weight: 600; }
+.home-path { display: flex; flex-direction: column; padding: var(--sp-5); border: 1px solid var(--rule); border-radius: 14px; }
+.prose .home-path h3 a { color: var(--ink); }
+.prose .home-path h3 a:hover { color: var(--ember); }
+.prose .home-path > p:first-of-type { margin-top: var(--sp-2); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-path .home-path-links { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin-top: auto; padding-top: var(--sp-4); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-path-links a { color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+.prose .home-path-links a:hover { color: var(--ember); border-color: currentColor; }
+.home-more { margin-top: var(--sp-7); }
+.prose .home-more h3 { margin-bottom: var(--sp-2); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.home-more-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 var(--sp-6); border-top: 1px solid var(--rule); }
+.prose .home-goal { display: block; padding-top: var(--sp-3); color: var(--ink); }
+.home-goal strong { display: block; font-weight: 600; }
+.prose .home-goal:hover strong { color: var(--ember); }
+.home-goal span { display: block; margin-top: var(--sp-1); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-block :is(p, span, figcaption) { text-wrap: pretty; }
+
+/* the first calculation (static/home-example.js). Without the script every line shows, worked out. */
+.prose .home-example { padding: var(--sp-9) 0; border-block: 1px solid var(--rule); }
+.home-example-head { max-width: 42rem; }
+.prose .home-example-head h2 { margin-bottom: var(--sp-2); }
+.prose .home-example-head p { color: var(--ink-soft); }
+.prose .hx { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "work" "plot" "controls" "caption";
+  gap: var(--sp-6); margin: var(--sp-8) 0 0; font-variant-numeric: tabular-nums; }
+.hx-work { grid-area: work; min-width: 0; }
+.hx-plot { grid-area: plot; min-width: 0; }
+.hx-controls { grid-area: controls; }
+.prose .hx figcaption { grid-area: caption; }
+@media (min-width: 900px) {
+  .prose .hx.is-live { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "work plot" "controls plot" "caption caption";
+    gap: var(--sp-6) var(--sp-9); }
+  .prose .hx.is-live .hx-controls { align-self: end; }
+}
+.prose .hx-steps { display: none; margin: 0 0 var(--sp-5); padding: 0; list-style: none; counter-reset: hx-step; color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .is-live .hx-steps { display: flex; gap: var(--sp-5); }
+.prose .hx-steps li { margin: 0; padding-bottom: var(--sp-1); border-bottom: 2px solid transparent; counter-increment: hx-step; }
+.hx-steps li::before { content: counter(hx-step) "  "; white-space: pre; color: var(--faint); }
+.hx-steps li.is-done { color: var(--ink-soft); }
+.hx-steps li[aria-current] { color: var(--ink); border-bottom-color: var(--ember); }
+.prose .hx .hx-line { margin: var(--sp-4) 0 0; }
+.prose .hx .hx-line[data-part="predict"] { margin-top: 0; }
+.hx-label { display: block; color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.hx-line b { font-weight: 600; color: var(--ink); }
+.prose .hx .hx-rule { margin-top: var(--sp-5); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.hx-then { margin-left: var(--sp-4); color: var(--ink-soft); white-space: nowrap; }
+.hx-verdict { display: block; margin-top: var(--sp-1); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.hx-verdict[data-good="false"] { color: var(--ember); }
+/* the build wraps every table in .table-wrap (a scrolling panel). This one is four short columns: headers wrap
+   between words so it fits a phone, and if a wider font still needs more room it scrolls inside this box,
+   never the page (mobile-reading.js then adds its scroll hint and makes the box keyboard-scrollable). */
+.prose .hx-table .table-wrap { max-width: 100%; margin: var(--sp-4) 0 0; padding: 0; overflow-x: auto; overflow-y: hidden; border: 0; background: none; box-shadow: none; }
+.prose .hx-table .table-wrap table { width: auto; min-width: 0; margin: 0; table-layout: auto; border: 0; font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .hx-table .table-wrap :is(th, td) { min-width: 0; padding: var(--sp-2) var(--sp-6) var(--sp-2) 0; border: 0; border-bottom: 1px solid var(--rule); background: none;
+  color: var(--ink); font-size: inherit; font-weight: 400; line-height: inherit; text-align: left; text-transform: none; letter-spacing: 0; }
+.prose .hx-table .table-wrap th { color: var(--muted); white-space: normal; overflow-wrap: normal; word-break: normal; }   /* wrap between words only */
+.prose .hx-table tbody tr:is(:nth-child(even), :hover) { background: none; }
+.prose .hx-table .table-wrap :is(th, td):first-child { min-width: 0; }   /* mobile-reading.css widens first columns of note tables */
+.prose .hx-table .table-wrap td.is-pending { color: var(--faint); }
+.hx-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); }
+.hx-rates { display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--muted); font-size: var(--fs-16); }
+.hx-rates[hidden] { display: none; }
+.hx-rates button, .hx-next { height: 44px; border-radius: 8px; font: 500 var(--fs-16)/1 var(--body); cursor: pointer; }
+.hx-rates button { min-width: 52px; padding: 0 var(--sp-3); border: 1px solid var(--rule); background: none; color: var(--ink-soft); }
+.hx-rates button[aria-pressed="true"] { border-color: var(--ember); background: var(--ember-bg); color: var(--ink); }
+.hx-next { padding: 0 var(--sp-5); border: 1px solid var(--ink-soft); background: none; color: var(--ink); }
+.hx-next:hover, .hx-rates button:hover { border-color: var(--ember); }
+.hx-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hx-plot[hidden] { display: none; }
+.prose .hx-plot-title { color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.hx-plot svg { display: block; width: 100%; max-width: 460px; height: auto; margin-top: var(--sp-3); overflow: visible; }
+.hx-axis { stroke: var(--muted); stroke-width: 1; }
+.hx-grid { stroke: var(--rule); stroke-width: 1; }
+.hx-tick, .hx-axis-name { fill: var(--muted); font: 12px var(--sans); }
+.hx-curve { fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linejoin: round; }
+.hx-marker { stroke: var(--ember); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.hx-tangent { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.hx-move { stroke: var(--ember); stroke-width: 2; }
+.hx-head { fill: var(--ember); }
+.hx-drop { stroke: var(--ember); stroke-width: 1; stroke-dasharray: 2 3; }
+.hx-before { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.hx-after { fill: var(--ember); stroke: var(--paper); stroke-width: 2; }
+.hx-after, .hx-move, .hx-head, .hx-drop { animation: hx-in .3s ease both; }
+@keyframes hx-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .hx-after, .hx-move, .hx-head, .hx-drop { animation: none; } }
+.prose .hx-legend { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-5); margin: var(--sp-3) 0 0; padding: 0; list-style: none; color: var(--ink-soft); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .hx-legend li { display: inline-flex; align-items: center; gap: var(--sp-2); margin: 0; }
+.hx-legend span { flex: none; width: 12px; height: 12px; border-radius: 50%; }
+.hx-key-before span { border: 2px solid var(--ink); }
+.hx-key-after span { background: var(--ember); }
+.hx-key-tangent span, .hx-key-marker span, .hx-key-move span { width: 18px; height: 0; border-radius: 0; border-top: 2px dashed var(--muted); }
+.hx-key-marker span, .hx-key-move span { border-top-color: var(--ember); }
+.hx-key-move span { border-top-style: solid; }
+.prose .hx figcaption { max-width: 46rem; margin: 0; padding-top: var(--sp-4); border-top: 1px solid var(--rule-soft); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .hx figcaption a { color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+.prose .hx .hx-read { margin-left: var(--sp-2); color: var(--ink); white-space: nowrap; }
+
+.home-index-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 var(--sp-6); border-top: 1px solid var(--rule); }
+.home-index-grid > div { padding-top: var(--sp-4); }
+.prose .home-index-grid h3 { margin: 0 0 var(--sp-2); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-index-grid a { display: block; padding: var(--sp-2) 0; border-bottom: 1px solid var(--rule-soft); color: var(--ink); font-size: var(--fs-16); line-height: var(--lh-16); }
 .prose .home-index-grid a:hover { color: var(--ember); }
-.prose .home-index-more { margin-top: 1.6rem; color: var(--muted); font-size: .92rem; }
+.prose .home-index-more { margin-top: var(--sp-6); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
 .prose :is(.home-index-more, .home-notes-grid, .home-coach-credit, .home-foot p) a { color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
 .home-notes-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--rule); }
-.home-notes-grid > div { padding: 1.1rem 1.2rem 1.2rem 0; }
-.home-notes-grid > div + div { padding-left: 1.2rem; border-left: 1px solid var(--rule); }
+.home-notes-grid > div { padding: var(--sp-4) var(--sp-5) var(--sp-5) 0; }
+.home-notes-grid > div + div { padding-left: var(--sp-5); border-left: 1px solid var(--rule); }
 .home-notes-grid strong { display: block; font-weight: 600; }
-.home-notes-grid span { display: block; margin-top: .35rem; color: var(--muted); font-size: .9rem; line-height: 1.65; }
-.prose .home-coach { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1.6rem; align-items: center; padding: 1.4rem 1.6rem;
+.home-notes-grid span { display: block; margin-top: var(--sp-2); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-coach { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--sp-6); align-items: center; padding: var(--sp-6);
   border: 1px solid var(--rule); border-radius: 14px; background: var(--panel); }
-.prose .home-coach h2 { margin-bottom: .4rem; font-size: 1.15rem; }
-.prose .home-coach p { color: var(--ink-soft); font-size: .95rem; line-height: 1.7; }
-.prose .home-coach .home-coach-credit { margin-top: .4rem; color: var(--muted); font-size: .86rem; }
-.prose .home-coach pre { margin: 0; padding: .8rem .9rem; font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-.prose .home-foot { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .8rem 2rem; padding-top: 1.4rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
-.prose .home-foot nav a { margin-right: 1.3rem; color: var(--ink-soft); }
+.prose .home-coach h2 { margin-bottom: var(--sp-2); font-size: var(--fs-24); line-height: var(--lh-24); }
+.prose .home-coach p { color: var(--ink-soft); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-coach .home-coach-credit { margin-top: var(--sp-2); color: var(--muted); }
+.prose .home-coach pre { margin: 0; padding: var(--sp-3); font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.prose .home-foot { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-3) var(--sp-7); padding-top: var(--sp-5); border-top: 1px solid var(--rule); color: var(--muted); font-size: var(--fs-16); line-height: var(--lh-16); }
+.prose .home-foot nav a { margin-right: var(--sp-5); color: var(--ink-soft); }
 .home-foot > span:empty { position: absolute; top: 0; }   /* old section anchors (build.HOME_LEGACY_IDS) */
 .prose .home-foot nav a:hover { color: var(--ember); }
+@media (max-width: 900px) {
+  .home-start-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .home-lead { grid-column: 1 / -1; grid-row: auto; }
+}
 @media (max-width: 760px) {
-  .prose .home-block + .home-block { margin-top: 3.2rem; }
-  .prose .home-block h2 { font-size: 1.35rem; }
   .home-start-grid { grid-template-columns: minmax(0, 1fr); }
-  .home-lead { grid-row: auto; padding: 1.2rem 1.1rem 1.1rem; }
-  .prose .home-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-lead { padding: var(--sp-5) var(--sp-4); }
+  .prose .home-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }   /* still numbered, still read row by row */
   .prose .home-steps li:nth-child(3n + 2) { border-inline: 0; }
   .prose .home-steps li:nth-child(odd) { border-right: 1px solid var(--rule); }
-  .prose .home-steps a { padding: .8rem .7rem .85rem; }
-  .home-index-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.2rem; }
+  .prose .home-steps a { padding: var(--sp-3) var(--sp-2) var(--sp-3) var(--sp-3); }
+  .home-path { padding: var(--sp-4); }
+  .home-more-grid { grid-template-columns: minmax(0, 1fr); }
+  .prose .home-goal { padding-bottom: var(--sp-3); border-bottom: 1px solid var(--rule-soft); }
+  .home-index-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--sp-4); }
   .home-index-grid > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .home-notes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .home-notes-grid > div, .home-notes-grid > div + div { padding: 1rem .9rem 1rem 0; border-left: 0; }
-  .home-notes-grid > div:nth-child(even) { padding-left: .9rem; border-left: 1px solid var(--rule); }
+  .home-notes-grid > div, .home-notes-grid > div + div { padding: var(--sp-4) var(--sp-3) var(--sp-4) 0; border-left: 0; }
+  .home-notes-grid > div:nth-child(even) { padding-left: var(--sp-3); border-left: 1px solid var(--rule); }
   .home-notes-grid > div:nth-child(-n + 2) { border-bottom: 1px solid var(--rule); }
-  .prose .home-coach { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1.2rem 1.1rem; }
-  .prose .home-coach h2 { font-size: 1.1rem; }
+  .prose .home-coach { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-5) var(--sp-4); }
   .prose .home-foot { flex-direction: column; }
-  .prose .home-foot nav a { display: inline-block; margin: 0 1.1rem .5rem 0; }
+  .prose .home-foot nav a { display: inline-block; margin: 0 var(--sp-4) var(--sp-2) 0; }
+  .prose .hx-steps { gap: var(--sp-4); }
+  .prose .hx-table .table-wrap table { width: 100%; }
+  .prose .hx-table .table-wrap :is(th, td) { padding-right: var(--sp-3); vertical-align: bottom; }
+  .hx-then { display: block; margin: var(--sp-1) 0 0; white-space: normal; }
+}
+@media (max-width: 360px) {
+  .prose .hx-table .table-wrap :is(th, td) { padding-right: var(--sp-2); }
+  .prose .hx-steps { gap: var(--sp-3); }
 }
 
 /* the finish: one radius, hairlines instead of shadows; colour is set in the dawn block below */

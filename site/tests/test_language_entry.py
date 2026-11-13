@@ -172,12 +172,15 @@ class LanguageEntryTests(unittest.TestCase):
             page = self.home[language]
             build.build_page(page, [], self.nav['site']['repo'], self.known)
             heads = re.findall(r'<h2 id="[^"]+">(.*?)</h2>', page.body)
-            self.assertEqual(heads[:3], [data['start'][language], data['index'][language].replace("'", '&#x27;'),
-                                         data['notes'][language]])
-            # one lead card with the study map's six steps, then one card per goal
+            self.assertEqual(heads[:4], [data['start'][language], data['example'][language],
+                                         data['index'][language].replace("'", '&#x27;'), data['notes'][language]])
+            # one lead card with the study map's six steps, the two other routes beside it, then the quieter entries
             steps = build.study_route_steps(language)
             self.assertEqual(len(steps), 6)
             self.assertEqual(page.body.count('<li><a href='), 6)
+            paths = re.findall(r'<div class="home-path"><h3><a href="([^"]+)">(.*?)</a></h3>', page.body)
+            self.assertEqual([title for _, title in paths], [path['title_' + language] for path in data['start']['path']])
+            self.assertEqual([title for _, title in paths], ['Interview soon', 'Engineering practice'] if language == 'en' else ['快面试了', '工程实践'])
             self.assertEqual(page.body.count('class="home-goal"'), len(data['start']['goal']))
             # the topic index is the README's own list, group for group
             groups = build.readme_index(page)
