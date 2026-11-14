@@ -1247,7 +1247,9 @@ def home_html(page) -> str:
     esc = lambda value: html.escape(value, quote=True)
     data = home_data()
     start, lead = data["start"], data["start"]["lead"]
-    steps = "".join(f'<li><a href="{esc(href)}">{inner}</a></li>' for href, inner in study_route_steps(page.lang))
+    # the study map labels each step "01 / INPUT"; the home list keeps the number and lets the title speak
+    number_only = lambda inner: re.sub(r"<small>\s*(\d+)\s*/[^<]*</small>", r"<small>\1</small>", inner)
+    steps = "".join(f'<li><a href="{esc(href)}">{number_only(inner)}</a></li>' for href, inner in study_route_steps(page.lang))
     paths = "".join(
         f'<div class="home-path"><h3><a href="{esc(path["href"])}">{esc(path["title_" + lang])}</a></h3>'
         f'<p>{esc(path["text_" + lang])}</p><p class="home-path-links">'

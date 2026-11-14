@@ -35,7 +35,8 @@
 :root .page-reading .article-body { font-size: calc(var(--fs-19) * var(--text-scale, 1)); }
 :root .page-reading .article-body > p, :root .page-reading .article-body > ul > li, :root .page-reading .article-body > ol > li { line-height: var(--body-lh); color: var(--ink-soft); }
 :root .page-reading .article-body > p { margin-bottom: var(--sp-4); text-wrap: pretty; }
-:root .page-reading .prose .article-head h1 { max-width: none; font-size: var(--fs-48); line-height: var(--lh-48); }
+:root .page-reading .prose .article-head h1 { max-width: none; font-family: var(--display); font-size: var(--fs-48); line-height: var(--lh-48); font-weight: 400; letter-spacing: 0; }
+:root .page-reading:lang(zh) .prose .article-head h1 { font-weight: 600; }
 :root .page-reading :is(.article-meta, .prose figcaption) { font-size: var(--fs-16); line-height: var(--lh-16); }
 /* text size from 设置 → 字号: app.js sets data-text, the head script restores it; headings and navigation keep their size.
    小 is the earlier 17px default. */
