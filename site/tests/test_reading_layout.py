@@ -83,10 +83,10 @@ class ReadingLayoutTests(unittest.TestCase):
         self.assertIn('window.addEventListener("notes:text-size"', app)
         self.assertIn('localStorage.setItem("text-size", value)', app)
         self.assertIn('localStorage.getItem("text-size")', head)
-        for size, scale in (("s", ".94"), ("l", "1.12"), ("xl", "1.24")):
+        for size, scale in (("s", ".895"), ("l", "1.12"), ("xl", "1.24")):   # 小 is the earlier 17px
             self.assertIn(f':root[data-text="{size}"] {{ --text-scale: {scale}; }}', READING)
-        # without a choice the note text keeps its default size
-        self.assertIn("font-size: calc(1.0625rem * var(--text-scale, 1))", READING)
+        # without a choice the note text is the scale's body size, 19px
+        self.assertIn(":root .page-reading .article-body { font-size: calc(var(--fs-19) * var(--text-scale, 1)); }", READING)
 
     def test_touch_screens_keep_the_gloss_underline(self):
         hover = READING.index("@media (hover: hover)")

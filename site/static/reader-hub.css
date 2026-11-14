@@ -30,7 +30,7 @@
 @keyframes reader-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } to { opacity: 1; transform: none; } }
 .reader-hub-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .55rem; }
 .reader-hub-head h2 { margin: 0; font-size: 1.25rem; font-weight: 500; letter-spacing: -.02em; }
-.reader-hub-close { width: 30px; height: 30px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.reader-hub-close { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); font-size: 1.1rem; line-height: 1; cursor: pointer; }
 .reader-hub-close:hover { background: color-mix(in srgb, var(--ink) 15%, transparent); }
 .reader-hub-tabs { display: flex; gap: .25rem; padding: .25rem; border-radius: 999px; background: color-mix(in srgb, var(--ink) 7%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 5%, transparent); }
 .reader-hub-tabs button { flex: 1; padding: .48rem .5rem; border: 0; border-radius: 999px; background: none; color: var(--muted); font: 500 .8rem/1 var(--body); cursor: pointer; transition: color .15s ease; }
@@ -113,7 +113,7 @@
 .reader-hub-list a:hover { text-decoration: underline; text-underline-offset: .2em; }
 .reader-hub-list small { flex: none; padding: .15rem .45rem; border-radius: 999px; background: var(--rh-surface); color: var(--muted); font: 500 .66rem var(--mono); }
 .reader-hub-unknown { flex: 1; color: var(--muted); }
-.reader-hub-remove { flex: none; width: 22px; height: 22px; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; }
+.reader-hub-remove { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; }
 .reader-hub-remove:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); color: var(--ink); }
 .reader-hub-empty { margin: .7rem 0; color: var(--muted); font-size: .84rem; line-height: 1.7; }
 .reader-hub-button { width: 100%; margin: .2rem 0 .4rem; padding: .7rem .9rem; border: 0; border-radius: 12px; background: var(--ink); color: var(--paper); font: 500 .85rem/1 var(--body); cursor: pointer; }
@@ -153,10 +153,9 @@
 .reader-hub-local { margin: auto 0 0; padding-top: .8rem; color: var(--muted); font-size: .7rem; line-height: 1.6; }
 
 /* Star pill in the top bar: GitHub mark, a divider, a star and "Star". */
-.repo-btn.repo-pill { position: relative; display: inline-flex; align-items: center; width: auto; padding: 0 .7rem 0 .6rem; gap: .45rem; border: 1px solid var(--rule); border-radius: 999px; font: 600 .76rem/1 var(--sans); color: var(--ink-soft); }
-.repo-btn.repo-pill:hover { color: var(--ink); border-color: color-mix(in srgb, var(--ink) 35%, transparent); background: var(--rule-soft); }
-.repo-pill-divider { width: 1px; height: 14px; background: var(--rule); }
-.repo-pill-star { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; transition: fill .2s ease, stroke .2s ease, transform .2s ease; }
+.repo-btn.repo-pill { position: relative; display: inline-flex; align-items: center; width: auto; height: 34px; padding: 0 .6rem; gap: .4rem; border: 0; border-radius: 8px; font: 500 .76rem/1 var(--sans); color: var(--ink-soft); }   /* a ghost button like the others */
+.repo-btn.repo-pill:hover { color: var(--ink); background: var(--rule-soft); }
+.repo-pill-star { fill: none; stroke: currentColor; transition: fill .2s ease, stroke .2s ease, transform .2s ease; }
 .repo-pill:hover .repo-pill-star, .repo-pill:focus-visible .repo-pill-star { fill: #f5b83d; stroke: #f5b83d; transform: scale(1.12) rotate(-8deg); }
 .repo-pill-hearts { position: absolute; left: 50%; top: 2px; width: 0; height: 0; pointer-events: none; }
 .repo-pill-heart { position: absolute; left: -5px; top: 0; width: 10px; height: 10px; opacity: 0; animation: pill-heart 1.1s cubic-bezier(.2, .7, .3, 1) forwards; }
@@ -179,12 +178,12 @@
 .star-toast-text { margin: 0; font-size: .86rem; line-height: 1.55; }
 .star-toast-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; margin-top: .7rem; }
 .star-toast-cta { display: inline-flex; align-items: center; gap: .35rem; padding: .42rem .75rem; border-radius: 8px; background: var(--ink); color: var(--paper); font: 600 .78rem/1 var(--sans); text-decoration: none; }
-.star-toast-cta svg { fill: #f5b83d; }
+.star-toast-cta svg { fill: #f5b83d; stroke: #f5b83d; }
 .star-toast-cta:hover { opacity: .9; }
 .star-toast-choice { padding: .42rem .7rem; border: 1px solid var(--rule); border-radius: 8px; background: none; color: var(--ink); font: 500 .76rem/1 var(--sans); cursor: pointer; }
 .star-toast-choice:hover { background: var(--rule-soft); }
 .star-toast-quiet { border-color: transparent; color: var(--muted); }
-.star-toast-close { position: absolute; top: .45rem; right: .45rem; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 1rem; line-height: 1; cursor: pointer; }
+.star-toast-close { display: grid; place-items: center; position: absolute; top: .45rem; right: .45rem; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 1rem; line-height: 1; cursor: pointer; }
 .star-toast-close:hover { background: var(--rule-soft); color: var(--ink); }
 .star-toast a:focus-visible, .star-toast button:focus-visible, .repo-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 

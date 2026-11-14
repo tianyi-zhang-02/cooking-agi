@@ -256,8 +256,12 @@
 
   // start fetching the moment a reader reaches for search, not when the dialog opens
   function warm() { loadIndex(language).catch(function () {}); }
+  var platform = typeof navigator === "undefined" ? "" : navigator.platform || navigator.userAgent || "";
+  var apple = /Mac|iPhone|iPad/.test(platform);
   openers.forEach(function (button) {
     button.hidden = false;
+    var key = button.querySelector && button.querySelector("kbd");   // the cover's box names the shortcut
+    if (key && !apple) key.textContent = "Ctrl K";
     button.addEventListener("click", function () { openSearch(button); });
     ["pointerenter", "pointerdown", "focus"].forEach(function (name) { button.addEventListener(name, warm); });
   });

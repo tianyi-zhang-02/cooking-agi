@@ -23,13 +23,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: .5rem;
-  padding: 1rem .6rem .5rem;
+  padding: 1.1rem .6rem .4rem;
   margin-top: .9rem;
-  font: 600 .8rem/1.5 var(--body);
+  font: 500 .76rem/1.5 var(--body);
   letter-spacing: 0;
-  color: var(--muted);
+  color: var(--faint);
 }
-.side-scroll .nav .zone.is-current { color: var(--ink); }
+.side-scroll .nav .zone.is-current { color: var(--muted); }
 .side-scroll .nav .zone small { font: 400 .65rem/1.5 var(--body); color: var(--ember); }
 .side-directory-actions {
   display: flex;
@@ -73,8 +73,9 @@
   font-size: .82rem; line-height: 1.5; color: var(--ink-soft); text-decoration: none;
   border-radius: 7px; overflow-wrap: anywhere;
 }
-.nav .chapter-pages > li > a:hover { background: var(--rule-soft); color: var(--ink); }
-.nav .chapter-pages > li > a.active { background: var(--ember-bg); color: var(--ink); box-shadow: inset 2px 0 var(--ember); font-weight: 600; }
+.nav .chapter-pages > li > a:hover { color: var(--ink); }
+.nav .chapter-pages > li > a.active { color: var(--ink); box-shadow: inset 2px 0 var(--ember); border-radius: 0; font-weight: 600; }   /* one ember line marks the current note */
+.side .grp-count { color: var(--faint); font-weight: 400; }
 .nav details:has(a.active) > summary .grp-name::after { content: " ·"; color: var(--ember); }
 .note-tools { display: flex; flex-wrap: wrap; gap: .65rem 1.2rem; align-items: baseline; margin-top: 1.2rem; font: .78rem/1.6 var(--sans); }
 .note-tools[hidden], .note-tools [hidden] { display: none !important; }

@@ -1,8 +1,8 @@
 # Cooking AGI
 
-**Bilingual ML / LLM notes: worked examples, step-by-step figures, coding practice and interview prep.**
-
 <!-- repository-only -->
+
+**Bilingual ML / LLM notes: worked examples, step-by-step figures, coding practice and interview prep.**
 
 <span id="si-study-notes"></span>
 <span id="agi-study-notes"></span>
@@ -11,9 +11,13 @@
 
 <p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.en.html"><b>Read the notes →</b></a> &nbsp;·&nbsp; <a href="README.zh.md">中文</a> &nbsp;·&nbsp; <a href="#contributors">Contributors</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md#english">Contribute</a></p>
 
+Each topic is built around a worked example you can follow, run, or replay, with the papers' own figures and sources alongside. Learn a field from scratch, review before an interview, or look into something outside your own work. **Free to read, and it will stay that way.**
+
 <!-- /repository-only -->
 
-Each topic is built around a worked example you can follow, run, or replay, with the papers' own figures and sources alongside. Learn a field from scratch, review before an interview, or look into something outside your own work. **Free to read, and it will stay that way.**
+<!-- widget:home -->
+
+<!-- repository-only -->
 
 <span id="_1"></span>
 
@@ -50,11 +54,7 @@ See [skills/README.md](skills/README.md). Contributed by [@Juggernaut0825](https
 
 ## What's inside
 
-<!-- repository-only -->
-
 <a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-overview-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-overview-en-light.svg" width="100%" alt="What the notes are checked and illustrated with, topics by area, and what is being worked on now and next; updated on every deploy"></picture></a>
-
-<!-- /repository-only -->
 
 - **How models work:** [Transformer walkthrough](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.en.html) · [BERT](00-foundations/core/bert.en.md) · [CLIP and multimodal learning](03-multimodal-learning/clip.en.md)
 - **How models learn:** [Training basics](learn/pretraining/README.en.md) · [Deep RL](05-post-training/deep-rl/README.en.md) · [Post-training](05-post-training/README.en.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.en.md)
@@ -68,11 +68,7 @@ See [skills/README.md](skills/README.md). Contributed by [@Juggernaut0825](https
 
 ## Contributors and reviewers
 
-<!-- repository-only -->
-
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-en-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-en-light.svg" width="100%" alt="Contributors by commits, the reviewer for each area, and where readers went next; rebuilt every day"></picture>
-
-<!-- /repository-only -->
 
 Commit counts tell only part of the story; questions, reviews, and corrections count too. [Add a contribution credit](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [Share your next stop](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)
 
@@ -172,3 +168,5 @@ I hope it makes a field easier to start without a background in it or someone to
 | 2026-08-10 | First AI infrastructure study guide ([#1](https://github.com/tianyi-zhang-02/cooking-agi/pull/1)) | Redrawn diagrams ([#2](https://github.com/tianyi-zhang-02/cooking-agi/pull/2)) |
 
 </details>
+
+<!-- /repository-only -->
