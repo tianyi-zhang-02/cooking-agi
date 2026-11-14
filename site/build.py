@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import difflib
 import functools
 import hashlib
 import math
@@ -1459,6 +1460,176 @@ def wrap_tables(h):
         "</table>", "</table></div>")
 
 
+# --------------------------------------------------------------------------- #
+# code: numbered lines, folded guards, trap marks, and implementations side by side
+# --------------------------------------------------------------------------- #
+# A note stays plain markdown. Three things change how its code reads on the site:
+#   - <!-- code fold="5-15: what the lines do" mark="16:4 26:2,3" --> on the line before a ```python
+#     fence folds those lines behind a toggle and pins numbered marks to lines (GitHub hides it);
+#   - adjacent <details class="code-drop"> blocks become one set of tabs, one tab per implementation;
+#   - <details class="code-drop code-step"> blocks are steps: each one's code is compared with the
+#     step before, and the lines that changed are highlighted.
+CODE_OPTIONS = re.compile(r'^<!--[ \t]*code[ \t]+(.*?)[ \t]*-->[ \t]*\n((?:`{3,}|~{3,})[ \t]*python[ \t]*\n)', re.M)
+CODE_OPTION_LINE = "# code-options:"
+CODE_BLOCK = re.compile(r'<div class="hl"><pre><span></span><code>(.*?)</code></pre></div>', re.S)
+CODE_LINES_MIN = 8      # shorter snippets stay as they are
+CODE_DROP = re.compile(r'<details class="code-drop( code-step)?">(.*?)</details>', re.S)
+
+
+def stash_code_options(raw: str):
+    """Take the <!-- code ... --> comments out of the markdown. Each one's options ride into its
+    block as a first comment line, which code_html reads and removes after highlighting."""
+    options = []
+
+    def take(m):
+        attrs = dict(re.findall(r'(\w+)="([^"]*)"', m[1]))
+        unknown = set(attrs) - {"fold", "mark"}
+        if unknown or not attrs:
+            raise ValueError(f"<!-- code {m[1]} -->: use fold=\"a-b: label\" and/or mark=\"line:n,n ...\"")
+        options.append(attrs)
+        return f"{m[2]}{CODE_OPTION_LINE}{len(options) - 1}\n"
+
+    raw = CODE_OPTIONS.sub(take, raw)
+    stray = re.search(r"^<!--[ \t]*code[ \t].*?-->", raw, re.M)      # quoted inline (in a sentence or `code`) is fine
+    if stray:
+        raise ValueError(f"{stray[0]}: put it on the line right before a ```python fence")
+    return raw, options
+
+
+def code_lines(inner: str) -> list:
+    """Highlighted code cut into lines. A span that runs over a line break (a docstring) is closed
+    at the end of the line and opened again on the next, so every line is balanced on its own."""
+    lines, current, stack = [], [], []
+    for part in re.split(r"(<[^>]+>)", inner):
+        if not part:
+            continue
+        if part.startswith("</"):
+            stack.pop()
+            current.append(part)
+        elif part.startswith("<"):
+            stack.append(part)
+            current.append(part)
+        else:
+            for i, piece in enumerate(part.split("\n")):
+                if i:
+                    lines.append("".join(current) + "</span>" * len(stack))
+                    current = list(stack)
+                if piece:
+                    current.append(piece)
+    tail = "".join(current)
+    if re.sub(r"<[^>]+>", "", tail):
+        lines.append(tail + "</span>" * len(stack))
+    return lines
+
+
+def code_text(line: str) -> str:
+    return html.unescape(re.sub(r"<[^>]+>", "", line))
+
+
+def parse_code_options(attrs: dict, count: int, where: str):
+    """fold="5-15: label | 30-34: label" and mark="16:4 26:2,3" as line sets, checked against the block."""
+    folds, marks = [], {}
+    for part in filter(None, (p.strip() for p in attrs.get("fold", "").split("|"))):
+        m = re.fullmatch(r"(\d+)-(\d+):\s*(.+)", part)
+        if not m or not 1 <= int(m[1]) <= int(m[2]) <= count:
+            raise ValueError(f"{where}: fold {part!r} must be first-last: label within lines 1-{count}")
+        folds.append((int(m[1]), int(m[2]), m[3]))
+    for part in attrs.get("mark", "").split():
+        m = re.fullmatch(r"(\d+):([\w,!]+)", part)
+        if not m or not 1 <= int(m[1]) <= count:
+            raise ValueError(f"{where}: mark {part!r} must be line:label within lines 1-{count}")
+        marks[int(m[1])] = m[2].replace(",", " ")
+    return folds, marks
+
+
+def code_html(inner: str, options: list, where: str, changed=None, force=False) -> str | None:
+    """One code block as numbered lines, or None to leave it alone (short or plain snippets).
+    Each line keeps its own text and indentation (copying stays exact); the number, the marks and
+    the fold toggles are drawn by CSS and code-blocks.js. A wrapped line continues under its indent."""
+    m = re.match(re.escape(f'<span class="c1">{CODE_OPTION_LINE}') + r"(\d+)</span>\n", inner)
+    attrs = {}
+    if m:
+        attrs, inner = options[int(m[1])], inner[m.end():]
+    if CODE_OPTION_LINE in inner:
+        raise ValueError(f"{where}: a <!-- code --> comment must sit on the line right before a ```python fence")
+    lines = code_lines(inner)
+    if "".join(code_text(line) + "\n" for line in lines) != code_text(inner).rstrip("\n") + "\n":
+        raise ValueError(f"{where}: splitting a code block into lines changed its text")
+    if not (attrs or force or (len(lines) >= CODE_LINES_MIN and "<span class=" in inner)):
+        return None
+    folds, marks = parse_code_options(attrs, len(lines), where)
+    out = []
+    for n, line in enumerate(lines, 1):
+        text = code_text(line)
+        indent = len(text) - len(text.lstrip(" "))
+        extra = []
+        if changed and n in changed:
+            extra.append(' data-new=""')
+        if n in marks:
+            extra.append(f' data-mark="{html.escape(marks[n], quote=True)}"')
+        for k, (first, last, label) in enumerate(folds):
+            if first <= n <= last:
+                extra.append(f' data-fold="{k}"')
+                if n == first:
+                    extra.append(f' data-fold-label="{html.escape(label, quote=True)}" data-fold-lines="{first}–{last}"')
+        out.append(f'<span class="cl" data-n="{n}" style="--in:{indent}"{"".join(extra)}>{line}\n</span>')
+    kind = " code-diff" if changed is not None else ""     # compared with the step before
+    return f'<div class="hl code-lines{kind}"><pre><span></span><code>{"".join(out)}</code></pre></div>'
+
+
+def changed_code_lines(before: str, after: str) -> set:
+    """Line numbers of `after` that are new or different from `before`. Renaming the function on
+    the def line, or rewording a trailing comment, is not a change: each step has its own name and notes."""
+    norm = lambda text: [re.sub(r"\s+#[^'\"]*$", "", re.sub(r"^def \w+", "def _", line)).rstrip() for line in text.splitlines()]
+    out = set()
+    for tag, _, _, j1, j2 in difflib.SequenceMatcher(a=norm(before), b=norm(after), autojunk=False).get_opcodes():
+        if tag in ("replace", "insert"):
+            out.update(range(j1 + 1, j2 + 1))
+    return out
+
+
+def code_blocks(body: str, options: list, where: str) -> str:
+    """Number long code blocks, and turn each run of adjacent code-drop details into one set of
+    implementations (code-blocks.js makes them tabs; without it they stay as details)."""
+    def first_code(details):
+        block = CODE_BLOCK.search(details)
+        return code_text(block[1]) if block else ""
+
+    def enhance(chunk, changed=None, force=False):
+        def one(m):
+            new = code_html(m[1], options, where, changed=changed, force=force)
+            return m.group(0) if new is None else new
+        # a step compares only its first block with the step before; any later blocks are ordinary
+        return CODE_BLOCK.sub(one, chunk, count=1 if force else 0)
+
+    out, last = [], 0
+    drops = list(CODE_DROP.finditer(body))
+    i = 0
+    while i < len(drops):
+        run = [drops[i]]
+        while i + len(run) < len(drops) and not body[run[-1].end():drops[i + len(run)].start()].strip():
+            run.append(drops[i + len(run)])
+        i += len(run)
+        if len(run) < 2:
+            continue
+        steps = all(d[1] for d in run)
+        if any(d[1] for d in run) and not steps:
+            raise ValueError(f"{where}: a set of code-drop details is either all steps (code-step) or none")
+        parts, previous = [], None
+        for d in run:
+            inner = d[2]
+            if steps:
+                code = first_code(inner)
+                inner = enhance(inner, changed=changed_code_lines(previous, code) if previous is not None else None, force=True)
+                previous = code
+            parts.append(f'<details class="code-drop{" code-step" if steps else ""}">{inner}</details>')
+        kind = " code-steps" if steps else ""
+        out += [body[last:run[0].start()], f'<div class="code-variants{kind}">', "\n".join(parts), "</div>"]
+        last = run[-1].end()
+    out.append(body[last:])
+    return enhance("".join(out))
+
+
 CJK = "\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef"
 CJK_BREAKS = re.compile(rf"(?<=[{CJK}])[ \t]*\n[ \t]*(?=[{CJK}\u201c\u2018])"
                         rf"|(?<=[{CJK}\u201d\u2019])[ \t]*\n[ \t]*(?=[{CJK}])")
@@ -1625,7 +1796,9 @@ def build_page(page: Page, terms, repo: str, known: set):
     raw = re.sub(r"^\*\*?(中文|English)\*\*?\s*[·|].*$", "", raw, count=1, flags=re.M)
     raw = re.sub(r"^\[中文\]\([^)]*\)\s*[·|].*$", "", raw, count=1, flags=re.M)
 
+    raw, code_options = stash_code_options(raw)
     body, toc = render_markdown(raw)
+    body = code_blocks(body, code_options, str(page.src))
     body = technology_chronicle.expand(body, page.lang)
     used = []
     if page.lang == "zh":

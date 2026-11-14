@@ -158,7 +158,10 @@
     btn.type = "button";
     btn.textContent = LANG === "en" ? "copy" : "复制";
     btn.addEventListener("click", function () {
-      navigator.clipboard.writeText(pre.innerText).then(function () {
+      // numbered blocks (build.code_blocks): copy every line, folded ones too, and none of the controls
+      var lines = pre.querySelectorAll(".cl");
+      var code = lines.length ? Array.prototype.map.call(lines, function (line) { return line.textContent; }).join("") : pre.innerText;
+      navigator.clipboard.writeText(code).then(function () {
         btn.textContent = LANG === "en" ? "copied" : "已复制";
         btn.classList.add("done");
         setTimeout(function () {

@@ -37,7 +37,7 @@ python sequence_numpy.py
 
 这些实现不调用 `nn.MultiheadAttention` 或 `F.scaled_dot_product_attention`。PyTorch 提供 tensor、自动求导，以及 Linear、Embedding、LayerNorm、cross-entropy 和优化器这类基础件；attention、mask 和整体结构都逐行写出。
 
-单篇笔记还配有更小的检查脚本，从对应笔记的“动手验证”进入，例如 [`attention_numpy.py`](attention_numpy.py)（纯 NumPy 多头注意力）、[`attention_torch.py`](attention_torch.py)（手写版对照 `F.scaled_dot_product_attention` 与 `nn.MultiheadAttention`，所以不受上面那条限制）和 [`norm_compare.py`](norm_compare.py)（三种归一化的统计轴与 batch size 1）。
+单篇笔记还配有更小的检查脚本，从对应笔记的“动手验证”进入，例如 [`attention_numpy.py`](attention_numpy.py)（纯 NumPy 多头注意力）、[`attention_torch.py`](attention_torch.py)（手写版对照 `F.scaled_dot_product_attention` 与 `nn.MultiheadAttention`，所以不受上面那条限制）、[`norm_compare.py`](norm_compare.py)（三种归一化的统计轴与 batch size 1）和 [`attention_ladder.py`](attention_ladder.py)（MHA、causal、GQA、MLA 与吸收式 MLA，逐步对照）。
 
 ## 快速验证
 

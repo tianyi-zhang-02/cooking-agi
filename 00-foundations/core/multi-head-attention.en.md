@@ -344,6 +344,8 @@ Check these six details before trying to diagnose a mistake from the final loss:
 
 **Check the mask with two scores.** Softmax of `[0, 0]` is `[0.5, 0.5]`. Allowing only the first position gives `[1, 0]` when masked before softmax. Zeroing the second weight afterwards gives `[0.5, 0]`, shrinking the output. Dividing by the remaining weight sum recovers `[1, 0]` mathematically, but that sum can underflow in finite precision. Masking before softmax avoids this issue. The teaching code rejects entirely masked rows instead of silently producing NaNs.
 
+On the site, the from-scratch and framework code below carries the same numbers next to these six places.
+
 ## Experiment: check the handwritten version against the library {#experiment-verify-three-equivalent-implementations}
 
 <details class="code-drop" markdown="1">
@@ -351,6 +353,7 @@ Check these six details before trying to diagnose a mistake from the final loss:
 
 Start with Q/K/V, masking, and splitting and merging heads. As in the full script, softmax computes and returns probabilities in at least FP32, avoiding FP16 summation overflow on long rows. Negative infinity marks blocked positions; NaN, positive infinity, and entirely blocked rows are rejected.
 
+<!-- code fold="5-15: convert to at least FP32; reject non-real values, NaN, +inf and fully masked rows" mark="41:1 26:2,3 16:4 24:5 47:6" -->
 ```python
 import numpy as np
 
@@ -412,6 +415,7 @@ Full runnable version, with shape printouts and self-checks: [`../code/attention
 <details class="code-drop" markdown="1">
 <summary><b>With a framework</b> · PyTorch, what you would actually write in a codebase</summary>
 
+<!-- code mark="15:1 20:2,3 18:5 25:6" -->
 ```python
 import math, torch, torch.nn as nn
 
@@ -443,6 +447,11 @@ class MultiHeadAttention(nn.Module):
 def causal_mask(t, device=None):
     return torch.triu(torch.ones(t, t, dtype=torch.bool, device=device), diagonal=1)
 ```
+
+</details>
+
+<details class="code-drop" markdown="1">
+<summary><b>SDPA</b> · one fused call; the mask convention flips</summary>
 
 When switching to SDPA, **carry the mask across too**. This example uses boolean `True` for blocked positions; PyTorch SDPA uses `True` for allowed positions (2.14 documentation, checked October 2026), the opposite convention. With a valid mask, and when only the output is needed, the core call is:
 
@@ -482,6 +491,8 @@ One matching output is a useful start, not a complete migration test. Check thes
 | Gradients | Compare input gradients under the same scalar loss. For the handwritten and SDPA paths, also compare gradients of their shared parameters. |
 
 The script's `library_version` creates a separate module and copies the parameters for comparison. Its parameter gradients do not flow back to the original `mha`. Tests cover bias, float32 / float64, per-head masks, and gradients across the three PyTorch paths; the NumPy comparison remains a small bias-free fixture. Dropout is off throughout. These are correctness checks, not speed or memory benchmarks. See the [PyTorch 2.14 MultiheadAttention API](https://docs.pytorch.org/docs/2.14/generated/torch.nn.MultiheadAttention.html) for its conventions.
+
+The same attention, changed a few lines at a time: causal, GQA and MLA, each checked against the step before, in [one attention, five ways](../../learn/ml-exercises/attention-ladder.en.md).
 
 ## Where does the causal mask start with a KV cache? {#cached-causal-mask}
 

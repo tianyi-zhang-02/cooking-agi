@@ -37,7 +37,7 @@ python sequence_numpy.py
 
 These implementations do not call `nn.MultiheadAttention` or `F.scaled_dot_product_attention`. PyTorch supplies tensors, autograd, and basic pieces such as Linear, Embedding, LayerNorm, cross-entropy, and the optimizer; attention, masking, and the overall structure are written out line by line.
 
-Individual notes also link smaller check scripts from their "Verify it" sections, for example [`attention_numpy.py`](attention_numpy.py) (multi-head attention in pure NumPy), [`attention_torch.py`](attention_torch.py) (the hand-written version checked against `F.scaled_dot_product_attention` and `nn.MultiheadAttention`, so the rule above does not apply to it), and [`norm_compare.py`](norm_compare.py) (reduction axes of the three normalizations and batch size 1).
+Individual notes also link smaller check scripts from their "Verify it" sections, for example [`attention_numpy.py`](attention_numpy.py) (multi-head attention in pure NumPy), [`attention_torch.py`](attention_torch.py) (the hand-written version checked against `F.scaled_dot_product_attention` and `nn.MultiheadAttention`, so the rule above does not apply to it), [`norm_compare.py`](norm_compare.py) (reduction axes of the three normalizations and batch size 1), and [`attention_ladder.py`](attention_ladder.py) (MHA, causal, GQA, MLA and absorbed MLA, each checked against the step before).
 
 ## Quick verification
 

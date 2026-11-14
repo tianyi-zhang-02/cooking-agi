@@ -827,7 +827,7 @@ group = "ml-exercises"
 sequence = 2
 zh = "从公式到代码"
 en = "From formulas to code"
-order = ["README.md", "hand-write-kit.md"]
+order = ["README.md", "hand-write-kit.md", "attention-ladder.md"]
 include = ["00-foundations/hand-write-kit.md"]
 
 [[section]]

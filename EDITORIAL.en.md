@@ -77,6 +77,16 @@ An introduction does not need every conclusion at once, and a whole abstract rar
 
 Read the English independently. Do not carry over Chinese word order, metaphors, or long chains of clauses. Use “memory estimate” when estimating memory, rather than calling every calculation a “ledger”; describe specific input requirements rather than calling them all “contracts.” Sentence boundaries can differ between languages; examples, assumptions, and conclusions should agree.
 
+## Putting code in a note
+
+Code blocks stay ordinary Markdown and read normally on GitHub. On the site, blocks of 8 lines or more get line numbers, and a long line wraps to continue after its own indentation; copying still gives the exact code.
+
+- When one thing has several implementations (by hand, with a library, through a fused kernel), write each as an adjacent `<details class="code-drop" markdown="1">`, with the name in `<b>` inside `<summary>` followed by one sentence. The site shows them as one set of tabs.
+- For versions built step by step (for example MHA → causal → GQA → MLA), add `code-step` to each details. The site compares each step's first block with the step before and highlights the changed lines; renaming the function or rewording a trailing comment is not a change. Each step should say how it is checked against the one before.
+- Lines that are off the main path, such as input checks, can be folded; when the text lists "the places it goes wrong", numbers can be pinned to the matching lines. Put `<!-- code fold="5-15: what these lines do" mark="16:4 26:2,3" -->` on the line before the code block (GitHub hides it); line numbers count within the block. A wrong line number or a misplaced comment fails the build.
+
+Code in a note should come from a script in the repository that runs, with a test that keeps the two in sync, as `learn/ml-exercises/attention-ladder.en.md` does with `00-foundations/code/attention_ladder.py`.
+
 ## Bilingual reading contract
 
 Preferred reading language and familiar terminology are separate choices. Some readers use only Chinese, some learned the subject in English but enjoy Chinese explanations, and others read only English. Do not infer a preference from nationality, education, or browser language.
