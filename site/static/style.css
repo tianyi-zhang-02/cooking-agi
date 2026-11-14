@@ -1645,3 +1645,64 @@ html.lang-zh .prose th { text-transform: none; letter-spacing: .02em; }
 .math-hold { white-space: nowrap; }
 /* the cover page lists its sections in the right-hand contents; the left column need not repeat them */
 @media (min-width: 1081px) { .page-home .side-nav:has(.side-page-toc) { display: none; } }
+
+/* ======================================================================
+   Code (build.code_blocks, static/code-blocks.js)
+   Long blocks are numbered lines. A long line wraps and continues under its own indent instead of
+   scrolling sideways, and copying still gives the exact code (the numbers and marks are drawn here).
+   Implementations of one thing share a set of tabs; steps highlight what changed from the step before.
+   ====================================================================== */
+.prose .code-lines pre { padding: .9rem .9rem .9rem 0; overflow-x: visible; }
+.prose .code-lines code { --gutter: 3rem; display: block; white-space: normal; }
+.prose .code-lines .cl { position: relative; display: block; min-height: 1.7em;
+  padding-left: calc(var(--gutter) + (var(--in, 0) + 4) * 1ch); text-indent: calc((var(--in, 0) + 4) * -1ch);
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+/* the line's own number (folded lines keep theirs) */
+.prose .code-lines .cl::before { content: attr(data-n); position: absolute; left: 0; width: calc(var(--gutter) - 1rem);
+  color: var(--faint); text-align: right; text-indent: 0; font-variant-numeric: tabular-nums; }
+.prose .code-lines .cl[hidden] { display: none; }
+/* a line the step changed */
+.prose .code-lines .cl[data-new] { background: color-mix(in srgb, var(--ember) 11%, transparent); box-shadow: inset 2px 0 0 var(--ember); }
+.prose .code-lines .cl[data-new]::before { color: var(--ember); }
+/* numbered marks that point back to a list in the text ("the six places it goes wrong") */
+.prose .code-lines .cl[data-mark] { padding-right: 3.4em; }
+.prose .code-lines .cl[data-mark]::after { content: attr(data-mark); position: absolute; top: .2em; right: .2em; padding: 0 .45em;
+  border: 1px solid color-mix(in srgb, var(--ember) 65%, transparent); border-radius: 999px; color: var(--ember);
+  font: 600 .7rem/1.45 var(--sans); text-indent: 0; word-spacing: .15em; }
+/* a folded range: one row that opens it */
+.prose .code-lines .cl-fold { display: flex; align-items: baseline; gap: 1rem; width: 100%; margin: 1px 0; padding: .1em 0; border: 0;
+  border-block: 1px dashed var(--rule); background: none; color: var(--muted); font: .8rem/1.7 var(--sans); text-align: left; cursor: pointer; }
+.prose .code-lines .cl-fold:hover { color: var(--ink); }
+.prose .code-lines .cl-fold-lines { flex: none; width: calc(var(--gutter) - 1rem); color: var(--faint); font-family: var(--mono); text-align: right; white-space: nowrap; }
+.prose .code-lines .cl-fold-action { flex: none; margin-left: auto; color: var(--faint); }
+.prose .code-lines .cl-gap { display: none; }
+
+/* a set of implementations: tabs above, one panel at a time (without the script, details as before) */
+.prose .code-variants { margin: 2rem 0 2.4rem; }
+@media (min-width: 1180px) { .page-reading .prose .code-variants.is-tabbed { margin-inline: -36px; } }
+.prose .code-tabs-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--rule); }
+.prose .code-tabs { display: flex; gap: 1.5rem; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.prose .code-tab { flex: none; margin-bottom: -1px; padding: .55rem 0 calc(.55rem - 1px); border: 0; border-bottom: 2px solid transparent; background: none;
+  color: var(--muted); font: 500 .95rem/1.3 var(--sans); white-space: nowrap; cursor: pointer; }
+html.lang-zh .prose .code-tab { font-family: var(--body); }
+.prose .code-tab:hover { color: var(--ink); }
+.prose .code-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ember); }
+.prose .code-only { display: inline-flex; flex: none; align-items: center; gap: .4rem; padding-bottom: .55rem; color: var(--muted); font-size: .85rem; white-space: nowrap; cursor: pointer; }
+.prose .code-only input { accent-color: var(--ember); }
+.prose .code-only:has(input:disabled) { opacity: .45; cursor: default; }
+.prose .code-panel { padding-top: .2rem; }
+.prose .code-panel > .code-panel-note { margin: .8rem 0 .4rem; color: var(--ink-soft); }
+.prose .code-panel > .code-wrap > pre, .prose .code-panel > .code-lines pre { margin-top: .8rem; }
+.prose .code-variants .code-panel > *:not(.code-wrap):not(.hl) { margin-left: 0; margin-right: 0; }
+/* steps: only the lines that changed, with a count where the rest were */
+.prose .code-variants.only-changes .code-diff .cl:not([data-new]) { display: none; }
+.prose .code-variants.only-changes .code-diff .cl-gap { display: block; padding: .15em 0 .15em var(--gutter); color: var(--faint); font: .78rem/1.7 var(--sans); }
+@media (max-width: 760px) {
+  .prose .code-lines code { --gutter: 2.4rem; }
+  .prose .code-tabs-bar { flex-wrap: wrap; }
+  .prose .code-only { margin-left: auto; }
+}
+@media print {
+  .prose .code-panel[hidden], .prose .code-lines .cl[hidden] { display: block; }
+  .prose .code-lines .cl-fold { display: none; }
+}

@@ -455,6 +455,8 @@ see [circuits](../../11-frontier/interpretability/circuits.md).
 
 **用两个分数检查 mask。** `[0, 0]` 的 softmax 是 `[0.5, 0.5]`。只允许第一个位置时，先屏蔽得到 `[1, 0]`；softmax 后只置零得到 `[0.5, 0]`，输出就缩小了。如果再除以剩余权重之和，数学上也能得到 `[1, 0]`，但有限精度下可能遇到剩余权重下溢，所以通常在 softmax 前屏蔽。下面的教学代码会拒绝整行被屏蔽的输入，而不是悄悄产生 NaN。
 
+网页版会在下面「从零实现」和「调包」的代码旁，用同样的编号标出这六处。
+
 ## 实验：让手写版本与库实现对上 {#_6}
 
 <details class="code-drop" markdown="1">
@@ -462,6 +464,7 @@ see [circuits](../../11-frontier/interpretability/circuits.md).
 
 先把 Q/K/V、mask 和拆头并头写通。下面的 softmax 与完整脚本一样，至少用 FP32 计算并返回概率，避免长序列的 FP16 求和溢出；允许用负无穷屏蔽位置，但拒绝 NaN、正无穷和全屏蔽行。
 
+<!-- code fold="5-15: 转成至少 FP32，拒绝非实数、NaN、+inf 和全屏蔽行" mark="41:1 26:2,3 16:4 24:5 47:6" -->
 ```python
 import numpy as np
 
@@ -523,6 +526,7 @@ def causal_mask(t):
 <details class="code-drop" markdown="1">
 <summary><b>调包</b> · PyTorch，工程里实际会写的样子</summary>
 
+<!-- code mark="15:1 20:2,3 18:5 25:6" -->
 ```python
 import math, torch, torch.nn as nn
 
@@ -554,6 +558,11 @@ class MultiHeadAttention(nn.Module):
 def causal_mask(t, device=None):
     return torch.triu(torch.ones(t, t, dtype=torch.bool, device=device), diagonal=1)
 ```
+
+</details>
+
+<details class="code-drop" markdown="1">
+<summary><b>SDPA</b> · 一次调用融合 kernel，mask 方向相反</summary>
 
 改用 SDPA 时，**mask 也要一起迁移**。这里的布尔 mask 用 `True` 表示屏蔽，而 PyTorch SDPA 用 `True` 表示允许（2.14 文档，2026-10 核对），方向正好相反。已有合法 mask、且只需要输出时，核心调用是：
 
@@ -593,6 +602,8 @@ output = F.scaled_dot_product_attention(
 | 梯度是否相同 | 用相同的标量 loss 比较输入梯度；共享参数的手写与 SDPA 路径还要比较参数梯度 |
 
 完整脚本中的 `library_version` 会新建一个模块并复制参数，只用于对照；它的参数梯度不会回到原来的 `mha`。仓库测试在三条 PyTorch 路径上覆盖了 bias、float32 / float64、逐头 mask 和梯度检查；NumPy 对照仍是无 bias 的小例子。这里都关闭 dropout，不是速度或显存测试。接口约定见 [PyTorch 2.14 MultiheadAttention](https://docs.pytorch.org/docs/2.14/generated/torch.nn.MultiheadAttention.html)。
+
+同一个 attention 再往下改：causal、GQA、MLA 各只改几行，每一步都和上一步对答案，见[同一个 attention 的五种写法](../../learn/ml-exercises/attention-ladder.md)。
 
 ## 接上 KV cache，mask 要从哪里开始？ {#cached-causal-mask}
 
