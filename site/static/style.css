@@ -109,7 +109,7 @@ a:hover { color: var(--link-hover); }
   border-bottom: 1px solid var(--rule);
 }
 .topbar-brand { font-weight: 700; letter-spacing: -.01em; color: var(--ink); text-decoration: none; }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: .3rem; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: .15rem; }
 .repo-btn { color: var(--ink-soft); text-decoration: none; }
 .repo-btn:hover { background: var(--rule-soft); color: var(--ink); }
 
@@ -212,11 +212,8 @@ a:hover { color: var(--link-hover); }
   font-size: .875rem; line-height: 1.45; color: var(--ink-soft);
   text-decoration: none; border-left: 2px solid transparent; border-radius: 0 5px 5px 0;
 }
-.nav .sec > ul > li > a:hover { color: var(--ink); background: var(--rule-soft); }
-.nav .sec > ul > li > a.active {
-  color: var(--ink); font-weight: 600;
-  border-left-color: var(--ember); background: var(--ember-bg);
-}
+.nav .sec > ul > li > a:hover { color: var(--ink); }
+.nav .sec > ul > li > a.active { color: var(--ink); font-weight: 600; border-left-color: var(--ember); }
 
 .side-foot {
   margin-top: 1.8rem; padding-top: .9rem; border-top: 1px solid var(--rule-soft);
@@ -719,32 +716,16 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
   margin: .12rem 0; padding: .32rem .65rem .32rem .85rem;
   border-left: 0; border-radius: 9px 3px 3px 9px; font-size: .86rem;
 }
-.nav .sec > ul > li > a.active {
-  color: var(--ink); background: color-mix(in srgb, var(--ember-bg) 78%, var(--panel));
-  box-shadow: inset 3px 0 var(--ember);
-}
+.nav .sec > ul > li > a.active { color: var(--ink); background: none; box-shadow: inset 2px 0 var(--ember); border-radius: 0; }
 .side-foot { margin: 1.5rem .55rem 0; }
 
 .rail { padding-top: 3.5rem; }
-.rail-inner {
-  position: relative; padding: 1rem 1rem 1.05rem 1.05rem;
-  border-radius: 16px 4px 16px 4px;
-  background: color-mix(in srgb, var(--panel) 54%, transparent);
-}
-.rail-inner::before {
-  content: ""; position: absolute; left: 0; top: 1rem; width: 3px; height: 2.4rem;
-  background: var(--moss); border-radius: 0 3px 3px 0;
-}
+.rail-inner { position: relative; padding: 0; }   /* no panel: the guide line is enough */
 .rail-title { letter-spacing: .08em; color: var(--moss); }
 .toc ul { border-left-color: color-mix(in srgb, var(--rule) 72%, transparent); }
 .toc li a { padding-top: .28rem; padding-bottom: .28rem; }
-.toc li a.active { color: var(--ink); border-left-color: var(--ember); font-weight: 650; }
+.toc li a.active { color: var(--ink); border-left-color: var(--ember); font-weight: 500; }
 
-.chapter-mark {
-  position: absolute; right: 0; top: -.7rem; z-index: -1;
-  font: normal 8.5rem/.8 var(--serif); letter-spacing: -.08em;
-  color: color-mix(in srgb, var(--ember) 7%, transparent); user-select: none;
-}
 
 .mobile-toc { display: none; }
 
@@ -936,11 +917,8 @@ main { padding-top: 2.8rem; }
   background: linear-gradient(var(--ember), color-mix(in srgb, var(--ember) 8%, transparent));
 }
 .article-kicker { display: flex; align-items: center; gap: .65rem; margin-bottom: 1rem; }
-.article-kicker span {
-  font: 750 .68rem/1 var(--sans); letter-spacing: .13em; text-transform: uppercase;
-  color: var(--ember);
-}
-.article-kicker i { font: normal .78rem/1.2 var(--sans); color: var(--muted); }
+.article-kicker span { font: 500 .82rem/1.2 var(--body); color: var(--muted); }   /* plain case: no tracked capitals */
+.article-kicker i { font: normal .82rem/1.2 var(--body); color: var(--muted); }
 .article-kicker i::before { content: "/"; margin-right: .65rem; color: var(--faint); }
 .article-head h1 {
   max-width: 15ch; margin: 0; font-size: clamp(2.35rem, 4.6vw, 4.25rem);
@@ -966,12 +944,7 @@ main { padding-top: 2.8rem; }
   background: linear-gradient(90deg, var(--ember), transparent);
 }
 .article-body h3 { margin-top: 2.6rem; font-size: 1.13rem; color: var(--ink); }
-.article-body blockquote {
-  position: relative; margin: 2rem -.8rem; padding: 1.15rem 1.35rem 1.15rem 2.9rem;
-  border: 0; border-radius: 2px 16px 16px 2px;
-  background: color-mix(in srgb, var(--panel) 72%, transparent);
-  box-shadow: var(--shadow);
-}
+.article-body blockquote { position: relative; margin: 2rem 0; border-radius: 0; background: none; box-shadow: none; }
 .article-body blockquote::before {
   content: "“"; position: absolute; left: .9rem; top: .4rem;
   font: 2.5rem/1 var(--serif); color: var(--ember);
@@ -1145,7 +1118,10 @@ main { padding-top: 2.8rem; }
   .topbar-tabs a::after { left: .6rem; right: .6rem; }
 }
 .topbar-right { flex: 0 0 auto; }
-.topbar-right .lang-btn { white-space: nowrap; }
+.topbar-right .lang-btn { display: inline-grid; place-items: center; min-width: 38px; height: 34px; padding: 0 .55rem; border-color: transparent; border-radius: 8px;
+  color: var(--ink-soft); font: 500 .82rem/1 var(--sans); letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.topbar-right .lang-btn:not(.language-cue):hover { border-color: transparent; background: var(--rule-soft); color: var(--ink); }
+.topbar-right .icon-btn { height: 34px; border-radius: 8px; }
 @media (max-width: 620px) { .topbar-brand { display: none; } }
 
 /* -------- second row: the blocks inside the chosen direction ---------------- */
@@ -1634,8 +1610,8 @@ html.lang-zh .prose .home-block h2 { font-weight: 600; }
 /* the finish: one radius, hairlines instead of shadows; colour is set in the dawn block below */
 .lesson-recipe, .lesson-recipe > div, .taste-check, .widget, .page-glossary details, .rail-inner, .article-body .table-wrap,
 .article-body details, .article-body pre, .roadmap, .cat-card, .kb-card, .viz-card, .thread-card, .stack-layer, .rm-mod,
-.qb-tools, .ro, .calc, .seg, .concept-card, .mobile-toc, .page-turn a { border-radius: 8px !important; box-shadow: none !important; }
-.lesson-recipe, .roadmap, .rail-inner, .cat-card { background: var(--panel); border: 1px solid var(--rule); }
+.qb-tools, .ro, .calc, .seg, .concept-card, .mobile-toc, .page-turn a { border-radius: 10px !important; box-shadow: none !important; }
+.lesson-recipe, .roadmap, .cat-card { background: var(--panel); border: 1px solid var(--rule); }
 .page-index .article-head, .page-guide .article-head { background: none; }
 .prose a { text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .prose a:hover { text-decoration-color: var(--ink); }
@@ -1713,7 +1689,7 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
 @media (max-width: 620px) {
   .prose .algorithm-trace :is(th, td) { padding: .65rem .3rem; font-size: .8rem; line-height: 1.5; }
 }
-.prose blockquote { margin: 1.7rem 0; padding: .25rem 0 .25rem 1.2rem; border-left: 2px solid color-mix(in srgb, var(--ember) 60%, transparent); }
+.prose blockquote { margin: 1.7rem 0; padding: .15rem 0 .15rem 1.1rem; border-left: 2px solid color-mix(in srgb, var(--ember) 45%, var(--rule)); }
 .prose hr { margin: 3.2rem 0; }
 .prose pre { padding: 1.1rem 1.2rem; margin: 1.7rem 0; font-size: .84rem; line-height: 1.7; }
 .prose table { font-size: .9rem; }
@@ -1741,14 +1717,13 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
 .nav .sec > ul > li > a:hover { color: var(--ink); }
 .nav .sec { margin-bottom: 1rem; }
 .rail { padding: 2.6rem 0 3rem; }
-.toc li a { padding: .28rem 0 .28rem .75rem; font-size: .78rem; line-height: 1.45; }
+.toc li a { padding: .28rem 0 .28rem .75rem; font-size: .8rem; line-height: 1.5; }
 .toc li.l3 { display: none; }
 .topbar { border-bottom-color: var(--rule-soft); }
 
 /* -------- share-ready polish: the strip, the head on phones, the home measure -------- */
 .subtabs-label { flex: none; }
 .article-head h1 { max-width: 18ch; font-size: clamp(2.1rem, 1.2rem + 2.4vw, 3.4rem); line-height: 1.1; }
-.chapter-mark { font-size: 7rem; }
 @media (max-width: 1080px) {
   /* the direction strip scrolls on narrow screens; fade the edges so the cut-off text reads as "more" */
   .topbar-tabs { padding: 0 .2rem;
@@ -1763,7 +1738,6 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
   .topbar-tabs .tab-sep { margin: 0 .2rem; }
   .article-head { margin-bottom: 2rem; padding: .5rem 0 1.5rem 1rem; }
   .article-head h1 { font-size: clamp(1.7rem, 6.8vw, 2rem); max-width: none; letter-spacing: -.03em; line-height: 1.18; }
-  .chapter-mark { font-size: 5rem; top: -.35rem; }
   .article-meta { margin-top: .9rem; }
 }
 

@@ -153,9 +153,8 @@
 .reader-hub-local { margin: auto 0 0; padding-top: .8rem; color: var(--muted); font-size: .7rem; line-height: 1.6; }
 
 /* Star pill in the top bar: GitHub mark, a divider, a star and "Star". */
-.repo-btn.repo-pill { position: relative; display: inline-flex; align-items: center; width: auto; padding: 0 .7rem 0 .6rem; gap: .45rem; border: 1px solid var(--rule); border-radius: 999px; font: 600 .76rem/1 var(--sans); color: var(--ink-soft); }
-.repo-btn.repo-pill:hover { color: var(--ink); border-color: color-mix(in srgb, var(--ink) 35%, transparent); background: var(--rule-soft); }
-.repo-pill-divider { width: 1px; height: 14px; background: var(--rule); }
+.repo-btn.repo-pill { position: relative; display: inline-flex; align-items: center; width: auto; height: 34px; padding: 0 .6rem; gap: .4rem; border: 0; border-radius: 8px; font: 500 .76rem/1 var(--sans); color: var(--ink-soft); }   /* a ghost button like the others */
+.repo-btn.repo-pill:hover { color: var(--ink); background: var(--rule-soft); }
 .repo-pill-star { fill: none; stroke: currentColor; transition: fill .2s ease, stroke .2s ease, transform .2s ease; }
 .repo-pill:hover .repo-pill-star, .repo-pill:focus-visible .repo-pill-star { fill: #f5b83d; stroke: #f5b83d; transform: scale(1.12) rotate(-8deg); }
 .repo-pill-hearts { position: absolute; left: 50%; top: 2px; width: 0; height: 0; pointer-events: none; }

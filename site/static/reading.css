@@ -46,6 +46,7 @@
 :root[data-text] .page-reading .prose table { font-size: calc(.9rem * var(--text-scale)); }
 :root[data-text] .page-reading .prose pre { font-size: calc(.84rem * var(--text-scale)); }
 :root .page-reading .article-body strong { font-weight: 600; color: var(--ink); }
+:root .page-reading .prose .chapter-context strong { font-weight: 500; color: var(--muted); }   /* a label, not emphasis */
 :root .page-reading .prose :not(pre) > code { background: none; padding: 0; font-size: .9em; color: inherit; }
 :root .page-reading .term-en { font-size: .78em; color: var(--faint); }
 @media (hover: hover) {                     /* touch screens have no hover, so they keep the underline as the only sign of a gloss */

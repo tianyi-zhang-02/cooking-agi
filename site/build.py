@@ -2066,9 +2066,6 @@ def page_header_html(page):
                 if page.kind not in {"home", "project"} and page.section_count > 1 else "")
     reviewed = (("最近核对 " if zh else "Reviewed ") + page.reviewed
                 if page.reviewed else "")
-    number_match = re.match(r"^(\d\d)-", page.section["dir"])
-    chapter_mark = (f'<em class="chapter-mark" aria-hidden="true">'
-                    f'{number_match.group(1)}</em>' if number_match else "")
     bits = [f'<span>{html.escape(read)}</span>']
     if reviewed:
         bits.append(f'<span>{html.escape(reviewed)}</span>')
@@ -2087,7 +2084,6 @@ def page_header_html(page):
                  f'<span class="note-tool-status" role="status" aria-live="polite"></span></div>')
     return f"""
 <header class="article-head">
-  {chapter_mark}
   <div class="article-kicker"><span>{html.escape(labels[page.kind])}</span>
     <i>{section_label}</i></div>
   <h1>{html.escape(page.title)}</h1>

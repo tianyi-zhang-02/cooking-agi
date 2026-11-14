@@ -723,7 +723,7 @@
     pill.setAttribute('aria-label', say('在 GitHub 上给这个项目点 Star', 'Star this project on GitHub'));
     const star = lucide(14, [STAR], {class: 'repo-pill-star'});
     const hearts = el('span', {class: 'repo-pill-hearts', 'aria-hidden': 'true'});
-    pill.append(el('span', {class: 'repo-pill-divider', 'aria-hidden': 'true'}), star, el('span', {class: 'repo-pill-label', text: 'Star'}), hearts);
+    pill.append(star, el('span', {class: 'repo-pill-label', text: 'Star'}), hearts);
     let last = 0;
     const rise = () => {
       if (reduce() || Date.now() - last < 900) return;
