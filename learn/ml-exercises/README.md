@@ -23,6 +23,8 @@
 
 以 attention 为例：第 1 次说清 Q、K、V 怎样参与计算；第 2 次写一个带 causal mask 的小实现；第 3 次把 padding、长序列或 cache 加进去，判断原来的代码哪里不够了。
 
+想看同一个函数一路改下去，可以读[同一个 attention 的五种写法](attention-ladder.md)：从 MHA 到 causal、GQA、MLA，每一步只改几行，并和上一步对答案。
+
 卡住了就回[基础与模型](../../00-foundations/study-guide.md)补一补，不用硬背整页。做题是为了看看自己哪里还没懂，不是猜某家公司会考什么。
 
 ## 自测

@@ -23,6 +23,8 @@ For conceptual explanations and derivations, use [ML / LLM fundamentals review](
 
 For attention: explain how Q, K, and V enter the computation; implement a small causal-masked version; then introduce padding, a longer sequence, or caching and identify what must change.
 
+To see one function changed step by step, read [one attention, five ways](attention-ladder.en.md): from MHA to causal, GQA and MLA, a few lines at a time, each checked against the step before.
+
 Return to the [foundations](../../00-foundations/study-guide.en.md) when needed. These exercises check understanding; they aren't predictions of a particular company's interview.
 
 ## Self-check
