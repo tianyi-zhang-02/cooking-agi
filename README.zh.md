@@ -1,8 +1,8 @@
 # AGI 大锅烩
 
-**中英双语的 ML / LLM 笔记：算例、分步图解、代码练习和面试准备。**
-
 <!-- repository-only -->
+
+**中英双语的 ML / LLM 笔记：算例、分步图解、代码练习和面试准备。**
 
 <span id="si-学习笔记"></span>
 <span id="agi-学习笔记"></span>
@@ -11,9 +11,13 @@
 
 <p align="center"><a href="https://tianyi-zhang-02.github.io/cooking-agi/index.zh.html"><b>在线阅读 →</b></a> &nbsp;·&nbsp; <a href="README.md">English</a> &nbsp;·&nbsp; <a href="#contributors">贡献者</a> &nbsp;·&nbsp; <a href="CONTRIBUTING.md">加入我们</a></p>
 
+每个主题都围绕一个能跟着算、能跑、能回看的例子展开，旁边配上论文原图和出处。可以从零学起，也可以面试前集中复习，或者看看自己不熟的方向。**免费开放，也会一直免费。**
+
 <!-- /repository-only -->
 
-每个主题都围绕一个能跟着算、能跑、能回看的例子展开，旁边配上论文原图和出处。可以从零学起，也可以面试前集中复习，或者看看自己不熟的方向。**免费开放，也会一直免费。**
+<!-- widget:home -->
+
+<!-- repository-only -->
 
 ## 从哪里开始
 
@@ -46,11 +50,7 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 ## 内容一览
 
-<!-- repository-only -->
-
 <a href="https://tianyi-zhang-02.github.io/cooking-agi/learn/coverage.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-overview-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-overview-zh-light.svg" width="100%" alt="笔记的复核与图解数量、按板块列出的主题，以及现在和接下来在做的事；随网站每次部署更新"></picture></a>
-
-<!-- /repository-only -->
 
 - **模型怎么工作**：[Transformer 交互图解](https://tianyi-zhang-02.github.io/cooking-agi/00-foundations/transformer-lab.html) · [BERT](00-foundations/core/bert.md) · [CLIP 与多模态](03-multimodal-learning/clip.md)
 - **模型怎么学**：[训练基础](learn/pretraining/README.md) · [Deep RL](05-post-training/deep-rl/README.md) · [Post-training](05-post-training/README.md) · [LLM-as-a-Judge](07-evaluation/llm-as-a-judge/README.md)
@@ -64,11 +64,7 @@ npx skills add https://github.com/tianyi-zhang-02/cooking-agi --skill cooking-ag
 
 ## 贡献者与审稿人（Contributors / Reviewers）
 
-<!-- repository-only -->
-
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-zh-dark.svg"><img src="https://tianyi-zhang-02.github.io/cooking-agi/static/readme-people-zh-light.svg" width="100%" alt="按提交数排列的贡献者、各领域审稿人和读者的下一站；每天更新"></picture>
-
-<!-- /repository-only -->
 
 提交数量不能代表贡献的全部，提问、审阅和纠错同样重要。[补充署名](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=add-me-to-the-crew.yml) · [分享下一站](https://github.com/tianyi-zhang-02/cooking-agi/issues/new?template=next-stop.yml)
 
@@ -162,3 +158,5 @@ python3 site/build.py
 | 2026-08-10 | 第一版 AI 基础设施学习指南（[#1](https://github.com/tianyi-zhang-02/cooking-agi/pull/1)） | 重画图解（[#2](https://github.com/tianyi-zhang-02/cooking-agi/pull/2)） |
 
 </details>
+
+<!-- /repository-only -->

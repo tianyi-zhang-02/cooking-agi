@@ -175,7 +175,7 @@ data-title="{html.escape(title, quote=True)}" aria-label="{words["heading"]}">
 <div class="pf-kinds" role="group" aria-label="{words["kinds"]}">{"".join(kinds)}</div>
 <form class="pf-form" hidden>
 <p class="pf-quote" hidden><span class="pf-quote-label">{words["quote"]}</span><q data-pf-quote></q>\
-<button type="button" class="pf-unquote" data-pf-unquote aria-label="{words["unquote"]}">×</button></p>
+<button type="button" class="pf-unquote" data-pf-unquote aria-label="{words["unquote"]}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></p>
 <label class="pf-label" for="pf-text">{words["details"]}</label>
 <textarea id="pf-text" class="pf-text" rows="4" maxlength="600" data-pf-text></textarea>
 <p class="pf-tip" data-pf-tip>{words["tip"]}</p>

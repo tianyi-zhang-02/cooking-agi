@@ -1,4 +1,12 @@
 .search-toggle { display: grid; }
+.search-toggle :is(.search-label, kbd) { display: none; }
+@media (min-width: 1081px) {
+  .topbar .search-toggle:not([hidden]) { display: inline-flex; align-items: center; gap: .55rem; width: 210px; margin-right: .5rem; padding: 0 .5rem 0 .7rem;
+    border-color: var(--rule); background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--muted); }
+  .topbar .search-toggle .search-label { display: block; flex: 1; text-align: left; font: 400 .84rem/1 var(--body); white-space: nowrap; }
+  .topbar .search-toggle kbd { display: block; padding: .22rem .36rem; border: 1px solid var(--rule); border-radius: 5px; color: var(--faint); font: 500 .7rem/1 var(--sans); }
+  .topbar .search-toggle:hover { border-color: color-mix(in srgb, var(--ink) 25%, var(--rule)); background: color-mix(in srgb, var(--panel) 70%, transparent); }
+}
 .note-search {
   width: min(720px, calc(100vw - 3rem)); max-width: none; max-height: min(720px, 82dvh);
   margin: min(12vh, 7rem) auto auto; padding: 0; overflow: hidden;

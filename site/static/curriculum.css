@@ -45,18 +45,19 @@
 .worked-update figcaption { padding: .8rem 1rem; font: .78rem/1.8 var(--body); color: var(--muted); }
 .prose .worked-table table { min-width: 0; }
 .prose .worked-table th { white-space: normal; text-transform: none; letter-spacing: normal; }
-.chapter-context { margin: 0 0 1.8rem; padding: .9rem 1.1rem; border-left: 2px solid var(--rule); background: var(--panel); }
-.chapter-context strong { font: 600 .73rem/1.5 var(--body); color: var(--muted); }
+.chapter-context { margin: 0 0 1.8rem; padding: .15rem 0 .15rem 1.1rem; border-left: 2px solid color-mix(in srgb, var(--ember) 45%, var(--rule)); }   /* the same left rule as a quote */
+.chapter-context strong { font: 500 .73rem/1.5 var(--body); color: var(--muted); }
 .prose .appendix-topics { list-style: none; padding: 0 1rem; margin: 0; }
 .prose .appendix-topics li { padding: 1rem 0; margin: 0; border-bottom: 1px solid var(--rule-soft); scroll-margin-top: 7rem; }
 .prose .appendix-topics li:last-child { border-bottom: 0; }
 .prose .appendix-topics p { margin: .45rem 0; font-size: .86rem; }
 .appendix-topics .coverage-status, .appendix-topics small { display: block; color: var(--muted); font: .75rem/1.8 var(--body); }
 .prose .chapter-context p { margin: .3rem 0 0; font-size: .86rem; line-height: 1.8; }
-.study-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 1.7rem 0 2rem; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
-.study-route a { display: block; padding: 1rem; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule-soft); border-right: 1px solid var(--rule-soft); background: var(--panel); }
-.study-route a:hover { background: var(--ember-bg); }
-.study-route small { display: block; font: .7rem/1.5 var(--mono); color: var(--ember); margin-bottom: .3rem; }
+/* routes: open cells under a rule each, like the home page's entries */
+.study-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; margin: 1.7rem 0 2rem; }
+.study-route a { display: block; padding: .9rem 0 1rem; color: var(--ink); text-decoration: none; border-top: 1px solid var(--rule); }
+.study-route a:hover strong { color: var(--ember); }
+.study-route small { display: block; font: 500 .75rem/1.5 var(--body); color: var(--ember); margin-bottom: .3rem; }
 .study-route strong { font: 600 .88rem/1.6 var(--body); }
 .study-route span { display: block; font: .78rem/1.7 var(--body); color: var(--muted); margin-top: .35rem; }
 .study-route.goal-route { grid-template-columns: repeat(2, minmax(0, 1fr)); }

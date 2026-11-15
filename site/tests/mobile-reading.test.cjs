@@ -88,7 +88,8 @@ function mount(language = 'en', options = {}) {
         element.close = () => { element.open = false; element.events.close(); };
       }
       return element;
-    }
+    },
+    createElementNS: (namespace, tag) => new Element(tag)
   };
   class Mutation {
     constructor(callback) { mutation = callback; }

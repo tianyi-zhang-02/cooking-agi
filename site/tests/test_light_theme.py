@@ -41,7 +41,10 @@ class LightThemeTests(unittest.TestCase):
         title = declarations(STYLE, ':root[data-theme="light"] .hero-title')
         self.assertEqual(title["color"], "var(--ink)")
         self.assertEqual(title["text-shadow"], "none")
-        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .hero-kicker')["color"], "var(--muted)")
+        search = declarations(STYLE, ':root[data-theme="light"] .hero-search')
+        self.assertEqual(search["background"], "var(--panel)")   # no dark glass on the light cover
+        self.assertEqual(search["backdrop-filter"], "none")
+        self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .hero-links a')["color"], "var(--ink)")
         self.assertEqual(declarations(STYLE, ':root[data-theme="light"] .sky')["display"], "none")
 
     def test_hero_text_also_contrasts_with_the_horizon(self):
