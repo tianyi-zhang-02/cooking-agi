@@ -2,7 +2,7 @@
 
 **中文** · [English](planning-and-control.en.md)
 
-> 阅读时间：约 6–8 分钟 · 最近审阅：2026-10
+> 阅读时间：约 10–12 分钟 · 最近审阅：2026-11
 
 Model-based 不是一个固定算法。先问：**计算发生在每次决策时，还是提前训练时？** 再问有没有可用的导数、动作是否连续、约束能不能违反。这样选 planner 比按名字追热点更有用。
 
@@ -94,6 +94,47 @@ MPC 是“观察后重新规划”的执行方式，不是这张表里的第五�
 MPC 把计算花在每次决策的搜索上；模型也可以在部署前用来生成训练数据。Dyna / MBPO 从真实数据附近做短 rollout，训练 policy 或 Q；[Dreamer](../../11-frontier/world-models/dreamer.md) 一类方法在潜在状态里想象轨迹，再训练 Actor / Critic；规划器蒸馏则让一个推理较快的策略模仿规划结果。
 
 这些做法在部署时都省掉了在线搜索，主要只剩策略推理，潜在状态方法还要先编码观测。几种组合各付什么成本、在哪里失败，见[规划与学习怎样配合](planning-and-learning.md)。这里还要注意两点：潜在状态若丢掉控制需要的信息，重建图像好看也不能补救；在模型里完成训练，也不等于已经验证了部署安全。
+
+## 能反传，不代表拿到了期望回报的正确梯度 {#pathwise-gradient-conditions}
+
+模型用于训练策略时，可以把动作写成 $a_t=g_\theta(s_t,\epsilon_t)$，随机转移写成 $s_{t+1}=f(s_t,a_t,\xi_t)$；噪声的基础分布不依赖 $\theta$。固定一组噪声后，对整条计算图求导，再对样本梯度取平均，就是路径导数估计（pathwise gradient）。它仍是蒙特卡洛（Monte Carlo）估计，不是“用了自动微分就没有采样方差”。
+
+关键一步是能否交换求导与期望。一个充分条件是：参数邻域内的样本回报几乎处处连续可微，且梯度被某个可积随机变量一致控制。仅仅“对几乎每条采样轨迹都能求导”还不够：奖励或动力学有跳变时，逐样本求导可能漏掉跨越边界的概率变化。[Suh 等（2022），§3.1](https://proceedings.mlr.press/v162/suh22b.html)讨论了这种偏差；即使问题光滑，也不能一概认为路径导数比似然比（likelihood-ratio）估计的方差小。
+
+看一个带门槛奖励的单步任务：$a=\theta+\epsilon$，$\epsilon\sim\mathcal N(0,1)$，奖励 $r(a)=a+2\mathbf1\{a>0\}$。连续部分按动作给分，越过 0 额外得 2 分。记 $\Phi,\phi$ 分别为标准正态的累积分布函数（CDF）和概率密度函数（PDF），则：
+
+$$
+J(\theta)=\theta+2\Phi(\theta),\qquad
+J'(0)=1+2\phi(0)=1+\frac{2}{\sqrt{2\pi}}\approx1.798.
+$$
+
+逐样本反传却几乎总得到 $dr/d\theta=1$：它看得到连续部分，看不到越过门槛带来的额外收益。**样本梯度方差为 0，仍然是有偏的。** 高斯策略的 score 为 $a-\theta$，在 $\theta=0$ 时，likelihood-ratio 估计的期望是：
+
+$$
+\mathbb E[r(\epsilon)\epsilon]
+=\mathbb E[\epsilon^2]+2\int_0^\infty z\phi(z)\,dz
+=1+2\phi(0).
+$$
+
+这里它恢复了缺失的边界贡献，但单样本会有噪声。把门槛换成平滑近似能让 pathwise 梯度存在，却也换了目标；要另外检查近似误差，不能把替代目标的梯度当作原任务梯度。
+
+## 短反传加末端 Critic：冻结权重，不是切断状态梯度 {#short-horizon-actor-gradient}
+
+[SHAC（Xu 等，2022），§3.3、附录 A.1](https://arxiv.org/abs/2204.07137)在可微模拟器中用短窗口训练 Actor，再用末端 Critic 接续未来回报。忽略批量平均常数，把最大化目标写成：
+
+$$
+\hat J_H(\theta)=\mathbb E\left[\sum_{t=0}^{H-1}\gamma^t r(s_t,a_t)+\gamma^H V_\psi(s_H)\right].
+$$
+
+每个窗口的起始状态视为常量，不把计算图接回上一窗口。更新 Actor 时固定 $\psi$，但必须保留 $\nabla_sV_\psi(s_H)\,\partial s_H/\partial\theta$。例如 $H=1$、$s_0=2$、$a_0=\theta$、$s_1=2+\theta$，即时奖励为 0，尾项 $V_\psi(s)=-s^2$，$\gamma=0.9$。在 $\theta=0$：
+
+$$
+\frac{d\hat J_1}{d\theta}=-1.8(2+\theta)=-3.6.
+$$
+
+若把 $s_1$ 或整个尾项 detach，梯度就变成 0，Actor 不再知道该把状态推向哪里。反过来，训练 Critic 的 TD / $\lambda$-return 标签应当作为固定目标，不沿标签反传。这是两个不同的更新，不能共用一条不加区分的 stop-gradient 规则。
+
+短窗口缩短了 Jacobian 连乘链，但把长程信息交给了 Critic 的**状态梯度**；Critic 值估得近，不保证斜率也对。它也没有消除窗口内的跳变、模型误差或分布偏移，因此不保证原始全时域目标的无偏梯度。SHAC 的模拟器梯度与学到的世界模型梯度还要分开验证：后者额外依赖模型学对局部变化。
 
 ## 怎么选一个起点
 

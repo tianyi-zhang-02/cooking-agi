@@ -117,6 +117,8 @@ Use two responses' **illustrative per-token losses** to check denominators: a sh
 
 Coefficients are $\partial L/\partial\ell_{i,t}$, **not parameter-gradient magnitudes**. Tokens' own gradients can differ greatly. The first row matches sequence REINFORCE's summation above; other rows may belong to different objectives. Do not substitute them merely to make a loss look smaller. Fixed-length normalization differs from the sequence sum by a constant here; dividing each response by its actual length changes relative weighting.
 
+This table also helps distinguish training recipes. [Dr. GRPO, §3.2](https://arxiv.org/html/2503.20783v2#S3.SS2) removes per-response length and within-group standard-deviation normalization; its example implementation divides by a fixed generation budget. [DAPO, §3.3](https://arxiv.org/html/2503.14476v2#S3.SS3) reduces over the total valid-token count. For one fixed batch, the length denominators may differ only by a common scale. Across batches, however, the actual token count varies while the fixed budget need not. Calling both “token averaging” hides that difference, and the full algorithms differ in more than their denominators.
+
 Keep the chosen denominator when splitting into microbatches or multiple devices. For a valid-token average, count tokens across the whole optimizer step rather than giving short and long microbatches equal weight. See [global denominators in distributed training](distributed-training.en.md) for compensation when gradients are averaged across devices.
 
 ## Run the checks before integrating a model {#checks}

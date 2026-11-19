@@ -46,7 +46,7 @@ Public results show both. OpenAI self-reported on 2024-09-12 that o1 scored 74.4
 
 ## Best-of-N with a verifier: the error rate sets the ceiling
 
-Now pick differently. Each sample goes to a verifier that only says accept or reject. Let the verifier accept a correct answer with probability $r$ and wrongly accept a wrong answer with probability $f$ (the false positive rate), judging each sample independently. The strategy: draw N samples and return any accepted one; if none is accepted, return the first sample.
+Now pick differently. Each sample goes to a verifier that only says accept or reject. Let the verifier accept a correct answer with probability $r$ and wrongly accept a wrong answer with probability $f$ (the false positive rate), judging each sample independently. Draw N independent samples and return the first accepted one in generation order; if none is accepted, return the first sample. No extra content-based selection or scoring is applied, which would require accounting for another selection effect.
 
 A single sample is rejected with probability $q=1-pr-(1-p)f$; among accepted samples, the fraction that is correct (the precision) is $pr/\big(pr+(1-p)f\big)$. So
 
@@ -70,7 +70,7 @@ When the verifier returns a score instead of 0/1, the usual move is to take the 
 
 ## Outcome reward models and process reward models
 
-A verifier can be a program (unit tests, answer matching, Lean) or a trained model. Trained ones come in two kinds: an outcome reward model (ORM) gives one score to the whole answer; a process reward model (PRM) scores every step and combines the step scores into a score for the answer.
+A verifier can be a program (unit tests, answer matching, Lean) or a trained model. Common supervision choices include outcome reward models (ORMs), trained from final outcomes, and process reward models (PRMs), trained with intermediate feedback. **These names do not fix the output head or scoring positions.** An ORM may predict final outcomes from prefixes; a PRM's targets may describe local correctness or future success. Whether to use the last score, a minimum, or a product depends on what those labels mean. See the worked comparison in [What a reward model predicts](../../05-post-training/reward-signals.en.md#aggregation).
 
 <!-- paper-figure:lightman-prm-grading -->
 
@@ -134,6 +134,29 @@ All of the following are self-reported by companies or authors under different c
 - **Claude 3.7 Sonnet** (Anthropic, 2025-02-24): in a research setting, with compute equivalent to 256 independent samples, a learned scoring model and up to a 64k-token thinking budget, GPQA 84.8%; the post says this parallel setting was not available in the deployed model.
 - **Navier–Stokes** (OpenAI, September 2026): a multi-agent system driven by an internal model; the group that produced the result had about 10,000 agents running at once, produced the proof after about 88 hours, then took about 17 more hours for a Lean formalisation, using about 130 billion output tokens on this problem. Here Lean is the verifier: it guarantees the proof holds for the formal statement. But according to [Scientific American (2026-09-21)](https://www.scientificamerican.com/article/did-openai-solve-the-wrong-navier-stokes-problem/), mathematicians point out that it proves the version that allows an external force, and the unforced problem they actually care about remains open. A verifier checks the specification you wrote down; whether that specification is the question you care about is a separate matter.
 
+## A fixed budget: more generation or better verification? {#budget-example}
+
+A more accurate verifier need not make the full system more accurate at a fixed budget. Keep the earlier rule: return the first accepted answer, falling back to the first answer if none passes. Suppose the generator succeeds with probability $p=0.25$ per attempt. This is a made-up example; the cost units are neither model tokens nor measured latency.
+
+The budget is 24, and each generation costs 4. A cheap verifier costs 2 per answer, while an expensive one costs 8. Both accept correct answers with probability $r=0.9$, but their false-positive rates are 0.10 and 0.02. Assume independent samples and verification outcomes across samples, fixed costs, and no early stopping: every candidate is generated and checked.
+
+| Setup | Generation + verification per candidate | Candidates checked | At least one correct candidate | Correct answer returned |
+| --- | --- | --- | --- | --- |
+| Cheap verifier | $4+2=6$ | $N=4$ | $1-0.75^4\approx68.36\%$ | 57.85% |
+| Expensive verifier | $4+8=12$ | $N=2$ | $1-0.75^2=43.75\%$ | 41.50% |
+
+For the last column, the cheap setup accepts a candidate with probability $0.25\times0.9+0.75\times0.1=0.30$, and 75% of accepted candidates are correct. Therefore:
+
+$$
+\operatorname{acc}_{\rm cheap}
+=(1-0.7^4)\times0.75+0.7^3\times0.25\times0.1
+=0.5785.
+$$
+
+The expensive setup accepts with probability 0.24, with precision $0.225/0.24=0.9375$. Thus $\operatorname{acc}_{\rm expensive}=(1-0.76^2)\times0.9375+0.76\times0.25\times0.1=0.415$. It selects more reliably but sees two fewer candidates. This does not establish that cheaper verification always wins: a different generator, error rate, or budget can reverse the comparison. The [check program](../../05-post-training/deep-rl/code/feedback_exploration_checks.py) lets you change these numbers.
+
+In a real comparison, track generation compute, verification compute, end-to-end latency, and final task success separately. Prefix reuse, verifier size, tool calls, and parallel resources change the bill. A token from one model need not cost as much compute as a token from another; equal FLOPs need not give equal latency either. For training versus inference budgets, return to the Snell calculation above rather than treating equal output tokens as equal cost.
+
 ## What to check when you try it
 
 | Try first | What to observe | What you can NOT conclude |
@@ -142,7 +165,7 @@ All of the following are self-reported by companies or authors under different c
 | Compare before and after voting, problem by problem | Which problems voting gets wrong: those where the right answer is not the mode | The per-problem voting outcome from the overall average $p$ |
 | Estimate the verifier's $r$ and $f$ on a hand-checked batch of samples | The ceiling is about the precision $pr/\big(pr+(1-p)f\big)$ | That $f$ stays the same when the problem distribution or generator changes |
 | Increase N step by step, tracking both verifier score and true accuracy | Score still rising while accuracy flattens or falls means the verifier is being exploited | That a larger N is always better |
-| Fix the total number of generated tokens when comparing two methods | Which is more accurate at the same cost | Comparing only each method's best point |
+| Match the total generation and verification budget; report end-to-end latency separately | Which is more accurate at the same resource budget, and where the cost goes | That equal output tokens across models imply equal cost |
 
 ## What to watch on this line next
 

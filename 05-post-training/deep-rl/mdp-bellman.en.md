@@ -2,7 +2,7 @@
 
 [中文](mdp-bellman.md) · **English**
 
-> Reading time: ~6–9 min · Last reviewed: 2026-10
+> Reading time: ~9–12 min · Last reviewed: 2026-11
 
 A robot can stop now for 2 points, or charge for zero immediate reward and receive 4 points on the following step. Which is better? It depends on how we count the future. This tiny problem already contains a central structure of RL.
 
@@ -114,6 +114,43 @@ $$
 Rearranging yields $\|V-V^*\|_\infty\le\varepsilon/(1-\gamma)$. A residual of 0.01 gives a bound of 0.1 at $\gamma=0.9$, but 1 at $\gamma=0.99$. Valuing the distant future more requires a tighter residual for the same value-error guarantee.
 
 This needs the true Bellman residual over the entire state space. A small minibatch MSE does not establish that uniform bound: sampling noise and uncovered states matter.
+
+## Visitation is not the stationary distribution {#discounted-occupancy}
+
+A stationary policy does not imply identical state distributions at every step. Let $\rho_0$ be the initial distribution and $p_t^\pi$ the state distribution at time $t$. Using row vectors, $p_{t+1}^\pi=p_t^\pi P_\pi$, where $P_\pi(s,s')=\sum_a\pi(a\mid s)P(s'\mid s,a)$.
+
+For a continuing task with $0\le\gamma<1$, the normalized discounted state-visitation distribution is
+
+$$
+d_\gamma^\pi(s)=(1-\gamma)\sum_{t=0}^{\infty}\gamma^t p_t^\pi(s),
+\qquad \sum_s d_\gamma^\pi(s)=1.
+$$
+
+Separate time zero and shift the remaining summation index to obtain its flow equation:
+
+$$
+d_\gamma^\pi=(1-\gamma)\rho_0+\gamma d_\gamma^\pi P_\pi.
+$$
+
+In contrast, a stationary distribution satisfies $d_{\rm stat}^\pi=d_{\rm stat}^\pi P_\pi$, without the initial-distribution term. Discounted visitation does not require $p_t^\pi$ to converge. Even the existence of a stationary distribution does not guarantee convergence of the marginals from a particular starting state.
+
+**Calculate an alternating chain.** Start in L and switch deterministically between L and R. Rewards are 1 in L and 3 in R; take $\gamma=0.5$. The stationary distribution is $(1/2,1/2)$, but the actual marginals alternate forever between $(1,0)$ and $(0,1)$. Discounted visitation gives
+
+$$
+d_\gamma^\pi(L)=\frac{1-0.5}{1-0.5^2}=\frac23,
+\qquad d_\gamma^\pi(R)=\frac{(1-0.5)0.5}{1-0.5^2}=\frac13.
+$$
+
+Writing $r_\pi(s)=\mathbb E_{a\sim\pi,s'\sim P}[r(s,a,s')]$, the discounted objective from the initial distribution becomes
+
+$$
+J(\pi)=\mathbb E_{s_0\sim\rho_0}[V^\pi(s_0)]
+=\frac{1}{1-\gamma}\mathbb E_{s\sim d_\gamma^\pi}[r_\pi(s)].
+$$
+
+Here $J=2(\frac23\times1+\frac13\times3)=10/3$, matching the direct sum $(1+0.5\times3)/(1-0.5^2)$. Substituting stationary visitation would instead give $2\times2=4$, losing the discounted weighting associated with starting in L.
+
+[TRPO §2](https://proceedings.mlr.press/v37/schulman15.pdf) uses unnormalized visitation frequencies; switching to $d_\gamma^\pi$ requires the $1/(1-\gamma)$ factor. The time weights in [policy gradients](policy-gradients.en.md) and the state–action occupancy $d_\gamma^\pi(s)\pi(a\mid s)$ used by [GAIL](gail.en.md#occupancy) need an explicit convention. Uniform replay sampling generally gives yet another state distribution: sharing an environment does not make these distributions interchangeable. Episodic tasks can retain normalization by adding a zero-reward absorbing state; visitation counted only before termination need not have unit mass.
 
 ## Change one assumption
 

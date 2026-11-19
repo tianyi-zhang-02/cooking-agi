@@ -19,12 +19,15 @@
 | 通过价值选动作 | [Fitted Q 与收敛边界](fitted-q.md) → [DQN](dqn.md) → [DDPG / TD3](continuous-control.md) → [SAC](soft-actor-critic.md) | 分清回归 loss 与策略表现，画出各个网络的梯度路径 |
 | 用模型想几步 | [Model-based RL](model-based.md) → [学什么样的模型](model-types.md) → [规划与 LQR](planning-and-control.md) → [规划与学习怎样配合](planning-and-learning.md) | 分清学习动力学、规划动作和训练策略，说出模型该预测什么、搜索结果怎样变成训练标签 |
 | 数据与奖励从哪里来 | [Offline RL 与 OPE](offline-and-ope.md) → [逐步权重、双重稳健与 LSTD](ope-estimators.md) · [探索与层级](exploration-and-hierarchy.md) · [模仿与奖励](imitation-and-rewards.md) | 说出各自增加的假设，而不只是记名字 |
+| 下一次该试什么 | [探索与层级](exploration-and-hierarchy.md) → [探索与不确定性](exploration-uncertainty.md) | 手算 UCB、后验和信息增益，区分新颖、随机与值得探索 |
 | 从示范里学习 | [模仿与奖励](imitation-and-rewards.md) → [MaxEnt IRL](maxent-irl.md) → [GAIL](gail.md) · [奖励排序训练](../reward-ranking.md) | 拟合特征期望、计算判别器奖励，区分成对偏好与完整排序 |
 | 真正跑一个实验 | [实验与排错](experiments.md) → [接到 LLM](llm-bridge.md) | 检查实现，再判断 reward 是否代表任务进步 |
 
 这些章节不只介绍算法名字。我们会一起算 Bellman 残差界、TD target、梯度方向、PPO 裁剪和控制轨迹，再看 CQL、IQL 与 FQE 如何处理离线数据。模仿学习这一组继续用算例讲奖励拟合与分布匹配；层级和多智能体目前只作引入，还不是完整的理论综述。
 
 接到语言模型训练时，可以先读 [RLOO 的留一基线](../rloo.md)，再动手[核对一批回答怎样变成 loss](../../practice/post-training/rl-batch-audit.md)。前一篇补基线的证明和手算，后一篇检查分组、token 移位、EOS 与损失分母；不需要先搭多卡训练。
+
+奖励本身也值得单独拆开：[奖励模型在预测什么](../reward-signals.md)用一道小算术题区分答案正确、步骤正确和后续成功概率，再算标签 mask 与分数聚合。如果正在复习推理时搜索，可以接着算[同一预算怎样分给生成与验证](../../11-frontier/test-time-compute/parallel-and-verify.md#budget-example)。
 
 ## 复习这组内容，先试着回答这六个问题 {#reward-review}
 
@@ -40,6 +43,22 @@
 | 两条回答的逐 token 损失为 $[2,4]$ 和 $[1,1,1,1]$，为什么三种 mean 会不同？ | 序列求和后平均为 5，逐回答平均为 2，有效 token 平均为 $5/3$。分母改变了样本权重；拆 microbatch 后也应保留同一目标 | [损失归约的手算表](../../practice/post-training/rl-batch-audit.md#reduction) |
 
 能算出数字以后，再把条件换一下：同题采样不独立、候选数不同、轨迹长度不固定，或者奖励服务超时。哪一步还能用，哪一步要重新定义？沿着这些变化解释，通常比只报算法名字更能看出理解到了哪里。
+
+## 基础学过了，再看看这几个反例 {#assumption-review}
+
+下面这些问题不需要记新的算法名字。先猜答案，再用小环境或数字检查自己漏了哪个条件。
+
+| 问题 | 用哪个例子检查 |
+| --- | --- |
+| 策略不随时间变，访问到的状态分布也不变吗？ | [L、R 交替的链](mdp-bellman.md#discounted-occupancy)：平稳分布是各半，折扣访问分布却是 $2/3$、$1/3$ |
+| baseline 等于平均回报，梯度方差就最小吗？ | [两个动作的 bandit](policy-gradients.md#variance-optimal-baseline)：平均回报 2.6，本例的最小方差基线却是 1.4 |
+| Q-learning 能用旧数据，多步回报也可以直接用吗？ | [两步 replay](dqn.md#multistep-off-policy)：目标价值 6.4，未校正的两步 target 均值只有 2.35 |
+| 模型预测很准，沿它的梯度优化就可靠吗？ | [预测相同、导数相反](model-based.md#model-jacobian-check)；再看[零方差但有偏的梯度](planning-and-control.md#pathwise-gradient-conditions) |
+| 日志里最好的一整段只有 3 分，离线策略最多也只能拿 3 分吗？ | [拼接两段兼容的经验](offline-and-ope.md#stitching-and-trajectory-support)：在给定的确定性 MDP 中能拿 5 分，但轨迹 IS 可能恰好没有一条非零权重 |
+| 很难预测的结果，就值得多探索吗？ | [探测器与随机硬币](exploration-uncertainty.md#information-gain)：前者提供约 0.2781 bit，后者对隐藏状态的信息为 0 |
+| 一个前缀后来更容易答对，说明前缀本身变正确了吗？ | [换续写策略](../reward-signals.md#prefix-value)：前缀没变，样本成功率却从 1/4 变成 3/4 |
+
+每个例子都保留了适用条件。复习时不只报出反例的数字，也说说换成随机环境、不同策略或更少数据以后，原来的计算还能不能用。
 
 ## 不同读法，不需要不同一套笔记
 

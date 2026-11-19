@@ -2,7 +2,7 @@
 
 [中文](policy-gradients.md) · **English**
 
-> Reading time: ~6–9 min · Last reviewed: 2026-10
+> Reading time: ~9–12 min · Last reviewed: 2026-11
 
 Q-learning estimates which action is valuable and then takes an argmax. Another route changes action probabilities directly: if an outcome is better than expected, make the sampled behavior more likely. But the environment may not be differentiable. Where does the gradient come from?
 
@@ -49,6 +49,41 @@ $$
 $$
 
 Gradient ascent lowers the first logit and raises the second. Reward 1 is positive, but it is below the mean of 2. Positive raw reward does not mean an action's probability should always increase.
+
+## Why the mean return need not minimize variance {#variance-optimal-baseline}
+
+Consider one gradient term at a fixed state $s$. Write its score vector as $z=\nabla_\theta\log\pi_\theta(a\mid s)$, its sampled return as $G$, and its estimator as $g_b=z(G-b)$. Fix the baseline before sampling the current action. Since $\mathbb E[z\mid s]=0$, changing $b$ leaves the mean unchanged. Minimizing the sum of coordinate variances therefore reduces to minimizing a second moment:
+
+$$
+\operatorname{tr}\operatorname{Cov}(g_b\mid s)
+=\mathbb E[\|z\|^2(G-b)^2\mid s]
+-\|\mathbb E[zG\mid s]\|^2.
+$$
+
+The second term does not depend on $b$. Differentiate the first term and set the derivative to zero. With finite second moments and $\mathbb E[\|z\|^2\mid s]>0$,
+
+$$
+\mathbb E[\|z\|^2(b-G)\mid s]=0
+\quad\Longrightarrow\quad
+b^*(s)=\frac{\mathbb E[\|z\|^2G\mid s]}{\mathbb E[\|z\|^2\mid s]}.
+$$
+
+Returns are weighted by **squared score magnitude**, not just action probability. This follows the variance-minimization approach discussed by [Peters and Schaal (2008), §3.2](https://www.ias.informatik.tu-darmstadt.de/uploads/Publications/Publications/Neural-Netw-2008-21-682_4867%5B0%5D.pdf). Our criterion is specifically a shared scalar baseline for one gradient term at a fixed state. It does not automatically minimize whole-trajectory variance with cross-time covariances, or remain optimal under a different parameterization or optimizer.
+
+**Change the bandit's action probabilities.** Let action $a=1$ pay 3 and action $a=0$ pay 1, with $p=\pi(a=1)=\sigma(\theta)=0.8$. For this scalar logit, $z=a-p$: the two scores are $-0.8$ and $0.2$. Mean return is 2.6, whereas
+
+$$
+b^*=\frac{0.2\times0.8^2\times1+0.8\times0.2^2\times3}
+{0.2\times0.8^2+0.8\times0.2^2}=1.4.
+$$
+
+| Fixed baseline | $g_b$ when action 0 is sampled | $g_b$ when action 1 is sampled | $\mathbb E[g_b]$ | $\operatorname{Var}(g_b)$ |
+| --- | --- | --- | --- | --- |
+| None, $b=0$ | −0.8 | 0.6 | 0.32 | 0.3136 |
+| Mean return, $b=2.6$ | 1.28 | 0.08 | 0.32 | 0.2304 |
+| This example's $b^*=1.4$ | 0.32 | 0.32 | 0.32 | 0 |
+
+Every mean equals the true gradient $p(1-p)(3-1)=0.32$. Zero variance relies on this one-step, deterministic-reward, single-parameter setting; it is not a general RL guarantee. The example separates ordinary value-prediction MSE from Actor-gradient variance. Estimating $b^*$ also costs data and introduces estimation noise. Using the current action's return to manufacture an “optimal” baseline would still violate the statistical-independence requirement discussed earlier.
 
 ## A minimal PyTorch update
 

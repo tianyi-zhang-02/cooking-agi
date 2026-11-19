@@ -2,7 +2,7 @@
 
 [中文](model-based.md) · **English**
 
-> Reading time: ~10–12 min · Last reviewed: 2026-10
+> Reading time: ~12–15 min · Last reviewed: 2026-11
 
 When trial and error is expensive, can we learn an environment model and test actions inside it first? Yes. But if the model mistakes a dangerous route for a shortcut, the planner may prefer that route. **Once predictions guide decisions, good average prediction accuracy is not enough.**
 
@@ -80,6 +80,21 @@ $$
 
 Two equally weighted models with means 0 and 2 and variance 1 each yield mixture variance $1+1=2$. The first term is within-member variation; the second is between-member variation. This is an exact decomposition of the mixture. Interpreting the second term as true epistemic uncertainty requires modeling and calibration assumptions.
 
+## How long should a particle keep the same model? {#particle-model-identity}
+
+Matching one-step predictive distributions does not imply matching multistep distributions. [PETS, §5.1](https://arxiv.org/abs/1805.12114) distinguishes TS1, which resamples an ensemble member at every step, from TS∞, which keeps one member per particle trajectory while still sampling transition noise within that member. The latter preserves a consistent dynamics hypothesis along the rollout.
+
+Consider an original two-step calibration task: $x_0=0$, the action stays at 1, and $x_{t+1}=x_t+B$. Our belief gives equal probability to machine gains $B=-1$ and $B=+1$, but the gain is fixed within an episode. There is no additional process noise.
+
+| Propagation rule | Distribution of $x_2$ | Mean | Variance |
+| --- | --- | --- | --- |
+| Draw $B$ once per trajectory | $-2,+2$, each with probability $1/2$ | 0 | 4 |
+| Draw $B$ independently each step | $-2,0,+2$, with probabilities $1/4,1/2,1/4$ | 0 | 2 |
+
+In the first row, $x_2=2B$, so its variance is 4. In the second, $x_2=B_0+B_1$ and independent variances add to 2. For a constraint $|x_2|<1$, the predicted satisfaction probabilities are respectively 0 and $1/2$, despite identical one-step marginals. **Resampling turns persistent model error into noise that can cancel itself in this example.**
+
+This is not a universal argument for TS∞. If $B$ really changes independently every step, the second rule is appropriate. Nor are ensemble members automatically calibrated posterior samples. First decide whether uncertainty represents a fixed unknown parameter, stepwise noise, or changing dynamics; then choose how to propagate it.
+
 ## Why rollout errors compound
 
 Fix the same initial state and action sequence for deterministic true dynamics $f$ and model $\hat f$. Assume their one-step difference is uniformly bounded by $\epsilon$ over the region visited, and that $f$ is $L$-Lipschitz in state. With $e_k=\|s_k-\hat s_k\|$:
@@ -104,6 +119,28 @@ $$
 $$
 
 Variance explains randomness, but the log-variance term penalizes unlimited inflation. One Gaussian may still miss separated modes; mixtures, latent variables, or other models may be appropriate. An ensemble does not automatically fix an inadequate distribution family shared by all members.
+
+## Close predictions can have opposite action derivatives {#model-jacobian-check}
+
+Sampling-based planning mainly queries predicted outcomes. Backpropagating through a model also queries derivatives with respect to actions and states. [Stochastic Value Gradients (Heess et al., 2015), §4.3](https://arxiv.org/abs/1510.09142) notes that model-Jacobian errors can compound backward, just as prediction errors compound forward. Low one-step loss does not certify those derivatives.
+
+Take one action coordinate, true next state $f(a)=a$, and model:
+
+$$
+\hat f(a)=a+0.1\sin(20a),\qquad
+|\hat f(a)-f(a)|\le0.1.
+$$
+
+At $a_*=\pi/20$, their predicted values agree exactly, but:
+
+$$
+f'(a_*)=1,\qquad
+\hat f'(a_*)=1+2\cos(\pi)=-1.
+$$
+
+If the local objective is to increase the next state, a small ascent step using the model decreases the action and therefore decreases real reward. No long horizon or discontinuity is necessary: both functions are smooth. More generally, $a+\epsilon\sin(2a/\epsilon)$ has uniform prediction error at most $\epsilon$, yet its derivative at $a_*=\pi\epsilon/2$ remains $-1$ as $\epsilon\to0$. This is an original counterexample, not an empirical model result.
+
+For models used in backpropagation, supplement held-out transition loss with local action-perturbation checks against an authorized environment or trusted simulator; repeat measurements when outcomes are noisy. Finite differences of the learned model alone can check autodiff implementation, not agreement with the real system's derivatives. [Planning and control](planning-and-control.en.md#short-horizon-actor-gradient) explains the division between short backpropagation and a terminal critic.
 
 ## Why can harder planning exploit more model errors?
 

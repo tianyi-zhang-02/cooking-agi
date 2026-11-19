@@ -117,6 +117,8 @@ def completion_log_probs(logits, input_ids, action_mask):
 
 系数指 $\partial L/\partial\ell_{i,t}$，**不是网络参数梯度的大小**。不同 token 自己的梯度仍可很不一样。第一行对应前面序列 REINFORCE 的求和方式；其他行可能用于不同训练目标，不能为了 loss 数字好看就互换。固定长度与序列求和在这里差一个常数，按实际长度平均则改变长短回答的相对权重。
 
+读训练配方时，这张表也能防止把不同改法混为一谈。[Dr. GRPO，§3.2](https://arxiv.org/html/2503.20783v2#S3.SS2)去掉逐回答长度和组内标准差归一化，示例实现用固定生成预算作分母；[DAPO，§3.3](https://arxiv.org/html/2503.14476v2#S3.SS3)使用有效 token 总数归约。对同一批固定数据，它们的长度分母可以只差一个整体缩放；但换一批回答，实际 token 总数会变，固定预算未必变。不能把两者都简称“token 平均”，也不要把整套算法的区别缩成一个分母。
+
 拆成 microbatch 或多张卡时，也要保持所选分母。比如按有效 token 平均，应该先汇总整个优化步的有效 token 数，而不是让短 microbatch 和长 microbatch 各占一半。分布式梯度平均的补偿见[多卡训练的全局分母](distributed-training.md)。
 
 ## 跑检查，再接真实模型 {#checks}

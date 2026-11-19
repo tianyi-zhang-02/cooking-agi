@@ -100,6 +100,8 @@ Outcome rewards assess the final result. They are straightforward to integrate i
 
 The two can be combined: tests check the final result while process signals guide search. Check whether the extra signal improves success at the same computational budget, rather than merely increasing process scores.
 
+In an implementation, distinguish the label from where a prediction is made. An ORM may predict final success at intermediate positions; a PRM need not use three classes or multiply its step scores. [What a reward model predicts](reward-signals.en.md) works through the distinctions: a correct answer can contain an invalid step, and a valid prefix need not be easy for the current policy to finish.
+
 The frontier draft [Test-time compute: sampling, voting, and verifiers](../11-frontier/test-time-compute/parallel-and-verify.en.md) explains how reward models select answers at inference time and guide search over intermediate steps. When reading a paper, distinguish better answer selection from better policy training. [Let's Verify Step by Step, §2.1](https://arxiv.org/html/2305.20050v1#S2.SS1) keeps the generator fixed and compares reward models' ability to select from multiple candidates; it does not update the generator with RL. Better selection with process scores is therefore not, by itself, evidence that training a policy with process rewards would improve it. That requires a separate training and evaluation comparison.
 
 ## Verifiability is a spectrum, not a binary {#verifiability-is-a-spectrum-not-a-binary}
