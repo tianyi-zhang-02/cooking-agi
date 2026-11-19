@@ -278,7 +278,8 @@ class DeepRLTests(unittest.TestCase):
 
     def test_bilingual_structure_and_private_material_excluded(self):
         pages = [path for path in NOTES.glob("*.md") if not path.name.endswith(".en.md")]
-        self.assertEqual(len(pages), 22)
+        self.assertEqual(len(pages), 24)
+        self.assertTrue({"maxent-irl.md", "gail.md"}.issubset({path.name for path in pages}))
         for chinese in pages:
             english = chinese.with_name(chinese.stem + ".en.md")
             self.assertTrue(english.exists(), chinese.name)

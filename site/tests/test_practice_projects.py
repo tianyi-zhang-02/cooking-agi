@@ -269,7 +269,8 @@ class PracticeContentTests(unittest.TestCase):
             expected = (["README.md", "data-and-retrieval.md", "evidence-and-evaluation.md"]
                         if group == "rag-practice" else
                         ["README.md", "training-plan.md", "data-pipeline.md", "data-and-objectives.md",
-                         "distributed-training.md", "checkpoint-and-resume.md", "experiments-and-release.md"])
+                         "distributed-training.md", "checkpoint-and-resume.md", "experiments-and-release.md",
+                         "rl-batch-audit.md"])
             self.assertEqual(sections[0]["order"], expected)
 
     def test_manifest_examples_are_valid_and_consistent(self):

@@ -61,6 +61,7 @@ In order, these notes follow one experiment from method selection to delivery. F
 | [4 · Multi-GPU choices](distributed-training.en.md) | Separate capacity from speed; calculate batches and denominators | DDP/FSDP/ZeRO/TP/PP costs |
 | [5 · Save and resume](checkpoint-and-resume.en.md) | Compare interrupted recovery; separate resume and export | State, save timing, and changed-topology guarantees |
 | [6 · Experiments and release](experiments-and-release.en.md) | Compare runs, trace failures, and prepare rollback | Overall gains versus slice regressions; input, training, or evaluation fixes |
+| [RL lab · Audit a batch loss](rl-batch-audit.en.md) | Calculate leave-one-out advantages, shifted token probabilities, and four reductions | Grouping, EOS, old/reference roles, and gradients; no need to finish the SFT project first |
 
 For a first pass, read 1 → 2 → 6. Before implementation, work through 3 → 4 → 5 too. Two standard-library programs check objectives/evaluation and data/batches/toy recovery without downloading a model. Real trainer integration still needs tokenizer, forward-pass, gradient, and distributed-recovery checks. Passing the teaching programs is not a completed SFT run.
 

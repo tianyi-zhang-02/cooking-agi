@@ -95,6 +95,12 @@ class DeepRLGlossaryTests(unittest.TestCase):
         self.assertEqual(output, source)
         self.assertEqual(used, [])
 
+    def test_covariance_is_not_split_into_variance(self):
+        output, used = build.annotate("<p>负协方差矩阵；一维时是负方差。</p>", self.terms)
+        self.assertIn('协方差<span class="term-en">（covariance）</span>', output)
+        self.assertIn('方差<span class="term-en">（variance）</span>', output)
+        self.assertEqual({term["zh"] for term in used}, {"协方差", "方差"})
+
     def test_every_chapter_has_annotations_but_english_stays_clean(self):
         nav = build.load_nav()
         previous_sources = dict(build.BY_SRC)
@@ -102,7 +108,7 @@ class DeepRLGlossaryTests(unittest.TestCase):
             pages, _ = build.discover(nav)
             known = {page.url for page in pages}
             selected = [page for page in pages if page.section["group"] == "deep-rl"]
-            self.assertEqual(len(selected), 44)
+            self.assertEqual(len(selected), 48)
             for page in selected:
                 with self.subTest(page=page.url):
                     build.build_page(page, build.load_glossary(), nav["site"]["repo"], known)

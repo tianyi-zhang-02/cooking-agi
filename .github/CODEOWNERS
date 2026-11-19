@@ -137,8 +137,12 @@
 /00-foundations/deep-dives/attention-residuals.en.md @tianyi-zhang-02
 /05-post-training/where-preferences-come-from.md @tianyi-zhang-02
 /05-post-training/where-preferences-come-from.en.md @tianyi-zhang-02
+/05-post-training/reward-ranking.md @tianyi-zhang-02
+/05-post-training/reward-ranking.en.md @tianyi-zhang-02
 /05-post-training/after-ppo.md @tianyi-zhang-02
 /05-post-training/after-ppo.en.md @tianyi-zhang-02
+/05-post-training/rloo.md @tianyi-zhang-02
+/05-post-training/rloo.en.md @tianyi-zhang-02
 /05-post-training/dapo.md @tianyi-zhang-02
 /05-post-training/dapo.en.md @tianyi-zhang-02
 /05-post-training/clipping-variants.md @tianyi-zhang-02
@@ -209,6 +213,10 @@
 /05-post-training/deep-rl/planning-and-learning.en.md @tianyi-zhang-02
 /05-post-training/deep-rl/imitation-and-rewards.md @tianyi-zhang-02
 /05-post-training/deep-rl/imitation-and-rewards.en.md @tianyi-zhang-02
+/05-post-training/deep-rl/maxent-irl.md @tianyi-zhang-02
+/05-post-training/deep-rl/maxent-irl.en.md @tianyi-zhang-02
+/05-post-training/deep-rl/gail.md @tianyi-zhang-02
+/05-post-training/deep-rl/gail.en.md @tianyi-zhang-02
 /05-post-training/deep-rl/offline-and-ope.md @tianyi-zhang-02
 /05-post-training/deep-rl/offline-and-ope.en.md @tianyi-zhang-02
 /05-post-training/deep-rl/ope-estimators.md @tianyi-zhang-02

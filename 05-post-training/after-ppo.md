@@ -63,6 +63,8 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 
 该论文在特定的预训练模型和偏好任务上比较了这些简化，不意味着所有任务都不需要 Critic 或 GAE。
 
+想把留一基线算清楚，可以接着读 [RLOO：用同题的其他回答做比较](rloo.md)。那里用三份回答说明为什么要排除自己的分数，再推导它与减组均值的关系，并区分基线、标准差归一化和 clipping。
+
 ### GRPO 的组相对 advantage {#grpo-advantage}
 
 对同一个 prompt 采样 $G$ 个回答，得到奖励 $R_1,\ldots,R_G$。常见的 response-level advantage 是 $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$：$\mu_R$ 是组内均值，$\sigma_R$ 是组内总体标准差（分母为 $G$），$\varepsilon$ 防止除零。逐项写开的公式和 `[0, 1, 0, 0]` 的完整算例在[四份回答，只有一份答对](rlhf/after-rlhf.md#group-example)。开头那组奖励 $[1,0,1,0]$ 的 $\mu_R$、$\sigma_R$ 都是 0.5，忽略很小的 $\varepsilon$ 后，优势约为 $[1,-1,1,-1]$。代码库若用样本标准差，数值尺度会不同。奖励可以来自 Reward Model、人类、数学 verifier、单元测试、代码执行或格式检查器。
