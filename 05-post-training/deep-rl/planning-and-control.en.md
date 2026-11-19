@@ -2,7 +2,7 @@
 
 [中文](planning-and-control.md) · **English**
 
-> Reading time: ~6–8 min · Last reviewed: 2026-10
+> Reading time: ~10–12 min · Last reviewed: 2026-11
 
 Model-based RL is not one fixed algorithm. First ask: **does computation happen at each decision, or during training beforehand?** Then ask whether derivatives exist, actions are continuous, and constraints may be violated. This is more useful than choosing a planner by name.
 
@@ -94,6 +94,47 @@ MPC is the execution scheme of replanning after new observations, not a fifth op
 MPC spends its computation on a search at every decision; a model can instead produce training data before deployment. Dyna / MBPO run short rollouts branched from real data to train a policy or Q. [Dreamer](../../11-frontier/world-models/dreamer.en.md)-style methods imagine trajectories in latent state to train an Actor / Critic. Planner distillation trains a fast policy to imitate the planner.
 
 All three skip online search at deployment and mostly need only policy inference; latent-state methods also encode the observation first. [Combining planning and learning](planning-and-learning.en.md) examines their costs and failure modes. Two cautions also apply here: attractive reconstructions cannot recover control-relevant information discarded by the latent state, and training inside a model does not verify deployment safety.
+
+## Backpropagation needs more than a differentiable sample path {#pathwise-gradient-conditions}
+
+For policy learning, write actions as $a_t=g_\theta(s_t,\epsilon_t)$ and stochastic transitions as $s_{t+1}=f(s_t,a_t,\xi_t)$, with noise distributions independent of $\theta$. Differentiate the rollout while holding its sampled noise fixed, then average those derivatives: this is a pathwise gradient estimator. It is still Monte Carlo; automatic differentiation does not remove sampling variance.
+
+The essential question is whether differentiation can pass through the expectation. One sufficient condition is almost-sure continuous differentiability in a parameter neighborhood, with gradients uniformly dominated there by an integrable random variable. Differentiability along almost every sampled trajectory alone is insufficient: a jump can hide the probability mass crossing its boundary. [Suh et al. (2022), §3.1](https://proceedings.mlr.press/v162/suh22b.html) examine this bias; they do not claim universally lower first-order variance even on smooth problems.
+
+Consider an original one-step threshold-bonus task. Let $a=\theta+\epsilon$, $\epsilon\sim\mathcal N(0,1)$, and $r(a)=a+2\mathbf1\{a>0\}$. The action earns a linear reward plus a bonus of 2 above zero. With standard-normal CDF $\Phi$ and PDF $\phi$:
+
+$$
+J(\theta)=\theta+2\Phi(\theta),\qquad
+J'(0)=1+2\phi(0)=1+\frac{2}{\sqrt{2\pi}}\approx1.798.
+$$
+
+Sample-wise backpropagation almost surely returns $dr/d\theta=1$. It captures the linear reward but misses changes in the probability of receiving the bonus. **The estimator has zero variance and is still biased.** The Gaussian policy score is $a-\theta$. At $\theta=0$, the likelihood-ratio estimator instead has expectation:
+
+$$
+\mathbb E[r(\epsilon)\epsilon]
+=\mathbb E[\epsilon^2]+2\int_0^\infty z\phi(z)\,dz
+=1+2\phi(0).
+$$
+
+It recovers the boundary contribution, although individual estimates fluctuate. Replacing the threshold with a smooth approximation permits pathwise differentiation but changes the objective. Its approximation error needs checking; a surrogate gradient is not automatically the original task's gradient.
+
+## Short backpropagation with a terminal critic: freeze weights, not state derivatives {#short-horizon-actor-gradient}
+
+[SHAC (Xu et al., 2022), §3.3 and Appendix A.1](https://arxiv.org/abs/2204.07137) trains an actor through short differentiable-simulator windows and uses a terminal critic for subsequent rewards. Omitting batch normalization constants, the maximization objective is:
+
+$$
+\hat J_H(\theta)=\mathbb E\left[\sum_{t=0}^{H-1}\gamma^t r(s_t,a_t)+\gamma^H V_\psi(s_H)\right].
+$$
+
+Treat each window's initial state as constant rather than reconnecting the previous window's graph. During the actor update, hold $\psi$ fixed but retain $\nabla_sV_\psi(s_H)\,\partial s_H/\partial\theta$. For a hand calculation, take $H=1$, $s_0=2$, $a_0=\theta$, $s_1=2+\theta$, zero immediate reward, $V_\psi(s)=-s^2$, and $\gamma=0.9$. At $\theta=0$:
+
+$$
+\frac{d\hat J_1}{d\theta}=-1.8(2+\theta)=-3.6.
+$$
+
+Detaching $s_1$ or the entire terminal value makes this gradient zero: the actor loses the direction in which to move the state. Conversely, during critic fitting, TD / $\lambda$-return labels are fixed targets with no backpropagation through their construction. These are different updates, not one universal stop-gradient rule.
+
+A short window reduces the Jacobian chain but delegates long-range information to the critic's **state derivative**. Accurate values need not imply accurate slopes. Jumps within the window, model errors, and distribution shift remain, so the gradient need not be unbiased for the original full-horizon objective. Simulator gradients and learned-world-model gradients also require separate checks: the latter additionally depend on learning local changes correctly.
 
 ## Choose a practical starting point
 

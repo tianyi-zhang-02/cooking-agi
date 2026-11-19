@@ -2,7 +2,7 @@
 
 [中文](offline-and-ope.md) · **English**
 
-> Reading time: ~6–8 min · Last reviewed: 2026-10
+> Reading time: ~12–15 min · Last reviewed: 2026-11
 
 Having a replay buffer does not make a method offline RL. Online off-policy learning can still collect new data. Offline RL has only fixed logs. If a model proposes an uncovered action, **no fresh feedback arrives to correct its imagination**.
 
@@ -52,6 +52,38 @@ The raw mean is 1.2. IS gives $(50+150)/100=2$, the target policy’s true expec
 
 If the logging policy never goes right, there is no right-action feedback. Adding a small constant to the denominator cannot invent those observations. In multistep settings the ratios multiply, and one rare trajectory may dominate the estimate. Inspect support and weight distributions first. How to multiply fewer ratios, and how a value model can cancel noise, is in [per-decision weights and doubly robust estimation](ope-estimators.en.md).
 
+## Stitching does not require copying a complete demonstration {#stitching-and-trajectory-support}
+
+Offline RL need not select the best complete episode in the logs. [COG (Singh et al., 2020), §4](https://arxiv.org/abs/2010.14500) shows how Bellman updates connect behaviors from different datasets. Consider an original fully observed two-step MDP: from initial state $S$, both a direct route and a detour reach $M$ in one step, with rewards 0 and $-2$. At $M$, collecting pays 5 and quitting pays 0; either ends the episode. Dynamics and rewards are deterministic, $\gamma=1$, and state includes time.
+
+| Logged episode | First step | Second step | Return |
+| --- | --- | --- | --- |
+| A | Direct to $M$, reward 0 | Quit, reward 0 | 0 |
+| B | Detour to $M$, reward $-2$ | Collect, reward 5 | 3 |
+
+Terminal transitions give $Q(M,\text{collect})=5$ and $Q(M,\text{quit})=0$. One more backup gives:
+
+$$
+Q(S,\text{direct})=0+5=5,\qquad
+Q(S,\text{detour})=-2+5=3.
+$$
+
+The new policy goes directly to $M$ and collects, earning 5 without using an unseen state-action pair. It combines compatible transitions at the same Markov state, not arbitrary video clips. If the routes leave different hidden keys, energy levels, or remaining time, they do not reach the same complete state. In a stochastic environment, observing each edge once would not reveal its conditional expectation exactly either.
+
+The example also distinguishes two kinds of coverage. Suppose the logging policy independently chooses each action with probability $1/2$ at each state and happens to produce these two episodes. For the prespecified target policy “direct, then collect,” A has weight $2\times0$ and B has weight $0\times2$. Trajectory IS returns 0; SNIS and ESS are undefined. Yet population support is not missing: the behavior policy generates the target trajectory with probability $1/4$. This finite sample simply missed it.
+
+Under the stipulated deterministic Markov structure, tabular FQE for that fixed target can fit the terminal rewards and then recover initial value 5. **Trajectory IS does not automatically exploit stitchable local coverage; FQE gains from additional structure, not from escaping support requirements.** Two episodes do not establish determinism; it is an assumption of this toy. Nor does this example establish a general estimator ranking.
+
+## Staying in support is not matching action frequencies {#support-versus-policy-distance}
+
+[BEAR (Kumar et al., 2019), §4](https://arxiv.org/abs/1906.00949) distinguishes constraints on policy distributions from restrictions on action support. Take a bandit with two well-observed actions: the good action pays 4 and the bad one pays 0. Behavior probabilities are $(0.1,0.9)$. Always choosing the good action stays within support, but:
+
+$$
+D_{\rm KL}(\pi\|\mu)=\log(1/0.1)=\log10\approx2.303.
+$$
+
+A hard constraint $D_{\rm KL}(\pi\|\mu)\le0.1$ excludes this fully supported policy. Conversely, nonzero probability does not mean sufficient observations: rare actions can still have poor estimates. Support restrictions, density-ratio control, and small KL are different requirements. An estimated behavior model can also assign positive probability to genuinely unsupported actions.
+
 ## What CQL and IQL try to avoid
 
 | Method | Central idea | Remaining dependence |
@@ -89,6 +121,25 @@ $$
 Here $d=1$ means true task termination, giving $y=r$. A data-collection time limit is not termination if the original task continues: bootstrap from the final successor $s'$ before the reset, not the new initial state after it.
 
 Unlike FQI, it averages under a fixed policy rather than maximizing over actions. Estimate performance by averaging the fitted Q over initial states and policy actions. This avoids explicit trajectory weights but introduces approximation and extrapolation risks. Missing support does not disappear. Agreement between estimators sharing the same blind spot is not independent validation.
+
+## Model-generated offline data are not new real-world evidence {#offline-model-pessimism}
+
+Training a model on fixed logs and generating many transitions does not remove extrapolation error. [MOPO (Yu et al., 2020), §§4.1–4.3](https://arxiv.org/abs/2005.13239) penalizes model rewards with $\tilde r(s,a)=r(s,a)-\lambda u(s,a)$. Its theory requires $u$ to upper-bound an appropriate model-distribution error, together with value-class and penalty-scale assumptions. Rewards must be known or reward-model error controlled separately. The practical uncertainty estimate is heuristic and does not automatically inherit that guarantee.
+
+An original two-step toy isolates why the error bound matters; it is not a full MOPO implementation. First choose a cautious or risky action, receiving zero reward and transitioning to success or failure. The second step pays 10 or 0 respectively and terminates, with no further choice; $\gamma=1$. Let $p$ be the true success probability and $\hat p$ the model's estimate. If $|p-\hat p|\le u$ is known to hold:
+
+$$
+J=10p\ge10\hat p-10u.
+$$
+
+| First action | $\hat p$ | Valid error bound $u$ | Model return | Conservative score | True $p$ / return in this toy |
+| --- | --- | --- | --- | --- | --- |
+| Cautious | 0.40 | 0.05 | 4 | $4-10\times0.05=3.5$ | 0.40 / 4 |
+| Risky | 0.80 | 0.70 | 8 | $8-10\times0.70=1$ | 0.10 / 1 |
+
+Without a penalty, the model selects the risky action; valid bounds favor the cautious one. If ensemble members agree on the same wrong prediction and incorrectly report $u=0.05$ for the risky action, its supposed lower bound becomes 7.5, far above its true return of 1. The error-bound assumption has failed. A million rollouts from that model only estimate the wrong value of 8 more precisely.
+
+The coefficient 10 comes from the terminal-value difference, not a universal tuning rule. Multiple steps additionally require discounting, visitation distributions, and error propagation. **A return lower bound is neither a safety constraint nor an automatic improvement over behavior.** MOPO's behavior-policy comparison still subtracts an uncertainty cost; strict improvement needs further evidence.
 
 ## A useful evaluation order
 

@@ -19,12 +19,15 @@ If the names blur together, start with [Q-learning, PPO, and DPO](methods-map.en
 | Choose actions through value | [Fitted Q and convergence limits](fitted-q.en.md) → [DQN](dqn.en.md) → [DDPG / TD3](continuous-control.en.md) → [SAC](soft-actor-critic.en.md) | Separate regression loss from policy performance and trace network gradients |
 | Think ahead with a model | [Model-based RL](model-based.en.md) → [Which model to learn](model-types.en.md) → [Planning and LQR](planning-and-control.en.md) → [Combining planning and learning](planning-and-learning.en.md) | Separate dynamics learning, planning, and policy learning; say what a model should predict and how search results become training targets |
 | Understand data and rewards | [Offline RL and OPE](offline-and-ope.en.md) → [Per-decision weights, doubly robust, and LSTD](ope-estimators.en.md) · [Exploration and hierarchy](exploration-and-hierarchy.en.md) · [Imitation and rewards](imitation-and-rewards.en.md) | State the added assumptions, not just the algorithm names |
+| Decide what to try next | [Exploration and hierarchy](exploration-and-hierarchy.en.md) → [Exploration and uncertainty](exploration-uncertainty.en.md) | Calculate UCB scores, posteriors, and information gain; distinguish novelty, randomness, and useful exploration |
 | Learn from demonstrations | [Imitation and rewards](imitation-and-rewards.en.md) → [MaxEnt IRL](maxent-irl.en.md) → [GAIL](gail.en.md) · [Reward-model ranking losses](../reward-ranking.en.md) | Fit feature expectations, calculate a discriminator reward, and distinguish pairwise from full-ranking supervision |
 | Run a meaningful experiment | [Experiments and debugging](experiments.en.md) → [The LLM bridge](llm-bridge.en.md) | Check the implementation before interpreting reward as progress |
 
 These lessons go beyond algorithm names. We work through Bellman residual bounds, TD targets, gradient directions, PPO clipping, and control trajectories, then examine how CQL, IQL, and FQE handle offline data. The imitation sequence adds reward fitting and distribution matching through worked examples. Hierarchy and multi-agent learning remain introductions rather than comprehensive theoretical treatments.
 
 For language-model training, continue with [RLOO's leave-one-out baseline](../rloo.en.md), then [audit how a batch becomes an RL loss](../../practice/post-training/rl-batch-audit.en.md). The first adds a baseline proof and worked arithmetic; the second checks grouping, token shifting, EOS, and denominators. Neither requires a multi-GPU setup.
+
+The reward needs its own check. [What a reward model predicts](../reward-signals.en.md) uses a small arithmetic problem to distinguish correct answers, valid steps, and future success, then works through label masks and score aggregation. For inference-time search, continue with [splitting a fixed budget between generation and verification](../../11-frontier/test-time-compute/parallel-and-verify.en.md#budget-example).
 
 ## Six questions for reviewing this sequence {#reward-review}
 
@@ -40,6 +43,22 @@ If you know policy gradients and want to prepare for a technical discussion or d
 | For per-token losses $[2,4]$ and $[1,1,1,1]$, why do three means differ? | Mean sequence sums give 5, mean per-response means give 2, and the valid-token mean gives $5/3$. The denominator changes sample weights; microbatching should preserve the chosen objective | [Worked loss reductions](../../practice/post-training/rl-batch-audit.en.md#reduction) |
 
 After reproducing the numbers, change an assumption: correlated samples, unequal candidate counts, variable trajectory lengths, or a reward-service timeout. Which step still works, and which needs a new definition? Explaining those changes reveals more than naming an algorithm.
+
+## After the basics, try these counterexamples {#assumption-review}
+
+These questions do not require more algorithm names. Predict the answer first, then use a small environment or calculation to find the missing assumption.
+
+| Question | Example to work through |
+| --- | --- |
+| If the policy stays fixed, does the state distribution stay fixed too? | [The alternating L–R chain](mdp-bellman.en.md#discounted-occupancy): stationary probabilities are equal, but discounted visitation is $2/3$, $1/3$ |
+| Does mean return always give the lowest-variance baseline? | [The two-action bandit](policy-gradients.en.md#variance-optimal-baseline): mean return is 2.6, but the variance-minimizing baseline here is 1.4 |
+| If Q-learning can reuse old data, can multistep returns be used unchanged? | [Two-step replay](dqn.en.md#multistep-off-policy): target value is 6.4, but the uncorrected two-step target has mean 2.35 |
+| Do accurate model predictions make their gradients reliable? | [Matching values, opposite derivatives](model-based.en.md#model-jacobian-check), then [a zero-variance but biased gradient](planning-and-control.en.md#pathwise-gradient-conditions) |
+| If the best logged episode earns 3, is 3 the best an offline policy can do? | [Stitching compatible transitions](offline-and-ope.en.md#stitching-and-trajectory-support): the stipulated deterministic MDP allows return 5, even when the logged sample gives trajectory IS no nonzero weights |
+| Is an unpredictable result worth exploring? | [A probe and a random coin](exploration-uncertainty.en.md#information-gain): the probe provides about 0.2781 bit; the coin provides no information about the hidden state |
+| If success becomes more likely after a prefix, did the prefix become more valid? | [Changing the continuation policy](../reward-signals.en.md#prefix-value): the same prefix has sample success rates of 1/4 and 3/4 |
+
+Each example states its assumptions. For review, explain not only the numbers but whether the calculation survives stochastic transitions, a different policy, or less data.
 
 ## Different reading goals, not separate sets of notes
 

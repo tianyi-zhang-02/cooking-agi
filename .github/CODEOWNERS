@@ -137,6 +137,8 @@
 /00-foundations/deep-dives/attention-residuals.en.md @tianyi-zhang-02
 /05-post-training/where-preferences-come-from.md @tianyi-zhang-02
 /05-post-training/where-preferences-come-from.en.md @tianyi-zhang-02
+/05-post-training/reward-signals.md @tianyi-zhang-02
+/05-post-training/reward-signals.en.md @tianyi-zhang-02
 /05-post-training/reward-ranking.md @tianyi-zhang-02
 /05-post-training/reward-ranking.en.md @tianyi-zhang-02
 /05-post-training/after-ppo.md @tianyi-zhang-02
@@ -223,6 +225,8 @@
 /05-post-training/deep-rl/ope-estimators.en.md @tianyi-zhang-02
 /05-post-training/deep-rl/exploration-and-hierarchy.md @tianyi-zhang-02
 /05-post-training/deep-rl/exploration-and-hierarchy.en.md @tianyi-zhang-02
+/05-post-training/deep-rl/exploration-uncertainty.md @tianyi-zhang-02
+/05-post-training/deep-rl/exploration-uncertainty.en.md @tianyi-zhang-02
 /05-post-training/deep-rl/experiments.md @tianyi-zhang-02
 /05-post-training/deep-rl/experiments.en.md @tianyi-zhang-02
 /05-post-training/deep-rl/llm-bridge.md @tianyi-zhang-02

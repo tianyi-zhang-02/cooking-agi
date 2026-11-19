@@ -83,4 +83,6 @@ After a 3-step option, the tail is discounted by $\gamma^3$, not $\gamma$. For r
 
 Hold the external reward fixed and check whether exploration coverage and success improve together. Then isolate bonuses, skills, and budgets. Increased internal novelty is not task success.
 
+For numerical examples, continue with [Exploration and uncertainty](exploration-uncertainty.en.md). Why does UCB choose the less-tested action on the same trial history? How does posterior sampling differ from choosing by posterior means? Why does a random screen provide less useful information than a noisy measurement of an unknown state?
+
 This is an introduction, not a complete derivation of option-critic or Bayesian exploration. References: [RND, §§2.2–2.4](https://arxiv.org/abs/1810.12894) · [Potential-based shaping, §3, Theorem 1](https://ai.stanford.edu/~ang/papers/shaping-icml99.pdf) · [Options and semi-MDPs, §§2, 3.2](https://www.sciencedirect.com/science/article/pii/S0004370299000521). Next: [Why policies can drift despite good demonstrations](imitation-and-rewards.en.md).

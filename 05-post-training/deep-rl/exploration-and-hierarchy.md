@@ -83,4 +83,6 @@ $$
 
 先固定外部奖励，记录探索覆盖与成功率是否一起改善；再分别测试 bonus、技能和预算。不把内部 novelty 上升当成任务成功。
 
+想把“不确定”算成具体数字，可以继续读[探索与不确定性](exploration-uncertainty.md)：同样一份试验记录，UCB 为什么会选样本少的动作？后验采样与按均值选择有什么区别？随机屏幕和有用的新信息又该怎样区分？
+
 这是探索与层级的入口，尚未覆盖完整 option-critic 或贝叶斯探索推导。参考：[RND，第 2.2–2.4 节](https://arxiv.org/abs/1810.12894) · [Potential-based shaping，第 3 节、定理 1](https://ai.stanford.edu/~ang/papers/shaping-icml99.pdf) · [Options 与 semi-MDP，第 2、3.2 节](https://www.sciencedirect.com/science/article/pii/S0004370299000521)。下一篇：[有示范时，为什么还会走偏？](imitation-and-rewards.md)

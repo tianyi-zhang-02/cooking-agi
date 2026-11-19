@@ -2,7 +2,7 @@
 
 [中文](dqn.md) · **English**
 
-> Reading time: ~7 min · Last reviewed: 2026-10
+> Reading time: ~10–12 min · Last reviewed: 2026-11
 
 With actions such as “left, right, stop,” a network can output 3 Q-values and choose the largest. It resembles regression, except the labels are not fixed ground truth: **the target contains the network's own estimates.**
 
@@ -113,6 +113,31 @@ Targets may be copied periodically or softly updated as $\bar\theta\leftarrow(1-
 | Synchronization interval | Temporarily steadier targets | Stale estimates and slower propagation |
 
 Compare environment interactions and gradient updates, not just an hour of training. Otherwise more data and more computation are indistinguishable.
+
+## Why off-policy multistep returns need extra care {#multistep-off-policy}
+
+One-step Q-learning conditions on the current $(s_t,a_t)$. In the same MDP, the conditional distribution of $r_t,s_{t+1}$ does not change with the behavior-policy version. The target's max chooses the next action, so no probability ratio is needed for the conditioned current action. Concatenating $n$ rewards from replay changes this argument:
+
+$$
+y_t^{(n)}=\sum_{k=0}^{n-1}\gamma^k r_{t+k}
++\gamma^n\max_aQ_{\bar\theta}(s_{t+n},a).
+$$
+
+This expression assumes no true termination inside the segment. At a terminal boundary, stop summing and remove the continuation; never cross a reset. For $n>1$, the intermediate $n-1$ actions come from behavior policy $\mu$, not necessarily the greedy policy being evaluated. **A max at the end cannot retroactively make the intervening actions greedy.** This issue remains even with an accurate Critic.
+
+**A two-step counterexample.** The initial state has one action: receive 1 and move deterministically to a second state. There, “collect” pays 6 and terminates; “discard” pays 0 and terminates. Set $\gamma=0.9$. Target policy $\pi$ always collects, but the old behavior policy $\mu$ collects only one quarter of the time. Even with exact target Q-values:
+
+| Target | Values in old replay | Conditional expectation |
+| --- | --- | --- |
+| One step, with exact successor Q | Always $1+0.9\times6=6.4$ | 6.4 |
+| Uncorrected two-step return | 6.4 with probability 1/4; 1 with probability 3/4 | 2.35 |
+| Importance-corrected two-step return below | 22.6 with probability 1/4; 1 with probability 3/4 | 6.4 |
+
+For this two-step terminated example, correct only the second action. Set $\rho_1=\pi(a_1\mid s_1)/\mu(a_1\mid s_1)$ and $\tilde y=r_0+\gamma\rho_1r_1$. Collecting gives $\rho_1=4$ and $\tilde y=1+0.9\times4\times6=22.6$; discarding gives $\rho_1=0$ and $\tilde y=1$. The mean returns to $\frac14\times22.6+\frac34\times1=6.4$, but samples fluctuate widely. The initial action is already conditioned on. Longer trajectories need the corresponding products of subsequent action ratios for each reward, with behavior support for target actions.
+
+Multistep learning can reuse data, but it needs a suitable estimator. [Munos et al. (2016), §1–3](https://papers.neurips.cc/paper_files/paper/2016/file/c3992e9a68c5ae12bd18488bc579b30d-Paper.pdf) express such methods through weighted target-policy TD residuals. Retrace uses $c_t=\lambda\min(1,\rho_t)$ to control later traces together with $\delta_t^\pi=r_t+\gamma\sum_a\pi(a\mid s_{t+1})Q(s_{t+1},a)-Q(s_t,a_t)$. This is not arbitrary clipping of raw-return importance weights: simply clipping 4 to 1 in our example restores the biased mean of 2.35. The operator and tabular convergence results do not establish convergence for arbitrary neural DQN.
+
+Before using n-step replay, specify consecutive-trajectory storage and boundaries, the target policy, whether behavior probabilities are available, and the correction or deliberate approximation being used. Double DQN changes selection and evaluation at the bootstrap endpoint; it does not correct the intermediate behavior distribution.
 
 ## Check these before tuning
 
