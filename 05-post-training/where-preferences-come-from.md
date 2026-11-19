@@ -36,6 +36,8 @@ $$\mathcal{L}_{\text{RM}} = -\mathbb{E}_{(x,y_w,y_l)}\left[\log \sigma\big(r(x,y
 
 一种常见实现是在预训练模型上接一个标量输出头，根据问题和完整回答给出一个分数。比较也可以交给模型做，分数也可以由生成式模型给出，见[后文](#ai-feedback-and-rubrics)。
 
+一题有三四份回答时，还要决定按题还是按偏好对加权、完整排序是否拆成 pair，以及平局怎么保留。这些计算放在[多回答的奖励排序训练](reward-ranking.md)，包括 Plackett–Luce 的手算与梯度。
+
 ## 分数的零点与尺度 {#_4}
 
 假设 A、B 的奖励分别是 2 和 1。Bradley–Terry 给 A 胜出的概率是 $\sigma(1)\approx0.731$。把两者都加 10，变成 12 和 11，概率没变。

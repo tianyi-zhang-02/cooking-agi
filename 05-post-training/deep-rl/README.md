@@ -2,7 +2,7 @@
 
 **中文** · [English](README.en.md)
 
-> 阅读时间：约 6–9 分钟 · 最近审阅：2026-10
+> 阅读时间：约 8–10 分钟 · 最近审阅：2026-11
 
 眼前有 2 分可以拿，多等一步可能拿到 4 分。该怎么选？**强化学习（RL）关心的不只是这一步得了多少分，还包括这个选择会把你带到哪里。** 我们从这样的小问题开始，再慢慢走到估值、策略更新和完整的训练循环。
 
@@ -19,9 +19,27 @@
 | 通过价值选动作 | [Fitted Q 与收敛边界](fitted-q.md) → [DQN](dqn.md) → [DDPG / TD3](continuous-control.md) → [SAC](soft-actor-critic.md) | 分清回归 loss 与策略表现，画出各个网络的梯度路径 |
 | 用模型想几步 | [Model-based RL](model-based.md) → [学什么样的模型](model-types.md) → [规划与 LQR](planning-and-control.md) → [规划与学习怎样配合](planning-and-learning.md) | 分清学习动力学、规划动作和训练策略，说出模型该预测什么、搜索结果怎样变成训练标签 |
 | 数据与奖励从哪里来 | [Offline RL 与 OPE](offline-and-ope.md) → [逐步权重、双重稳健与 LSTD](ope-estimators.md) · [探索与层级](exploration-and-hierarchy.md) · [模仿与奖励](imitation-and-rewards.md) | 说出各自增加的假设，而不只是记名字 |
+| 从示范里学习 | [模仿与奖励](imitation-and-rewards.md) → [MaxEnt IRL](maxent-irl.md) → [GAIL](gail.md) · [奖励排序训练](../reward-ranking.md) | 拟合特征期望、计算判别器奖励，区分成对偏好与完整排序 |
 | 真正跑一个实验 | [实验与排错](experiments.md) → [接到 LLM](llm-bridge.md) | 检查实现，再判断 reward 是否代表任务进步 |
 
-这些章节不只介绍算法名字。我们会一起算 Bellman 残差界、TD target、梯度方向、PPO 裁剪和控制轨迹，再看 CQL、IQL 与 FQE 如何处理离线数据。层级、IRL 和多智能体目前只作引入，还不是完整的理论综述。
+这些章节不只介绍算法名字。我们会一起算 Bellman 残差界、TD target、梯度方向、PPO 裁剪和控制轨迹，再看 CQL、IQL 与 FQE 如何处理离线数据。模仿学习这一组继续用算例讲奖励拟合与分布匹配；层级和多智能体目前只作引入，还不是完整的理论综述。
+
+接到语言模型训练时，可以先读 [RLOO 的留一基线](../rloo.md)，再动手[核对一批回答怎样变成 loss](../../practice/post-training/rl-batch-audit.md)。前一篇补基线的证明和手算，后一篇检查分组、token 移位、EOS 与损失分母；不需要先搭多卡训练。
+
+## 复习这组内容，先试着回答这六个问题 {#reward-review}
+
+已经学过策略梯度，想准备技术讨论或排查训练代码，可以从这张表开始。每行都连到具体的推导或算例，不必为找一个公式重读整个章节。若 baseline、return 和 advantage 还分不清，先读上面的基础路线。
+
+| 问题 | 回答时要说清什么 | 推导与算例 |
+| --- | --- | --- |
+| 同题奖励是 1、0、0.5，留一优势是多少？为什么要排除自己？ | 优势是 0.75、−0.75、0。无偏性用到给定题目后的独立采样，以及 score function 的期望为 0；不是“减任何均值都一样” | [RLOO 的计算与证明](../rloo.md#why-leave-one-out) |
+| 专家走过的路线奖励越高，IRL 就学得越好吗？ | 还要与其他可行路线比较，不能丢掉配分函数。三路线例子中，梯度是 $1.6-10/7$；它匹配特征期望，不要求拟合每条路线的频率 | [MaxEnt IRL 的梯度](maxent-irl.md#gradient) |
+| GAIL 的判别准确率到了 50%，就模仿成功了吗？ | 可能是分布接近，也可能是判别器没学会。还要看独立任务表现；理想匹配时本文约定的每步奖励为 $\log2$，不是 0 | [判别器与分布匹配](gail.md#js) |
+| 三个回答的完整排序，能直接当成三个独立偏好对吗？ | 可以选择 pairwise loss，但它不等于完整排序的 PL loss。还要说明按题还是按 pair 平均，避免候选多的题无意中占更大权重 | [排序与偏好对的差别](../reward-ranking.md#pairs-versus-ranking) |
+| EOS 和 PAD 共用 ID，能把这个 ID 都 mask 掉吗？ | 不能。实际生成的 EOS 是动作，补齐长度的 PAD 不是；用真实生成边界构造 mask，并把 logits 与下一个 token 对齐 | [移位与 EOS 检查](../../practice/post-training/rl-batch-audit.md#alignment) |
+| 两条回答的逐 token 损失为 $[2,4]$ 和 $[1,1,1,1]$，为什么三种 mean 会不同？ | 序列求和后平均为 5，逐回答平均为 2，有效 token 平均为 $5/3$。分母改变了样本权重；拆 microbatch 后也应保留同一目标 | [损失归约的手算表](../../practice/post-training/rl-batch-audit.md#reduction) |
+
+能算出数字以后，再把条件换一下：同题采样不独立、候选数不同、轨迹长度不固定，或者奖励服务超时。哪一步还能用，哪一步要重新定义？沿着这些变化解释，通常比只报算法名字更能看出理解到了哪里。
 
 ## 不同读法，不需要不同一套笔记
 

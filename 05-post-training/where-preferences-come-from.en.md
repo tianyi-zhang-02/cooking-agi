@@ -34,6 +34,8 @@ $$\mathcal{L}_{\text{RM}} = -\mathbb{E}_{(x,y_w,y_l)}\left[\log \sigma\big(r(x,y
 
 A common implementation adds a scalar output head to a pretrained model, producing one score from the prompt and complete response. Models can also supply the comparisons or generate their judgments as text; see [below](#ai-feedback-and-rubrics).
 
+With three or four responses per prompt, further choices arise: weight prompts or pairs, train on full rankings or pairwise comparisons, and preserve ties. [Training on multiple-response rankings](reward-ranking.en.md) works through these choices, including Plackett–Luce probabilities and gradients.
+
 ## Score offsets and scale {#a-consequence-the-reward-model-learns-order-not-scale}
 
 Suppose rewards for A and B are 2 and 1. Bradley–Terry gives A a preference probability of $\sigma(1)\approx0.731$. Adding 10 to both rewards gives 12 and 11 without changing the probability.

@@ -2,7 +2,7 @@
 
 [中文](README.md) · **English**
 
-> Reading time: ~6–9 min · Last reviewed: 2026-10
+> Reading time: ~8–10 min · Last reviewed: 2026-11
 
 You can take 2 points now, or wait one step for a possible 4. Which should you choose? **Reinforcement learning asks not just what a decision earns now, but where it leads.** We start with small questions like this, then work toward value estimates, policy updates, and complete training loops.
 
@@ -19,9 +19,27 @@ If the names blur together, start with [Q-learning, PPO, and DPO](methods-map.en
 | Choose actions through value | [Fitted Q and convergence limits](fitted-q.en.md) → [DQN](dqn.en.md) → [DDPG / TD3](continuous-control.en.md) → [SAC](soft-actor-critic.en.md) | Separate regression loss from policy performance and trace network gradients |
 | Think ahead with a model | [Model-based RL](model-based.en.md) → [Which model to learn](model-types.en.md) → [Planning and LQR](planning-and-control.en.md) → [Combining planning and learning](planning-and-learning.en.md) | Separate dynamics learning, planning, and policy learning; say what a model should predict and how search results become training targets |
 | Understand data and rewards | [Offline RL and OPE](offline-and-ope.en.md) → [Per-decision weights, doubly robust, and LSTD](ope-estimators.en.md) · [Exploration and hierarchy](exploration-and-hierarchy.en.md) · [Imitation and rewards](imitation-and-rewards.en.md) | State the added assumptions, not just the algorithm names |
+| Learn from demonstrations | [Imitation and rewards](imitation-and-rewards.en.md) → [MaxEnt IRL](maxent-irl.en.md) → [GAIL](gail.en.md) · [Reward-model ranking losses](../reward-ranking.en.md) | Fit feature expectations, calculate a discriminator reward, and distinguish pairwise from full-ranking supervision |
 | Run a meaningful experiment | [Experiments and debugging](experiments.en.md) → [The LLM bridge](llm-bridge.en.md) | Check the implementation before interpreting reward as progress |
 
-These lessons go beyond algorithm names. We work through Bellman residual bounds, TD targets, gradient directions, PPO clipping, and control trajectories, then examine how CQL, IQL, and FQE handle offline data. Hierarchy, IRL, and multi-agent learning are introductions for now, not comprehensive theoretical treatments.
+These lessons go beyond algorithm names. We work through Bellman residual bounds, TD targets, gradient directions, PPO clipping, and control trajectories, then examine how CQL, IQL, and FQE handle offline data. The imitation sequence adds reward fitting and distribution matching through worked examples. Hierarchy and multi-agent learning remain introductions rather than comprehensive theoretical treatments.
+
+For language-model training, continue with [RLOO's leave-one-out baseline](../rloo.en.md), then [audit how a batch becomes an RL loss](../../practice/post-training/rl-batch-audit.en.md). The first adds a baseline proof and worked arithmetic; the second checks grouping, token shifting, EOS, and denominators. Neither requires a multi-GPU setup.
+
+## Six questions for reviewing this sequence {#reward-review}
+
+If you know policy gradients and want to prepare for a technical discussion or debug training code, start here. Each row links to a specific calculation or derivation, so you can revisit one point without rereading the whole chapter. If baselines, returns, and advantages are still unfamiliar, follow the foundations route above first.
+
+| Question | What your explanation should include | Derivation or worked example |
+| --- | --- | --- |
+| Same-prompt rewards are 1, 0, and 0.5. What are the leave-one-out advantages, and why exclude each sample itself? | The advantages are 0.75, −0.75, and 0. Unbiasedness uses independent sampling conditional on the prompt and a zero-mean score function; subtracting any mean is not equivalent | [RLOO calculation and proof](../rloo.en.md#why-leave-one-out) |
+| Does assigning higher reward to demonstrated routes necessarily improve an IRL model? | Feasible alternatives matter, so the partition function cannot be dropped. The three-route gradient is $1.6-10/7$; it matches a feature expectation, not every route frequency | [The MaxEnt IRL gradient](maxent-irl.en.md#gradient) |
+| Does 50% discriminator accuracy establish successful GAIL imitation? | It can indicate matching distributions or a weak discriminator. Check independent task outcomes too; at ideal matching, our per-step reward is $\log2$, not zero | [Discrimination and distribution matching](gail.en.md#js) |
+| Can a ranking of three responses be treated as three independent preference pairs? | Pairwise loss is a valid choice but differs from full-ranking PL loss. State whether prompts or pairs receive equal weight, so extra candidates do not silently dominate training | [Pairwise versus ranking objectives](../reward-ranking.en.md#pairs-versus-ranking) |
+| If EOS and PAD share an ID, can every occurrence of that ID be masked out? | No: a generated EOS is an action; padding is not. Build masks from generation boundaries and align logits with the following token | [Token shifting and EOS checks](../../practice/post-training/rl-batch-audit.en.md#alignment) |
+| For per-token losses $[2,4]$ and $[1,1,1,1]$, why do three means differ? | Mean sequence sums give 5, mean per-response means give 2, and the valid-token mean gives $5/3$. The denominator changes sample weights; microbatching should preserve the chosen objective | [Worked loss reductions](../../practice/post-training/rl-batch-audit.en.md#reduction) |
+
+After reproducing the numbers, change an assumption: correlated samples, unequal candidate counts, variable trajectory lengths, or a reward-service timeout. Which step still works, and which needs a new definition? Explaining those changes reveals more than naming an algorithm.
 
 ## Different reading goals, not separate sets of notes
 

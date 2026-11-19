@@ -74,7 +74,7 @@ Add a behavior model, such as [maximum-entropy IRL (Ziebart et al., 2008)](https
 
 The 2.20 also depends on the model: if the expert always intends to go right but makes an execution error 10% of the time, it reflects the error frequency and cannot be read directly as preference strength.
 
-Additional assumptions or inductive biases are necessary: a reward family, a maximum-entropy model, or preference comparisons. Experts also face capability, information, and cost constraints; observed behavior need not reveal perfectly rational optimal preferences. A complete MaxEnt IRL optimization derivation is outside this introduction.
+Additional assumptions or inductive biases are necessary: a reward family, a maximum-entropy model, or preference comparisons. Experts also face capability, information, and cost constraints; observed behavior need not reveal perfectly rational optimal preferences. For the actual fitting procedure, continue to [MaxEnt IRL](maxent-irl.en.md): three routes lead into feature matching, soft planning, and the limits of trajectory weighting in stochastic environments. For learning expert-like behavior without separately recovering a reward, read [GAIL](gail.en.md).
 
 ## Where preference-based rewards can go wrong
 

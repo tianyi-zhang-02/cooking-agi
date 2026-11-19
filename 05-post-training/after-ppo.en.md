@@ -61,6 +61,8 @@ $$\hat A_i = r_i - \frac{1}{k-1}\sum_{j \neq i} r_j$$
 
 The paper tests these simplifications on particular pretrained models and preference tasks. It does not establish that every task can dispense with a Critic or GAE.
 
+For a worked baseline calculation, continue with [RLOO: use the other answers as a baseline](rloo.en.md). It uses three responses to explain self-exclusion, derives the relationship to subtracting the group mean, and separates the baseline from standard-deviation normalization and clipping.
+
 ### GRPO's group-relative advantage {#grpos-group-relative-advantage}
 
 Sample $G$ responses for one prompt and score them $R_1,\ldots,R_G$. A common response-level advantage is $\hat A_i=(R_i-\mu_R)/(\sigma_R+\varepsilon)$, where $\mu_R$ is the group mean, $\sigma_R$ the group's population standard deviation (divide by $G$), and $\varepsilon$ prevents division by zero. The formula written out term by term, with a full worked example for `[0, 1, 0, 0]`, is in [four answers, one correct](rlhf/after-rlhf.en.md#group-example). For the opening rewards $[1,0,1,0]$, $\mu_R$ and $\sigma_R$ are both 0.5, giving advantages approximately $[1,-1,1,-1]$ when the small $\varepsilon$ is ignored. A sample-standard-deviation convention changes the scale. Rewards may come from a Reward Model, humans, a math verifier, unit tests, code execution, or a format checker.
