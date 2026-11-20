@@ -55,11 +55,12 @@
 .prose .chapter-context p { margin: .3rem 0 0; font-size: .86rem; line-height: 1.8; }
 /* routes: open cells under a rule each, like the home page's entries */
 .study-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; margin: 1.7rem 0 2rem; }
-.study-route a { display: block; padding: .9rem 0 1rem; color: var(--ink); text-decoration: none; border-top: 1px solid var(--rule); }
+.study-route a { display: block; min-width: 0; padding: 1rem 0 1.15rem; color: var(--ink); text-decoration: none; border-top: 1px solid var(--rule); overflow-wrap: anywhere; }
 .study-route a:hover strong { color: var(--ember); }
 .study-route small { display: block; font: 500 .75rem/1.5 var(--body); color: var(--ember); margin-bottom: .3rem; }
-.study-route strong { font: 600 .88rem/1.6 var(--body); }
-.study-route span { display: block; font: .78rem/1.7 var(--body); color: var(--muted); margin-top: .35rem; }
+.study-route strong { font: 600 1rem/1.6 var(--body); }
+.study-route span { display: block; font: .9rem/1.7 var(--body); color: var(--muted); margin-top: .35rem; }
+.study-route.reading-entry { margin: 1.5rem 0 2rem; }
 .study-route.goal-route { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .study-route.prep-route { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 /* two columns with an odd count: the last card takes the whole row instead of leaving a hole */
@@ -105,6 +106,9 @@
   .study-route.goal-route { grid-template-columns: 1fr; }
   .study-route.speedrun-route { grid-template-columns: 1fr; }
   .study-route.tree-reading-routes { grid-template-columns: 1fr; }
+  .study-route.reading-entry { grid-template-columns: 1fr; gap: 0; }
+  .study-route.reading-entry a { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr); gap: .8rem; align-items: baseline; padding: 1rem 0; }
+  .study-route.reading-entry span { margin: 0; }
   .atlas-subject { padding: 1rem; }
   .atlas-chapter summary { min-height: 44px; }
   .prose .worked-update ol { grid-template-columns: 1fr; }

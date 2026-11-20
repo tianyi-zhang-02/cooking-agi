@@ -2,7 +2,7 @@
 
 [中文](llm-bridge.md) · **English**
 
-> Reading time: ~14 min · Last reviewed: 2026-10
+> Reading time: ~17 min · Last reviewed: 2026-11
 
 What changes when a model goes from answering one question to repeatedly editing code and running tests? Both can be trained with RL, but an action, an episode ending, and a useful improvement may mean different things.
 
@@ -41,6 +41,34 @@ Suppose a prompt produces three tokens, ending in EOS, and the completed answer 
 For the sampled tokens, suppose old conditional probabilities are $[0.5,0.25,0.5]$ and new probabilities are $[0.6,0.2,0.6]$. Token ratios are $[1.2,0.8,1.2]$, while the sequence ratio is their product, 1.152. Token-level PPO must not interchange them; long-sequence products have different scale and variance.
 
 A terminal score can provide learning signals to earlier actions. That does not mean each reasoning step was independently verified. Process rewards add intermediate feedback but can introduce their own bias; denser feedback is not automatically more accurate.
+
+### If gradients cannot pass through sampling, where do they come from? {#reward-gradient-path}
+
+A test program returns a number, not a target for the next token. Replacing it with a differentiable reward model does not make sampled discrete token IDs a differentiable path. **Policy gradients change the probability of generating a response; they do not differentiate this particular test result back through sampling.**
+
+Fix one prompt $x$ and consider only a task reward $R(x,y)$, excluding KL, with a scoring rule independent of policy parameters $\theta$. For a complete response freshly sampled from the current policy, a REINFORCE update uses:
+
+$$
+\begin{gathered}
+y\sim\pi_\theta(\cdot\mid x),\\
+\hat g=R(x,y)\nabla_\theta\log\pi_\theta(y\mid x).
+\end{gathered}
+$$
+
+Hold the sampled response and reward fixed while retaining gradients through its log-probability. Here $\hat g$ is an ascent direction; a loss to minimize needs the opposite sign. [Williams (1992)](https://doi.org/10.1007/BF00992696) establishes the underlying estimator; [RLOO §2.2](https://arxiv.org/html/2402.14740v1#S2.SS2) treats a whole response as an action. See [policy gradients](policy-gradients.en.md) for the derivation and [the RL mapping for language models](../rlhf/rl-for-language-models.en.md#where-mapping-strains) for when sequence and token objectives agree.
+
+**An independently constructed two-response example.** Only A and B are possible, with $p=\pi_\theta(A)=\sigma(\theta)=0.3$. A earns 2 and B earns −1. With respect to this single logit, their log-probability derivatives are $1-p=0.7$ and $-p=-0.3$.
+
+| Response | Sampling probability | Reward | Log-probability derivative | Reward × derivative |
+| --- | ---: | ---: | ---: | ---: |
+| A | 0.3 | 2 | 0.7 | 1.4 |
+| B | 0.7 | −1 | −0.3 | 0.3 |
+
+The expected ascent direction is $0.3\times1.4+0.7\times0.3=0.63$. Direct differentiation agrees: expected reward is $2p-(1-p)=3p-1$, whose derivative is $3p(1-p)=0.63$. Sampling the low-reward B can also increase A's probability, without differentiating through the evaluator.
+
+In contrast, suppose we neither score nor filter the model's samples and simply use them all as equally weighted SFT targets. **At the starting point where the sampling and trainable policies match**, the expected log-likelihood ascent direction is $0.3\times0.7+0.7\times(-0.3)=0$. A finite batch can still produce an update, and repeated fitting to that batch can change the distribution. Zero expectation does not mean training never moves; it means this initial self-imitation update adds no signal distinguishing good answers from bad ones. Filtered SFT changes the target data distribution, as explained in [rejection sampling](../rejection-sampling.en.md#filtered-sft), and is not the unfiltered case here.
+
+An implementation must also put gradients on the right positions. Prompt tokens, tool observations, and padding are not sampled actions for this rollout, but prompts and tool observations still condition later actions. Do not substitute an action mask for an attention mask; see the complete [batch-alignment and EOS checks](../../practice/post-training/rl-batch-audit.en.md#alignment). This example excludes baselines, KL, clipping, and old-data reuse: it checks only the basic reward gradient.
 
 <span id="when-does-grpos-within-group-signal-disappear"></span>
 

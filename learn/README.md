@@ -2,26 +2,17 @@
 
 **中文** · [English](README.en.md)
 
-这里讲模型的结构、训练方法、评估与推理。每个主题从例子讲起，再展开推导和实现。
+模型怎样学习，一次回答又是怎样算出来的？这里按模型、训练、评估和推理整理笔记。可以从小例子读起，也可以直接找需要的推导和实现。
 
-- **刚开始学：**沿着下面的入门顺序读，先弄懂一次计算。
-- **已有基础：**在问题索引或章节目录里找需要的内容。
-- **想动手做：**配合文中的小实验，再到[工程实践](../practice/README.md)看完整系统。
+<nav class="study-route reading-entry" aria-label="选择阅读方式">
+<a href="#_1"><strong>从头开始</strong><span>按顺序读，先弄懂一次计算和更新。</span></a>
+<a href="#_2"><strong>带着问题来</strong><span>从具体问题找到相关章节。</span></a>
+<a href="#_3"><strong>直接找章节</strong><span>展开目录，选自己感兴趣的主题。</span></a>
+</nav>
 
-不确定该选哪一部分，可以先看[阅读路线](choose-your-path.md)；主要为面试复习，直接去[面试准备](../interview/README.md)。
+想动手做，可以配合文中的小实验，再到[工程实践](../practice/README.md)看完整系统。不确定从哪里开始，先看[阅读路线](choose-your-path.md)；主要为面试复习，可以去[面试准备](../interview/README.md)。
 
-近期补充（2026-10）：
-
-- [前沿观察](../11-frontier/README.md)：新增的第四部分。[世界模型](../11-frontier/world-models/README.md)和[递归自我改进（RSI）](../11-frontier/self-improvement/README.md)，以及[测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md)、[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)、[机制可解释性](../11-frontier/interpretability/README.md)，五组都已审阅。
-- 两个新板块：[AI 基础设施（AI infra）](../12-infra/README.md)，从芯片、GPU、CUDA 讲到框架和集群；[感知、机器人与自动驾驶](../13-embodied/README.md)。
-- 2026-10-16 又加了三组：[Scaling law 与超参数](../00-foundations/scaling/README.md)，开训前怎样定模型大小、数据量和学习率（LR）；[扩散语言模型（dLLM）](../11-frontier/diffusion-lm/README.md)，放在前沿观察里；[量化](../12-infra/quantization/README.md)，放在 AI 基础设施里。
-- 强化学习补了三篇：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习怎样配合](../05-post-training/deep-rl/planning-and-learning.md)、[离线策略评估（OPE）的估计量](../05-post-training/deep-rl/ope-estimators.md)。
-
-这些新内容在 2026-10-21 对照一手资料核对完毕，草稿标记已经去掉。
-
-## 从基础开始
-
-想把数学和工程连起来，可以从[矩阵梯度与训练系统](../00-foundations/deep-dives/matrix-gradients-to-systems.md)开始，再沿[每次一个问题的选读路线](../practice/runtime-reading/README.md#small-steps)走到 attention、多卡、推理与 NeMo RL。
+## 从基础开始 {#_1}
 
 向量、loss 和梯度还不熟，可以先读[从线性模型到神经网络](../00-foundations/from-linear-to-neural.md)。下面的第 1–3 步是模型计算与训练的基础，第 5 步讲评估；后训练和推理优化可以稍后再看。阅读时可以配合 [PyTorch 小实验](../00-foundations/pytorch/README.md)。
 
@@ -34,7 +25,9 @@
 <a href="inference/README.md"><small>06 / 生成</small><strong>怎样把回答算出来</strong><span>采样、缓存与推理成本</span></a>
 </nav>
 
-## 带着问题来，可以这样读
+想把数学和工程连起来，可以从[矩阵梯度与训练系统](../00-foundations/deep-dives/matrix-gradients-to-systems.md)开始，再沿[每次一个问题的选读路线](../practice/runtime-reading/README.md#small-steps)走到 attention、多卡、推理与 NeMo RL。
+
+## 带着问题来，可以这样读 {#_2}
 
 从左边找到接近你的问题，按中间一栏选读。右边列出了阅读时值得留意的细节。
 
@@ -82,13 +75,25 @@
 <span id="03"></span>
 <span id="04"></span>
 
-## 全部章节
+## 全部章节 {#_3}
 
 分为**理解模型、训练与检验、推理与应用、前沿观察**四个部分，与左侧目录一致。点标题看导读，展开小节找文章。相关主题会在文中互相链接。
 
 <!-- widget:study-atlas -->
 
-## 阅读与更新
+<details markdown="1">
+<summary>此前新增的专题（2026-10）</summary>
+
+- [前沿观察](../11-frontier/README.md)：新增的第四部分。[世界模型](../11-frontier/world-models/README.md)和[递归自我改进（RSI）](../11-frontier/self-improvement/README.md)，以及[测试时计算（test-time compute）](../11-frontier/test-time-compute/README.md)、[用 RL 训练 agent](../11-frontier/agentic-rl/README.md)、[机制可解释性](../11-frontier/interpretability/README.md)，五组都已审阅。
+- 两个新板块：[AI 基础设施（AI infra）](../12-infra/README.md)，从芯片、GPU、CUDA 讲到框架和集群；[感知、机器人与自动驾驶](../13-embodied/README.md)。
+- 2026-10-16 又加了三组：[Scaling law 与超参数](../00-foundations/scaling/README.md)，开训前怎样定模型大小、数据量和学习率（LR）；[扩散语言模型（dLLM）](../11-frontier/diffusion-lm/README.md)，放在前沿观察里；[量化](../12-infra/quantization/README.md)，放在 AI 基础设施里。
+- 强化学习补了三篇：[学什么样的模型](../05-post-training/deep-rl/model-types.md)、[规划与学习怎样配合](../05-post-training/deep-rl/planning-and-learning.md)、[离线策略评估（OPE）的估计量](../05-post-training/deep-rl/ope-estimators.md)。
+
+这些专题在 2026-10-21 完成了首轮一手资料核对，并去掉草稿标记；后续修订继续记录在各篇笔记里。
+
+</details>
+
+## 阅读与更新 {#_4}
 
 想了解这些技术的发展过程，可以看[编年史](technology-timeline.md)。
 

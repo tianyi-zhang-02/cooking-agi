@@ -123,9 +123,9 @@ Some experiments also need PyTorch; their tests skip when it isn't installed.
 
 ## Why this exists
 
-When I started preparing for industry roles, my materials were scattered across lectures, papers, documentation, and bookmarks, and something I recognized in a paper was often much harder to explain or implement myself. Writing it down showed me those gaps; sharing it lets others point out the rest.
+Useful explanations are scattered across lectures, papers, documentation, and bookmarks. These notes bring them together, with worked examples that connect reading a method to explaining and implementing it. Sharing the notes also gives others a way to question the explanations and help fill the gaps.
 
-I hope it makes a field easier to start without a background in it or someone to hand you a reading list. If it saves you some searching and leaves a little more time for the rest of your life, that's a good reason to keep working on it.
+The aim is to make a field easier to start without a background in it or someone to hand you a reading list. Less time spent searching can mean more time for learning—and for the rest of life.
 
 <span id="_6"></span>
 

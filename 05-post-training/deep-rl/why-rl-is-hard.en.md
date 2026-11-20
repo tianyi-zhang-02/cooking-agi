@@ -2,7 +2,7 @@
 
 [中文](why-rl-is-hard.md) · **English**
 
-> Reading time: about 13–17 minutes · Last reviewed: 2026-10 · Systems documentation checked: 2026-10-11
+> Reading time: about 15–19 minutes · Last reviewed: 2026-11 · Systems documentation checked: 2026-10-11
 
 The training script runs, the GPUs stay busy, and reward barely improves. Change the sampling temperature and the curve looks completely different. In RL, all of those observations can coexist.
 
@@ -125,6 +125,33 @@ A checkpoint is more than weights. Restore the optimizer, scheduler, RNG, and da
 **The gap between feedback and real requirements.** Passing a test suite does not cover every use case. Open-ended answers are harder still to score completely. Models encounter situations the evaluator did not anticipate. Using the same judge to generate training data, assign reward, and perform final evaluation can turn shared blind spots into apparent progress. Separate training feedback from independent evaluation; see [data as supervision](../../01-data-and-feedback/data-as-supervision.en.md).
 
 The practical response is to isolate failures and run controlled comparisons, not declare either a universal RL recipe or the uselessness of RL. This is a review of public mechanisms and engineering limits, not a complete survey of every lab’s latest training system.
+
+### Does observing no successes prove the model cannot succeed? {#finite-exploration-evidence}
+
+Not by itself. Fix **one task, one model, one sampling configuration, and a reliable binary verifier**. Choose $N$ independent attempts in advance, without updating the policy during collection. Let $K$ count the successes. If each attempt succeeds with probability $p$, the probability of no successes is:
+
+$$
+P(K=0)=(1-p)^N.
+$$
+
+For a true success rate of 0.5%, there is still a $0.995^{256}\approx27.7\%$ chance of seeing no successes in 256 attempts. Conversely, after observing 0/256, solve $(1-p_{\rm upper})^{256}=0.05$ for a **one-sided 95% exact binomial upper confidence bound**:
+
+$$
+p_{\rm upper}=1-0.05^{1/256}\approx1.16\%.
+$$
+
+This inverts a binomial tail probability; see [NIST's exact binomial intervals](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm). We use the one-sided tail probability 0.05, not the two-sided value 0.025. It does not assign a 95% probability to the model being unable to succeed, nor establish $p=0$. Copying one greedy response 256 times is not 256 independent attempts. Mixing tasks, changing temperature or policy during collection, or stopping adaptively based on results also does not justify this fixed-experiment bound.
+
+**A small nonzero probability can still be expensive to exploit.** Suppose $p=10^{-4}$. To have at least a 95% chance of discovering one success requires:
+
+$$
+N\ge\left\lceil\frac{\log0.05}{\log(1-10^{-4})}\right\rceil
+=29{,}956.
+$$
+
+At exactly 4,096 output tokens per attempt, that is 122,699,776 generated tokens before verification or retries. This is a discovery budget under a frozen policy, not the sample complexity of RL convergence. Training, transfer across tasks, or demonstrations can change $p$. It also differs from [within-group reward variation](llm-bridge.en.md#sparse-groups): discovering one success does not mean each group provides a useful comparison.
+
+When reporting “the base model never succeeded, but the trained model did,” include per-task budgets, sampling protocols, verification criteria, and uncertainty. That observation alone establishes neither the invention of a new capability nor an immutable ceiling set by the base model. Compare single-attempt reliability, coverage over more attempts, and the quality of the answer actually selected; see [interpreting pass@k](../../11-frontier/test-time-compute/measuring.en.md). Capability-boundary claims need reproducible experiments, not guesses from a training curve.
 
 ## A practical debugging order {#diagnosis}
 

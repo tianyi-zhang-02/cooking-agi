@@ -141,6 +141,8 @@ $$
 
 不加惩罚会选冒险，使用有效界会选稳妥。若模型们一致但共同犯错，把冒险的 $u$ 错报为 0.05，所谓“下界”变成 7.5，远高于真实值 1。这时失败的是误差上界前提；把错误模型 rollout 一百万次，只会更精确地估出错误的 8。
 
+如果想继续拆开训练流程，[离线模型式 RL](offline-models.md)比较三种做法：MOPO 扣奖励、MOReL 转入 HALT、COMBO 约束 Critic。每种都有手算例子，也会检查模型轨迹截断后该不该自举。
+
 这里的系数 10 来自终点价值差，不是通用超参数；多步情形还要处理折扣、访问分布和误差传播。**回报下界也不是安全约束，更不等于必然超过行为策略。** MOPO 的行为策略对照界仍减去一项不确定性代价；要证明严格改进，需要相应的额外证据。
 
 ## 一个可用的评估顺序
@@ -151,4 +153,4 @@ $$
 
 ## 这里讲到哪里为止
 
-这一篇建立 support、importance weighting、保守学习和数据内学习的直觉；逐步重要性采样、双重稳健估计和 LSTD 在[下一篇](ope-estimators.md)展开。两篇都不提供完整 OPE 置信界或 offline RL 收敛证明。继续精读：[CQL，第 3.2 节、式 (4)](https://arxiv.org/abs/2006.04779) · [IQL，第 4.1–4.3 节](https://arxiv.org/abs/2110.06169) · [OPE 与权重归一化，第 2–5 节](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE，第 3.2 节、算法 3](https://proceedings.mlr.press/v97/le19a.html)。基本重要性采样推导可回到 [Policy Gradient](policy-gradients.md)。
+这一篇建立 support、importance weighting、保守学习和数据内学习的直觉；逐步重要性采样、双重稳健估计和 LSTD 在 [OPE 估计器](ope-estimators.md)展开。两篇都不提供完整 OPE 置信界或 offline RL 收敛证明。继续精读：[CQL，第 3.2 节、式 (4)](https://arxiv.org/abs/2006.04779) · [IQL，第 4.1–4.3 节](https://arxiv.org/abs/2110.06169) · [OPE 与权重归一化，第 2–5 节](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE，第 3.2 节、算法 3](https://proceedings.mlr.press/v97/le19a.html)。基本重要性采样推导可回到 [Policy Gradient](policy-gradients.md)。

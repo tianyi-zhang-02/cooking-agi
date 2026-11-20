@@ -2,7 +2,7 @@
 
 [中文](reward-signals.md) · **English**
 
-> Reading time: ~12–15 min · Last reviewed: 2026-11 · Prerequisite: [Preferences and reward models](where-preferences-come-from.en.md)
+> Reading time: ~14–17 min · Last reviewed: 2026-11 · Prerequisite: [Preferences and reward models](where-preferences-come-from.en.md)
 
 Two models assign a response a score of 0.8. One might use that score to rank responses by preference; the other might estimate the chance of eventually answering correctly from the current prefix. Even with the same network, changing the labels and objective changes what its output means.
 
@@ -108,6 +108,34 @@ Interpreting a product as the probability that all steps are correct requires th
 If the model predicts eventual success from each prefix, multiplying those predictions generally has no such joint-probability interpretation. They predict the same final event rather than separate independent checks. Snell et al. compare aggregation rules under rollout-derived supervision and find that the final-step prediction works better in their setting. That is a result about their model, targets, and evaluation, not a rule that every PRM should use its last score.
 
 Record all three choices: **how steps are separated, what a score means, and how scores are combined**. Changing any one of them calls for reevaluating the correctness of the selected answers.
+
+## Does better pairwise ranking select a better answer? {#ranking-versus-selection}
+
+[RewardBench (NAACL 2025, §4)](https://aclanthology.org/2025.findings-naacl.96/) checks whether the chosen response scores above the rejected response in a supplied pair. [Lightman et al. (2023, §2.1)](https://arxiv.org/html/2305.20050v1#S2.SS1) instead select the highest-scoring candidate from multiple generator outputs and measure final-answer correctness. These evaluations answer different questions; one metric does not guarantee the other.
+
+Consider an invented debugging task. A human rubric ranks five responses $A\succ B\succ C\succ D\succ E$. Only A fully solves the problem; the unsuccessful responses can still be ordered by partial completion. Two RMs assign these **ranking scores, not correctness probabilities**:
+
+| Response | RM-1 | RM-2 |
+| --- | ---: | ---: |
+| A | 4 | 5 |
+| B | 5 | 1 |
+| C | 3 | 2 |
+| D | 2 | 3 |
+| E | 1 | 4 |
+
+There are $\binom52=10$ preference pairs. RM-1 reverses only A/B, getting 9 pairs right for 90% accuracy, but selects the unsuccessful B. RM-2 gets only A's four comparisons right and reverses the other six, giving 40% accuracy, yet selects A. An error at the top can matter more to the returned answer than several errors near the bottom. This is not a recommendation to choose a low-accuracy RM: **average pair accuracy does not identify where the errors occur**.
+
+Separate three levels of evaluation rather than asking one score to explain everything:
+
+| Question | Unit and metric | What else to inspect |
+| --- | --- | --- |
+| Does it reproduce annotations? | Pair accuracy, or positive- and negative-class recall for step classification | Errors at the top of the ranking and missed critical reasoning errors |
+| Are its probabilities reliable? | Log loss and observed frequencies within probability bins for a specified event | Raw rewards are not probabilities, and preference probability is not correctness probability |
+| Does it return a good answer? | Independent acceptance of the selected answer, measured per question | Whether an acceptable candidate existed, plus generation and scoring costs |
+
+A useful generalization check fixes held-out questions and saves separate candidate pools from the old and current generators, then scores both pools with both the old and new RMs. Comparing RMs **within one candidate pool** isolates the selector change. Comparing **one RM across pools** also reflects changes in candidate quality and error types, so a difference cannot be attributed directly to RM degradation. Reranking cannot supply an acceptable answer absent from the pool. Run a separate equal-budget system comparison; see [the evaluation chapter](../07-evaluation/llm-as-a-judge/calibration.en.md) for calibration and uncertainty estimates.
+
+If the RM will supply RL rewards, these checks still evaluate only scoring and selection. Update policies under matched training budgets and evaluate them independently before claiming a training improvement from a fixed-candidate selection gain.
 
 ## Checks for review and implementation {#audit}
 
