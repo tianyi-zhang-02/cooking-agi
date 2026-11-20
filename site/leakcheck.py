@@ -10,13 +10,16 @@
 具体数值要靠写作时就不写进来。
 """
 
+import json
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 RULES = [
+    ("local personal path", r"(?<![\w/.-])(?:file://)?(?:/Users/|/home/|[A-Z]:\\Users\\)[^\s)\]>]+"),
     # 雇主与平台内部叫法
     ("employer / internal term", r"linkedin|领英|字节跳动|bytedance"),
     # 形如集群规模与超参。12-infra/ 讲的是公开的硬件与集群配置（厂商规格书里的“8 GPUs”“NVL72”），
@@ -43,10 +46,37 @@ def redact_public_reference_urls(line):
     return line
 
 
-SCAN = ["00-foundations", "01-data-and-feedback", "02-memory",
-        "03-multimodal-learning", "04-search", "05-post-training", "06-systems",
-        "07-evaluation", "08-model-experience", "09-personal-agi",
-        "10-agents", "11-frontier", "12-infra", "13-embodied", "papers", "interview", "practice", "learn", "community", "discussions", "skills"]
+def note_directories(root):
+    numbered = sorted(path.name for path in root.iterdir()
+                      if path.is_dir() and re.match(r"^\d{2}-", path.name))
+    return numbered + ["papers", "interview", "practice", "learn", "community", "discussions", "skills"]
+
+
+SCAN = note_directories(ROOT)
+
+
+def owner_profile_issues(owner, outcomes, crew):
+    owner = owner.casefold()
+    issues = []
+    for record in outcomes.get("records", []):
+        if str(record.get("github", "")).casefold() == owner:
+            issues.append(("community/outcomes.json", "owner career record"))
+    for person in crew.get("crew", []):
+        if str(person.get("login", "")).casefold() == owner:
+            fields = set(person) - {"login"}
+            if fields:
+                issues.append(("crew.toml", "owner profile fields: " + ", ".join(sorted(fields))))
+    return issues
+
+
+def personal_record_hits(root):
+    nav = tomllib.loads((root / "site/nav.toml").read_text(encoding="utf-8"))
+    owner = nav["site"]["repo"].split("/", 1)[0]
+    outcomes = json.loads((root / "community/outcomes.json").read_text(encoding="utf-8"))
+    crew = tomllib.loads((root / "crew.toml").read_text(encoding="utf-8"))
+    return [(filename, 1, "personal publication boundary", label,
+             "Keep contribution attribution separate from personal profiles and career records.")
+            for filename, label in owner_profile_issues(owner, outcomes, crew)]
 
 
 def main():
@@ -66,7 +96,7 @@ def main():
     if (ROOT / "site/collaboration.toml").exists():
         targets.append(ROOT / "site/collaboration.toml")
 
-    hits = []
+    hits = personal_record_hits(ROOT)
     for f in targets:
         rel = f.relative_to(ROOT).as_posix()
         for i, line in enumerate(f.read_text(encoding="utf-8",

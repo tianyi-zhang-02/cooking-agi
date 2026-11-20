@@ -4,28 +4,17 @@
 
 [中文](README.md) · **English**
 
-This section covers model structure, training methods, evaluation, and inference. Each topic starts from an example, then develops the derivation and the implementation.
+How does a model learn, and what happens when it generates an answer? These notes cover models, training, evaluation, and inference. Start with the small examples, or go straight to the derivations and implementations you need.
 
-- **Just starting:** follow the starter route below and understand one computation first.
-- **Already have the basics:** look up what you need in the question index or the chapter list.
-- **Ready to build:** run the small experiments in the notes, then see complete systems in [Engineering practice](../practice/README.en.md).
+<nav class="study-route reading-entry" aria-label="Choose a reading route">
+<a href="#start-with-the-foundations"><strong>Start from scratch</strong><span>Follow a computation, then a training update.</span></a>
+<a href="#follow-the-question-you-have"><strong>Follow a question</strong><span>Find the chapters that address your problem.</span></a>
+<a href="#all-chapters"><strong>Browse chapters</strong><span>Open the directory and choose a subject.</span></a>
+</nav>
 
-Not sure which part to pick? Start with the [reading routes](choose-your-path.en.md). If you are mainly reviewing for interviews, go straight to [Interview prep](../interview/README.en.md).
-
-<span id="how-the-sections-fit-together"></span>
-
-Recent additions (October 2026):
-
-- [Frontier watch](../11-frontier/README.en.md), a new fourth area. The [world models](../11-frontier/world-models/README.en.md) and [recursive self-improvement](../11-frontier/self-improvement/README.en.md) series, along with [test-time compute](../11-frontier/test-time-compute/README.en.md), [agent RL](../11-frontier/agentic-rl/README.en.md), and [interpretability](../11-frontier/interpretability/README.en.md), have all been reviewed.
-- [AI infrastructure](../12-infra/README.en.md) (from chips, GPUs, and CUDA up to frameworks and clusters) and [Perception, robots, and driving](../13-embodied/README.en.md): two new blocks.
-- Three more series, added 2026-10-16: [scaling laws and hyperparameters](../00-foundations/scaling/README.en.md), on choosing model size, data and learning rate before a run; [diffusion language models](../11-frontier/diffusion-lm/README.en.md) in Frontier watch; and [quantization](../12-infra/quantization/README.en.md) in AI infrastructure.
-- Three new deep RL notes: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [combining planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md), and [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md).
-
-These additions were checked against primary sources on 2026-10-21, and their draft labels have been removed.
+For hands-on work, try the experiments alongside the notes, then visit [Engineering practice](../practice/README.en.md) for complete systems. The [reading routes](choose-your-path.en.md) can help you choose a starting point. Reviewing for an interview? Go to [Interview prep](../interview/README.en.md).
 
 ## Start with the foundations
-
-To connect mathematics with implementation, begin with [matrix gradients and training systems](../00-foundations/deep-dives/matrix-gradients-to-systems.en.md), then follow the [one-question reading route](../practice/runtime-reading/README.en.md#small-steps) into attention, multiple GPUs, inference, and NeMo RL.
 
 If vectors, losses, and gradients are still unfamiliar, begin with [linear models to neural networks](../00-foundations/from-linear-to-neural.en.md). Steps 1–3 below explain computation and learning; step 5 covers checking the result. Post-training and inference optimization can wait until you need them. Pair your reading with the [small PyTorch experiments](../00-foundations/pytorch/README.en.md).
 
@@ -37,6 +26,8 @@ If vectors, losses, and gradients are still unfamiliar, begin with [linear model
 <a href="../07-evaluation/README.en.md"><small>05 / EVALUATION</small><strong>Did anything actually improve?</strong><span>Comparisons, metrics, and concrete errors</span></a>
 <a href="inference/README.en.md"><small>06 / GENERATION</small><strong>Computing an answer</strong><span>Sampling, caching, and inference cost</span></a>
 </nav>
+
+To connect mathematics with implementation, begin with [matrix gradients and training systems](../00-foundations/deep-dives/matrix-gradients-to-systems.en.md), then follow the [one-question reading route](../practice/runtime-reading/README.en.md#small-steps) into attention, multiple GPUs, inference, and NeMo RL.
 
 <span id="follow-a-question-across-chapters"></span>
 
@@ -94,10 +85,24 @@ The chapters fall into four areas that match the sidebar: **understanding models
 
 <!-- widget:study-atlas -->
 
+<span id="how-the-sections-fit-together"></span>
+
+<details markdown="1">
+<summary>Earlier additions (October 2026)</summary>
+
+- [Frontier watch](../11-frontier/README.en.md), a new fourth area. The [world models](../11-frontier/world-models/README.en.md) and [recursive self-improvement](../11-frontier/self-improvement/README.en.md) series, along with [test-time compute](../11-frontier/test-time-compute/README.en.md), [agent RL](../11-frontier/agentic-rl/README.en.md), and [interpretability](../11-frontier/interpretability/README.en.md), have all been reviewed.
+- [AI infrastructure](../12-infra/README.en.md) (from chips, GPUs, and CUDA up to frameworks and clusters) and [Perception, robots, and driving](../13-embodied/README.en.md): two new blocks.
+- Three more series, added 2026-10-16: [scaling laws and hyperparameters](../00-foundations/scaling/README.en.md), on choosing model size, data and learning rate before a run; [diffusion language models](../11-frontier/diffusion-lm/README.en.md) in Frontier watch; and [quantization](../12-infra/quantization/README.en.md) in AI infrastructure.
+- Three new deep RL notes: [which model to learn](../05-post-training/deep-rl/model-types.en.md), [combining planning and learning](../05-post-training/deep-rl/planning-and-learning.en.md), and [off-policy evaluation estimators](../05-post-training/deep-rl/ope-estimators.en.md).
+
+These series completed their first primary-source check on 2026-10-21, when the draft labels were removed. Further revisions are recorded in the individual notes.
+
+</details>
+
 ## Reading and updates
 
 For how these techniques developed, see the [Tech history](technology-timeline.en.md).
 
-Use **EN / 中文** at the top right to switch the current article. Chinese pages retain useful English terminology; English pages contain the full examples, derivations, and code.
+Use the language switch at the top right to open the same article in Chinese or English. Chinese pages retain useful English terminology; English pages contain the full examples, derivations, and code.
 
 Search at the top or press `/` to look up a concept. “My reading” keeps your saved and recently read articles in this browser. Progress is tracked in the [coverage and remaining-work list](coverage.en.md).

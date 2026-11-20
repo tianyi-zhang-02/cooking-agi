@@ -139,6 +139,8 @@ $$
 
 Without a penalty, the model selects the risky action; valid bounds favor the cautious one. If ensemble members agree on the same wrong prediction and incorrectly report $u=0.05$ for the risky action, its supposed lower bound becomes 7.5, far above its true return of 1. The error-bound assumption has failed. A million rollouts from that model only estimate the wrong value of 8 more precisely.
 
+For the training loop in more detail, [offline model-based RL](offline-models.en.md) compares three approaches: MOPO penalizes rewards, MOReL transitions to HALT, and COMBO regularizes the critic. Each has a worked calculation, followed by a check on bootstrapping at model-rollout cutoffs.
+
 The coefficient 10 comes from the terminal-value difference, not a universal tuning rule. Multiple steps additionally require discounting, visitation distributions, and error propagation. **A return lower bound is neither a safety constraint nor an automatic improvement over behavior.** MOPO's behavior-policy comparison still subtracts an uncertainty cost; strict improvement needs further evidence.
 
 ## A useful evaluation order
@@ -149,4 +151,4 @@ Do not repeatedly select policies on the same logs and report the winning OPE sc
 
 ## Scope of this introduction
 
-This chapter develops support, importance weighting, conservative learning, and in-dataset learning; per-decision importance sampling, doubly robust estimation, and LSTD follow in the [next note](ope-estimators.en.md). Neither note derives complete OPE confidence bounds or offline-RL convergence theorems. Read further: [CQL, §3.2, Eq. (4)](https://arxiv.org/abs/2006.04779) · [IQL, §§4.1–4.3](https://arxiv.org/abs/2110.06169) · [OPE and weight normalization, §§2–5](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE, §3.2, Algorithm 3](https://proceedings.mlr.press/v97/le19a.html). For basic importance weighting, revisit [policy gradients](policy-gradients.en.md).
+This chapter develops support, importance weighting, conservative learning, and in-dataset learning; per-decision importance sampling, doubly robust estimation, and LSTD follow in [OPE estimators](ope-estimators.en.md). Neither note derives complete OPE confidence bounds or offline-RL convergence theorems. Read further: [CQL, §3.2, Eq. (4)](https://arxiv.org/abs/2006.04779) · [IQL, §§4.1–4.3](https://arxiv.org/abs/2110.06169) · [OPE and weight normalization, §§2–5](https://proceedings.mlr.press/v48/thomasa16.html) · [FQE, §3.2, Algorithm 3](https://proceedings.mlr.press/v97/le19a.html). For basic importance weighting, revisit [policy gradients](policy-gradients.en.md).

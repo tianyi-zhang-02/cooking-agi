@@ -1,16 +1,22 @@
-# Deep RL: from one decision to a training loop
+# Deep reinforcement learning {#deep-rl-from-one-decision-to-a-training-loop}
 
 [中文](README.md) · **English**
 
 > Reading time: ~8–10 min · Last reviewed: 2026-11
 
-You can take 2 points now, or wait one step for a possible 4. Which should you choose? **Reinforcement learning asks not just what a decision earns now, but where it leads.** We start with small questions like this, then work toward value estimates, policy updates, and complete training loops.
+You can take 2 points now, or wait one step for a possible 4. Which should you choose? Reinforcement learning (RL) considers both the immediate reward and what a decision changes later. These notes start with small environments, then build up to value estimates, policy updates, and working training loops.
+
+<nav class="study-route reading-entry" aria-label="Reinforcement learning starting points">
+<a href="mdp-bellman.en.md"><strong>New to RL</strong><span>Start with states, actions, rewards, and one update.</span></a>
+<a href="#reward-review"><strong>Review or interview prep</strong><span>Revisit calculations, proofs, and implementation questions.</span></a>
+<a href="experiments.en.md"><strong>Debug a training run</strong><span>Check targets, masks, and gradients before reading the curves.</span></a>
+</nav>
 
 Each chapter starts with an example before introducing equations and code. On a first read, follow the examples; when reviewing, use the tables to compare algorithms and check implementations. The examples are original toy environments, not course assignments or reproduced slides.
 
 If the names blur together, start with [Q-learning, PPO, and DPO](methods-map.en.md). For current difficulties, read [signal, cost, and stability](why-rl-is-hard.en.md). For their origins, follow the technology tree into the [RL timeline](../../learn/rl-timeline.en.md).
 
-## A route through the material
+## Find a chapter by topic {#a-route-through-the-material}
 
 | Route | Read | What you should be able to do |
 | --- | --- | --- |
@@ -19,6 +25,7 @@ If the names blur together, start with [Q-learning, PPO, and DPO](methods-map.en
 | Choose actions through value | [Fitted Q and convergence limits](fitted-q.en.md) → [DQN](dqn.en.md) → [DDPG / TD3](continuous-control.en.md) → [SAC](soft-actor-critic.en.md) | Separate regression loss from policy performance and trace network gradients |
 | Think ahead with a model | [Model-based RL](model-based.en.md) → [Which model to learn](model-types.en.md) → [Planning and LQR](planning-and-control.en.md) → [Combining planning and learning](planning-and-learning.en.md) | Separate dynamics learning, planning, and policy learning; say what a model should predict and how search results become training targets |
 | Understand data and rewards | [Offline RL and OPE](offline-and-ope.en.md) → [Per-decision weights, doubly robust, and LSTD](ope-estimators.en.md) · [Exploration and hierarchy](exploration-and-hierarchy.en.md) · [Imitation and rewards](imitation-and-rewards.en.md) | State the added assumptions, not just the algorithm names |
+| Generate offline training data with a model | [Offline RL and OPE](offline-and-ope.en.md) → [Offline model-based RL](offline-models.en.md) | Calculate reward penalties, HALT values, and conservative critic updates; distinguish predicted trajectories from real evidence |
 | Decide what to try next | [Exploration and hierarchy](exploration-and-hierarchy.en.md) → [Exploration and uncertainty](exploration-uncertainty.en.md) | Calculate UCB scores, posteriors, and information gain; distinguish novelty, randomness, and useful exploration |
 | Learn from demonstrations | [Imitation and rewards](imitation-and-rewards.en.md) → [MaxEnt IRL](maxent-irl.en.md) → [GAIL](gail.en.md) · [Reward-model ranking losses](../reward-ranking.en.md) | Fit feature expectations, calculate a discriminator reward, and distinguish pairwise from full-ranking supervision |
 | Run a meaningful experiment | [Experiments and debugging](experiments.en.md) → [The LLM bridge](llm-bridge.en.md) | Check the implementation before interpreting reward as progress |
@@ -29,7 +36,7 @@ For language-model training, continue with [RLOO's leave-one-out baseline](../rl
 
 The reward needs its own check. [What a reward model predicts](../reward-signals.en.md) uses a small arithmetic problem to distinguish correct answers, valid steps, and future success, then works through label masks and score aggregation. For inference-time search, continue with [splitting a fixed budget between generation and verification](../../11-frontier/test-time-compute/parallel-and-verify.en.md#budget-example).
 
-## Six questions for reviewing this sequence {#reward-review}
+## Review: six calculation and implementation questions {#reward-review}
 
 If you know policy gradients and want to prepare for a technical discussion or debug training code, start here. Each row links to a specific calculation or derivation, so you can revisit one point without rereading the whole chapter. If baselines, returns, and advantages are still unfamiliar, follow the foundations route above first.
 
@@ -42,9 +49,9 @@ If you know policy gradients and want to prepare for a technical discussion or d
 | If EOS and PAD share an ID, can every occurrence of that ID be masked out? | No: a generated EOS is an action; padding is not. Build masks from generation boundaries and align logits with the following token | [Token shifting and EOS checks](../../practice/post-training/rl-batch-audit.en.md#alignment) |
 | For per-token losses $[2,4]$ and $[1,1,1,1]$, why do three means differ? | Mean sequence sums give 5, mean per-response means give 2, and the valid-token mean gives $5/3$. The denominator changes sample weights; microbatching should preserve the chosen objective | [Worked loss reductions](../../practice/post-training/rl-batch-audit.en.md#reduction) |
 
-After reproducing the numbers, change an assumption: correlated samples, unequal candidate counts, variable trajectory lengths, or a reward-service timeout. Which step still works, and which needs a new definition? Explaining those changes reveals more than naming an algorithm.
+Once you can reproduce the numbers, change an assumption: correlated samples, unequal candidate counts, variable trajectory lengths, or a reward-service timeout. Does the calculation still hold? If not, which step needs to change?
 
-## After the basics, try these counterexamples {#assumption-review}
+## Check your understanding with counterexamples {#assumption-review}
 
 These questions do not require more algorithm names. Predict the answer first, then use a small environment or calculation to find the missing assumption.
 
@@ -55,12 +62,15 @@ These questions do not require more algorithm names. Predict the answer first, t
 | If Q-learning can reuse old data, can multistep returns be used unchanged? | [Two-step replay](dqn.en.md#multistep-off-policy): target value is 6.4, but the uncorrected two-step target has mean 2.35 |
 | Do accurate model predictions make their gradients reliable? | [Matching values, opposite derivatives](model-based.en.md#model-jacobian-check), then [a zero-variance but biased gradient](planning-and-control.en.md#pathwise-gradient-conditions) |
 | If the best logged episode earns 3, is 3 the best an offline policy can do? | [Stitching compatible transitions](offline-and-ope.en.md#stitching-and-trajectory-support): the stipulated deterministic MDP allows return 5, even when the logged sample gives trajectory IS no nonzero weights |
+| Does conservative value learning lower every Q-value? | [COMBO's two-entry fit](offline-models.en.md#combo-example): A rises from 2 to about 2.5714, while B falls from 5 to about 3.6667; the direction depends on sampling distributions |
 | Is an unpredictable result worth exploring? | [A probe and a random coin](exploration-uncertainty.en.md#information-gain): the probe provides about 0.2781 bit; the coin provides no information about the hidden state |
 | If success becomes more likely after a prefix, did the prefix become more valid? | [Changing the continuation policy](../reward-signals.en.md#prefix-value): the same prefix has sample success rates of 1/4 and 3/4 |
+| Does higher reward-model pair accuracy guarantee a better selected response? | [The five-response counterexample](../reward-signals.en.md#ranking-versus-selection): 90% pair accuracy can still rank the only acceptable answer second |
+| Do 256 failures on a fixed task prove the model cannot succeed? | [Zero successes and discovery budgets](why-rl-is-hard.en.md#finite-exploration-evidence): a true success rate of 0.5% still gives about a 27.7% chance of no successes |
 
 Each example states its assumptions. For review, explain not only the numbers but whether the calculation survives stochastic transitions, a different policy, or less data.
 
-## Different reading goals, not separate sets of notes
+## Reading the examples, derivations, and code {#different-reading-goals-not-separate-sets-of-notes}
 
 | What you want today | How to read | What to take away |
 | --- | --- | --- |
@@ -70,7 +80,7 @@ Each example states its assumptions. For review, explain not only the numbers bu
 
 Key calculations are visible in the text without moving sliders or opening an interactive panel. A few flows briefly highlight reading order; all content remains visible afterward, and reduced-motion settings are respected. Existing interactive experiments remain optional ways to change parameters, not substitutes for the lesson.
 
-## Find these 3 parts in any algorithm
+## Three steps to look for in an algorithm {#find-these-3-parts-in-any-algorithm}
 
 <div class="drl-flow drl-sequence" aria-label="Reinforcement learning loop">
 <span>Sample<br><small>Which policy collects data?</small></span><b>→</b><span>Estimate<br><small>What is the target?</small></span><b>→</b><span>Update<br><small>Where do gradients go?</small></span>
@@ -110,7 +120,7 @@ After a worked example, change just one condition: replace termination with a ti
 
 Run the [reference calculations](code/rl_checks.py) to check the arithmetic, then the [PyTorch checks](code/torch_updates.py) to inspect stop-gradient behavior. Neither requires a GPU.
 
-## Start with an experiment if you prefer
+## Figures you can experiment with {#start-with-an-experiment-if-you-prefer}
 
 | Question | Chapter | What to change |
 | --- | --- | --- |

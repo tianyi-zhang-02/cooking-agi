@@ -2,7 +2,7 @@
 
 [中文](where-preferences-come-from.md) · **English**
 
-> Reading time: ~11 min · Type: chapter · Last reviewed: 2026-10
+> Reading time: ~13 min · Type: chapter · Last reviewed: 2026-11
 
 ## Preference data provides relative order {#preference-data-provides-relative-order}
 
@@ -45,6 +45,34 @@ Multiplying both by 2 is different: the gap becomes 2 and the probability become
 <!-- widget:step-bt-scale -->
 
 Scores still are not universal units of utility shared across reward models. In reinforcement learning (RL), reward scale can affect advantages—how much better a response is than a baseline—along with gradients and the balance between the reward term and a Kullback–Leibler (KL) divergence penalty. That penalty discourages deviation from a reference policy. Advantage standardization can cancel some effects of rescaling, so whether to normalize depends on the objective and implementation.
+
+## Stronger preferences: a weight or a larger margin? {#preference-strength-margin}
+
+Choosing A can mean that it is slightly better or substantially better. If annotations preserve that strength, how can the loss use it? [Llama 2 (2023, v2 §3.2.2 and Appendix A.3.3)](https://arxiv.org/html/2307.09288v2) maps discrete preference-strength categories to margins; it does not simply subtract separate 1–5 ratings for the two responses.
+
+Let $\Delta=r(x,y_w)-r(x,y_l)$ be the model's current score difference and $m\ge0$ the margin assigned to the annotation:
+
+$$
+\begin{aligned}
+L_m(\Delta)&=-\log\sigma(\Delta-m)\\
+&=\operatorname{softplus}(m-\Delta),\\
+\frac{\partial L_m}{\partial\Delta}&=-\sigma(m-\Delta).
+\end{aligned}
+$$
+
+Suppose A and B both provide a working fix, but A also handles an important edge case. The model currently gives $\Delta=\ln3$. Compare three **illustrative** margins, not the paper's hyperparameters:
+
+| Margin $m$ | Loss | Gradient with respect to the score difference |
+| --- | ---: | ---: |
+| $0$ | 0.287682 | -0.25 |
+| $\ln3$ | 0.693147 | -0.50 |
+| $\ln9$ | 1.386294 | -0.75 |
+
+For the same model outputs, a larger margin pushes harder to separate the scores. But this is **not regression toward a target difference of $m$**: at $\Delta=m$, the gradient remains $-1/2$. For one pair with a definite winner and no other constraints, the loss keeps decreasing toward zero as the score difference grows.
+
+Alternatively, multiply the ordinary BT loss by a weight $w>0$. Its gradient is $-w\sigma(-\Delta)$. With $w=2$ and $\Delta=\ln3$, it also gives $-0.5$, matching the margin $m=\ln3$ at that point. At $\Delta=0$, however, the weighted gradient is $-1$ while the margin gradient is $-0.75$. **A weight rescales the loss curve; a margin shifts it. Matching one gradient does not make the objectives equivalent.**
+
+First check what the annotation means. “A is much better” expresses preference strength; “I am certain A is slightly better” expresses confidence. They are not interchangeable, and the mapping from categories to numbers needs validation. The Llama 2 ablation cited above found that larger margins helped clearly separated responses but could hurt comparisons between similar responses, while also changing the reward distribution. After changing margins, inspect strong and weak preferences separately and recheck reward scale rather than relying only on average accuracy.
 
 ## Four traps in preference data {#four-traps-in-preference-data}
 
