@@ -128,10 +128,10 @@ The practical response is to isolate failures and run controlled comparisons, no
 
 ### Does observing no successes prove the model cannot succeed? {#finite-exploration-evidence}
 
-Not by itself. Fix **one task, one model, one sampling configuration, and a reliable binary verifier**. Choose $N$ independent attempts in advance, without updating the policy during collection. If each attempt succeeds with probability $p$, then:
+Not by itself. Fix **one task, one model, one sampling configuration, and a reliable binary verifier**. Choose $N$ independent attempts in advance, without updating the policy during collection. Let $K$ count the successes. If each attempt succeeds with probability $p$, the probability of no successes is:
 
 $$
-P(\text{zero successes})=(1-p)^N.
+P(K=0)=(1-p)^N.
 $$
 
 For a true success rate of 0.5%, there is still a $0.995^{256}\approx27.7\%$ chance of seeing no successes in 256 attempts. Conversely, after observing 0/256, solve $(1-p_{\rm upper})^{256}=0.05$ for a **one-sided 95% exact binomial upper confidence bound**:
