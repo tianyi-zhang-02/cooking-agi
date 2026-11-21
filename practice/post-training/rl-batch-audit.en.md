@@ -77,6 +77,8 @@ Use `log_softmax`, rather than `softmax` followed by `log`, for its numerical tr
 
 If PAD and EOS share an ID, constructing the action mask as `token != pad_id` also deletes a genuinely generated EOS. Use actual generation boundaries. A length-truncated response did not emit EOS: appending one does not make it a sampled action. Scoring and retaining truncated responses require an explicit policy.
 
+A list of implementation details from an RLHF reproduction covers both points. Detail 3 in [Huang et al. (2024)](https://arxiv.org/html/2403.17031v1#S3) warns against using EOS as PAD: SFT then masks EOS out as padding, and the model never learns to stop. Their detail 23 ([§7](https://arxiv.org/html/2403.17031v1#S7)) suggests the original implementation scored every response without EOS as −1; that is one convention, not the only one.
+
 ## Wrong groups can still produce plausible advantages {#grouping}
 
 Two prompts have these rewards:
@@ -100,7 +102,7 @@ Use `prompt_id` to collect the planned responses from the same generation round 
 
 If the inference engine's sampling distribution differs from the learner's old policy, distinguish that behavior distribution too. Temperature, top-p, templates, and precision can all matter; matching weight names is insufficient. See [sampler/learner probability alignment](../../05-post-training/post-training-infrastructure.en.md#two-numerical-agreement-a-silent-crack).
 
-Begin debugging with one scoring backend and fixed weights, inputs, and randomness: before an update, current/old ratios should be close to one. Compare the real generation engine separately, without assuming one universal tolerance across precisions and lengths. If ratios remain mechanically equal to one after an update, check whether old values were overwritten. They should not track every current forward pass.
+Begin debugging with one scoring backend and fixed weights, inputs, and randomness: before an update, current/old ratios should be close to one. Turn off dropout as well; otherwise two log-prob passes over the same input disagree and the first-epoch ratios are not one ([Huang et al., 2024, detail 7](https://arxiv.org/html/2403.17031v1#S4)). Compare the real generation engine separately, without assuming one universal tolerance across precisions and lengths. If ratios remain mechanically equal to one after an update, check whether old values were overwritten. They should not track every current forward pass.
 
 Rewards, advantages, and old/reference scores are generally fixed targets, while current log-probabilities retain gradients. For one fresh on-policy RLOO reward update, the loss is `-(advantages.detach() * sequence_log_probs).mean()`. Repeated updates on old data require an explicit estimator and update rule rather than repeated use of this minimal expression.
 
@@ -117,7 +119,7 @@ Use two responses' **illustrative per-token losses** to check denominators: a sh
 
 Coefficients are $\partial L/\partial\ell_{i,t}$, **not parameter-gradient magnitudes**. Tokens' own gradients can differ greatly. The first row matches sequence REINFORCE's summation above; other rows may belong to different objectives. Do not substitute them merely to make a loss look smaller. Fixed-length normalization differs from the sequence sum by a constant here; dividing each response by its actual length changes relative weighting.
 
-This table also helps distinguish training recipes. [Dr. GRPO, §3.2](https://arxiv.org/html/2503.20783v2#S3.SS2) removes per-response length and within-group standard-deviation normalization; its example implementation divides by a fixed generation budget. [DAPO, §3.3](https://arxiv.org/html/2503.14476v2#S3.SS3) reduces over the total valid-token count. For one fixed batch, the length denominators may differ only by a common scale. Across batches, however, the actual token count varies while the fixed budget need not. Calling both “token averaging” hides that difference, and the full algorithms differ in more than their denominators.
+Original GRPO ([DeepSeekMath, Equation 3](https://arxiv.org/html/2402.03300v3#S4.SS1)) averages each response over its own length: the second row of the table.This table also helps distinguish training recipes. [Dr. GRPO, §3.2](https://arxiv.org/html/2503.20783v2#S3.SS2) removes per-response length and within-group standard-deviation normalization; its example implementation divides by a fixed generation budget. [DAPO, §3.3](https://arxiv.org/html/2503.14476v2#S3.SS3) reduces over the total valid-token count. For one fixed batch, the length denominators may differ only by a common scale. Across batches, however, the actual token count varies while the fixed budget need not. Calling both “token averaging” hides that difference, and the full algorithms differ in more than their denominators.
 
 Keep the chosen denominator when splitting into microbatches or multiple devices. For a valid-token average, count tokens across the whole optimizer step rather than giving short and long microbatches equal weight. See [global denominators in distributed training](distributed-training.en.md) for compensation when gradients are averaged across devices.
 

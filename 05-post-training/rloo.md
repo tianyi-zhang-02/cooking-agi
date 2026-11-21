@@ -27,7 +27,7 @@ b_i=\frac{1}{K-1}\sum_{j\ne i}R_j,
 \qquad A_i=R_i-b_i.
 $$
 
-这就是留一法（leave-one-out）：每个回答轮流当被比较的对象，其余回答提供参照。[Ahmadian 等的论文 §2.2–2.3](https://arxiv.org/html/2402.14740v1#S2.SS3)将这种估计用于语言模型偏好训练；多采样的留一估计并非该论文首次提出。
+这就是留一法（leave-one-out）：每个回答轮流当被比较的对象，其余回答提供参照。[Ahmadian 等的论文 §2.2–2.3](https://arxiv.org/html/2402.14740v1#S2.SS3)将这种估计用于语言模型偏好训练。多采样的留一估计并非该论文首次提出，论文把它归于 [Kool、van Hoof 与 Welling（2019）](https://openreview.net/forum?id=r1lgTGL5DE)。
 
 ## 为什么不把自己的分数也算进去？ {#why-leave-one-out}
 
@@ -80,7 +80,9 @@ $$
 | 怎样更新 | 本文先讲一次新鲜采样的一次梯度 | 常使用概率比和 PPO-style clipping |
 | 怎样聚合 token | 序列 log-prob 求和，再平均样本 | 要检查具体的长度归一化方式 |
 
-只减均值时，两种优势有上面的固定比例关系。再除以每组标准差后，就不只是全局缩放了：不同组会得到不同权重。标准差也由当前样本估计，因此不能直接套用留一基线的无偏性证明。[DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1)给出原始 GRPO 的目标，本站[组相对优势](after-ppo.md#grpo-advantage)有完整公式。
+只减均值时，两种优势有上面的固定比例关系。再除以每组标准差后，就不只是全局缩放了：不同组会得到不同权重。标准差也由当前样本估计，因此不能直接套用留一基线的无偏性证明。[DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1)给出原始 GRPO 的目标，本站[组相对优势](after-ppo.md#grpo-advantage)有完整公式。[Dr. GRPO（Liu 等，2025）§3.1](https://arxiv.org/html/2503.20783v2#S3.SS1)把这种权重变化称为题目难度偏置：几乎全对或几乎全错的题，标准差小，除完以后反而权重更大。
+
+基线也不一定来自其他采样。[ReMax（Li 等，2023）§4.2](https://arxiv.org/html/2310.10505v4#S4.SS2)用同一题贪心解码那份回答的奖励作基线。它同样不依赖被评价的样本，所以不改变期望梯度；代价是每题多生成一份贪心回答，而 RLOO 的参照来自本来就要训练的那几份。
 
 **RLOO 不等于“任何实现都没有 clipping”。** 留一基线与更新规则是两个选择。例如 [TRL v0.22.2 的 RLOO 文档](https://huggingface.co/docs/trl/v0.22.2/en/rloo_trainer#computing-the-loss)就包含复用样本时的概率比和裁剪。这里引用固定版本，是为了说明一种具体实现，不把它当作所有框架的定义。
 

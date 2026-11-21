@@ -77,6 +77,8 @@ def completion_log_probs(logits, input_ids, action_mask):
 
 若 PAD 和 EOS 恰好共用一个 ID，也不要用 `token != pad_id` 构造动作 mask，那会把真正生成的 EOS 一起删掉。mask 应来自实际生成边界。达到长度上限的回答没有“生成过 EOS”，不能补一个 EOS 后把它当成采样动作；截断样本如何评分和是否保留，需要另行约定。
 
+一份复现 RLHF 的实现细节清单专门写过这两点。[Huang 等（2024）](https://arxiv.org/html/2403.17031v1#S3)的细节 3 提醒不要把 EOS 兼作 PAD：SFT 时 EOS 会被当成填充 mask 掉，模型学不会停下。他们的细节 23（[§7](https://arxiv.org/html/2403.17031v1#S7)）推测原实现把没有 EOS 的回答一律记 −1 分；这是一种约定，不是唯一选择。
+
 ## 分组错了，优势也会看起来很合理 {#grouping}
 
 两题各三份奖励是：
@@ -100,7 +102,7 @@ def completion_log_probs(logits, input_ids, action_mask):
 
 如果推理引擎的采样概率与训练端的 old 概率不同，还要区分真实行为分布。temperature、top-p、模板和数值精度都可能产生差异，不能只比较模型权重名称。详见[采样与训练的概率对齐](../../05-post-training/post-training-infrastructure.md#_4)。
 
-调试时可以先用同一个训练后端评分，固定权重、输入和随机性：更新前的 current / old 比率应接近 1。真实生成引擎另做对照，不设一个适合所有精度与长度的统一阈值。第一步更新后若比率仍机械地全为 1，要查 old 是否跟着被覆盖；它不是每次 forward 都更新的一份副本。
+调试时可以先用同一个训练后端评分，固定权重、输入和随机性：更新前的 current / old 比率应接近 1。dropout 也要关掉，否则同一输入算两次 log-prob 都不一样，第一轮比率就不是 1（[Huang 等，2024，细节 7](https://arxiv.org/html/2403.17031v1#S4)）。真实生成引擎另做对照，不设一个适合所有精度与长度的统一阈值。第一步更新后若比率仍机械地全为 1，要查 old 是否跟着被覆盖；它不是每次 forward 都更新的一份副本。
 
 奖励、优势和 old / reference 分数一般作为固定目标，current log-prob 才保留梯度。一次新鲜采样的 RLOO 奖励项可以写成 `-(advantages.detach() * sequence_log_probs).mean()`。多次使用旧数据则需要明确相应估计与更新规则，不能反复套这个最小式子。
 
@@ -117,7 +119,7 @@ def completion_log_probs(logits, input_ids, action_mask):
 
 系数指 $\partial L/\partial\ell_{i,t}$，**不是网络参数梯度的大小**。不同 token 自己的梯度仍可很不一样。第一行对应前面序列 REINFORCE 的求和方式；其他行可能用于不同训练目标，不能为了 loss 数字好看就互换。固定长度与序列求和在这里差一个常数，按实际长度平均则改变长短回答的相对权重。
 
-读训练配方时，这张表也能防止把不同改法混为一谈。[Dr. GRPO，§3.2](https://arxiv.org/html/2503.20783v2#S3.SS2)去掉逐回答长度和组内标准差归一化，示例实现用固定生成预算作分母；[DAPO，§3.3](https://arxiv.org/html/2503.14476v2#S3.SS3)使用有效 token 总数归约。对同一批固定数据，它们的长度分母可以只差一个整体缩放；但换一批回答，实际 token 总数会变，固定预算未必变。不能把两者都简称“token 平均”，也不要把整套算法的区别缩成一个分母。
+原始 GRPO（[DeepSeekMath 式 3](https://arxiv.org/html/2402.03300v3#S4.SS1)）先按每份回答的长度平均，对应表中第二行。读训练配方时，这张表也能防止把不同改法混为一谈。[Dr. GRPO，§3.2](https://arxiv.org/html/2503.20783v2#S3.SS2)去掉逐回答长度和组内标准差归一化，示例实现用固定生成预算作分母；[DAPO，§3.3](https://arxiv.org/html/2503.14476v2#S3.SS3)使用有效 token 总数归约。对同一批固定数据，它们的长度分母可以只差一个整体缩放；但换一批回答，实际 token 总数会变，固定预算未必变。不能把两者都简称“token 平均”，也不要把整套算法的区别缩成一个分母。
 
 拆成 microbatch 或多张卡时，也要保持所选分母。比如按有效 token 平均，应该先汇总整个优化步的有效 token 数，而不是让短 microbatch 和长 microbatch 各占一半。分布式梯度平均的补偿见[多卡训练的全局分母](distributed-training.md)。
 
