@@ -65,8 +65,12 @@ class LightThemeTests(unittest.TestCase):
         dialog = declarations(SEARCH, ':root[data-theme="light"] .note-search')
         backdrop = declarations(SEARCH, ':root[data-theme="light"] .note-search::backdrop')
         self.assertEqual(dialog["background"], "var(--panel)")
-        self.assertIn(".14", dialog["box-shadow"])
         self.assertIn(".20", backdrop["background"])
+        # the dialog floats at the top elevation, and daylight has its own, lighter shadow for it
+        self.assertEqual(declarations(SEARCH, ".note-search")["box-shadow"], "var(--elev-3)")
+        dark, light = declarations(STYLE, ":root")["--elev-3"], declarations(STYLE, ':root[data-theme="light"]')["--elev-3"]
+        self.assertIn("rgba(0, 0, 0, .75)", dark)
+        self.assertIn("rgba(20, 16, 8, .28)", light)
 
 
 if __name__ == "__main__":

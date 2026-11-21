@@ -1,22 +1,22 @@
 /* Topic coverage on the home page (site/topic_coverage.py): notes per topic, reviewed this pass. */
-.topic-coverage { margin: 1.2rem 0 1.6rem; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); }
+.topic-coverage { margin: 1.2rem 0 1.6rem; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--rule); border-radius: var(--r-10); background: var(--panel); }
 .topic-coverage .tc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1.2rem; margin-bottom: .2rem; }
-.topic-coverage .tc-head strong { font: 600 .82rem/1.5 var(--body); color: var(--ink); }
-.topic-coverage .tc-legend { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font: .74rem/1.5 var(--body); color: var(--muted); }
+.topic-coverage .tc-head strong { font: 600 var(--fs-13)/1.5 var(--body); color: var(--ink); }
+.topic-coverage .tc-legend { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font: var(--fs-12)/1.5 var(--body); color: var(--muted); }
 .topic-coverage .tc-legend span { display: inline-flex; align-items: center; gap: .35rem; }
-.topic-coverage .tc-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.topic-coverage .tc-legend i { display: inline-block; width: 10px; height: 10px; border-radius: var(--r-2); }
 .topic-coverage i.tc-done { background: var(--ember); }
 .topic-coverage i.tc-todo { background: var(--ember); opacity: .3; }
 .topic-coverage i.tc-none { border: 1px dashed var(--muted); background: none; }
-.prose .topic-coverage .tc-category { margin: .9rem 0 .2rem; padding-top: .6rem; border-top: 1px solid var(--rule); font: 600 .82rem/1.5 var(--body); color: var(--ink); }
+.prose .topic-coverage .tc-category { margin: .9rem 0 .2rem; padding-top: .6rem; border-top: 1px solid var(--rule); font: 600 var(--fs-13)/1.5 var(--body); color: var(--ink); }
 .prose .topic-coverage .tc-rows { list-style: none; margin: 0; padding: 0; }
 .prose .topic-coverage .tc-rows li { display: grid; grid-template-columns: minmax(7.5rem, 13rem) minmax(0, 1fr) 4.6rem; align-items: center; gap: .8rem; margin: 0; padding: .16rem 0; }
-.topic-coverage .tc-name { font: .8rem/1.5 var(--body); color: var(--ink-soft); min-width: 0; overflow-wrap: anywhere; }
+.topic-coverage .tc-name { font: var(--fs-13)/1.5 var(--body); color: var(--ink-soft); min-width: 0; overflow-wrap: anywhere; }
 .topic-coverage .tc-bar { position: relative; height: 10px; }
-.topic-coverage .tc-bar i { position: absolute; left: 0; top: 0; height: 10px; border-radius: 2px; }
+.topic-coverage .tc-bar i { position: absolute; left: 0; top: 0; height: 10px; border-radius: var(--r-2); }
 .topic-coverage .tc-bar i.tc-none { width: 40px; box-sizing: border-box; }
-.topic-coverage .tc-value { font: .74rem/1.5 var(--mono); color: var(--muted); text-align: right; white-space: nowrap; }
-.prose .topic-coverage figcaption { margin-top: .9rem; font: .76rem/1.6 var(--body); color: var(--muted); text-align: left; }
+.topic-coverage .tc-value { font: var(--fs-12)/1.5 var(--mono); color: var(--muted); text-align: right; white-space: nowrap; }
+.prose .topic-coverage figcaption { margin-top: .9rem; font: var(--fs-12)/1.6 var(--body); color: var(--muted); text-align: left; }
 @media (max-width: 560px) {
   .prose .topic-coverage .tc-rows li { grid-template-columns: minmax(0, 1fr) 4.2rem; gap: .1rem .6rem; }
   .topic-coverage .tc-bar { grid-column: 1 / -1; grid-row: 2; }
