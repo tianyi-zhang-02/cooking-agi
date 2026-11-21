@@ -155,7 +155,18 @@
     return changes;
   }
 
-  const api = {DAY, TOTAL, SETTINGS, KEEP_DAYS, WEEKS, dayKey, settings, lifetime, increment, clear, summarize, legacyBookmarks};
+  function lastPosition(records, notes, language) {
+    const prefix = `position-${language}-`;
+    return Object.entries(records || {}).flatMap(([key, record]) => {
+      if (!key.startsWith(prefix)) return [];
+      const id = key.slice(prefix.length);
+      if (!NOTE.test(id) || !notes?.[id]?.pages?.[language] || typeof record?.anchor !== 'string'
+        || !/^[\p{L}\p{N}_:.-]{1,180}$/u.test(record.anchor) || !Number.isFinite(Date.parse(record.updatedAt))) return [];
+      return [{id, anchor: record.anchor, updatedAt: record.updatedAt}];
+    }).sort((first, second) => Date.parse(second.updatedAt) - Date.parse(first.updatedAt))[0] || null;
+  }
+
+  const api = {DAY, TOTAL, SETTINGS, KEEP_DAYS, WEEKS, dayKey, settings, lifetime, increment, clear, summarize, legacyBookmarks, lastPosition};
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   scope.ReaderHub = api;
 
@@ -191,6 +202,7 @@
   function saveSettings(patch) {
     const current = settings(records());
     const saved = write({[SETTINGS]: Object.assign({}, current, patch, {updatedAt: now()})});
+    if (!saved) status.textContent = say('没能保存设置，请检查浏览器存储。', 'Could not save this setting; please check browser storage.');
     // other widgets on this page (the study buddy) follow these settings
     scope.dispatchEvent(new CustomEvent('notes:reader-settings'));
     return saved;
@@ -258,15 +270,16 @@
   const toggle = el('button', {type: 'button', class: 'icon-btn reader-hub-toggle', 'aria-label': say('我的阅读', 'My reading'),
     'aria-haspopup': 'dialog', 'aria-controls': 'reader-hub', 'aria-expanded': 'false'});
   const icon = lucide(18, ['m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z']);
-  toggle.append(icon, el('span', {class: 'reader-hub-badge', hidden: true, 'aria-hidden': 'true'}));
+  toggle.append(icon, el('span', {class: 'reader-hub-label', text: say('我的阅读', 'My reading')}),
+    el('span', {class: 'reader-hub-badge', hidden: true, 'aria-hidden': 'true'}));
   const right = document.querySelector('.topbar-right');
   const themeButton = document.querySelector('.icon-btn.theme');
   if (right) right.insertBefore(toggle, themeButton || null);
 
-  const tabs = [['reading', say('阅读记录', 'Reading')], ['saved', say('收藏', 'Saved')], ['settings', say('设置', 'Settings')]];
+  const tabs = [['reading', say('最近读过', 'Recently read')], ['saved', say('收藏的笔记', 'Saved notes')], ['settings', say('设置', 'Settings')]];
   const drawer = el('aside', {id: 'reader-hub', class: 'reader-hub', role: 'dialog', 'aria-labelledby': 'reader-hub-title', hidden: true});
   const close = el('button', {type: 'button', class: 'reader-hub-close', 'aria-label': say('关闭', 'Close')}, [lucide(16, CLOSE)]);
-  const tabList = el('div', {class: 'reader-hub-tabs', role: 'tablist'});
+  const tabList = el('div', {class: 'reader-hub-tabs', role: 'tablist', 'aria-label': say('我的阅读', 'My reading')});
   const panels = {};
   for (const [name, label] of tabs) {
     tabList.append(el('button', {type: 'button', role: 'tab', id: `reader-tab-${name}`, 'aria-controls': `reader-panel-${name}`,
@@ -275,11 +288,13 @@
       'aria-labelledby': `reader-tab-${name}`, hidden: name !== 'reading'});
   }
   const status = el('p', {class: 'reader-hub-status', role: 'status', 'aria-live': 'polite'});
+  const quickBackup = el('div', {class: 'reader-hub-quick-backup'}, [backupRow(true)]);
   drawer.append(el('div', {class: 'reader-hub-nav'}, [
     el('header', {class: 'reader-hub-head'}, [el('h2', {id: 'reader-hub-title', text: say('我的阅读', 'My reading')}), close]),
-    tabList, status]), ...Object.values(panels),
-    el('p', {class: 'reader-hub-local', text: say('个人记录保存在这个浏览器里；换设备时可在「设置」里导出、导入。公开计数另行开启，只统计后续操作，不上传已有记录。',
-      'Personal records stay in this browser; export or import them under Settings when switching devices. Public counting is a separate opt-in for subsequent activity, not an upload of existing records.')}));
+    el('p', {class: 'reader-hub-intro', text: say('接着读，或回到收藏的笔记。', 'Pick up your reading, or return to a saved note.')}),
+    tabList, quickBackup, status]), ...Object.values(panels),
+    el('p', {class: 'reader-hub-local', text: say('记录只保存在这个浏览器。换浏览器、设备或清理数据前，请先导出备份。导入会合并已有记录，不会上传文件。',
+      'Records stay in this browser. Export a backup before switching browsers or devices, or clearing browser data. Importing merges existing records; no file is uploaded.')}));
   document.body.append(drawer);
 
   // One small tooltip for every chart mark in the drawer.
@@ -307,6 +322,7 @@
       tab.tabIndex = on ? 0 : -1;
     });
     for (const [key, panel] of Object.entries(panels)) panel.hidden = key !== name;
+    quickBackup.hidden = name === 'settings';
     render();
   }
   tabList.addEventListener('click', event => { const tab = event.target.closest('[data-tab]'); if (tab) select(tab.dataset.tab); });
@@ -354,6 +370,19 @@
     item.append(page ? el('a', {href: page.href, text: page.title}) : el('span', {class: 'reader-hub-unknown', text: say('（目录里没有这篇）', '(not in the current catalog)')}));
     if (extra) item.append(el('small', {text: extra}));
     return item;
+  }
+
+  function resumeCard(state) {
+    const position = lastPosition(state, catalog?.notes, lang);
+    if (!position) return null;
+    const page = pageOf(position.id);
+    const target = new URL(page.href);
+    target.hash = position.anchor;
+    return el('section', {class: 'reader-hub-resume', 'aria-label': say('继续阅读', 'Continue reading')}, [
+      el('div', {}, [el('p', {class: 'reader-hub-resume-label', text: say('上次保存的阅读位置', 'Your saved reading position')}),
+        el('h3', {text: page.title}), el('p', {class: 'reader-hub-resume-hint', text: say('打开已记录的章节位置。', 'Opens the section saved in this browser.')})]),
+      el('a', {class: 'reader-hub-continue', href: target.href, text: say('继续阅读', 'Continue reading')})
+    ]);
   }
 
   /* Numbers count up from what was last shown, so a new read visibly lands. */
@@ -487,24 +516,50 @@
   }
 
   let lastToday = null;
+  let activityOpen = false;
   function renderReading(panel, state) {
     panel.replaceChildren();
     const config = settings(state);
+    const summary = summarize(state, new Date());
+    const resume = resumeCard(state);
+    if (resume) panel.append(resume);
     if (!config.history) {
       const enable = el('button', {type: 'button', class: 'reader-hub-button', text: say('打开阅读记录', 'Turn on reading history')});
-      enable.addEventListener('click', () => { saveSettings({history: true}); render(); });
-      panel.append(el('p', {class: 'reader-hub-empty', text: say('阅读记录已关闭，读过的笔记不会被计数。', 'Reading history is off, so pages are not counted.')}), enable);
-      return;
+      enable.addEventListener('click', () => {
+        const saved = saveSettings({history: true});
+        status.textContent = saved ? '' : say('没能保存设置，请检查浏览器存储。', 'Could not save this setting; please check browser storage.');
+        render();
+      });
+      panel.append(el('p', {class: 'reader-hub-empty', text: say('阅读计数已关闭。已有记录和收藏仍然保留。', 'Reading counts are off. Existing history and saved notes are kept.')}), enable);
     }
-    const summary = summarize(state, new Date());
+    panel.append(el('h3', {text: say('最近读过', 'Recently read')}));
+    if (summary.recent.length) {
+      panel.append(el('ul', {class: 'reader-hub-list'}, summary.recent.slice(0, 20).map(item => noteLink(item.id,
+        item.lastAge === 0 ? say('今天', 'Today') : item.lastAge === 1 ? say('昨天', 'Yesterday')
+          : say(`${item.lastAge} 天前`, `${item.lastAge} days ago`)))));
+    } else {
+      panel.append(el('p', {class: 'reader-hub-empty', text: config.history
+        ? say('还没有阅读记录。打开一篇笔记读上 15 秒，它就会出现在这里。收藏的笔记可以在旁边的标签里找到。', 'No reading history yet. Spend 15 seconds on a note and it will appear here. Your saved notes have their own tab.')
+        : say('还没有阅读记录。打开阅读计数后，读过的笔记会出现在这里。', 'No reading history yet. Turn on reading counts to record the notes you read.')}));
+    }
+    const activity = el('details', {class: 'reader-hub-activity', open: activityOpen});
+    activity.append(el('summary', {text: say('阅读统计', 'Reading activity')}),
+      el('p', {class: 'reader-hub-empty', text: say('这里只记录阅读次数，不代表掌握程度。', 'These are reading counts, not measures of mastery.')}));
+    activity.addEventListener('toggle', () => { activityOpen = activity.open; });
+    renderActivity(activity, state, summary);
+    panel.append(activity);
+    updateLive();
+  }
+
+  function renderActivity(panel, state, summary) {
     const fresh = lastToday !== null && summary.today.total > lastToday;
     lastToday = summary.today.total;
     const since = new Date(...summary.lifetime.since.split('-').map((part, index) => Number(part) - (index === 1 ? 1 : 0)));
-    if (pageNote) panel.append(liveCard());
+    if (pageNote && settings(state).history) panel.append(liveCard());
     panel.append(el('div', {class: 'reader-hub-tiles'}, [
       tile('today', say('今天', 'Today'), summary.today.total, say(`${summary.today.notes.length} 篇`, `${summary.today.notes.length} ${summary.today.notes.length === 1 ? 'note' : 'notes'}`)),
       tile('week', say('本周', 'This week'), summary.week.total, say(`上周 ${summary.week.last} 次`, `${summary.week.last} last week`)),
-      tile('total', say('累计', 'All time'), summary.lifetime.total, say(`自 ${longDate(since)}`, `since ${longDate(since)}`))
+      tile('total', say('累计', 'All time'), summary.lifetime.total, summary.lifetime.total ? say(`自 ${longDate(since)}`, `since ${longDate(since)}`) : say('尚无阅读记录', 'No reads recorded'))
     ]));
 
     const section = (title, aside, body) => el('section', {class: 'reader-hub-card'}, [
@@ -524,16 +579,6 @@
       panel.append(el('h3', {text: say('今天读过', 'Read today')}),
         el('ul', {class: 'reader-hub-list'}, summary.today.notes.slice(0, 12).map(([id, count]) => noteLink(id, say(`${count} 次`, `${count}×`)))));
     }
-    const earlier = summary.recent.filter(item => item.lastAge > 0).slice(0, 10);
-    if (earlier.length) {
-      panel.append(el('h3', {text: say('最近读过', 'Recently read')}),
-        el('ul', {class: 'reader-hub-list'}, earlier.map(item => noteLink(item.id,
-          say(`${item.lastAge === 1 ? '昨天' : item.lastAge + ' 天前'} · 共 ${item.total} 次`, `${item.lastAge === 1 ? 'yesterday' : item.lastAge + ' days ago'} · ${item.total} total`)))));
-    }
-    if (!summary.today.notes.length && !earlier.length) {
-      panel.append(el('p', {class: 'reader-hub-empty', text: say('还没有阅读记录。打开一篇笔记读上 15 秒，这里就会记一次。', 'No reading yet. Spend 15 seconds on a note and it will show up here.')}));
-    }
-    updateLive();
   }
 
   const group = (title, rows, aside) => [
@@ -558,7 +603,8 @@
       const id = key.slice('bookmark-'.length);
       const when = Date.parse(record.updatedAt);
       const item = noteLink(id, !Number.isFinite(when) ? '' : dayKey(new Date(when)) === dayKey(new Date()) ? say('今天', 'today') : longDate(new Date(when)));
-      const remove = el('button', {type: 'button', class: 'reader-hub-remove', 'aria-label': say('取消收藏', 'Remove')}, [lucide(14, CLOSE)]);
+      const title = pageOf(id)?.title || id;
+      const remove = el('button', {type: 'button', class: 'reader-hub-remove', 'aria-label': say(`取消收藏：${title}`, `Remove saved note: ${title}`)}, [lucide(14, CLOSE)]);
       remove.addEventListener('click', () => setSaved(id, false));
       item.append(remove);
       return item;
@@ -571,6 +617,63 @@
     ['solarized', 'Solarized'], ['gruvbox', 'Gruvbox'], ['rosepine', 'Rosé Pine'], ['kon', say('紺紙金泥', 'Indigo & gold')], ['seiji', say('青磁', 'Celadon')],
     ['firefly', say('萤火', 'Firefly')]];
   const TEXT_SIZES = [['s', say('小', 'S')], ['', say('标准', 'M')], ['l', say('大', 'L')], ['xl', say('特大', 'XL')]];
+
+  function backupRow(compact = false) {
+    const exportButton = el('button', {type: 'button', class: 'reader-hub-chip', text: say('导出', 'Export')});
+    const importButton = el('button', {type: 'button', class: 'reader-hub-chip', text: say('导入', 'Import')});
+    const file = el('input', {type: 'file', accept: 'application/json,.json', hidden: true, 'aria-label': say('选择备份文件', 'Choose a backup file')});
+    exportButton.addEventListener('click', () => {
+      try {
+        const text = progress.exportBackup();
+        const url = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+        const link = el('a', {href: url, download: 'agi-notes-backup-' + dayKey(new Date()) + '.json', hidden: true});
+        drawer.append(link);
+        try { link.click(); } finally {
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+        status.textContent = say('已导出备份：收藏、阅读记录和阅读位置都在里面。', 'Backup exported: saved notes, reading history and positions.');
+      } catch {
+        status.textContent = say('没能导出：浏览器里的记录暂时读不出来，或下载不可用。', 'Could not export: the records cannot be read right now, or downloads are unavailable.');
+      }
+    });
+    importButton.addEventListener('click', () => file.click());
+    file.addEventListener('change', async () => {
+      const chosen = file.files && file.files[0];
+      file.value = '';
+      if (!chosen) return;
+      try {
+        if (chosen.size > 2 * 1024 * 1024) throw Error('size');
+        const text = await chosen.text();
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch {}
+        let changes = null;
+        if (parsed?.format === 'cooking-agi-bookmarks') {
+          const currentCatalog = await loadCatalog();
+          if (!currentCatalog?.notes) throw Error('catalog');
+          changes = legacyBookmarks(parsed, currentCatalog.notes, records(), now());
+        }
+        if (changes) {
+          const ok = write(changes, say('导入收藏', 'Imported saved notes'));
+          status.textContent = ok ? say(`已导入 ${Object.keys(changes).length} 篇收藏，原有记录都保留。`, `Imported ${Object.keys(changes).length} saved notes; everything already here is kept.`)
+            : say('没能保存导入的收藏，浏览器可能禁止了本地存储。', 'Could not save the imported notes; browser storage may be blocked.');
+        } else {
+          const result = progress.importBackup(text);
+          status.textContent = result.persisted
+            ? say(`备份已合并，现在共有 ${result.bookmarks} 篇收藏；同一条记录保留较新的那份。`, `Backup merged: ${result.bookmarks} saved notes now; where both had a record, the newer one was kept.`)
+            : say('备份读出来了，但浏览器没能保存。请检查存储空间后再试。', 'The backup was read, but the browser could not save it. Check storage and try again.');
+        }
+      } catch {
+        status.textContent = say('没能读取这份备份。请选择本站导出的 JSON 文件（不超过 2 MB）；已有记录没有变。', 'Could not read this backup. Choose a JSON file exported by this site (up to 2 MB); nothing here was changed.');
+      }
+      scope.dispatchEvent(new Event('notes:prep-storage'));
+      render();
+    });
+    return el('div', {class: 'reader-hub-setting', 'data-backup-row': true}, [
+      el('div', {class: 'reader-hub-setting-text'}, [el('strong', {text: say('备份与恢复', 'Backup & restore')}),
+        compact ? null : el('small', {text: say('收藏、阅读记录和阅读位置都在里面。换浏览器或设备前先导出，到新地方再导入；导入是合并，不会删掉已有记录。', 'Saved notes, reading history and positions. Export before switching browsers or devices, then import there; importing merges and never deletes anything.')})]),
+      el('div', {class: 'reader-hub-backup'}, [exportButton, importButton, file])]);
+  }
 
   function renderSettings(panel, state) {
     panel.replaceChildren();
@@ -596,11 +699,9 @@
     for (const [value, name] of PALETTES) {
       const option = el('button', {type: 'button', role: 'radio', class: 'reader-hub-palette', 'data-palette-option': value || 'night',
         'aria-checked': String((root.dataset.palette || '') === value)}, [el('span', {class: 'reader-hub-swatch', 'aria-hidden': 'true'}), el('span', {text: name})]);
-      // app.js applies and remembers the choice, as it does for the theme
       option.addEventListener('click', () => { scope.dispatchEvent(new CustomEvent('notes:palette', {detail: value})); render(); });
       palettes.append(option);
     }
-    // app.js applies and remembers it, like the theme and the colours
     const textSize = segment(say('字号', 'Text size'), TEXT_SIZES, root.dataset.text || '',
       value => { scope.dispatchEvent(new CustomEvent('notes:text-size', {detail: value})); render(); });
     const star = segment(say('Star 提示', 'Star notice'), [['collapsed', say('显示', 'Show')], ['hidden', say('隐藏', 'Hide')]],
@@ -612,49 +713,7 @@
       });
     const buddy = segment(say('学习小伙伴', 'Study buddy'), [['shown', say('显示', 'Show')], ['hidden', say('隐藏', 'Hide')]],
       config.buddy, value => { saveSettings({buddy: value}); render(); });
-    const exportButton = el('button', {type: 'button', class: 'reader-hub-chip', text: say('导出', 'Export')});
-    const importButton = el('button', {type: 'button', class: 'reader-hub-chip', text: say('导入', 'Import')});
-    const file = el('input', {type: 'file', accept: 'application/json,.json', hidden: true, 'aria-label': say('选择备份文件', 'Choose a backup file')});
-    exportButton.addEventListener('click', () => {
-      let text;
-      try { text = progress.exportBackup(); } catch { status.textContent = say('没能导出：浏览器里的记录暂时读不出来。', 'Could not export: the records in this browser cannot be read right now.'); return; }
-      const url = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
-      const link = el('a', {href: url, download: 'agi-notes-backup-' + dayKey(new Date()) + '.json', hidden: true});
-      drawer.append(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      status.textContent = say('已导出备份：收藏、阅读记录和阅读位置都在里面。', 'Backup exported: saved notes, reading history and positions.');
-    });
-    importButton.addEventListener('click', () => file.click());
-    file.addEventListener('change', async () => {
-      const chosen = file.files && file.files[0];
-      file.value = '';
-      if (!chosen) return;
-      try {
-        if (chosen.size > 2 * 1024 * 1024) throw Error('size');
-        const text = await chosen.text();
-        let parsed = null;
-        try { parsed = JSON.parse(text); } catch {}
-        const changes = parsed?.format === 'cooking-agi-bookmarks' ? legacyBookmarks(parsed, (await loadCatalog())?.notes, records(), now()) : null;
-        if (changes) {
-          const ok = write(changes, say('导入收藏', 'Imported saved notes'));
-          status.textContent = ok ? say(`已导入 ${Object.keys(changes).length} 篇收藏，原有记录都保留。`, `Imported ${Object.keys(changes).length} saved notes; everything already here is kept.`)
-            : say('没能保存导入的收藏，浏览器可能禁止了本地存储。', 'Could not save the imported notes; browser storage may be blocked.');
-        } else {
-          const result = progress.importBackup(text);
-          status.textContent = result.persisted
-            ? say(`备份已合并，现在共有 ${result.bookmarks} 篇收藏；同一条记录保留较新的那份。`, `Backup merged: ${result.bookmarks} saved notes now; where both had a record, the newer one was kept.`)
-            : say('备份读出来了，但浏览器没能保存。请检查存储空间后再试。', 'The backup was read, but the browser could not save it. Check storage and try again.');
-        }
-      } catch {
-        status.textContent = say('没能读取这份备份。请选择本站导出的 JSON 文件（不超过 2 MB）；已有记录没有变。', 'Could not read this backup. Choose a JSON file exported by this site (up to 2 MB); nothing here was changed.');
-      }
-      scope.dispatchEvent(new Event('notes:prep-storage'));
-      render();
-    });
-    const backup = row(say('备份', 'Backup'), say('收藏、阅读记录和阅读位置都在里面。换浏览器或设备前先导出，到新地方再导入；导入是合并，不会删掉已有记录。', 'Saved notes, reading history and positions. Export before switching browsers or devices, then import there; importing merges and never deletes anything.'),
-      el('div', {class: 'reader-hub-backup'}, [exportButton, importButton, file]), 'div', {'data-backup-row': true});
+    const backup = backupRow();
     let armed = false;
     const wipeLabel = el('strong', {text: say('清空阅读记录', 'Clear reading history')});
     const wipe = el('button', {type: 'button', class: 'reader-hub-setting is-danger reader-hub-danger'}, [el('div', {class: 'reader-hub-setting-text'}, [wipeLabel,
@@ -695,9 +754,17 @@
     }
     badgeCount = summary.today.total;
     if (!drawer.hidden) {
+      const panel = panels[active];
+      const controls = () => Array.from(panel.querySelectorAll('button, a[href], summary, input')).filter(node => node.getClientRects().length);
+      const focused = document.activeElement;
+      const index = focused && panel.contains?.(focused) ? controls().indexOf(focused) : -1;
       if (active === 'reading') renderReading(panels.reading, state);
       if (active === 'saved') renderSaved(panels.saved, state);
       if (active === 'settings') renderSettings(panels.settings, state);
+      if (index >= 0) {
+        const next = controls();
+        (next[Math.min(index, next.length - 1)] || tabList.querySelector(`[data-tab="${active}"]`)).focus({preventScroll: true});
+      }
     }
   }
 

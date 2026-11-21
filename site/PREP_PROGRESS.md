@@ -2,7 +2,7 @@
 
 Saved notes, reading history and reading positions are user data, not content in Git. They live in one browser envelope under the stable localStorage key `cooking-agi:prep-progress` (recovery copies under `cooking-agi:prep-progress:snapshots`). A site rebuild, normal pull, or content release must not reset either key. Do not include them in general UI-preference reset handlers.
 
-Readers see two things: a **Save this page** button under each note's title, and the **My reading** drawer at the top right (reading history, saved notes, settings and one backup row). There is no separate dashboard; `interview/dashboard.html` and its English page redirect to the interview-prep page.
+Readers see two things: a **Save this page** button under each note's title, and the **My reading** drawer at the top right (recently read notes, saved notes, settings and directly accessible backup controls). There is no separate dashboard; `interview/dashboard.html` and its English page redirect to the interview-prep page.
 
 The Cooking AGI rebrand changes display names only. Keep the `cooking-agi` URL path, storage keys, backup format and site identifiers, export filename prefix, and note IDs unchanged. Existing bookmarks, language preferences and backups must keep working without a migration.
 
@@ -14,7 +14,7 @@ The Cooking AGI rebrand changes display names only. Keep the `cooking-agi` URL p
 | `static/prep-library-state.js` | Bookmarks and positions as workspace records; migrates the old `cooking-agi:reading:v1` and `cooking-agi:positions:v1` keys once, without deleting them. |
 | `static/prep-progress.js` | Opens the store and exposes `window.PreparationProgress`: `library`, `exportBackup`, `importBackup`, `getMode`/`setMode` (the interview-prep tab), `getHealth`. |
 | `static/sidebar.js` | Directory fold state and the save button(s) `[data-side-save]`. |
-| `static/reader-hub.js` | The drawer: reading counts, saved list, settings, export/import. |
+| `static/reader-hub.js` | The drawer: recent notes, saved reading position, saved list, optional reading counts, settings, export/import. |
 | `site/prep_progress.py` | Stable note IDs and `static/prep-progress-catalog.json`, the ID-to-page catalog the drawer and the counter service read. |
 
 ## What the envelope holds
@@ -44,7 +44,9 @@ The reading drawer (`static/reader-hub.js`, loaded on every page after `prep-pro
 
 Days older than 90 are emptied rather than deleted, so a later import cannot resurrect them by default and merges stay timestamp-based. Clearing reading history empties every day record, resets `reading-total` to zero from that day, and leaves bookmarks and positions untouched. `reading-total` merges like any other record (the newer copy wins), so the all-time figure is per browser, not a sum across devices. Each day merges as one record, so the same day edited on two devices keeps the newer copy under the usual policies; counts are approximate, not an audit log. One record per active day accumulates against the 3,000-record workspace limit, which leaves years of daily use but is not unlimited. Turning counting off stops new counts without erasing old ones.
 
-The Reading tab shows today, this week (Monday to Sunday) with last week's total, the all-time total, a week of daily bars, and a 13-week grid with the current streak, all computed from these records. On a note page a small card shows the 15-second count filling up and then that note's count for today; the numbers update in place when a read is counted, including from another tab, and roll over at local midnight.
+The **Recently read** tab puts real note links first, ordered by their recorded reading day. Daily counts do not establish an exact order within one day. A **Continue reading** link appears only when a nonempty, valid `position-<current language>-<note ID>` anchor and timestamp exist and the current catalog has that language's page. It links to that exact stored anchor; a bookmark, read count, other-language position, missing catalog page, or cleared position is not enough. No dates, section titles, completion percentages or mastery claims are inferred. If a section has since been removed, its old anchor may only reach the note, as with other saved links.
+
+Reading counts are secondary, inside the initially collapsed **Reading activity** disclosure. It shows today, this week (Monday to Sunday) with last week's total, the all-time total, a week of daily bars, and a 13-week grid with the current streak, all computed from these records. On a note page a small card in that disclosure shows the 15-second count filling up and then that note's count for today; the numbers update in place when a read is counted, including from another tab, and roll over at local midnight. Turning counting off leaves existing history visible. The disclosure state is temporary UI state and creates no storage key.
 
 The drawer's "Saved" tab lists the same `bookmark-…` records the save button writes. Theme stays in its separate `theme` key; the settings tab only presses the existing toggle.
 
@@ -58,12 +60,12 @@ For a split, keep the old ID on the continuation or overview and give genuinely 
 
 ## Export and import
 
-The drawer's settings tab has one **Backup** row.
+The drawer shows **Backup & restore** with Export and Import beside the note tabs, without opening settings. The settings tab has the same controls in its first row instead. Both use the original `PreparationProgress` APIs and the same import validation. Opening the drawer, switching tabs or displaying a saved position does not migrate, reset or write records.
 
 - **Export** downloads `agi-notes-backup-YYYYMMDD.json`: the whole envelope (`store.serialize()`), including any kept-but-hidden fields.
 - **Import** reads a local file of at most 2 MiB. A current or older envelope is parsed and validated before any write, then merged with the `newer` policy: for each record the strictly newer `updatedAt` wins, local records missing from the file stay, and nothing is deleted. The store keeps a pre-import recovery copy.
 - An **old bookmarks-only file** (`{format: "cooking-agi-bookmarks", saved: [page paths]}`, exported by earlier sidebars) is recognised separately: known paths become `bookmark-…` records through the catalog; unknown or malformed entries are skipped (`legacyBookmarks` in `reader-hub.js`).
-- Unreadable, oversized, or future-version files show an error and leave local records unchanged.
+- Unreadable, oversized, or future-version files show an error and leave local records unchanged. A bookmarks-only import also reports an error if the catalog cannot be loaded; it does not claim to have imported zero notes. Storage failures and unavailable downloads report failure, not success.
 
 The parser checks the envelope, IDs, timestamps, lengths, nesting and object count, and rejects prototype-related keys. Imported titles and notes are rendered as text, never HTML; imported URLs are not followed. There is no cloud sync and no transactional multi-tab store: storage events refresh open pages, but simultaneous writes can still race, and timestamp merging depends on device clocks.
 
@@ -87,6 +89,7 @@ Run from the repository root:
 
 ```sh
 node --test site/tests/prep-progress-store.test.cjs site/tests/prep-library-state.test.cjs site/tests/prep-progress.test.cjs
+node --test site/tests/reader-hub.test.cjs site/tests/reader-hub-dom.test.cjs site/tests/reader-hub-workspace.test.cjs
 python -m unittest discover -s site/tests -p 'test_prep_progress.py'
 python -m unittest discover -s site/tests -p 'test_reader_hub.py'
 python -m unittest discover -s site/tests -p 'test_sidebar.py'

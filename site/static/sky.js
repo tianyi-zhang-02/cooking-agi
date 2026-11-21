@@ -8,7 +8,7 @@
 (function () {
   'use strict';
   var canvas = document.querySelector('canvas.sky');
-  if (!canvas || !canvas.getContext) return;
+  if (!canvas || !canvas.getContext || document.body.classList.contains('page-reading')) return;
   var ctx = canvas.getContext('2d', { alpha: false });
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -167,7 +167,9 @@
 
   function resize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.round(window.innerWidth * DPR); canvas.height = Math.round(window.innerHeight * DPR);
+    var bounds = canvas.getBoundingClientRect();
+    if (bounds.width < 2 || bounds.height < 2) { W = H = 0; stop(); return; }
+    canvas.width = Math.round(bounds.width * DPR); canvas.height = Math.round(bounds.height * DPR);
     W = canvas.width; H = canvas.height;
     if (!W || !H) return;                    // a hidden or zero-sized window: draw once it has a size
     build();
@@ -176,7 +178,7 @@
 
   var ROT = 0.00046 / 1000;   // rad per ms: about a degree every 38 s
   function draw(now) {
-    if (!layer) return;
+    if (!layer || !W || !H) return;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H);
     var rot = reduced ? 0 : now * ROT;
@@ -243,7 +245,7 @@
     var body = g.createLinearGradient(0, 0, W, 0);
     body.addColorStop(0, '#0b1222'); body.addColorStop(0.35, '#050912'); body.addColorStop(1, '#010204');
     g.fillStyle = body; g.beginPath(); g.arc(cx, cy, Rp, 0, 6.2832); g.fill();
-    var IW = Math.max(70 * DPR, H * 0.10);
+    var IW = Math.min(Rp, Math.max(70 * DPR, H * 0.10));
     var inner = g.createRadialGradient(cx, cy, Rp - IW, cx, cy, Rp);
     inner.addColorStop(0, 'rgba(60,95,170,0)'); inner.addColorStop(0.7, 'rgba(80,120,200,0.10)'); inner.addColorStop(1, 'rgba(120,160,230,0.30)');
     g.fillStyle = inner; g.beginPath(); g.arc(cx, cy, Rp, 0, 6.2832); g.fill();
@@ -263,11 +265,12 @@
     if (now - last < 83) return;
     last = now; draw(now);
   }
-  function start() { if (handle == null && !reduced && !document.hidden) handle = requestAnimationFrame(frame); }
+  function start() { if (handle == null && W && H && !reduced && !document.hidden) handle = requestAnimationFrame(frame); }
   function stop() { if (handle != null) { cancelAnimationFrame(handle); handle = null; } }
 
   resize();
   window.addEventListener('resize', resize);
+  window.addEventListener('themechange', function () { resize(); start(); });
   document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
   window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function (event) {
     reduced = event.matches;

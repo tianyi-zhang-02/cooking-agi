@@ -123,12 +123,12 @@
     start: "从一个问题开始", hint: "中文概念、英文术语，都可以试试。",
     loading: "正在查找…", empty: "还没找到这条笔记", emptyHint: "试试更短的关键词，或切换到「中英一起搜」。",
     failed: "搜索暂时没加载出来", failedHint: "笔记还在，可以重试一次，或先从目录浏览。",
-    retry: "重新加载", count: " 篇笔记", limited: " · 显示前 12 篇"
+    retry: "重新加载", count: " 篇笔记", single: " 篇笔记", limited: " · 显示前 12 篇"
   } : {
     start: "Start with a question", hint: "Look up a concept, a model, or something you want to practice.",
     loading: "Searching…", empty: "No matching notes yet", emptyHint: "Try a shorter term, or search both languages.",
     failed: "Search couldn't load", failedHint: "You can try again, or browse the notes from the navigation.",
-    retry: "Try again", count: " notes", limited: " · Showing the first 12"
+    retry: "Try again", count: " notes", single: " note", limited: " · Showing the first 12"
   };
   var input = dialog.querySelector("input");
   var results = dialog.querySelector("ol");
@@ -170,9 +170,11 @@
   function highlighted(tag, className, text, query) {
     var node = element(tag, className);
     var words = fold(query).split(" ").filter(Boolean).sort(function (left, right) { return right.length - left.length; });
+    if (!words.length) { node.textContent = text; return node; }
     var pattern = new RegExp(words.map(function (word) { return word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|"), "gi");
     var offset = 0;
     for (var match of text.matchAll(pattern)) {
+      if (/^[a-z0-9]/i.test(match[0]) && match.index > 0 && /[a-z0-9]/i.test(text[match.index - 1])) continue;
       node.append(document.createTextNode(text.slice(offset, match.index)), element("mark", "", match[0]));
       offset = match.index + match[0].length;
     }
@@ -215,7 +217,7 @@
       var index = await loadIndexes();
       if (current !== request || !dialog.open) return;
       var hits = rankNotes(index, query, language, allLanguages);
-      status.textContent = hits.length + copy.count + (hits.length > 12 ? copy.limited : "");
+      status.textContent = hits.length + (hits.length === 1 ? copy.single : copy.count) + (hits.length > 12 ? copy.limited : "");
       if (!hits.length) { emptyState(copy.empty, copy.emptyHint); return; }
       empty.hidden = true;
       results.hidden = false;
@@ -224,13 +226,16 @@
         var link = element("a", "note-search-result");
         var explicitLanguage = item.u === "index.html" && item.l === "en" ? "?lang=en" : "";
         link.href = (window.SITE.prefix || "") + item.u + explicitLanguage + (item.anchor ? "#" + encodeURIComponent(item.anchor) : "");
+        link.lang = item.l;
         // a section on the page already open only scrolls, so the dialog must step aside
         link.addEventListener("click", function () { dialog.close(); });
         var context = element("span", "note-search-context");
-        context.append(element("span", "", item.s), element("span", "note-search-language", item.l === "en" ? "EN" : "中文"));
+        context.append(highlighted("span", "note-search-category", item.s, query),
+          element("span", "note-search-language", item.l === "en" ? "EN" : language === "en" ? "ZH" : "中文"));
         link.append(context, highlighted("strong", "note-search-title", item.t, query));
         if (item.heading) link.append(highlighted("span", "note-search-section", item.heading, query));
         link.append(highlighted("span", "note-search-excerpt", excerpt(item.preview, query), query));
+        link.append(element("span", "note-search-path", item.u + (item.anchor ? "#" + item.anchor : "")));
         row.append(link);
         results.append(row);
       });
@@ -269,6 +274,7 @@
   dialog.addEventListener("close", function () {
     request++;
     clearTimeout(timer);
+    composing = false;
     document.documentElement.classList.remove("search-is-open");
     if (opener && opener.isConnected) opener.focus({ preventScroll: true });
   });
@@ -283,6 +289,8 @@
     request++;
     clearTimeout(timer);
     results.replaceChildren();
+    status.textContent = "";
+    emptyState(input.value.trim() ? copy.loading : copy.start, input.value.trim() ? "" : copy.hint, !input.value.trim());
     if (!composing) timer = setTimeout(render, 140);
   });
   scopeButtons.forEach(function (button) {
@@ -293,7 +301,22 @@
     });
   });
   dialog.addEventListener("keydown", function (event) {
+    if (event.key === "Tab") {
+      var controls = Array.from(dialog.querySelectorAll("button:not([disabled]), input:not([disabled]), a[href]"))
+        .filter(function (control) { return !control.closest("[hidden]"); });
+      var boundary = event.shiftKey ? controls[0] : controls[controls.length - 1];
+      if (controls.length && document.activeElement === boundary) {
+        event.preventDefault();
+        controls[event.shiftKey ? controls.length - 1 : 0].focus();
+      }
+      return;
+    }
     if (event.isComposing || composing) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      dialog.close();
+      return;
+    }
     var links = Array.from(results.querySelectorAll("a"));
     var focused = document.activeElement;
     if (!links.length || (focused !== input && !links.includes(focused))) return;
@@ -310,7 +333,7 @@
   });
   document.addEventListener("keydown", function (event) {
     var target = event.target;
-    if (event.isComposing || event.altKey || event.defaultPrevented) return;
+    if (event.isComposing || composing || event.altKey || event.defaultPrevented) return;
     var command = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
     var slash = event.key === "/" && !event.metaKey && !event.ctrlKey && !event.shiftKey &&
       !target.closest("input, textarea, select, [contenteditable]:not([contenteditable=false])");

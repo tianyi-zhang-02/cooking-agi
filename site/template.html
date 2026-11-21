@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="{{prefix}}static/search.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/mobile-reading.css?v={{built}}">
 <link rel="stylesheet" href="{{prefix}}static/reading.css?v={{built}}">
+<link rel="stylesheet" href="{{prefix}}static/reading-room.css?v={{built}}">
 <!-- if:math --><link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
       integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous"><!-- /if -->
@@ -106,6 +107,7 @@
 <div class="shell">
 
   <aside class="side" id="side">
+    <div class="side-primary">{{tabs}}<button type="button" class="side-search" data-search-open hidden>{{search_ph}}</button></div>
     <nav class="side-nav" aria-label="{{sidebar_label}}">
       {{sidebar}}
     </nav>

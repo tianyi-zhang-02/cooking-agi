@@ -15,6 +15,12 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     @unittest.skipUnless(shutil.which("node"), "Node is required for search tests")
+    def test_search_presentation(self):
+        result = subprocess.run([shutil.which("node"), "--test", str(ROOT / "tests/search.test.cjs")],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    @unittest.skipUnless(shutil.which("node"), "Node is required for search tests")
     def test_local_search_ranking_and_safety(self):
         script = r"""
 const assert = require('node:assert/strict');
