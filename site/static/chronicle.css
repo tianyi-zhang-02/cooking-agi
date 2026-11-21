@@ -27,7 +27,7 @@
 .page-technology-tree .article-meta, .page-technology-tree .article-save { display: none; }
 .page-technology-tree .article-head h1 { max-width: none; margin: 0; font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 500; letter-spacing: -.045em; line-height: 1.1; }
 .prose .tree-intro { max-width: 44rem; margin: 1rem 0 0; }
-.prose .tree-lead { margin: 0; color: var(--muted); font-size: 1.08rem; line-height: 1.75; }
+.prose .tree-lead { margin: 0; color: var(--muted); font-size: var(--fs-16); line-height: 1.75; }
 
 /* The tree: a fixed canvas behind the page that grows on entry, then steps back. */
 .ch-tree { position: fixed; inset: 0; z-index: 0; width: 100vw; height: 100vh; pointer-events: none; transition: opacity .2s linear; }
@@ -120,7 +120,7 @@ body:has(.technology-chronicle.is-starmap) .ch-tree { opacity: .12 !important; }
 .prose .ch-work-meta, .ch-work-meta { display: flex; flex-wrap: wrap; gap: .35rem .9rem; margin: 0 0 .85rem; color: var(--muted); font: 500 var(--fs-12)/1.4 var(--mono); }
 .ch-topic i { display: inline-block; width: .5rem; height: .5rem; margin-right: .4rem; border-radius: 50%; background: var(--layer); vertical-align: .02em; }
 .ch-unsettled { color: var(--warn); }
-.chronicle-work h3 { margin: 0; padding: 0; border: 0; font-size: 1.6rem; font-weight: 620; letter-spacing: -.025em; line-height: 1.28; }
+.chronicle-work h3 { margin: 0; padding: 0; border: 0; font-size: var(--fs-24); font-weight: 620; letter-spacing: -.025em; line-height: 1.28; }
 .chronicle-work h3::before { display: none; }
 .chronicle-work h3:focus { outline: none; }
 .ch-sub { display: block; margin-top: .4rem; color: var(--muted); font-size: var(--fs-16); font-weight: 450; letter-spacing: 0; }
@@ -179,7 +179,6 @@ body:has(.technology-chronicle.is-starmap) .ch-tree { opacity: .12 !important; }
   .ch-panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: min(82vh, 760px); border-radius: 20px; animation-name: ch-sheet-in; }
   @keyframes ch-sheet-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   .ch-panel-body { padding: .4rem 1.2rem 1.4rem; }
-  .chronicle-work h3 { font-size: 1.35rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ch-field, .ch-item, .ch-tree, .prose .ch-year { transition: none; }

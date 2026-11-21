@@ -2,7 +2,7 @@
    warm accent for today. Charts follow the usual pattern (a week of bars and a
    contribution-style grid), with a single sequential hue. */
 .reader-hub-toggle { position: relative; }
-.reader-hub-badge { position: absolute; top: 3px; right: 1px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: var(--r-pill); background: var(--star); color: #1a1206; font: 700 9.5px/15px var(--mono); text-align: center; box-shadow: 0 0 0 2px var(--paper); }
+.reader-hub-badge { position: absolute; top: 3px; right: 1px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: var(--r-pill); background: var(--star); color: #1a1206; font: 700 var(--fs-11)/15px var(--mono); text-align: center; box-shadow: 0 0 0 2px var(--paper); }
 .reader-hub-badge.is-bump { animation: rh-bump .5s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes rh-bump { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: none; } }
 
@@ -30,7 +30,7 @@
 @keyframes reader-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } to { opacity: 1; transform: none; } }
 .reader-hub-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .55rem; }
 .reader-hub-head h2 { margin: 0; font-size: var(--fs-19); font-weight: 500; letter-spacing: -.02em; }
-.reader-hub-close { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: var(--r-pill); background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.reader-hub-close { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: var(--r-pill); background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); font-size: var(--fs-19); line-height: 1; cursor: pointer; }
 .reader-hub-close:hover { background: color-mix(in srgb, var(--ink) 15%, transparent); }
 .reader-hub-tabs { display: flex; gap: .25rem; padding: .25rem; border-radius: var(--r-pill); background: color-mix(in srgb, var(--ink) 7%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 5%, transparent); }
 .reader-hub-tabs button { flex: 1; padding: .48rem .5rem; border: 0; border-radius: var(--r-pill); background: none; color: var(--muted); font: 500 var(--fs-13)/1 var(--body); cursor: pointer; transition: color .15s ease; }

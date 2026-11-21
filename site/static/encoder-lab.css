@@ -30,8 +30,8 @@
 .encoder-bar i { display: block; height: 100%; background: var(--ink); }
 .encoder-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
 .encoder-results span, .encoder-results small { display: block; color: var(--muted); font-size: var(--fs-12); line-height: 1.6; }
-.encoder-results strong { display: block; font: 500 1.8rem var(--mono); margin: .45rem 0; }
-.encoder-results .encoder-wrong strong { font-size: 1.3rem; color: var(--muted); margin-top: .9rem; }
+.encoder-results strong { display: block; font: 500 var(--fs-24) var(--mono); margin: .45rem 0; }
+.encoder-results .encoder-wrong strong { font-size: var(--fs-19); color: var(--muted); margin-top: .9rem; }
 .prose .encoder-lab .encoder-hint { border-left: 2px solid var(--muted); padding-left: .8rem; margin: 1.2rem 0 .75rem; }
 .prose .encoder-lab .encoder-small { font-size: var(--fs-12); color: var(--muted); }
 .encoder-modes { display: flex; flex-wrap: wrap; gap: .4rem; }

@@ -41,7 +41,7 @@
   .jl-score-controls { gap: .35rem; }
   .jl-score-controls label { font-size: var(--fs-11); }
   .jl-heading { align-items: start; }
-  .jl-tag { font-size: .6rem; }
+  .jl-tag { font-size: var(--fs-11); }
   .judge-flow { grid-template-columns: 1fr; gap: 1.2rem; }
   .judge-flow span:not(:last-child)::after { content: "↓"; left: 50%; top: calc(100% + .2rem); transform: translateX(-50%); }
 }

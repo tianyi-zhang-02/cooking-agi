@@ -306,7 +306,7 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 .curriculum-hero p,
 .lab-matrix p { margin: 0; color: var(--muted); font-size: var(--fs-13); line-height: 1.55; }
 .level-chip {
-  display: inline-flex; font-family: var(--sans); font-size: .61rem; font-weight: 750;
+  display: inline-flex; font-family: var(--sans); font-size: var(--fs-11); font-weight: 750;
   letter-spacing: .09em; text-transform: uppercase; padding: .13rem .4rem;
   border: 1px solid var(--rule); border-radius: var(--r-pill);
 }
@@ -347,7 +347,7 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 }
 .curriculum-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--link) 55%, var(--rule)); box-shadow: var(--shadow); }
 .curriculum-card .card-step {
-  font: 700 .62rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ember);
+  font: 700 var(--fs-11)/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ember);
 }
 .curriculum-card h3 { margin: .65rem 0 .35rem; font-size: var(--fs-16); }
 .curriculum-card p { color: var(--muted); font-size: var(--fs-13); line-height: 1.55; margin-bottom: .65rem; }
@@ -377,7 +377,7 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 .lesson-recipe.advanced > div::before { background: color-mix(in srgb, var(--ember) 68%, transparent); }
 .lesson-recipe span {
   display: block; margin-bottom: .25rem; color: var(--muted);
-  font: 700 .61rem/1.3 var(--sans); letter-spacing: .09em; text-transform: uppercase;
+  font: 700 var(--fs-11)/1.3 var(--sans); letter-spacing: .09em; text-transform: uppercase;
 }
 .lesson-recipe strong {
   display: block; color: var(--ink); font-size: var(--fs-14); line-height: 1.48;
@@ -493,7 +493,7 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
 .prose details > summary::marker { display: none; content: ""; }
 .prose details > summary:hover { background: var(--rule-soft); color: var(--ink); }
 .prose details > summary b {
-  font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  font-size: var(--fs-11); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
   color: var(--ember); border: 1px solid color-mix(in srgb, var(--ember) 45%, transparent);
   border-radius: var(--r-4); padding: .1rem .34rem; flex: none;
 }
@@ -568,7 +568,7 @@ main { min-width: 0; padding: 2.1rem 0 4rem; }
   background: color-mix(in srgb, var(--ember-bg) 60%, transparent);
 }
 .widget-kicker {
-  font-family: var(--sans); font-size: .62rem; font-weight: 700; letter-spacing: .1em;
+  font-family: var(--sans); font-size: var(--fs-11); font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; color: var(--ember);
   border: 1px solid color-mix(in srgb, var(--ember) 45%, transparent);
   border-radius: var(--r-4); padding: .1rem .32rem;
@@ -1048,7 +1048,7 @@ main { padding-top: 2.8rem; }
 .recipe-flip.is-en { background: color-mix(in srgb, var(--panel) 90%, var(--link) 5%); }
 .recipe-flip .concept-flip {
   top: .65rem; right: .65rem; min-height: 1.65rem;
-  padding: .23rem .42rem .23rem .5rem; font-size: .58rem;
+  padding: .23rem .42rem .23rem .5rem; font-size: var(--fs-11);
 }
 .lesson-recipe .recipe-flip .concept-flip span {
   display: inline; margin: 0; color: inherit; font: inherit; letter-spacing: inherit;
@@ -1058,9 +1058,9 @@ main { padding-top: 2.8rem; }
 @media (max-width: 620px) {
   .concept-card { margin-left: 0; margin-right: 0; border-radius: var(--r-4) var(--r-16) var(--r-4) var(--r-16); }
   .concept-face { padding: 1.15rem 1rem 1.3rem; }
-  .concept-face > h3:first-child { max-width: calc(100% - 5.8rem); font-size: 1.08rem; }
+  .concept-face > h3:first-child { max-width: calc(100% - 5.8rem); font-size: var(--fs-16); }
   .concept-face > h2:first-child { max-width: calc(100% - 5.8rem); font-size: var(--fs-19); }
-  .concept-title-en { max-width: calc(100% - 5.8rem); font-size: 1.08rem; }
+  .concept-title-en { max-width: calc(100% - 5.8rem); font-size: var(--fs-16); }
   .concept-title-h2 { font-size: var(--fs-19); }
   .concept-flip { top: .85rem; right: .8rem; }
 }
@@ -1075,8 +1075,7 @@ main { padding-top: 2.8rem; }
   .article-head { margin-bottom: 2.8rem; padding-left: 1rem; }
   .article-head h1 { font-size: clamp(2rem, 11vw, 3rem); }
   .article-meta .page-position { margin-left: 0; }
-  .article-body > p:first-of-type { font-size: 1.08rem; }
-  .article-body h2 { margin-top: 3.5rem; font-size: 1.35rem; }
+  .article-body h2 { margin-top: 3.5rem; font-size: var(--fs-24); }
   .article-body blockquote, .article-body .table-wrap { margin-left: 0; margin-right: 0; }
 }
 
@@ -1299,7 +1298,7 @@ main { padding-top: 2.8rem; }
 
 /* -------- knowledge blocks, live figures, threads ------------------------- */
 .rm-live, .viz-kicker i {
-  font-style: normal; font-size: .58rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ember);
+  font-style: normal; font-size: var(--fs-11); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ember);
   border: 1px solid color-mix(in srgb, var(--ember) 45%, transparent); border-radius: var(--r-4); padding: .05rem .28rem; vertical-align: .12em;
 }
 .rm-live { margin-left: .3rem; }
@@ -1384,8 +1383,8 @@ p.q-src { margin-top: .8rem; padding-top: .55rem; border-top: 1px dashed var(--r
 @media (max-width: 620px) {
   .roadmap { padding: 1rem .85rem; }
   .rm-modules { grid-template-columns: 1fr; }
-  .block-num { font-size: 1.35rem; }
-  .block-title { font-size: 1.3rem; }
+  .block-num { font-size: var(--fs-24); }
+  .block-title { font-size: var(--fs-24); }
 }
 
 /* ======================================================================
@@ -1756,7 +1755,7 @@ html.lang-zh .article-head h1 { max-width: 100%; text-wrap: pretty; }
 .nav .sec-flat + .sec-flat { margin-top: 0; }
 .nav .sec-num { display: none; }
 .nav .sec-name {
-  display: block; padding: .3rem .8rem .2rem; font: 650 .62rem/1.2 var(--sans), var(--cjk);
+  display: block; padding: .3rem .8rem .2rem; font: 650 var(--fs-11)/1.2 var(--sans), var(--cjk);
   letter-spacing: .13em; text-transform: uppercase; color: var(--faint);
 }
 .nav .sec > ul { margin: 0; }
