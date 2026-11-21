@@ -96,7 +96,7 @@ def causal_mla(x, Wq, Wdkv, Wuk, Wuv, Wo, h):
     return merge(softmax(s) @ v) @ Wo
 ```
 
-对照：等于把 `Wk` 换成 `Wdkv @ Wuk`、`Wv` 换成 `Wdkv @ Wuv` 的 MHA，最大误差约 7e-16（浮点舍入）。所以这一步换的是 K、V 投影的参数化方式：它们的秩不超过 d_c。省下来的是缓存，attention 的算法没有变。
+对照：等于把 `Wk` 换成 `Wdkv @ Wuk`、`Wv` 换成 `Wdkv @ Wuv` 的 MHA，最大误差小于 1e-15（浮点舍入）。所以这一步换的是 K、V 投影的参数化方式：它们的秩不超过 d_c。省下来的是缓存，attention 的算法没有变。
 
 </details>
 
@@ -113,7 +113,7 @@ def causal_mla_absorbed(x, Wq, Wdkv, Wuk, Wuv, Wo, h):
     return merge(softmax(s) @ c @ Wuv_h) @ Wo
 ```
 
-先把 query 投到 latent 空间再和 c 点积，分数和展开式相同；加权求和也先在 c 上做，最后再乘 `Wuv`。对照：和展开式的最大误差约 6e-16。推导见 [MLA 与稀疏注意力](../../00-foundations/deep-dives/latent-and-sparse-attention.md)。
+先把 query 投到 latent 空间再和 c 点积，分数和展开式相同；加权求和也先在 c 上做，最后再乘 `Wuv`。对照：和展开式的最大误差也小于 1e-15。推导见 [MLA 与稀疏注意力](../../00-foundations/deep-dives/latent-and-sparse-attention.md)。
 
 </details>
 

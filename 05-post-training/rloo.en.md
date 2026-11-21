@@ -27,7 +27,7 @@ b_i=\frac{1}{K-1}\sum_{j\ne i}R_j,
 \qquad A_i=R_i-b_i.
 $$
 
-Each answer takes a turn as the sample being evaluated; the others supply its baseline. [Ahmadian et al., §2.2–2.3](https://arxiv.org/html/2402.14740v1#S2.SS3) apply this estimator to language-model preference training. The multi-sample leave-one-out estimator predates that paper.
+Each answer takes a turn as the sample being evaluated; the others supply its baseline. [Ahmadian et al., §2.2–2.3](https://arxiv.org/html/2402.14740v1#S2.SS3) apply this estimator to language-model preference training. The multi-sample leave-one-out estimator predates that paper, which attributes it to [Kool, van Hoof and Welling (2019)](https://openreview.net/forum?id=r1lgTGL5DE).
 
 ## Why exclude the answer's own reward? {#why-leave-one-out}
 
@@ -80,7 +80,9 @@ The same $A_i$ weights every sampled action in a response. It does not identify 
 | Update | This note starts with one fresh on-policy gradient | Often uses a ratio and PPO-style clipping |
 | Token aggregation | Sum sequence log-probabilities, then average samples | Inspect the implementation's length normalization |
 
-Without standard-deviation normalization, the advantages have the fixed relationship derived above. Dividing by each group's standard deviation instead changes groups' relative weights. That standard deviation also depends on the current samples, so the leave-one-out unbiasedness proof does not establish unbiasedness here. [DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1) defines the original GRPO objective; our [group-relative advantage section](after-ppo.en.md#grpos-group-relative-advantage) writes it out.
+Without standard-deviation normalization, the advantages have the fixed relationship derived above. Dividing by each group's standard deviation instead changes groups' relative weights. That standard deviation also depends on the current samples, so the leave-one-out unbiasedness proof does not establish unbiasedness here. [DeepSeekMath §4.1](https://arxiv.org/html/2402.03300v3#S4.SS1) defines the original GRPO objective; our [group-relative advantage section](after-ppo.en.md#grpos-group-relative-advantage) writes it out. [Dr. GRPO (Liu et al., 2025), §3.1](https://arxiv.org/html/2503.20783v2#S3.SS1) calls this reweighting a question-level difficulty bias: a prompt answered almost always right or almost always wrong has a small standard deviation, so dividing by it gives that prompt more weight.
+
+The baseline need not come from other samples either. [ReMax (Li et al., 2023), §4.2](https://arxiv.org/html/2310.10505v4#S4.SS2) uses the reward of the greedy response to the same prompt. It also does not depend on the sample being scored, so it leaves the expected gradient unchanged; the cost is one extra greedy generation per prompt, whereas RLOO's reference comes from samples it trains on anyway.
 
 **RLOO does not mean that every implementation omits clipping.** The baseline and the update rule are separate choices. For example, [TRL v0.22.2's RLOO documentation](https://huggingface.co/docs/trl/v0.22.2/en/rloo_trainer#computing-the-loss) includes importance ratios and clipping when samples are reused. This pinned version illustrates one implementation, not a definition binding all frameworks.
 

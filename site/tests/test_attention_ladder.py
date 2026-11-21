@@ -51,9 +51,10 @@ class AttentionLadderTests(unittest.TestCase):
 
     def test_the_notes_quote_the_checks_the_script_makes(self):
         results = list(ladder.checks().values())
-        self.assertAlmostEqual(results[4], 6.7e-16, delta=0.5e-16)    # "about 7e-16"
-        self.assertAlmostEqual(results[5], 5.8e-16, delta=0.5e-16)    # "about 6e-16"
-        for name, words in (("attention-ladder.md", ("约 7e-16", "约 6e-16")), ("attention-ladder.en.md", ("about 7e-16", "about 6e-16"))):
+        # Rounding differs between machines and numerical libraries, so the notes give a bound, not a value.
+        self.assertLess(results[4], 1e-15)
+        self.assertLess(results[5], 1e-15)
+        for name, words in (("attention-ladder.md", ("误差小于 1e-15", "也小于 1e-15")), ("attention-ladder.en.md", ("is below 1e-15", "also below 1e-15"))):
             note = (ROOT / "learn/ml-exercises" / name).read_text(encoding="utf-8")
             for word in words:
                 self.assertIn(word, note)

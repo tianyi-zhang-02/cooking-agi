@@ -96,7 +96,7 @@ def causal_mla(x, Wq, Wdkv, Wuk, Wuv, Wo, h):
     return merge(softmax(s) @ v) @ Wo
 ```
 
-Check: it equals MHA with `Wk` replaced by `Wdkv @ Wuk` and `Wv` by `Wdkv @ Wuv`; the largest difference is about 7e-16 (floating-point rounding). So this step changes how the K and V projections are parameterized: their rank is at most d_c. What it saves is cache; the attention computation is the same.
+Check: it equals MHA with `Wk` replaced by `Wdkv @ Wuk` and `Wv` by `Wdkv @ Wuv`; the largest difference is below 1e-15 (floating-point rounding). So this step changes how the K and V projections are parameterized: their rank is at most d_c. What it saves is cache; the attention computation is the same.
 
 </details>
 
@@ -113,7 +113,7 @@ def causal_mla_absorbed(x, Wq, Wdkv, Wuk, Wuv, Wo, h):
     return merge(softmax(s) @ c @ Wuv_h) @ Wo
 ```
 
-Projecting the query into the latent space and taking its dot product with c gives the same scores as before; the weighted sum is also taken over c, and `Wuv` is applied last. Check: the largest difference from the expanded version is about 6e-16. The derivation is in [MLA and sparse attention](../../00-foundations/deep-dives/latent-and-sparse-attention.en.md).
+Projecting the query into the latent space and taking its dot product with c gives the same scores as before; the weighted sum is also taken over c, and `Wuv` is applied last. Check: the largest difference from the expanded version is also below 1e-15. The derivation is in [MLA and sparse attention](../../00-foundations/deep-dives/latent-and-sparse-attention.en.md).
 
 </details>
 

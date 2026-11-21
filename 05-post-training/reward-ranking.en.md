@@ -31,7 +31,7 @@ $$
 
 Here $\operatorname{softplus}(z)=\log(1+e^z)$ expresses the Bradley–Terry negative log-likelihood. A prompt with no labeled pairs cannot contribute through a zero denominator; skip and count it, or use it in another supervised task.
 
-[InstructGPT (2022), §3.5](https://arxiv.org/html/2203.02155v1#S3.SS5) reports overfitting when related comparisons were shuffled apart, and groups all comparisons from a prompt into one batch element. That does not mean an entire batch must contain only one prompt, or that the whole dataset is processed at once. Grouping also lets several comparisons reuse one reward forward pass per candidate. The reported improvement belongs to that experiment, not a guarantee for every reward model.
+[InstructGPT (2022), §3.5](https://arxiv.org/html/2203.02155v1#S3.SS5) reports overfitting when related comparisons were shuffled apart, and groups all comparisons from a prompt into one batch element. Its reward-model loss (Equation 1) also divides by $\binom K2$ within each prompt: the prompt-weighted row of the table above. That does not mean an entire batch must contain only one prompt, or that the whole dataset is processed at once. Grouping also lets several comparisons reuse one reward forward pass per candidate. The reported improvement belongs to that experiment, not a guarantee for every reward model.
 
 ## Calculating a probability for a complete ranking {#listwise}
 
@@ -63,7 +63,7 @@ P(\tau\mid x,y_{1:K})
 {\sum_{j=k}^{K}e^{r(x,y_{\tau(j)})}}.
 $$
 
-This is a **ranking probability conditional on the candidate set**, not the probability of generating those responses. At $K=2$, it reduces to Bradley–Terry. PL also assumes that the relative choice odds of two candidates depend on their scores, not on other candidates. Strong context effects, multidimensional tradeoffs, and heterogeneous preferences may violate that assumption. [DPO Appendix A.3](https://arxiv.org/html/2305.18290v2#A1.SS3) uses this definition to derive an objective for ranking supervision.
+This is a **ranking probability conditional on the candidate set**, not the probability of generating those responses. At $K=2$, it reduces to Bradley–Terry. PL also assumes that the relative choice odds of two candidates depend on their scores, not on other candidates. Strong context effects, multidimensional tradeoffs, and heterogeneous preferences may violate that assumption. [DPO Appendix A.3](https://arxiv.org/html/2305.18290v2#A1.SS3) uses this definition to derive an objective for ranking supervision. Learning to rank in search and recommendation used the same loss earlier: [ListMLE (Xia et al., 2008), §4.3.1](https://icml.cc/Conferences/2008/papers/167.pdf) calls it the likelihood loss, the negative log-likelihood of the true ranking under a PL model.
 
 ## All pairs are not the same objective as a full ranking {#pairs-versus-ranking}
 
@@ -84,6 +84,8 @@ Their product is $16/45\approx0.355556$, with negative log 1.034074—not the PL
 The first value being smaller does not make the method better. These losses use different units.
 
 PL probabilities sum to one over all six possible rankings. Multiplying the three pairwise probabilities for each ranking and summing those products generally does not. Pairwise training remains a reasonable choice; its product of correlated comparison probabilities is simply not automatically a normalized probability model over complete rankings.
+
+Do the two estimate the same parameters? [Zhu, Jiao and Jordan (2023), §4.1, Theorem 4.3](https://arxiv.org/html/2301.11270v5#S4.SS1) prove that, when the PL model holds and the reward is linear in known features, both the full-ranking maximum-likelihood estimate and the InstructGPT-style estimate from $K(K-1)/2$ split pairs converge to the true parameters; the full-ranking estimate has smaller asymptotic variance. Splitting is not wrong; it just uses less of the information in the same labels. When the model assumptions fail, this comparison needs to be checked again.
 
 ## How one ranking moves three scores {#gradient}
 
