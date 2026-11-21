@@ -9,6 +9,12 @@
 #     interview/speedrun-start(.en).md still works through the same inputs, targets and steps.
 
 [cover]   # under the title on the night sky
+eyebrow_zh = "Cooking AGI · 中英文学习笔记"
+eyebrow_en = "Cooking AGI · Notes in English and Chinese"
+title_zh = ["从模型原理，", "到完整的 AI 系统。"]
+title_en = ["Understand the model.", "See the whole system."]
+intro_zh = ["补基础、准备面试，或做一个项目。", "把散在各处的知识，放到一起慢慢讲清楚。"]
+intro_en = ["Foundations, interview practice, and working systems.", "One place to work through the ideas and the details."]
 search_zh = "搜索笔记：概念、模型或一道题"
 search_en = "Search notes: a concept, a model, or a question"
 links = [
@@ -18,15 +24,21 @@ links = [
 ]
 
 [start]
-zh = "从哪开始"
-en = "Start here"
+zh = "你想从哪里开始？"
+en = "Where would you like to start?"
+route_zh = "从一个小模型开始"
+route_en = "Build up from one small model"
+route_intro_zh = "先算一次训练，再沿这六步读下去。遇到不熟的地方，可以随时回到前面的章节。"
+route_intro_en = "Work through one training step, then follow these six topics. Return to earlier chapters whenever you need them."
 
 [start.lead]
+kicker_zh = "刚接触 ML"
+kicker_en = "New to ML"
 href = "interview/speedrun-start.md"
 title_zh = "从头学 ML"
 title_en = "Learn ML from the beginning"
-text_zh = "先用一个小模型把参数、loss、梯度和训练串起来，只需要 Python。然后沿这六步读主线。"
-text_en = "One small model ties parameters, loss, gradients and training together, and Python is all you need. Then follow the main line in six steps."
+text_zh = "从一个小模型开始，弄清参数、loss 和梯度，再读 Transformer。只需要一点 Python 基础。"
+text_en = "Start with one small model. Work through parameters, loss, and gradients before the Transformer. Some Python is all you need."
 go_zh = "从起步路线开始"
 go_en = "Begin with Starting out"
 more = "learn/README.md"
@@ -35,6 +47,8 @@ more_en = "Browse Foundations"
 
 # beside the lead card: the two other ways people arrive, each with deep links into its page
 [[start.path]]
+kicker_zh = "准备面试"
+kicker_en = "Interview coming up"
 href = "interview/speedrun.md"
 title_zh = "快面试了"
 title_en = "Interview soon"
@@ -47,6 +61,8 @@ links = [
 ]
 
 [[start.path]]
+kicker_zh = "想动手做"
+kicker_en = "Ready to build"
 href = "practice/README.md"
 title_zh = "工程实践"
 title_en = "Engineering practice"
@@ -129,8 +145,8 @@ read_zh = "读这一课"
 read_en = "Read the lesson"
 
 [index]
-zh = "内容一览"
-en = "What's inside"
+zh = "按主题阅读"
+en = "Browse the notes"
 more_zh = "每个板块写了什么、哪些已经审过，见[内容覆盖](learn/coverage.md)；技术发展的来龙去脉，见[编年史](learn/technology-timeline.md)。"
 more_en = "What each section covers and what has been checked is in [Coverage](learn/coverage.md); how the technology got here is in [Tech history](learn/technology-timeline.md)."
 

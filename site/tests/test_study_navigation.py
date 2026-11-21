@@ -57,9 +57,11 @@ class StudyNavigationTests(unittest.TestCase):
             self.assertEqual(self.chinese[source].url, url)
             self.assertIsNotNone(self.chinese[source].sibling)
 
-    def test_global_navigation_has_one_search_and_no_duplicate_subtabs(self):
+    def test_header_and_mobile_menu_share_one_search_dialog(self):
         template = (ROOT / "site/template.html").read_text()
-        self.assertEqual(template.count("data-search-open"), 1)
+        self.assertEqual(template.count("data-search-open"), 2)
+        self.assertEqual(template.count('id="note-search"'), 1)
+        self.assertIn('class="side-search" data-search-open hidden', template)
         self.assertNotIn("{{subtabs}}", template)
         self.assertNotIn("search-launch", template)
         markup = build.tabs_html(self.chinese["interview/leetcode.md"])

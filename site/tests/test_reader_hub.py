@@ -22,6 +22,23 @@ class ReaderHubTests(unittest.TestCase):
             self.skipTest("Node.js unavailable")
         subprocess.run([node, "--test", str(ROOT / "site/tests/reader-hub-dom.test.cjs")], check=True, capture_output=True)
 
+    def test_reading_workspace_and_legacy_backup_controls(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js unavailable")
+        subprocess.run([node, "--test", str(ROOT / "site/tests/reader-hub-workspace.test.cjs")], check=True, capture_output=True)
+
+    def test_drawer_layout_matches_header_and_keeps_quiet_statistics(self):
+        styles = (ROOT / "site/static/reader-hub.css").read_text()
+        self.assertIn("top: 88px", styles)
+        self.assertIn("top: 64px", styles)
+        self.assertIn("@media (max-width: 1080px)", styles)
+        self.assertIn(".reader-hub-label { display: none; }", styles)
+        self.assertIn(".reader-hub summary:focus-visible", styles)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
+        for effect in ("drop-shadow", "text-shadow", "--rh-glow", "backdrop-filter"):
+            self.assertNotIn(effect, styles)
+
     def test_script_stays_local(self):
         script = (ROOT / "site/static/reader-hub.js").read_text()
         for forbidden in ("innerHTML", "sessionStorage", "XMLHttpRequest", "eval("):

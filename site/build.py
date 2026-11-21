@@ -1252,14 +1252,16 @@ def home_html(page) -> str:
     number_only = lambda inner: re.sub(r"<small>\s*(\d+)\s*/[^<]*</small>", r"<small>\1</small>", inner)
     steps = "".join(f'<li><a href="{esc(href)}">{number_only(inner)}</a></li>' for href, inner in study_route_steps(page.lang))
     paths = "".join(
-        f'<div class="home-path"><h3><a href="{esc(path["href"])}">{esc(path["title_" + lang])}</a></h3>'
+        f'<div class="home-path"><div class="home-path-label">{esc(path["kicker_" + lang])}</div>'
+        f'<h3><a href="{esc(path["href"])}">{esc(path["title_" + lang])}</a></h3>'
         f'<p>{esc(path["text_" + lang])}</p><p class="home-path-links">'
         + "".join(f'<a href="{esc(link["href"])}">{esc(link[lang])}</a>' for link in path["links"])
         + '</p></div>' for path in start["path"])
     goals = "".join(f'<a class="home-goal" href="{esc(goal["href"])}"><strong>{esc(goal["title_" + lang])}</strong>'
                     f'<span>{esc(goal["text_" + lang])}</span></a>' for goal in start["goal"])
-    lead_card = (f'<div class="home-lead"><h3>{esc(lead["title_" + lang])}</h3><p>{esc(lead["text_" + lang])}</p>'
-                 f'<ol class="home-steps">{steps}</ol><p class="home-lead-actions">'
+    lead_card = (f'<div class="home-lead"><div class="home-path-label">{esc(lead["kicker_" + lang])}</div>'
+                 f'<h3>{esc(lead["title_" + lang])}</h3><p>{esc(lead["text_" + lang])}</p>'
+                 f'<p class="home-lead-actions">'
                  f'<a class="home-go" href="{esc(lead["href"])}">{esc(lead["go_" + lang])}</a>'
                  f'<a href="{esc(lead["more"])}">{esc(lead["more_" + lang])}</a></p></div>')
     groups = "".join(f'<div><h3>{esc(name)}</h3>' + "".join(f'<a href="{esc(href)}">{esc(label)}</a>' for label, href in links)
@@ -1273,12 +1275,17 @@ def home_html(page) -> str:
     legacy = "".join(f'<span id="{name}"></span>' for name in HOME_LEGACY_IDS)
     parts = [
         f'<span id="_1"></span><section class="home-block home-start" aria-labelledby="start-here">'
-        f'<h2 id="start-here">{esc(start[lang])}</h2><div class="home-start-grid">{lead_card}{paths}</div>'
-        f'<div class="home-more"><h3>{esc(start["more"][lang])}</h3><div class="home-more-grid">{goals}</div></div></section>',
-        example_html(lang),
+        f'<div class="home-section-heading"><h2 id="start-here">{esc(start[lang])}</h2>'
+        f'<a href="#whats-inside">{"也可以直接找主题" if lang == "zh" else "Or browse by topic"}</a></div>'
+        f'<div class="home-start-grid">{lead_card}{paths}</div></section>',
         f'<span id="_2"></span><section class="home-block home-index" aria-labelledby="whats-inside">'
         f'<h2 id="whats-inside">{esc(data["index"][lang])}</h2><div class="home-index-grid">{groups}</div>'
         f'<p class="home-index-more">{inline_links(data["index"]["more_" + lang])}</p></section>',
+        f'<section class="home-block home-route" aria-labelledby="home-study-route">'
+        f'<h2 id="home-study-route">{esc(start["route_" + lang])}</h2>'
+        f'<p>{esc(start["route_intro_" + lang])}</p><ol class="home-steps">{steps}</ol>'
+        f'<div class="home-more"><h3>{esc(start["more"][lang])}</h3><div class="home-more-grid">{goals}</div></div></section>',
+        example_html(lang),
         f'<section class="home-block home-notes" aria-labelledby="how-the-notes-are-written">'
         f'<h2 id="how-the-notes-are-written">{esc(data["notes"][lang])}</h2><div class="home-notes-grid">{notes}</div></section>',
         f'<section class="home-block home-coach" id="interview-coach" aria-labelledby="coach-title"><div>'
@@ -2122,8 +2129,7 @@ def tabs_html(page):
     """Level 1, in the top bar on every page: the roadmap plus the big directions."""
     zh = page.lang == "zh"
     current = page_category(page)
-    home = {"id": "home", "zh": "首页", "en": "Home"}
-    items = [(home, page.rel("index.zh.html" if zh else "index.html?lang=en"))]
+    items = []
     for cat in NAV.get("category", []):
         pair = category_home(cat)
         target = pair and (pair.get(page.lang) or pair["zh"])
@@ -2161,11 +2167,11 @@ def hero_html(page) -> str:
     if page.url not in {"index.html", "index.zh.html"}:
         return ""
     zh = page.lang == "zh"
-    site = NAV.get("site", {})
-    title = site["tagline_zh" if zh else "tagline_en"]
+    lang = "zh" if zh else "en"
     label = "封面" if zh else "Cover"
-    hint = "往下看" if zh else "Scroll to the notes"
     cover = home_data()["cover"]
+    title = "<br>".join(html.escape(line) for line in cover["title_" + lang])
+    introduction = "".join(f'<span>{html.escape(line)}</span>' for line in cover["intro_" + lang])
     entries = []
     for link in cover["links"]:
         target = BY_SRC.get(link["href"], {}).get(page.lang)
@@ -2176,10 +2182,12 @@ def hero_html(page) -> str:
     # hidden until search.js wires it up, like the search button in the top bar
     search = (f'<button type="button" class="hero-search" data-search-open hidden>{icon("search", 20)}'
               f'<span>{placeholder}</span><kbd>⌘ K</kbd></button>')
-    return (f'<section class="hero" aria-label="{label}">'
-            f'<h1 class="hero-title">{html.escape(title)}</h1>{search}'
-            f'<p class="hero-links">{dot.join(entries)}</p>'
-            f'<a class="hero-scroll" href="#content" aria-label="{hint}"><span></span></a></section>')
+    return (f'<section class="hero" aria-label="{label}"><div class="hero-inner">'
+            f'<p class="hero-eyebrow">{html.escape(cover["eyebrow_" + lang])}</p>'
+            f'<h1 class="hero-title">{title}</h1>'
+            f'<p class="hero-intro">{introduction}</p>{search}'
+            f'<noscript><p class="hero-links">{dot.join(entries)}</p></noscript>'
+            f'</div></section>')
 
 
 def toc_html(page):
@@ -2234,6 +2242,8 @@ def page_header_html(page):
     }
     if page.section.get("group") == "study":
         labels["article"] = "阅读导航" if zh else "Reading guide"
+    if page_category(page) == "practice":
+        labels["article"] = "工程笔记" if zh else "Engineering note"
     read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"
     position = ((f"本章 {page.position} / {page.section_count} 篇" if zh else f"Note {page.position} of {page.section_count}")
                 if page.kind not in {"home", "project"} and page.section_count > 1 else "")

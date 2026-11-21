@@ -135,14 +135,16 @@ class LanguageEntryTests(unittest.TestCase):
             page = self.home[language]
             self.assertEqual(build.page_nav_html(page), '')
             build.build_page(page, [], self.nav['site']['repo'], self.known)
-            lead = re.search(r'<div class="home-lead">.*?</div>', page.body, re.S).group(0)
+            lead = page.body.split('<div class="home-lead">', 1)[1].split('<div class="home-path">', 1)[0]
             self.assertIn(f'href="{target}"', lead)
 
     def test_home_navigation_stays_in_its_language(self):
         for language in ['en', 'zh']:
             page = build.BY_SRC['learn/README.md'][language]
             home = 'index.html?lang=en' if language == 'en' else 'index.zh.html'
-            self.assertIn(f'href="../{home}"', build.tabs_html(page))
+            build.build_page(page, [], self.nav['site']['repo'], self.known)
+            output = build.assemble(page, self.sections, self.nav, 'test', (build.SITE / 'template.html').read_text())
+            self.assertIn(f'class="topbar-brand" href="../{home}"', output)
             self.assertEqual(build.page_category(self.home[language]), 'home')
 
     def test_home_hides_repository_only_links_but_keeps_them_in_readmes(self):
@@ -172,13 +174,12 @@ class LanguageEntryTests(unittest.TestCase):
             page = self.home[language]
             build.build_page(page, [], self.nav['site']['repo'], self.known)
             heads = re.findall(r'<h2 id="[^"]+">(.*?)</h2>', page.body)
-            self.assertEqual(heads[:4], [data['start'][language], data['example'][language],
-                                         data['index'][language].replace("'", '&#x27;'), data['notes'][language]])
-            # one lead card with the study map's six steps, the two other routes beside it, then the quieter entries
+            self.assertEqual(heads[:5], [data['start'][language], data['index'][language].replace("'", '&#x27;'),
+                                         data['start']['route_' + language], data['example'][language], data['notes'][language]])
             steps = build.study_route_steps(language)
             self.assertEqual(len(steps), 6)
             self.assertEqual(page.body.count('<li><a href='), 6)
-            paths = re.findall(r'<div class="home-path"><h3><a href="([^"]+)">(.*?)</a></h3>', page.body)
+            paths = re.findall(r'<div class="home-path"><div class="home-path-label">[^<]+</div><h3><a href="([^"]+)">(.*?)</a></h3>', page.body)
             self.assertEqual([title for _, title in paths], [path['title_' + language] for path in data['start']['path']])
             self.assertEqual([title for _, title in paths], ['Interview soon', 'Engineering practice'] if language == 'en' else ['快面试了', '工程实践'])
             self.assertEqual(page.body.count('class="home-goal"'), len(data['start']['goal']))
