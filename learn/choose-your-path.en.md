@@ -50,6 +50,8 @@ This route suits readers who know how a Transformer works and want to read paper
 
 ## Projects: get one path working first {#projects}
 
+For a connected systems route, start with [Production ML / AI Infra](../practice/learning-routes.en.md): recommendation outcomes lead into data and experiments, then serving, capacity, and failures. Read only the part relevant to your current question if you prefer.
+
 If you haven't built a complete application, start with [this site and a reading-list app](../practice/web-lab/README.en.md). No GPU is needed: learn the build and CI/CD process, then connect a page, an API, and a database.
 
 Already comfortable writing programs? Pick the project you want to explore:

@@ -6,6 +6,8 @@
 
 These pages start from concrete projects: how data, models, services, and evaluation fit together into one system, and why it is designed that way.
 
+For a connected reading sequence, choose a [systems learning route](learning-routes.en.md). **Production ML** and **AI Infra** come first, connecting requests, data updates, experiments, and capacity. Existing projects and deeper derivations remain in their original chapters.
+
 - **Your first complete project:** start with [this site and a reading list](web-lab/README.en.md). Follow a Markdown edit into a published page, then connect a browser, API, and database. No GPU or frontend framework is required.
 - **Understanding ML systems:** read the recommendation, RAG, or post-training project and follow the data through each module. The recommender series draws on public code; the other two start from small teaching implementations.
 - **Preparing for a system-design interview:** go straight to [design practice](#system-design). Propose a design yourself, then compare it with the projects' implementations.
@@ -18,6 +20,8 @@ The [project route](../learn/choose-your-path.en.md#projects) suggests other rea
 
 | What do you want to understand? | Start here | What to look for |
 | --- | --- | --- |
+| Offline gains do not improve online results | [Production ML & recommendation](../14-production-ml-and-recs/README.en.md) | Candidate funnels, feature availability, negative sampling, experiment slices |
+| More traffic makes service and training unreliable | [AI Infra & distributed systems](../15-ai-infrastructure-and-distributed-systems/README.en.md) | Request stack, KV budgets, queues, scaling, training normalization and recovery |
 | You know models but not the surrounding product | [An ML system end to end](ml-system/README.en.md) | Three timelines, data and service contracts, acceptance, and ownership |
 | How do GPUs, distributed training, and RL frameworks connect? | [ML / LLM runtime walkthroughs](../06-systems/mlsys-llmsys-map.en.md#learning-route) | CPU/GPU execution, Megatron, clusters, and async RL; no GPU rental needed to start |
 | How do concepts map to open-source code, slow execution, and training failures? | [Source walkthroughs](runtime-reading/README.en.md) | Prefill/decode, vLLM/SGLang scheduling, NeMo RL updates, and training stability |

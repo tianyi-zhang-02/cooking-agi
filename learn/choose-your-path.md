@@ -50,6 +50,8 @@
 
 ## 做项目：先让一条路径走通 {#projects}
 
+想沿同一条系统主线深入，先看[Production ML / AI Infra 学习路线](../practice/learning-routes.md)：从推荐结果到数据和实验，再拆服务、容量与故障。可以只读与你当前问题有关的一段。
+
 没做过完整应用，先从[本站与阅读清单](../practice/web-lab/README.md)开始。它不需要 GPU：看懂构建与 CI/CD，再连起页面、API 和数据库。
 
 已经会写基本程序，可以直接选自己想做的项目：
