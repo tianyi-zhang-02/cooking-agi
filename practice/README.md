@@ -4,6 +4,8 @@
 
 这里从具体项目出发，讲数据、模型、服务和评估怎样组成一个系统，以及为什么这样设计。
 
+想沿一个方向系统读下去，可以从[系统学习路线](learning-routes.md)选：先展开 **Production ML** 和 **AI Infra**，把一次请求、数据更新、实验与容量管理接起来。已有项目和深入推导仍保留在原处。
+
 - **第一次做完整项目：**从[本站与阅读清单](web-lab/README.md)开始，了解 Markdown 怎样发布，再连接网页、API 和数据库。不需要 GPU，也不用先学前端框架。
 - **想了解 ML 系统：**读推荐系统、RAG 或后训练实验，顺着数据看各个模块如何配合。推荐系统结合公开代码，其余项目从小规模教学实现开始。
 - **准备系统设计面试：**直接看[设计练习](#system-design)，先自己提出方案，再对照项目里的实现。
@@ -14,6 +16,8 @@
 
 | 你想了解什么 | 阅读入口 | 重点 |
 | --- | --- | --- |
+| 模型离线不错，线上为什么没收益？ | [Production ML 与推荐](../14-production-ml-and-recs/README.md) | 召回漏斗、特征可用时间、负采样与实验切片 |
+| 请求多了，怎样保证服务和训练不乱？ | [AI Infra 与分布式系统](../15-ai-infrastructure-and-distributed-systems/README.md) | 请求栈、KV 预算、排队、扩容、训练归一化与恢复 |
 | 学过模型，但不知道完整产品有哪些环节 | [完整 ML 系统](ml-system/README.md) | 三条时间线、数据与服务接口、模块验收和团队分工 |
 | 想弄清 GPU、多卡训练和 RL 框架怎么接起来 | [ML / LLM 运行链路](../06-systems/mlsys-llmsys-map.md#learning-route) | 从 CPU / GPU 执行到 Megatron、集群与异步 RL，不需要先租 GPU |
 | 想把原理对应到开源库，知道慢了或训坏了怎么查 | [源码拆解](runtime-reading/README.md) | Prefill / decode、vLLM / SGLang 调度、NeMo RL 更新与训练稳定性 |

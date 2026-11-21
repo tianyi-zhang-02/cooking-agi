@@ -114,3 +114,18 @@
 @media (prefers-reduced-motion: reduce) {
   :root .page-reading .topbar, :root .page-reading .side { transition: none; }
 }
+
+:root .page-reading .prose .system-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+  padding: 1.4rem 0;
+  border-block: 1px solid var(--rule);
+}
+:root .page-reading .prose .system-flow-lane { min-width: 0; }
+:root .page-reading .prose .system-flow-lane h3 { margin: 0 0 1rem; font: 600 1rem/1.5 var(--body); }
+:root .page-reading .prose .system-flow-lane ol { margin: 0; padding-left: 1.5rem; }
+:root .page-reading .prose .system-flow-lane li { padding: 0 0 .6rem .25rem; font: 400 1rem/1.65 var(--body); overflow-wrap: anywhere; }
+:root .page-reading .prose .system-flow-lane li::marker { color: var(--muted); font-variant-numeric: tabular-nums; }
+:root .page-reading .prose .system-flow-lane p { margin: .7rem 0 0; color: var(--muted); font: 400 .94rem/1.65 var(--body); }

@@ -321,6 +321,24 @@ summary_zh = "沿数据、训练和在线请求三条线，拆开模块、接口
 summary_en = "Follow data, training, and live requests through modules, contracts, tradeoffs, and team handoffs."
 
 [[group]]
+id = "production-ml"
+category = "practice"
+zh = "Production ML 与推荐"
+en = "Production ML & recommendation"
+home = "14-production-ml-and-recs/README.md"
+summary_zh = "从一次推荐请求，到数据时间、实验切片和发布。"
+summary_en = "Follow a recommendation request into data timing, experiment slices, and releases."
+
+[[group]]
+id = "ai-platforms"
+category = "practice"
+zh = "AI Infra 与分布式系统"
+en = "AI Infra & distributed systems"
+home = "15-ai-infrastructure-and-distributed-systems/README.md"
+summary_zh = "拆开服务与训练，复算缓存、排队、扩容和故障预算。"
+summary_en = "Trace serving and training, then calculate cache, queue, capacity, and failure budgets."
+
+[[group]]
 id = "web-practice"
 category = "practice"
 zh = "小项目入门"
@@ -786,7 +804,21 @@ dir   = "practice"
 group = "practice"
 zh    = "工程实践"
 en    = "Engineering practice"
-order = ["README.md"]
+order = ["README.md", "learning-routes.md"]
+
+[[section]]
+dir = "14-production-ml-and-recs"
+group = "production-ml"
+zh = "Production ML 与推荐"
+en = "Production ML & recommendation"
+order = ["README.md", "ranking-system.md", "data-and-experiments.md"]
+
+[[section]]
+dir = "15-ai-infrastructure-and-distributed-systems"
+group = "ai-platforms"
+zh = "AI Infra 与分布式系统"
+en = "AI Infra & distributed systems"
+order = ["README.md", "serving-system.md", "queues-and-failures.md"]
 
 # --- 强化学习：训练那一侧的语义，和 post-training 直接相连
 

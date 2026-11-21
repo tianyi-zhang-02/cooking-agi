@@ -54,7 +54,7 @@ reviewers = ["tianyi-zhang-02"]
 id = "practice"
 zh = "工程实践与开源"
 en = "Practice & open source"
-groups = ["practice", "ml-systems", "web-practice", "system-design", "recsys", "rag-practice", "posttraining-practice"]
+groups = ["practice", "ml-systems", "production-ml", "ai-platforms", "web-practice", "system-design", "recsys", "rag-practice", "posttraining-practice"]
 reviewers = ["tianyi-zhang-02"]
 
 [[area]]
