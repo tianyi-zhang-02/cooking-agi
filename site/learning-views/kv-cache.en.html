@@ -1,0 +1,34 @@
+<section id="kv-quick" data-learning-panel="quick" role="tabpanel" hidden aria-labelledby="kv-quick-tab">
+      <div class="quick-layout">
+        <div class="quick-main">
+          <h2>Start with just three tokens</h2>
+          <p>The input is A, B, C. The model processes that prefix and predicts D. Next, it takes D as input to predict E.</p>
+          <div class="mini-sequence" aria-label="Input A B C, predict D"><div class="mini-tokens"><span>A</span><span>B</span><span>C</span></div><span class="arrow">→</span><span class="mini-new">D</span></div>
+          <div class="explanation"><span class="number">01</span><div><h3>Keep the earlier keys and values</h3><p>The keys and values for A, B, C have already been computed. Cache those vectors at each layer—not just the text that was generated.</p></div></div>
+          <div class="explanation"><span class="number">02</span><div><h3>Compute only the new token, D</h3><p>Compute Q, K, V for D. Its query attends to the cached keys and its new key. The earlier keys and values are reused, but D still attends to the whole prefix.</p></div></div>
+          <div class="explanation"><span class="number">03</span><div><h3>Less computation, more memory</h3><p>A longer context generally means a larger cache. Less work does not translate directly to the same speedup: reading the cache, moving data, and running other layers still take time.</p></div></div>
+        </div>
+        <aside class="note-margin">
+          <h3>One detail worth catching</h3>
+          <p>Right after predicting D, the cache only contains A, B, C. D gets its own keys and values when it is fed into the model on the next step.</p>
+          <button class="text-link" id="kv-try-lab" data-learning-open="lab">Walk through it →</button>
+          <div class="conditions"><h3>When can we reuse it?</h3><p>This example uses a causal decoder at inference time, with unchanged weights, prefix, and position settings, and dropout off. The same cache strategy does not apply to every attention pattern.</p></div>
+        </aside>
+      </div>
+      <div class="next-reading"><p>Want to go further? The full note covers cache memory calculations, GQA / MQA, and the different bottlenecks in prefill and decode.</p><a data-learning-open="full" href="?view=full">Read the full explanation ↗</a></div>
+    </section>
+<section id="kv-lab" data-learning-panel="lab" role="tabpanel" aria-labelledby="kv-lab-tab" hidden>
+      <div class="lab-heading"><div><h2>Same decoding step. Two approaches.</h2><p>Compare the work in this step only. Gray marks earlier tokens; amber marks the new token.</p></div><span class="step-index" id="kv-step-index"></span></div>
+      <div class="step-tabs" role="group" aria-label="Generation step"><button data-step="0">Prefill</button><button data-step="1">Decode 1</button><button data-step="2">Decode 2</button><button data-step="3">Decode 3</button></div>
+      <div class="experiment">
+        <div class="prediction"><div><span>Current input</span><strong id="kv-current-input"></strong></div><span class="arrow">→</span><div><span>Predict the next token</span><strong id="kv-prediction"></strong></div></div>
+        <div class="lanes">
+          <div class="lane"><div class="lane-heading"><h3>Without a cache</h3><span>Recompute the prefix</span></div><div class="tokens" id="kv-no-cache-tokens"></div><p class="lane-note">Compute keys and values for the entire prefix again.</p><div class="work"><span>Tokens needing projection</span><strong id="kv-no-cache-count"></strong></div><div class="work"><span>Valid attention scores</span><strong id="kv-no-cache-scores"></strong></div></div>
+          <div class="lane"><div class="lane-heading"><h3>With a KV cache</h3><span>Reuse earlier work</span></div><div class="tokens" id="kv-cache-tokens"></div><p class="lane-note" id="kv-cache-explanation"></p><div class="work"><span>Tokens needing projection</span><strong id="kv-cache-count"></strong></div><div class="work"><span>Valid attention scores</span><strong id="kv-cache-scores"></strong></div></div>
+        </div>
+        <div class="lab-controls"><div><button id="kv-previous">← Back</button><button class="primary" id="kv-next">Next →</button></div><div><button id="kv-play">Play</button><button id="kv-reset">Reset</button></div></div>
+      </div>
+      <p id="kv-step-explanation" class="step-explanation" aria-live="polite"></p>
+      <div class="lab-footnote"><h3>What are we counting?</h3><p>Counts are per layer and attention head, for a prefix of length t. Without a cache, causal attention has t(t+1)/2 valid scores. With a cache, the new token needs just one row of t scores. These are not FLOP counts or measured speedups, and do not include the other layers.</p></div>
+      <a class="text-link" data-learning-open="full" href="?view=full">Read the full explanation ↗</a>
+    </section>

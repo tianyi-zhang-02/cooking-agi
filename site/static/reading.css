@@ -24,7 +24,7 @@
 :root .page-reading .article-meta { display: inline-flex; margin-top: .85rem; color: var(--muted); }
 :root .page-reading .article-meta .page-position, :root .page-reading .article-meta b:last-of-type { display: none; }
 :root .page-reading .note-tools:not([hidden]) { display: inline-flex; margin: 0 0 0 .9rem; vertical-align: baseline; }
-:root .page-reading .note-tools button { color: var(--muted); font-size: .85rem; min-height: 44px; }
+:root .page-reading .note-tools button { color: var(--muted); font-size: var(--fs-14); min-height: 44px; }
 :root .page-reading .prose .chapter-context { margin: 0 0 1.5rem; }
 :root .page-reading { --body-lh: 1.58; }
 :root .page-reading:lang(zh) { --body-lh: 1.84; }
@@ -69,7 +69,7 @@
   :root .page-reading .shell { --side-w: 212px; --rail-w: 212px; }
   :root .page-reading .shell { gap: 0 3rem; max-width: 1280px; }
   :root .page-reading .side {
-    --side-bg: var(--paper); --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted);
+    --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted);
     transition: top .2s ease;
   }
   :root[data-bar-hidden] .page-reading .side { top: 0; height: 100dvh; }
@@ -84,8 +84,8 @@
   :root .page-reading .side-nav:has(.side-page-toc), :root .page-reading .side-nav:has(.side-empty) { display: none; }
 
   :root .page-reading .rail { --ink: var(--page-muted); --ink-soft: var(--page-muted); --link: var(--page-muted); --rule: var(--page-rule-soft); }
-  :root .page-reading .rail-title { display: block; margin: 0 0 .7rem .75rem; color: var(--page-muted); font: 500 .75rem/1.5 var(--body); text-transform: none; letter-spacing: 0; }
-  :root .page-reading .toc a { font-size: .82rem; line-height: 1.65; }
+  :root .page-reading .rail-title { display: block; margin: 0 0 .7rem .75rem; color: var(--page-muted); font: 500 var(--fs-12)/1.5 var(--body); text-transform: none; letter-spacing: 0; }
+  :root .page-reading .toc a { font-size: var(--fs-13); line-height: 1.65; }
   :root .page-reading .toc li a { border-left-width: 1px; }
   :root .page-reading .toc li a.active { color: var(--page-ink); font-weight: 400; }
 }
@@ -93,13 +93,13 @@
 /* details */
 /* contents, directory and table cells: no single character left alone on a last line */
 :root .page-reading :is(.toc a, .side a, .side summary, .prose td, .prose th) { text-wrap: pretty; }
-:root .page-reading .article-body .table-wrap { max-width: 100%; margin: 1.8rem 0; padding: 0; border: 1px solid var(--rule); border-radius: 4px !important; background: var(--panel); box-shadow: none; }
-:root .page-reading .table-wrap table { margin: 0; font-size: .95rem; }
+:root .page-reading .article-body .table-wrap { max-width: 100%; margin: 1.8rem 0; padding: 0; border: 1px solid var(--rule); border-radius: var(--r-4) !important; background: var(--panel); box-shadow: none; }
+:root .page-reading .table-wrap table { margin: 0; font-size: var(--fs-16); }
 :root .page-reading .table-wrap :is(th, td) { padding: .8rem .85rem; vertical-align: top; }
 :root .page-reading .table-wrap th { color: var(--ink); background: var(--code-bg); font-weight: 600; text-transform: none; letter-spacing: 0; white-space: normal; }
 :root .page-reading .table-wrap tbody tr:last-child td { border-bottom: 0; }
 :root .page-reading .article-body details:not(.atlas-chapter) > summary { padding: 1rem .25rem; color: var(--ink); }
-:root .page-reading .article-body :is(.study-route a, details > summary):focus-visible { outline: 2px solid var(--link); outline-offset: 4px; border-radius: 2px; }
+:root .page-reading .article-body :is(.study-route a, details > summary):focus-visible { outline: 2px solid var(--link); outline-offset: 4px; border-radius: var(--r-2); }
 /* the glossary follows the last section: its own rule doubled the one above it */
 :root .page-reading .page-glossary { border-top: 0; padding-top: 0; }
 /* the footer (previous / next, feedback, links) lines up with the text column */
@@ -124,8 +124,8 @@
   border-block: 1px solid var(--rule);
 }
 :root .page-reading .prose .system-flow-lane { min-width: 0; }
-:root .page-reading .prose .system-flow-lane h3 { margin: 0 0 1rem; font: 600 1rem/1.5 var(--body); }
+:root .page-reading .prose .system-flow-lane h3 { margin: 0 0 1rem; font: 600 var(--fs-16)/1.5 var(--body); }
 :root .page-reading .prose .system-flow-lane ol { margin: 0; padding-left: 1.5rem; }
-:root .page-reading .prose .system-flow-lane li { padding: 0 0 .6rem .25rem; font: 400 1rem/1.65 var(--body); overflow-wrap: anywhere; }
+:root .page-reading .prose .system-flow-lane li { padding: 0 0 .6rem .25rem; font: 400 var(--fs-16)/1.65 var(--body); overflow-wrap: anywhere; }
 :root .page-reading .prose .system-flow-lane li::marker { color: var(--muted); font-variant-numeric: tabular-nums; }
-:root .page-reading .prose .system-flow-lane p { margin: .7rem 0 0; color: var(--muted); font: 400 .94rem/1.65 var(--body); }
+:root .page-reading .prose .system-flow-lane p { margin: .7rem 0 0; color: var(--muted); font: 400 var(--fs-16)/1.65 var(--body); }

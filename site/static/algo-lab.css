@@ -4,25 +4,25 @@
 /* stepper chrome: modes on top, the drawing on a quiet canvas, then the step card,
    readouts and navigation (back / progress / next) */
 .algo-lab .algo-controls{gap:6px;margin-bottom:.6rem}
-.algo-lab .algo-stage{padding:10px 8px;border:1px solid var(--rule);border-radius:10px;
+.algo-lab .algo-stage{padding:10px 8px;border:1px solid var(--rule);border-radius:var(--r-10);
   background:color-mix(in srgb,var(--ink) 2.5%,transparent)}
 .algo-lab .algo-scroll>svg{min-width:520px;margin:0 auto}
 .algo-lab .algo-foot{gap:12px;padding-top:12px}
 .algo-lab .algo-step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:12px 14px;
-  border:1px solid var(--rule);border-left:3px solid var(--c-k);border-radius:8px;background:color-mix(in srgb,var(--ink) 3%,transparent)}
+  border:1px solid var(--rule);border-left:3px solid var(--c-k);border-radius:var(--r-10);background:color-mix(in srgb,var(--ink) 3%,transparent)}
 .algo-lab .algo-step.is-plain{grid-template-columns:minmax(0,1fr);border-left:1px solid var(--rule)}
 .algo-lab .algo-step-num{display:grid;place-items:center;width:24px;height:24px;margin-top:1px;border-radius:50%;
-  background:var(--c-k-soft);color:var(--c-k);font:700 12px/1 var(--mono)}
+  background:var(--c-k-soft);color:var(--c-k);font:700 var(--fs-12)/1 var(--mono)}
 .algo-lab .algo-caption{margin:0;min-height:3.2em}
 .algo-lab .algo-step.is-plain .algo-caption{min-height:0}
 .algo-lab .algo-readouts{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 18px}
 .algo-lab .algo-readouts .ro{padding:7px 0}
 .algo-lab .ro.is-wide{grid-column:1/-1}
 .algo-lab .ro.is-good .ro-val{color:var(--c-v)}
-.algo-lab .ro.is-bad .ro-val{color:#d6455a}
+.algo-lab .ro.is-bad .ro-val{color:var(--bad)}
 .algo-lab .ro.is-key .ro-val{color:var(--c-k)}
 .algo-lab .algo-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.algo-lab .algo-btn{padding:0 13px;font:600 13px/1 var(--sans),var(--cjk)}
+.algo-lab .algo-btn{padding:0 13px;font:600 var(--fs-13)/1 var(--sans),var(--cjk)}
 .algo-lab .algo-btn:disabled{opacity:.35;cursor:default}
 .algo-lab .algo-icon{min-width:36px;padding:0;font-family:var(--mono)}
 .algo-lab .algo-next{border-color:var(--link);background:var(--link);color:var(--panel)}
@@ -30,12 +30,12 @@
 .algo-lab .algo-progress{flex:1 1 150px;display:flex;align-items:center;gap:10px;min-width:120px}
 .algo-lab .algo-track{flex:1;display:flex;gap:3px}
 .algo-lab .algo-tick{flex:1;min-width:8px;height:22px;padding:0;border:0;background:none;cursor:pointer}
-.algo-lab .algo-tick::before{content:"";display:block;height:6px;border-radius:3px;background:var(--rule);transition:background .2s ease}
+.algo-lab .algo-tick::before{content:"";display:block;height:6px;border-radius:var(--r-4);background:var(--rule);transition:background .2s ease}
 .algo-lab .algo-tick:hover::before{background:var(--tx-line-strong)}
 .algo-lab .algo-tick.is-done::before{background:color-mix(in srgb,var(--c-k) 45%,var(--rule))}
 .algo-lab .algo-tick.is-now::before{background:var(--c-k)}
-.algo-lab .algo-tick:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4px}
-.algo-lab .algo-count{font:600 12px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.algo-lab .algo-tick:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:var(--r-4)}
+.algo-lab .algo-count{font:600 var(--fs-12)/1 var(--mono);color:var(--muted);white-space:nowrap}
 .algo-lab.is-measuring *{transition:none!important}
 @container (max-width: 520px){
   /* on a phone the whole state matters more than full-size text: scale to fit */
@@ -46,11 +46,11 @@
 }
 .algo-lab svg text{font-family:var(--mono)}
 .algo-lab .algo-cell{fill:color-mix(in srgb,var(--ink) 5%,var(--panel));stroke:var(--tx-line-strong);stroke-width:1.2;transition:fill .3s ease,stroke .3s ease,opacity .3s ease}
-.algo-lab .algo-val{font:600 15px var(--mono);fill:var(--ink)}
-.algo-lab .algo-idx{font:500 11px var(--mono);fill:var(--faint)}
-.algo-lab .algo-note{font:500 12.5px var(--mono);fill:var(--muted)}
-.algo-lab .algo-strong{font:650 13px var(--mono);fill:var(--ink)}
-.algo-lab .algo-head{font:650 12.5px var(--sans),var(--cjk);fill:var(--muted)}
+.algo-lab .algo-val{font:600 var(--fs-16) var(--mono);fill:var(--ink)}
+.algo-lab .algo-idx{font:500 var(--fs-11) var(--mono);fill:var(--faint)}
+.algo-lab .algo-note{font:500 var(--fs-13) var(--mono);fill:var(--muted)}
+.algo-lab .algo-strong{font:650 var(--fs-13) var(--mono);fill:var(--ink)}
+.algo-lab .algo-head{font:650 var(--fs-13) var(--sans),var(--cjk);fill:var(--muted)}
 .algo-lab .is-look{fill:var(--c-q-soft);stroke:var(--c-q);stroke-width:2}
 .algo-lab .is-change{fill:var(--c-k-soft);stroke:var(--c-k);stroke-width:2}
 .algo-lab .is-keep{fill:var(--c-v-soft);stroke:var(--c-v);stroke-width:2}
@@ -61,35 +61,35 @@
 .algo-lab .algo-arrow{fill:var(--c-k)}
 .algo-lab .algo-pointer.p-blue .algo-arrow{fill:var(--c-q)}
 .algo-lab .algo-pointer.p-green .algo-arrow{fill:var(--c-v)}
-.algo-lab .algo-plabel{font:650 12px var(--mono);fill:var(--ink)}
+.algo-lab .algo-plabel{font:650 var(--fs-12) var(--mono);fill:var(--ink)}
 .algo-lab .algo-band{fill:var(--c-q-soft);stroke:var(--c-q);stroke-width:1.5;transition:x .45s cubic-bezier(.3,.7,.2,1),width .45s cubic-bezier(.3,.7,.2,1)}
 .algo-lab .algo-edge{stroke:var(--tx-line-strong);stroke-width:1.4;fill:none}
 .algo-lab .algo-edge.is-change{stroke:var(--c-k);stroke-width:2.2}
 .algo-lab .algo-edge.is-keep{stroke:var(--c-v);stroke-width:2.2}
 .algo-lab .is-written{fill:var(--c-k-soft);stroke:var(--tx-line-strong)}
-.algo-lab .is-bad{fill:rgba(214,69,90,.16);stroke:#d6455a;stroke-width:2}
-.algo-lab .algo-edge.is-bad{stroke:#d6455a;fill:none}
-.algo-lab .algo-arrowhead.is-bad-head{fill:#d6455a}
+.algo-lab .is-bad{fill:color-mix(in srgb,var(--bad) 16%,transparent);stroke:var(--bad);stroke-width:2}
+.algo-lab .algo-edge.is-bad{stroke:var(--bad);fill:none}
+.algo-lab .algo-arrowhead.is-bad-head{fill:var(--bad)}
 .algo-lab .algo-arrowhead.is-blue{fill:var(--c-q)}
 .algo-lab .algo-arrowhead{fill:var(--c-k)}
 .algo-lab .algo-arc{transition:opacity .3s ease}
 .algo-lab .is-hidden{opacity:0}
-.algo-lab .algo-warn{font:650 11.5px var(--sans),var(--cjk);fill:#d6455a;transition:opacity .3s ease}
+.algo-lab .algo-warn{font:650 var(--fs-12) var(--sans),var(--cjk);fill:var(--bad);transition:opacity .3s ease}
 .algo-lab .algo-strike{stroke:var(--muted);stroke-width:1.6;stroke-linecap:round;opacity:0;transition:opacity .3s ease}
 .algo-lab .algo-strike.is-on{opacity:.75}
 .algo-lab .algo-val.is-dim{fill:var(--faint)}
 .algo-lab .algo-ghost{fill:none;stroke-dasharray:4 4;stroke:var(--tx-line-strong)}
 .algo-lab .is-hidden-layer{display:none}
-.algo-lab .algo-small{font-size:12.5px}
+.algo-lab .algo-small{font-size:var(--fs-13)}
 .algo-lab .algo-edge.is-look-line{stroke:var(--c-q);stroke-width:1.8}
 .algo-lab .algo-edge.is-out{opacity:.25}
 .algo-lab .algo-hit{fill:var(--c-v);font-weight:650}
 .algo-lab .algo-dash{stroke-dasharray:5 5}
-.algo-lab .algo-none{font:500 20px var(--mono);fill:var(--faint)}
+.algo-lab .algo-none{font:500 var(--fs-19) var(--mono);fill:var(--faint)}
 .algo-lab .algo-link{transition:d .45s ease}
 .algo-lab .algo-slide{transition:transform .5s cubic-bezier(.3,.7,.2,1)}
 .algo-lab .algo-reach{fill:var(--c-v-soft);stroke:var(--c-v)}
-.algo-lab .algo-reach.is-bad-band{fill:rgba(214,69,90,.08);stroke:#d6455a}
+.algo-lab .algo-reach.is-bad-band{fill:color-mix(in srgb,var(--bad) 8%,transparent);stroke:var(--bad)}
 .algo-lab .algo-bar{fill:var(--c-q);opacity:.72;transition:y .4s ease,height .4s ease,opacity .3s ease}
 .algo-lab .algo-bar.is-tall{fill:var(--c-k);opacity:.82}
 .algo-lab .algo-bar.is-now{opacity:1}

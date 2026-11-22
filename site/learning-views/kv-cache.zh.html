@@ -1,0 +1,34 @@
+<section id="kv-quick" data-learning-panel="quick" role="tabpanel" hidden aria-labelledby="kv-quick-tab">
+      <div class="quick-layout">
+        <div class="quick-main">
+          <h2>用三个 token 就能说明白</h2>
+          <p>输入是 A、B、C。模型先处理整段输入，预测出 D；下一步把 D 喂进去，再预测 E。</p>
+          <div class="mini-sequence" aria-label="输入 A B C，预测 D"><div class="mini-tokens"><span>A</span><span>B</span><span>C</span></div><span class="arrow">→</span><span class="mini-new">D</span></div>
+          <div class="explanation"><span class="number">01</span><div><h3>留下前面的 K、V</h3><p>A、B、C 的 Key 和 Value 已经算过，可以缓存起来。它们不是之前生成的文字，而是每一层算出的向量。</p></div></div>
+          <div class="explanation"><span class="number">02</span><div><h3>下一步只算新来的 D</h3><p>给 D 算新的 Q、K、V，把新的 K、V 接到缓存后，再计算 D 这一行 attention。旧 token 的 K、V 不用重算，但 D 仍要关注整个前缀。</p></div></div>
+          <div class="explanation"><span class="number">03</span><div><h3>少算一点，多存一点</h3><p>上下文越长，缓存通常越大。算得更少不代表一定快同样的倍数：读缓存、搬数据和其他层也要花时间。</p></div></div>
+        </div>
+        <aside class="note-margin">
+          <h3>一个容易混的细节</h3>
+          <p>刚预测出 D 时，缓存里只有 A、B、C。等下一步真正把 D 输入模型，才会得到 D 的 K、V。</p>
+          <button class="text-link" id="kv-try-lab" data-learning-open="lab">去图里走一遍 →</button>
+          <div class="conditions"><h3>什么情况下能复用？</h3><p>这里讨论因果 decoder 的推理：模型权重、前缀和位置设置不变，dropout 关闭。不是所有 attention 都能照搬这套缓存。</p></div>
+        </aside>
+      </div>
+      <div class="next-reading"><p>想继续往下看？完整笔记里有缓存显存的计算、GQA / MQA 的影响，以及 prefill 和 decode 的瓶颈。</p><a data-learning-open="full" href="?view=full">继续读完整推导 ↗</a></div>
+    </section>
+<section id="kv-lab" data-learning-panel="lab" role="tabpanel" aria-labelledby="kv-lab-tab" hidden>
+      <div class="lab-heading"><div><h2>同一步解码，两种做法</h2><p>只比较当前这一步。灰色表示已有内容，橙色表示新 token。</p></div><span class="step-index" id="kv-step-index"></span></div>
+      <div class="step-tabs" role="group" aria-label="生成步骤"><button data-step="0">Prefill</button><button data-step="1">Decode 1</button><button data-step="2">Decode 2</button><button data-step="3">Decode 3</button></div>
+      <div class="experiment">
+        <div class="prediction"><div><span>当前输入</span><strong id="kv-current-input"></strong></div><span class="arrow">→</span><div><span>预测下一个 token</span><strong id="kv-prediction"></strong></div></div>
+        <div class="lanes">
+          <div class="lane"><div class="lane-heading"><h3>不使用缓存</h3><span>重新算一遍</span></div><div class="tokens" id="kv-no-cache-tokens"></div><p class="lane-note">重新计算整个前缀的 K、V。</p><div class="work"><span>需要投影的 token</span><strong id="kv-no-cache-count"></strong></div><div class="work"><span>有效 attention score</span><strong id="kv-no-cache-scores"></strong></div></div>
+          <div class="lane"><div class="lane-heading"><h3>使用 KV cache</h3><span>复用已有计算</span></div><div class="tokens" id="kv-cache-tokens"></div><p class="lane-note" id="kv-cache-explanation"></p><div class="work"><span>需要投影的 token</span><strong id="kv-cache-count"></strong></div><div class="work"><span>有效 attention score</span><strong id="kv-cache-scores"></strong></div></div>
+        </div>
+        <div class="lab-controls"><div><button id="kv-previous">← 上一步</button><button class="primary" id="kv-next">下一步 →</button></div><div><button id="kv-play">播放</button><button id="kv-reset">重来</button></div></div>
+      </div>
+      <p id="kv-step-explanation" class="step-explanation" aria-live="polite"></p>
+      <div class="lab-footnote"><h3>这些数字在数什么？</h3><p>按单层、单个 attention head 计数，前缀长度为 t。不缓存时，有效因果 attention score 是 t(t+1)/2 个；缓存后，新 token 只需算一行，共 t 个。这里不是 FLOPs 或速度测试，也没有把其他层的成本算进去。</p></div>
+      <a class="text-link" data-learning-open="full" href="?view=full">继续读完整推导 ↗</a>
+    </section>

@@ -41,6 +41,7 @@ import markdown
 import agent_api
 import collaboration
 import curriculum
+import learning_views
 import prep_progress
 import readme_cards
 import topic_coverage
@@ -2488,7 +2489,11 @@ def assemble(page, sections, nav, built, template):
                     f'<meta name="twitter:image" content="{escaped_image}">')
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
-    content = curriculum.chapter_context(page, BY_SRC) + page.body
+    has_learning_views = learning_views.supports(page, ROOT)
+    content = curriculum.chapter_context(page, BY_SRC) + (
+        learning_views.render(page.lang, page.body) if has_learning_views else page.body)
+    if has_learning_views:
+        template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/learning-views.css?v={built}">\n<script defer src="{prefix}static/learning-views.js?v={built}"></script>\n</head>')
     is_prep_hub = 'data-prep-hub' in page.body
     # the reader's own records (saved notes, reading history, positions), the reading drawer and the study buddy
     template = template.replace('</head>', f'<script defer src="{prefix}static/prep-progress-store.js?v={built}"></script>\n<script defer src="{prefix}static/prep-library-state.js?v={built}"></script>\n<script defer src="{prefix}static/prep-progress.js?v={built}"></script>\n<link rel="stylesheet" href="{prefix}static/reader-hub.css?v={built}">\n<script defer src="{prefix}static/reader-hub.js?v={built}"></script>\n<link rel="stylesheet" href="{prefix}static/study-buddy.css?v={built}">\n<script defer src="{prefix}static/study-buddy.js?v={built}"></script>\n</head>')
