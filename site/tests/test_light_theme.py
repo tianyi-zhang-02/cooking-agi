@@ -65,8 +65,23 @@ class LightThemeTests(unittest.TestCase):
         dialog = declarations(SEARCH, ':root[data-theme="light"] .note-search')
         backdrop = declarations(SEARCH, ':root[data-theme="light"] .note-search::backdrop')
         self.assertEqual(dialog["background"], "var(--panel)")
-        self.assertIn(".14", dialog["box-shadow"])
         self.assertIn(".20", backdrop["background"])
+        self.assertEqual(declarations(SEARCH, ".note-search")["box-shadow"], "var(--elev-search)")
+        self.assertEqual(dialog["box-shadow"], "var(--elev-search)")
+        dark = declarations(STYLE, ":root")["--elev-search"]
+        light = declarations(STYLE, ':root[data-theme="light"]')["--elev-search"]
+        self.assertEqual(dark, "0 12px 40px #0003")
+        self.assertEqual(light, "0 16px 56px rgba(37, 42, 45, .14)")
+
+    def test_token_integration_keeps_the_reading_room_layout(self):
+        self.assertIn("min(800px", declarations(SEARCH.split('@media (max-width')[0], ".note-search")["width"])
+        self.assertEqual(declarations(SEARCH, ".note-search-close")["height"], "2.75rem")
+        reader = (ROOT / "site/static/reader-hub.css").read_text()
+        drawer = declarations(reader.split('@media')[0], ".reader-hub")
+        self.assertIn("min(820px", drawer["width"])
+        self.assertEqual(drawer["top"], "88px")
+        self.assertNotIn("backdrop-filter", drawer)
+        self.assertEqual(declarations(reader, ".reader-hub-close")["height"], "44px")
 
 
 if __name__ == "__main__":

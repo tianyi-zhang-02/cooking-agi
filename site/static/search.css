@@ -10,13 +10,13 @@
 .note-search {
   width: min(800px, calc(100vw - 3rem)); max-width: none; max-height: min(800px, 84dvh);
   margin: min(8vh, 5rem) auto auto; padding: 0; overflow: hidden;
-  border: 1px solid var(--rule); border-radius: 8px; background: var(--panel); color: var(--ink);
-  box-shadow: 0 12px 40px #0003; font-family: var(--body);
+  border: 1px solid var(--rule); border-radius: var(--r-8); background: var(--panel); color: var(--ink);
+  box-shadow: var(--elev-search); font-family: var(--body);
 }
 .note-search::backdrop { background: #0009; }
 :root[data-theme="light"] .note-search {
   background: var(--panel);
-  box-shadow: 0 16px 56px rgba(37, 42, 45, .14);
+  box-shadow: var(--elev-search);
 }
 :root[data-theme="light"] .note-search::backdrop { background: rgba(37, 42, 45, .20); }
 .search-is-open { overflow: hidden; }
@@ -25,7 +25,7 @@
 .note-search-heading h2 { margin: 0; font: 400 .85rem/1.5 var(--body); color: var(--muted); }
 .note-search-close {
   display: grid; place-items: center; flex: 0 0 auto; width: 2.75rem; height: 2.75rem; margin-right: -.6rem;
-  border: 1px solid transparent; border-radius: 4px; color: var(--muted); background: transparent; cursor: pointer;
+  border: 1px solid transparent; border-radius: var(--r-4); color: var(--muted); background: transparent; cursor: pointer;
 }
 .note-search-close:hover { border-color: var(--rule); color: var(--ink); }
 .note-search-field { display: flex; align-items: center; flex-shrink: 0; gap: 1rem; margin: 0 1.65rem; border-bottom: 1px solid var(--rule); }
@@ -67,7 +67,7 @@
 .note-search-empty p { margin: .5rem 0 0; font: .94rem/1.8 var(--body); color: var(--muted); }
 .note-search-topics { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
 .note-search-topics button, .note-search-retry {
-  min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--rule); border-radius: 4px;
+  min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--rule); border-radius: var(--r-4);
   background: transparent; color: var(--ink-soft); font: .84rem/1.5 var(--body); cursor: pointer;
 }
 .note-search-topics button:hover, .note-search-retry:hover { border-color: var(--muted); color: var(--ink); }
@@ -77,7 +77,7 @@
 .note-search button:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
 .note-search [hidden], [data-search-open][hidden] { display: none !important; }
 @media (max-width: 580px) {
-  .note-search { width: calc(100vw - 2rem); margin-top: max(1rem, env(safe-area-inset-top)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-radius: 6px; }
+  .note-search { width: calc(100vw - 2rem); margin-top: max(1rem, env(safe-area-inset-top)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-radius: var(--r-6); }
   .note-search-heading { padding: .65rem 1rem .15rem; }
   .note-search-field { gap: .75rem; margin: 0 1rem; }
   .note-search-field input { height: 3.75rem; font-size: 1.25rem; }

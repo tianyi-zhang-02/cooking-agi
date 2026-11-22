@@ -1,6 +1,6 @@
 /* Period timelines inside long notes (for example the RL history page). */
-.timeline-jumps { display: flex; flex-wrap: wrap; gap: .65rem 1.4rem; margin: 1.6rem 0; font-size: .85rem; }
+.timeline-jumps { display: flex; flex-wrap: wrap; gap: .65rem 1.4rem; margin: 1.6rem 0; font-size: var(--fs-14); }
 .tech-timeline { position: relative; border-left: 1px solid var(--rule); margin: 1.5rem 0 2.5rem .3rem; padding-left: 1.5rem; }
 .prose .tech-timeline h3 { position: relative; padding-top: .5rem; margin-top: 2rem; font-size: 1.1rem; line-height: 1.65; }
 .tech-timeline h3::before { content: ""; position: absolute; width: 7px; height: 7px; border-radius: 50%; left: calc(-1.5rem - 4px); top: 1.15rem; background: var(--ink); box-shadow: 0 0 0 5px var(--paper); }
-.prose .tech-timeline p { font-size: .94rem; }
+.prose .tech-timeline p { font-size: var(--fs-16); }
