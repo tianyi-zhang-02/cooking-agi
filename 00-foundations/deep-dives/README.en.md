@@ -47,6 +47,7 @@ Suppose context grows from 4K to 32K. Some methods store less per position, some
 | Mechanism | Main change | What it does not mean |
 | --- | --- | --- |
 | [KV cache, MQA / GQA](kv-cache-and-inference.en.md) | Reuse historical K/V; reduce K/V head count | Historical information no longer needs processing |
+| [Prefix caching in hybrid models](hybrid-prefix-cache.en.md) | Reusing a prefix needs a state snapshot taken at its end | A larger cache lets samples that arrive together reuse the prompt |
 | [RoPE, interpolation, and YaRN](position-and-context.en.md) | How positions enter attention | Raising the context limit guarantees useful access to distant evidence |
 | [NoPE and sequence order](nope-and-order.en.md) | Where order can come from without explicit positional encoding | Any checkpoint can simply disable RoPE |
 | [FlashAttention](attention-kernels.en.md) | Tiling and memory traffic for exact attention | Automatically removing attention pairs |

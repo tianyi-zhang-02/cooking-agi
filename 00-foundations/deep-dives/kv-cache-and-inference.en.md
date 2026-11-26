@@ -139,7 +139,7 @@ This counts KV for identical full-attention layers without sharing. It is not a 
 
 Sharing requires counting **unique physical blocks**, not adding logical request lengths. Two eight-position caches with four-token blocks can share the first block and have separate second blocks: 16 logical positions occupy three blocks, or 12 physical slots. Retained, unused prefixes also occupy the cache pool; they are not memory already returned to the system.
 
-Full-attention state commonly grows with sequence length. Sliding-window layers can retain only the state their windows require, while hybrid models need per-layer-type accounting. Do not apply one uniform $L\times T$ formula to every architecture. The [hybrid KV-cache design](https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/) addresses these distinctions.
+Full-attention state commonly grows with sequence length. Sliding-window layers can retain only the state their windows require, while hybrid models need per-layer-type accounting. Do not apply one uniform $L\times T$ formula to every architecture. The [hybrid KV-cache design](https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/) addresses these distinctions. A hybrid model also needs a state snapshot taken at the end of a prefix to reuse it; for what that does to RL sampling, see [prefix caching in hybrid models](hybrid-prefix-cache.en.md).
 
 ### Multiple GPUs do not divide every allocation equally {#kv-per-rank}
 

@@ -47,6 +47,7 @@
 | 机制 | 主要改变什么 | 不要误读成什么 |
 | --- | --- | --- |
 | [KV cache、MQA / GQA](kv-cache-and-inference.md) | 复用历史 K/V；减少 K/V 头数 | 不再需要处理历史信息 |
+| [混合模型的前缀缓存](hybrid-prefix-cache.md) | 复用前缀要有停在前缀末尾的状态快照 | 缓存加大，同时到达的样本就能复用 |
 | [RoPE、插值与 YaRN](position-and-context.md) | 位置信息怎样参与 attention | 上下文长度调大后，模型必然能用好远处证据 |
 | [NoPE 与顺序信息](nope-and-order.md) | 不加显式位置编码时，顺序还能从哪里来 | 任意 checkpoint 都能直接关掉 RoPE |
 | [FlashAttention](attention-kernels.md) | 精确 attention 的分块与访存 | 自动删掉一部分 attention 配对 |

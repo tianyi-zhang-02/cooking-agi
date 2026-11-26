@@ -139,7 +139,7 @@ assert paged_kv_bytes([16384] * 4) > kv_budget
 
 共享以后要数**唯一物理块**，不能再直接加每个请求的逻辑长度。例如两条 8-token 缓存，块大小为 4，第一块共用、第二块各自独立：逻辑上是 16 个位置，物理上只需 3 块、12 个槽。若运行时另外保留了无人使用但可复用的旧前缀，这些也占池子，不能当作已经归还给系统。
 
-Full attention 的缓存常随长度增长；sliding-window 层可以只保留窗口所需状态，混合模型则要按层类型分别记账。不能把统一的 $L\times T$ 公式直接套给所有模型。[Hybrid KV cache 的设计说明](https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)专门处理这些差异。
+Full attention 的缓存常随长度增长；sliding-window 层可以只保留窗口所需状态，混合模型则要按层类型分别记账。不能把统一的 $L\times T$ 公式直接套给所有模型。[Hybrid KV cache 的设计说明](https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)专门处理这些差异。混合模型复用前缀还要有停在前缀末尾的状态快照，RL 采样里的问题见[混合模型的前缀缓存](hybrid-prefix-cache.md)。
 
 ### 多卡以后，不是所有东西都除以卡数 {#kv-per-rank}
 
