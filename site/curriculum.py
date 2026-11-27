@@ -94,6 +94,79 @@ def chapter_context(page, catalog):
             f'<strong>{label}</strong><p>{html.escape(intro)}</p></aside>')
 
 
+def track_of(navigation, source):
+    """The track (a zone with stops) that lists this note, and the note's position on it."""
+    for zone in navigation.get('zone', []):
+        for index, stop in enumerate(zone.get('stops', [])):
+            if stop['note'] == source:
+                return zone, index
+    return None, None
+
+
+def stop_label(navigation, source, language):
+    for zone in navigation.get('zone', []):
+        for stop in zone.get('stops', []):
+            if stop['note'] == source:
+                return stop[language]
+    return None
+
+
+def track_map(page, navigation, catalog):
+    """The Foundations landing: every track as a line of stops, in reading order."""
+    chinese = page.lang == 'zh'
+    tracks = []
+    for zone in navigation.get('zone', []):
+        stops = zone.get('stops', [])
+        if not stops:
+            continue
+        anchor = f"track-{html.escape(zone['id'], quote=True)}"
+        items = ''.join(f'<li>{note_link(page, stop["note"], catalog, stop[page.lang])}</li>' for stop in stops)
+        count = f'{len(stops)} 站' if chinese else f'{len(stops)} stops'
+        tracks.append(f'<section class="track" id="{anchor}" aria-labelledby="{anchor}-title">'
+                      f'<header><h3 id="{anchor}-title">{html.escape(zone[page.lang])}</h3>'
+                      f'<p>{html.escape(localized(zone, "summary", page.lang))}</p><small>{count}</small></header>'
+                      f'<ol class="track-stops">{items}</ol></section>')
+    label = '学习线' if chinese else 'Tracks'
+    return f'<div class="track-map" aria-label="{label}">{"".join(tracks)}</div>'
+
+
+def track_context(page, navigation, catalog):
+    """Above a note that is a stop: its track and position, what to read first, and the next stop."""
+    if page.kind in {'home', 'index'}:
+        return ''
+    source = page.src.relative_to(page.src.parents[page.depth]).as_posix().replace('.en.md', '.md')
+    zone, index = track_of(navigation, source)
+    if zone is None:
+        return ''
+    chinese = page.lang == 'zh'
+    stops = zone['stops']
+
+    def link(note):
+        pair = catalog.get(note)
+        if not pair or not pair.get(page.lang):
+            raise ValueError(f"Missing track target: {note} ({page.lang})")
+        target = pair[page.lang]
+        text = stop_label(navigation, note, page.lang) or target.title
+        return f'<a href="{html.escape(page.rel(target.url), quote=True)}">{html.escape(text)}</a>'
+
+    home = catalog.get('learn/README.md', {}).get(page.lang)
+    name = html.escape(zone[page.lang])
+    if home:
+        name = (f'<a href="{html.escape(page.rel(home.url), quote=True)}#track-{html.escape(zone["id"], quote=True)}">'
+                f'{name}</a>')
+    position = f'第 {index + 1} 站，共 {len(stops)} 站' if chinese else f'stop {index + 1} of {len(stops)}'
+    needs = ([stops[index - 1]['note']] if index else []) + list(stops[index].get('needs', []))
+    parts = [f'<span class="track-where">{name} · {position}</span>']
+    if needs:
+        parts.append(f'<span class="track-needs">{"先读" if chinese else "Needs"} '
+                     + ' '.join(link(note) for note in dict.fromkeys(needs)) + '</span>')
+    if index + 1 < len(stops):
+        parts.append(f'<span class="track-next">{"下一站" if chinese else "Next stop"} '
+                     f'{link(stops[index + 1]["note"])}<span aria-hidden="true"> →</span></span>')
+    label = '学习线' if chinese else 'Track'
+    return f'<nav class="track-context" aria-label="{label}">{"".join(parts)}</nav>'
+
+
 def validate_catalog(navigation, sections, catalog):
     claimed = [source for section in navigation['section'] for source in section.get('include', [])]
     if len(claimed) != len(set(claimed)):

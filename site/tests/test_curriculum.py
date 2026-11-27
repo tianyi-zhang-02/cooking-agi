@@ -87,13 +87,14 @@ class CurriculumTests(unittest.TestCase):
         self.assertEqual(self.catalog['03-multimodal-learning/siglip.md']['zh'].previous.src.name, 'clip.md')
         self.assertEqual(self.catalog['03-multimodal-learning/vision-to-language.md']['zh'].previous.src.name, 'siglip.md')
 
-    def test_atlas_groups_concepts_into_four_reading_areas(self):
+    def test_atlas_follows_the_tracks_then_go_deeper_and_still_moving(self):
+        areas = ('reads', 'learns', 'taught', 'check', 'runs', 'world', 'beyond', 'deeper', 'moving')
         for language in ('zh', 'en'):
             page = self.catalog['learn/README.md'][language]
             markup = curriculum.study_atlas(page, self.navigation, self.sections, self.catalog)
-            self.assertEqual(markup.count('class="atlas-area"'), 4)
-            anchors = [f'id="area-{area}"' for area in ('basics', 'applications', 'design', 'frontier')]
-            self.assertEqual([markup.count(anchor) for anchor in anchors], [1, 1, 1, 1])
+            self.assertEqual(markup.count('class="atlas-area"'), len(areas))
+            anchors = [f'id="area-{area}"' for area in areas]
+            self.assertEqual([markup.count(anchor) for anchor in anchors], [1] * len(areas))
             self.assertEqual(sorted(markup.index(anchor) for anchor in anchors),
                              [markup.index(anchor) for anchor in anchors])
             for group in self.navigation['group']:
@@ -103,6 +104,53 @@ class CurriculumTests(unittest.TestCase):
             self.assertNotIn('<button', markup)
             for moved in ('coding', 'algorithms', 'ml-exercises', 'system-design', 'interview-basics'):
                 self.assertNotIn(f'id="subject-{moved}"', markup)
+
+    def test_every_stop_is_a_study_note_listed_once_in_both_languages(self):
+        study = {pair['zh'].src.relative_to(build.ROOT).as_posix()
+                 for section in self.sections for pair in section['pages']}
+        stops = [stop['note'] for zone in self.navigation['zone'] for stop in zone.get('stops', [])]
+        self.assertEqual(len(stops), len(set(stops)))
+        tracks = [zone for zone in self.navigation['zone'] if zone.get('stops')]
+        self.assertEqual(len(tracks), 7)
+        for zone in tracks:
+            for stop in zone['stops']:
+                self.assertIn(stop['note'], study)
+                self.assertTrue(stop['zh'] and stop['en'])
+                for need in stop.get('needs', []):
+                    self.assertIn(need, self.catalog)
+                for language in ('zh', 'en'):
+                    self.assertIn(language, self.catalog[stop['note']])
+
+    def test_track_map_links_every_stop_in_reading_order(self):
+        for language in ('zh', 'en'):
+            page = self.catalog['learn/README.md'][language]
+            markup = curriculum.track_map(page, self.navigation, self.catalog)
+            rendered = build.rewrite_links(markup, page, 'tianyi-zhang-02/cooking-agi', {note.url for note in self.pages})
+            self.assertNotIn('.md"', rendered)
+            for zone in self.navigation['zone']:
+                if not zone.get('stops'):
+                    self.assertNotIn(f'id="track-{zone["id"]}"', markup)
+                    continue
+                self.assertEqual(markup.count(f'id="track-{zone["id"]}"'), 1)
+                positions = [markup.index('>' + __import__('html').escape(stop[language]) + '</a>',
+                                          markup.index(f'id="track-{zone["id"]}"')) for stop in zone['stops']]
+                self.assertEqual(positions, sorted(positions))
+
+    def test_track_context_names_the_position_the_reading_before_and_the_next_stop(self):
+        kv = self.catalog['00-foundations/deep-dives/kv-cache-and-inference.md']
+        english = curriculum.track_context(kv['en'], self.navigation, self.catalog)
+        self.assertIn('How a model runs</a> · stop 2 of 7', english)
+        self.assertIn('>Decoding</a>', english)
+        self.assertIn('>Attention</a>', english)
+        self.assertIn('Next stop <a href="../../06-systems/llm-serving.en.html">Serving</a>', english)
+        chinese = curriculum.track_context(kv['zh'], self.navigation, self.catalog)
+        self.assertIn('第 2 站，共 7 站', chinese)
+        first = curriculum.track_context(self.catalog['00-foundations/from-linear-to-neural.md']['en'],
+                                         self.navigation, self.catalog)
+        self.assertIn('stop 1 of 9', first)
+        self.assertNotIn('Needs', first)
+        self.assertEqual(curriculum.track_context(self.catalog['05-post-training/rloo.md']['en'],
+                                                  self.navigation, self.catalog), '')
 
     def test_subject_overviews_keep_their_chapters_open(self):
         for source in ('learn/pretraining/README.md', 'learn/inference/README.md'):
