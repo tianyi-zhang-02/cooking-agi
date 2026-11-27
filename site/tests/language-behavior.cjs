@@ -50,29 +50,12 @@ function simulate(options = {}) {
   const local = options.local || new Map();
   const session = options.session || new Map();
   const handlers = {};
-  const buttonHandlers = {};
-  const attributes = {};
-  const classes = new Set();
   let redirected = null;
-  let focused = false;
-  const button = {addEventListener: (type, handler) => { buttonHandlers[type] = handler; }};
-  const guide = {
-    hidden: true,
-    contains: element => element === button,
-    querySelector: selector => selector === '[data-language-dismiss]' ? button : null
-  };
-  const switcher = {
-    setAttribute: (key, value) => { attributes[key] = value; },
-    removeAttribute: key => { delete attributes[key]; },
-    classList: {add: value => classes.add(value), remove: value => classes.delete(value)},
-    focus: () => { focused = true; }
-  };
   const document = {
     currentScript: {dataset: {siteRoot: options.prefix || ''}},
     readyState: 'complete',
-    activeElement: null,
-    getElementById: name => name === 'language-guide' ? guide : null,
-    querySelector: () => options.noSwitcher ? null : switcher,
+    getElementById: () => null,
+    querySelector: () => null,
     addEventListener: (type, handler) => { handlers[type] = handler; }
   };
   const storage = (values, blocked) => ({
@@ -85,26 +68,14 @@ function simulate(options = {}) {
     sessionStorage: storage(session, options.blockSession)
   };
   vm.runInNewContext(source, {URL, document, window});
-  return {local, session, guide, handlers, buttonHandlers, attributes, document, button,
-    redirected, focused: () => focused};
+  return {local, session, handlers, redirected};
 }
 
+// No first-visit tip any more: the home cover names the language in place, and nothing pops up.
 const first = simulate();
-assert.equal(first.guide.hidden, false);
-assert.equal(first.focused(), false);
-assert.equal(first.attributes['aria-describedby'], 'language-guide-description');
-assert.equal(first.local.get(keys.guide), 'seen');
-first.document.activeElement = first.button;
-first.buttonHandlers.click();
-assert.equal(first.guide.hidden, true);
-assert.equal(first.focused(), true);
-assert.equal(first.attributes['aria-describedby'], undefined);
-assert.equal(simulate({local: first.local}).guide.hidden, true);
-
-const escape = simulate();
-escape.handlers.keydown({key: 'Escape'});
-assert.equal(escape.guide.hidden, true);
-assert.equal(escape.focused(), false);
+assert.equal(first.local.size, 0);
+assert.equal(first.redirected, null);
+assert.equal(source.includes('language-guide'), false);
 
 const linked = simulate();
 const chineseLink = {
@@ -113,10 +84,15 @@ const chineseLink = {
 };
 linked.handlers.click({target: {closest: () => chineseLink}, button: 0});
 assert.equal(linked.local.get(keys.choice), 'zh');
-assert.equal(linked.guide.hidden, true);
 assert.equal(simulate({local: linked.local}).redirected, base + 'index.zh.html');
 assert.equal(simulate({href: base + '?lang=en', local: linked.local}).redirected, null);
 assert.equal(linked.local.get(keys.choice), 'en');
+
+// the line on the home cover is a plain link into the other home page
+const coverLink = {href: base + 'index.zh.html', dataset: {languageSwitch: 'zh'}, hasAttribute: () => true};
+const cover = simulate();
+cover.handlers.click({target: {closest: () => coverLink}, button: 0});
+assert.equal(cover.local.get(keys.choice), 'zh');
 
 const modifiedClick = simulate();
 modifiedClick.handlers.click({target: {closest: () => chineseLink}, button: 0, ctrlKey: true});
@@ -139,16 +115,15 @@ const questionBank = simulate({href: base + 'interview/questions.html', prefix: 
 questionBank.handlers.click({target: {closest: () => ({href: base + 'learn/index.html',
   dataset: {}, hasAttribute: () => false})}, button: 0});
 assert.equal(questionBank.local.get(keys.choice), 'zh');
-assert.equal(simulate({noSwitcher: true}).guide.hidden, true);
 const fallback = simulate({blockLocal: true});
-assert.equal(fallback.guide.hidden, false);
-assert.equal(simulate({blockLocal: true, session: fallback.session}).guide.hidden, true);
+fallback.handlers.click({target: {closest: () => chineseLink}, button: 0});
+assert.equal(fallback.session.get(keys.choice), 'zh');
+assert.equal(simulate({blockLocal: true, session: fallback.session}).redirected, base + 'index.zh.html');
 assert.doesNotThrow(() => simulate({blockLocal: true, blockSession: true}));
 const unavailableStorage = simulate({blockLocal: true, blockSession: true});
 unavailableStorage.handlers.click({target: {closest: () => chineseLink}, button: 0});
-assert.equal(unavailableStorage.guide.hidden, true);
 assert.equal(unavailableStorage.redirected, null);
 const deepLink = simulate({href: base + 'interview/ai-roles-prep.en.html', prefix: '../', local: new Map([[keys.choice, 'zh']])});
 assert.equal(deepLink.redirected, null);
 assert.equal(deepLink.local.get(keys.choice), 'zh');
-console.log('Language entry, preferences, and first-visit guide passed.');
+console.log('Language entry and preferences passed.');

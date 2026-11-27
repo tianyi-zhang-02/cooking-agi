@@ -45,6 +45,12 @@
       if (p && /^[a-z]+$/.test(p)) document.documentElement.dataset.palette = p;
       var s = localStorage.getItem("text-size");
       if (s && /^(s|l|xl)$/.test(s)) document.documentElement.dataset.text = s;
+      // a returning reader: the home cover shows where they were instead of the three ways in
+      var r = JSON.parse(localStorage.getItem("cooking-agi:prep-progress") || "null");
+      var w = r && r.workspace && r.workspace.records;
+      if (w && Object.keys(w).some(function (k) {
+        return /^position-(zh|en)-note-/.test(k) || (/^reads-\d{8}$/.test(k) && w[k] && w[k].notes && Object.keys(w[k].notes).length > 0);
+      })) document.documentElement.classList.add("reader-back");
     } catch (error) {}
   })();
 </script>
@@ -91,14 +97,6 @@
     </button>
   </div>
 </header>
-
-<aside id="language-guide" class="language-guide" aria-labelledby="language-guide-title" hidden>
-  <span class="language-guide-label" aria-hidden="true">EN / 中</span>
-  <h2 id="language-guide-title">English or 中文</h2>
-  <p id="language-guide-description" lang="en">Use <strong>中文 / EN</strong> above to switch the same note.</p>
-  <p lang="zh-Hans">点上方的 <strong>中文 / EN</strong>，切换同一篇笔记。</p>
-  <button type="button" data-language-dismiss><span lang="en">Got it</span> / <span lang="zh-Hans">知道了</span></button>
-</aside>
 
 <canvas class="sky" aria-hidden="true"></canvas>
 

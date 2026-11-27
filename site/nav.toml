@@ -498,7 +498,7 @@ dir   = "."
 group = "start"
 zh    = "开始"
 en    = "Start here"
-order = ["README.md"]
+order = ["README.md", "my-reading.md"]
 
 [[section]]
 dir = "community"

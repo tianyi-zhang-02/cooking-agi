@@ -1,5 +1,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
+import html
+import json
 import re
 import shutil
 import subprocess
@@ -63,7 +65,7 @@ class LanguageEntryTests(unittest.TestCase):
                                      'class': 'lang-' + language}), elements)
             switches = [attrs for tag, attrs in elements if tag == 'a' and attrs.get('class') == 'lang-btn']
             self.assertEqual([attrs['href'] for attrs in switches], [target])
-            self.assertIn('Start here' if language == 'en' else '从哪开始', output)
+            self.assertIn(html.escape(build.home_data()['cover']['ways_' + language]), output)   # the three ways in
             self.assertIn('class="hero"', output)
             self.assertIn('class="hero-search" data-search-open hidden', output)   # search.js shows it
             self.assertNotIn('{{', output)
@@ -129,14 +131,41 @@ class LanguageEntryTests(unittest.TestCase):
         self.assertIn('body .topbar-brand .brand-full { position: absolute;', styles)
         self.assertNotIn('body .topbar-brand span {', styles)
 
-    def test_home_leads_to_the_study_map_from_its_start_card(self):
-        # issue #77: the home page goes straight on to the study map; the start card carries that link now
-        for language, target in [('en', 'learn/index.en.html'), ('zh', 'learn/index.html')]:
-            page = self.home[language]
-            self.assertEqual(build.page_nav_html(page), '')
-            build.build_page(page, [], self.nav['site']['repo'], self.known)
-            lead = page.body.split('<div class="home-lead">', 1)[1].split('<div class="home-path">', 1)[0]
-            self.assertIn(f'href="{target}"', lead)
+    def home_output(self, language):
+        page = self.home[language]
+        build.build_page(page, [], self.nav['site']['repo'], self.known)
+        return page, build.assemble(page, self.sections, self.nav, 'test', (build.SITE / 'template.html').read_text())
+
+    def test_home_cover_offers_three_ways_and_names_the_language(self):
+        # issue #77 kept: the home page goes straight on, now from the three ways on the cover
+        expected = {'en': (['interview/speedrun-start.en.html', 'learn/index.en.html#tracks', 'interview/speedrun.en.html'],
+                           'Reading in English', 'index.zh.html', 'zh'),
+                    'zh': (['interview/speedrun-start.html', 'learn/index.html#tracks', 'interview/speedrun.html'],
+                           '正在读中文版', 'index.html?lang=en', 'en')}
+        for language, (targets, reading, other, switch) in expected.items():
+            with self.subTest(language=language):
+                page, output = self.home_output(language)
+                self.assertEqual(build.page_nav_html(page), '')
+                ways = re.search(r'<nav class="hero-ways".*?</nav>', output, re.S).group()
+                self.assertEqual(re.findall(r'class="hero-way[^"]*" href="([^"]+)"', ways), targets)
+                self.assertEqual(ways.count('is-lead'), 1)
+                self.assertIn(reading, ways)
+                self.assertRegex(ways, rf'href="{re.escape(other)}"[^>]*data-language-switch="{switch}"')
+                tracks, stops = build.track_counts()
+                self.assertIn(f'{tracks}', ways)
+                self.assertIn(f'{stops}', ways)
+                # the returning reader's panel is an empty slot with the track data; reader-hub.js fills it
+                slot = re.search(r'<div class="hero-return" data-reader-return data-tracks="([^"]*)"([^>]*)></div>', output)
+                self.assertIsNotNone(slot)
+                data = json.loads(html.unescape(slot.group(1)))
+                self.assertEqual(len(data), tracks)
+                self.assertEqual(sum(len(track['stops']) for track in data), stops)
+                for track in data:
+                    self.assertTrue(track['href'].endswith('#track-' + track['id']))
+                    for stop in track['stops']:
+                        self.assertRegex(stop['id'], r'^note-[a-f0-9]{16}$')
+                for attribute in ('data-saved-href', 'data-tracks-href', 'data-interview-href', 'data-reading-href'):
+                    self.assertIn(attribute, slot.group(2))
 
     def test_home_navigation_stays_in_its_language(self):
         for language in ['en', 'zh']:
@@ -168,32 +197,38 @@ class LanguageEntryTests(unittest.TestCase):
                 self.assertNotIn(marker, page.body)
             self.assertIn('## ' + ('Contributors and reviewers' if language == 'en' else '贡献者与审稿人'), source)
 
-    def test_home_sections_come_from_home_toml_the_study_route_and_the_readme_list(self):
+    def test_home_blocks_come_from_home_toml_and_the_navigation(self):
         data = build.home_data()
+        categories = {category['id']: category for category in self.nav['category']}
         for language in ['en', 'zh']:
-            page = self.home[language]
-            build.build_page(page, [], self.nav['site']['repo'], self.known)
-            heads = re.findall(r'<h2 id="[^"]+">(.*?)</h2>', page.body)
-            self.assertEqual(heads[:5], [data['start'][language], data['index'][language].replace("'", '&#x27;'),
-                                         data['start']['route_' + language], data['example'][language], data['notes'][language]])
-            steps = build.study_route_steps(language)
-            self.assertEqual(len(steps), 6)
-            self.assertEqual(page.body.count('<li><a href='), 6)
-            paths = re.findall(r'<div class="home-path"><div class="home-path-label">[^<]+</div><h3><a href="([^"]+)">(.*?)</a></h3>', page.body)
-            self.assertEqual([title for _, title in paths], [path['title_' + language] for path in data['start']['path']])
-            self.assertEqual([title for _, title in paths], ['Interview soon', 'Engineering practice'] if language == 'en' else ['快面试了', '工程实践'])
-            self.assertEqual(page.body.count('class="home-goal"'), len(data['start']['goal']))
-            # the topic index is the README's own list, group for group
-            groups = build.readme_index(page)
-            self.assertEqual(len(groups), 5)
-            index = re.search(r'<div class="home-index-grid">(.*?)</div><p', page.body, re.S).group(1)
-            self.assertEqual(index.count('<h3>'), len(groups))
-            self.assertEqual(index.count('<a href='), sum(len(links) for _, links in groups))
-            # GitHub keeps the routes table and the contribution details
-            source = page.src.read_text()
-            table = re.search(r'^\| .+ \|\n\| --- \| --- \|\n((?:\|.+\|\n)+)', source, re.M).group(1)
-            self.assertEqual(len(table.strip().splitlines()), 5)
-            self.assertIn('CODEOWNER', source)
+            with self.subTest(language=language):
+                page = self.home[language]
+                build.build_page(page, [], self.nav['site']['repo'], self.known)
+                heads = re.findall(r'<h2 id="[^"]+">(.*?)</h2>', page.body)
+                self.assertEqual(heads[:4], [data['doors'][language], data['example'][language], data['updates'][language],
+                                             data['coach']['title_' + language]])
+                # four doors, one per area, each with the area's own name and blurb from nav.toml
+                doors = re.findall(r'<a class="home-door" href="([^"]+)"><svg.*?</svg><strong>(.*?)</strong><span>(.*?)</span><small>(.*?)</small></a>', page.body, re.S)
+                self.assertEqual([title for _, title, _, _ in doors],
+                                 [categories[kind][language] for kind in ('learn', 'interview', 'practice', 'history')])
+                for (_, _, blurb, _), kind in zip(doors, ('learn', 'interview', 'practice', 'history')):
+                    self.assertEqual(html.unescape(blurb), categories[kind]['blurb_' + language])
+                tracks, stops = build.track_counts()
+                self.assertIn(f'{tracks}', doors[0][3])
+                self.assertIn(f'{stops}', doors[0][3])
+                first, last, moments = build.history_span()
+                self.assertIn(str(moments), doors[3][3])
+                # recent updates: the page's own title, newest first
+                items = data['updates']['item']
+                self.assertEqual([item['date'] for item in items], sorted((item['date'] for item in items), reverse=True))
+                titles = re.findall(r'<li><time datetime="[^"]+">[^<]+</time><a href="[^"]+">(.*?)</a>', page.body)
+                self.assertEqual([html.unescape(title) for title in titles],
+                                 [build.BY_SRC[item['href']][language].title for item in items])
+                # GitHub keeps the routes table and the contribution details
+                source = page.src.read_text()
+                table = re.search(r'^\| .+ \|\n\| --- \| --- \|\n((?:\|.+\|\n)+)', source, re.M).group(1)
+                self.assertEqual(len(table.strip().splitlines()), 5)
+                self.assertIn('CODEOWNER', source)
 
     def test_links_to_sections_that_moved_to_github_go_there(self):
         page = build.BY_SRC['community/README.md']['zh']
@@ -331,32 +366,29 @@ class LanguageEntryTests(unittest.TestCase):
             self.assertIn('{#current-update}', text)
 
     def test_old_chinese_home_anchors_remain_valid_on_the_default_home(self):
-        page = self.home['en']
-        build.build_page(page, [], self.nav['site']['repo'], self.known)
-        anchors = {attrs['id'] for tag, attrs in Elements(page.body).elements if 'id' in attrs}
+        _, output = self.home_output('en')
+        anchors = {attrs['id'] for tag, attrs in Elements(output).elements if 'id' in attrs}
         self.assertTrue({f'_{number}' for number in range(1, 6)} <= anchors)
-        self.assertIn('start-here', anchors)
+        for anchor in ('start-here', 'whats-inside', 'home-study-route', 'how-the-notes-are-written', 'interview-coach'):
+            self.assertIn(anchor, anchors)
 
     def test_new_home_details_do_not_shift_legacy_chinese_anchors(self):
-        page = self.home['zh']
-        build.build_page(page, [], self.nav['site']['repo'], self.known)
-        ids = [attrs['id'] for tag, attrs in Elements(page.body).elements if 'id' in attrs]
-        self.assertLess(ids.index('_1'), ids.index('start-here'))     # 从哪开始
-        self.assertLess(ids.index('_2'), ids.index('whats-inside'))   # 内容一览
+        page, output = self.home_output('zh')
+        ids = [attrs['id'] for tag, attrs in Elements(output).elements if 'id' in attrs]
+        self.assertLess(ids.index('_1'), ids.index('start-here'))     # 从哪开始: now the three ways on the cover
+        self.assertLess(ids.index('_2'), ids.index('whats-inside'))   # 内容一览: now the four doors
         self.assertEqual(page.toc, [])   # a short page of cards: no "on this page" list
 
-    def test_guide_is_hidden_without_javascript_and_is_not_a_modal(self):
+    def test_no_first_visit_popup_and_the_language_script_loads_first(self):
         template = (build.SITE / 'template.html').read_text()
-        guide = next(attrs for tag, attrs in Elements(template).elements if attrs.get('id') == 'language-guide')
-        self.assertIn('hidden', guide)
-        self.assertEqual(guide['aria-labelledby'], 'language-guide-title')
-        self.assertNotIn('aria-modal', guide)
+        # the home cover names the language in place; nothing pops up on any page
+        self.assertNotIn('language-guide', template)
         self.assertIn('data-site-root="{{prefix}}"', template)
         self.assertIn('static/language.css', template)
         self.assertLess(template.index('static/language.js'), template.index('static/style.css'))
 
     @unittest.skipUnless(shutil.which('node'), 'Node is required for browser behavior tests')
-    def test_language_preferences_and_guide_behavior(self):
+    def test_language_preferences_behavior(self):
         result = subprocess.run([shutil.which('node'), str(build.SITE / 'tests/language-behavior.cjs')],
                                 text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)

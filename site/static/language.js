@@ -7,7 +7,7 @@
 
   function storageKeys(baseHref) {
     var prefix = "cooking-agi:" + new URL(baseHref).pathname;
-    return {choice: prefix + ":language:v1", guide: prefix + ":language-guide:v1"};
+    return {choice: prefix + ":language:v1"};
   }
 
   function entryDecision(href, baseHref, saved) {
@@ -66,40 +66,15 @@
     return;
   }
 
+  // A click on a link into the other language (the switch in the top bar, the line on the home
+  // cover) remembers that language for the next visit to the home page.
   function ready() {
-    var guide = document.getElementById("language-guide");
-    var switcher = document.querySelector(".topbar [data-language-switch]");
-    function dismiss() {
-      if (!guide || guide.hidden) return;
-      var restoreFocus = guide.contains(document.activeElement);
-      guide.hidden = true;
-      switcher.removeAttribute("aria-describedby");
-      switcher.classList.remove("language-cue");
-      save(keys.guide, "seen");
-      if (restoreFocus) switcher.focus();
-    }
-
     document.addEventListener("click", function (event) {
       var link = event.target.closest("a[href]");
       if (!link || event.defaultPrevented || event.button !== 0 ||
           event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       var language = linkLanguage(link.href, link.dataset.languageSwitch, base.href);
-      if (!language) return;
-      save(keys.choice, language);
-      if (link.hasAttribute("data-language-switch")) {
-        save(keys.guide, "seen");
-        dismiss();
-      }
-    });
-
-    if (!guide || !switcher || load(keys.guide) === "seen") return;
-    guide.hidden = false;
-    switcher.setAttribute("aria-describedby", "language-guide-description");
-    switcher.classList.add("language-cue");
-    save(keys.guide, "seen");
-    guide.querySelector("[data-language-dismiss]").addEventListener("click", dismiss);
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") dismiss();
+      if (language) save(keys.choice, language);
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready, {once: true});

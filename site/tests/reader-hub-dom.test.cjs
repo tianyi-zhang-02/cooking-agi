@@ -68,7 +68,7 @@ function environment(initialSettings = {}, language = 'en', noteId = '') {
     },
     createElementNS: (namespace, tag) => new Element(tag),
     createTextNode: text => Object.assign(new Element('text'), {textContent: text}),
-    querySelector: selector => selector === '.topbar-right' ? right : selector === '[data-prep-note]' && noteId ? {dataset: {prepNote: noteId}} : null,
+    querySelector: selector => selector === '.topbar-right' ? right : selector === '.note-tools[data-progress-id]' && noteId ? {dataset: {progressId: noteId}} : null,
     addEventListener(name, handler) { documentEvents[name] = handler; }
   };
   const window = {
