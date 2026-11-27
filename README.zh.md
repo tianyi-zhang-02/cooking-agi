@@ -126,6 +126,19 @@ python3 site/build.py
 
 | 日期 | 大更新 | 小更新 |
 | --- | --- | --- |
+| 2026-11-25 | 新专题：在混合模型上，同一个 prompt 的几个 GRPO 样本为什么没命中前缀缓存、各自把 prompt 重算一遍；配两个手算小例子和实测数字（[#154](https://github.com/tianyi-zhang-02/cooking-agi/pull/154)） | — |
+| 2026-11-22 | KV cache 笔记多了「速览」和「图解实验」两种读法，可以一步步看缓存怎样变化（[#153](https://github.com/tianyi-zhang-02/cooking-agi/pull/153)） | 全站统一配色和字号（[#153](https://github.com/tianyi-zhang-02/cooking-agi/pull/153)） |
+| 2026-11-21 | Production ML 与 AI Infra 两条学习路线：推荐系统的数据、实验和排序，模型服务、排队和故障恢复，附两个能跑的练习（[#150](https://github.com/tianyi-zhang-02/cooking-agi/pull/150)）· 首页给出清楚的起点和主题索引；导航和版面更简洁，搜索更好用，「我的阅读」把最近读过的笔记、阅读位置和备份放到前面（[#152](https://github.com/tianyi-zhang-02/cooking-agi/pull/152)） | 奖励学习的几篇笔记在对应段落旁注明原论文出处；「attention 的五种写法」的检查不再在部分机器上失败（[#149](https://github.com/tianyi-zhang-02/cooking-agi/pull/149)） |
+| 2026-11-20 | Deep RL：新增离线模型式 RL，用同一个小例子比较 MOPO、MOReL 和 COMBO；补充排序、偏好强弱，以及「一次都没成功」能说明什么（[#148](https://github.com/tianyi-zhang-02/cooking-agi/pull/148)） | 入门、复习和排错的入口挪到前面 · 贡献者数据里去掉个人信息，并加上检查，防止再放进去（[#148](https://github.com/tianyi-zhang-02/cooking-agi/pull/148)） |
+| 2026-11-19 | Deep RL 奖励学习：RLOO、MaxEnt IRL、GAIL、奖励模型的排序训练和 RL batch 排错五篇，复习问题直接链到算例（[#146](https://github.com/tianyi-zhang-02/cooking-agi/pull/146)）· 新增奖励信号、探索与不确定性两篇；MDP、策略梯度、模型式 RL、规划控制和离线 RL 几篇补上算例（[#147](https://github.com/tianyi-zhang-02/cooking-agi/pull/147)） | — |
+| 2026-11-14 | 新首页：「从头学 ML」路线，一道可以先动手算的例子，全站统一成一种界面风格（[#145](https://github.com/tianyi-zhang-02/cooking-agi/pull/145)）· 代码块按行编号，同一段逻辑的几种实现做成标签页；新练习把同一个 attention 写五遍，从 MHA 到 MLA（[#144](https://github.com/tianyi-zhang-02/cooking-agi/pull/144)） | — |
+| 2026-11-13 | — | GitHub 更新构建环境后，build 恢复正常（[#142](https://github.com/tianyi-zhang-02/cooking-agi/pull/142)） |
+| 2026-11-09 | — | 搜索结果里的公式显示成能读的文字 · 手机上展开导航时，学习小伙伴自动隐藏 · KV cache 动画不再在控制台刷报错（[#141](https://github.com/tianyi-zhang-02/cooking-agi/pull/141)） |
+| 2026-11-06 | — | 阅读页侧栏始终列出全部主题，去掉「查看全部目录」开关（[#139](https://github.com/tianyi-zhang-02/cooking-agi/pull/139)）· PR 说明精简成 Summary、Changes、Testing 三段（[#140](https://github.com/tianyi-zhang-02/cooking-agi/pull/140)） |
+| 2026-11-05 | 面试核心章节：先读哪些、练到哪里；新增「从一个矩阵乘法，看懂梯度、显存与多卡」（[#134](https://github.com/tianyi-zhang-02/cooking-agi/pull/134)）· 夜空照旧，阅读版面更安静，可以换配色、调字号（[#135](https://github.com/tianyi-zhang-02/cooking-agi/pull/135) [#137](https://github.com/tianyi-zhang-02/cooking-agi/pull/137)） | 去掉求职板块，旧链接跳到同语言的首页（[#136](https://github.com/tianyi-zhang-02/cooking-agi/pull/136)）· 阅读页细节：顶栏不再跳动，面试首页标题不再压线，页脚与正文对齐（[#138](https://github.com/tianyi-zhang-02/cooking-agi/pull/138)） |
+| 2026-11-03 | 系统笔记：新增「AI 任务的失败与恢复」，讲超时后结果不明、有限次重试和任务续接；trace、人工接手和纠错成本几处补上算例 | — |
+| 2026-10-31 | 九篇讲 ML 系统怎样运行的新笔记：系统地图，CPU、GPU 与集群调度，Megatron，一次 RL 更新和异步 RL；再沿 vLLM、SGLang、NeMo RL 的源码看 prefill、decode 和训练稳定性 | vLLM 和 SGLang 怎么选讲得更清楚，系统和后训练笔记润色 · 中文正文里，术语表收录的词每次出现都附上英文 |
+| 2026-10-30 | 四张分步动画：温度和 top-p 的先后顺序（[#130](https://github.com/tianyi-zhang-02/cooking-agi/pull/130)）、KV cache 的显存账（[#131](https://github.com/tianyi-zhang-02/cooking-agi/pull/131)）、PPO 与 GRPO 的基线（[#132](https://github.com/tianyi-zhang-02/cooking-agi/pull/132)）、注意力分数为什么要除以 √d_k（[#133](https://github.com/tianyi-zhang-02/cooking-agi/pull/133)） | README 动图重拍，面试准备那一段换成编年史；更新记录补齐（[#129](https://github.com/tianyi-zhang-02/cooking-agi/pull/129)） |
 | 2026-10-29 | 搜索和页面提速：索引按语言拆开，搜索结果直接跳到匹配的小节，文件内容没变就继续用缓存（[#128](https://github.com/tianyi-zhang-02/cooking-agi/pull/128)）· README 卡片合成一张内容一览，路线图和更新说明按新的优先级重写（[#127](https://github.com/tianyi-zhang-02/cooking-agi/pull/127)） | — |
 | 2026-10-26 | — | 后训练笔记的中英文润色 |
 | 2026-10-24 | 扩散语言模型和自回归模型的笔记补充算例 | 中英通读后的两处小修正（[#126](https://github.com/tianyi-zhang-02/cooking-agi/pull/126)） |
