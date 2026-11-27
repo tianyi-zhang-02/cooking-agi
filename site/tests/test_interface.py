@@ -37,7 +37,7 @@ class InterfaceTests(unittest.TestCase):
         pill = rule(css("reader-hub.css"), ".repo-btn.repo-pill")
         self.assertIn("border: 0", pill)
         self.assertNotIn("repo-pill-divider", (STATIC / "reader-hub.js").read_text(encoding="utf-8"))
-        self.assertIn(".lang-btn.language-cue { border-color: var(--ember); color: var(--ember); }", css("language.css"))   # the first-visit cue stays
+        self.assertNotIn("language-cue", css("language.css") + style)   # the first-visit cue went with the popup
 
     def test_labels_drop_tracked_capitals_and_the_chapter_numeral(self):
         style = css("style.css")

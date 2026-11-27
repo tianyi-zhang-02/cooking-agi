@@ -42,13 +42,25 @@ class ReadingRoomTests(unittest.TestCase):
                            'data-part="update"', 'data-rate="0.1"', 'data-rate="1"'):
                 self.assertIn(marker, output)
 
-    def test_home_has_no_forced_hidden_learning_steps(self):
+    def test_home_blocks_show_without_scripts_and_in_order(self):
         for output in self.home.values():
-            route = re.search(r'<section class="home-block home-route".*?</section>', output, re.S).group()
-            self.assertEqual(route.count('<li>'), 6)
-            self.assertNotIn('hidden', route)
-            self.assertNotIn('<details', route)
+            doors = re.search(r'<section class="home-block home-doors".*?</section>', output, re.S).group()
+            self.assertEqual(doors.count('class="home-door"'), 4)
+            self.assertNotRegex(doors, r'\shidden[\s>=]')   # the figures are aria-hidden; nothing is hidden
+            self.assertNotIn('<details', doors)
+            ways = re.search(r'<nav class="hero-ways".*?</nav>', output, re.S).group()
+            self.assertEqual(len(re.findall(r'class="hero-way(?: is-lead)?"', ways)), 3)
+            self.assertNotRegex(ways, r'\shidden[\s>=]')
+            self.assertLess(output.index('id="start-here"'), output.index('id="whats-inside"'))
             self.assertLess(output.index('id="whats-inside"'), output.index('id="first-calculation"'))
+            self.assertLess(output.index('id="first-calculation"'), output.index('id="recently-updated"'))
+
+    def test_returning_readers_swap_the_three_ways_before_first_paint(self):
+        template = (build.SITE / 'template.html').read_text()
+        self.assertIn('classList.add("reader-back")', template)
+        self.assertIn('cooking-agi:prep-progress', template)
+        self.assertIn('.reader-back .page-home .hero-ways { display: none; }', self.styles)
+        self.assertIn('.hero-return { display: none; }', self.styles)
 
     def test_layout_keeps_mobile_controls_and_text_preferences(self):
         self.assertIn('--site-header-height: 64px', self.styles)

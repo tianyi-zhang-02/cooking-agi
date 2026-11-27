@@ -127,7 +127,7 @@ def track_map(page, navigation, catalog):
                       f'<p>{html.escape(localized(zone, "summary", page.lang))}</p><small>{count}</small></header>'
                       f'<ol class="track-stops">{items}</ol></section>')
     label = '学习线' if chinese else 'Tracks'
-    return f'<div class="track-map" aria-label="{label}">{"".join(tracks)}</div>'
+    return f'<div class="track-map" id="tracks" aria-label="{label}">{"".join(tracks)}</div>'
 
 
 def track_context(page, navigation, catalog):

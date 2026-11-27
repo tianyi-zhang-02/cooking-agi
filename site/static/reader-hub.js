@@ -166,7 +166,42 @@
     }).sort((first, second) => Date.parse(second.updatedAt) - Date.parse(first.updatedAt))[0] || null;
   }
 
-  const api = {DAY, TOTAL, SETTINGS, KEEP_DAYS, WEEKS, dayKey, settings, lifetime, increment, clear, summarize, legacyBookmarks, lastPosition};
+  /* Notes this browser has opened: any read still on record (the last 90 days) or a saved
+     reading position. Opening is not finishing, and the page copy says so. */
+  const POSITION = /^position-(?:zh|en)-(note-[a-f0-9]{16})$/;
+  function openedNotes(records) {
+    const ids = new Set();
+    for (const [key, record] of Object.entries(records || {})) {
+      if (DAY_KEY.test(key)) {
+        for (const [id, count] of Object.entries(record?.notes || {})) if (NOTE.test(id) && Number.isInteger(count) && count > 0) ids.add(id);
+      } else {
+        const match = POSITION.exec(key);
+        if (match && typeof record?.anchor === 'string') ids.add(match[1]);
+      }
+    }
+    return ids;
+  }
+
+  /* The Foundations tracks (data from the build: [{id, name, href, stops: [{id, title, href}]}])
+     with each stop marked opened or not, the count, and the first stop not yet opened. */
+  function trackProgress(tracks, opened) {
+    return (Array.isArray(tracks) ? tracks : []).filter(track => track && Array.isArray(track.stops)).map(track => {
+      const stops = track.stops.map(stop => Object.assign({}, stop, {opened: opened.has(stop.id)}));
+      return Object.assign({}, track, {stops, opened: stops.filter(stop => stop.opened).length, next: stops.find(stop => !stop.opened) || null});
+    });
+  }
+
+  /* Where a note sits on the tracks: the first track that has it as a stop. */
+  function stopOf(tracks, id) {
+    for (const track of tracks || []) {
+      const index = (track.stops || []).findIndex(stop => stop.id === id);
+      if (index >= 0) return {track, number: index + 1, total: track.stops.length};
+    }
+    return null;
+  }
+
+  const api = {DAY, TOTAL, SETTINGS, KEEP_DAYS, WEEKS, dayKey, settings, lifetime, increment, clear, summarize, legacyBookmarks, lastPosition,
+    openedNotes, trackProgress, stopOf};
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   scope.ReaderHub = api;
 
@@ -179,13 +214,19 @@
   const base = new URL((scope.SITE && scope.SITE.prefix) || './', location.href);
   const repoLink = document.querySelector('.repo-btn');
   const repo = repoLink ? repoLink.href : 'https://github.com/tianyi-zhang-02/cooking-agi';
-  const pageNote = document.querySelector('[data-prep-note]')?.dataset.prepNote || '';
+  // the note this page shows: its tools row carries the note's progress ID (sidebar links carry other notes' IDs)
+  const pageNote = document.querySelector('.note-tools[data-progress-id]')?.dataset.progressId || '';
   const reduce = () => scope.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const records = () => progress.getState()?.workspace?.records || {};
   const now = () => new Date().toISOString();
   const todayKey = () => civil(new Date());
   let catalog = null;
   let catalogLoading = null;
+  // the home cover (a returning reader) and the My reading page draw from the same records
+  const returning = document.querySelector('[data-reader-return]');
+  const pageRoot = document.querySelector('[data-reader-page]');
+  const readTracks = node => { try { return JSON.parse(node?.dataset.tracks || '[]'); } catch { return []; } };
+  const readingPage = new URL(zh ? 'my-reading.html' : 'my-reading.en.html', base).href;
 
   function write(changes, action) {
     if (!Object.keys(changes).length && !action) return true;
@@ -291,7 +332,8 @@
   const quickBackup = el('div', {class: 'reader-hub-quick-backup'}, [backupRow(true)]);
   drawer.append(el('div', {class: 'reader-hub-nav'}, [
     el('header', {class: 'reader-hub-head'}, [el('h2', {id: 'reader-hub-title', text: say('我的阅读', 'My reading')}), close]),
-    el('p', {class: 'reader-hub-intro', text: say('接着读，或回到收藏的笔记。', 'Pick up your reading, or return to a saved note.')}),
+    el('p', {class: 'reader-hub-intro'}, [el('span', {text: say('接着读，或回到收藏的笔记。', 'Pick up your reading, or return to a saved note.') + ' '}),
+      el('a', {class: 'reader-hub-page-link', href: readingPage, text: say('打开「我的阅读」页', 'Open the My reading page')})]),
     tabList, quickBackup, status]), ...Object.values(panels),
     el('p', {class: 'reader-hub-local', text: say('记录只保存在这个浏览器。换浏览器、设备或清理数据前，请先导出备份。导入会合并已有记录，不会上传文件。',
       'Records stay in this browser. Export a backup before switching browsers or devices, or clearing browser data. Importing merges existing records; no file is uploaded.')}));
@@ -348,7 +390,16 @@
     toggle.setAttribute('aria-expanded', 'false');
     toggle.focus();
   }
-  toggle.addEventListener('click', () => (drawer.hidden ? open() : shut()));
+  if (pageRoot) {
+    toggle.setAttribute('aria-current', 'page');
+    toggle.removeAttribute('aria-haspopup');
+    toggle.removeAttribute('aria-expanded');
+    toggle.removeAttribute('aria-controls');
+  }
+  toggle.addEventListener('click', () => {
+    if (pageRoot) { scope.scrollTo?.({top: 0, behavior: reduce() ? 'auto' : 'smooth'}); return; }
+    if (drawer.hidden) open(); else shut();
+  });
   close.addEventListener('click', shut);
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !drawer.hidden) shut(); });
   document.addEventListener('click', event => {
@@ -539,7 +590,8 @@
           : say(`${item.lastAge} 天前`, `${item.lastAge} days ago`)))));
     } else {
       panel.append(el('p', {class: 'reader-hub-empty', text: config.history
-        ? say('还没有阅读记录。打开一篇笔记读上 15 秒，它就会出现在这里。收藏的笔记可以在旁边的标签里找到。', 'No reading history yet. Spend 15 seconds on a note and it will appear here. Your saved notes have their own tab.')
+        ? pageRoot ? say('还没有阅读记录。打开一篇笔记读上 15 秒，它就会出现在这里。收藏的笔记在下面。', 'No reading history yet. Spend 15 seconds on a note and it will appear here. Your saved notes are further down.')
+          : say('还没有阅读记录。打开一篇笔记读上 15 秒，它就会出现在这里。收藏的笔记可以在旁边的标签里找到。', 'No reading history yet. Spend 15 seconds on a note and it will appear here. Your saved notes have their own tab.')
         : say('还没有阅读记录。打开阅读计数后，读过的笔记会出现在这里。', 'No reading history yet. Turn on reading counts to record the notes you read.')}));
     }
     const activity = el('details', {class: 'reader-hub-activity', open: activityOpen});
@@ -738,6 +790,104 @@
       ...group(say('清理记录', 'Clear history'), [wipe]));
   }
 
+  /* ------------------------------------------- tracks, the cover and the My reading page */
+  const savedCount = state => Object.entries(state).filter(([key, record]) => key.startsWith('bookmark-') && record?.saved).length;
+  const stopLabel = (number, total) => say(`第 ${number} 站，共 ${total} 站`, `stop ${number} of ${total}`);
+
+  /* One row per track: its name, a dot per stop (filled when opened), and the count. */
+  function trackRows(tracks, withNext) {
+    return el('ol', {class: 'reader-tracks'}, tracks.map(track => {
+      const dots = el('span', {class: 'reader-track-dots', 'aria-hidden': 'true'}, track.stops.map(stop =>
+        el('i', {class: stop.opened ? 'is-on' : '', title: stop.title})));
+      const count = say(`${track.opened}/${track.stops.length}`, `${track.opened}/${track.stops.length}`);
+      const name = track.href ? el('a', {href: track.href, text: track.name}) : el('span', {text: track.name});
+      const spoken = el('span', {class: 'reader-sr', text: say(`，打开过 ${track.opened} 站，共 ${track.stops.length} 站`, `, ${track.opened} of ${track.stops.length} stops opened`)});
+      const next = withNext && track.next ? el('a', {class: 'reader-track-next', href: track.next.href,
+        text: say(`下一站：${track.next.title}`, `Next: ${track.next.title}`)}) : null;
+      return el('li', {class: track.opened ? 'has-opened' : ''}, [el('span', {class: 'reader-track-name'}, [name, spoken]), dots,
+        el('span', {class: 'reader-track-count', 'aria-hidden': 'true', text: count}), next]);
+    }));
+  }
+  const tracksNote = () => el('p', {class: 'reader-tracks-note', text: say('实心的站是在这个浏览器里打开过的，不代表已经读完。',
+    'Filled stops are ones you have opened in this browser, not ones you have finished.')});
+
+  /* The note to pick up: the last saved position, else the note read most recently. */
+  function pickUp(state, tracks) {
+    const position = lastPosition(state, catalog?.notes, lang);
+    const id = position ? position.id : summarize(state, new Date()).recent.find(item => pageOf(item.id))?.id;
+    const page = id && pageOf(id);
+    if (!page) return null;
+    const target = new URL(page.href);
+    if (position) target.hash = position.anchor;
+    const place = stopOf(tracks, id);
+    return {href: target.href, title: page.title, positioned: Boolean(position),
+      meta: place ? `${place.track.name} · ${stopLabel(place.number, place.total)}` : ''};
+  }
+  function continueCard(item, cls) {
+    return el('a', {class: cls, href: item.href}, [
+      el('span', {class: `${cls}-label`, text: item.positioned ? say('接着上次读', 'Pick up where you left off') : say('最近读过', 'Recently read')}),
+      el('strong', {text: item.title}),
+      item.meta ? el('span', {class: `${cls}-meta`, text: item.meta}) : null,
+      el('span', {class: `${cls}-go`, text: say('继续读', 'Continue')})]);
+  }
+
+  /* The home cover for a returning reader. The class that swaps the three ways for this panel is
+     set before first paint (template.html); it comes off again when there is nothing to show. */
+  let returnReady = false;
+  function renderReturn() {
+    if (!returning || !returnReady) return;
+    const state = records();
+    const tracks = trackProgress(readTracks(returning), openedNotes(state));
+    const item = pickUp(state, tracks);
+    const show = Boolean(item) || tracks.some(track => track.opened);
+    mark(document.documentElement, 'reader-back', show);
+    if (!show) { returning.replaceChildren(); return; }
+    const saved = savedCount(state);
+    const links = el('p', {class: 'hero-return-links'}, [
+      saved ? el('a', {href: returning.dataset.savedHref, text: say(`${saved} 篇收藏`, `${saved} saved ${saved === 1 ? 'note' : 'notes'}`)}) : null,
+      el('a', {href: returning.dataset.tracksHref, text: say('换一条学习线', 'Pick another track')}),
+      el('a', {href: returning.dataset.interviewHref, text: say('快面试了', 'Interview soon')})]);
+    const panel = el('div', {class: 'hero-tracks'}, [
+      el('div', {class: 'hero-tracks-head'}, [el('h2', {text: say('你的学习线', 'Your tracks')}),
+        el('a', {href: returning.dataset.readingHref, text: say('我的阅读 →', 'All of My reading →')})]),
+      trackRows(tracks, false), tracksNote()]);
+    returning.replaceChildren(...[item ? continueCard(item, 'hero-continue') : null, panel, links].filter(Boolean));
+  }
+
+  /* The My reading page: the same panels as the drawer, laid out as sections, plus the tracks. */
+  const pageSections = {};
+  if (pageRoot) {
+    const parts = [['continue', say('接着读', 'Continue')], ['tracks', say('你的学习线', 'Your tracks')],
+      ['saved', say('收藏的笔记', 'Saved notes')], ['settings', say('设置和备份', 'Settings and backups')]];
+    pageRoot.replaceChildren(status, ...parts.map(([name, title]) => {
+      const body = el('div', {class: 'reader-page-body'});
+      pageSections[name] = body;
+      return el('section', {class: `reader-page-section is-${name}`, id: name, 'aria-labelledby': `${name}-title`},
+        [el('h2', {id: `${name}-title`, text: title}), body]);
+    }));
+  }
+  function keepFocus(container, draw) {
+    const controls = () => Array.from(container.querySelectorAll('button, a[href], summary, input')).filter(node => node.getClientRects().length);
+    const focused = document.activeElement;
+    const index = focused && container.contains?.(focused) ? controls().indexOf(focused) : -1;
+    draw();
+    if (index >= 0) controls()[Math.min(index, controls().length - 1)]?.focus({preventScroll: true});
+  }
+  function renderPage(state) {
+    if (!pageRoot) return;
+    const tracks = trackProgress(readTracks(pageRoot), openedNotes(state));
+    keepFocus(pageRoot, () => {
+      const item = pickUp(state, tracks);
+      renderReading(pageSections.continue, state);
+      if (item) pageSections.continue.prepend(continueCard(item, 'reader-page-continue'));
+      pageSections.continue.querySelector('.reader-hub-resume')?.remove();   // the card above says the same
+      pageSections.tracks.replaceChildren(tracksNote(), trackRows(tracks, true));
+      renderSaved(pageSections.saved, state);
+      renderSettings(pageSections.settings, state);
+    });
+  }
+  if (returning || pageRoot) loadCatalog().then(() => { returnReady = true; render(); });
+
   let renderedDay = dayKey(new Date());
   let badgeCount = null;
   function render() {
@@ -753,6 +903,8 @@
       mark(badge, 'is-bump');
     }
     badgeCount = summary.today.total;
+    renderReturn();
+    if (pageRoot && returnReady) renderPage(state);
     if (!drawer.hidden) {
       const panel = panels[active];
       const controls = () => Array.from(panel.querySelectorAll('button, a[href], summary, input')).filter(node => node.getClientRects().length);

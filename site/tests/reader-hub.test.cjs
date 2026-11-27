@@ -240,3 +240,34 @@ test('an older bookmarks-only file maps known paths to saved notes and touches n
     assert.equal(hub.legacyBookmarks(other, notes, {}, AT), null);
   }
 });
+
+test('opened notes are the reads still on record plus saved positions, nothing else', () => {
+  const records = {
+    'reads-20261010': {notes: {[NOTE_A]: 2, 'note-zero000000000000': 0}, updatedAt: AT},
+    'reads-20261011': {notes: {'not-a-note': 3}, updatedAt: AT},
+    [`position-zh-${NOTE_B}`]: {anchor: 'start', updatedAt: AT},
+    'position-en-note-1111111111111111': {updatedAt: AT},          // no anchor: not a position
+    'bookmark-note-2222222222222222': {saved: true, updatedAt: AT}  // saving is not opening
+  };
+  assert.deepEqual([...hub.openedNotes(records)].sort(), [NOTE_A, NOTE_B].sort());
+  assert.equal(hub.openedNotes(undefined).size, 0);
+});
+
+test('track progress marks opened stops, counts them and names the next stop', () => {
+  const tracks = [
+    {id: 'reads', name: 'How a model reads', href: 'learn/index.en.html#track-reads',
+      stops: [{id: NOTE_A, title: 'Tokens', href: 'a.html'}, {id: NOTE_B, title: 'Attention', href: 'b.html'}]},
+    {id: 'runs', name: 'How a model runs', href: 'learn/index.en.html#track-runs', stops: [{id: 'note-3333333333333333', title: 'KV cache', href: 'c.html'}]},
+    {id: 'broken'}
+  ];
+  const progress = hub.trackProgress(tracks, new Set([NOTE_A]));
+  assert.equal(progress.length, 2);
+  assert.deepEqual(progress.map(track => track.opened), [1, 0]);
+  assert.deepEqual(progress[0].stops.map(stop => stop.opened), [true, false]);
+  assert.equal(progress[0].next.title, 'Attention');
+  assert.equal(hub.trackProgress(tracks, new Set([NOTE_A, NOTE_B]))[0].next, null);
+  assert.deepEqual(hub.trackProgress('not a list', new Set()), []);
+  const place = hub.stopOf(progress, 'note-3333333333333333');
+  assert.deepEqual([place.track.id, place.number, place.total], ['runs', 1, 1]);
+  assert.equal(hub.stopOf(progress, 'note-4444444444444444'), null);
+});

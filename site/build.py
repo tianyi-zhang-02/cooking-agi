@@ -1248,53 +1248,102 @@ def example_html(lang: str) -> str:
         f'</figure></section>')
 
 
+DOOR_FIGURES = {
+    # small drawings for the four doors, in the page's own colours (reading-room.css .door-figure)
+    "learn": ('<path class="df-line" d="M12 22H228M12 50H196M12 78H164"/>'
+              + "".join(f'<circle class="df-stop{" is-on" if on else ""}" cx="{x}" cy="{y}" r="6"/>'
+                        for x, y, on in [(12, 22, 1), (66, 22, 1), (120, 22, 0), (174, 22, 0), (228, 22, 0),
+                                         (12, 50, 1), (74, 50, 0), (136, 50, 0), (196, 50, 0),
+                                         (12, 78, 0), (88, 78, 0), (164, 78, 0)])),
+    "interview": ('<rect class="df-card" x="56" y="26" width="148" height="62" rx="6"/>'
+                  '<rect class="df-card" x="46" y="17" width="148" height="62" rx="6"/>'
+                  '<rect class="df-card is-top" x="36" y="8" width="148" height="62" rx="6"/>'
+                  '<path class="df-text" d="M52 28H150M52 42H128"/>'
+                  '<rect class="df-chip" x="52" y="52" width="42" height="12" rx="6"/>'),
+    "practice": ('<path class="df-flow" d="M58 44H74M126 44H142M194 44H202M218 60V82H30V60"/>'
+                 '<rect class="df-box" x="6" y="28" width="52" height="32" rx="4"/>'
+                 '<rect class="df-box" x="74" y="28" width="52" height="32" rx="4"/>'
+                 '<rect class="df-box" x="142" y="28" width="52" height="32" rx="4"/>'
+                 '<rect class="df-box is-end" x="202" y="28" width="32" height="32" rx="4"/>'),
+    "history": ("".join(f'<ellipse class="df-orbit" cx="120" cy="46" rx="{rx}" ry="{ry}" style="opacity:{o}"/>'
+                        for rx, ry, o in [(108, 42, .3), (84, 33, .45), (60, 24, .6), (36, 15, .8)])
+                + '<circle class="df-sun" cx="120" cy="46" r="4"/><circle class="df-star" cx="196" cy="30" r="3"/>'
+                  '<circle class="df-star" cx="58" cy="68" r="2.5"/>'),
+}
+PRACTICE_LABELS = {"zh": ["数据", "模型", "服务", "用"], "en": ["data", "model", "serve", "use"]}
+
+
+def door_figure(kind: str, lang: str) -> str:
+    inner = DOOR_FIGURES[kind]
+    if kind == "practice":
+        inner += "".join(f'<text class="df-label" x="{x}" y="48">{label}</text>'
+                         for x, label in zip((32, 100, 168, 218), PRACTICE_LABELS[lang]))
+    return f'<svg class="door-figure" viewBox="0 0 240 96" aria-hidden="true" focusable="false">{inner}</svg>'
+
+
+@functools.cache
+def history_span() -> tuple:
+    """First year, last year and number of moments in the Tech history data."""
+    data = json.loads((SITE / "static" / "technology-tree-data.json").read_text(encoding="utf-8"))
+    eras = data["eras"]
+    return min(era["start"] for era in eras), max(era["end"] for era in eras), len(data["nodes"])
+
+
+def door_meta(page, category: str) -> str:
+    zh = page.lang == "zh"
+    if category == "learn":
+        tracks, stops = track_counts()
+        return f"{tracks} 条学习线 · {stops} 站" if zh else f"{tracks} tracks · {stops} stops"
+    if category == "interview":
+        rows = [row for rows in collect_bank(page).values() for row in rows]
+        answered = sum(1 for row in rows if row[4])
+        return f"{len(rows)} 道题 · {answered} 道带答案" if zh else f"{len(rows)} questions · {answered} with answers"
+    if category == "practice":
+        areas = sum(1 for group in NAV.get("group", []) if group.get("category") == "practice" and group["id"] != "practice")
+        return f"{areas} 个方向，从小项目到系统设计" if zh else f"{areas} areas, from a small project to system design"
+    first, last, moments = history_span()
+    return f"{first}–{last} · {moments} 个节点" if zh else f"{first} to {last} · {moments} moments"
+
+
+def update_date(value, lang: str) -> str:
+    return f"{value.month}月{value.day}日" if lang == "zh" else value.strftime("%b ") + str(value.day)
+
+
 def home_html(page) -> str:
-    """Below the cover: where to start, the first calculation, the topic index, how the notes are
-    written, and the interview coach."""
+    """Below the cover: four doors into the site, the first calculation, what changed lately, the
+    interview coach, and the footer. Old anchors (#start-here, #whats-inside, ...) still land."""
     lang = "zh" if page.lang == "zh" else "en"
     esc = lambda value: html.escape(value, quote=True)
     data = home_data()
-    start, lead = data["start"], data["start"]["lead"]
-    # the study map labels each step "01 / INPUT"; the home list keeps the number and lets the title speak
-    number_only = lambda inner: re.sub(r"<small>\s*(\d+)\s*/[^<]*</small>", r"<small>\1</small>", inner)
-    steps = "".join(f'<li><a href="{esc(href)}">{number_only(inner)}</a></li>' for href, inner in study_route_steps(page.lang))
-    paths = "".join(
-        f'<div class="home-path"><div class="home-path-label">{esc(path["kicker_" + lang])}</div>'
-        f'<h3><a href="{esc(path["href"])}">{esc(path["title_" + lang])}</a></h3>'
-        f'<p>{esc(path["text_" + lang])}</p><p class="home-path-links">'
-        + "".join(f'<a href="{esc(link["href"])}">{esc(link[lang])}</a>' for link in path["links"])
-        + '</p></div>' for path in start["path"])
-    goals = "".join(f'<a class="home-goal" href="{esc(goal["href"])}"><strong>{esc(goal["title_" + lang])}</strong>'
-                    f'<span>{esc(goal["text_" + lang])}</span></a>' for goal in start["goal"])
-    lead_card = (f'<div class="home-lead"><div class="home-path-label">{esc(lead["kicker_" + lang])}</div>'
-                 f'<h3>{esc(lead["title_" + lang])}</h3><p>{esc(lead["text_" + lang])}</p>'
-                 f'<p class="home-lead-actions">'
-                 f'<a class="home-go" href="{esc(lead["href"])}">{esc(lead["go_" + lang])}</a>'
-                 f'<a href="{esc(lead["more"])}">{esc(lead["more_" + lang])}</a></p></div>')
-    groups = "".join(f'<div><h3>{esc(name)}</h3>' + "".join(f'<a href="{esc(href)}">{esc(label)}</a>' for label, href in links)
-                     + '</div>' for name, links in readme_index(page))
-    notes = "".join(f'<div><strong>{esc(item["title_" + lang])}</strong><span>{inline_links(item["text_" + lang])}</span></div>'
-                    for item in data["notes"]["item"])
+    categories = {category["id"]: category for category in NAV.get("category", [])}
+    doors = "".join(
+        f'<a class="home-door" href="{esc(categories[kind]["home"])}">{door_figure(kind, lang)}'
+        f'<strong>{esc(categories[kind][lang])}</strong><span>{esc(categories[kind]["blurb_" + lang])}</span>'
+        f'<small>{esc(door_meta(page, kind))}</small></a>'
+        for kind in ("learn", "interview", "practice", "history"))
+    updates = []
+    for item in data["updates"]["item"]:
+        target = BY_SRC.get(item["href"], {}).get(page.lang)
+        if not target:
+            raise ValueError(f"site/home.toml: update {item['href']} is not a page in {page.lang}")
+        note = item.get("note_" + lang)
+        updates.append(f'<li><time datetime="{item["date"].isoformat()}">{update_date(item["date"], lang)}</time>'
+                       f'<a href="{esc(item["href"])}">{esc(target.title)}</a>'
+                       + (f'<span>{esc(note)}</span>' if note else "") + '</li>')
     coach = data["coach"]
     readme = "README.zh.md" if lang == "zh" else "README.md"
     foot_links = "".join(f'<a href="{esc(readme + "#" + link["readme"] if "readme" in link else link["href"])}">{esc(link[lang])}</a>'
                          for link in data["foot"]["links"])
-    legacy = "".join(f'<span id="{name}"></span>' for name in HOME_LEGACY_IDS)
+    legacy = "".join(f'<span id="{name}"></span>' for name in HOME_LEGACY_IDS + ("how-the-notes-are-written",))
     parts = [
-        f'<span id="_1"></span><section class="home-block home-start" aria-labelledby="start-here">'
-        f'<div class="home-section-heading"><h2 id="start-here">{esc(start[lang])}</h2>'
-        f'<a href="#whats-inside">{"也可以直接找主题" if lang == "zh" else "Or browse by topic"}</a></div>'
-        f'<div class="home-start-grid">{lead_card}{paths}</div></section>',
-        f'<span id="_2"></span><section class="home-block home-index" aria-labelledby="whats-inside">'
-        f'<h2 id="whats-inside">{esc(data["index"][lang])}</h2><div class="home-index-grid">{groups}</div>'
-        f'<p class="home-index-more">{inline_links(data["index"]["more_" + lang])}</p></section>',
-        f'<section class="home-block home-route" aria-labelledby="home-study-route">'
-        f'<h2 id="home-study-route">{esc(start["route_" + lang])}</h2>'
-        f'<p>{esc(start["route_intro_" + lang])}</p><ol class="home-steps">{steps}</ol>'
-        f'<div class="home-more"><h3>{esc(start["more"][lang])}</h3><div class="home-more-grid">{goals}</div></div></section>',
+        f'<span id="_2"></span><span id="home-study-route"></span>'
+        f'<section class="home-block home-doors" aria-labelledby="whats-inside">'
+        f'<div class="home-section-heading"><h2 id="whats-inside">{esc(data["doors"][lang])}</h2>'
+        f'<p>{esc(data["doors"]["aside_" + lang])}</p></div>'
+        f'<div class="home-doors-grid">{doors}</div></section>',
         example_html(lang),
-        f'<section class="home-block home-notes" aria-labelledby="how-the-notes-are-written">'
-        f'<h2 id="how-the-notes-are-written">{esc(data["notes"][lang])}</h2><div class="home-notes-grid">{notes}</div></section>',
+        f'<section class="home-block home-updates" aria-labelledby="recently-updated">'
+        f'<h2 id="recently-updated">{esc(data["updates"][lang])}</h2><ol class="home-updates-list">{"".join(updates)}</ol></section>',
         f'<section class="home-block home-coach" id="interview-coach" aria-labelledby="coach-title"><div>'
         f'<h2 id="coach-title">{esc(coach["title_" + lang])}</h2><p>{esc(coach["text_" + lang])}</p>'
         f'<p class="home-coach-credit">{inline_links(coach["credit_" + lang])}</p></div>'
@@ -1305,6 +1354,16 @@ def home_html(page) -> str:
     return "\n\n" + "".join(parts) + "\n\n"
 
 
+def my_reading_html(page) -> str:
+    """The My reading page: static/reader-hub.js draws where you were, your tracks, saved notes and
+    settings into this container. Without JavaScript the page says what it needs."""
+    zh = page.lang == "zh"
+    note = ("这一页需要 JavaScript：阅读记录只保存在这个浏览器里，由页面脚本读取。"
+            if zh else "This page needs JavaScript: your reading records live only in this browser, and a script on the page reads them.")
+    return (f'\n\n<div class="reader-page" data-reader-page data-tracks="{reader_tracks(page)}">'
+            f'<noscript><p>{note}</p></noscript></div>\n\n')
+
+
 DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
                    "study-atlas": lambda page: curriculum.study_atlas(page, NAV, NAV.get('_sections', []), BY_SRC),
                    "track-map": lambda page: curriculum.track_map(page, NAV, BY_SRC),
@@ -1312,7 +1371,7 @@ DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
                    "appendix-coverage": lambda page: curriculum.appendix_coverage(page, BY_SRC, SITE / 'appendix-coverage.toml'),
                    "roadmap": roadmap_html, "blocks": blocks_html, "gallery": gallery_html,
                    "threads": threads_html, "categories": categories_html,
-                   "about-head": about_head_html, "home": home_html,
+                   "about-head": about_head_html, "home": home_html, "my-reading": my_reading_html,
                    "topic-coverage": lambda page: topic_coverage.figure(coverage_rows(), page.lang,
                                                                         page.rel("learn/coverage.html" if page.lang == "zh" else "learn/coverage.en.html"))}
 
@@ -1428,6 +1487,8 @@ class Page:
         self.updated = last_updated(str(rel))
         if home:
             self.kind = "home"
+        elif rel.as_posix() in {"my-reading.md", "my-reading.en.md"}:
+            self.kind = "reader"
         elif rel.parent.as_posix() == "community" and rel.stem.replace(".en", "") in {"roadmap", "updates"}:
             self.kind = "project"
         elif any(part in {"code", "projects", "modules"} for part in rel.parts):
@@ -2170,23 +2231,67 @@ def icon(name: str, size: int, cls: str = "") -> str:
             f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{LUCIDE[name]}</svg>')
 
 
+def source_href(page, href: str) -> str:
+    """A home.toml link (a source path, maybe with #anchor) as an address from this page, in its language."""
+    path, _, anchor = href.partition("#")
+    target = BY_SRC.get(path, {}).get(page.lang)
+    if not target:
+        raise ValueError(f"site/home.toml: {href} is not a page in {page.lang}")
+    return page.rel(target.url) + (f"#{anchor}" if anchor else "")
+
+
+def track_counts() -> tuple:
+    """How many Foundations tracks have stops, and how many stops they hold."""
+    tracks = [zone for zone in NAV.get("zone", []) if zone.get("stops")]
+    return len(tracks), sum(len(zone["stops"]) for zone in tracks)
+
+
+def reader_tracks(page) -> str:
+    """The Foundations tracks as data for the reader's own progress (home page and My reading):
+    each track's name and place on the map, and each stop's progress ID, label and address.
+    Escaped for an HTML attribute; static/reader-hub.js reads it."""
+    lang = "zh" if page.lang == "zh" else "en"
+    learn = BY_SRC.get("learn/README.md", {}).get(page.lang)
+    tracks = []
+    for zone in NAV.get("zone", []):
+        stops = []
+        for stop in zone.get("stops", []):
+            target = BY_SRC.get(stop["note"], {}).get(page.lang)
+            if target:
+                stops.append({"id": prep_progress.identifier(stop["note"]), "title": stop[lang], "href": page.rel(target.url)})
+        if stops:
+            tracks.append({"id": zone["id"], "name": zone[lang], "stops": stops,
+                           "href": page.rel(learn.url) + "#track-" + zone["id"] if learn else ""})
+    return html.escape(json.dumps(tracks, ensure_ascii=False, separators=(",", ":")), quote=True)
+
+
 def hero_html(page) -> str:
-    """The home page opens on the night sky: one line, a search box and three ways in."""
+    """The home page opens on the night sky: the title, a search box, and three ways in for a first
+    visit, with the language named in place. A returning reader sees where they were instead
+    (static/reader-hub.js fills .hero-return; the class is set before first paint in template.html)."""
     if page.url not in {"index.html", "index.zh.html"}:
         return ""
     zh = page.lang == "zh"
     lang = "zh" if zh else "en"
+    esc = lambda value: html.escape(value, quote=True)
     label = "封面" if zh else "Cover"
     cover = home_data()["cover"]
     title = "<br>".join(html.escape(line) for line in cover["title_" + lang])
     introduction = "".join(f'<span>{html.escape(line)}</span>' for line in cover["intro_" + lang])
-    entries = []
-    for link in cover["links"]:
-        target = BY_SRC.get(link["href"], {}).get(page.lang)
-        if target:
-            entries.append(f'<a href="{page.rel(target.url)}">{html.escape(link["zh" if zh else "en"])}</a>')
+    tracks, stops = track_counts()
+    fill = lambda text: text.replace("{tracks}", str(tracks)).replace("{stops}", str(stops))
+    ways = "".join(
+        f'<a class="hero-way{" is-lead" if index == 0 else ""}" href="{esc(source_href(page, way["href"]))}">'
+        f'<strong>{esc(way["title_" + lang])}</strong><span>{esc(fill(way["text_" + lang]))}</span></a>'
+        for index, way in enumerate(cover["way"]))
+    sibling = getattr(page, "sibling", None)
+    other = ""
+    if sibling:
+        target = sibling.url + ("?lang=en" if sibling.url == "index.html" else "")
+        code, switch = ("en", "en") if zh else ("zh-Hans", "zh")
+        other = (f' · <a href="{esc(page.rel(target))}" lang="{code}" hreflang="{code}" data-language-switch="{switch}">'
+                 f'{"English" if zh else "中文"}</a>')
     placeholder = html.escape(cover["search_zh" if zh else "search_en"])
-    dot = '<span aria-hidden="true">·</span>'
     # hidden until search.js wires it up, like the search button in the top bar
     search = (f'<button type="button" class="hero-search" data-search-open hidden>{icon("search", 20)}'
               f'<span>{placeholder}</span><kbd>⌘ K</kbd></button>')
@@ -2194,7 +2299,15 @@ def hero_html(page) -> str:
             f'<p class="hero-eyebrow">{html.escape(cover["eyebrow_" + lang])}</p>'
             f'<h1 class="hero-title">{title}</h1>'
             f'<p class="hero-intro">{introduction}</p>{search}'
-            f'<noscript><p class="hero-links">{dot.join(entries)}</p></noscript>'
+            f'<span id="_1"></span><nav class="hero-ways" id="start-here" aria-labelledby="hero-ways-label">'
+            f'<div class="hero-ways-head"><p id="hero-ways-label">{esc(cover["ways_" + lang])}</p>'
+            f'<p class="hero-language">{esc(cover["reading_" + lang])}{other}</p></div>'
+            f'<div class="hero-ways-grid">{ways}</div></nav>'
+            f'<div class="hero-return" data-reader-return data-tracks="{reader_tracks(page)}" '
+            f'data-saved-href="{esc(source_href(page, "my-reading.md#saved"))}" '
+            f'data-tracks-href="{esc(source_href(page, "learn/README.md#tracks"))}" '
+            f'data-interview-href="{esc(source_href(page, "interview/speedrun.md"))}" '
+            f'data-reading-href="{esc(source_href(page, "my-reading.md"))}"></div>'
             f'</div></section>')
 
 
@@ -2247,6 +2360,7 @@ def page_header_html(page):
         "guide": "参考资料" if zh else "Reference",
         "article": "概念笔记" if zh else "Concept note",
         "project": "项目进展" if zh else "Project updates",
+        "reader": "阅读工具" if zh else "Reading tools",
     }
     if page.section.get("group") == "study":
         labels["article"] = "阅读导航" if zh else "Reading guide"
@@ -2254,10 +2368,10 @@ def page_header_html(page):
         labels["article"] = "工程笔记" if zh else "Engineering note"
     read = f"约 {page.read_minutes} 分钟" if zh else f"{page.read_minutes} min read"
     position = ((f"本章 {page.position} / {page.section_count} 篇" if zh else f"Note {page.position} of {page.section_count}")
-                if page.kind not in {"home", "project"} and page.section_count > 1 else "")
+                if page.kind not in {"home", "project", "reader"} and page.section_count > 1 else "")
     reviewed = (("最近核对 " if zh else "Reviewed ") + page.reviewed
                 if page.reviewed else "")
-    bits = [f'<span>{html.escape(read)}</span>']
+    bits = [] if page.kind == "reader" else [f'<span>{html.escape(read)}</span>']
     if reviewed:
         bits.append(f'<span>{html.escape(reviewed)}</span>')
     if position:
@@ -2267,7 +2381,7 @@ def page_header_html(page):
     if overview and overview.url != page.url:
         section_label = f'<a href="{html.escape(page.rel(overview.url), quote=True)}">{section_label}</a>'
     tools = ""
-    if page.kind not in {"home", "index"}:
+    if page.kind not in {"home", "index", "reader"}:
         note = html.escape(page.src.relative_to(ROOT).as_posix().replace(".en.md", ".md"), quote=True)
         tools = (f'<div class="note-tools" data-reading-note="{note}" data-progress-id="{prep_progress.identifier(note)}" hidden>'
                  f'<button type="button" data-side-save aria-pressed="false">{"收藏本页" if zh else "Save this page"}</button>'

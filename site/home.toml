@@ -1,12 +1,12 @@
-# The home page below the cover. README.md and README.zh.md expand <!-- widget:home --> into it;
-# GitHub shows the README sections instead (they are marked repository-only for the site).
+# The home page: the cover (build.py hero_html) and the blocks below it (home_html). README.md and
+# README.zh.md expand <!-- widget:home --> into the blocks; GitHub shows the README sections instead
+# (they are marked repository-only for the site).
 #
 # Links are source paths, as in the notes (`interview/study-plan.md`); the build points them at
-# the page in the reader's language. Three parts are read from elsewhere so they never drift:
-#   - the six steps of the lead card: the study route in learn/README.md and learn/README.en.md;
-#   - the topic index: the 「内容一览」 / "What's inside" list in README.zh.md and README.md;
-#   - the numbers of the first calculation: computed from [example] below, and a test checks that
-#     interview/speedrun-start(.en).md still works through the same inputs, targets and steps.
+# the page in the reader's language. Counts are never written here: the number of tracks and stops
+# comes from site/nav.toml, the questions from the question bank, the moments from the Tech history
+# data. The numbers of the first calculation are computed from [example] below, and a test checks
+# that interview/speedrun-start(.en).md still works through the same inputs, targets and steps.
 
 [cover]   # under the title on the night sky
 eyebrow_zh = "Cooking AGI · 中英文学习笔记"
@@ -17,91 +17,33 @@ intro_zh = ["补基础、准备面试，或做一个项目。", "把散在各处
 intro_en = ["Foundations, interview practice, and working systems.", "One place to work through the ideas and the details."]
 search_zh = "搜索笔记：概念、模型或一道题"
 search_en = "Search notes: a concept, a model, or a question"
-links = [
-  { href = "interview/speedrun-start.md", zh = "从头学 ML", en = "Learn ML from the beginning" },
-  { href = "interview/speedrun.md", zh = "快面试了", en = "Interview soon" },
-  { href = "practice/README.md", zh = "工程实践", en = "Engineering practice" },
-]
+# three ways in for a first visit; a returning reader sees where they were instead (reader-hub.js)
+ways_zh = "第一次来？从这三条路开始。"
+ways_en = "New here? Start one of three ways."
+reading_zh = "正在读中文版"
+reading_en = "Reading in English"
 
-[start]
-zh = "你想从哪里开始？"
-en = "Where would you like to start?"
-route_zh = "从一个小模型开始"
-route_en = "Build up from one small model"
-route_intro_zh = "先算一次训练，再沿这六步读下去。遇到不熟的地方，可以随时回到前面的章节。"
-route_intro_en = "Work through one training step, then follow these six topics. Return to earlier chapters whenever you need them."
-
-[start.lead]
-kicker_zh = "刚接触 ML"
-kicker_en = "New to ML"
+[[cover.way]]
 href = "interview/speedrun-start.md"
-title_zh = "从头学 ML"
-title_en = "Learn ML from the beginning"
-text_zh = "从一个小模型开始，弄清参数、loss 和梯度，再读 Transformer。只需要一点 Python 基础。"
-text_en = "Start with one small model. Work through parameters, loss, and gradients before the Transformer. Some Python is all you need."
-go_zh = "从起步路线开始"
-go_en = "Begin with Starting out"
-more = "learn/README.md"
-more_zh = "看基础与原理"
-more_en = "Browse Foundations"
+title_zh = "从一个小模型开始"
+title_en = "From one small model"
+text_zh = "先弄清参数、loss 和梯度，再读 Transformer。会一点 Python 就够。"
+text_en = "Parameters, loss and gradients first, then the Transformer. Some Python is all you need."
 
-# beside the lead card: the two other ways people arrive, each with deep links into its page
-[[start.path]]
-kicker_zh = "准备面试"
-kicker_en = "Interview coming up"
+[[cover.way]]
+href = "learn/README.md#tracks"
+title_zh = "选一条学习线"
+title_en = "Pick a track"
+text_zh = "{tracks} 条线、{stops} 站，从 token 一路读到机器人。一站讲一个概念。"
+text_en = "{tracks} tracks and {stops} stops, from tokens to robots. Each stop is one idea."
+
+[[cover.way]]
 href = "interview/speedrun.md"
 title_zh = "快面试了"
 title_en = "Interview soon"
 text_zh = "按手上的时间排好复习：写代码、排错、讲原理、讲项目。"
 text_en = "Review sized to the time you have: write code, debug, explain, and talk through a project."
-links = [
-  { href = "interview/speedrun.md#two-hours", zh = "2 小时", en = "2 hours" },
-  { href = "interview/speedrun.md#six-hours", zh = "6 小时", en = "6 hours" },
-  { href = "interview/speedrun.md#twelve-hours", zh = "12 小时", en = "12 hours" },
-]
 
-[[start.path]]
-kicker_zh = "想动手做"
-kicker_en = "Ready to build"
-href = "practice/README.md"
-title_zh = "工程实践"
-title_en = "Engineering practice"
-text_zh = "从具体项目看数据、模型、服务和评估怎么接成一个系统。"
-text_en = "Concrete projects: how data, models, services and evaluation fit into one system."
-links = [
-  { href = "practice/web-lab/README.md", zh = "第一个完整项目", en = "A first complete project" },
-  { href = "practice/README.md#system-design", zh = "系统设计", en = "System design" },
-]
-
-# a quieter row under the three routes
-[start.more]
-zh = "其他入口"
-en = "Other ways in"
-
-[[start.goal]]
-href = "interview/study-plan.md"
-title_zh = "按计划学习"
-title_en = "Study on a plan"
-text_zh = "先用一个小练习判断从哪开始，再把阅读和动手排在一起。"
-text_en = "A short exercise finds your starting point; then reading and practice share one plan."
-
-[[start.goal]]
-href = "interview/coding-checks.md"
-title_zh = "看看哪里不熟"
-title_en = "Check what you know"
-text_zh = "不用 GPU 的代码题，先讲清输入、结果和边界。"
-text_en = "Coding checks without a GPU: state the inputs, results and edge cases first."
-
-[[start.goal]]
-href = "learn/choose-your-path.md#topics"
-title_zh = "对某个方向好奇"
-title_en = "Curious about a topic"
-text_zh = "读论文、做项目或补一个专题，每条路线都有起点。"
-text_en = "Papers, a project or a single topic: every route says where to begin."
-
-# The first calculation of 「起步路线」 / "Starting out", to try on the page: predict, take the loss,
-# update the weight. The model is prediction = weight × input with a mean squared error, as in the lesson.
-# Without JavaScript the page shows all three steps worked out; static/home-example.js steps through them.
 [example]
 zh = "先算一次"
 en = "Try the first calculation"
@@ -144,39 +86,31 @@ caption_en = "The numbers are the worked example in Starting out; the gradient s
 read_zh = "读这一课"
 read_en = "Read the lesson"
 
-[index]
-zh = "按主题阅读"
-en = "Browse the notes"
-more_zh = "每个板块写了什么、哪些已经审过，见[内容覆盖](learn/coverage.md)；技术发展的来龙去脉，见[编年史](learn/technology-timeline.md)。"
-more_en = "What each section covers and what has been checked is in [Coverage](learn/coverage.md); how the technology got here is in [Tech history](learn/technology-timeline.md)."
+# Four doors into the site, one per area of site/nav.toml; each shows its blurb from there
+[doors]
+zh = "四个入口"
+en = "Four ways in"
+aside_zh = "每个部分读法不同，样子也不同。"
+aside_en = "Each part of the site reads differently, and looks it."
 
-[notes]
-zh = "这些笔记怎么写"
-en = "How the notes are written"
+# What changed lately, newest first. The title comes from the page itself; `note` adds what changed.
+[updates]
+zh = "最近更新"
+en = "Recently updated"
 
-[[notes.item]]
-title_zh = "从一个算例讲起"
-title_en = "Built on a worked example"
-text_zh = "每个主题先给能跟着算的例子，再展开推导和实现。"
-text_en = "Each topic starts from an example you can compute along with, then the derivation and the code."
+[[updates.item]]
+date = 2026-11-25
+href = "00-foundations/deep-dives/hybrid-prefix-cache.md"
 
-[[notes.item]]
-title_zh = "附原论文的图和出处"
-title_en = "The papers' own figures"
-text_zh = "关键结论都能回到原文核对。"
-text_en = "Key claims link back to the original work, with sources."
+[[updates.item]]
+date = 2026-11-22
+href = "00-foundations/deep-dives/kv-cache-and-inference.md"
+note_zh = "新增可视化实验，代码和讲解一步步对应"
+note_en = "now with a visual lab, and the same step in code"
 
-[[notes.item]]
-title_zh = "中英两版对照"
-title_en = "Chinese and English"
-text_zh = "同一篇笔记，顶栏一键切换语言。"
-text_en = "Every note in both languages; switch from the top bar."
-
-[[notes.item]]
-title_zh = "2026-10 逐篇审过"
-title_en = "Reviewed note by note, 2026-10"
-text_zh = "改动和审稿记录都在[更新记录](community/updates.md)里。"
-text_en = "Changes and reviews are listed in the [updates](community/updates.md)."
+[[updates.item]]
+date = 2026-11-21
+href = "practice/learning-routes.md"
 
 [coach]
 title_zh = "在 AI 助手里练面试"

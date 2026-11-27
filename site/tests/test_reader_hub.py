@@ -28,6 +28,39 @@ class ReaderHubTests(unittest.TestCase):
             self.skipTest("Node.js unavailable")
         subprocess.run([node, "--test", str(ROOT / "site/tests/reader-hub-workspace.test.cjs")], check=True, capture_output=True)
 
+    def test_reads_count_on_the_note_the_page_shows(self):
+        # The counter reads the note's own tools row; sidebar links carry other notes' IDs.
+        script = (ROOT / "site/static/reader-hub.js").read_text()
+        self.assertIn("document.querySelector('.note-tools[data-progress-id]')?.dataset.progressId", script)
+        self.assertNotIn("[data-prep-note]", script)
+        built = ROOT / "_site/00-foundations/deep-dives/kv-cache-and-inference.en.html"
+        if built.exists():
+            self.assertRegex(built.read_text(), r'<div class="note-tools"[^>]*data-progress-id="note-[a-f0-9]{16}"')
+
+    def test_my_reading_is_a_page_in_both_languages(self):
+        nav = build.load_nav()
+        pages, sections = build.discover(nav)
+        known = {page.url for page in pages}
+        for language, url, title in (("zh", "my-reading.html", "我的阅读"), ("en", "my-reading.en.html", "My reading")):
+            with self.subTest(language=language):
+                page = build.BY_SRC["my-reading.md"][language]
+                self.assertEqual((page.url, page.title, page.kind), (url, title, "reader"))
+                build.build_page(page, [], nav["site"]["repo"], known)
+                output = build.assemble(page, sections, nav, "test", (build.SITE / "template.html").read_text())
+                self.assertIn('class="reader-page" data-reader-page data-tracks="', output)
+                self.assertIn("<noscript>", output)
+                self.assertNotIn('class="note-tools"', output)   # no "Save this page" on the page of saved pages
+                self.assertNotIn("min read", output)
+                self.assertNotIn("分钟", output.split('<div class="article-meta">', 1)[1].split("</div>", 1)[0])
+
+    def test_reader_page_shares_the_drawer_colours(self):
+        styles = (ROOT / "site/static/reader-hub.css").read_text()
+        palettes = (ROOT / "site/static/palettes.css").read_text()
+        self.assertIn(":is(.reader-hub, .reader-page) {", styles)
+        self.assertNotIn(" .reader-hub {", palettes)
+        self.assertIn("Filled stops are ones you have opened in this browser, not ones you have finished.",
+                      (ROOT / "site/static/reader-hub.js").read_text())
+
     def test_drawer_layout_matches_header_and_keeps_quiet_statistics(self):
         styles = (ROOT / "site/static/reader-hub.css").read_text()
         self.assertIn("top: 88px", styles)
