@@ -116,3 +116,27 @@
 @media (prefers-reduced-motion: reduce) {
   .study-atlas *, .study-route * { scroll-behavior: auto; transition: none; }
 }
+
+/* Foundations: each track is a line of stops in reading order; a stop is a plain link */
+.track-map { margin: 1.5rem 0 2.5rem; }
+.track { display: grid; grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr); gap: .7rem 2rem; padding: 1.4rem 0; border-top: 1px solid var(--rule); scroll-margin-top: 5rem; }
+.track:last-child { border-bottom: 1px solid var(--rule); }
+.prose .track header h3 { margin: 0; font-size: var(--fs-19); line-height: 1.35; }
+.prose .track header p { margin: .35rem 0 0; color: var(--muted); font-size: var(--fs-14); line-height: 1.6; }
+.track header small { display: block; margin-top: .4rem; color: var(--muted); font-size: var(--fs-12); }
+.prose .track-stops { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem 0; margin: 0; padding: .15rem 0 0; list-style: none; }
+.prose .track-stops li { display: flex; align-items: center; margin: 0; }
+.track-stops li:not(:last-child)::after { content: ""; width: 1rem; height: 2px; margin: 0 .3rem; background: color-mix(in srgb, var(--ember) 40%, var(--rule)); }
+.prose .track-stops a { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.25rem; padding: .3rem .75rem; border: 1px solid var(--rule); border-radius: 999px; color: var(--ink-soft); font-size: var(--fs-14); text-decoration: none; }
+.track-stops a::before { content: ""; flex: none; box-sizing: border-box; width: .6rem; height: .6rem; border-radius: 50%; border: 2px solid var(--ember); }
+.prose .track-stops a:hover, .prose .track-stops a:focus-visible { border-color: var(--ember); color: var(--ink); }
+@media (max-width: 760px) {
+  .track { grid-template-columns: 1fr; }
+}
+
+/* above a note that is a stop: where it sits, what to read first, where to go next */
+.track-context { display: flex; flex-wrap: wrap; align-items: baseline; gap: .45rem 1.5rem; margin: 0 0 1.4rem; color: var(--muted); font-size: var(--fs-14); line-height: 1.6; }
+.track-where { color: var(--ink-soft); }
+.track-where a { color: inherit; text-decoration-color: var(--rule); }
+.track-needs a, .track-next a { color: var(--link); }
+.track-needs a + a { margin-left: .5rem; }

@@ -90,3 +90,22 @@ body:is([data-learning-view="quick"], [data-learning-view="lab"]) .page-glossary
   .learning-views [data-learning-panel="full"] { display: block !important; }
   body:is([data-learning-view="quick"], [data-learning-view="lab"]) .page-glossary { display: block; }
 }
+
+/* the code beside the lab: the lines of the current step are marked, the cache shown under them */
+.learning-views .lab-code { margin: 4px 0 24px; border: 1px solid var(--rule); border-radius: var(--r-4, 6px); background: var(--code-bg); overflow: hidden; }
+.learning-views .lab-code figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 13px; }
+:root .page-reading .prose .learning-views .lab-code pre { margin: 0; padding: 10px 0; overflow-x: auto; border: 0; border-radius: 0; background: none; }
+.learning-views .lab-code code { display: block; padding: 0; background: none; font: calc(13px * var(--text-scale, 1))/1.75 var(--mono); }
+.learning-views .lab-code .code-line { display: block; padding: 0 14px; border-left: 2px solid transparent; color: var(--muted); white-space: pre; }
+.learning-views .lab-code .code-line.is-current { border-left-color: var(--ember); background: var(--ember-bg); color: var(--ink); }
+.learning-views .lab-code-state { margin: 0 !important; padding: 10px 14px; border-top: 1px solid var(--rule); color: var(--ink); font: calc(13px * var(--text-scale, 1))/1.6 var(--mono); }
+
+/* one question to check the step, answered in place */
+.learning-views .lab-check { margin: 0 0 24px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: var(--r-4, 6px); }
+:root .page-reading .prose .learning-views .lab-check h3 { margin: 0 0 6px; color: var(--ember); font-size: calc(13px * var(--text-scale, 1)); }
+.learning-views .lab-check > p { margin: 0 0 12px; color: var(--ink); }
+.learning-views .lab-check-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.learning-views .lab-check-options button { min-width: 52px; min-height: 44px; font-size: 15px; }
+.learning-views .lab-check-options button[aria-pressed="true"] { border-color: var(--ember); color: var(--ink); }
+.learning-views .lab-check .lab-check-feedback { margin: 12px 0 0; color: var(--ink); }
+.learning-views .lab-check .lab-check-feedback[data-result="wrong"] { color: var(--link); }

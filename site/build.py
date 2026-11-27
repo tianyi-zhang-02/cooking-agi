@@ -63,7 +63,7 @@ PROTECTED = {"code", "pre", "a", "script", "style", "abbr",
 # inside one splits a word in half and breaks the grid, so they are skipped
 # wholesale -- the annotation belongs in running prose, not in a summary card.
 NOGLOSS_CLASSES = {"lesson-recipe", "taste-check", "widget", "mermaid", "topic-coverage",
-                   "study-atlas", "study-route", "chapter-context", "worked-update", "engine-map", "technology-tree", "tree-eras", "rl-budget", "prep-hub", "prep-progress", "prep-note", "study-workspace",
+                   "study-atlas", "study-route", "chapter-context", "track-map", "track-context", "worked-update", "engine-map", "technology-tree", "tree-eras", "rl-budget", "prep-hub", "prep-progress", "prep-note", "study-workspace",
                    "home-block", "term", "curriculum-card", "curriculum-hero",
                    "learning-path", "lab-matrix", "bilingual-intro",
                    "drl-flow", "drl-paths", "drl-lab", "interview-roles", "method-map",
@@ -1144,13 +1144,19 @@ def inline_links(text: str) -> str:
 
 
 def study_route_steps(lang: str) -> list:
-    """The six steps of the study map's reading route, links made relative to the repository root."""
-    source = ROOT / ("learn/README.en.md" if lang == "en" else "learn/README.md")
-    block = re.search(r'<nav class="study-route"[^>]*>(.*?)</nav>', source.read_text(encoding="utf-8"), re.S)
-    if not block:
-        raise ValueError(f"{source}: the study route the home page reuses is missing")
-    return [(os.path.normpath("learn/" + m[1]).replace(os.sep, "/"), m[2])
-            for m in re.finditer(r'<a href="([^"]+)">(.*?)</a>', block[1], re.S)]
+    """The home page's six-step route: the first stop of each of the first six Foundations tracks,
+    so the home page and the track map name the same things. Links are relative to the repository root."""
+    tracks = [zone for zone in NAV.get("zone", []) if zone.get("stops")][:6]
+    if len(tracks) < 6:
+        raise ValueError("site/nav.toml: the home page needs six tracks with stops")
+    steps = []
+    for number, zone in enumerate(tracks, 1):
+        note = zone["stops"][0]["note"]
+        href = note[:-3] + ".en.md" if lang == "en" else note
+        name = html.escape(zone["zh" if lang == "zh" else "en"])
+        summary = html.escape(zone["summary_zh" if lang == "zh" else "summary_en"])
+        steps.append((href, f'<small>{number:02} / {name}</small><strong>{name}</strong><span>{summary}</span>'))
+    return steps
 
 
 def readme_index(page) -> list:
@@ -1301,6 +1307,7 @@ def home_html(page) -> str:
 
 DYNAMIC_WIDGETS = {"question-bank": question_bank_md,
                    "study-atlas": lambda page: curriculum.study_atlas(page, NAV, NAV.get('_sections', []), BY_SRC),
+                   "track-map": lambda page: curriculum.track_map(page, NAV, BY_SRC),
                    "reference-coverage": lambda page: curriculum.reference_coverage(page, BY_SRC, SITE / 'reference-coverage.toml'),
                    "appendix-coverage": lambda page: curriculum.appendix_coverage(page, BY_SRC, SITE / 'appendix-coverage.toml'),
                    "roadmap": roadmap_html, "blocks": blocks_html, "gallery": gallery_html,
@@ -2490,7 +2497,7 @@ def assemble(page, sections, nav, built, template):
     twitter_card = "summary_large_image"
     description = share_description(page) or site["tagline_zh" if zh else "tagline_en"]
     has_learning_views = learning_views.supports(page, ROOT)
-    content = curriculum.chapter_context(page, BY_SRC) + (
+    content = curriculum.track_context(page, NAV, BY_SRC) + curriculum.chapter_context(page, BY_SRC) + (
         learning_views.render(page.lang, page.body) if has_learning_views else page.body)
     if has_learning_views:
         template = template.replace('</head>', f'<link rel="stylesheet" href="{prefix}static/learning-views.css?v={built}">\n<script defer src="{prefix}static/learning-views.js?v={built}"></script>\n</head>')

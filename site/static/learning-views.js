@@ -88,6 +88,13 @@
       'Prefill processes A, B, C together. It predicts D, but the cache still only holds A, B, C.' : chinese ?
       `把 ${state.input} 输入模型后，缓存才扩展到 ${state.tokens.join('、')}。这一步预测出 ${state.prediction}，但 ${state.prediction} 的 K、V 要等下一步才会算。` :
       `Feed ${state.input} into the model and append its keys and values. The cache now holds ${state.tokens.join(', ')}. The model predicts ${state.prediction}, whose keys and values will be computed on the next step.`;
+    // the code beside the lab: the lines this step runs, and what the cache holds afterwards
+    all('[data-code-steps]').forEach(line => line.classList.toggle('is-current', line.dataset.codeSteps.split(' ').includes(String(step))));
+    const codeState = select('#kv-code-state');
+    if (codeState) codeState.textContent = step === 0
+      ? chinese ? 'Prefill：一次算出 A、B、C 的 K、V。缓存里现在是 A、B、C。' : 'Prefill: keys and values for A, B, C in one pass. The cache now holds A, B, C.'
+      : chinese ? `解码 ${step}：只投影 ${state.input}，接到缓存后面。缓存里现在是 ${state.tokens.join('、')}。`
+        : `Decode ${step}: project ${state.input} only and append it. The cache now holds ${state.tokens.join(', ')}.`;
     select('#kv-previous').disabled = step === 0;
     select('#kv-next').disabled = step === 3;
     all('[data-step]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.step) === step)));
@@ -153,6 +160,19 @@
     if (full.contains(document.getElementById(anchor))) setMode('full');
   }, true);
   all('[data-step]').forEach(button => button.addEventListener('click', () => move(Number(button.dataset.step))));
+  // one check question after the lab; nothing is stored
+  const feedback = select('#kv-check-feedback');
+  all('[data-answer]').forEach(button => button.addEventListener('click', () => {
+    const right = button.dataset.answer === '6';
+    all('[data-answer]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+    feedback.hidden = false;
+    feedback.dataset.result = right ? 'right' : 'wrong';
+    feedback.textContent = right
+      ? chinese ? '对，6 个：prompt 里的 A、B、C，加上每步解码各加一个的 D、E、F。模型每读一个 token，每一层都多存一个 key 和一个 value。'
+        : 'Right: six. A, B and C from the prompt, then D, E and F, one per decoding step. Every token the model reads adds one key and one value in each layer.'
+      : chinese ? '再数一遍：prompt 给了 A、B、C，之后每步解码再加一个 token：D、E、F。'
+        : 'Count again: the prompt gave A, B and C, and each decoding step added one token: D, E, F.';
+  }));
   select('#kv-previous').addEventListener('click', () => move(Math.max(0, step - 1)));
   select('#kv-next').addEventListener('click', () => move(Math.min(3, step + 1)));
   select('#kv-reset').addEventListener('click', () => move(0));

@@ -14,16 +14,9 @@
 
 ## 从基础开始 {#_1}
 
-向量、loss 和梯度还不熟，可以先读[从线性模型到神经网络](../00-foundations/from-linear-to-neural.md)。下面的第 1–3 步是模型计算与训练的基础，第 5 步讲评估；后训练和推理优化可以稍后再看。阅读时可以配合 [PyTorch 小实验](../00-foundations/pytorch/README.md)。
+概念区分成七条学习线。每条线按阅读顺序排了几站，每站讲清楚一个概念；文章顶部会标出它在哪条线的第几站、先读哪一篇、下一站去哪。向量、loss 和梯度还不熟，从第一条线的第一站[从线性模型到神经网络](../00-foundations/from-linear-to-neural.md)开始。阅读时可以配合 [PyTorch 小实验](../00-foundations/pytorch/README.md)。
 
-<nav class="study-route" aria-label="建议阅读主线">
-<a href="../00-foundations/core/tokenization.md"><small>01 / 输入</small><strong>文本怎样变成向量</strong><span>Token、词表与序列</span></a>
-<a href="../00-foundations/core/README.md"><small>02 / 模型</small><strong>Transformer 在算什么</strong><span>Attention、残差、Norm 与 FFN</span></a>
-<a href="pretraining/README.md"><small>03 / 训练</small><strong>数据怎样改变参数</strong><span>目标、梯度与一次更新</span></a>
-<a href="../05-post-training/README.md"><small>04 / 调整行为</small><strong>示范、偏好与奖励</strong><span>SFT、蒸馏与强化学习</span></a>
-<a href="../07-evaluation/README.md"><small>05 / 检验</small><strong>怎样知道真的变好了</strong><span>对照、指标与具体错误</span></a>
-<a href="inference/README.md"><small>06 / 生成</small><strong>怎样把回答算出来</strong><span>采样、缓存与推理成本</span></a>
-</nav>
+<!-- widget:track-map -->
 
 想把数学和工程连起来，可以从[矩阵梯度与训练系统](../00-foundations/deep-dives/matrix-gradients-to-systems.md)开始，再沿[每次一个问题的选读路线](../practice/runtime-reading/README.md#small-steps)走到 attention、多卡、推理与 NeMo RL。
 
@@ -77,7 +70,7 @@
 
 ## 全部章节 {#_3}
 
-分为**理解模型、训练与检验、推理与应用、前沿观察**四个部分，与左侧目录一致。点标题看导读，展开小节找文章。相关主题会在文中互相链接。
+完整目录和左侧目录一致：先是上面的七条学习线，再是**延伸阅读**（模型报告、组件设计、MoE、Looped 模型和经典深度强化学习）和**还在变化**（前沿方向）。点标题看导读，展开小节找文章。不在主线上的文章都在这里，地址没有变。
 
 <!-- widget:study-atlas -->
 

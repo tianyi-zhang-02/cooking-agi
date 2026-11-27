@@ -88,31 +88,134 @@ blurb_en = "Explore the histories of power, chips, software, data, and AI, with 
 # 分组 = 大方向下面的板块。它同时是：页面顶部第二行的板块切换、侧边栏的分组、首页大类卡片里的清单。
 # 顺序即显示顺序；每个 [[section]] 用 group 指到这里的 id；home 是点这个板块时落到哪一页（不写就用第一页）。
 # 不带 category 的分组（开始）排在最前面，不属于任何大类。
+# 概念区的学习线：每条线是一组按顺序排的站（stops），首页的线路图和文章顶部的“第几站”都从这里来。
+# 站只挑主线上的笔记；其余笔记仍按 [[group]] / [[section]] 出现在完整目录里，地址不变。
 [[zone]]
-id = "basics"
-zh = "01 · 理解模型"
-en = "01 · Understand models"
-summary_zh = "先看输入与计算，再比较架构；图像、声音也沿着这条线接进来。"
-summary_en = "Start with inputs and computation, then compare architectures and add other modalities."
+id = "reads"
+zh = "模型怎么读输入"
+en = "How a model reads"
+summary_zh = "从向量和一层网络开始，再把 Transformer 一块块拼起来。"
+summary_en = "Start from vectors and one layer, then put the Transformer together piece by piece."
+stops = [
+  { note = "00-foundations/from-linear-to-neural.md", zh = "从线性到神经网络", en = "From linear to neural" },
+  { note = "00-foundations/core/tokenization.md", zh = "Token", en = "Tokens" },
+  { note = "00-foundations/core/embeddings-and-similarity.md", zh = "向量与相似度", en = "Embeddings" },
+  { note = "00-foundations/core/multi-head-attention.md", zh = "注意力", en = "Attention" },
+  { note = "00-foundations/core/residual-connections.md", zh = "残差连接", en = "Residuals" },
+  { note = "00-foundations/core/normalization.md", zh = "归一化", en = "Normalization" },
+  { note = "00-foundations/core/ffn-and-gates.md", zh = "FFN 与门控", en = "FFN & gates" },
+  { note = "00-foundations/core/vanilla-transformer.md", zh = "完整的 Transformer", en = "The full Transformer" },
+  { note = "00-foundations/core/decoder-only.md", zh = "Decoder-only", en = "Decoder-only" },
+]
 
 [[zone]]
-id = "applications"
-zh = "02 · 训练与检验"
-en = "02 · Train & evaluate"
-summary_zh = "目标怎样变成更新，反馈怎样用，实验又能支持什么结论。"
-summary_en = "Connect objectives to updates, use feedback, and check what an experiment establishes."
+id = "learns"
+zh = "模型怎么学"
+en = "How a model learns"
+summary_zh = "一次训练更新怎么发生，规模变大以后又要管什么。"
+summary_en = "How one training update happens, and what changes at scale."
+stops = [
+  { note = "00-foundations/deep-dives/language-model-objective.md", zh = "语言模型目标", en = "The LM objective" },
+  { note = "00-foundations/deep-dives/training-step.md", zh = "一步训练", en = "A training step" },
+  { note = "00-foundations/deep-dives/optimizers.md", zh = "优化器", en = "Optimizers" },
+  { note = "00-foundations/deep-dives/activation-and-initialization.md", zh = "激活与初始化", en = "Initialization" },
+  { note = "00-foundations/deep-dives/generalization.md", zh = "泛化", en = "Generalization" },
+  { note = "00-foundations/deep-dives/precision-and-memory.md", zh = "精度与显存", en = "Precision & memory" },
+  { note = "06-systems/distributed-training.md", zh = "分布式训练", en = "Distributed training" },
+  { note = "00-foundations/scaling/compute-optimal.md", zh = "Scaling law", en = "Scaling laws" },
+]
 
 [[zone]]
-id = "design"
-zh = "03 · 推理与应用"
-en = "03 · Inference & applications"
-summary_zh = "从生成一个回答，到检索资料、使用工具和维持长期状态。"
-summary_en = "Move from generating an answer to retrieving evidence, using tools, and maintaining state."
+id = "taught"
+zh = "模型怎么被教会做事"
+en = "How a model is taught"
+summary_zh = "示范、偏好和奖励怎样把模型教成想要的样子；强化学习在这里讲一次。"
+summary_en = "How demonstrations, preferences and rewards shape a model; RL is explained here once."
+stops = [
+  { note = "05-post-training/rlhf/rl-for-language-models.md", zh = "语言模型里的 RL", en = "RL for language models" },
+  { note = "05-post-training/sft-and-its-ceiling.md", zh = "SFT 与上限", en = "SFT & its ceiling" },
+  { note = "05-post-training/lora-and-qlora.md", zh = "LoRA", en = "LoRA" },
+  { note = "05-post-training/distillation.md", zh = "蒸馏", en = "Distillation" },
+  { note = "05-post-training/where-preferences-come-from.md", zh = "偏好从哪来", en = "Where preferences come from" },
+  { note = "05-post-training/rlhf/three-stages.md", zh = "RLHF 三阶段", en = "The RLHF loop" },
+  { note = "05-post-training/after-ppo.md", zh = "PPO 之后", en = "After PPO" },
+  { note = "05-post-training/verifiable-rewards.md", zh = "可验证奖励", en = "Verifiable rewards" },
+]
 
 [[zone]]
-id = "frontier"
-zh = "04 · 前沿观察"
-en = "04 · Frontier watch"
+id = "check"
+zh = "怎么检查它"
+en = "How we check it"
+summary_zh = "一个分数能说明什么，不能说明什么。"
+summary_en = "What a score can tell you, and what it cannot."
+stops = [
+  { note = "07-evaluation/evaluation-stack.md", zh = "评估全景", en = "The evaluation stack" },
+  { note = "07-evaluation/benchmark-protocols.md", zh = "基准协议", en = "Benchmark protocols" },
+  { note = "07-evaluation/ablation-and-slices.md", zh = "消融与切片", en = "Ablations & slices" },
+  { note = "07-evaluation/metric-robustness.md", zh = "指标稳健性", en = "Metric robustness" },
+  { note = "07-evaluation/llm-as-a-judge/README.md", zh = "LLM 当裁判", en = "LLM as a judge" },
+  { note = "07-evaluation/llm-as-a-judge/calibration.md", zh = "校准", en = "Calibration" },
+]
+
+[[zone]]
+id = "runs"
+zh = "模型怎么跑起来"
+en = "How a model runs"
+summary_zh = "从生成一个 token，到同时服务很多请求。"
+summary_en = "From decoding one token to serving many requests."
+stops = [
+  { note = "00-foundations/core/decoding.md", zh = "解码", en = "Decoding" },
+  { note = "00-foundations/deep-dives/kv-cache-and-inference.md", zh = "KV cache", en = "KV cache", needs = ["00-foundations/core/multi-head-attention.md"] },
+  { note = "06-systems/llm-serving.md", zh = "推理服务", en = "Serving" },
+  { note = "00-foundations/deep-dives/position-and-context.md", zh = "位置与长上下文", en = "Position & long context" },
+  { note = "00-foundations/deep-dives/attention-kernels.md", zh = "注意力算子", en = "Attention kernels" },
+  { note = "00-foundations/deep-dives/latent-and-sparse-attention.md", zh = "稀疏与潜空间注意力", en = "Sparse attention" },
+  { note = "12-infra/quantization/README.md", zh = "量化", en = "Quantization" },
+]
+
+[[zone]]
+id = "world"
+zh = "模型怎么用外部世界"
+en = "How a model uses the world"
+summary_zh = "检索、记忆和工具，再到由它们搭起来的 Agent。"
+summary_en = "Search, memory and tools, then the agents built from them."
+stops = [
+  { note = "04-search/tfidf-and-bm25.md", zh = "BM25", en = "BM25" },
+  { note = "04-search/dual-encoder.md", zh = "双塔检索", en = "Dual encoders" },
+  { note = "04-search/vector-indexes.md", zh = "向量索引", en = "Vector indexes" },
+  { note = "04-search/hybrid-and-reranking.md", zh = "混合检索与重排", en = "Hybrid & reranking" },
+  { note = "04-search/rag-evidence.md", zh = "RAG 证据", en = "RAG evidence" },
+  { note = "02-memory/memory-lifecycle.md", zh = "记忆", en = "Memory" },
+  { note = "10-agents/tools-and-skills.md", zh = "工具与技能", en = "Tools & skills" },
+  { note = "10-agents/patterns.md", zh = "Agent 模式", en = "Agent patterns" },
+]
+
+[[zone]]
+id = "beyond"
+zh = "不止文字"
+en = "Beyond text"
+summary_zh = "图像、视频、相机、汽车和机器人。"
+summary_en = "Images, video, cameras, cars and robots."
+stops = [
+  { note = "03-multimodal-learning/vit.md", zh = "ViT", en = "ViT" },
+  { note = "03-multimodal-learning/clip.md", zh = "CLIP", en = "CLIP" },
+  { note = "03-multimodal-learning/vision-to-language.md", zh = "视觉接入语言模型", en = "Vision into language" },
+  { note = "13-embodied/perception/camera-geometry.md", zh = "相机几何", en = "Camera geometry" },
+  { note = "13-embodied/driving/README.md", zh = "自动驾驶", en = "Driving" },
+  { note = "13-embodied/robot-learning/README.md", zh = "机器人学习", en = "Robot learning" },
+]
+
+[[zone]]
+id = "deeper"
+zh = "延伸阅读"
+en = "Go deeper"
+summary_zh = "模型报告、组件设计、MoE、Looped 模型和经典深度强化学习，学习线上的某一站指过来时再读。"
+summary_en = "Model reports, components, MoE, looped models and classic deep RL, for when a stop sends you there."
+
+[[zone]]
+id = "moving"
+zh = "还在变化"
+en = "Still moving"
 summary_zh = "变化快、还没定型的方向：先分清说的是哪件事，再看证据走到了哪一步。"
 summary_en = "Fast-moving directions that have not settled: pin down what is meant, then see how far the evidence goes."
 
@@ -131,7 +234,7 @@ home = "learn/README.md"
 [[group]]
 id = "foundations"
 category = "learn"
-zone = "basics"
+zone = "reads"
 zh = "大模型基础"
 en = "Foundations"
 home = "00-foundations/README.md"
@@ -139,29 +242,9 @@ summary_zh = "先看文本怎样进入模型，再把 Attention、FFN 和整个 
 summary_en = "Follow text into a model, then connect attention, FFNs, and the full Transformer."
 
 [[group]]
-id = "architectures"
-category = "learn"
-zone = "basics"
-zh = "架构与模型家族"
-en = "Architectures & model families"
-home = "00-foundations/model-families/README.md"
-summary_zh = "带着基础读模型报告：哪些部件变了，为什么变，代价在哪里。"
-summary_en = "Read model reports by asking what changed, why it changed, and what it costs."
-
-[[group]]
-id = "multimodal"
-category = "learn"
-zone = "basics"
-zh = "多模态学习"
-en = "Multimodal learning"
-home = "03-multimodal-learning/README.md"
-summary_zh = "从 ViT 的图片输入、CLIP 图文配对，走到视觉特征怎样进入语言模型。"
-summary_en = "Follow images through ViT, CLIP alignment, and connectors into language models."
-
-[[group]]
 id = "pretraining"
 category = "learn"
-zone = "applications"
+zone = "learns"
 zh = "预训练与训练工程"
 en = "Pretraining & training mechanics"
 home = "learn/pretraining/README.md"
@@ -169,19 +252,9 @@ summary_zh = "从目标、数据和一个 batch 出发，算清精度、显存�
 summary_en = "Connect the objective, data, and one batch to precision, memory, and distributed execution."
 
 [[group]]
-id = "deep-rl"
-category = "learn"
-zone = "applications"
-zh = "强化学习"
-en = "Deep RL"
-home = "05-post-training/deep-rl/README.md"
-summary_zh = "先在小环境里理解回报、价值和策略，再看算法为什么稳定或失效。"
-summary_en = "Understand returns, values, and policies in small environments before comparing algorithms."
-
-[[group]]
 id = "posttrain"
 category = "learn"
-zone = "applications"
+zone = "taught"
 zh = "Post-training"
 en = "Post-training"
 home = "05-post-training/README.md"
@@ -191,7 +264,7 @@ summary_en = "Separate demonstrations, preferences, and rewards before choosing 
 [[group]]
 id = "eval"
 category = "learn"
-zone = "applications"
+zone = "check"
 zh = "评估"
 en = "Evaluation"
 home = "07-evaluation/README.md"
@@ -201,7 +274,7 @@ summary_en = "Make comparisons meaningful, then examine metrics, slices, uncerta
 [[group]]
 id = "inference"
 category = "learn"
-zone = "design"
+zone = "runs"
 zh = "生成、长上下文与推理"
 en = "Generation, context & inference"
 home = "learn/inference/README.md"
@@ -209,9 +282,19 @@ summary_zh = "区分如何选下一个 token、如何缓存状态，以及怎样
 summary_en = "Separate token selection, cached state, memory traffic, and the number of attention pairs."
 
 [[group]]
+id = "infra"
+category = "learn"
+zone = "runs"
+zh = "AI 基础设施"
+en = "AI infrastructure"
+home = "12-infra/README.md"
+summary_zh = "一次请求背后的整条链路：从晶圆、芯片、GPU 和 CUDA，到框架、集群和产品。"
+summary_en = "The whole chain behind one request: wafers, chips, GPUs and CUDA, up to frameworks, clusters and products."
+
+[[group]]
 id = "data-retrieval"
 category = "learn"
-zone = "design"
+zone = "world"
 zh = "数据、记忆与检索"
 en = "Data, memory & retrieval"
 home = "01-data-and-feedback/README.md"
@@ -221,7 +304,7 @@ summary_en = "Logs are not intent, and retrieval is not an answer. Follow the si
 [[group]]
 id = "agents"
 category = "learn"
-zone = "design"
+zone = "world"
 zh = "Agents"
 en = "Agents"
 home = "10-agents/README.md"
@@ -231,7 +314,7 @@ summary_en = "How models choose tools, maintain state, recover from failures, an
 [[group]]
 id = "systems"
 category = "learn"
-zone = "design"
+zone = "world"
 zh = "AI 系统与体验"
 en = "AI systems & experience"
 home = "06-systems/README.md"
@@ -239,19 +322,19 @@ summary_zh = "从一次请求到长期使用：排查失败、处理重试与人
 summary_en = "From one request to repeated use: diagnose failures, recover safely, involve people, and measure whether the system helps."
 
 [[group]]
-id = "infra"
+id = "multimodal"
 category = "learn"
-zone = "design"
-zh = "AI 基础设施"
-en = "AI infrastructure"
-home = "12-infra/README.md"
-summary_zh = "一次请求背后的整条链路：从晶圆、芯片、GPU 和 CUDA，到框架、集群和产品。"
-summary_en = "The whole chain behind one request: wafers, chips, GPUs and CUDA, up to frameworks, clusters and products."
+zone = "beyond"
+zh = "多模态学习"
+en = "Multimodal learning"
+home = "03-multimodal-learning/README.md"
+summary_zh = "从 ViT 的图片输入、CLIP 图文配对，走到视觉特征怎样进入语言模型。"
+summary_en = "Follow images through ViT, CLIP alignment, and connectors into language models."
 
 [[group]]
 id = "embodied"
 category = "learn"
-zone = "design"
+zone = "beyond"
 zh = "感知、机器人与自动驾驶"
 en = "Perception, robots & driving"
 home = "13-embodied/README.md"
@@ -259,9 +342,29 @@ summary_zh = "从像素到动作：相机几何与跟踪、鸟瞰图与规划、
 summary_en = "From pixels to actions: camera geometry and tracking, bird's-eye view and planning, imitation learning and VLAs."
 
 [[group]]
+id = "architectures"
+category = "learn"
+zone = "deeper"
+zh = "架构与模型家族"
+en = "Architectures & model families"
+home = "00-foundations/model-families/README.md"
+summary_zh = "带着基础读模型报告：哪些部件变了，为什么变，代价在哪里。"
+summary_en = "Read model reports by asking what changed, why it changed, and what it costs."
+
+[[group]]
+id = "deep-rl"
+category = "learn"
+zone = "deeper"
+zh = "强化学习"
+en = "Deep RL"
+home = "05-post-training/deep-rl/README.md"
+summary_zh = "先在小环境里理解回报、价值和策略，再看算法为什么稳定或失效。"
+summary_en = "Understand returns, values, and policies in small environments before comparing algorithms."
+
+[[group]]
 id = "frontier"
 category = "learn"
-zone = "frontier"
+zone = "moving"
 zh = "前沿"
 en = "Frontier"
 home = "11-frontier/README.md"

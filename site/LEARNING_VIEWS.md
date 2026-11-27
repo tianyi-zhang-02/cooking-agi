@@ -3,7 +3,7 @@
 The KV cache note is the first pilot. Its existing Chinese and English URLs, Markdown source, note ID, search index and full article stay unchanged. `learning_views.py` adds authored views when assembling this note; other notes do not load the view assets.
 
 - **Quick read:** one small example, the mechanism, its costs and assumptions.
-- **Visual lab:** the same example, with manual steps and optional playback. Counts describe causal attention scores per layer/head, not measured speedups.
+- **Visual lab:** the same example, with manual steps and optional playback. Counts describe causal attention scores per layer/head, not measured speedups. Under the lanes, a short `prefill` / `decode` sketch in Python marks the lines the current step runs and says what the cache holds afterwards; each line names the steps it belongs to in `data-code-steps`. One check question follows; its answer is shown in place and nothing is stored.
 - **Full note:** the original article, with all examples, derivations, references and anchors.
 
 An unfragmented URL opens Quick read when JavaScript works. `?view=lab&step=1` links to a particular lab state; `?view=full` opens the complete article. Any existing fragment opens Full note, including search results and saved reading positions. View changes use browser history; steps replace the current history entry. Language links keep the selected view and step.

@@ -16,16 +16,9 @@ For hands-on work, try the experiments alongside the notes, then visit [Engineer
 
 ## Start with the foundations
 
-If vectors, losses, and gradients are still unfamiliar, begin with [linear models to neural networks](../00-foundations/from-linear-to-neural.en.md). Steps 1–3 below explain computation and learning; step 5 covers checking the result. Post-training and inference optimization can wait until you need them. Pair your reading with the [small PyTorch experiments](../00-foundations/pytorch/README.en.md).
+The concepts are arranged as seven tracks. Each track is a line of stops in reading order, and each stop explains one idea; the top of every stop says which track it is on, what to read first, and where to go next. If vectors, losses, and gradients are still unfamiliar, start at the first stop of the first track, [linear models to neural networks](../00-foundations/from-linear-to-neural.en.md). Pair your reading with the [small PyTorch experiments](../00-foundations/pytorch/README.en.md).
 
-<nav class="study-route" aria-label="Suggested reading route">
-<a href="../00-foundations/core/tokenization.en.md"><small>01 / INPUT</small><strong>From text to vectors</strong><span>Tokens, vocabularies, and sequences</span></a>
-<a href="../00-foundations/core/README.en.md"><small>02 / MODEL</small><strong>What a Transformer computes</strong><span>Attention, residuals, norms, and FFNs</span></a>
-<a href="pretraining/README.en.md"><small>03 / TRAINING</small><strong>How data changes parameters</strong><span>Objectives, gradients, and an update</span></a>
-<a href="../05-post-training/README.en.md"><small>04 / BEHAVIOR</small><strong>Examples, preferences, and rewards</strong><span>SFT, distillation, and reinforcement learning</span></a>
-<a href="../07-evaluation/README.en.md"><small>05 / EVALUATION</small><strong>Did anything actually improve?</strong><span>Comparisons, metrics, and concrete errors</span></a>
-<a href="inference/README.en.md"><small>06 / GENERATION</small><strong>Computing an answer</strong><span>Sampling, caching, and inference cost</span></a>
-</nav>
+<!-- widget:track-map -->
 
 To connect mathematics with implementation, begin with [matrix gradients and training systems](../00-foundations/deep-dives/matrix-gradients-to-systems.en.md), then follow the [one-question reading route](../practice/runtime-reading/README.en.md#small-steps) into attention, multiple GPUs, inference, and NeMo RL.
 
@@ -81,7 +74,7 @@ These are the prerequisites for reading. For example, you can build RAG before s
 
 ## All chapters
 
-The chapters fall into four areas that match the sidebar: **understanding models, training and evaluation, inference and applications, and frontier watch**. Click a title for its overview, or expand a chapter to find its articles. Related subjects link to each other inside the notes.
+The complete catalog matches the sidebar: the seven tracks above, then **Go deeper** (model reports, components, MoE, looped models and classic deep RL) and **Still moving** (frontier directions). Click a title for its overview, or expand a chapter to find its articles. Every note that is not a stop on a track is here, at the same address as before.
 
 <!-- widget:study-atlas -->
 
