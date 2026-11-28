@@ -2452,8 +2452,29 @@ def page_needs(condition, page, output):
     return any(marker in page.body for marker in condition.split("|"))
 
 
+# A pull-request preview (python site/build.py --preview 156) is the same site with three
+# differences: it says it is a preview, it asks search engines to skip it, and it keeps its own
+# reading records, so trying a change never rewrites the live site's (same origin, same browser).
+PREVIEW = None   # the pull request number while building a preview
+
+
+def progress_key() -> str:
+    """The localStorage key of the reader's records (static/prep-progress-store.js reads it from window.SITE)."""
+    return f"cooking-agi:pr-{PREVIEW}:prep-progress" if PREVIEW else "cooking-agi:prep-progress"
+
+
+def preview_marks(template: str, nav, zh: bool) -> str:
+    if not PREVIEW:
+        return template
+    pull = f'https://github.com/{nav["site"]["repo"]}/pull/{PREVIEW}'
+    label = f"预览 · PR #{PREVIEW}，不是正式站点" if zh else f"Preview · PR #{PREVIEW}, not the live site"
+    return (template.replace('</head>', '<meta name="robots" content="noindex, nofollow">\n</head>', 1)
+            .replace('</body>', f'<a class="preview-pill" href="{pull}">{label}</a>\n</body>', 1))
+
+
 def assemble(page, sections, nav, built, template):
     site = nav["site"]
+    template = preview_marks(template.replace("{{progress_key}}", progress_key()), nav, page.lang == "zh")
     template = (template.replace("{{assets}}", static_version())
                 .replace("{{search_zh}}", SEARCH_VERSIONS["zh"])
                 .replace("{{search_en}}", SEARCH_VERSIONS["en"]))
@@ -2590,7 +2611,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--serve", action="store_true")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--preview", type=int, metavar="PR", help="build the preview of this pull request (see PREVIEW)")
     args = ap.parse_args()
+    global PREVIEW
+    if args.preview is not None:
+        if args.preview <= 0:
+            ap.error("--preview takes a pull request number")
+        PREVIEW = args.preview
 
     nav = load_nav()
     collaboration.validate(collaboration.load_config(), nav)

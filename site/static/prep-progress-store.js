@@ -1,6 +1,8 @@
 (function (scope) {
   'use strict';
-  const KEY = 'cooking-agi:prep-progress';
+  // A pull-request preview keeps its own records (build.py --preview sets window.SITE.progressKey).
+  const PREVIEW_KEY = /^cooking-agi:pr-[1-9][0-9]{0,6}:prep-progress$/;
+  const KEY = scope.SITE && PREVIEW_KEY.test(scope.SITE.progressKey) ? scope.SITE.progressKey : 'cooking-agi:prep-progress';
   const RECOVERY_KEY = KEY + ':before-import';
   const SNAPSHOTS_KEY = KEY + ':snapshots';
   const FORMAT = 'cooking-agi-prep-progress';
