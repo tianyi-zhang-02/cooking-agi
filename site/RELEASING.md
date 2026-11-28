@@ -23,6 +23,16 @@ Check generated local links and anchors. Record counts, skips, errors, and the t
 
 No GPU or hardware performance claim follows from these CPU/site tests. Semantic review, rights checks, and current primary sources remain separate tasks. An AI report is advisory, not a CODEOWNER approval.
 
+## Pull-request previews
+
+Every pull request from this repository gets a preview at `https://tianyi-zhang-02.github.io/cooking-agi/pr-preview/pr-<N>/`, linked in a comment on the PR. GitHub Pages stays the host; the previews deploy with main.
+
+- The PR's run builds the site again with `python site/build.py --preview <N>`. A preview says so (a pill in the corner that links the PR), asks search engines to skip it, and keeps reading records under its own key, so trying it never changes the live site's records in the same browser. Theme, palette and text size are shared with the live site; the language choice is not.
+- That build is kept as the `preview-pr-<N>` artifact for 14 days, and the run starts a deploy of main. Every deploy of main (a merge, the hourly run, or one a PR started) adds the previews of up to four open PRs, newest activity first, through `.github/scripts/collect-previews.sh`. GitHub Pages caps a site at 1 GB and one copy is about 120 MB.
+- Closing the PR starts another deploy, which leaves the preview out, and the comment says so.
+- PRs from forks get no preview: their code never runs with a write token or reaches the site's origin. A preview with no new push for 14 days drops out at the next deploy; push again to rebuild it.
+- A preview is for looking, not for approval: review the diff and the required `build` check as usual.
+
 ## Merge, deploy, release
 
 1. Read the latest remote main, existing PRs, tags, releases, and protection state. Don't append new work to a merged PR, reuse an existing tag, rewrite shared history, or sweep another author's changes into a release.

@@ -1889,3 +1889,10 @@ html.lang-zh .prose .code-tab { font-family: var(--body); }
   .prose .code-panel[hidden], .prose .code-lines .cl[hidden] { display: block; }
   .prose .code-lines .cl-fold { display: none; }
 }
+
+/* ---------------------------------------------------------------- a pull-request preview says so
+   build.py --preview adds this pill (and noindex); the live site never has it. */
+.preview-pill { position: fixed; left: 14px; bottom: 14px; z-index: 95; padding: 6px 13px; border-radius: var(--r-pill);
+  background: var(--ember); color: var(--paper); font: 600 var(--fs-13)/1.4 var(--sans); text-decoration: none; box-shadow: var(--elev-1); }
+.preview-pill:hover { background: var(--link-hover); color: var(--paper); }
+@media print { .preview-pill { display: none; } }
